@@ -90,7 +90,7 @@ final class ReviewList
                 'room' => (string) ($r->roomType->name ?? ''),
                 'villa' => (string) ($r->unit->name ?? $r->unit->code ?? $r->roomType->name ?? ''),
                 'unit_key' => (string) ($r->unit_id ?? ''),
-                'at' => $publishedAt?->format('M Y') ?? '',
+                'at' => $publishedAt?->translatedFormat('M Y') ?? '',
                 'when' => $publishedAt?->diffForHumans() ?? '',
             ];
         })->all();
@@ -109,12 +109,12 @@ final class ReviewList
     private static function sourceLabel(?string $source): string
     {
         return match ($source) {
-            'ota' => 'OTA',
-            'walk_in' => 'Walk-in',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            default => 'Direct',   // direct / manual / null
+            'ota' => __('php/support/reviews/review_list.source_ota'),
+            'walk_in' => __('php/support/reviews/review_list.source_walk_in'),
+            'corporate' => __('php/support/reviews/review_list.source_corporate'),
+            'group' => __('php/support/reviews/review_list.source_group'),
+            'agent' => __('php/support/reviews/review_list.source_agent'),
+            default => __('php/support/reviews/review_list.source_direct'),   // direct / manual / null
         };
     }
 }

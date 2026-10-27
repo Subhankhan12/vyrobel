@@ -56,8 +56,8 @@ class UnitRateActionController extends Controller
 
             if ($preview['units'] === []) {
                 return $this->back($ctx['from'], $ctx['mode'] === UnitRateOverrideService::MODE_CLEAR
-                    ? 'None of those units have their own price in that range — there is nothing to clear.'
-                    : 'Choose at least one unit to price.');
+                    ? __('php/http/controllers/operator/unit_rate_action_controller.nothing_to_clear')
+                    : __('php/http/controllers/operator/unit_rate_action_controller.choose_unit_to_price'));
             }
 
             return $this->back($ctx['from'], null, refused: false)->with('unit_rate_preview', $preview + [
@@ -79,7 +79,7 @@ class UnitRateActionController extends Controller
             if ($digest === '') {
                 // ⚠️ NO APPROVAL, NO WRITE. A bulk apply that arrives without the previewed digest has not
                 // been through the gate, so it is refused rather than trusted.
-                return $this->back($ctx['from'], 'Preview the change before applying it.');
+                return $this->back($ctx['from'], __('php/http/controllers/operator/unit_rate_action_controller.preview_first'));
             }
 
             try {
@@ -103,28 +103,28 @@ class UnitRateActionController extends Controller
         $from = $this->dateString($request->input('start_date'));
 
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($from, 'Your workspace is read-only right now — rate changes are paused.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.read_only'));
         }
 
         $to = $this->dateString($request->input('end_date'));
         if ($from === null || $to === null) {
-            return $this->back($from, 'Choose valid start and end dates.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.invalid_dates'));
         }
 
         $start = CarbonImmutable::parse($from)->startOfDay();
         $endInclusive = CarbonImmutable::parse($to)->startOfDay();
         if ($endInclusive->lt($start)) {
-            return $this->back($from, 'The end date can’t be before the start date.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.end_before_start'));
         }
 
         $endExclusive = $endInclusive->addDay();
         if ((int) $start->diffInDays($endExclusive) > UnitRateOverrideService::MAX_SPAN_NIGHTS) {
-            return $this->back($from, 'That date range is too long — please apply at most a year at a time.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.range_too_long'));
         }
 
         $mode = (string) $request->input('mode');
         if (! in_array($mode, UnitRateOverrideService::MODES, true)) {
-            return $this->back($from, 'Choose whether to set a price or clear the per-unit prices.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.choose_mode'));
         }
 
         // ⚠️ Parse the money BEFORE anything else touches the database, so an invalid figure rejects cleanly.
@@ -132,20 +132,20 @@ class UnitRateActionController extends Controller
         if ($mode === UnitRateOverrideService::MODE_SET) {
             $priceMinor = MoneyInput::toMinor((string) $request->input('amount', ''), self::MAX_PRICE_MINOR);
             if ($priceMinor === null) {
-                return $this->back($from, 'Enter a valid nightly rate, e.g. 175 or 175.50.');
+                return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.invalid_rate'));
             }
         }
 
         $roomTypeId = (string) $request->input('room_type_id', '');
         if ($roomTypeId === '') {
-            return $this->back($from, 'Choose a room type.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.choose_room_type'));
         }
 
         /** @var RoomType $roomType — through the global scope, so a cross-org id 404s */
         $roomType = app(RateScope::class)->roomType($roomTypeId);   // DEC-l (2026-09-30) — inside the person's properties
         $plan = $roomType->primaryRatePlan();
         if (! $plan instanceof RatePlan) {
-            return $this->back($from, 'That room type has no rate plan, so there is nowhere to store a price.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.no_rate_plan'));
         }
 
         // ⚠️ The unit set is narrowed to THIS room type as well as this tenant — a unit of another type can
@@ -164,10 +164,10 @@ class UnitRateActionController extends Controller
             ->orderBy('code')->get(['id', 'name', 'code']);
 
         if ($units->isEmpty()) {
-            return $this->back($from, 'Choose at least one unit.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.choose_unit'));
         }
         if ($units->count() > UnitRateOverrideService::MAX_UNITS) {
-            return $this->back($from, 'That is too many units for one operation.');
+            return $this->back($from, __('php/http/controllers/operator/unit_rate_action_controller.too_many_units'));
         }
 
         return $then([
@@ -188,16 +188,18 @@ class UnitRateActionController extends Controller
     private function summary(array $result, array $names): string
     {
         $units = (int) $result['units'];
-        $label = $units.' '.($units === 1 ? 'unit' : 'units');
 
         if ($result['mode'] === UnitRateOverrideService::MODE_CLEAR) {
-            return 'Cleared the per-unit price for '.$label.' — '.($units === 1 ? 'it now follows' : 'they now follow').' the room-type rate again.';
+            return trans_choice('php/http/controllers/operator/unit_rate_action_controller.cleared_summary', $units, ['count' => $units]);
         }
 
         // ⚠️ NIGHTS, not rows — this said "across 6 nights" for two units over three nights (2026-10-01).
         $nights = (int) $result['nights'];
 
-        return 'Priced '.$label.' individually for '.$nights.' '.($nights === 1 ? 'night' : 'nights').'.';
+        return __('php/http/controllers/operator/unit_rate_action_controller.priced_summary', [
+            'units' => trans_choice('php/http/controllers/operator/unit_rate_action_controller.units_count', $units, ['count' => $units]),
+            'nights' => trans_choice('php/http/controllers/operator/unit_rate_action_controller.nights_count', $nights, ['count' => $nights]),
+        ]);
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */

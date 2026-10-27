@@ -43,7 +43,7 @@ class EnforceSessionTimeout
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                $message = 'You were signed out after '.SessionTimeout::label($minutes).' without activity, as your Security settings ask.';
+                $message = __('php/http/middleware/enforce_session_timeout.signed_out_idle', ['duration' => SessionTimeout::label($minutes)]);
 
                 return $request->expectsJson()
                     ? response()->json(['message' => $message], 401)

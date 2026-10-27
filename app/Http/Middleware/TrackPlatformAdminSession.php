@@ -33,13 +33,13 @@ class TrackPlatformAdminSession
         }
 
         if (! $admin->isActive()) {
-            return $this->end($request, 'revoked', 'This console account is not active.');
+            return $this->end($request, 'revoked', __('php/http/middleware/track_platform_admin_session.account_not_active'));
         }
 
         $verdict = $this->sessions->check($request, $admin);
 
         if ($verdict !== null) {
-            return $this->end($request, null, 'Your console session was ended. Sign in again to continue.');
+            return $this->end($request, null, __('php/http/middleware/track_platform_admin_session.session_ended'));
         }
 
         return $next($request);

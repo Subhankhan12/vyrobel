@@ -123,7 +123,7 @@ class ReservationDetail extends Component
         // ⚠️ #30 — gated on `folios.manage`, the SAME permission the route enforces.
         $billedToId = $folioModel?->billed_to_account_id;
         $billedTo = $billedToId !== null
-            ? (string) (CompanyAccount::query()->whereKey($billedToId)->value('name') ?? 'a company account')
+            ? (string) (CompanyAccount::query()->whereKey($billedToId)->value('name') ?? __('php/livewire/reservation_detail.a_company_account'))
             : null;
         $canManageFolio = (bool) auth()->user()?->can('folios.manage');
 
@@ -206,8 +206,8 @@ class ReservationDetail extends Component
                 'status' => $status,
                 'status_label' => $meta['label'],
                 'tone' => $meta['tone'],
-                'check_in' => $checkIn->format('j M Y'),
-                'check_out' => $checkOut->format('j M Y'),
+                'check_in' => $checkIn->translatedFormat('j M Y'),
+                'check_out' => $checkOut->translatedFormat('j M Y'),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'currency' => $currency,
@@ -220,9 +220,10 @@ class ReservationDetail extends Component
                 'id' => (string) $line->id,
                 'room_type' => (string) $line->roomType->name,
                 'unit' => $line->unit?->code,
-                'check_in' => CarbonImmutable::parse($line->check_in)->format('j M'),
-                'check_out' => CarbonImmutable::parse($line->check_out)->format('j M'),
+                'check_in' => CarbonImmutable::parse($line->check_in)->translatedFormat('j M'),
+                'check_out' => CarbonImmutable::parse($line->check_out)->translatedFormat('j M'),
                 'status' => (string) $line->status,
+                'status_label' => $this->unitStatusLabel((string) $line->status),
                 'price' => $this->money((int) $line->price_minor, $currency),
                 // Batch C — the SAME-room-type units free for this line's dates (the move picker). Only an
                 // ACTIVE line on a non-terminal reservation can move.
@@ -230,10 +231,10 @@ class ReservationDetail extends Component
             ])->all(),
             'can_move' => $canMove,
             'charge_types' => [
-                ['value' => 'add_on', 'label' => 'Service'],
-                ['value' => 'product', 'label' => 'Product'],
-                ['value' => 'fee', 'label' => 'Fee'],
-                ['value' => 'manual', 'label' => 'Other'],
+                ['value' => 'add_on', 'label' => __('php/livewire/reservation_detail.charge_type_service')],
+                ['value' => 'product', 'label' => __('php/livewire/reservation_detail.charge_type_product')],
+                ['value' => 'fee', 'label' => __('php/livewire/reservation_detail.charge_type_fee')],
+                ['value' => 'manual', 'label' => __('php/livewire/reservation_detail.charge_type_other')],
             ],
             // Batch C · GATE 3 — a per-render nonce for the payment form's idempotency: a double-click of the
             // SAME rendered form submits the SAME key → recorded ONCE; a genuine second payment is a new
@@ -318,17 +319,19 @@ class ReservationDetail extends Component
             'tone' => $meta['tone'],
             'stage_label' => $stageMeta['label'],
             'stage_tone' => $stageMeta['tone'],
-            'at_label' => $isNoShow ? 'Marked no-show at' : 'Cancelled at',
+            // the view picks the banner's colour from this code, never from the label (rule 10)
+            'is_no_show' => $isNoShow,
+            'at_label' => $isNoShow ? __('php/livewire/reservation_detail.marked_no_show_at') : __('php/livewire/reservation_detail.cancelled_at'),
             'at' => $reservation->cancelled_at !== null
-                ? CarbonImmutable::parse($reservation->cancelled_at)->format('j M Y · H:i')
+                ? CarbonImmutable::parse($reservation->cancelled_at)->translatedFormat('j M Y · H:i')
                 : null,
             'reason' => $reason !== '' ? $reason : null,
             // The ONE consequence that is real and automatic — terminate() → releaseLine() → sold−−.
             'released' => $isNoShow
-                ? 'Every held night was released when this booking was marked a no-show — the unit is back on the calendar and can be resold.'
-                : 'Every held night was released when this booking was cancelled — the unit is back on the calendar and can be resold.',
+                ? __('php/livewire/reservation_detail.released_no_show')
+                : __('php/livewire/reservation_detail.released_cancelled'),
             // DEFERRED (locked decision 5): no fee engine exists. A LABEL only — never a figure.
-            'fee_label' => $isNoShow ? 'No-show fee · waiver' : 'Cancellation fee',
+            'fee_label' => $isNoShow ? __('php/livewire/reservation_detail.fee_no_show') : __('php/livewire/reservation_detail.fee_cancellation'),
         ];
     }
 
@@ -367,8 +370,8 @@ class ReservationDetail extends Component
             $entries[] = [
                 'ts' => CarbonImmutable::parse($row->created_at),
                 'sort' => (string) $row->id,
-                'label' => $from !== null ? $from.' → '.$to : $to,
-                'actor' => $actor instanceof User ? (string) $actor->name : 'System',
+                'label' => $from !== null ? __('php/livewire/reservation_detail.transition', ['from' => $from, 'to' => $to]) : $to,
+                'actor' => $actor instanceof User ? (string) $actor->name : __('php/livewire/reservation_detail.system'),
                 'reason' => trim((string) ($row->reason ?? '')) ?: null,
                 'is_money' => false,
             ];
@@ -387,9 +390,9 @@ class ReservationDetail extends Component
             $names = User::query()->whereIn('id', $events->pluck('actor_id')->filter()->all())->pluck('name', 'id')->all();
             foreach ($events as $event) {
                 $label = match ((string) $event->action) {
-                    'payment.recorded' => 'Payment recorded',
-                    'payment.settled' => 'Payment settled',
-                    'payment.refunded' => 'Refund issued',
+                    'payment.recorded' => __('php/livewire/reservation_detail.action_payment_recorded'),
+                    'payment.settled' => __('php/livewire/reservation_detail.action_payment_settled'),
+                    'payment.refunded' => __('php/livewire/reservation_detail.action_payment_refunded'),
                     default => ucfirst(str_replace('payment.', '', (string) $event->action)),
                 };
                 $actorId = $event->actor_id !== null ? (string) $event->actor_id : null;
@@ -397,7 +400,7 @@ class ReservationDetail extends Component
                     'ts' => CarbonImmutable::parse($event->created_at),
                     'sort' => (string) $event->getKey(),
                     'label' => $label,
-                    'actor' => $actorId !== null ? ($names[$actorId] ?? 'A team member') : 'System',
+                    'actor' => $actorId !== null ? ($names[$actorId] ?? __('php/livewire/reservation_detail.a_team_member')) : __('php/livewire/reservation_detail.system'),
                     'reason' => null,
                     'is_money' => true,
                 ];
@@ -409,7 +412,7 @@ class ReservationDetail extends Component
 
         return array_map(fn (array $e): array => [
             'label' => $e['label'],
-            'at' => $e['ts']->format('j M Y · H:i'),
+            'at' => $e['ts']->translatedFormat('j M Y · H:i'),
             'actor' => $e['actor'],
             'reason' => $e['reason'],
             'is_money' => $e['is_money'],
@@ -442,12 +445,12 @@ class ReservationDetail extends Component
 
         $guestNote = trim((string) ($reservation->notes_guest ?? ''));
         if ($guestNote !== '') {
-            $notes[] = ['kind' => 'guest', 'label' => 'From the guest', 'body' => $guestNote];
+            $notes[] = ['kind' => 'guest', 'label' => __('php/livewire/reservation_detail.note_from_guest'), 'body' => $guestNote];
         }
 
         $internalNote = trim((string) ($reservation->notes_internal ?? ''));
         if ($internalNote !== '') {
-            $notes[] = ['kind' => 'internal', 'label' => 'Internal team note', 'body' => $internalNote];
+            $notes[] = ['kind' => 'internal', 'label' => __('php/livewire/reservation_detail.note_internal'), 'body' => $internalNote];
         }
 
         return $notes;
@@ -499,8 +502,8 @@ class ReservationDetail extends Component
             if (array_key_exists('free_until_days', $policy) && is_numeric($policy['free_until_days'])) {
                 $days = (int) $policy['free_until_days'];
                 $parts[] = $days > 0
-                    ? 'free until '.$days.' '.Str::plural('day', $days).' before arrival'
-                    : 'free until the arrival day';
+                    ? trans_choice('php/livewire/reservation_detail.free_until_days', $days, ['count' => $days])
+                    : __('php/livewire/reservation_detail.free_until_arrival');
             }
 
             if ($parts === []) {
@@ -530,7 +533,7 @@ class ReservationDetail extends Component
                 'entry' => [
                     'label' => $this->folioItemLabel((string) $item->type),
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->format('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
                     'amount' => ($amount < 0 ? '' : '+').$this->money($amount, $currency),
                     'tone' => $amount < 0 ? 'refund' : 'charge',
                     'flag' => null,
@@ -574,7 +577,7 @@ class ReservationDetail extends Component
         $amount = (int) $payment->amount_minor;
         $type = (string) $payment->type;
         $status = (string) $payment->status;
-        $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M');
+        $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M');
 
         // Settled inbound money — reduces the balance. Refundable ONLY while un-refunded headroom remains:
         // `refundable => true` for any settled payment is what kept the button on screen after a full refund
@@ -588,12 +591,12 @@ class ReservationDetail extends Component
             $methodLabel = $payment->methodLabel();
 
             return [
-                'label' => $type === 'capture' ? 'Capture' : 'Payment',
-                'desc' => 'Received'.($methodLabel !== null ? ' · '.$methodLabel : ''),
+                'label' => $type === 'capture' ? __('php/livewire/reservation_detail.type_capture') : __('php/livewire/reservation_detail.type_payment'),
+                'desc' => $methodLabel !== null ? __('php/livewire/reservation_detail.received_via', ['method' => $methodLabel]) : __('php/livewire/reservation_detail.received'),
                 'date' => $date,
                 'amount' => '−'.$this->money($amount, $currency),
                 'tone' => 'paid',
-                'flag' => $remaining > 0 && $remaining < $amount ? 'Partly refunded' : null,
+                'flag' => $remaining > 0 && $remaining < $amount ? __('php/livewire/reservation_detail.partly_refunded') : null,
                 'refundable' => $remaining > 0,
                 'remaining_refundable_minor' => $remaining,
                 'remaining_refundable' => $this->money($remaining, $currency),
@@ -603,17 +606,57 @@ class ReservationDetail extends Component
 
         // Refund — its OWN offsetting line; the original payment line is untouched (correct-by-reversal).
         if ($type === 'refund' && $status === 'succeeded') {
-            return ['label' => 'Refund', 'desc' => 'Reverses a payment', 'date' => $date, 'amount' => '+'.$this->money($amount, $currency), 'tone' => 'refund', 'flag' => null, 'refundable' => false, 'payment_id' => null];
+            return ['label' => __('php/livewire/reservation_detail.type_refund'), 'desc' => __('php/livewire/reservation_detail.reverses_payment'), 'date' => $date, 'amount' => '+'.$this->money($amount, $currency), 'tone' => 'refund', 'flag' => null, 'refundable' => false, 'payment_id' => null];
         }
 
         // A real deposit/pre-authorization hold (shown only because the row genuinely exists).
         if ($type === 'deposit_hold' && $status === 'authorized') {
-            return ['label' => 'Deposit hold', 'desc' => 'Pre-authorized', 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'hold', 'flag' => 'Hold', 'refundable' => false, 'payment_id' => null];
+            return ['label' => __('php/livewire/reservation_detail.type_deposit_hold'), 'desc' => __('php/livewire/reservation_detail.pre_authorized'), 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'hold', 'flag' => __('php/livewire/reservation_detail.flag_hold'), 'refundable' => false, 'payment_id' => null];
         }
 
         // Pending (3DS/processing) or failed/voided — real rows, no balance effect, flagged honestly.
-        $flag = in_array($status, ['pending'], true) ? 'Pending' : ucfirst($status);
+        $flag = $this->paymentStatusFlag($status);
 
-        return ['label' => ucfirst($type === 'deposit_hold' ? 'Deposit hold' : $type), 'desc' => 'Not counted in the balance', 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'muted', 'flag' => $flag, 'refundable' => false, 'payment_id' => null];
+        return ['label' => $this->paymentTypeLabel($type), 'desc' => __('php/livewire/reservation_detail.not_counted'), 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'muted', 'flag' => $flag, 'refundable' => false, 'payment_id' => null];
+    }
+
+    /** A reservation unit line's status, by its code (reservation_units.status); an unknown code reads as before. */
+    private function unitStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'active' => __('php/livewire/reservation_detail.unit_status_active'),
+            'cancelled' => __('php/livewire/reservation_detail.unit_status_cancelled'),
+            'moved' => __('php/livewire/reservation_detail.unit_status_moved'),
+            default => ucfirst($status),
+        };
+    }
+
+    /** A not-counted payment line's label, by its type code (payments.type); an unknown code reads as before. */
+    private function paymentTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'payment' => __('php/livewire/reservation_detail.type_payment'),
+            'capture' => __('php/livewire/reservation_detail.type_capture'),
+            'refund' => __('php/livewire/reservation_detail.type_refund'),
+            'deposit_hold' => __('php/livewire/reservation_detail.type_deposit_hold'),
+            'void' => __('php/livewire/reservation_detail.type_void'),
+            'chargeback' => __('php/livewire/reservation_detail.type_chargeback'),
+            default => ucfirst($type),
+        };
+    }
+
+    /** A not-counted payment line's flag, by its status code (payments.status); an unknown code reads as before. */
+    private function paymentStatusFlag(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('php/livewire/reservation_detail.flag_pending'),
+            'succeeded' => __('php/livewire/reservation_detail.flag_succeeded'),
+            'failed' => __('php/livewire/reservation_detail.flag_failed'),
+            'refunded' => __('php/livewire/reservation_detail.flag_refunded'),
+            'authorized' => __('php/livewire/reservation_detail.flag_authorized'),
+            'captured' => __('php/livewire/reservation_detail.flag_captured'),
+            'voided' => __('php/livewire/reservation_detail.flag_voided'),
+            default => ucfirst($status),
+        };
     }
 }

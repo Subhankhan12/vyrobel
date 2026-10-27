@@ -196,7 +196,7 @@ final class MessageAttachments
             $voice = $m->collection === self::VOICE;
             $out[] = [
                 'url' => route($routeName, (string) $m->getKey()),
-                'name' => $voice ? 'Voice message' : ChatFiles::displayName((string) $m->alt, (string) $m->path),
+                'name' => $voice ? __('php/support/inbox/message_attachments.voice_message') : ChatFiles::displayName((string) $m->alt, (string) $m->path),
                 'is_image' => ! $voice && str_starts_with((string) $m->mime, 'image/'),
                 'size' => $this->humanSize((int) $m->size),
                 'kind' => $voice ? 'voice' : (str_starts_with((string) $m->mime, 'image/') ? 'image' : 'file'),

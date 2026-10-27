@@ -172,7 +172,7 @@ class OperatorSchedule extends Component
             ->map(fn (OpenShift $o): array => [
                 'id' => (string) $o->getKey(),
                 'date' => $o->date->toDateString(),
-                'day_label' => $o->date->format('D j M'),
+                'day_label' => $o->date->translatedFormat('D j M'),
                 'shift_label' => ShiftType::label((string) $o->shift_type),
                 'department' => $o->department,
             ])->all();

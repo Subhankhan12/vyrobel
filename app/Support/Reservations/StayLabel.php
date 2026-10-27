@@ -22,15 +22,15 @@ final class StayLabel
     {
         $own = ReservationStage::for($reservation, $today);   // THIS booking's stage, from the one resolver the badges read
         $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
-        $day = $checkIn->format($dateFormat);
+        $day = $checkIn->translatedFormat($dateFormat);
 
         return match (true) {
-            $own === ReservationStage::IN_HOUSE => 'In house',
-            (string) $reservation->status === 'checked_out' => 'Left '.CarbonImmutable::parse($reservation->check_out)->format($dateFormat),
-            $own === ReservationStage::TENTATIVE => 'Tentative · '.$day,   // the badge's word for enquiry and tentative
-            $own === ReservationStage::UPCOMING => 'Arrives '.$day,
-            $checkIn->isSameDay($today) => 'Arrives today',
-            default => 'Was due '.$day,   // confirmed, its check-in came, nobody checked it in — overdue, or its dates passed
+            $own === ReservationStage::IN_HOUSE => __('php/support/reservations/stay_label.in_house'),
+            (string) $reservation->status === 'checked_out' => __('php/support/reservations/stay_label.left', ['date' => CarbonImmutable::parse($reservation->check_out)->translatedFormat($dateFormat)]),
+            $own === ReservationStage::TENTATIVE => __('php/support/reservations/stay_label.tentative', ['date' => $day]),   // the badge's word for enquiry and tentative
+            $own === ReservationStage::UPCOMING => __('php/support/reservations/stay_label.arrives', ['date' => $day]),
+            $checkIn->isSameDay($today) => __('php/support/reservations/stay_label.arrives_today'),
+            default => __('php/support/reservations/stay_label.was_due', ['date' => $day]),   // confirmed, its check-in came, nobody checked it in — overdue, or its dates passed
         };
     }
 }

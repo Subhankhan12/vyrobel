@@ -2,7 +2,7 @@
      Notifiable relation). Each row links to the real screen; mark-read / mark-all-read are POST → controller.
      `?filter=` (category) rides GET. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div>
-    <x-operator.shell active="notifications" title="Notifications" :subtitle="$feed['unread'].' unread'" :viewer="$viewer">
+    <x-operator.shell active="notifications" :title="__('livewire/operator/notifications.page_title')" :subtitle="trans_choice('livewire/operator/notifications.unread_count', $feed['unread'], ['count' => $feed['unread']])" :viewer="$viewer">
 
         {{-- The design's toolbar: an unread PILL beside the heading, one SEGMENTED tab shell, mark-all-read.
              ⚠️ The unread figure is $feed['unread'] — the SAME NotificationFeed value the bell badge reads.
@@ -10,21 +10,21 @@
         <div class="vyn-toolbar vy-fade">
             <div class="vyn-left">
                 @if ($feed['unread'] > 0)
-                    <span class="vyn-unread-pill">{{ $feed['unread'] }} unread</span>
+                    <span class="vyn-unread-pill">{{ trans_choice('livewire/operator/notifications.unread_count', $feed['unread'], ['count' => $feed['unread']]) }}</span>
                 @endif
                 {{-- Tabs ride GET (?filter=) — a real re-request through the tenant middleware (#20). --}}
-                <nav class="vyn-seg" aria-label="Filter notifications">
-                    <a href="{{ route('app.notifications') }}" class="vyn-seg-i @if ($filter === 'all') is-on @endif" @if ($filter === 'all') aria-current="page" @endif>All</a>
-                    <a href="{{ route('app.notifications', ['filter' => 'unread']) }}" class="vyn-seg-i @if ($filter === 'unread') is-on @endif" @if ($filter === 'unread') aria-current="page" @endif>Unread</a>
+                <nav class="vyn-seg" aria-label="{{ __('livewire/operator/notifications.filter_label') }}">
+                    <a href="{{ route('app.notifications') }}" class="vyn-seg-i @if ($filter === 'all') is-on @endif" @if ($filter === 'all') aria-current="page" @endif>{{ __('common.all') }}</a>
+                    <a href="{{ route('app.notifications', ['filter' => 'unread']) }}" class="vyn-seg-i @if ($filter === 'unread') is-on @endif" @if ($filter === 'unread') aria-current="page" @endif>{{ __('livewire/operator/notifications.tab_unread') }}</a>
                     @foreach ($feed['categories'] as $cat)
-                        <a href="{{ route('app.notifications', ['filter' => $cat]) }}" class="vyn-seg-i @if ($filter === $cat) is-on @endif" @if ($filter === $cat) aria-current="page" @endif>{{ ucwords(str_replace('_', ' ', $cat)) }}</a>
+                        <a href="{{ route('app.notifications', ['filter' => $cat]) }}" class="vyn-seg-i @if ($filter === $cat) is-on @endif" @if ($filter === $cat) aria-current="page" @endif>{{ \App\Support\Notifications\NotificationFeed::categoryLabel($cat) }}</a>
                     @endforeach
                 </nav>
             </div>
             @if ($feed['unread'] > 0)
                 <form method="POST" action="{{ route('notifications.read-all') }}" style="margin:0">
                     @csrf
-                    <button type="submit" class="vy-btn vy-btn--ghost vyn-readall">Mark all read</button>
+                    <button type="submit" class="vy-btn vy-btn--ghost vyn-readall">{{ __('livewire/operator/notifications.mark_all_read') }}</button>
                 </form>
             @endif
         </div>
@@ -40,7 +40,7 @@
                         <span class="vyn-titleline">
                             {{-- The design puts the CATEGORY as a chip beside the title (not right-aligned text). --}}
                             <span class="vyn-title @unless ($item['read']) is-unread @endunless">{{ $item['title'] }}</span>
-                            <span class="vyn-cat">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
+                            <span class="vyn-cat">{{ \App\Support\Notifications\NotificationFeed::categoryLabel($item['category']) }}</span>
                         </span>
                         <span class="vyn-context">{{ $item['context'] }}</span>
                         <span class="vyn-when">{{ $item['when'] }}</span>
@@ -50,10 +50,10 @@
                              non-interactive span is not reliably announced. The dot stays (it is the design),
                              but the state now also has real TEXT for assistive tech. --}}
                         <span class="vyn-dot" aria-hidden="true"></span>
-                        <span class="vy-sr-only">Unread</span>
+                        <span class="vy-sr-only">{{ __('livewire/operator/notifications.unread_state') }}</span>
                         <form method="POST" action="{{ route('notifications.read', $item['id']) }}" style="margin:0;flex:none">
                             @csrf
-                            <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="Mark read" aria-label="Mark “{{ $item['title'] }}” as read">✓</button>
+                            <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="{{ __('livewire/operator/notifications.mark_read') }}" aria-label="{{ __('livewire/operator/notifications.mark_read_aria', ['title' => $item['title']]) }}">✓</button>
                         </form>
                     @endunless
                     {{-- D29-5 — DISMISS, deliberately OUTSIDE the @unless: mark-read only makes sense while a
@@ -61,21 +61,21 @@
                          + button idiom as the tick beside it (§N.8f), never a new control style. --}}
                     <form method="POST" action="{{ route('notifications.dismiss', $item['id']) }}" style="margin:0;flex:none">
                         @csrf
-                        <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="Dismiss" aria-label="Dismiss &ldquo;{{ $item['title'] }}&rdquo;">&times;</button>
+                        <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="{{ __('livewire/operator/notifications.dismiss') }}" aria-label="{{ __('livewire/operator/notifications.dismiss_aria', ['title' => $item['title']]) }}">&times;</button>
                     </form>
                 </div>
             @empty
-                <div class="vy-empty">All caught up — no notifications.</div>
+                <div class="vy-empty">{{ __('livewire/operator/notifications.empty_state') }}</div>
             @endforelse
 
                 {{-- WAVE 3 — the realm-neutral shared pager. BOTH notification pages get it in the same
                      change: NotificationFeed::forUser() is shared, so paginating one realm and not the
                      other would hide that realm's older notifications with no way to reach them. --}}
-                <x-pager :paginator="$feed['paginator']" label="notifications" />
+                <x-pager :paginator="$feed['paginator']" :label="__('livewire/operator/notifications.pager_label')" />
         </div>
 
         <p class="vy-line-sub" style="font-size:12px;margin-top:14px;color:var(--vy-muted)">
-            Choose which of these reach you in <a href="{{ route('app.notification-preferences') }}" style="color:var(--vy-accent)">Notification preferences</a>.
+            {!! __('livewire/operator/notifications.preferences_hint', ['url' => e(route('app.notification-preferences'))]) !!}
         </p>
 
     </x-operator.shell>

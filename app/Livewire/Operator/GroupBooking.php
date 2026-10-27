@@ -67,7 +67,7 @@ class GroupBooking extends Component
 
         return view('livewire.operator.group-booking', [
             'viewer' => $this->viewer(),
-            'subtitle' => $property !== null ? (string) $property->name : 'No property configured',
+            'subtitle' => $property !== null ? (string) $property->name : __('php/livewire/operator/group_booking.no_property'),
             'hasProperty' => $property !== null,
             'checkIn' => $checkIn,
             'checkOut' => $checkOut,
@@ -77,11 +77,11 @@ class GroupBooking extends Component
             'freeUnitCount' => $freeUnitCount,
             'currency' => $currency ?? 'EUR',
             'occasions' => [
-                ['value' => 'wedding', 'label' => 'Wedding'],
-                ['value' => 'corporate', 'label' => 'Corporate'],
-                ['value' => 'family', 'label' => 'Family'],
-                ['value' => 'sports', 'label' => 'Sports'],
-                ['value' => 'other', 'label' => 'Other'],
+                ['value' => 'wedding', 'label' => __('php/livewire/operator/group_booking.occasion_wedding')],
+                ['value' => 'corporate', 'label' => __('php/livewire/operator/group_booking.occasion_corporate')],
+                ['value' => 'family', 'label' => __('php/livewire/operator/group_booking.occasion_family')],
+                ['value' => 'sports', 'label' => __('php/livewire/operator/group_booking.occasion_sports')],
+                ['value' => 'other', 'label' => __('php/livewire/operator/group_booking.occasion_other')],
             ],
             'done' => $this->done(),
         ]);
@@ -116,11 +116,11 @@ class GroupBooking extends Component
 
         return [
             'reference' => (string) $group->block_code,
-            'title' => $tentative ? 'Block held' : 'Block confirmed',
-            'sub' => $tentative ? 'option on the rack' : 'it’s on the rack now',
-            'organiser' => (string) (data_get($group->contact, 'name') ?: 'the organiser'),   // NAME only (#28)
+            'title' => $tentative ? __('php/livewire/operator/group_booking.block_held') : __('php/livewire/operator/group_booking.block_confirmed'),
+            'sub' => $tentative ? __('php/livewire/operator/group_booking.sub_held') : __('php/livewire/operator/group_booking.sub_confirmed'),
+            'organiser' => (string) (data_get($group->contact, 'name') ?: __('php/livewire/operator/group_booking.organiser_fallback')),   // NAME only (#28)
             'units' => $group->reservations->count(),
-            'dates' => CarbonImmutable::parse($first->check_in)->format('j M').' – '.CarbonImmutable::parse($first->check_out)->format('j M Y'),
+            'dates' => CarbonImmutable::parse($first->check_in)->translatedFormat('j M').' – '.CarbonImmutable::parse($first->check_out)->translatedFormat('j M Y'),
             'total' => $this->money($totalMinor, $currency),
             'deposit' => $depositMinor > 0 ? $this->money($depositMinor, $currency) : null,
             'rack_url' => route('app.rack'),

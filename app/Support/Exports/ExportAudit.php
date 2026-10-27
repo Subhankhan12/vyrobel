@@ -41,8 +41,13 @@ class ExportAudit
             'ip' => $request->ip(),
         ]);
 
-        $when = Carbon::now('UTC')->format('j M Y, H:i');
+        // The audit row above keeps the stored English fallback; the watermark is read by the downloader, so it is
+        // written in the downloader's language (I18N-01).
+        $shownName = $user !== null && filled($user->name) ? (string) $user->name : (string) __('php/support/exports/export_audit.unknown_user');
+        $when = Carbon::now('UTC')->translatedFormat('j M Y, H:i');
 
-        return 'Downloaded by '.$name.($email !== '' ? ' ('.$email.')' : '').' on '.$when.' UTC · Confidential';
+        return (string) ($email !== ''
+            ? __('php/support/exports/export_audit.watermark_with_email', ['name' => $shownName, 'email' => $email, 'when' => $when])
+            : __('php/support/exports/export_audit.watermark', ['name' => $shownName, 'when' => $when]));
     }
 }

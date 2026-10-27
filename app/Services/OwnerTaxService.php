@@ -153,7 +153,7 @@ class OwnerTaxService
             }
 
             $months[] = [
-                'label' => $statement->period_start->format('F'),
+                'label' => $statement->period_start->translatedFormat('F'),
                 'gross_minor' => $gross,
                 'commission_minor' => $commission,
                 // The remainder reconciles the row exactly: gross + commission + fees = net.
@@ -168,19 +168,19 @@ class OwnerTaxService
             'year' => $year,
             'currency' => $currency,
             'statement_count' => $statements->count(),
-            'period_start' => $statements->first()->period_start->format('j M Y'),
-            'period_end' => $statements->last()->period_end->format('j M Y'),
+            'period_start' => $statements->first()->period_start->translatedFormat('j M Y'),
+            'period_end' => $statements->last()->period_end->translatedFormat('j M Y'),
             'gross_minor' => $grossMinor,
             'deductions_minor' => $deductionsMinor,
             'net_minor' => $netMinor,
             'categories' => [
-                ['label' => 'Management commission', 'minor' => $buckets['commission_minor']],
-                ['label' => 'Management fees', 'minor' => $buckets['management_fee_minor']],
-                ['label' => 'Channel / OTA commissions', 'minor' => $buckets['ota_cost_minor']],
-                ['label' => 'Payment & ops fees', 'minor' => $buckets['payment_fee_minor']],
-                ['label' => 'Withholding tax', 'minor' => $buckets['withholding_minor']],
-                ['label' => 'Expenses & cleaning', 'minor' => $buckets['expenses_minor']],
-                ['label' => 'Prior-period adjustments', 'minor' => $buckets['adjustments_minor']],
+                ['label' => __('php/services/owner_tax_service.category_commission'), 'minor' => $buckets['commission_minor']],
+                ['label' => __('php/services/owner_tax_service.category_management_fees'), 'minor' => $buckets['management_fee_minor']],
+                ['label' => __('php/services/owner_tax_service.category_ota_commissions'), 'minor' => $buckets['ota_cost_minor']],
+                ['label' => __('php/services/owner_tax_service.category_payment_fees'), 'minor' => $buckets['payment_fee_minor']],
+                ['label' => __('php/services/owner_tax_service.category_withholding'), 'minor' => $buckets['withholding_minor']],
+                ['label' => __('php/services/owner_tax_service.category_expenses'), 'minor' => $buckets['expenses_minor']],
+                ['label' => __('php/services/owner_tax_service.category_adjustments'), 'minor' => $buckets['adjustments_minor']],
             ],
             'months' => $months,
         ];

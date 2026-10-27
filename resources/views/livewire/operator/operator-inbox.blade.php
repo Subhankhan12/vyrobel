@@ -9,7 +9,7 @@
         composeData: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['templates']])),
         composeAccount: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['has_account']])),
         composeNames: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['name']])),
-        composeName() { return this.composeGuest ? (this.composeNames[this.composeGuest] || 'This guest') : ''; },
+        composeName() { return this.composeGuest ? (this.composeNames[this.composeGuest] || @js(__('livewire/operator/operator-inbox.this_guest'))) : ''; },
         pickComposeGuest(id) { this.composeGuest = id; this.refillCompose(); },
         pickComposeTemplate(key) { this.composeTemplate = (this.composeTemplate === key ? '' : key); this.refillCompose(); },
         refillCompose() {
@@ -21,7 +21,7 @@
             }
         }
     }">
-    <x-operator.shell active="inbox" title="Messages" :subtitle="$summary['unread'].' unread'" :viewer="$viewer">
+    <x-operator.shell active="inbox" :title="__('livewire/operator/operator-inbox.page_title')" :subtitle="trans_choice('livewire/operator/operator-inbox.unread_subtitle', $summary['unread'], ['count' => $summary['unread']])" :viewer="$viewer">
 
         @if (session('inbox_notice')) <div class="vy-flash is-ok vy-fade">{{ session('inbox_notice') }}</div> @endif
         @if (session('inbox_error')) <div class="vy-flash is-err vy-fade">{{ session('inbox_error') }}</div> @endif
@@ -50,25 +50,25 @@
             <a class="vy-istat {{ $filter === 'unread' ? 'is-on' : '' }}" href="{{ $inboxUrl(['filter' => $filter === 'unread' ? null : 'unread']) }}">
                 <span class="vy-istat-dot" style="background:#E8703A"></span>
                 <span class="vy-istat-text">
-                    <span class="vy-istat-num" style="color:#B4400F">{{ $stats['unread'] }}</span><span class="vy-istat-label">Unread</span>
+                    <span class="vy-istat-num" style="color:#B4400F">{{ $stats['unread'] }}</span><span class="vy-istat-label">{{ __('livewire/operator/operator-inbox.stat_unread') }}</span>
                 </span>
             </a>
             <div class="vy-istat">
                 <span class="vy-istat-dot" style="background:#2A6FDB"></span>
                 <span class="vy-istat-text">
-                    <span class="vy-istat-num">{{ $stats['open'] }}</span><span class="vy-istat-label">Open</span>
+                    <span class="vy-istat-num">{{ $stats['open'] }}</span><span class="vy-istat-label">{{ __('livewire/operator/operator-inbox.stat_open') }}</span>
                 </span>
             </div>
             <div class="vy-istat">
                 <span class="vy-istat-dot" style="background:#D99A3D"></span>
                 <span class="vy-istat-text">
-                    <span class="vy-istat-num">{{ $stats['waiting'] }}</span><span class="vy-istat-label">Waiting on guest</span>
+                    <span class="vy-istat-num">{{ $stats['waiting'] }}</span><span class="vy-istat-label">{{ __('livewire/operator/operator-inbox.stat_waiting') }}</span>
                 </span>
             </div>
             <div class="vy-istat {{ $stats['needs_sending'] > 0 ? 'is-alert' : '' }}">
                 <span class="vy-istat-dot" style="background:#C0392B"></span>
                 <span class="vy-istat-text">
-                    <span class="vy-istat-num" style="{{ $stats['needs_sending'] > 0 ? 'color:#C0392B' : '' }}">{{ $stats['needs_sending'] }}</span><span class="vy-istat-label">Needs sending</span>
+                    <span class="vy-istat-num" style="{{ $stats['needs_sending'] > 0 ? 'color:#C0392B' : '' }}">{{ $stats['needs_sending'] }}</span><span class="vy-istat-label">{{ __('livewire/operator/operator-inbox.stat_needs_sending') }}</span>
                 </span>
             </div>
         </div>
@@ -77,16 +77,16 @@
         <div class="vy-rack-toolbar vy-ibx-bar vy-fade">
             <div class="vy-left">
                 <div class="vy-seg vy-inbox-tabs">
-                    @foreach ([[null, 'All'], ['unread', 'Unread'], ['arriving', 'Arriving today'], ['mine', 'Assigned to me'], ['closed', 'Closed']] as [$tabKey, $tabLabel])
+                    @foreach ([[null, __('common.all')], ['unread', __('livewire/operator/operator-inbox.tab_unread')], ['arriving', __('livewire/operator/operator-inbox.tab_arriving')], ['mine', __('livewire/operator/operator-inbox.tab_mine')], ['closed', __('livewire/operator/operator-inbox.tab_closed')]] as [$tabKey, $tabLabel])
                         <a class="vy-seg-opt {{ $filter === $tabKey ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => $tabKey]) }}" @if ($filter === $tabKey) aria-current="page" @endif>{{ $tabLabel }}</a>
                     @endforeach
                 </div>
             </div>
             <div class="vy-right">
                 @unless ($readOnly)
-                    <button type="button" class="vy-btn vy-btn--accent" @click="composeOpen = true">New message</button>
+                    <button type="button" class="vy-btn vy-btn--accent" @click="composeOpen = true">{{ __('livewire/operator/operator-inbox.new_message') }}</button>
                 @else
-                    <span class="vy-pill is-soon" aria-disabled="true">Read-only</span>
+                    <span class="vy-pill is-soon" aria-disabled="true">{{ __('livewire/operator/operator-inbox.read_only') }}</span>
                 @endunless
             </div>
         </div>
@@ -109,12 +109,12 @@
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
                             </a>
                         @endforeach
-                        <a class="vy-fchip-clear" href="{{ $inboxUrl(['filter' => null, 'channel' => null]) }}">Clear all</a>
+                        <a class="vy-fchip-clear" href="{{ $inboxUrl(['filter' => null, 'channel' => null]) }}">{{ __('livewire/operator/operator-inbox.clear_all') }}</a>
                     </div>
                 @endif
-                <a class="vy-sort-toggle" href="{{ $inboxUrl(['sort' => $sort === 'oldest' ? null : 'oldest']) }}" title="Toggle sort order">
+                <a class="vy-sort-toggle" href="{{ $inboxUrl(['sort' => $sort === 'oldest' ? null : 'oldest']) }}" title="{{ __('livewire/operator/operator-inbox.sort_toggle_title') }}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13M3 12h9M3 18h5M17 8l4-4 4 4M21 4v16" transform="translate(-4)"/></svg>
-                    {{ $sort === 'oldest' ? 'Oldest first' : 'Newest first' }}
+                    {{ $sort === 'oldest' ? __('livewire/operator/operator-inbox.sort_oldest') : __('livewire/operator/operator-inbox.sort_newest') }}
                 </a>
             </div>
         </div>
@@ -131,8 +131,8 @@
                         @if ($channel) <input type="hidden" name="channel" value="{{ $channel }}"> @endif
                         @if ($sort === 'oldest') <input type="hidden" name="sort" value="oldest"> @endif
                         <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                        <label class="vy-sr-only" for="vy-lbl-operator-inbox-q">Search guests and messages</label>
-                        <input id="vy-lbl-operator-inbox-q" type="search" name="q" value="{{ $query }}" class="vy-gl-search-in" placeholder="Search guests &amp; messages" autocomplete="off">
+                        <label class="vy-sr-only" for="vy-lbl-operator-inbox-q">{{ __('livewire/operator/operator-inbox.search_label') }}</label>
+                        <input id="vy-lbl-operator-inbox-q" type="search" name="q" value="{{ $query }}" class="vy-gl-search-in" placeholder="{{ __('livewire/operator/operator-inbox.search_placeholder') }}" autocomplete="off">
                     </form>
                 </div>
                 <div class="vy-inbox-list" data-ibx-live="rail">
@@ -149,13 +149,13 @@
                                 <div class="vy-conv-meta">
                                     <span class="vy-chan-badge vy-chan--{{ $row['channel_tone'] }}">{{ $row['channel_label'] }}</span>
                                     @if ($row['context']) <span class="vy-conv-ctx">{{ $row['context'] }}</span> @endif
-                                    @if ($row['assignee']) <span class="vy-conv-assignee" title="Assigned">{{ $row['assignee'] }}</span> @endif
+                                    @if ($row['assignee']) <span class="vy-conv-assignee" title="{{ __('livewire/operator/operator-inbox.assigned_title') }}">{{ $row['assignee'] }}</span> @endif
                                 </div>
                             </div>
                             @if ($row['is_unread']) <span class="vy-conv-dot"></span> @endif
                         </a>
                     @empty
-                        <div class="vy-empty" style="padding: 30px 16px;">{{ $query !== '' || $filter ? 'No conversations match.' : 'No conversations yet.' }}</div>
+                        <div class="vy-empty" style="padding: 30px 16px;">{{ $query !== '' || $filter ? __('livewire/operator/operator-inbox.no_conversations_match') : __('livewire/operator/operator-inbox.no_conversations_yet') }}</div>
                     @endforelse
                 </div>
             </aside>
@@ -171,11 +171,11 @@
                                      guests.is_vip flag: identical classes, identical dot, identical word. An
                                      operational flag, not contact PII. Omitted for everyone else, which is
                                      almost everyone — a badge that appeared for all would say nothing. --}}
-                                <div class="vy-thread-name">{{ $active['name'] }}@if ($active['guest']['is_vip'])<span class="vy-tag tone-vip" style="margin-left: 6px;"><span class="vy-dot"></span>VIP</span>@endif</div>
+                                <div class="vy-thread-name">{{ $active['name'] }}@if ($active['guest']['is_vip'])<span class="vy-tag tone-vip" style="margin-left: 6px;"><span class="vy-dot"></span>{{ __('livewire/operator/operator-inbox.vip') }}</span>@endif</div>
                                 <div class="vy-thread-sub">
                                     <span class="vy-chan-badge vy-chan--{{ $active['channel_tone'] }}">{{ $active['channel_label'] }}</span>
                                     @if ($active['guest']['stat']) <span>· {{ $active['guest']['stat'] }}</span> @endif
-                                    @if ($active['assignee']) <span>· Assigned to {{ $active['assignee']['name'] }}</span> @endif
+                                    @if ($active['assignee']) <span>· {{ __('livewire/operator/operator-inbox.assigned_to', ['name' => $active['assignee']['name']]) }}</span> @endif
                                 </div>
                             </div>
                         </div>
@@ -183,7 +183,7 @@
                             @unless ($readOnly)
                                 <button type="button" class="vy-btn vy-btn--ghost vy-ta-btn" @click="assignOpen = true">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
-                                    Assign
+                                    {{ __('livewire/operator/operator-inbox.assign') }}
                                 </button>
                                 {{-- #104 GATE 3a — snooze / reopen: the routes + InboxService methods existed but had no
                                      UI, leaving a CLOSED thread a dead-end. Both are POST → controller → PRG. --}}
@@ -191,7 +191,7 @@
                                     <form method="POST" action="{{ route('app.inbox.snooze', $active['id']) }}" class="vy-ta-form">@csrf
                                         <button type="submit" class="vy-btn vy-btn--ghost vy-ta-btn">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3L2 6M22 6l-3-3"/></svg>
-                                            Snooze
+                                            {{ __('livewire/operator/operator-inbox.snooze') }}
                                         </button>
                                     </form>
                                 @endif
@@ -199,13 +199,13 @@
                                     <form method="POST" action="{{ route('app.inbox.reopen', $active['id']) }}" class="vy-ta-form">@csrf
                                         <button type="submit" class="vy-btn vy-btn--accent vy-ta-btn">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>
-                                            Reopen
+                                            {{ __('livewire/operator/operator-inbox.reopen') }}
                                         </button>
                                     </form>
                                 @endif
                             @endunless
                             @if ($active['reservation'])
-                                <a class="vy-ta-ref" href="{{ route('app.reservations.show', $active['reservation']['id']) }}" title="Open reservation {{ $active['reservation']['reference'] }}">
+                                <a class="vy-ta-ref" href="{{ route('app.reservations.show', $active['reservation']['id']) }}" title="{{ __('livewire/operator/operator-inbox.open_reservation_title', ['reference' => $active['reservation']['reference']]) }}">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                     <span class="vy-ta-ref-code">{{ $active['reservation']['reference'] }}</span>
                                 </a>
@@ -215,7 +215,7 @@
                             @if (! $readOnly && $active['has_guest'] && $active['link_reservations'] !== [])
                                 <button type="button" class="vy-btn vy-btn--ghost vy-ta-btn" @click="linkOpen = true">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
-                                    {{ $active['reservation'] ? 'Change link' : 'Link reservation' }}
+                                    {{ $active['reservation'] ? __('livewire/operator/operator-inbox.change_link') : __('livewire/operator/operator-inbox.link_reservation') }}
                                 </button>
                             @endif
                         </div>
@@ -246,16 +246,16 @@
                                  resolver, one badge, no vocabulary re-derived in Blade (§N.8f). --}}
                             <span class="vy-tag tone-{{ $active['reservation']['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $active['reservation']['stage_meta']['label'] }}</span>
                             @if ($active['guest']['guest_id'] ?? null)
-                                <a class="vy-tc-link" href="{{ route('app.guests.show', $active['guest']['guest_id']) }}">View guest profile</a>
+                                <a class="vy-tc-link" href="{{ route('app.guests.show', $active['guest']['guest_id']) }}">{{ __('livewire/operator/operator-inbox.view_guest_profile') }}</a>
                             @endif
                         </div>
                     @endif
 
                     {{-- Latest INTERNAL note — staff-only (guests never see this); name-only author (#28). --}}
                     @if ($active['note'])
-                        <div class="vy-thread-note" title="Internal — the guest never sees this">
+                        <div class="vy-thread-note" title="{{ __('livewire/operator/operator-inbox.internal_note_title') }}">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>
-                            <span><strong>Internal · {{ $active['note']['author'] }}</strong> · {{ $active['note']['time'] }} — {{ $active['note']['body'] }}</span>
+                            <span>{!! __('livewire/operator/operator-inbox.internal_note', ['author' => e($active['note']['author']), 'time' => e($active['note']['time']), 'body' => e($active['note']['body'])]) !!}</span>
                         </div>
                     @endif
 
@@ -274,19 +274,19 @@
                                      route, for staff who may open this inbox; a photo shows in place, anything else downloads. --}}
                                 @foreach ($m['attachments'] as $att)
                                     @if ($att['is_image'])
-                                        <a class="vy-msg-att-img-link" href="{{ $att['url'] }}" target="_blank" rel="noopener" title="Open {{ $att['name'] }}"><img class="vy-msg-att-img" src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"></a>
+                                        <a class="vy-msg-att-img-link" href="{{ $att['url'] }}" target="_blank" rel="noopener" title="{{ __('livewire/operator/operator-inbox.open_attachment_title', ['name' => $att['name']]) }}"><img class="vy-msg-att-img" src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"></a>
                                     @elseif (($att['kind'] ?? '') === 'voice')
                                         {{-- a voice note (2026-10-06) — the shared player (partials/chat-media) --}}
                                         <div class="vy-msg-voice" x-data="vyVoice({{ \Illuminate\Support\Js::from(['url' => $att['url'], 'seconds' => $att['seconds']]) }})">
-                                            <button type="button" class="vy-msg-play" @click="toggle()" :aria-label="playing ? 'Pause voice message' : 'Play voice message'">
+                                            <button type="button" class="vy-msg-play" @click="toggle()" :aria-label="playing ? @js(__('livewire/operator/operator-inbox.pause_voice')) : @js(__('livewire/operator/operator-inbox.play_voice'))">
                                                 <svg x-show="! playing" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
                                                 <svg x-show="playing" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
                                             </button>
-                                            <span class="vy-msg-track" @click="seek($event)" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-msg-track-fill" :style="{ width: pct + '%' }"></span></span>
+                                            <span class="vy-msg-track" @click="seek($event)" role="slider" tabindex="0" aria-label="{{ __('livewire/operator/operator-inbox.voice_position') }}" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-msg-track-fill" :style="{ width: pct + '%' }"></span></span>
                                             <span class="vy-msg-voice-time" x-text="clock()">{{ $att['seconds'] !== null ? intdiv((int) $att['seconds'], 60).':'.str_pad((string) ((int) $att['seconds'] % 60), 2, '0', STR_PAD_LEFT) : '' }}</span>
                                         </div>
                                     @else
-                                        <a class="vy-msg-att-file" href="{{ $att['url'] }}" title="Download {{ $att['name'] }}">
+                                        <a class="vy-msg-att-file" href="{{ $att['url'] }}" title="{{ __('livewire/operator/operator-inbox.download_attachment_title', ['name' => $att['name']]) }}">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
                                             <span class="vy-msg-att-name">{{ $att['name'] }}</span>
                                             <span class="vy-msg-att-size">{{ $att['size'] }}</span>
@@ -301,26 +301,26 @@
                                     @if ($m['delivery'] && $m['delivery']['failed'] && ! $readOnly)
                                         {{-- REAL re-send (never a fake flip-to-delivered) — delivers on manual, fails again honestly on a deferred channel. --}}
                                         <form method="POST" action="{{ route('app.inbox.retry', [$active['id'], $m['id']]) }}" style="display:inline">@csrf
-                                            <button type="submit" class="vy-msg-retry">Retry</button>
+                                            <button type="submit" class="vy-msg-retry">{{ __('livewire/operator/operator-inbox.retry') }}</button>
                                         </form>
                                     @endif
                                 </div>
                             </div>
                         @endforeach
                         @if (count($messages) === 0)
-                            <div class="vy-empty" style="padding: 30px;">No messages yet — start the conversation below.</div>
+                            <div class="vy-empty" style="padding: 30px;">{{ __('livewire/operator/operator-inbox.no_messages_yet') }}</div>
                         @endif
                     </div>
 
                     {{-- Reply composer --}}
                     <footer class="vy-thread-composer">
                         @if ($readOnly)
-                            <div class="vy-composer-note">Workspace paused — replies are read-only.</div>
+                            <div class="vy-composer-note">{{ __('livewire/operator/operator-inbox.composer_read_only') }}</div>
                         @elseif ($active['status'] === 'closed')
                             {{-- #104 GATE 3a — a closed thread is no longer a dead-end: an honest closed note + Reopen (header). --}}
-                            <div class="vy-composer-note">This conversation is closed — reopen it to reply.</div>
+                            <div class="vy-composer-note">{{ __('livewire/operator/operator-inbox.composer_closed') }}</div>
                         @elseif (! $active['can_reply'])
-                            <div class="vy-composer-note">{{ $active['channel_label'] }} isn’t connected yet — you can’t send on this channel.</div>
+                            <div class="vy-composer-note">{{ __('livewire/operator/operator-inbox.composer_not_connected', ['channel' => $active['channel_label']]) }}</div>
                         @else
                             {{-- (2026-10-06) pictures, documents and a voice note where the other side can open them — an owner's portal, a
                                  guest's own account (Direct) — and sent without a reload; without JavaScript it is the plain form it was. --}}
@@ -329,7 +329,7 @@
                                   x-data="vyInboxComposer({{ \Illuminate\Support\Js::from(['files' => $carriesFiles, 'max' => \App\Support\Messaging\ChatFiles::MAX_FILES, 'mb' => \App\Support\Messaging\ChatFiles::limits()['mb'], 'post' => \App\Support\Messaging\ChatFiles::limits()['post_bytes'], 'voice' => \App\Support\Messaging\ChatFiles::MAX_VOICE_SECONDS]) }})"
                                   @submit="submit($event)">
                                 @csrf
-                                @php $replyWord = $active['is_direct'] ? 'Write a reply…' : 'Reply via '.$active['channel_label'].'…'; @endphp
+                                @php $replyWord = $active['is_direct'] ? __('livewire/operator/operator-inbox.reply_placeholder_direct') : __('livewire/operator/operator-inbox.reply_placeholder_channel', ['channel' => $active['channel_label']]); @endphp
                                 <p class="vy-composer-error" x-show="error" x-text="error" role="alert"></p>
                                 @if ($carriesFiles)
                                     <div class="vy-composer-tray" x-show="pending.length">
@@ -337,37 +337,37 @@
                                             <span class="vy-composer-chip" :class="{ 'is-image': p.preview }">
                                                 <template x-if="p.preview"><img :src="p.preview" :alt="p.name"></template>
                                                 <template x-if="! p.preview"><span class="vy-composer-chip-name" x-text="p.name"></span></template>
-                                                <button type="button" class="vy-composer-chip-x" @click="remove(i)" :aria-label="'Remove ' + p.name">×</button>
+                                                <button type="button" class="vy-composer-chip-x" @click="remove(i)" :aria-label="@js(__('livewire/operator/operator-inbox.remove_file', ['name' => ':name'])).replace(':name', () => p.name)">×</button>
                                             </span>
                                         </template>
                                     </div>
                                     <div class="vy-composer-rec" x-show="rec.state !== 'idle'">
                                         <template x-if="rec.state === 'starting'">
                                             <div class="vy-composer-rec-row">
-                                                <span class="vy-composer-rec-time">Starting the microphone…</span>
-                                                <button type="button" class="vy-btn vy-btn--ghost" @click="cancelRec()">Cancel</button>
+                                                <span class="vy-composer-rec-time">{{ __('livewire/operator/operator-inbox.starting_microphone') }}</span>
+                                                <button type="button" class="vy-btn vy-btn--ghost" @click="cancelRec()">{{ __('common.cancel') }}</button>
                                             </div>
                                         </template>
                                         <template x-if="rec.state === 'recording'">
                                             <div class="vy-composer-rec-row">
-                                                <button type="button" class="vy-composer-tool" @click="cancelRec()" aria-label="Cancel recording"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+                                                <button type="button" class="vy-composer-tool" @click="cancelRec()" aria-label="{{ __('livewire/operator/operator-inbox.cancel_recording') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
                                                 <span class="vy-composer-rec-dot" aria-hidden="true"></span>
-                                                <span class="vy-composer-rec-time" x-text="'Recording ' + mmss(rec.seconds)"></span>
-                                                <button type="button" class="vy-btn vy-btn--accent" @click="stopRec()">Stop</button>
+                                                <span class="vy-composer-rec-time" x-text="@js(__('livewire/operator/operator-inbox.recording_time', ['time' => ':time'])).replace(':time', () => mmss(rec.seconds))"></span>
+                                                <button type="button" class="vy-btn vy-btn--accent" @click="stopRec()">{{ __('livewire/operator/operator-inbox.stop_recording') }}</button>
                                             </div>
                                         </template>
                                         <template x-if="rec.state === 'ready'">
                                             <div class="vy-composer-rec-row">
-                                                <button type="button" class="vy-composer-tool" @click="cancelRec()" aria-label="Discard voice note"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+                                                <button type="button" class="vy-composer-tool" @click="cancelRec()" aria-label="{{ __('livewire/operator/operator-inbox.discard_voice_note') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
                                                 <div class="vy-msg-voice vy-composer-preview" x-data="vyVoice({ url: rec.url, seconds: rec.seconds })">
-                                                    <button type="button" class="vy-msg-play" @click="toggle()" :aria-label="playing ? 'Pause' : 'Listen before sending'">
+                                                    <button type="button" class="vy-msg-play" @click="toggle()" :aria-label="playing ? @js(__('livewire/operator/operator-inbox.pause')) : @js(__('livewire/operator/operator-inbox.listen_before_sending'))">
                                                         <svg x-show="! playing" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
                                                         <svg x-show="playing" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
                                                     </button>
-                                                    <span class="vy-msg-track" @click="seek($event)" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-msg-track-fill" :style="{ width: pct + '%' }"></span></span>
+                                                    <span class="vy-msg-track" @click="seek($event)" role="slider" tabindex="0" aria-label="{{ __('livewire/operator/operator-inbox.voice_position') }}" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-msg-track-fill" :style="{ width: pct + '%' }"></span></span>
                                                     <span class="vy-msg-voice-time" x-text="clock()"></span>
                                                 </div>
-                                                <span class="vy-composer-rec-note">Voice note ready — it goes with your reply.</span>
+                                                <span class="vy-composer-rec-note">{{ __('livewire/operator/operator-inbox.voice_note_ready') }}</span>
                                             </div>
                                         </template>
                                     </div>
@@ -377,28 +377,28 @@
                                 <div class="vy-composer-actions">
                                     @if ($carriesFiles)
                                         <div class="vy-composer-tools">
-                                            <label class="vy-composer-tool" title="Attach documents">
+                                            <label class="vy-composer-tool" title="{{ __('livewire/operator/operator-inbox.attach_documents') }}">
                                                 <input type="file" name="attachments[]" multiple accept=".{{ str_replace(',', ',.', \App\Support\Messaging\ChatFiles::FILE_EXTENSIONS) }}" class="vy-sr-only" @change="add($event)">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
-                                                <span class="vy-sr-only">Attach documents</span>
+                                                <span class="vy-sr-only">{{ __('livewire/operator/operator-inbox.attach_documents') }}</span>
                                             </label>
-                                            <label class="vy-composer-tool" title="Add pictures">
+                                            <label class="vy-composer-tool" title="{{ __('livewire/operator/operator-inbox.add_pictures') }}">
                                                 <input type="file" name="attachments[]" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="vy-sr-only" @change="add($event)">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                                <span class="vy-sr-only">Add pictures</span>
+                                                <span class="vy-sr-only">{{ __('livewire/operator/operator-inbox.add_pictures') }}</span>
                                             </label>
-                                            <button type="button" class="vy-composer-tool" x-cloak x-show="canRecord && rec.state === 'idle'" @click="startRec()" title="Record a voice note" aria-label="Record a voice note">
+                                            <button type="button" class="vy-composer-tool" x-cloak x-show="canRecord && rec.state === 'idle'" @click="startRec()" title="{{ __('livewire/operator/operator-inbox.record_voice_note') }}" aria-label="{{ __('livewire/operator/operator-inbox.record_voice_note') }}">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>
                                             </button>
                                         </div>
                                     @endif
-                                    <span class="vy-composer-hint"><kbd class="vy-kbd" x-text="hintKey">⌘</kbd><kbd class="vy-kbd">Enter</kbd><span class="vy-composer-hint-t">to send</span></span>
+                                    <span class="vy-composer-hint">{!! __('livewire/operator/operator-inbox.send_shortcut', ['keys' => '<kbd class="vy-kbd" x-text="hintKey">⌘</kbd><kbd class="vy-kbd">Enter</kbd>']) !!}</span>
                                     @if ($active['can_close'])
-                                        <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">Close</button>
+                                        <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/operator-inbox.close_conversation') }}</button>
                                     @endif
                                     <button type="submit" class="vy-btn vy-btn--accent vy-composer-send" :disabled="sending">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                                        <span x-text="sending ? 'Sending…' : 'Reply'">Reply</span>
+                                        <span x-text="sending ? @js(__('livewire/operator/operator-inbox.sending')) : @js(__('livewire/operator/operator-inbox.reply'))">{{ __('livewire/operator/operator-inbox.reply') }}</span>
                                     </button>
                                 </div>
                             </form>
@@ -408,26 +408,26 @@
                         @endif
                         <p class="vy-composer-hint">
                             @if ($active['is_owner_thread'])
-                                Your owner replies in their portal · this thread is not visible to the guest.
+                                {{ __('livewire/operator/operator-inbox.hint_owner_thread') }}
                             @elseif ($active['is_direct'])
                                 {{-- ⚠️ 2026-10-05 — Direct sends nothing anywhere: the guest reads it in their own guest account, if they have one --}}
                                 @if ($active['guest']['has_account'])
-                                    {{ $active['name'] }} reads this in their guest account — it isn’t emailed.
+                                    {{ __('livewire/operator/operator-inbox.hint_direct_account', ['name' => $active['name']]) }}
                                 @else
-                                    {{ $active['name'] }} has no guest account, so this stays here as a record — it isn’t emailed.
+                                    {{ __('livewire/operator/operator-inbox.hint_direct_no_account', ['name' => $active['name']]) }}
                                 @endif
                             @else
-                                The guest replies wherever they booked · contact details stay private.
+                                {{ __('livewire/operator/operator-inbox.hint_booking_channel') }}
                             @endif
                         </p>
                     </footer>
                 @else
                     <div class="vy-ibx-pane-empty">
                         <span class="vy-ibx-pane-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
-                        <strong>Pick a conversation</strong>
-                        <span>Or start one with a guest who is staying, arriving or has just left.</span>
+                        <strong>{{ __('livewire/operator/operator-inbox.pick_conversation') }}</strong>
+                        <span>{{ __('livewire/operator/operator-inbox.pick_conversation_sub') }}</span>
                         @unless ($readOnly)
-                            <button type="button" class="vy-btn vy-btn--accent" @click="composeOpen = true">New message</button>
+                            <button type="button" class="vy-btn vy-btn--accent" @click="composeOpen = true">{{ __('livewire/operator/operator-inbox.new_message') }}</button>
                         @endunless
                     </div>
                 @endif
@@ -443,18 +443,18 @@
                     <div class="vy-modal-head">
                         <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg></span>
                         <div class="vy-ibx-head-text">
-                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-assignopen-3">Assign conversation</h2>
-                            <p class="vy-modal-sub">{{ $active['name'] }} · they get a notification in Vyrobel, and the conversation stays in this shared inbox.</p>
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-assignopen-3">{{ __('livewire/operator/operator-inbox.assign_heading') }}</h2>
+                            <p class="vy-modal-sub">{{ __('livewire/operator/operator-inbox.assign_sub', ['name' => $active['name']]) }}</p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="assignOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" @click="assignOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
                         <fieldset class="vy-ibx-pick">
-                            <legend class="vy-field-label">Assign to</legend>
+                            <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.assign_to') }}</legend>
                             <div class="vy-ibx-options">
                                 <label class="vy-ibx-option">
                                     <input type="radio" name="user_id" value="">
-                                    <span><strong>Unassigned</strong><span class="vy-ibx-option-sub">No one in particular</span></span>
+                                    <span><strong>{{ __('livewire/operator/operator-inbox.unassigned') }}</strong><span class="vy-ibx-option-sub">{{ __('livewire/operator/operator-inbox.no_one_in_particular') }}</span></span>
                                 </label>
                                 @foreach ($staff as $member)
                                     <label class="vy-ibx-option">
@@ -466,17 +466,17 @@
                         </fieldset>
                         {{-- REAL editable internal note (staff-only). Persists as a thread Note on submit; empty → no note. --}}
                         <div class="vy-field vy-ibx-field">
-                            <label class="vy-field-label" for="vy-ibx-note">Note for the team · optional</label>
+                            <label class="vy-field-label" for="vy-ibx-note">{{ __('livewire/operator/operator-inbox.team_note_label') }}</label>
                             @if ($active['note'])
-                                <div class="vy-assign-lastnote">Latest · {{ $active['note']['author'] }}: {{ \Illuminate\Support\Str::limit($active['note']['body'], 120) }}</div>
+                                <div class="vy-assign-lastnote">{{ __('livewire/operator/operator-inbox.latest_note', ['author' => $active['note']['author'], 'body' => \Illuminate\Support\Str::limit($active['note']['body'], 120)]) }}</div>
                             @endif
-                            <textarea id="vy-ibx-note" name="note" rows="2" class="vy-input vy-ibx-textarea" placeholder="Why you’re handing this over"></textarea>
-                            <span class="vy-ibx-hint">Staff only — the guest never sees notes.</span>
+                            <textarea id="vy-ibx-note" name="note" rows="2" class="vy-input vy-ibx-textarea" placeholder="{{ __('livewire/operator/operator-inbox.team_note_placeholder') }}"></textarea>
+                            <span class="vy-ibx-hint">{{ __('livewire/operator/operator-inbox.team_note_hint') }}</span>
                         </div>
                     </div>
                     <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/operator-inbox.assign') }}</button>
                     </div>
                 </form>
             </div>
@@ -491,18 +491,18 @@
                     <div class="vy-modal-head">
                         <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span>
                         <div class="vy-ibx-head-text">
-                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-linkopen-2">Link a reservation</h2>
-                            <p class="vy-modal-sub">{{ $active['name'] }} · pick which booking this conversation is about.</p>
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-linkopen-2">{{ __('livewire/operator/operator-inbox.link_heading') }}</h2>
+                            <p class="vy-modal-sub">{{ __('livewire/operator/operator-inbox.link_sub', ['name' => $active['name']]) }}</p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="linkOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" @click="linkOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
                         <fieldset class="vy-ibx-pick">
-                            <legend class="vy-sr-only">Reservation</legend>
+                            <legend class="vy-sr-only">{{ __('livewire/operator/operator-inbox.reservation_legend') }}</legend>
                             <div class="vy-ibx-options">
                                 <label class="vy-ibx-option">
                                     <input type="radio" name="reservation_id" value="" @checked(! $active['reservation'])>
-                                    <span><strong>Not linked</strong><span class="vy-ibx-option-sub">No reservation</span></span>
+                                    <span><strong>{{ __('livewire/operator/operator-inbox.not_linked') }}</strong><span class="vy-ibx-option-sub">{{ __('livewire/operator/operator-inbox.no_reservation') }}</span></span>
                                 </label>
                                 @foreach ($active['link_reservations'] as $r)
                                     <label class="vy-ibx-option">
@@ -514,8 +514,8 @@
                         </fieldset>
                     </div>
                     <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Save link</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/operator-inbox.save_link') }}</button>
                     </div>
                 </form>
             </div>
@@ -536,18 +536,18 @@
                         <div class="vy-modal-head">
                             <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
                             <div class="vy-ibx-head-text">
-                                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
-                                <p class="vy-modal-sub">Guests staying now, arriving soon, or who left in the last 14 days.</p>
+                                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">{{ __('livewire/operator/operator-inbox.new_message') }}</h2>
+                                <p class="vy-modal-sub">{{ __('livewire/operator/operator-inbox.compose_sub') }}</p>
                             </div>
-                            <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                            <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                         </div>
                         <div class="vy-modal-body">
                             <fieldset class="vy-ibx-pick">
-                                <legend class="vy-field-label">Guest</legend>
+                                <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.guest_legend') }}</legend>
                                 <div class="vy-gl-search vy-ibx-find">
                                     <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                                    <label class="vy-sr-only" for="vy-ibx-find">Find a guest</label>
-                                    <input id="vy-ibx-find" type="search" class="vy-gl-search-in" placeholder="Find a guest" x-model="composeFind" autocomplete="off" @keydown.enter.prevent>
+                                    <label class="vy-sr-only" for="vy-ibx-find">{{ __('livewire/operator/operator-inbox.find_guest') }}</label>
+                                    <input id="vy-ibx-find" type="search" class="vy-gl-search-in" placeholder="{{ __('livewire/operator/operator-inbox.find_guest') }}" x-model="composeFind" autocomplete="off" @keydown.enter.prevent>
                                 </div>
                                 <div class="vy-ibx-options vy-ibx-guests">
                                     @foreach ($composeGuests as $g)
@@ -560,7 +560,7 @@
                                 </div>
                             </fieldset>
                             <fieldset class="vy-ibx-pick vy-ibx-tpls">
-                                <legend class="vy-field-label">Start from a template · optional</legend>
+                                <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.template_legend') }}</legend>
                                 <div class="vy-template-row">
                                     @foreach ($templates as $t)
                                         <button type="button" class="vy-template-chip" :class="composeTemplate === @js($t['key']) ? 'is-on' : ''" :aria-pressed="composeTemplate === @js($t['key']) ? 'true' : 'false'" @click="pickComposeTemplate(@js($t['key']))">{{ $t['label'] }}</button>
@@ -570,19 +570,19 @@
                             {{-- The REAL editable body — a template pre-fills it (merged for the picked guest); the operator reviews + edits,
                                  and this exact text is what sends (`body` wins over `template` server-side). --}}
                             <div class="vy-field vy-ibx-field">
-                                <label class="vy-field-label" for="vy-ibx-compose-body">Message</label>
-                                <textarea id="vy-ibx-compose-body" name="body" x-model="composeBody" rows="5" class="vy-input vy-ibx-textarea" placeholder="Write your message…"></textarea>
+                                <label class="vy-field-label" for="vy-ibx-compose-body">{{ __('livewire/operator/operator-inbox.message_label') }}</label>
+                                <textarea id="vy-ibx-compose-body" name="body" x-model="composeBody" rows="5" class="vy-input vy-ibx-textarea" placeholder="{{ __('livewire/operator/operator-inbox.message_placeholder') }}"></textarea>
                             </div>
                             <p class="vy-ibx-note" aria-live="polite">
-                                <span x-show="! composeGuest">Kept in this inbox — pick a guest to see where they’ll read it.</span>
-                                <span x-show="composeGuest && composeAccount[composeGuest]" x-cloak><span x-text="composeName()"></span> can read it in their guest account.</span>
-                                <span x-show="composeGuest && ! composeAccount[composeGuest]" x-cloak><span x-text="composeName()"></span> has no guest account, so it stays here as a record.</span>
-                                It isn’t emailed.
+                                <span x-show="! composeGuest">{{ __('livewire/operator/operator-inbox.compose_where_unpicked') }}</span>
+                                <span x-show="composeGuest && composeAccount[composeGuest]" x-cloak>{!! __('livewire/operator/operator-inbox.compose_where_account', ['name' => '<span x-text="composeName()"></span>']) !!}</span>
+                                <span x-show="composeGuest && ! composeAccount[composeGuest]" x-cloak>{!! __('livewire/operator/operator-inbox.compose_where_no_account', ['name' => '<span x-text="composeName()"></span>']) !!}</span>
+                                {{ __('livewire/operator/operator-inbox.not_emailed') }}
                             </p>
                         </div>
                         <div class="vy-modal-foot">
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Cancel</button>
-                            <button type="submit" class="vy-btn vy-btn--accent" :disabled="! composeGuest">Start conversation</button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">{{ __('common.cancel') }}</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" :disabled="! composeGuest">{{ __('livewire/operator/operator-inbox.start_conversation') }}</button>
                         </div>
                     </form>
                 @else
@@ -590,20 +590,20 @@
                     <div class="vy-modal-head">
                         <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
                         <div class="vy-ibx-head-text">
-                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
-                            <p class="vy-modal-sub">No guest to message from here yet.</p>
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">{{ __('livewire/operator/operator-inbox.new_message') }}</h2>
+                            <p class="vy-modal-sub">{{ __('livewire/operator/operator-inbox.compose_none_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
                         <div class="vy-ibx-empty">
-                            <p>A guest shows up here while they’re staying, when they arrive soon, or for 14 days after they leave.</p>
-                            <p>To write to anyone else, open them in Guests and use <strong>Message</strong> on their profile.</p>
+                            <p>{{ __('livewire/operator/operator-inbox.compose_none_window') }}</p>
+                            <p>{!! __('livewire/operator/operator-inbox.compose_none_profile') !!}</p>
                         </div>
                     </div>
                     <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Close</button>
-                        <a class="vy-btn vy-btn--accent" href="{{ route('app.guests') }}">Go to Guests</a>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">{{ __('common.close') }}</button>
+                        <a class="vy-btn vy-btn--accent" href="{{ route('app.guests') }}">{{ __('livewire/operator/operator-inbox.go_to_guests') }}</a>
                     </div>
                 @endif
             </div>
@@ -760,7 +760,7 @@
                     error: '',
                     sending: false,
                     rec: IDLE(),
-                    hint: (mac ? '⌘' : 'Ctrl') + ' + Enter to send',
+                    hint: @js(__('livewire/operator/operator-inbox.shortcut_hint', ['key' => ':key'])).replace(':key', () => (mac ? '⌘' : 'Ctrl')),
                     hintKey: mac ? '⌘' : 'Ctrl',
                     canRecord: cfg.files && !!(window.VyRecorder && window.VyRecorder.supported()),
                     mmss(n) { n = Math.max(0, Math.round(n || 0)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); },
@@ -768,8 +768,8 @@
                     add(e) {
                         this.error = '';
                         for (const file of Array.from(e.target.files || [])) {
-                            if (this.pending.length >= cfg.max) { this.error = 'Send up to ' + cfg.max + ' files at a time.'; break; }
-                            if (file.size > cfg.mb * 1048576) { this.error = file.name + ' is over ' + cfg.mb + ' MB.'; continue; }
+                            if (this.pending.length >= cfg.max) { this.error = @js(trans_choice('livewire/operator/operator-inbox.too_many_files', \App\Support\Messaging\ChatFiles::MAX_FILES, ['count' => \App\Support\Messaging\ChatFiles::MAX_FILES])); break; }
+                            if (file.size > cfg.mb * 1048576) { this.error = @js(__('livewire/operator/operator-inbox.file_too_large', ['name' => ':name', 'mb' => ':mb'])).replace(':name', () => file.name).replace(':mb', () => cfg.mb); continue; }
                             this.pending.push({ key: 'f' + (++seq), file, name: file.name, preview: PICTURES.includes(file.type) ? URL.createObjectURL(file) : null });
                         }
                         e.target.value = '';   // the files travel in the list above, never twice
@@ -806,7 +806,7 @@
                         this.rec = Object.assign(IDLE(), { state: 'recording' });
                         started.finished.then((r) => {
                             if (recToken !== mine || this.rec.state !== 'recording') return;   // cancelled, or a newer one
-                            if (!r) { this.rec = IDLE(); this.error = 'Nothing was recorded — try again.'; return; }
+                            if (!r) { this.rec = IDLE(); this.error = @js(__('livewire/operator/operator-inbox.nothing_recorded')); return; }
                             this.rec = { state: 'ready', seconds: r.seconds, url: URL.createObjectURL(r.blob), mime: r.mime, blob: r.blob };
                         });
                     },
@@ -821,19 +821,19 @@
                     },
                     /** Why a reply was not sent, in words — our own refusal (422, 404) as the server said it, else what went wrong. */
                     reason(res, json) {
-                        if (!res) return 'No connection — your reply was kept. Try again.';
+                        if (!res) return @js(__('livewire/operator/operator-inbox.error_offline'));
                         if (json && json.message && (res.status === 422 || res.status === 404)) return json.message;
-                        if (res.redirected || res.status === 401 || res.status === 419) return 'You have been signed out — reload to continue. Your reply was kept.';
-                        if (res.status === 413) return 'Together these files are too large to send at once — send fewer at a time.';
-                        if (res.status === 429) return 'Too many replies at once — wait a moment, then try again. Your reply was kept.';
-                        return 'Your reply was not sent — something went wrong. It was kept; try again.';
+                        if (res.redirected || res.status === 401 || res.status === 419) return @js(__('livewire/operator/operator-inbox.error_signed_out'));
+                        if (res.status === 413) return @js(__('livewire/operator/operator-inbox.error_too_large'));
+                        if (res.status === 429) return @js(__('livewire/operator/operator-inbox.error_too_many'));
+                        return @js(__('livewire/operator/operator-inbox.error_generic'));
                     },
                     async submit(e) {
                         e.preventDefault();
                         if (this.sending) return;
-                        if (this.rec.state === 'recording' || this.rec.state === 'starting') { this.error = 'Stop the recording first.'; return; }
+                        if (this.rec.state === 'recording' || this.rec.state === 'starting') { this.error = @js(__('livewire/operator/operator-inbox.stop_recording_first')); return; }
                         const size = this.pending.reduce((n, p) => n + p.file.size, 0) + (this.rec.blob ? this.rec.blob.size : 0);
-                        if (size > cfg.post) { this.error = 'Together these files are over ' + Math.floor(cfg.post / 1048576) + ' MB — send fewer at a time.'; return; }
+                        if (size > cfg.post) { this.error = @js(__('livewire/operator/operator-inbox.files_over_limit', ['mb' => ':mb'])).replace(':mb', () => Math.floor(cfg.post / 1048576)); return; }
                         const form = this.$root;
                         const data = new FormData();
                         data.append('_token', form.querySelector('input[name=_token]').value);

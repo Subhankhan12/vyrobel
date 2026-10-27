@@ -9,7 +9,7 @@
        · PARTIAL is capped at the remaining — a courtesy; the service is still the authority
        · at remaining = 0 NO control is offered at all — its persistence is what made the bug reachable --}}
 <div>
-    <x-operator.shell active="reservations" title="Refund a guest"
+    <x-operator.shell active="reservations" :title="__('livewire/operator/reservation-refund.page_title')"
         :subtitle="$reservation['reference'] . ' · ' . $reservation['status_label']" :viewer="$viewer">
 
         {{-- ⚠️ ONE component decides refusal-vs-success (audit D4). This view used to hardcode a tick, so
@@ -24,19 +24,19 @@
                 <div class="vy-card">
                     <div class="vy-detail-head">
                         <span class="vy-detail-ref">{{ $reservation['reference'] }}</span>
-                        <a href="{{ route('app.reservations.show', $reservation['id']) }}" class="vy-act vy-act--ghost">Back to reservation</a>
+                        <a href="{{ route('app.reservations.show', $reservation['id']) }}" class="vy-act vy-act--ghost">{{ __('livewire/operator/reservation-refund.back_to_reservation') }}</a>
                     </div>
                     <div class="vy-facts" style="margin-top: 14px;">
-                        <div><div class="vy-fact-label">Guest</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}</div></div>
-                        <div><div class="vy-fact-label">Stay</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.guest') }}</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.stay') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
                     </div>
                 </div>
 
                 <div class="vy-card">
-                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Refund a payment</h2>
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/reservation-refund.refund_a_payment') }}</h2>
                     {{-- TRUE and enforced three times over: here, in the controller, and in refundPayment()
                          itself (which rejects any type that is not payment/capture). --}}
-                    <div class="vy-recon" style="margin-top: 0;">Only settled payments can be refunded.</div>
+                    <div class="vy-recon" style="margin-top: 0;">{{ __('livewire/operator/reservation-refund.only_settled') }}</div>
 
                     {{-- ⚠️⚠️ F-39 — THE CONSEQUENCE SITS BEFORE THE ACTION, AND THAT IS THE WHOLE FIX.
                          This callout lived in the RIGHT RAIL's "What happens" card. At 1280 the rail is a
@@ -51,8 +51,8 @@
                          ⚠️ PLACED ABOVE THE PAYMENT LIST, not inside one payment's block, so it precedes
                          every button on BOTH paths for EVERY listed payment — one placement, no repetition. --}}
                     <div class="vy-callout is-cost" style="margin-top: 12px;">
-                        <div class="vy-callout-title">It can’t be reversed</div>
-                        A refund reverses a payment, not the charges — so the folio shows the guest owing again. Refunds cannot be reversed once issued.
+                        <div class="vy-callout-title">{{ __('livewire/operator/reservation-refund.cannot_reverse_title') }}</div>
+                        {{ __('livewire/operator/reservation-refund.cannot_reverse_body') }}
                     </div>
 
                     @forelse ($payments as $payment)
@@ -70,14 +70,14 @@
 
                                 {{-- Every figure below is the SERVICE's own arithmetic, not this screen's. --}}
                                 <div class="vy-facts" style="margin-top: 12px;">
-                                    <div><div class="vy-fact-label">Original</div><div class="vy-fact-val">{{ $payment['original'] }}</div></div>
-                                    <div><div class="vy-fact-label">Already refunded</div><div class="vy-fact-val">{{ $payment['refunded'] }}</div></div>
+                                    <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.original') }}</div><div class="vy-fact-val">{{ $payment['original'] }}</div></div>
+                                    <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.already_refunded') }}</div><div class="vy-fact-val">{{ $payment['refunded'] }}</div></div>
                                     {{-- ⚠️ A refund Stripe has ACCEPTED but not yet moved. It holds headroom, so the desk sees WHY the
                                          remaining figure is smaller — a refund in flight that appears nowhere is how a second one gets issued. --}}
                                     @if (! empty($payment['in_flight']))
-                                        <div><div class="vy-fact-label">Refund in progress</div><div class="vy-fact-val">{{ $payment['in_flight'] }}</div></div>
+                                        <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.refund_in_progress') }}</div><div class="vy-fact-val">{{ $payment['in_flight'] }}</div></div>
                                     @endif
-                                    <div><div class="vy-fact-label">Still refundable</div><div class="vy-fact-val">{{ $payment['remaining'] }}</div></div>
+                                    <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.still_refundable') }}</div><div class="vy-fact-val">{{ $payment['remaining'] }}</div></div>
                                 </div>
 
                                 @if ($payment['refundable'])
@@ -85,10 +85,10 @@
                                          full-remaining path — the same call the inline detail button makes. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
                                         data-guard-submit
-                                        onsubmit="return confirm('Refund {{ $payment['remaining'] }} — the whole remaining amount of this payment? A refund cannot be reversed.');">
+                                        onsubmit="return confirm(@js(__('livewire/operator/reservation-refund.refund_remaining_confirm', ['amount' => $payment['remaining']])));">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
-                                        <x-busy-btn class="vy-act vy-act--accent" busy-label="Refunding…">Refund the remaining {{ $payment['remaining'] }}</x-busy-btn>
+                                        <x-busy-btn class="vy-act vy-act--accent" :busy-label="__('livewire/operator/reservation-refund.refunding')">{{ __('livewire/operator/reservation-refund.refund_remaining', ['amount' => $payment['remaining']]) }}</x-busy-btn>
                                     </form>
 
                                     {{-- PARTIAL — capped at the remaining. The cap is a courtesy for the
@@ -96,10 +96,10 @@
                                          outright rather than quietly clamping it. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
                                         data-guard-submit
-                                        onsubmit="return confirm('Issue this partial refund? A refund cannot be reversed.');">
+                                        onsubmit="return confirm(@js(__('livewire/operator/reservation-refund.partial_confirm')));">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
-                                        <label class="vy-field-label" for="amount-{{ $payment['id'] }}">Or refund part of it ({{ $payment['currency'] }})</label>
+                                        <label class="vy-field-label" for="amount-{{ $payment['id'] }}">{{ __('livewire/operator/reservation-refund.refund_part', ['currency' => $payment['currency']]) }}</label>
                                         <div class="vy-input-group">
                                             <input class="vy-input" type="number" inputmode="decimal" step="0.01"
                                                 min="0.01" max="{{ $payment['max_input'] }}"
@@ -107,23 +107,23 @@
                                         </div>
 
                                         {{-- #100 — the refund REASON (recorded on the folio + reports) + REFUND-TO. --}}
-                                        <label class="vy-field-label" style="margin-top: 12px;">Reason <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· recorded on the folio &amp; in reports</span></label>
+                                        <label class="vy-field-label" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.reason') }} <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">{{ __('livewire/operator/reservation-refund.reason_note') }}</span></label>
                                         <select class="vy-input" name="reason">
-                                            <option value="">Choose a reason…</option>
-                                            <option value="duplicate">Duplicate charge</option>
-                                            <option value="overcharge">Overcharge</option>
-                                            <option value="service_issue">Service issue</option>
-                                            <option value="cancellation">Cancellation</option>
-                                            <option value="goodwill">Goodwill</option>
-                                            <option value="other">Other</option>
+                                            <option value="">{{ __('livewire/operator/reservation-refund.choose_reason') }}</option>
+                                            <option value="duplicate">{{ __('livewire/operator/reservation-refund.reason_duplicate') }}</option>
+                                            <option value="overcharge">{{ __('livewire/operator/reservation-refund.reason_overcharge') }}</option>
+                                            <option value="service_issue">{{ __('livewire/operator/reservation-refund.reason_service_issue') }}</option>
+                                            <option value="cancellation">{{ __('livewire/operator/reservation-refund.reason_cancellation') }}</option>
+                                            <option value="goodwill">{{ __('livewire/operator/reservation-refund.reason_goodwill') }}</option>
+                                            <option value="other">{{ __('livewire/operator/reservation-refund.reason_other') }}</option>
                                         </select>
-                                        <label class="vy-field-label" for="vy-lbl-reservation-refund-note">Add a note (optional)</label>
-                                        <input id="vy-lbl-reservation-refund-note" class="vy-input" type="text" name="note" maxlength="200" placeholder="Add a note (optional)" style="margin-top: 8px;">
+                                        <label class="vy-field-label" for="vy-lbl-reservation-refund-note">{{ __('livewire/operator/reservation-refund.add_note') }}</label>
+                                        <input id="vy-lbl-reservation-refund-note" class="vy-input" type="text" name="note" maxlength="200" placeholder="{{ __('livewire/operator/reservation-refund.add_note') }}" style="margin-top: 8px;">
 
-                                        <label class="vy-field-label" style="margin-top: 12px;">Refund to</label>
+                                        <label class="vy-field-label" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.refund_to') }}</label>
                                         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--vy-ink);">
-                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="original" checked> Original method · <span style="color: var(--vy-muted);">{{ $payment['gateway'] }}</span></label>
-                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="manual_bank"> Manual bank transfer <span style="color: var(--vy-faint);">· recorded, no gateway</span></label>
+                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="original" checked> {!! __('livewire/operator/reservation-refund.original_method', ['gateway' => e($payment['gateway'])]) !!}</label>
+                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="manual_bank"> {{ __('livewire/operator/reservation-refund.manual_bank_transfer') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/reservation-refund.manual_bank_transfer_note') }}</span></label>
                                         </div>
 
 {{-- ⚠️ WHO BEARS IT — rendered ONLY for an owner-attributed reservation (there is no owner to charge on an
@@ -131,25 +131,25 @@
      stated in words: absorbing a refund must be a deliberate act, never something that happens because a
      control was left alone. The choice is captured with this refund and cannot be changed afterwards. --}}
                                         @if ($isOwnerAttributed)
-                                            <label class="vy-field-label" style="margin-top: 12px;">Whose cost is this?</label>
+                                            <label class="vy-field-label" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.whose_cost') }}</label>
                                             <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--vy-ink);">
-                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="owner" checked> The owner <span style="color: var(--vy-faint);">· deducted from their share of this booking</span></label>
-                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="operator"> Ours <span style="color: var(--vy-faint);">· we absorb it; the owner is not charged</span></label>
+                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="owner" checked> {{ __('livewire/operator/reservation-refund.borne_owner') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/reservation-refund.borne_owner_note') }}</span></label>
+                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="operator"> {{ __('livewire/operator/reservation-refund.borne_operator') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/reservation-refund.borne_operator_note') }}</span></label>
                                             </div>
                                         @endif
 
-                                        <x-busy-btn class="vy-act vy-act--accent" busy-label="Refunding…" style="margin-top: 12px;">Review &amp; issue refund</x-busy-btn>
+                                        <x-busy-btn class="vy-act vy-act--accent" :busy-label="__('livewire/operator/reservation-refund.refunding')" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.review_issue') }}</x-busy-btn>
                                     </form>
-                                    <div class="vy-recon" style="margin-top: 8px;">Up to {{ $payment['remaining'] }} is still refundable against this payment. Anything above that is refused, not trimmed to fit.</div>
+                                    <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/operator/reservation-refund.up_to_refundable', ['amount' => $payment['remaining']]) }}</div>
                                 @else
                                     {{-- NO control at remaining = 0. A refund button that survives a full
                                          refund is exactly what let one €369.00 payment take three of them. --}}
-                                    <div class="vy-recon" style="margin-top: 12px;">This payment is fully refunded — there is nothing left to refund against it.</div>
+                                    <div class="vy-recon" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.fully_refunded') }}</div>
                                 @endif
                             </div>
                         </div>
                     @empty
-                        <div class="vy-empty">No settled payment on this folio yet. Only settled payments can be refunded.</div>
+                        <div class="vy-empty">{{ __('livewire/operator/reservation-refund.no_settled_payment') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -158,47 +158,47 @@
             <div class="vy-stack">
                 @if ($folio !== null)
                     <div class="vy-card">
-                        <span class="vy-eyebrow">This folio</span>
+                        <span class="vy-eyebrow">{{ __('livewire/operator/reservation-refund.this_folio') }}</span>
                         <div class="vy-totals" style="margin-top: 12px; border-top: none; padding-top: 0;">
-                            <div class="vy-total-row"><span class="vy-t-label">Charges</span><span class="vy-t-val">{{ $folio['charges'] }}</span></div>
-                            <div class="vy-total-row"><span class="vy-t-label">Paid</span><span class="vy-t-val">{{ $folio['paid'] }}</span></div>
+                            <div class="vy-total-row"><span class="vy-t-label">{{ __('livewire/operator/reservation-refund.charges') }}</span><span class="vy-t-val">{{ $folio['charges'] }}</span></div>
+                            <div class="vy-total-row"><span class="vy-t-label">{{ __('livewire/operator/reservation-refund.paid') }}</span><span class="vy-t-val">{{ $folio['paid'] }}</span></div>
                             <div class="vy-total-row is-balance @unless ($folio['has_balance']) is-settled @endunless">
-                                <span class="vy-t-label">Balance due</span><span class="vy-t-val">{{ $folio['balance'] }}</span>
+                                <span class="vy-t-label">{{ __('livewire/operator/reservation-refund.balance_due') }}</span><span class="vy-t-val">{{ $folio['balance'] }}</span>
                             </div>
                         </div>
 
                         @if ($folio['reconciles'])
                             <span class="vy-recon">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                                Reconciled to the folio ledger
+                                {{ __('livewire/operator/reservation-refund.reconciled') }}
                             </span>
                         @endif
                     </div>
                 @endif
 
                 <div class="vy-card">
-                    <span class="vy-eyebrow">What happens</span>
+                    <span class="vy-eyebrow">{{ __('livewire/operator/reservation-refund.what_happens') }}</span>
                     {{-- #100 — every claim here is one the code genuinely makes now (the owner-statement
                          adjustment is wired via the payment.refunded listener → OwnerAttributionService). --}}
                     <div class="vy-callout is-oos" style="margin-top: 12px;">
-                        <div class="vy-callout-title">A reversing entry is appended</div>
-                        The refund is posted as its own new entry on the ledger. The original payment is never edited or removed.
+                        <div class="vy-callout-title">{{ __('livewire/operator/reservation-refund.reversing_entry_title') }}</div>
+                        {{ __('livewire/operator/reservation-refund.reversing_entry_body') }}
                     </div>
                     <div class="vy-callout is-oos" style="margin-top: 10px;">
-                        <div class="vy-callout-title">The owner statement adjusts</div>
-                        For an owner-attributed stay, the owner's net share of the refund is posted to their ledger and lands on their next statement close.
+                        <div class="vy-callout-title">{{ __('livewire/operator/reservation-refund.owner_statement_title') }}</div>
+                        {{ __('livewire/operator/reservation-refund.owner_statement_body') }}
                     </div>
-                    <div class="vy-recon" style="margin-top: 10px;">The guest is emailed a refund confirmation automatically when the refund succeeds. Card refunds run in test mode until go-live — no real money moves yet.</div>
+                    <div class="vy-recon" style="margin-top: 10px;">{{ __('livewire/operator/reservation-refund.guest_emailed') }}</div>
                 </div>
 
                 <div class="vy-card">
-                    <span class="vy-eyebrow">Not yet available</span>
+                    <span class="vy-eyebrow">{{ __('livewire/operator/reservation-refund.not_yet_available') }}</span>
                     {{-- The only genuine remaining gap: per-CHARGE selection needs a folio_items↔payments link
                          (a credit note, a different concept). Refund reason + the guest email are now REAL. --}}
                     <div class="vy-action-list" style="margin-top: 10px;">
-                        <div class="vy-defer-item"><span>Refund by individual charge</span><span class="vy-soon-tag">Soon</span></div>
+                        <div class="vy-defer-item"><span>{{ __('livewire/operator/reservation-refund.refund_by_charge') }}</span><span class="vy-soon-tag">{{ __('livewire/operator/reservation-refund.soon') }}</span></div>
                     </div>
-                    <div class="vy-recon" style="margin-top: 8px;">Refunds attach to a payment, not to individual charges — a per-charge credit note is a separate concept.</div>
+                    <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/operator/reservation-refund.per_charge_note') }}</div>
                 </div>
             </div>
         </div>

@@ -107,10 +107,11 @@ class MaintenanceTicketDetail extends Component
             'canManage' => $canManage,
             // A paused/lapsed workspace is read-only — hide the write affordances (the controller enforces too).
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
+            // translated here, at render time, keyed by the note kind CODE (the posted value)
             'noteKinds' => [
-                ['key' => 'note', 'label' => 'Note'],
-                ['key' => 'progress', 'label' => 'Progress'],
-                ['key' => 'part', 'label' => 'Part ordered'],
+                ['key' => 'note', 'label' => __('php/livewire/maintenance_ticket_detail.kind_note')],
+                ['key' => 'progress', 'label' => __('php/livewire/maintenance_ticket_detail.kind_progress')],
+                ['key' => 'part', 'label' => __('php/livewire/maintenance_ticket_detail.kind_part')],
             ],
             'ticket' => [
                 'id' => (string) $ticket->id,
@@ -129,11 +130,11 @@ class MaintenanceTicketDetail extends Component
                 'assignee' => $ticket->assignedTo instanceof User ? (string) $ticket->assignedTo->name : null,
                 'assignee_id' => $ticket->assigned_to !== null ? (string) $ticket->assigned_to : null,
                 'assignee_initials' => $ticket->assignedTo instanceof User ? $this->initials((string) $ticket->assignedTo->name) : null,
-                'opened' => $openedAt->format('j M Y · H:i'),
-                'reported_day' => $openedAt->isToday() ? 'Today' : $openedAt->format('j M'),
+                'opened' => $openedAt->translatedFormat('j M Y · H:i'),
+                'reported_day' => $openedAt->isToday() ? __('common.today') : $openedAt->translatedFormat('j M'),
                 'reported_time' => $openedAt->format('H:i'),
                 'open_for' => $this->elapsedLabel($openedAt, $now),
-                'resolved' => $ticket->resolved_at?->format('j M Y · H:i'),
+                'resolved' => $ticket->resolved_at?->translatedFormat('j M Y · H:i'),
                 'labor_hours_label' => $ticket->labor_hours !== null ? $this->hoursLabel((float) $ticket->labor_hours) : null,
                 'is_oos' => $isOos,
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
@@ -149,7 +150,7 @@ class MaintenanceTicketDetail extends Component
                 'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
                 'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
                 'part_eta' => $ticket->part_eta?->format('Y-m-d'),
-                'part_eta_label' => $ticket->part_eta?->format('j M Y'),
+                'part_eta_label' => $ticket->part_eta?->translatedFormat('j M Y'),
                 'can_parts' => $canManage && $ticket->isActive(),
             ],
             'sla' => [
@@ -161,7 +162,7 @@ class MaintenanceTicketDetail extends Component
                 'label' => $this->slaLabel($sla),
                 // "Same-day target" only for a short (≤12h) SLA — a 24h target spans into the next day.
                 'same_day' => is_int($sla['target_hours']) && $sla['target_hours'] <= 12,
-                'due_by' => $deadline?->isSameDay($now) === true ? $deadline->format('H:i') : $deadline?->format('j M · H:i'),
+                'due_by' => $deadline?->isSameDay($now) === true ? $deadline->format('H:i') : $deadline?->translatedFormat('j M · H:i'),
                 'reported_time' => $openedAt->format('H:i'),
                 'progress_pct' => $this->slaProgress($openedAt, $now, is_int($sla['target_hours']) ? $sla['target_hours'] : null),
             ],
@@ -175,7 +176,7 @@ class MaintenanceTicketDetail extends Component
                 'impact_label' => $this->oosImpactLabel($arrivalsToday, $bookingsToMove),
             ],
             'expense' => $expense !== null ? [
-                'owner' => (string) ($expense->owner->name ?? 'the owner'),
+                'owner' => (string) ($expense->owner->name ?? __('php/livewire/maintenance_ticket_detail.the_owner')),
                 'amount' => $this->money((int) $expense->amount_minor, (string) $expense->currency),
                 'deductible' => (bool) $expense->deductible,
             ] : null,
@@ -216,17 +217,18 @@ class MaintenanceTicketDetail extends Component
             $action = (string) $event->action;
             $after = is_array($event->after) ? $event->after : [];
 
+            // translated here, at render time, keyed by the audit action CODE
             $label = match ($action) {
-                'maintenance_ticket.opened' => 'Reported',
+                'maintenance_ticket.opened' => __('php/livewire/maintenance_ticket_detail.timeline_opened'),
                 'maintenance_ticket.assigned' => isset($after['assigned_to'])
-                    ? 'Assigned to '.($names[(string) $after['assigned_to']] ?? 'a technician')
-                    : 'Unassigned',
-                'maintenance_ticket.started' => 'Work started',
-                'maintenance_ticket.resolved' => 'Resolved',
-                'maintenance_ticket.cancelled' => 'Cancelled',
-                'maintenance_ticket.parts_updated' => 'Parts updated',
-                'maintenance_ticket.cost_corrected' => 'Cost corrected',
-                'maintenance_ticket.updated' => 'Details edited',
+                    ? __('php/livewire/maintenance_ticket_detail.timeline_assigned_to', ['name' => $names[(string) $after['assigned_to']] ?? __('php/livewire/maintenance_ticket_detail.a_technician')])
+                    : __('php/livewire/maintenance_ticket_detail.timeline_unassigned'),
+                'maintenance_ticket.started' => __('php/livewire/maintenance_ticket_detail.timeline_started'),
+                'maintenance_ticket.resolved' => __('php/livewire/maintenance_ticket_detail.timeline_resolved'),
+                'maintenance_ticket.cancelled' => __('php/livewire/maintenance_ticket_detail.timeline_cancelled'),
+                'maintenance_ticket.parts_updated' => __('php/livewire/maintenance_ticket_detail.timeline_parts_updated'),
+                'maintenance_ticket.cost_corrected' => __('php/livewire/maintenance_ticket_detail.timeline_cost_corrected'),
+                'maintenance_ticket.updated' => __('php/livewire/maintenance_ticket_detail.timeline_updated'),
                 default => ucwords(str_replace(['maintenance_ticket.', '_'], ['', ' '], $action)),
             };
 
@@ -236,10 +238,10 @@ class MaintenanceTicketDetail extends Component
             return [
                 'sort' => $at?->format('Y-m-d H:i:s.u') ?? '',
                 'label' => $label,
-                'time' => $at?->format('j M · H:i') ?? '',
+                'time' => $at?->translatedFormat('j M · H:i') ?? '',
                 'actor' => $event->actor_id !== null
-                    ? ($names[(string) $event->actor_id] ?? 'A team member')
-                    : ($event->actor_type === 'system' ? 'System' : 'A team member'),
+                    ? ($names[(string) $event->actor_id] ?? __('php/livewire/maintenance_ticket_detail.a_team_member'))
+                    : ($event->actor_type === 'system' ? __('php/livewire/maintenance_ticket_detail.system') : __('php/livewire/maintenance_ticket_detail.a_team_member')),
                 'note' => null,
                 'has_note' => false,
                 'dot' => $dot,
@@ -257,12 +259,12 @@ class MaintenanceTicketDetail extends Component
                 return [
                     'sort' => $at?->format('Y-m-d H:i:s.u') ?? '',
                     'label' => match ($kind) {
-                        'progress' => 'Progress update',
-                        'part' => 'Part ordered',
-                        default => 'Note added',
+                        'progress' => __('php/livewire/maintenance_ticket_detail.note_progress'),
+                        'part' => __('php/livewire/maintenance_ticket_detail.note_part'),
+                        default => __('php/livewire/maintenance_ticket_detail.note_added'),
                     },
-                    'time' => $at?->format('j M · H:i') ?? '',
-                    'actor' => (string) ($note->author->name ?? 'A team member'),
+                    'time' => $at?->translatedFormat('j M · H:i') ?? '',
+                    'actor' => (string) ($note->author->name ?? __('php/livewire/maintenance_ticket_detail.a_team_member')),
                     'note' => (string) $note->body,
                     'has_note' => true,
                     'dot' => $dot,
@@ -296,7 +298,7 @@ class MaintenanceTicketDetail extends Component
             ->where('collection', 'mt_photo')
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn (Media $m): array => ['id' => (string) $m->id, 'url' => (string) $m->url, 'alt' => (string) ($m->alt ?? 'Maintenance photo')])
+            ->map(fn (Media $m): array => ['id' => (string) $m->id, 'url' => (string) $m->url, 'alt' => (string) ($m->alt ?? __('php/livewire/maintenance_ticket_detail.photo_alt'))])
             ->all();
     }
 
@@ -344,8 +346,10 @@ class MaintenanceTicketDetail extends Component
                 $id = (string) $u->id;
                 $l = $load[$id] ?? ['open' => 0, 'urgent' => 0];
                 $label = $l['open'] === 0
-                    ? 'No open work orders'
-                    : $l['open'].' open'.($l['urgent'] > 0 ? ' · '.$l['urgent'].' urgent' : '');
+                    ? __('php/livewire/maintenance_ticket_detail.load_none')
+                    : ($l['urgent'] > 0
+                        ? __('php/livewire/maintenance_ticket_detail.load_open_urgent', ['open' => $l['open'], 'urgent' => $l['urgent']])
+                        : __('php/livewire/maintenance_ticket_detail.load_open', ['open' => $l['open']]));
 
                 return [
                     'id' => $id,
@@ -362,13 +366,13 @@ class MaintenanceTicketDetail extends Component
     private function oosImpactLabel(int $arrivalsToday, int $bookingsToMove): string
     {
         if ($arrivalsToday > 0) {
-            return $arrivalsToday.' '.($arrivalsToday === 1 ? 'arrival tonight needs' : 'arrivals tonight need').' a room';
+            return trans_choice('php/livewire/maintenance_ticket_detail.impact_arrivals', $arrivalsToday, ['count' => $arrivalsToday]);
         }
         if ($bookingsToMove > 0) {
-            return $bookingsToMove.' '.($bookingsToMove === 1 ? 'booking needs' : 'bookings need').' to be moved';
+            return trans_choice('php/livewire/maintenance_ticket_detail.impact_bookings', $bookingsToMove, ['count' => $bookingsToMove]);
         }
 
-        return 'No bookings affected';
+        return __('php/livewire/maintenance_ticket_detail.impact_none');
     }
 
     /** Elapsed label "2h 03m" / "3d 4h" / "12m" between two instants. */
@@ -376,19 +380,19 @@ class MaintenanceTicketDetail extends Component
     {
         $minutes = max(0, (int) $from->diffInMinutes($to));
         if ($minutes < 60) {
-            return $minutes.'m';
+            return __('php/livewire/maintenance_ticket_detail.elapsed_minutes', ['minutes' => $minutes]);
         }
         if ($minutes < 1440) {
-            return intdiv($minutes, 60).'h '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
+            return __('php/livewire/maintenance_ticket_detail.elapsed_hours', ['hours' => intdiv($minutes, 60), 'minutes' => str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT)]);
         }
 
-        return intdiv($minutes, 1440).'d '.(intdiv($minutes % 1440, 60)).'h';
+        return __('php/livewire/maintenance_ticket_detail.elapsed_days', ['days' => intdiv($minutes, 1440), 'hours' => intdiv($minutes % 1440, 60)]);
     }
 
     /** "1.5h" / "2h" — a labour-hours label (trailing zeros trimmed). */
     private function hoursLabel(float $hours): string
     {
-        return rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.').'h';
+        return __('php/livewire/maintenance_ticket_detail.hours_short', ['hours' => rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.')]);
     }
 
     /** SLA progress % (elapsed / target), clamped 0–100 — for the timing bar. */

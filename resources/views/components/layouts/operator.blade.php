@@ -11,11 +11,11 @@
 
      Presentation only — no data, no backend. Rack-specific CSS lives at the bottom. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Vyrobel — Operator' }}</title>
+    <title>{{ $title ?? __('components/layouts/operator.default_title') }}</title>
 
     <x-favicon />
 
@@ -2207,7 +2207,7 @@
             .vy-gst .vy-gl-table, .vy-gst .vy-gl-table tbody, .vy-gst .vy-gl-table thead { display: block; }
             .vy-gst .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
             .vy-gst .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-            .vy-gst .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-gst .vy-gl-table thead tr::before { content: {!! json_encode(__('components/layouts/operator.sort_by'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}; font-size: 11px; color: var(--vy-on-grad); }
             .vy-gst .vy-gl-table thead th.vy-gl-c-nat, .vy-gst .vy-gl-table thead th.vy-gl-c-life, .vy-gst .vy-gl-table thead th.vy-gl-c-status,
             .vy-gst .vy-gl-table thead th.vy-gl-actcol { display: none; }
             /* each guest a wrapping row: the guest, its status and the menu on the first line, the facts on a quiet line beneath */
@@ -2391,7 +2391,7 @@
         @container vy-mt-list (max-width: 980px) {
             .vy-mnt .vy-gl-table, .vy-mnt .vy-gl-table tbody, .vy-mnt .vy-gl-table thead { display: block; }
             .vy-mnt .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
-            .vy-mnt .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-mnt .vy-gl-table thead tr::before { content: {!! json_encode(__('components/layouts/operator.sort_by'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}; font-size: 11px; color: var(--vy-on-grad); }
             .vy-mnt .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
             .vy-mnt .vy-gl-table thead th:not([aria-sort]):not(.vy-gl-check) { display: none; }
             .vy-mnt .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 10px 14px 16px; border-top: 1px solid var(--vy-hairline); }
@@ -2583,7 +2583,7 @@
         @container vy-ul-list (max-width: 860px) {
             .vy-units .vy-gl-table, .vy-units .vy-gl-table tbody, .vy-units .vy-gl-table thead { display: block; }
             .vy-units .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
-            .vy-units .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-units .vy-gl-table thead tr::before { content: {!! json_encode(__('components/layouts/operator.sort_by'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}; font-size: 11px; color: var(--vy-on-grad); }
             .vy-units .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
             .vy-units .vy-gl-table thead th:not([aria-sort]):not(.vy-gl-check) { display: none; }
             .vy-units .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 10px 14px 16px; border-top: 1px solid var(--vy-hairline); }

@@ -57,12 +57,38 @@ class OperatorTaskState extends Model
         return (string) str($taskKey)->before('.');
     }
 
+    /**
+     * The order the category sections are shown in when the dashboard groups by category: the order the English
+     * labels sorted into before the labels were translated (Arrivals · Housekeeping · Work orders), fixed by CODE
+     * so a translation can never reorder the sections (I18N-01).
+     *
+     * @var list<string>
+     */
+    public const CATEGORY_ORDER = ['arrivals', 'housekeeping', 'work_orders'];
+
     /** The human label for a task key's category; falls back to the namespace so nothing renders blank. */
     public static function categoryLabelFor(string $taskKey): string
     {
-        $category = self::categoryFor($taskKey);
+        return self::categoryLabel(self::categoryFor($taskKey));
+    }
 
-        return self::CATEGORY_LABELS[$category] ?? ucfirst(str_replace('_', ' ', $category));
+    /** A category CODE → its label in the reader's language (translated at call time, keyed by the code). */
+    public static function categoryLabel(string $category): string
+    {
+        return match ($category) {
+            'work_orders' => (string) __('php/models/operator_task_state.category_work_orders'),
+            'housekeeping' => (string) __('php/models/operator_task_state.category_housekeeping'),
+            'arrivals' => (string) __('php/models/operator_task_state.category_arrivals'),
+            default => ucfirst(str_replace('_', ' ', $category)),
+        };
+    }
+
+    /** A category CODE's position in {@see CATEGORY_ORDER}; an unknown category sorts after the known ones. */
+    public static function categorySortIndex(string $category): int
+    {
+        $i = array_search($category, self::CATEGORY_ORDER, true);
+
+        return $i === false ? count(self::CATEGORY_ORDER) : $i;
     }
 
     protected $fillable = [

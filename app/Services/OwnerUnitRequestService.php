@@ -35,6 +35,37 @@ class OwnerUnitRequestService
         'dorm_bed' => 'Dorm bed',
     ];
 
+    /**
+     * The requested property type in the reader's language, translated at call time by its CODE — the ONE
+     * definition the owner wizard and the operator review screen both read ({@see self::KINDS} stays the list of
+     * codes, with its English as the fallback for a code that has no translation).
+     */
+    public static function kindLabel(string $kind): string
+    {
+        return match ($kind) {
+            'apartment' => __('php/services/owner_unit_request_service.kind_apartment'),
+            'villa' => __('php/services/owner_unit_request_service.kind_villa'),
+            'room' => __('php/services/owner_unit_request_service.kind_room'),
+            'dorm_bed' => __('php/services/owner_unit_request_service.kind_dorm_bed'),
+            default => self::KINDS[$kind] ?? $kind,
+        };
+    }
+
+    /**
+     * Every requestable kind => its label in the reader's language, in {@see self::KINDS} order (keyed by code).
+     *
+     * @return array<string, string>
+     */
+    public static function kindLabels(): array
+    {
+        $labels = [];
+        foreach (array_keys(self::KINDS) as $code) {
+            $labels[$code] = self::kindLabel($code);
+        }
+
+        return $labels;
+    }
+
     /** Upper bounds for the wizard's stepper fields — server-authoritative, so a tampered POST can't overflow. */
     public const MAX_BEDROOMS = 20;
 
@@ -211,7 +242,7 @@ class OwnerUnitRequestService
                 //    unit would be created owned by them, an owner no screen shows and the payout engine never selects. Only a
                 //    decline is left for such a request; the page offers just that.
                 if (! Owner::query()->whereKey($locked->owner_id)->exists()) {
-                    throw new RuntimeException('This request’s owner has been removed — it can only be declined.');
+                    throw new RuntimeException(__('php/services/owner_unit_request_service.owner_removed'));
                 }
 
                 $property = Property::query()->findOrFail($propertyId);
@@ -258,7 +289,7 @@ class OwnerUnitRequestService
             },
             // The OPERATOR's voice — deliberately not the owner-facing wording {@see withdrawRefusal()} uses.
             // De-duplicating the MECHANISM must not flatten two different audiences into one message (§N.16.5).
-            fn (): string => 'Only a pending request can be approved.',
+            fn (): string => __('php/services/owner_unit_request_service.only_pending_approve'),
         );
     }
 
@@ -287,7 +318,7 @@ class OwnerUnitRequestService
 
                 return $locked;
             },
-            fn (): string => 'Only a pending request can be declined.',
+            fn (): string => __('php/services/owner_unit_request_service.only_pending_decline'),
         );
     }
 
@@ -385,11 +416,11 @@ class OwnerUnitRequestService
     private function withdrawRefusal(string $status): string
     {
         return match ($status) {
-            'approved' => 'Your manager already approved this request, so it can no longer be withdrawn.',
-            'declined' => 'Your manager already reviewed this request, so there is nothing to withdraw.',
-            'withdrawn' => 'This request has already been withdrawn.',
-            'draft' => 'This is still a draft — it hasn’t been sent, so there is nothing to withdraw.',
-            default => 'This request can no longer be withdrawn.',
+            'approved' => __('php/services/owner_unit_request_service.withdraw_approved'),
+            'declined' => __('php/services/owner_unit_request_service.withdraw_declined'),
+            'withdrawn' => __('php/services/owner_unit_request_service.withdraw_withdrawn'),
+            'draft' => __('php/services/owner_unit_request_service.withdraw_draft'),
+            default => __('php/services/owner_unit_request_service.withdraw_default'),
         };
     }
 

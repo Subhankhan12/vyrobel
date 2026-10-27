@@ -75,13 +75,16 @@ final class InventoryDeletion
 
         // an owner's unit belongs to their portal and statements, whatever else is on record
         foreach (DB::table('units')->whereIn('id', $unitIds)->whereNotNull('owner_id')->pluck('id') as $id) {
-            $found[(string) $id][] = 'an owner';
+            $found[(string) $id][] = __('php/support/unit/inventory_deletion.an_owner');
         }
-        // an owner invitation still waiting to be accepted would hand over a unit that is gone
+        // an owner invitation still waiting to be accepted would hand over a unit that is gone (said once per unit — by id,
+        // never by comparing the words)
+        $invited = [];
         foreach (OwnerInvite::query()->where('status', 'pending')->whereNotNull('assigned_unit_ids')->get(['assigned_unit_ids']) as $invite) {
             foreach (array_intersect((array) $invite->assigned_unit_ids, $unitIds) as $id) {
-                if (! in_array('a pending owner invitation', $found[$id], true)) {
-                    $found[$id][] = 'a pending owner invitation';
+                if (! isset($invited[$id])) {
+                    $invited[$id] = true;
+                    $found[$id][] = __('php/support/unit/inventory_deletion.pending_owner_invitation');
                 }
             }
         }
@@ -173,21 +176,53 @@ final class InventoryDeletion
             return $items[0] ?? '';
         }
 
-        return implode(', ', array_slice($items, 0, -1)).' and '.$items[count($items) - 1];
+        return __('php/support/unit/inventory_deletion.list_and', ['items' => implode(', ', array_slice($items, 0, -1)), 'last' => $items[count($items) - 1]]);
     }
 
     /** The noun for a room type's kind, as its units were added ("rooms", "dorm beds"). */
     public static function kindPlural(string $kind): string
     {
         return match ($kind) {
-            'dorm' => 'dorm beds',
+            'room' => __('php/support/unit/inventory_deletion.kind_rooms'),
+            'apartment' => __('php/support/unit/inventory_deletion.kind_apartments'),
+            'villa' => __('php/support/unit/inventory_deletion.kind_villas'),
+            'dorm' => __('php/support/unit/inventory_deletion.kind_dorm_beds'),
             default => Str::plural($kind),
         };
     }
 
+    /**
+     * "2 bookings" — one whole phrase per thing on record, in the reader's language. `$one` names the thing (the words
+     * the callers above pass, kept as codes); `$many` only serves a thing this list does not know yet.
+     */
     private static function count(int $n, string $one, string $many): string
     {
-        return $n.' '.($n === 1 ? $one : $many);
+        return match ($one) {
+            'booking' => trans_choice('php/support/unit/inventory_deletion.bookings', $n, ['count' => $n]),
+            'room move' => trans_choice('php/support/unit/inventory_deletion.room_moves', $n, ['count' => $n]),
+            'cleaning task' => trans_choice('php/support/unit/inventory_deletion.cleaning_tasks', $n, ['count' => $n]),
+            'work order' => trans_choice('php/support/unit/inventory_deletion.work_orders', $n, ['count' => $n]),
+            'status change' => trans_choice('php/support/unit/inventory_deletion.status_changes', $n, ['count' => $n]),
+            'block' => trans_choice('php/support/unit/inventory_deletion.blocks', $n, ['count' => $n]),
+            'owner agreement' => trans_choice('php/support/unit/inventory_deletion.owner_agreements', $n, ['count' => $n]),
+            'owner statement line' => trans_choice('php/support/unit/inventory_deletion.owner_statement_lines', $n, ['count' => $n]),
+            'owner expense' => trans_choice('php/support/unit/inventory_deletion.owner_expenses', $n, ['count' => $n]),
+            'review' => trans_choice('php/support/unit/inventory_deletion.reviews', $n, ['count' => $n]),
+            'owner request' => trans_choice('php/support/unit/inventory_deletion.owner_requests', $n, ['count' => $n]),
+            'note' => trans_choice('php/support/unit/inventory_deletion.notes', $n, ['count' => $n]),
+            'document' => trans_choice('php/support/unit/inventory_deletion.documents', $n, ['count' => $n]),
+            'file' => trans_choice('php/support/unit/inventory_deletion.files', $n, ['count' => $n]),
+            'unit' => trans_choice('php/support/unit/inventory_deletion.units', $n, ['count' => $n]),
+            'rate proposal' => trans_choice('php/support/unit/inventory_deletion.rate_proposals', $n, ['count' => $n]),
+            'overbooking record' => trans_choice('php/support/unit/inventory_deletion.overbooking_records', $n, ['count' => $n]),
+            'guest waitlist entry' => trans_choice('php/support/unit/inventory_deletion.guest_waitlist_entries', $n, ['count' => $n]),
+            'guest wishlist save' => trans_choice('php/support/unit/inventory_deletion.guest_wishlist_saves', $n, ['count' => $n]),
+            'room type built on it' => trans_choice('php/support/unit/inventory_deletion.derived_room_types', $n, ['count' => $n]),
+            'rate plan elsewhere priced from it' => trans_choice('php/support/unit/inventory_deletion.derived_rate_plans', $n, ['count' => $n]),
+            'corporate account’s default rate' => trans_choice('php/support/unit/inventory_deletion.corporate_default_rates', $n, ['count' => $n]),
+            'channel connection' => trans_choice('php/support/unit/inventory_deletion.channel_connections', $n, ['count' => $n]),
+            default => $n.' '.($n === 1 ? $one : $many),
+        };
     }
 
     /**

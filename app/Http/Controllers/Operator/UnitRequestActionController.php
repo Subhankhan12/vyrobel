@@ -39,9 +39,9 @@ class UnitRequestActionController extends Controller
             'room_type_id' => ['required', 'string'],
             'note' => ['nullable', 'string', 'max:500'],
         ], [
-            'property_id.required' => 'Choose the property the unit joins.',
-            'room_type_id.required' => 'Choose the room type the unit joins.',
-            'note.max' => 'A note to the owner can be up to 500 characters.',
+            'property_id.required' => __('php/http/controllers/operator/unit_request_action_controller.choose_property'),
+            'room_type_id.required' => __('php/http/controllers/operator/unit_request_action_controller.choose_room_type'),
+            'note.max' => __('php/http/controllers/operator/unit_request_action_controller.note_max'),
         ]);
 
         // ⚠️⚠️ DEC-k (2026-10-03, the rule he ruled for every unit write on 2026-09-30): the unit is created only in a property
@@ -57,7 +57,7 @@ class UnitRequestActionController extends Controller
             return $this->back('error', $e->getMessage());
         }
 
-        return $this->back('notice', 'Unit “'.$unit->name.'” created and assigned to '.($model->owner->name ?? 'the owner').'.');
+        return $this->back('notice', __('php/http/controllers/operator/unit_request_action_controller.unit_created', ['unit' => $unit->name, 'owner' => $model->owner->name ?? __('php/http/controllers/operator/unit_request_action_controller.the_owner')]));
     }
 
     public function decline(Request $request, string $unitRequest, OwnerUnitRequestService $service): RedirectResponse
@@ -71,7 +71,7 @@ class UnitRequestActionController extends Controller
         $data = $request->validate([
             'note' => ['nullable', 'string', 'max:500'],
         ], [
-            'note.max' => 'A reason to the owner can be up to 500 characters.',
+            'note.max' => __('php/http/controllers/operator/unit_request_action_controller.reason_max'),
         ]);
 
         try {
@@ -82,13 +82,13 @@ class UnitRequestActionController extends Controller
 
         // ⚠️ (2026-10-03) it said "the owner has been notified" — untrue for an owner with no portal login, or one who has
         //    turned these notices off; the dialog says which before it is sent
-        return $this->back('notice', 'Request for “'.$model->requested_name.'” declined.');
+        return $this->back('notice', __('php/http/controllers/operator/unit_request_action_controller.request_declined', ['name' => $model->requested_name]));
     }
 
     private function guardReadOnly(): ?RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back('error', 'Your workspace is read-only right now — changes are paused.');
+            return $this->back('error', __('php/http/controllers/operator/unit_request_action_controller.read_only'));
         }
 
         return null;

@@ -13,10 +13,10 @@
 @endphp
 @foreach ($vyAnnouncements as $vyAnn)
     <div role="status" data-platform-announcement style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; padding: 10px 18px; font: 500 13.5px/1.5 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: {{ $vyAnn->level === 'warning' ? '#FEF3C7' : '#E0E7FF' }}; color: {{ $vyAnn->level === 'warning' ? '#78350F' : '#1E1B4B' }}; border-bottom: 1px solid rgba(0,0,0,.08);">
-        <span><strong>From Vyrobel · {{ $vyAnn->title }}</strong> — {{ $vyAnn->body }}</span>
+        <span>{!! __('components/platform-announcements.announcement', ['title' => e($vyAnn->title), 'body' => e($vyAnn->body)]) !!}</span>
         <form method="POST" action="{{ route('announcements.dismiss', $vyAnn->id) }}" style="margin: 0;">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <button type="submit" aria-label="Dismiss this announcement" style="font: inherit; background: transparent; border: 1px solid currentColor; border-radius: 8px; padding: 2px 10px; color: inherit; cursor: pointer;">Dismiss</button>
+            <button type="submit" aria-label="{{ __('components/platform-announcements.dismiss_aria') }}" style="font: inherit; background: transparent; border: 1px solid currentColor; border-radius: 8px; padding: 2px 10px; color: inherit; cursor: pointer;">{{ __('components/platform-announcements.dismiss') }}</button>
         </form>
     </div>
 @endforeach

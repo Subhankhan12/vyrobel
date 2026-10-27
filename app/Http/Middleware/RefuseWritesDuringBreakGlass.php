@@ -38,16 +38,14 @@ class RefuseWritesDuringBreakGlass
             actor: $admin instanceof PlatformAdmin ? $admin : null,
         );
 
-        $message = 'This is a read-only Vyrobel support session — nothing can be changed.';
-
         if ($request->expectsJson() || $request->header('X-Livewire') !== null) {
-            return response()->json(['message' => $message], 403);
+            return response()->json(['message' => __('php/http/middleware/refuse_writes_during_break_glass.read_only')], 403);
         }
 
         return response()->view('errors.layout', [
             'code' => 403,
-            'title' => 'Read-only support session',
-            'message' => $message.' End the session from the banner to leave it.',
+            'title' => __('php/http/middleware/refuse_writes_during_break_glass.title'),
+            'message' => __('php/http/middleware/refuse_writes_during_break_glass.read_only_page'),
         ], 403);
     }
 }

@@ -89,7 +89,7 @@ class GuestReservationView
 
         return array_map(fn (array $e): array => [
             'label' => $e['label'],
-            'at' => CarbonImmutable::createFromTimestamp($e['ts'])->format('j M Y · H:i'),
+            'at' => CarbonImmutable::createFromTimestamp($e['ts'])->translatedFormat('j M Y · H:i'),
         ], $entries);
     }
 
@@ -100,9 +100,10 @@ class GuestReservationView
             return $description;
         }
 
-        return match ((string) $item->type) {
-            'room' => 'Room', 'tax' => 'Taxes', 'fee' => 'Fee', 'add_on' => 'Extra',
-            'product' => 'Item', 'discount' => 'Discount',
+        return (string) match ((string) $item->type) {
+            'room' => __('php/support/guest/guest_reservation_view.item_room'), 'tax' => __('php/support/guest/guest_reservation_view.item_tax'), 'fee' => __('php/support/guest/guest_reservation_view.item_fee'),
+            'add_on' => __('php/support/guest/guest_reservation_view.item_add_on'), 'product' => __('php/support/guest/guest_reservation_view.item_product'),
+            'discount' => __('php/support/guest/guest_reservation_view.item_discount'),
             default => ucfirst((string) $item->type),
         };
     }
@@ -111,11 +112,11 @@ class GuestReservationView
     private static function statusMilestone(string $toStatus): ?string
     {
         return match ($toStatus) {
-            'confirmed' => 'Booking confirmed',
-            'checked_in' => 'Checked in',
-            'checked_out' => 'Checked out',
-            'cancelled' => 'Booking cancelled',
-            'no_show' => 'Marked as no-show',
+            'confirmed' => (string) __('php/support/guest/guest_reservation_view.milestone_confirmed'),
+            'checked_in' => (string) __('php/support/guest/guest_reservation_view.milestone_checked_in'),
+            'checked_out' => (string) __('php/support/guest/guest_reservation_view.milestone_checked_out'),
+            'cancelled' => (string) __('php/support/guest/guest_reservation_view.milestone_cancelled'),
+            'no_show' => (string) __('php/support/guest/guest_reservation_view.milestone_no_show'),
             default => null,
         };
     }
@@ -128,6 +129,8 @@ class GuestReservationView
 
         $amount = MoneyFormatter::display(abs((int) $payment->amount_minor), $currency);
 
-        return (string) $payment->type === 'refund' ? 'Refund of '.$amount : 'Payment received · '.$amount;
+        return (string) ((string) $payment->type === 'refund'
+            ? __('php/support/guest/guest_reservation_view.refund_of', ['amount' => $amount])
+            : __('php/support/guest/guest_reservation_view.payment_received', ['amount' => $amount]));
     }
 }

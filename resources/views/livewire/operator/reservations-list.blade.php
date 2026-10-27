@@ -22,7 +22,7 @@
      word character ships the RAW SOURCE to the page as ordinary text, invisible to assertSee. Every `@`
      below follows a space, a newline or a tag. --}}
 <div class="vy-res">
-    <x-operator.shell active="reservations" title="Reservations" :subtitle="$subtitle" :viewer="$viewer">
+    <x-operator.shell active="reservations" :title="__('livewire/operator/reservations-list.page_title')" :subtitle="$subtitle" :viewer="$viewer">
 
         {{-- ── Stat strip — DERIVED. The CURRENT CALENDAR MONTH, keyed on check-in, excluding cancelled and
              no-shows, PER CURRENCY. Each label states its own scope, so the tiles are deliberately NOT
@@ -31,13 +31,13 @@
              reconcile to its own rows; not one was ported. ─────────────────────────────────────────────── --}}
         <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Arrivals this month</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/reservations-list.arrivals_this_month') }}</div>
                 <div class="vy-dk-val">{{ $stats['count'] }}</div>
-                <div class="vy-dk-sub">checking in this calendar month · cancellations and no-shows excluded</div>
+                <div class="vy-dk-sub">{{ __('livewire/operator/reservations-list.arrivals_this_month_sub') }}</div>
             </div>
 
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Booked value · arrivals this month</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/reservations-list.booked_value') }}</div>
                 @forelse ($stats['booked'] as $line)
                     <div class="vy-dk-val" @if (! $loop->first) style="font-size: 20px;" @endif>{{ $line }}</div>
                 @empty
@@ -45,20 +45,19 @@
                     <div class="vy-dk-val">—</div>
                 @endforelse
                 <div class="vy-dk-sub">
-                    billed on this month's arrivals
-                    {{ $stats['multi_currency'] ? '· shown per currency (never summed across)' : '' }}
+                    {{ $stats['multi_currency'] ? __('livewire/operator/reservations-list.booked_value_sub_multi') : __('livewire/operator/reservations-list.booked_value_sub') }}
                 </div>
             </div>
 
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Balances due · arrivals this month</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/reservations-list.balances_due') }}</div>
                 @forelse ($stats['due'] as $line)
                     <div class="vy-dk-val" @if (! $loop->first) style="font-size: 20px;" @endif>{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
                 <div class="vy-dk-sub">
-                    {{ $stats['due_count'] === 0 ? 'nothing due' : $stats['due_count'].' '.\Illuminate\Support\Str::plural('folio', $stats['due_count']).' still owing' }}
+                    {{ trans_choice('livewire/operator/reservations-list.folios_owing', $stats['due_count'], ['count' => $stats['due_count']]) }}
                 </div>
             </div>
         </div>
@@ -77,10 +76,10 @@
                     {{-- The design carries the magnifier inside the field. Decorative. --}}
                     <svg class="vy-search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <input class="vy-input" type="search" name="q" value="{{ $query }}"
-                           placeholder="Search by guest or reference…" aria-label="Search reservations">
-                    <button type="submit" class="vy-btn vy-btn--ghost">Search</button>
+                           placeholder="{{ __('livewire/operator/reservations-list.search_placeholder') }}" aria-label="{{ __('livewire/operator/reservations-list.search_label') }}">
+                    <button type="submit" class="vy-btn vy-btn--ghost">{{ __('common.search') }}</button>
                     @if ($query !== '')
-                        <a class="vy-pill" href="{{ $stage === null ? route('app.reservations') : route('app.reservations').'?stage='.$stage }}">Clear</a>
+                        <a class="vy-pill" href="{{ $stage === null ? route('app.reservations') : route('app.reservations').'?stage='.$stage }}">{{ __('common.clear') }}</a>
                     @endif
                 </form>
             </div>
@@ -90,11 +89,11 @@
                 @can('reservations.create')
                     <a class="vy-btn vy-btn--ghost" href="{{ route('app.group-booking') }}" style="margin-right: 8px;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        Group booking
+                        {{ __('livewire/operator/reservations-list.group_booking') }}
                     </a>
                     <a class="vy-btn vy-btn--accent" href="{{ route('app.reservations.create') }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                        New reservation
+                        {{ __('livewire/operator/reservations-list.new_reservation') }}
                     </a>
                 @endcan
             </div>
@@ -120,8 +119,8 @@
                  outstanding), so it was rewritten to promise only what exists. --}}
             <div class="vy-card vy-fade">
                 <div class="vy-empty">
-                    <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">No reservations yet</strong>
-                    Every booking — direct, walk-in or imported — lands here once it is taken.
+                    <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">{{ __('livewire/operator/reservations-list.empty_heading') }}</strong>
+                    {{ __('livewire/operator/reservations-list.empty_body') }}
                 </div>
             </div>
         @elseif (count($rows) === 0)
@@ -132,16 +131,19 @@
                 <div class="vy-empty">
                     <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">
                         @if ($query !== '')
-                            No reservations match “{{ $query }}”
+                            {{ __('livewire/operator/reservations-list.no_match_query', ['query' => $query]) }}
                         @else
-                            No reservations in this view
+                            {{ __('livewire/operator/reservations-list.no_match_view') }}
                         @endif
                     </strong>
                     <span style="display: block; margin-bottom: 14px;">
-                        Try a guest name or a reservation reference{{ $stage !== null ? ', or clear the filter' : '' }}.
-                        {{ $total }} {{ \Illuminate\Support\Str::plural('reservation', $total) }} in total.
+                        @if ($stage !== null)
+                            {{ trans_choice('livewire/operator/reservations-list.no_match_hint_filter', $total, ['count' => $total]) }}
+                        @else
+                            {{ trans_choice('livewire/operator/reservations-list.no_match_hint', $total, ['count' => $total]) }}
+                        @endif
                     </span>
-                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.reservations') }}">Clear search and filters</a>
+                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.reservations') }}">{{ __('livewire/operator/reservations-list.clear_search_filters') }}</a>
                 </div>
             </div>
         @else
@@ -150,13 +152,13 @@
                     <table class="vy-utable">
                         <thead>
                             <tr>
-                                <th>Guest</th>
-                                <th>Stay</th>
-                                <th>Unit</th>
-                                <th>Source</th>
-                                <th>Stage</th>
-                                <th style="text-align: right;">Total</th>
-                                <th style="text-align: right;">Balance due</th>
+                                <th>{{ __('livewire/operator/reservations-list.col_guest') }}</th>
+                                <th>{{ __('livewire/operator/reservations-list.col_stay') }}</th>
+                                <th>{{ __('livewire/operator/reservations-list.col_unit') }}</th>
+                                <th>{{ __('livewire/operator/reservations-list.col_source') }}</th>
+                                <th>{{ __('livewire/operator/reservations-list.col_stage') }}</th>
+                                <th style="text-align: right;">{{ __('common.total') }}</th>
+                                <th style="text-align: right;">{{ __('livewire/operator/reservations-list.col_balance_due') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -175,8 +177,7 @@
                                     <td>
                                         <div>{{ $row['check_in'] }} – {{ $row['check_out'] }}</div>
                                         <div class="vy-u-sub">
-                                            {{ $row['nights'] }} {{ \Illuminate\Support\Str::plural('night', $row['nights']) }}
-                                            · {{ $row['guests'] }} {{ \Illuminate\Support\Str::plural('guest', $row['guests']) }}
+                                            {{ __('livewire/operator/reservations-list.stay_sub', ['nights' => trans_choice('livewire/operator/reservations-list.nights', $row['nights'], ['count' => $row['nights']]), 'guests' => trans_choice('livewire/operator/reservations-list.guests', $row['guests'], ['count' => $row['guests']])]) }}
                                         </div>
                                     </td>
                                     <td>
@@ -186,7 +187,7 @@
                                         {{-- A real state (reservation_units.unit_id is nullable by design),
                                              not a missing-data placeholder. --}}
                                         @if ($row['unassigned'])
-                                            <span class="vy-unassigned">Unassigned</span>
+                                            <span class="vy-unassigned">{{ __('livewire/operator/reservations-list.unassigned') }}</span>
                                         @endif
                                         @if ($row['unit'] === null && ! $row['unassigned'])
                                             <span class="vy-muted">—</span>
@@ -199,7 +200,7 @@
                                     <td>
                                         <span class="vy-tag tone-{{ $row['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['stage_meta']['label'] }}</span>
                                         {{-- #104 GATE 3c — REAL "Refunded" pill (payment_status='refunded'). --}}
-                                        @if ($row['refunded'])<span class="vy-tag tone-cancelled" style="margin-left:5px;"><span class="vy-dot"></span>Refunded</span>@endif
+                                        @if ($row['refunded'])<span class="vy-tag tone-cancelled" style="margin-left:5px;"><span class="vy-dot"></span>{{ __('livewire/operator/reservations-list.refunded') }}</span>@endif
                                     </td>
                                     <td style="text-align: right;"><span class="vy-u-code">{{ $row['total'] }}</span></td>
                                     <td style="text-align: right;">
@@ -215,7 +216,7 @@
                             @endforeach
 
                 {{-- WAVE 3 — the realm's shared pager (GET links; carries ?stage=/?q=). --}}
-                <x-pager :paginator="$rows" label="reservations" />
+                <x-pager :paginator="$rows" :label="__('livewire/operator/reservations-list.pager_label')" />
                         </tbody>
                     </table>
                 </div>

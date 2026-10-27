@@ -96,7 +96,8 @@ class GuestAccountService
             return;
         }
 
-        Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url, '1 hour', $email, (string) $guest->organization_id));
+        $locale = EmailTemplateResolver::localeFor((string) $guest->organization_id, 'verify-email', $guest->preferredLocale());
+        Mail::to($email)->locale($locale)->send(new VerifyEmailMail(GuestName::display($guest), $url, (string) __('php/services/guest_account_service.link_lifetime', [], $locale), $email, (string) $guest->organization_id));
     }
 
     /** Complete the claim: set the (hashed) password + mark the email verified → the account is active. */

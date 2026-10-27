@@ -48,16 +48,32 @@ final class CheckoutOverrideReason
         ];
     }
 
-    /** @return array<string, string> */
+    /**
+     * Code → display label, translated at call time (I18N-01). Keyed by the CODE, never by the label.
+     *
+     * @return array<string, string>
+     */
     public static function labels(): array
     {
-        return [
-            self::ROUNDING_RESIDUE => 'Rounding residue — too small to collect',
-            self::GUEST_DEPARTED => 'Guest has already departed',
-            self::DISPUTED_CHARGE => 'Charge is disputed and under review',
-            self::SETTLED_OFFLINE => 'Settled outside the system, not yet recorded',
-            self::OTHER => 'Other (note required)',
-        ];
+        $out = [];
+        foreach (self::all() as $code) {
+            $out[$code] = self::label($code);
+        }
+
+        return $out;
+    }
+
+    /** The display label for one reason code, in the reader's language; an unknown code is returned as-is. */
+    public static function label(string $code): string
+    {
+        return (string) match ($code) {
+            self::ROUNDING_RESIDUE => __('php/support/folio/checkout_override_reason.rounding_residue'),
+            self::GUEST_DEPARTED => __('php/support/folio/checkout_override_reason.guest_departed'),
+            self::DISPUTED_CHARGE => __('php/support/folio/checkout_override_reason.disputed_charge'),
+            self::SETTLED_OFFLINE => __('php/support/folio/checkout_override_reason.settled_offline'),
+            self::OTHER => __('php/support/folio/checkout_override_reason.other'),
+            default => $code,
+        };
     }
 
     public static function isValid(mixed $reason): bool

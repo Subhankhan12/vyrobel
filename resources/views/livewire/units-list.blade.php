@@ -28,7 +28,7 @@
 
      RAW-BLADE RULE: never write `word@directive` — every `@` below follows a space, newline, tag, quote or bracket. --}}
 <div class="vy-units">
-    <x-operator.shell active="units" title="Units" subtitle="Inventory" :viewer="$viewer">
+    <x-operator.shell active="units" :title="__('livewire/units-list.shell_title')" :subtitle="__('livewire/units-list.shell_subtitle')" :viewer="$viewer">
 
         @if (session('units_notice'))
             <div class="vy-flash is-ok vy-fade" role="status">{{ session('units_notice') }}</div>
@@ -49,29 +49,29 @@
             {{-- ── The figures — real counts over every unit here, whatever is filtered below ──────────────── --}}
             <div class="vy-dash-kpis vy-dash-kpis--5 vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Units</div>
+                    <div class="vy-dk-label">{{ __('livewire/units-list.kpi_units') }}</div>
                     <div class="vy-dk-val">{{ $kpis['total'] }}</div>
-                    <div class="vy-dk-sub">{{ count($roomTypeCards) }} {{ \Illuminate\Support\Str::plural('room type', count($roomTypeCards)) }}</div>
+                    <div class="vy-dk-sub">{{ trans_choice('livewire/units-list.kpi_room_types_sub', count($roomTypeCards), ['count' => count($roomTypeCards)]) }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Bookable</div>
+                    <div class="vy-dk-label">{{ __('livewire/units-list.kpi_bookable') }}</div>
                     <div class="vy-dk-val">{{ $kpis['bookable'] }}</div>
-                    <div class="vy-dk-sub">taking bookings and in service</div>
+                    <div class="vy-dk-sub">{{ __('livewire/units-list.kpi_bookable_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Paused</div>
+                    <div class="vy-dk-label">{{ __('livewire/units-list.paused') }}</div>
                     <div class="vy-dk-val">{{ $kpis['paused'] }}</div>
-                    <div class="vy-dk-sub">not taking new bookings</div>
+                    <div class="vy-dk-sub">{{ __('livewire/units-list.kpi_paused_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">To clean</div>
+                    <div class="vy-dk-label">{{ __('livewire/units-list.kpi_to_clean') }}</div>
                     <div class="vy-dk-val">{{ $kpis['dirty'] }}</div>
-                    <div class="vy-dk-sub">marked dirty</div>
+                    <div class="vy-dk-sub">{{ __('livewire/units-list.kpi_to_clean_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Out of order</div>
+                    <div class="vy-dk-label">{{ __('livewire/units-list.kpi_out_of_order') }}</div>
                     <div class="vy-dk-val">{{ $kpis['ooo'] }}</div>
-                    <div class="vy-dk-sub">held by maintenance</div>
+                    <div class="vy-dk-sub">{{ __('livewire/units-list.kpi_ooo_sub') }}</div>
                 </div>
             </div>
 
@@ -80,34 +80,34 @@
                  step never showed as done. ─────────────────────────────────────────────────────────────────────────── --}}
             @if ($setup['room_types'] === 0 || $setup['units'] === 0 || $setup['priced'] === 0)
                 <section class="vy-card vy-ul-setup vy-fade" data-ul-setup aria-labelledby="vy-ul-setup-t">
-                    <h2 class="vy-ul-setup-title" id="vy-ul-setup-t">Set up what you sell</h2>
-                    <p class="vy-ul-setup-sub">A room type is what a guest books — “Double Room”; a unit is a real room of that type — “101”.</p>
+                    <h2 class="vy-ul-setup-title" id="vy-ul-setup-t">{{ __('livewire/units-list.setup_title') }}</h2>
+                    <p class="vy-ul-setup-sub">{{ __('livewire/units-list.setup_sub') }}</p>
                     <ol class="vy-ul-steps">
                         <li data-step="1" class="vy-ul-step {{ $setup['room_types'] > 0 ? 'is-done' : 'is-current' }}">
                             <span class="vy-ul-step-n" aria-hidden="true">{{ $setup['room_types'] > 0 ? '✓' : '1' }}</span>
-                            <span class="vy-ul-step-text"><strong>Add a room type</strong><span>Its name, its kind and who it sleeps.</span></span>
+                            <span class="vy-ul-step-text"><strong>{{ __('livewire/units-list.step_room_type_title') }}</strong><span>{{ __('livewire/units-list.step_room_type_text') }}</span></span>
                             @if ($canWrite && $setup['room_types'] === 0)
-                                <button type="button" class="vy-btn vy-btn--accent" @click="openAddRoomType()">Add room type</button>
+                                <button type="button" class="vy-btn vy-btn--accent" @click="openAddRoomType()">{{ __('livewire/units-list.add_room_type') }}</button>
                             @endif
                         </li>
                         <li data-step="2" class="vy-ul-step {{ $setup['units'] > 0 ? 'is-done' : ($setup['room_types'] > 0 ? 'is-current' : '') }}">
                             <span class="vy-ul-step-n" aria-hidden="true">{{ $setup['units'] > 0 ? '✓' : '2' }}</span>
-                            <span class="vy-ul-step-text"><strong>Add its units</strong><span>Each real room — several at once, like “101-110”.</span></span>
+                            <span class="vy-ul-step-text"><strong>{{ __('livewire/units-list.step_units_title') }}</strong><span>{{ __('livewire/units-list.step_units_text') }}</span></span>
                             @if ($canWrite && $setup['room_types'] > 0 && $setup['units'] === 0)
-                                <button type="button" class="vy-btn vy-btn--accent" @click="openAddUnit('')">Add units</button>
+                                <button type="button" class="vy-btn vy-btn--accent" @click="openAddUnit('')">{{ __('livewire/units-list.add_units') }}</button>
                             @endif
                         </li>
                         <li data-step="3" class="vy-ul-step {{ $setup['priced'] > 0 ? 'is-done' : ($setup['units'] > 0 ? 'is-current' : '') }}">
                             <span class="vy-ul-step-n" aria-hidden="true">{{ $setup['priced'] > 0 ? '✓' : '3' }}</span>
-                            <span class="vy-ul-step-text"><strong>Give it prices</strong><span>Nightly prices in Rates &amp; availability — then guests can book.</span></span>
+                            <span class="vy-ul-step-text"><strong>{{ __('livewire/units-list.step_prices_title') }}</strong><span>{{ __('livewire/units-list.step_prices_text') }}</span></span>
                             @if ($setup['priced'] === 0)
-                                <a class="vy-btn {{ $setup['units'] > 0 ? 'vy-btn--accent' : 'vy-btn--ghost' }}" href="{{ route('app.rates') }}">Set prices</a>
+                                <a class="vy-btn {{ $setup['units'] > 0 ? 'vy-btn--accent' : 'vy-btn--ghost' }}" href="{{ route('app.rates') }}">{{ __('livewire/units-list.set_prices') }}</a>
                             @endif
                         </li>
                     </ol>
                     {{-- only when the reason IS a permission — a paused workspace has the shell's own banner --}}
                     @unless ($canManageUnits)
-                        <p class="vy-gl-note">Adding room types and units needs the “manage units” permission — ask an administrator.</p>
+                        <p class="vy-gl-note">{{ __('livewire/units-list.setup_no_permission') }}</p>
                     @endunless
                 </section>
             @endif
@@ -118,13 +118,13 @@
                 <section class="vy-ul-section vy-fade" aria-labelledby="vy-ul-types-t">
                     <div class="vy-ul-sechead">
                         <div class="vy-ul-sechead-text">
-                            <h2 class="vy-ul-sectitle" id="vy-ul-types-t">Room types</h2>
-                            <p class="vy-ul-secsub">What a guest books. Each holds the units — the real rooms — guests stay in.</p>
+                            <h2 class="vy-ul-sectitle" id="vy-ul-types-t">{{ __('livewire/units-list.room_types_title') }}</h2>
+                            <p class="vy-ul-secsub">{{ __('livewire/units-list.room_types_sub') }}</p>
                         </div>
                         @if ($canWrite)
                             <button type="button" class="vy-btn vy-btn--ghost" @click="openAddRoomType()">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                                Add room type
+                                {{ __('livewire/units-list.add_room_type') }}
                             </button>
                         @endif
                     </div>
@@ -139,33 +139,39 @@
                                     @endif
                                     <div class="vy-ul-rt-id">
                                         <h3 class="vy-ul-rt-name">{{ $rt['name'] }}</h3>
-                                        <p class="vy-ul-rt-meta">{{ $rt['kind'] }} · sleeps {{ $rt['adults'] }} {{ \Illuminate\Support\Str::plural('adult', $rt['adults']) }}@if ($rt['children'] > 0) + {{ $rt['children'] }} {{ \Illuminate\Support\Str::plural('child', $rt['children']) }}@endif @if ($rt['property'] !== null) · {{ $rt['property'] }} @endif</p>
+                                        @php
+                                            $vyAdults = trans_choice('livewire/units-list.adults_count', $rt['adults'], ['count' => $rt['adults']]);
+                                            $vyGuests = $rt['children'] > 0
+                                                ? __('livewire/units-list.adults_plus_children', ['adults' => $vyAdults, 'children' => trans_choice('livewire/units-list.children_count', $rt['children'], ['count' => $rt['children']])])
+                                                : $vyAdults;
+                                        @endphp
+                                        <p class="vy-ul-rt-meta">@if ($rt['property'] !== null){{ __('livewire/units-list.rt_meta_property', ['kind' => $rt['kind'], 'guests' => $vyGuests, 'property' => $rt['property']]) }}@else{{ __('livewire/units-list.rt_meta', ['kind' => $rt['kind'], 'guests' => $vyGuests]) }}@endif</p>
                                     </div>
                                     @if ($canWrite)
                                         <div class="vy-ul-rt-acts">
-                                            <button type="button" class="vy-ul-iconbtn" title="Edit" aria-label="Edit room type {{ $rt['name'] }}" @click="openEditRoomType('{{ $rt['id'] }}')">
+                                            <button type="button" class="vy-ul-iconbtn" title="{{ __('common.edit') }}" aria-label="{{ __('livewire/units-list.edit_room_type_aria', ['name' => $rt['name']]) }}" @click="openEditRoomType('{{ $rt['id'] }}')">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                             </button>
-                                            <button type="button" class="vy-ul-iconbtn is-danger" title="Delete" aria-label="Delete room type {{ $rt['name'] }}" @click="openDeleteRoomType('{{ $rt['id'] }}')">
+                                            <button type="button" class="vy-ul-iconbtn is-danger" title="{{ __('common.delete') }}" aria-label="{{ __('livewire/units-list.delete_room_type_aria', ['name' => $rt['name']]) }}" @click="openDeleteRoomType('{{ $rt['id'] }}')">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                                             </button>
                                         </div>
                                     @endif
                                 </div>
-                                <p class="vy-ul-rt-count"><strong>{{ $rt['units'] }} {{ \Illuminate\Support\Str::plural('unit', $rt['units']) }}</strong> · {{ $rt['bookable'] }} bookable</p>
-                                <p class="vy-ul-rt-state is-{{ $rt['state_tone'] }}"><span class="vy-ul-rt-dot" aria-hidden="true"></span>{{ $rt['state'] }}@if ($rt['needs_prices'] && $canManageRates) <a href="{{ route('app.rates') }}">Set prices</a>@endif</p>
+                                <p class="vy-ul-rt-count">{!! trans_choice('livewire/units-list.rt_count', $rt['units'], ['count' => e($rt['units']), 'bookable' => e($rt['bookable'])]) !!}</p>
+                                <p class="vy-ul-rt-state is-{{ $rt['state_tone'] }}"><span class="vy-ul-rt-dot" aria-hidden="true"></span>{{ $rt['state'] }}@if ($rt['needs_prices'] && $canManageRates) <a href="{{ route('app.rates') }}">{{ __('livewire/units-list.set_prices') }}</a>@endif</p>
                                 @if ($canWrite || $canManageUnits)
                                     <div class="vy-ul-rt-foot">
                                         @if ($canWrite)
                                             <button type="button" class="vy-btn vy-btn--ghost vy-ul-rt-btn" @click="openAddUnit('{{ $rt['id'] }}')">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                                                Add units
+                                                {{ __('livewire/units-list.add_units') }}
                                             </button>
                                         @endif
                                         @if ($canManageUnits)
                                             <button type="button" class="vy-btn vy-btn--ghost vy-ul-rt-btn" @click="photosFor = '{{ $rt['id'] }}'">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-9 7"/></svg>
-                                                Photos<span class="vy-ul-rt-n">{{ count($rt['photos']) }}</span>
+                                                {{ __('livewire/units-list.photos') }}<span class="vy-ul-rt-n">{{ count($rt['photos']) }}</span>
                                             </button>
                                         @endif
                                     </div>
@@ -182,8 +188,8 @@
             <section class="vy-ul-section" aria-labelledby="vy-ul-units-t">
             <div class="vy-ul-sechead vy-fade">
                 <div class="vy-ul-sechead-text">
-                    <h2 class="vy-ul-sectitle" id="vy-ul-units-t">Units</h2>
-                    <p class="vy-ul-secsub">The real rooms guests stay in.</p>
+                    <h2 class="vy-ul-sectitle" id="vy-ul-units-t">{{ __('livewire/units-list.units_title') }}</h2>
+                    <p class="vy-ul-secsub">{{ __('livewire/units-list.units_sub') }}</p>
                 </div>
             </div>
             <div class="vy-gl-bar vy-ul-bar vy-fade">
@@ -193,10 +199,10 @@
                     @endforeach
                     <svg class="vy-gl-search-ico" x-show="! loading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <span class="vy-gl-spinner" x-show="loading" x-cloak aria-hidden="true"></span>
-                    <label class="vy-sr-only" for="vy-ul-q">Search units</label>
+                    <label class="vy-sr-only" for="vy-ul-q">{{ __('livewire/units-list.search_label') }}</label>
                     <input id="vy-ul-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" x-model="q"
-                           @input.debounce.300ms="search()" placeholder="Search unit, name, room type or owner" maxlength="80" autocomplete="off" spellcheck="false">
-                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="Clear search">
+                           @input.debounce.300ms="search()" placeholder="{{ __('livewire/units-list.search_placeholder') }}" maxlength="80" autocomplete="off" spellcheck="false">
+                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="{{ __('livewire/units-list.clear_search') }}">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </form>
@@ -209,24 +215,24 @@
                         <a class="vy-btn vy-btn--ghost" href="{{ $exportUrl }}" data-export-base="{{ route('app.units.export') }}"
                            x-on:click="$el.href = $el.dataset.exportBase + location.search">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
-                            Export
+                            {{ __('common.export') }}
                         </a>
                     @endif
                     @if ($canSelect && $total > 0)
                         <button type="button" class="vy-btn vy-btn--ghost vy-gl-select" :class="selectMode && 'is-on'" :aria-pressed="selectMode ? 'true' : 'false'" @click="toggleMode()">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
-                            <span x-text="selectMode ? 'Done' : 'Select'">Select</span>
+                            <span x-text="selectMode ? @js(__('common.done')) : @js(__('livewire/units-list.select'))">{{ __('livewire/units-list.select') }}</span>
                         </button>
                     @endif
                     @if ($canWrite && count($roomTypeOptions) > 0)
                         <button type="button" class="vy-btn vy-btn--accent" @click="openAddUnit('')">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                            Add units
+                            {{ __('livewire/units-list.add_units') }}
                         </button>
                     @endif
                 </div>
 
-                <div class="vy-gl-chips vy-ul-chips" data-gl-region="chips" role="group" aria-label="Show">
+                <div class="vy-gl-chips vy-ul-chips" data-gl-region="chips" role="group" aria-label="{{ __('livewire/units-list.chips_aria') }}">
                     @foreach ($chips as $chip)
                         <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
                     @endforeach
@@ -243,8 +249,8 @@
                         <span class="vy-gl-empty-ico" aria-hidden="true">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 18h18M3 18v2M21 18v2M7 10V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3"/></svg>
                         </span>
-                        <h2 class="vy-gl-empty-title">No units yet</h2>
-                        <p class="vy-gl-empty-text">A unit is a real room a guest sleeps in. @if (count($roomTypeOptions) > 0) Add them to a room type — several at once, like “101-110”. @else Add a room type first, then its units. @endif</p>
+                        <h2 class="vy-gl-empty-title">{{ __('livewire/units-list.empty_title') }}</h2>
+                        <p class="vy-gl-empty-text">@if (count($roomTypeOptions) > 0){{ __('livewire/units-list.empty_text_with_types') }}@else{{ __('livewire/units-list.empty_text_no_types') }}@endif</p>
                     </div>
                 @elseif ($rows->total() === 0)
                     <div class="vy-card vy-gl-empty vy-fade">
@@ -252,38 +258,38 @@
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                         </span>
                         <h2 class="vy-gl-empty-title">
-                            @if ($query !== '') No units match “{{ $query }}” @else No units in this view @endif
+                            @if ($query !== '') {{ __('livewire/units-list.no_match_query', ['query' => $query]) }} @else {{ __('livewire/units-list.empty_view') }} @endif
                         </h2>
-                        <p class="vy-gl-empty-text">Search looks at the unit code and name, the room type, the kind and the owner. {{ $total }} {{ \Illuminate\Support\Str::plural('unit', $total) }} in all.</p>
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.units') }}" data-gl-key="clear-all">Clear search and filters</a>
+                        <p class="vy-gl-empty-text">{{ trans_choice('livewire/units-list.no_match_text', $total, ['count' => $total]) }}</p>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.units') }}" data-gl-key="clear-all">{{ __('livewire/units-list.clear_all') }}</a>
                     </div>
                 @else
                     <div class="vy-card vy-gl-card vy-fade">
                         <div class="vy-gl-progress" aria-hidden="true"></div>
                         <div class="vy-gl-scroll">
                             <table class="vy-gl-table vy-ul-table">
-                                <caption class="vy-sr-only">Units, {{ $sortedBy }}</caption>
+                                <caption class="vy-sr-only">{{ __('livewire/units-list.table_caption', ['sorted' => $sortedBy]) }}</caption>
                                 <thead>
                                     <tr>
                                         @if ($canSelect)
                                             <th class="vy-gl-check" x-show="selectMode" x-cloak>
-                                                <input type="checkbox" aria-label="Select every unit on this page"
+                                                <input type="checkbox" aria-label="{{ __('livewire/units-list.select_page_aria') }}"
                                                        :checked="allOnPage()" x-effect="$el.indeterminate = someOnPage()" @change="selectPage($event.target.checked)">
                                             </th>
                                         @endif
                                         <th aria-sort="{{ $sorts['unit']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['unit']['active'] ? 'is-on is-'.$sorts['unit']['dir'] : '' }}" href="{{ $sorts['unit']['href'] }}" data-gl-key="sort-unit">Unit<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['unit']['active'] ? 'is-on is-'.$sorts['unit']['dir'] : '' }}" href="{{ $sorts['unit']['href'] }}" data-gl-key="sort-unit">{{ __('livewire/units-list.col_unit') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         <th aria-sort="{{ $sorts['room_type']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['room_type']['active'] ? 'is-on is-'.$sorts['room_type']['dir'] : '' }}" href="{{ $sorts['room_type']['href'] }}" data-gl-key="sort-room_type">Room type<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['room_type']['active'] ? 'is-on is-'.$sorts['room_type']['dir'] : '' }}" href="{{ $sorts['room_type']['href'] }}" data-gl-key="sort-room_type">{{ __('livewire/units-list.room_type') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         <th class="is-num" aria-sort="{{ $sorts['sleeps']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['sleeps']['active'] ? 'is-on is-'.$sorts['sleeps']['dir'] : '' }}" href="{{ $sorts['sleeps']['href'] }}" data-gl-key="sort-sleeps">Sleeps<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['sleeps']['active'] ? 'is-on is-'.$sorts['sleeps']['dir'] : '' }}" href="{{ $sorts['sleeps']['href'] }}" data-gl-key="sort-sleeps">{{ __('livewire/units-list.sleeps') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th>Housekeeping</th>
-                                        <th>Condition</th>
-                                        <th>Owner</th>
-                                        <th class="vy-gl-actcol"><span class="vy-sr-only">Actions</span></th>
+                                        <th>{{ __('livewire/units-list.col_housekeeping') }}</th>
+                                        <th>{{ __('livewire/units-list.col_condition') }}</th>
+                                        <th>{{ __('livewire/units-list.col_owner') }}</th>
+                                        <th class="vy-gl-actcol"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -291,7 +297,7 @@
                                         <tr data-gl-id="{{ $row['id'] }}" data-ul-actions="{{ implode(' ', $row['actions']) }}" class="{{ $row['is_active'] ? '' : 'is-paused' }}" :class="sel['{{ $row['id'] }}'] && 'is-selected'">
                                             @if ($canSelect)
                                                 <td class="vy-gl-check" x-show="selectMode" x-cloak>
-                                                    <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="Select unit {{ $row['code'] }}">
+                                                    <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="{{ __('livewire/units-list.select_unit_aria', ['code' => $row['code']]) }}">
                                                 </td>
                                             @endif
                                             <td class="vy-ul-unitcell">
@@ -302,13 +308,13 @@
                                                         <span class="vy-ul-thumb is-empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">{!! $kindIcons[$row['kind_key'] === 'dorm_bed' ? 'dorm' : $row['kind_key']] ?? $kindIcons['room'] !!}</svg></span>
                                                     @endif
                                                     <div class="vy-ul-who">
-                                                        <div class="vy-gl-nameline"><span class="vy-ul-code">{{ $row['code'] }}</span>@if (! $row['is_active']) <span class="vy-tag tone-paused">Paused</span>@endif</div>
+                                                        <div class="vy-gl-nameline"><span class="vy-ul-code">{{ $row['code'] }}</span>@if (! $row['is_active']) <span class="vy-tag tone-paused">{{ __('livewire/units-list.paused') }}</span>@endif</div>
                                                         {{-- the second line only when it has something to say (an empty one pushed the code off centre) --}}
                                                         @php
                                                             $vySub = array_values(array_filter([
                                                                 $row['name'] !== null && $row['name'] !== $row['code'] ? $row['name'] : null,
-                                                                $row['arrival']['has_code'] ? 'Door code set' : null,
-                                                                $row['arrival']['ssid'] !== null ? 'Wi-Fi '.$row['arrival']['ssid'] : null,
+                                                                $row['arrival']['has_code'] ? __('livewire/units-list.door_code_set') : null,
+                                                                $row['arrival']['ssid'] !== null ? __('livewire/units-list.wifi_line', ['ssid' => $row['arrival']['ssid']]) : null,
                                                             ]));
                                                         @endphp
                                                         @if ($vySub !== [])
@@ -317,25 +323,25 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="vy-ul-c-type" data-label="Room type"><span class="vy-ul-type">{{ $row['room_type'] }}</span><span class="vy-ul-kind">{{ $row['kind'] }}</span></td>
-                                            <td class="is-num" data-label="Sleeps"><span class="vy-gl-fig">{{ $row['occupancy'] }}</span></td>
-                                            <td data-label="Housekeeping"><span class="vy-tag tone-{{ $row['hk_tone'] }}"><span class="vy-dot"></span>{{ $row['hk_label'] }}</span></td>
-                                            <td data-label="Condition"><span class="vy-tag tone-{{ $row['condition_tone'] }}"><span class="vy-dot"></span>{{ $row['condition_label'] }}</span></td>
-                                            <td data-label="Owner">
+                                            <td class="vy-ul-c-type" data-label="{{ __('livewire/units-list.room_type') }}"><span class="vy-ul-type">{{ $row['room_type'] }}</span><span class="vy-ul-kind">{{ $row['kind'] }}</span></td>
+                                            <td class="is-num" data-label="{{ __('livewire/units-list.sleeps') }}"><span class="vy-gl-fig">{{ $row['occupancy'] }}</span></td>
+                                            <td data-label="{{ __('livewire/units-list.col_housekeeping') }}"><span class="vy-tag tone-{{ $row['hk_tone'] }}"><span class="vy-dot"></span>{{ $row['hk_label'] }}</span></td>
+                                            <td data-label="{{ __('livewire/units-list.col_condition') }}"><span class="vy-tag tone-{{ $row['condition_tone'] }}"><span class="vy-dot"></span>{{ $row['condition_label'] }}</span></td>
+                                            <td data-label="{{ __('livewire/units-list.col_owner') }}">
                                                 @if ($row['owner'])
                                                     <span class="vy-u-owner"><span class="vy-mini-avatar">{{ strtoupper(mb_substr($row['owner'], 0, 1)) }}</span>{{ $row['owner'] }}</span>
                                                 @else
-                                                    <span class="vy-gl-none">Operator-owned</span>
+                                                    <span class="vy-gl-none">{{ __('livewire/units-list.operator_owned') }}</span>
                                                 @endif
                                             </td>
                                             <td class="vy-gl-actcol">
                                                 <div class="vy-ul-rowacts">
                                                     @if (in_array('edit', $row['actions'], true))
-                                                        <button type="button" class="vy-ul-iconbtn" title="Edit" aria-label="Edit unit {{ $row['code'] }}" @click="act('edit', row('{{ $row['id'] }}'))">
+                                                        <button type="button" class="vy-ul-iconbtn" title="{{ __('common.edit') }}" aria-label="{{ __('livewire/units-list.edit_unit_aria', ['code' => $row['code']]) }}" @click="act('edit', row('{{ $row['id'] }}'))">
                                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                                         </button>
                                                     @endif
-                                                    <button type="button" class="vy-gl-more" aria-label="Actions for unit {{ $row['code'] }}" aria-controls="vy-ul-menu"
+                                                    <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/units-list.actions_for_unit', ['code' => $row['code']]) }}" aria-controls="vy-ul-menu"
                                                             :aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" @click="openMenu($event, row('{{ $row['id'] }}'))">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
                                                     </button>
@@ -348,26 +354,26 @@
                         </div>
 
                         <div class="vy-gl-foot" data-gl-foot>
-                            <p class="vy-gl-summary" data-gl-summary tabindex="-1"><strong>{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</strong> of <strong>{{ $rows->total() }}</strong> {{ \Illuminate\Support\Str::plural('unit', $rows->total()) }}<span class="vy-gl-sorted"> · {{ $sortedBy }}</span></p>
+                            <p class="vy-gl-summary" data-gl-summary tabindex="-1">{!! trans_choice('livewire/units-list.summary', $rows->total(), ['first' => e($rows->firstItem()), 'last' => e($rows->lastItem()), 'count' => e($rows->total()), 'sorted' => e($sortedBy)]) !!}</p>
                             <div class="vy-gl-paging">
-                                <span class="vy-gl-rows-label" id="vy-ul-rows">Rows</span>
+                                <span class="vy-gl-rows-label" id="vy-ul-rows">{{ __('livewire/units-list.rows_label') }}</span>
                                 <div class="vy-gl-sizes" role="group" aria-labelledby="vy-ul-rows">
                                     @foreach ($sizes as $size)
                                         <a class="vy-gl-size {{ $size['active'] ? 'is-on' : '' }}" href="{{ $size['href'] }}" data-gl-key="per-{{ $size['size'] }}" @if ($size['active']) aria-current="true" @endif>{{ $size['size'] }}</a>
                                     @endforeach
                                 </div>
                                 @if ($rows->lastPage() > 1)
-                                    <nav class="vy-gl-pages" aria-label="Pages">
+                                    <nav class="vy-gl-pages" aria-label="{{ __('livewire/units-list.pages_aria') }}">
                                         @if ($pages['prev'] !== null)
-                                            <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="Previous page">
+                                            <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="{{ __('livewire/units-list.previous_page') }}">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
                                             </a>
                                         @else
                                             <span class="vy-gl-page is-off" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
                                         @endif
-                                        <span class="vy-gl-pagepos">Page {{ $rows->currentPage() }} of {{ $rows->lastPage() }}</span>
+                                        <span class="vy-gl-pagepos">{{ __('livewire/units-list.page_of', ['page' => $rows->currentPage(), 'pages' => $rows->lastPage()]) }}</span>
                                         @if ($pages['next'] !== null)
-                                            <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="Next page">
+                                            <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="{{ __('livewire/units-list.next_page') }}">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                             </a>
                                         @else
@@ -400,10 +406,10 @@
                                         :preselect="$vyU['id']"
                                         :from="now()->toDateString()"
                                         :to="now()->addDays(6)->toDateString()"
-                                        heading="Price this unit individually"
-                                        subheading="A price for this unit only — the rest of its room type is unchanged.">
+                                        :heading="__('livewire/units-list.price_heading')"
+                                        :subheading="__('livewire/units-list.price_subheading')">
                                         <x-slot:actions>
-                                            <button type="button" class="vy-btn vy-btn--ghost" @click="unitPriceFor = null">Cancel</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost" @click="unitPriceFor = null">{{ __('common.cancel') }}</button>
                                         </x-slot:actions>
                                     </x-rates.unit-price-form>
                                 </div>
@@ -421,58 +427,58 @@
                 @if ($canWrite)
                     <button type="button" class="vy-gl-menu-item" x-show="can('edit')" @click="menuAct('edit')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-                        Edit unit
+                        {{ __('livewire/units-list.edit_unit') }}
                     </button>
                 @endif
                 @if ($canPrice)
                     <button type="button" class="vy-gl-menu-item" x-show="can('price')" @click="menuAct('price')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg>
-                        Price individually
+                        {{ __('livewire/units-list.price_individually') }}
                     </button>
                 @endif
                 @if ($canManageUnits)
                     <button type="button" class="vy-gl-menu-item" x-show="can('arrival')" @click="menuAct('arrival')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/></svg>
-                        Arrival info
+                        {{ __('livewire/units-list.arrival_info') }}
                     </button>
                 @endif
                 <a class="vy-gl-menu-item" :href="menu.row ? menu.row.work_orders : '#'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5a2.1 2.1 0 0 0 3 3l5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
-                    See its work orders
+                    {{ __('livewire/units-list.see_work_orders') }}
                 </a>
                 @if ($canWrite)
                     <span class="vy-gl-menu-sep" x-show="can('pause') || can('resume') || can('delete')" aria-hidden="true"></span>
                     <button type="button" class="vy-gl-menu-item" x-show="can('pause')" @click="menuAct('pause')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
-                        Pause this unit
+                        {{ __('livewire/units-list.pause_this_unit') }}
                     </button>
                     <button type="button" class="vy-gl-menu-item" x-show="can('resume')" @click="menuAct('resume')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>
-                        Resume this unit
+                        {{ __('livewire/units-list.resume_this_unit') }}
                     </button>
                     <button type="button" class="vy-gl-menu-item is-danger" x-show="can('delete')" @click="menuAct('delete')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
-                        Delete unit
+                        {{ __('livewire/units-list.delete_unit') }}
                     </button>
                 @endif
             </div>
 
             {{-- ── The bulk bar — select mode, one or more selected ───────────────────────────────────────────── --}}
             @if ($canSelect)
-                <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="Selected units">
-                    <span class="vy-gl-bulk-count"><strong x-text="count()"></strong> selected</span>
-                    <button type="button" class="vy-gl-bulk-clear" @click="clear()">Clear</button>
+                <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="{{ __('livewire/units-list.selected_units_aria') }}">
+                    <span class="vy-gl-bulk-count">{!! __('livewire/units-list.bulk_selected') !!}</span>
+                    <button type="button" class="vy-gl-bulk-clear" @click="clear()">{{ __('common.clear') }}</button>
                     <span class="vy-gl-bulk-sep" aria-hidden="true"></span>
                     @if ($canExport)
                         <form method="POST" action="{{ route('app.units.export-selected') }}">
                             @csrf
                             <template x-for="id in ids()" :key="id"><input type="hidden" name="unit_ids[]" :value="id"></template>
-                            <button type="submit" class="vy-gl-bulk-act">Export</button>
+                            <button type="submit" class="vy-gl-bulk-act">{{ __('common.export') }}</button>
                         </form>
                     @endif
                     @if ($canWrite)
-                        <button type="button" class="vy-gl-bulk-act" @click="bulkPause(false)">Pause</button>
-                        <button type="button" class="vy-gl-bulk-act" @click="bulkPause(true)">Resume</button>
+                        <button type="button" class="vy-gl-bulk-act" @click="bulkPause(false)">{{ __('livewire/units-list.pause') }}</button>
+                        <button type="button" class="vy-gl-bulk-act" @click="bulkPause(true)">{{ __('livewire/units-list.resume') }}</button>
                     @endif
                 </div>
             @endif
@@ -491,10 +497,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-5h4v5"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-rt-t">Add room type</h3>
-                                    <p class="vy-modal-sub">What a guest books — “Double Room”. Its units can come in the same step.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-rt-t">{{ __('livewire/units-list.add_room_type') }}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/units-list.add_room_type_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="rtOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="rtOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -508,40 +514,40 @@
                                 @endif
                                 @if ($propertyChoice)
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-rt-prop">Property</label>
-                                        <x-select name="property_id" id="vy-ul-rt-prop" :options="array_merge([['value' => '', 'label' => 'Choose a property']], $propertyOptions)" :value="''" search-placeholder="Search properties" empty-text="No property matches" x-model="rtForm.property_id" />
+                                        <label class="vy-field-label" for="vy-ul-rt-prop">{{ __('livewire/units-list.property') }}</label>
+                                        <x-select name="property_id" id="vy-ul-rt-prop" :options="array_merge([['value' => '', 'label' => __('livewire/units-list.choose_property')]], $propertyOptions)" :value="''" :search-placeholder="__('livewire/units-list.search_properties')" :empty-text="__('livewire/units-list.no_property_matches')" x-model="rtForm.property_id" />
                                     </div>
                                 @else
-                                    <p class="vy-ul-addsto">Adds to <strong>{{ $addsTo }}</strong></p>
+                                    <p class="vy-ul-addsto">{!! __('livewire/units-list.adds_to', ['property' => e($addsTo)]) !!}</p>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-ul-rt-name">Name</label>
-                                    <input class="vy-input" id="vy-ul-rt-name" type="text" name="name" maxlength="255" required placeholder="Double Room" x-model="rtForm.name" autocomplete="off">
+                                    <label class="vy-field-label" for="vy-ul-rt-name">{{ __('common.name') }}</label>
+                                    <input class="vy-input" id="vy-ul-rt-name" type="text" name="name" maxlength="255" required placeholder="{{ __('livewire/units-list.room_type_name_placeholder') }}" x-model="rtForm.name" autocomplete="off">
                                 </div>
                                 <div class="vy-ul-kinds">
-                                    <x-operator.choices name="kind" label="Kind" :options="$kindChoices" model="rtForm.kind" />
+                                    <x-operator.choices name="kind" :label="__('livewire/units-list.kind')" :options="$kindChoices" model="rtForm.kind" />
                                 </div>
                                 <div class="vy-gl-fields">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-rt-adults">Adults</label>
+                                        <label class="vy-field-label" for="vy-ul-rt-adults">{{ __('livewire/units-list.adults') }}</label>
                                         <input class="vy-input" id="vy-ul-rt-adults" type="number" name="max_adults" min="1" max="30" required x-model="rtForm.max_adults">
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-rt-children">Children</label>
+                                        <label class="vy-field-label" for="vy-ul-rt-children">{{ __('livewire/units-list.children') }}</label>
                                         <input class="vy-input" id="vy-ul-rt-children" type="number" name="max_children" min="0" max="30" required x-model="rtForm.max_children">
                                     </div>
                                 </div>
-                                <p class="vy-gl-note vy-ul-first" x-text="'Sleeps ' + sleepsText(rtForm) + ' — shown to guests on the booking page.'"></p>
+                                <p class="vy-gl-note vy-ul-first" x-text="@js(__('livewire/units-list.sleeps_note')).replace(':sleeps', () => sleepsText(rtForm))"></p>
                                 <div class="vy-field vy-ul-last vy-ul-codesfield">
-                                    <label class="vy-field-label" for="vy-ul-rt-codes">Its units <span class="vy-fl-note">· optional</span></label>
+                                    <label class="vy-field-label" for="vy-ul-rt-codes">{!! __('livewire/units-list.its_units_optional') !!}</label>
                                     <input class="vy-input" id="vy-ul-rt-codes" type="text" name="unit_codes" maxlength="2000" placeholder="101-110, 120" x-model="rtForm.unit_codes" autocomplete="off" spellcheck="false" aria-describedby="vy-ul-rt-codes-note">
                                     <p class="vy-ul-codes-note" id="vy-ul-rt-codes-note" :class="'is-' + codesNote(rtForm.unit_codes, rtForm.property_id || boot.home).tone"
-                                       x-text="codesNote(rtForm.unit_codes, rtForm.property_id || boot.home).text || 'The real rooms of this type, if you know them — “101-110” adds ten. You can add them later.'"></p>
+                                       x-text="codesNote(rtForm.unit_codes, rtForm.property_id || boot.home).text || @js(__('livewire/units-list.its_units_hint'))"></p>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Add room type</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/units-list.add_room_type') }}</button>
                             </div>
                         </form>
                     </div>
@@ -560,10 +566,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 18h18M3 18v2M21 18v2M7 10V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-unit-t">Add units</h3>
-                                    <p class="vy-modal-sub">The real rooms of a room type — one, or several at once.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-unit-t">{{ __('livewire/units-list.add_units') }}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/units-list.add_units_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="unitOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="unitOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -577,31 +583,31 @@
                                 @endif
                                 @if (count($roomTypeOptions) > 0)
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-u-rt">Room type</label>
-                                        <x-select name="room_type_id" id="vy-ul-u-rt" :options="$roomTypeOptions" :value="$roomTypeOptions[0]['value']" search-placeholder="Search room types" empty-text="No room type matches" x-model="unitForm.room_type_id" />
+                                        <label class="vy-field-label" for="vy-ul-u-rt">{{ __('livewire/units-list.room_type') }}</label>
+                                        <x-select name="room_type_id" id="vy-ul-u-rt" :options="$roomTypeOptions" :value="$roomTypeOptions[0]['value']" :search-placeholder="__('livewire/units-list.search_room_types')" :empty-text="__('livewire/units-list.no_room_type_matches')" x-model="unitForm.room_type_id" />
                                     </div>
                                 @endif
                                 <div class="vy-field vy-ul-codesfield">
-                                    <label class="vy-field-label" for="vy-ul-u-code">Unit codes</label>
-                                    <input class="vy-input" id="vy-ul-u-code" type="text" name="code" maxlength="2000" required placeholder="101 — or 101-110, 120" x-model="unitForm.code" autocomplete="off" spellcheck="false" aria-describedby="vy-ul-u-code-note">
+                                    <label class="vy-field-label" for="vy-ul-u-code">{{ __('livewire/units-list.unit_codes') }}</label>
+                                    <input class="vy-input" id="vy-ul-u-code" type="text" name="code" maxlength="2000" required placeholder="{{ __('livewire/units-list.unit_codes_placeholder') }}" x-model="unitForm.code" autocomplete="off" spellcheck="false" aria-describedby="vy-ul-u-code-note">
                                     <p class="vy-ul-codes-note" id="vy-ul-u-code-note" :class="'is-' + codesNote(unitForm.code, boot.roomTypeProperty[unitForm.room_type_id]).tone"
-                                       x-text="codesNote(unitForm.code, boot.roomTypeProperty[unitForm.room_type_id]).text || 'A range like 101-110 adds each number in it; separate several with commas.'"></p>
+                                       x-text="codesNote(unitForm.code, boot.roomTypeProperty[unitForm.room_type_id]).text || @js(__('livewire/units-list.unit_codes_hint'))"></p>
                                 </div>
                                 <div class="vy-gl-fields">
                                     <div class="vy-field vy-ul-last" x-show="codeCount(unitForm.code) <= 1">
-                                        <label class="vy-field-label" for="vy-ul-u-name">Name <span class="vy-fl-note">· optional</span></label>
-                                        <input class="vy-input" id="vy-ul-u-name" type="text" name="name" maxlength="255" placeholder="Room 101" x-model="unitForm.name" autocomplete="off" :disabled="codeCount(unitForm.code) > 1">
+                                        <label class="vy-field-label" for="vy-ul-u-name">{!! __('livewire/units-list.name_optional') !!}</label>
+                                        <input class="vy-input" id="vy-ul-u-name" type="text" name="name" maxlength="255" placeholder="{{ __('livewire/units-list.unit_name_placeholder') }}" x-model="unitForm.name" autocomplete="off" :disabled="codeCount(unitForm.code) > 1">
                                     </div>
                                     <div class="vy-field vy-ul-last">
-                                        <label class="vy-field-label" for="vy-ul-u-occ">Sleeps <span class="vy-fl-note">· optional</span></label>
+                                        <label class="vy-field-label" for="vy-ul-u-occ">{!! __('livewire/units-list.sleeps_optional') !!}</label>
                                         <input class="vy-input" id="vy-ul-u-occ" type="number" name="max_occupancy" min="1" max="30" x-model="unitForm.max_occupancy" :placeholder="roomTypeSleeps(unitForm.room_type_id)">
                                     </div>
                                 </div>
-                                <p class="vy-gl-note">Left empty, each sleeps as many as its room type.</p>
+                                <p class="vy-gl-note">{{ __('livewire/units-list.sleeps_default_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="unitOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" x-text="unitSubmitLabel()">Add unit</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="unitOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" x-text="unitSubmitLabel()">{{ __('livewire/units-list.add_unit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -622,10 +628,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-edit-t">Edit unit <span x-text="edit.was"></span></h3>
-                                    <p class="vy-modal-sub">A booking already taken keeps the room and the price it was sold with.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-edit-t">{!! __('livewire/units-list.edit_unit_title', ['code' => '<span x-text="edit.was"></span>']) !!}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/units-list.edit_unit_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -639,23 +645,23 @@
                                 @endif
                                 <div class="vy-gl-fields">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-e-code">Unit code</label>
+                                        <label class="vy-field-label" for="vy-ul-e-code">{{ __('livewire/units-list.unit_code') }}</label>
                                         <input class="vy-input" id="vy-ul-e-code" type="text" name="code" maxlength="60" required x-model="edit.code" autocomplete="off">
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-e-occ">Sleeps</label>
+                                        <label class="vy-field-label" for="vy-ul-e-occ">{{ __('livewire/units-list.sleeps') }}</label>
                                         <input class="vy-input" id="vy-ul-e-occ" type="number" name="max_occupancy" min="1" max="30" x-model="edit.max_occupancy">
                                     </div>
                                 </div>
                                 <div class="vy-field vy-ul-last">
-                                    <label class="vy-field-label" for="vy-ul-e-name">Name <span class="vy-fl-note">· optional</span></label>
+                                    <label class="vy-field-label" for="vy-ul-e-name">{!! __('livewire/units-list.name_optional') !!}</label>
                                     <input class="vy-input" id="vy-ul-e-name" type="text" name="name" maxlength="255" x-model="edit.name" autocomplete="off">
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost vy-ul-foot-del" @click="editOpen = false; act('delete', row(edit.id))">Delete…</button>
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vy-ul-foot-del" @click="editOpen = false; act('delete', row(edit.id))">{{ __('livewire/units-list.delete_ellipsis') }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                             </div>
                         </form>
                     </div>
@@ -675,29 +681,29 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-del-t" x-text="del.deletable ? 'Delete unit ' + del.code + '?' : 'Unit ' + del.code + ' can’t be deleted'">Delete unit?</h3>
-                                    <p class="vy-modal-sub" x-text="del.deletable ? 'This can’t be undone.' : 'It has history on record.'"></p>
+                                    <h3 class="vy-modal-title" id="vy-ul-del-t" x-text="(del.deletable ? @js(__('livewire/units-list.delete_unit_q_code')) : @js(__('livewire/units-list.unit_cannot_delete'))).replace(':code', () => del.code)">{{ __('livewire/units-list.delete_unit_q') }}</h3>
+                                    <p class="vy-modal-sub" x-text="del.deletable ? @js(__('livewire/units-list.cannot_be_undone')) : @js(__('livewire/units-list.has_history'))"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="delOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="delOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vy-ul-facts" x-show="del.deletable">
-                                    <li>Nothing is on record for it — no bookings, cleaning or work orders.</li>
-                                    <li>Its room type sells one fewer from today.</li>
-                                    <li>Recorded in the audit log.</li>
+                                    <li>{{ __('livewire/units-list.unit_fact_nothing') }}</li>
+                                    <li>{{ __('livewire/units-list.unit_fact_sells_fewer') }}</li>
+                                    <li>{{ __('livewire/units-list.audit_logged') }}</li>
                                 </ul>
                                 <div class="vy-ul-why" x-show="! del.deletable">
-                                    <p>On record: <strong x-text="sentence(del.blockers)"></strong>.</p>
-                                    <p class="vy-gl-note">Deleting it would erase that history or leave it pointing at nothing.
-                                        <span x-text="del.active ? 'Pause it instead — it stops taking new bookings and keeps its history.' : 'It is already paused, so it takes no new bookings.'"></span></p>
+                                    <p>{!! __('livewire/units-list.on_record', ['items' => '<strong x-text="sentence(del.blockers)"></strong>']) !!}</p>
+                                    <p class="vy-gl-note">{{ __('livewire/units-list.unit_delete_would_erase') }}
+                                        <span x-text="del.active ? @js(__('livewire/units-list.pause_instead_hint')) : @js(__('livewire/units-list.already_paused_hint'))"></span></p>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false" x-text="del.deletable ? 'Cancel' : 'Close'">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--danger" x-show="del.deletable">Delete unit</button>
-                                <button type="button" class="vy-btn vy-btn--accent" x-show="! del.deletable && del.active" @click="delOpen = false; act('pause', row(del.id))">Pause instead</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false" x-text="del.deletable ? @js(__('common.cancel')) : @js(__('common.close'))">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger" x-show="del.deletable">{{ __('livewire/units-list.delete_unit') }}</button>
+                                <button type="button" class="vy-btn vy-btn--accent" x-show="! del.deletable && del.active" @click="delOpen = false; act('pause', row(del.id))">{{ __('livewire/units-list.pause_instead') }}</button>
                             </div>
                         </form>
                     </div>
@@ -717,10 +723,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-rte-t">Edit <span x-text="rtEdit.was"></span></h3>
-                                    <p class="vy-modal-sub">A booking already taken keeps what it was sold as.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-rte-t">{!! __('livewire/units-list.edit_room_type_title', ['name' => '<span x-text="rtEdit.was"></span>']) !!}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/units-list.edit_room_type_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="rtEditOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="rtEditOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -733,32 +739,32 @@
                                     </div>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-ul-rte-name">Name</label>
+                                    <label class="vy-field-label" for="vy-ul-rte-name">{{ __('common.name') }}</label>
                                     <input class="vy-input" id="vy-ul-rte-name" type="text" name="name" maxlength="255" required x-model="rtEdit.name" autocomplete="off">
                                 </div>
                                 <div class="vy-ul-kinds" x-show="rtEdit.unit_rows === 0">
-                                    <x-operator.choices name="kind" label="Kind" :options="$kindChoices" model="rtEdit.kind" />
+                                    <x-operator.choices name="kind" :label="__('livewire/units-list.kind')" :options="$kindChoices" model="rtEdit.kind" />
                                 </div>
                                 <p class="vy-ul-kindlock" x-show="rtEdit.unit_rows > 0">
-                                    <span class="vy-field-label">Kind</span>
-                                    <span x-text="rtEdit.kindLabel + ' — it can’t change while the room type has units.'"></span>
+                                    <span class="vy-field-label">{{ __('livewire/units-list.kind') }}</span>
+                                    <span x-text="@js(__('livewire/units-list.kind_locked')).replace(':kind', () => rtEdit.kindLabel)"></span>
                                 </p>
                                 <div class="vy-gl-fields">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-rte-adults">Adults</label>
+                                        <label class="vy-field-label" for="vy-ul-rte-adults">{{ __('livewire/units-list.adults') }}</label>
                                         <input class="vy-input" id="vy-ul-rte-adults" type="number" name="max_adults" min="1" max="30" required x-model="rtEdit.max_adults">
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-rte-children">Children</label>
+                                        <label class="vy-field-label" for="vy-ul-rte-children">{{ __('livewire/units-list.children') }}</label>
                                         <input class="vy-input" id="vy-ul-rte-children" type="number" name="max_children" min="0" max="30" required x-model="rtEdit.max_children">
                                     </div>
                                 </div>
-                                <p class="vy-gl-note vy-ul-first" x-text="'Sleeps ' + sleepsText(rtEdit) + ' — shown to guests on the booking page.'"></p>
+                                <p class="vy-gl-note vy-ul-first" x-text="@js(__('livewire/units-list.sleeps_note')).replace(':sleeps', () => sleepsText(rtEdit))"></p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost vy-ul-foot-del" @click="rtEditOpen = false; openDeleteRoomType(rtEdit.id)">Delete…</button>
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtEditOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vy-ul-foot-del" @click="rtEditOpen = false; openDeleteRoomType(rtEdit.id)">{{ __('livewire/units-list.delete_ellipsis') }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtEditOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                             </div>
                         </form>
                     </div>
@@ -777,27 +783,27 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-rtd-t" x-text="rtDel.deletable ? 'Delete ' + rtDel.name + '?' : rtDel.name + ' can’t be deleted'">Delete room type?</h3>
-                                    <p class="vy-modal-sub" x-text="rtDel.deletable ? 'This can’t be undone.' : (rtDel.units > 0 ? 'A room type can be deleted once it has no units.' : 'It has history on record.')"></p>
+                                    <h3 class="vy-modal-title" id="vy-ul-rtd-t" x-text="(rtDel.deletable ? @js(__('livewire/units-list.delete_room_type_q_name')) : @js(__('livewire/units-list.room_type_cannot_delete'))).replace(':name', () => rtDel.name)">{{ __('livewire/units-list.delete_room_type_q') }}</h3>
+                                    <p class="vy-modal-sub" x-text="rtDel.deletable ? @js(__('livewire/units-list.cannot_be_undone')) : (rtDel.units > 0 ? @js(__('livewire/units-list.room_type_needs_no_units')) : @js(__('livewire/units-list.has_history')))"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="rtDelOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="rtDelOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vy-ul-facts" x-show="rtDel.deletable">
-                                    <li>It has no units and no bookings.</li>
-                                    <li>Its rate plans, nightly prices and photos are deleted with it.</li>
-                                    <li>Recorded in the audit log.</li>
+                                    <li>{{ __('livewire/units-list.rt_fact_empty') }}</li>
+                                    <li>{{ __('livewire/units-list.rt_fact_deleted_with') }}</li>
+                                    <li>{{ __('livewire/units-list.audit_logged') }}</li>
                                 </ul>
                                 <div class="vy-ul-why" x-show="! rtDel.deletable">
-                                    <p>On record: <strong x-text="sentence(rtDel.blockers)"></strong>.</p>
-                                    <p class="vy-gl-note" x-text="rtDel.units > 0 ? 'Delete or keep its units first — a unit with history can be paused instead.' : 'Deleting it would erase that or leave it pointing at nothing.'"></p>
+                                    <p>{!! __('livewire/units-list.on_record', ['items' => '<strong x-text="sentence(rtDel.blockers)"></strong>']) !!}</p>
+                                    <p class="vy-gl-note" x-text="rtDel.units > 0 ? @js(__('livewire/units-list.rt_units_first')) : @js(__('livewire/units-list.rt_delete_would_erase'))"></p>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtDelOpen = false" x-text="rtDel.deletable ? 'Cancel' : 'Close'">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--danger" x-show="rtDel.deletable">Delete room type</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="rtDelOpen = false" x-text="rtDel.deletable ? @js(__('common.cancel')) : @js(__('common.close'))">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger" x-show="rtDel.deletable">{{ __('livewire/units-list.delete_room_type') }}</button>
                             </div>
                         </form>
                     </div>
@@ -820,24 +826,24 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-pause-t" x-text="pauseTitle()">Pause this unit?</h3>
-                                    <p class="vy-modal-sub" x-text="pause.resume ? 'It starts taking new bookings again from today.' : 'It stops taking new bookings straight away.'"></p>
+                                    <h3 class="vy-modal-title" id="vy-ul-pause-t" x-text="pauseTitle()">{{ __('livewire/units-list.pause_unit_q') }}</h3>
+                                    <p class="vy-modal-sub" x-text="pause.resume ? @js(__('livewire/units-list.resume_starts')) : @js(__('livewire/units-list.pause_stops'))"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="pauseOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="pauseOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vy-ul-facts">
-                                    <li x-show="! pause.resume">Bookings already taken are kept — nobody is moved or cancelled.</li>
-                                    <li x-show="! pause.resume">Nothing is deleted. Resume it at any time.</li>
-                                    <li x-show="pause.resume">It is offered again wherever its room type is sold.</li>
-                                    <li>Recorded in the audit log.</li>
+                                    <li x-show="! pause.resume">{{ __('livewire/units-list.pause_fact_kept') }}</li>
+                                    <li x-show="! pause.resume">{{ __('livewire/units-list.pause_fact_nothing_deleted') }}</li>
+                                    <li x-show="pause.resume">{{ __('livewire/units-list.resume_fact_offered') }}</li>
+                                    <li>{{ __('livewire/units-list.audit_logged') }}</li>
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="pauseOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn" :class="pause.resume ? 'vy-btn--accent' : 'vy-btn--danger'" x-text="pause.resume ? 'Resume' : 'Pause'">Pause</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="pauseOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn" :class="pause.resume ? 'vy-btn--accent' : 'vy-btn--danger'" x-text="pause.resume ? @js(__('livewire/units-list.resume')) : @js(__('livewire/units-list.pause'))">{{ __('livewire/units-list.pause') }}</button>
                             </div>
                         </form>
                     </div>
@@ -855,10 +861,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-9 7"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-photos-t-{{ $rt['id'] }}">Photos — {{ $rt['name'] }}</h3>
-                                    <p class="vy-modal-sub">Room-type photos show on the booking storefront and beside each unit. The cover comes first.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-photos-t-{{ $rt['id'] }}">{{ __('livewire/units-list.photos_title', ['name' => $rt['name']]) }}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/units-list.photos_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="photosFor = null" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="photosFor = null" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -871,22 +877,22 @@
                                         @foreach ($rt['photos'] as $i => $photo)
                                             <figure class="vy-ul-photo @if ($photo['is_cover']) is-cover @endif">
                                                 <img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy">
-                                                @if ($photo['is_cover'])<span class="vy-pm-cover-badge">Cover</span>@endif
+                                                @if ($photo['is_cover'])<span class="vy-pm-cover-badge">{{ __('livewire/units-list.cover') }}</span>@endif
                                                 @if ($canWrite)
                                                     <figcaption class="vy-ul-photo-ctrls">
                                                         @unless ($photo['is_cover'])
-                                                            <form method="POST" action="{{ route('app.room-types.photos.cover', [$rt['id'], $photo['id']]) }}">@csrf<button class="vy-pm-btn" title="Set as cover" aria-label="Set as cover">★</button></form>
+                                                            <form method="POST" action="{{ route('app.room-types.photos.cover', [$rt['id'], $photo['id']]) }}">@csrf<button class="vy-pm-btn" title="{{ __('livewire/units-list.set_as_cover') }}" aria-label="{{ __('livewire/units-list.set_as_cover') }}">★</button></form>
                                                         @endunless
-                                                        <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="up"><button class="vy-pm-btn" title="Move earlier" aria-label="Move earlier" @if ($i === 0) disabled @endif>‹</button></form>
-                                                        <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="down"><button class="vy-pm-btn" title="Move later" aria-label="Move later" @if ($i === count($rt['photos']) - 1) disabled @endif>›</button></form>
-                                                        <form method="POST" action="{{ route('app.room-types.photos.destroy', [$rt['id'], $photo['id']]) }}" onsubmit="return confirm('Remove this photo?')">@csrf @method('DELETE')<button class="vy-pm-btn vy-pm-btn--danger" title="Remove" aria-label="Remove">✕</button></form>
+                                                        <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="up"><button class="vy-pm-btn" title="{{ __('livewire/units-list.move_earlier') }}" aria-label="{{ __('livewire/units-list.move_earlier') }}" @if ($i === 0) disabled @endif>‹</button></form>
+                                                        <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="down"><button class="vy-pm-btn" title="{{ __('livewire/units-list.move_later') }}" aria-label="{{ __('livewire/units-list.move_later') }}" @if ($i === count($rt['photos']) - 1) disabled @endif>›</button></form>
+                                                        <form method="POST" action="{{ route('app.room-types.photos.destroy', [$rt['id'], $photo['id']]) }}" onsubmit="return confirm(@js(__('livewire/units-list.remove_photo_confirm')))">@csrf @method('DELETE')<button class="vy-pm-btn vy-pm-btn--danger" title="{{ __('common.remove') }}" aria-label="{{ __('common.remove') }}">✕</button></form>
                                                     </figcaption>
                                                 @endif
                                             </figure>
                                         @endforeach
                                     </div>
                                 @else
-                                    <p class="vy-pm-empty">No photos yet — the storefront shows a plain colour until you add one.</p>
+                                    <p class="vy-pm-empty">{{ __('livewire/units-list.no_photos') }}</p>
                                 @endif
                                 @if ($canWrite)
                                     <form method="POST" action="{{ route('app.room-types.photos.store', $rt['id']) }}" enctype="multipart/form-data" class="vy-ul-rt-upload">
@@ -896,16 +902,16 @@
                                                id="pm-{{ $rt['id'] }}" class="vy-pm-file" onchange="this.form.submit()">
                                         <label for="pm-{{ $rt['id'] }}" class="vy-btn vy-btn--ghost vy-pm-add">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-9 7"/></svg>
-                                            Add photo
+                                            {{ __('livewire/units-list.add_photo') }}
                                         </label>
-                                        <span class="vy-gl-note">JPEG, PNG or WebP, up to 5 MB.</span>
+                                        <span class="vy-gl-note">{{ __('livewire/units-list.photo_formats') }}</span>
                                     </form>
                                 @else
-                                    <p class="vy-gl-note">Workspace paused — photos can’t be changed now.</p>
+                                    <p class="vy-gl-note">{{ __('livewire/units-list.photos_paused') }}</p>
                                 @endif
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="photosFor = null">Close</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="photosFor = null">{{ __('common.close') }}</button>
                             </div>
                         </div>
                     </div>
@@ -926,50 +932,50 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-ul-arrival-t">Arrival info — <span x-text="arrival.label"></span></h3>
-                                    <p class="vy-modal-sub">Guests see this only from {{ \App\Support\Guest\ArrivalPack::LEAD_DAYS }} days before check-in.</p>
+                                    <h3 class="vy-modal-title" id="vy-ul-arrival-t">{!! __('livewire/units-list.arrival_title', ['unit' => '<span x-text="arrival.label"></span>']) !!}</h3>
+                                    <p class="vy-modal-sub">{{ trans_choice('livewire/units-list.arrival_lead', \App\Support\Guest\ArrivalPack::LEAD_DAYS, ['count' => \App\Support\Guest\ArrivalPack::LEAD_DAYS]) }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="arrivalOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="arrivalOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 @unless ($canWrite)
-                                    <p class="vy-ul-paused">Workspace paused — arrival info can be read, not changed.</p>
+                                    <p class="vy-ul-paused">{{ __('livewire/units-list.arrival_paused') }}</p>
                                 @endunless
                                 <div class="vy-gl-fields">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-a-code">Door code</label>
+                                        <label class="vy-field-label" for="vy-ul-a-code">{{ __('livewire/units-list.door_code') }}</label>
                                         <input class="vy-input" id="vy-ul-a-code" type="text" name="door_code" maxlength="64" autocomplete="off" spellcheck="false" @disabled(! $canWrite)
-                                               :placeholder="arrival.has_code ? 'Set — leave blank to keep it' : 'Not set'">
+                                               :placeholder="arrival.has_code ? @js(__('livewire/units-list.set_keep_blank')) : @js(__('livewire/units-list.not_set'))">
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-a-ssid">Wi-Fi network</label>
+                                        <label class="vy-field-label" for="vy-ul-a-ssid">{{ __('livewire/units-list.wifi_network') }}</label>
                                         <input class="vy-input" id="vy-ul-a-ssid" type="text" name="wifi_ssid" maxlength="64" autocomplete="off" x-model="arrival.ssid" @disabled(! $canWrite)>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-ul-a-pass">Wi-Fi password</label>
+                                        <label class="vy-field-label" for="vy-ul-a-pass">{{ __('livewire/units-list.wifi_password') }}</label>
                                         <input class="vy-input" id="vy-ul-a-pass" type="text" name="wifi_password" maxlength="128" autocomplete="off" spellcheck="false" @disabled(! $canWrite)
-                                               :placeholder="arrival.has_wifi ? 'Set — leave blank to keep it' : 'Not set'">
+                                               :placeholder="arrival.has_wifi ? @js(__('livewire/units-list.set_keep_blank')) : @js(__('livewire/units-list.not_set'))">
                                     </div>
                                 </div>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-ul-a-notes">Arrival notes</label>
+                                    <label class="vy-field-label" for="vy-ul-a-notes">{{ __('livewire/units-list.arrival_notes') }}</label>
                                     <textarea class="vy-input vy-gl-textarea" id="vy-ul-a-notes" name="arrival_notes" rows="3" maxlength="2000" @disabled(! $canWrite)
-                                              :placeholder="arrival.has_notes ? 'Notes are set — leave blank to keep them' : 'Directions, parking, key collection…'"></textarea>
+                                              :placeholder="arrival.has_notes ? @js(__('livewire/units-list.notes_set_keep_blank')) : @js(__('livewire/units-list.arrival_notes_placeholder'))"></textarea>
                                 </div>
-                                <p class="vy-gl-note vy-ul-first">A blank field keeps what is stored. Type <code>{{ \App\Services\ArrivalInfoService::CLEAR }}</code> to remove one.</p>
+                                <p class="vy-gl-note vy-ul-first">{!! __('livewire/units-list.blank_keeps', ['clear' => e(\App\Services\ArrivalInfoService::CLEAR)]) !!}</p>
                                 @if ($reveal !== null)
                                     <div class="vy-ul-revealed" x-show="arrival.id === '{{ $reveal['unit'] }}'" role="status">
-                                        <div>Door code: <strong>{{ $reveal['door_code'] ?? '—' }}</strong></div>
-                                        <div>Wi-Fi: <strong>{{ $reveal['wifi_ssid'] ?? '—' }}</strong> / <strong>{{ $reveal['wifi_password'] ?? '—' }}</strong></div>
+                                        <div>{!! __('livewire/units-list.revealed_door_code', ['code' => e($reveal['door_code'] ?? '—')]) !!}</div>
+                                        <div>{!! __('livewire/units-list.revealed_wifi', ['network' => e($reveal['wifi_ssid'] ?? '—'), 'password' => e($reveal['wifi_password'] ?? '—')]) !!}</div>
                                     </div>
                                 @endif
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="arrivalOpen = false">{{ $canWrite ? 'Cancel' : 'Close' }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="arrivalOpen = false">{{ $canWrite ? __('common.cancel') : __('common.close') }}</button>
                                 @if ($canWrite)
-                                    <button type="submit" class="vy-btn vy-btn--accent">Save</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save') }}</button>
                                 @endif
                             </div>
                         </form>
@@ -977,8 +983,8 @@
                             @csrf
                             <input type="hidden" name="return" value="list">
                             <input type="hidden" name="return_query" value="">
-                            <button type="submit" class="vy-btn vy-btn--ghost">Reveal stored values</button>
-                            <span class="vy-gl-note">Recorded in the audit log, and the unit's owner is told.</span>
+                            <button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/units-list.reveal_stored') }}</button>
+                            <span class="vy-gl-note">{{ __('livewire/units-list.reveal_note') }}</span>
                         </form>
                     </div>
                 </div>
@@ -989,10 +995,35 @@
     {{-- The page's controller — the shared list behaviour (selection, the row menu, search and the smooth links, in
          partials/operator-list-script) plus this page's own dialogs. Every link and form works without it. --}}
     @include('partials.operator-list-script')
+    {{-- Every counted phrase the script shows, worked out here for each count it can show (a language may have more than
+         two plural forms, so the script never picks "unit" or "units" itself). The fallbacks cover a number typed past a
+         field's limit, which the server refuses anyway. --}}
+    @php
+        $vyWords = ['adults' => [], 'children' => [], 'adds' => [], 'addN' => [], 'pauseN' => [], 'resumeN' => []];
+        foreach (range(0, 30) as $vyN) {
+            $vyWords['adults'][$vyN] = trans_choice('livewire/units-list.adults_count', $vyN, ['count' => $vyN]);
+            $vyWords['children'][$vyN] = trans_choice('livewire/units-list.children_count', $vyN, ['count' => $vyN]);
+        }
+        foreach (range(1, 100) as $vyN) {
+            $vyWords['adds'][$vyN] = trans_choice('livewire/units-list.adds_n_units', $vyN, ['count' => $vyN, 'codes' => ':codes']);
+            $vyWords['addN'][$vyN] = trans_choice('livewire/units-list.add_n_units', $vyN, ['count' => $vyN]);
+        }
+        foreach (range(0, max(\App\Support\Unit\UnitListParams::PER_PAGE_OPTIONS)) as $vyN) {
+            $vyWords['pauseN'][$vyN] = trans_choice('livewire/units-list.pause_n_units_q', $vyN, ['count' => $vyN]);
+            $vyWords['resumeN'][$vyN] = trans_choice('livewire/units-list.resume_n_units_q', $vyN, ['count' => $vyN]);
+        }
+        $vyWords['adultsMany'] = trans_choice('livewire/units-list.adults_count', 2, ['count' => ':n']);
+        $vyWords['childrenMany'] = trans_choice('livewire/units-list.children_count', 2, ['count' => ':n']);
+        $vyWords['addsMany'] = trans_choice('livewire/units-list.adds_n_units', 2, ['count' => ':n', 'codes' => ':codes']);
+        $vyWords['addNMany'] = trans_choice('livewire/units-list.add_n_units', 2, ['count' => ':n']);
+        $vyWords['pauseNMany'] = trans_choice('livewire/units-list.pause_n_units_q', 2, ['count' => ':n']);
+        $vyWords['resumeNMany'] = trans_choice('livewire/units-list.resume_n_units_q', 2, ['count' => ':n']);
+    @endphp
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('vyUnits', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: 'No units in this view' }), {
+            Alpine.data('vyUnits', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/units-list.empty_view')) }), {
                 boot,
+                words: @js($vyWords),
                 unitPriceFor: null,
                 rtOpen: false, rtForm: {},
                 unitOpen: false, unitForm: {},
@@ -1039,16 +1070,19 @@
                 roomTypes() { return @js($roomTypeOptions); },
                 roomTypeSleeps(id) {
                     const rt = this.roomTypes().find((o) => o.value === id);
-                    const match = rt ? rt.hint.match(/sleeps (\d+)/) : null;
-                    return match ? match[1] : '';
+                    return rt ? String(rt.sleeps) : '';
                 },
                 sleepsText(form) {
                     const a = parseInt(form.max_adults, 10) || 0, c = parseInt(form.max_children, 10) || 0;
-                    return a + (a === 1 ? ' adult' : ' adults') + (c > 0 ? ' and ' + c + (c === 1 ? ' child' : ' children') : '');
+                    const adults = this.counted(this.words.adults, this.words.adultsMany, a);
+                    return c > 0 ? @js(__('livewire/units-list.adults_and_children')).replace(':adults', () => adults)
+                        .replace(':children', () => this.counted(this.words.children, this.words.childrenMany, c)) : adults;
                 },
+                // a counted phrase for n — from the server's list, or its general form for a number outside it
+                counted(list, many, n) { return list[n] !== undefined ? list[n] : many.replace(':n', () => String(n)); },
                 sentence(items) {
                     const list = items || [];
-                    return list.length <= 1 ? (list[0] || '') : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+                    return list.length <= 1 ? (list[0] || '') : @js(__('livewire/units-list.list_and')).replace(':items', () => list.slice(0, -1).join(', ')).replace(':last', () => list[list.length - 1]);
                 },
 
                 // ── Unit codes — the server's UnitCodes, mirrored only to preview what will be added (the server decides).
@@ -1063,14 +1097,14 @@
                         return { single: p, count: 1 };
                     });
                     const total = specs.reduce((n, s) => n + s.count, 0);
-                    if (total > 100) return { codes: [], error: 'That is ' + total.toLocaleString('en') + ' units — add at most 100 at a time.' };
+                    if (total > 100) return { codes: [], error: @js(__('livewire/units-list.too_many_codes')).replace(':total', () => total.toLocaleString('en')) };
                     const codes = [], seen = {};
                     for (const s of specs) {
                         const list = s.single !== undefined ? [s.single]
                             : Array.from({ length: s.count }, (_, i) => s.prefix + (s.width ? String(s.from + i).padStart(s.width, '0') : String(s.from + i)));
                         for (const c of list) {
-                            if (c.length > 60) return { codes: [], error: '“' + c.slice(0, 24) + '…” is longer than 60 characters.' };
-                            if (seen[c.toLowerCase()]) return { codes: [], error: c + ' is listed twice.' };
+                            if (c.length > 60) return { codes: [], error: @js(__('livewire/units-list.code_too_long')).replace(':code', () => c.slice(0, 24)) };
+                            if (seen[c.toLowerCase()]) return { codes: [], error: @js(__('livewire/units-list.code_listed_twice')).replace(':code', () => c) };
                             seen[c.toLowerCase()] = true;
                             codes.push(c);
                         }
@@ -1091,7 +1125,8 @@
                         if (! m) out.push(c);
                     }
                     close();
-                    return out.slice(0, 6).join(', ') + (out.length > 6 ? ' and ' + (out.length - 6) + ' more' : '');
+                    const shown = out.slice(0, 6).join(', ');
+                    return out.length > 6 ? @js(__('livewire/units-list.codes_and_more')).replace(':list', () => shown).replace(':number', () => String(out.length - 6)) : shown;
                 },
                 codesNote(text, propertyId) {
                     const p = this.parseCodes(text);
@@ -1099,12 +1134,12 @@
                     if (! p.codes.length) return { tone: 'hint', text: '' };
                     const taken = ((boot.taken || {})[propertyId] || []).map((c) => String(c).toLowerCase());
                     const clash = p.codes.filter((c) => taken.includes(c.toLowerCase()));
-                    if (clash.length === 1) return { tone: 'err', text: 'Unit code ' + clash[0] + ' is already used in this property — choose another.' };
-                    if (clash.length > 1) return { tone: 'err', text: 'Already used in this property: ' + this.codeSummary(clash) + ' — choose other codes.' };
+                    if (clash.length === 1) return { tone: 'err', text: @js(__('livewire/units-list.code_taken')).replace(':code', () => clash[0]) };
+                    if (clash.length > 1) return { tone: 'err', text: @js(__('livewire/units-list.codes_taken')).replace(':codes', () => this.codeSummary(clash)) };
                     const n = p.codes.length;
-                    return { tone: 'ok', text: 'Adds ' + n + (n === 1 ? ' unit: ' : ' units: ') + this.codeSummary(p.codes) };
+                    return { tone: 'ok', text: this.counted(this.words.adds, this.words.addsMany, n).replace(':codes', () => this.codeSummary(p.codes)) };
                 },
-                unitSubmitLabel() { const n = this.codeCount(this.unitForm.code); return n > 1 ? 'Add ' + n + ' units' : 'Add unit'; },
+                unitSubmitLabel() { const n = this.codeCount(this.unitForm.code); return n > 1 ? this.counted(this.words.addN, this.words.addNMany, n) : @js(__('livewire/units-list.add_unit')); },
 
                 // This page's rows, read from the JSON beside the table — swapped with the table, so it always describes
                 // the rows on screen.
@@ -1140,9 +1175,9 @@
                 pauseTitle() {
                     if (this.pause.bulk) {
                         const n = this.count();
-                        return (this.pause.resume ? 'Resume ' : 'Pause ') + n + (n === 1 ? ' unit?' : ' units?');
+                        return this.pause.resume ? this.counted(this.words.resumeN, this.words.resumeNMany, n) : this.counted(this.words.pauseN, this.words.pauseNMany, n);
                     }
-                    return (this.pause.resume ? 'Resume unit ' : 'Pause unit ') + this.pause.code + '?';
+                    return (this.pause.resume ? @js(__('livewire/units-list.resume_unit_code_q')) : @js(__('livewire/units-list.pause_unit_code_q'))).replace(':code', () => this.pause.code);
                 },
 
                 // From the row menu: close it (focus goes back to the row's button, so a dialog closing returns it there).

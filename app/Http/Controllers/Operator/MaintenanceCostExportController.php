@@ -72,13 +72,19 @@ class MaintenanceCostExportController extends Controller
         $currency = $report['currency'];
         $audit->record('maintenance.costs_exported', null, null, ['format' => 'csv', 'orders' => $report['orders_closed']]);
 
-        return response()->streamDownload(function () use ($report, $currency): void {
+        // the headings are read in the viewer's language, before the download streams
+        $note = [__('php/http/controllers/operator/maintenance_cost_export_controller.csv_amounts'), __('php/http/controllers/operator/maintenance_cost_export_controller.csv_amounts_note')];
+        $headings = [__('php/http/controllers/operator/maintenance_cost_export_controller.col_date'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_work_order'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_unit'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_category'),
+            __('php/http/controllers/operator/maintenance_cost_export_controller.col_labor'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_parts'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_total'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_currency')];
+        $totalLabel = __('php/http/controllers/operator/maintenance_cost_export_controller.total_row');
+
+        return response()->streamDownload(function () use ($report, $currency, $note, $headings, $totalLabel): void {
             $out = fopen('php://output', 'w');
             // ⚠️ THE UNIT IS STATED IN THE FILE. Amounts are major units as a bare decimal; the ISO 4217
             //    code is its own column. ⚠️ ONE EXPORT FIXED AND ANOTHER LEFT FORMATTED IS WORSE THAN TWO
             //    BROKEN — the good one teaches an operator to trust a money column that the other betrays.
-            fputcsv($out, CsvSafe::row(['Amounts', 'major units, decimal point, no thousands separator']));
-            fputcsv($out, CsvSafe::row(['Date', 'Work order', 'Unit', 'Category', 'Labor', 'Parts', 'Total', 'Currency']));
+            fputcsv($out, CsvSafe::row($note));
+            fputcsv($out, CsvSafe::row($headings));
             foreach ($report['billable'] as $row) {
                 fputcsv($out, CsvSafe::row([
                     // ⚠️ `date_iso`, not the 'j M' display string — "5 Sep" sorts before "9 Aug".
@@ -93,7 +99,7 @@ class MaintenanceCostExportController extends Controller
                 ]));
             }
             // The reconciling totals row (labor + parts === total).
-            fputcsv($out, CsvSafe::row(['', 'Total', '', '', MoneyFormatter::csvAmount($report['labor_minor']), MoneyFormatter::csvAmount($report['parts_minor']), MoneyFormatter::csvAmount($report['total_minor']), $currency]));
+            fputcsv($out, CsvSafe::row(['', $totalLabel, '', '', MoneyFormatter::csvAmount($report['labor_minor']), MoneyFormatter::csvAmount($report['parts_minor']), MoneyFormatter::csvAmount($report['total_minor']), $currency]));
             fclose($out);
         }, 'Vyrobel-maintenance-costs.csv', ['Content-Type' => 'text/csv']);
     }
@@ -130,31 +136,31 @@ class MaintenanceCostExportController extends Controller
     /** Tab 1 — the page's KPIs and its three breakdowns, every figure numeric. */
     private function summarySheet(Writer $writer, array $report, string $currency): void
     {
-        $writer->getCurrentSheet()->setName('Summary');
+        $writer->getCurrentSheet()->setName(Workbook::sheetName(__('php/http/controllers/operator/maintenance_cost_export_controller.sheet_summary')));
 
-        $writer->addRow(Workbook::headingRow(['Measure', 'Value']));
+        $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/maintenance_cost_export_controller.col_measure'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_value')]));
         foreach ([
-            ['Total spend', Workbook::money((int) $report['total_minor'], $currency)],
-            ['Labour', Workbook::money((int) $report['labor_minor'], $currency)],
-            ['Parts', Workbook::money((int) $report['parts_minor'], $currency)],
-            ['Orders closed', (int) $report['orders_closed']],
-            ['Owner-billed', Workbook::money((int) $report['owner_units_minor'], $currency)],
-            ['Operator-borne', Workbook::money((int) $report['operator_units_minor'], $currency)],
-            ['Parts on order', (int) $report['parts_on_order']],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.total_spend'), Workbook::money((int) $report['total_minor'], $currency)],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.measure_labour'), Workbook::money((int) $report['labor_minor'], $currency)],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.measure_parts'), Workbook::money((int) $report['parts_minor'], $currency)],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.orders_closed'), (int) $report['orders_closed']],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.owner_billed'), Workbook::money((int) $report['owner_units_minor'], $currency)],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.operator_borne'), Workbook::money((int) $report['operator_units_minor'], $currency)],
+            [__('php/http/controllers/operator/maintenance_cost_export_controller.parts_on_order'), (int) $report['parts_on_order']],
         ] as $row) {
             $writer->addRow(Workbook::row($row));
         }
         // ⚠️ An average over zero orders is NOT zero — the service returns null and so does this cell.
-        $writer->addRow(Workbook::row(['Average per order', $report['avg_minor'] !== null ? Workbook::money((int) $report['avg_minor'], $currency) : '—']));
+        $writer->addRow(Workbook::row([__('php/http/controllers/operator/maintenance_cost_export_controller.average_per_order'), $report['avg_minor'] !== null ? Workbook::money((int) $report['avg_minor'], $currency) : '—']));
 
         $writer->addRow(Workbook::row([]));
-        $writer->addRow(Workbook::headingRow(['By category', 'Orders', 'Total']));
+        $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/maintenance_cost_export_controller.by_category'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_orders'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_total')]));
         foreach ($report['by_category'] as $c) {
             $writer->addRow(Workbook::row([ucfirst((string) $c['category']), (int) $c['count'], Workbook::money((int) $c['total_minor'], $currency)]));
         }
 
         $writer->addRow(Workbook::row([]));
-        $writer->addRow(Workbook::headingRow(['By month', 'Orders', 'Total']));
+        $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/maintenance_cost_export_controller.by_month'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_orders'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_total')]));
         foreach ($report['by_month'] as $m) {
             $writer->addRow(Workbook::row([
                 Workbook::date(CarbonImmutable::parse(((string) $m['month']).'-01'), Workbook::MONTH_FORMAT),
@@ -164,7 +170,7 @@ class MaintenanceCostExportController extends Controller
         }
 
         $writer->addRow(Workbook::row([]));
-        $writer->addRow(Workbook::headingRow(['Top units', 'Orders', 'Total']));
+        $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/maintenance_cost_export_controller.top_units'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_orders'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_total')]));
         foreach ($report['top_units'] as $u) {
             $writer->addRow(Workbook::row([(string) $u['code'], (int) $u['count'], Workbook::money((int) $u['total_minor'], $currency)]));
         }
@@ -174,9 +180,10 @@ class MaintenanceCostExportController extends Controller
     private function lineItemSheet(Writer $writer, array $report, string $currency): void
     {
         $sheet = $writer->addNewSheetAndMakeItCurrent();
-        $sheet->setName('Line items');
+        $sheet->setName(Workbook::sheetName(__('php/http/controllers/operator/maintenance_cost_export_controller.sheet_line_items')));
 
-        $writer->addRow(Workbook::headingRow(['Date', 'Work order', 'Unit', 'Category', 'Labour', 'Parts', 'Total']));
+        $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/maintenance_cost_export_controller.col_date'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_work_order'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_unit'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_category'),
+            __('php/http/controllers/operator/maintenance_cost_export_controller.col_labour'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_parts'), __('php/http/controllers/operator/maintenance_cost_export_controller.col_total')]));
 
         foreach ($report['billable'] as $row) {
             $writer->addRow(Workbook::row([
@@ -194,7 +201,7 @@ class MaintenanceCostExportController extends Controller
         // The reconciling totals row — labour + parts === total (#17), and equal to the Summary tab because
         // both read the same complete population.
         $writer->addRow(Workbook::row([
-            '', 'Total', '', '',
+            '', __('php/http/controllers/operator/maintenance_cost_export_controller.total_row'), '', '',
             Workbook::money((int) $report['labor_minor'], $currency),
             Workbook::money((int) $report['parts_minor'], $currency),
             Workbook::money((int) $report['total_minor'], $currency),
@@ -218,7 +225,7 @@ class MaintenanceCostExportController extends Controller
     {
         $email = (string) $request->user()->email;
         if ($email === '') {
-            return redirect()->route('app.maintenance.costs')->with('mt_error', 'Your account has no email address.');
+            return redirect()->route('app.maintenance.costs')->with('mt_error', __('php/http/controllers/operator/maintenance_cost_export_controller.no_email'));
         }
 
         [$ids, $from, $to] = $this->scope($request);
@@ -226,8 +233,8 @@ class MaintenanceCostExportController extends Controller
         // under the same complete total — into an inbox, where it cannot be corrected after the fact.
         $report = $costs->report($ids, $from, $to, null);
         $bytes = $pdf->raw('pdfs.maintenance-costs', ['report' => $report]);
-        Mail::to($email)->send(new MaintenanceCostReportMail($bytes));
+        Mail::to($email)->locale($request->user()->preferredLocale())->send(new MaintenanceCostReportMail($bytes));
 
-        return redirect()->route('app.maintenance.costs')->with('mt_notice', "Costs report emailed to {$email}.");
+        return redirect()->route('app.maintenance.costs')->with('mt_notice', __('php/http/controllers/operator/maintenance_cost_export_controller.report_emailed', ['email' => $email]));
     }
 }

@@ -6,32 +6,32 @@
      (text, up to five pictures or documents, a voice note), and "Seen" follows the other person's read position. Every
      text is put on the page with x-text (never as HTML). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div @unless ($support) x-data="vyTeamChat" @endunless>
-<x-operator.shell active="inbox" title="Messages" subtitle="Conversations with your colleagues">
+<x-operator.shell active="inbox" :title="__('livewire/operator/team-chat.title')" :subtitle="__('livewire/operator/team-chat.subtitle')">
 
     @include('partials.messages-toggle', ['current' => 'team', 'guestsLabel' => $guestsLabel, 'guestUnread' => $guestUnread, 'teamUnread' => $teamUnread])
 
     @if ($support)
         <section class="vy-card vy-tc-private" role="status">
             <span class="vy-tc-private-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
-            <h2>Team messages are private to the people in them</h2>
-            <p>A Vyrobel support session can look at the back office, but not at the conversations between colleagues.</p>
+            <h2>{{ __('livewire/operator/team-chat.private_heading') }}</h2>
+            <p>{{ __('livewire/operator/team-chat.private_body') }}</p>
         </section>
     @else
     <div id="vy-team-chat" class="vy-tc" :class="{ 'has-open': active }" x-cloak>
 
         {{-- ── The conversations ─────────────────────────────────────────────────────────────────────────────── --}}
-        <aside class="vy-card vy-card--flush vy-tc-rail" aria-label="Team conversations">
+        <aside class="vy-card vy-card--flush vy-tc-rail" aria-label="{{ __('livewire/operator/team-chat.rail_aria') }}">
             <header class="vy-tc-rail-head">
-                <h2 class="vy-tc-rail-title">Team</h2>
-                <button type="button" class="vy-tc-new" @click="openNew()" x-show="teammates.length && !readOnly" aria-label="New conversation">
+                <h2 class="vy-tc-rail-title">{{ __('livewire/operator/team-chat.rail_title') }}</h2>
+                <button type="button" class="vy-tc-new" @click="openNew()" x-show="teammates.length && !readOnly" aria-label="{{ __('livewire/operator/team-chat.new_conversation') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-                    <span>New</span>
+                    <span>{{ __('livewire/operator/team-chat.new_button') }}</span>
                 </button>
             </header>
             <label class="vy-gl-search vy-tc-search" x-show="teammates.length">
                 <svg class="vy-gl-search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                <span class="vy-sr-only">Search people and conversations</span>
-                <input type="search" class="vy-gl-search-in" x-model="find" placeholder="Search people and chats" autocomplete="off">
+                <span class="vy-sr-only">{{ __('livewire/operator/team-chat.search_label') }}</span>
+                <input type="search" class="vy-gl-search-in" x-model="find" placeholder="{{ __('livewire/operator/team-chat.search_placeholder') }}" autocomplete="off">
             </label>
 
             <div class="vy-tc-list">
@@ -48,8 +48,8 @@
                                 <span class="vy-tc-row-time" x-text="c.last ? railTime(c.last.at) : ''"></span>
                             </span>
                             <span class="vy-tc-row-bottom">
-                                <span class="vy-tc-row-preview" :class="{ 'is-waiting': waiting(c.id) }" x-text="waiting(c.id) ? 'Not sent — your message is waiting here' : (c.last ? (c.last.mine ? 'You: ' : '') + c.last.text : 'No messages yet')"></span>
-                                <span class="vy-tc-unread" x-show="c.unread > 0" x-text="c.unread > 99 ? '99+' : c.unread" :aria-label="c.unread + ' unread'"></span>
+                                <span class="vy-tc-row-preview" :class="{ 'is-waiting': waiting(c.id) }" x-text="waiting(c.id) ? @js(__('livewire/operator/team-chat.preview_waiting')) : (c.last ? (c.last.mine ? @js(__('livewire/operator/team-chat.preview_you', ['text' => ':text'])).replace(':text', () => c.last.text) : c.last.text) : @js(__('livewire/operator/team-chat.preview_none')))"></span>
+                                <span class="vy-tc-unread" x-show="c.unread > 0" x-text="c.unread > 99 ? '99+' : c.unread" :aria-label="unreadLabel(c.unread)"></span>
                             </span>
                         </span>
                     </a>
@@ -58,7 +58,7 @@
                 {{-- people found by the search who have no conversation with you yet --}}
                 <template x-if="people.length && !readOnly">
                     <div class="vy-tc-people">
-                        <p class="vy-tc-people-label">Start a conversation</p>
+                        <p class="vy-tc-people-label">{{ __('livewire/operator/team-chat.start_a_conversation') }}</p>
                         <template x-for="p in people" :key="'p' + p.id">
                             <button type="button" class="vy-tc-row vy-tc-row--person" @click="startWith([p.id])">
                                 <span class="vy-tc-av" aria-hidden="true"><span x-text="p.initials"></span></span>
@@ -72,32 +72,32 @@
                 </template>
 
                 <div class="vy-tc-empty" x-show="!teammates.length">
-                    <strong>No one else works here yet</strong>
-                    <span>When colleagues join this workspace, you can message them here.</span>
-                    <template x-if="urls.roles"><a class="vy-btn vy-btn--ghost" :href="urls.roles">Invite your team</a></template>
+                    <strong>{{ __('livewire/operator/team-chat.no_one_heading') }}</strong>
+                    <span>{{ __('livewire/operator/team-chat.no_one_body') }}</span>
+                    <template x-if="urls.roles"><a class="vy-btn vy-btn--ghost" :href="urls.roles">{{ __('livewire/operator/team-chat.invite_team') }}</a></template>
                 </div>
                 <div class="vy-tc-empty" x-show="teammates.length && !conversations.length && !find">
-                    <strong>No conversations yet</strong>
-                    <span>Message one colleague, or a few at once.</span>
-                    <button type="button" class="vy-btn vy-btn--accent" @click="openNew()" x-show="!readOnly">New conversation</button>
+                    <strong>{{ __('livewire/operator/team-chat.no_conversations_heading') }}</strong>
+                    <span>{{ __('livewire/operator/team-chat.no_conversations_body') }}</span>
+                    <button type="button" class="vy-btn vy-btn--accent" @click="openNew()" x-show="!readOnly">{{ __('livewire/operator/team-chat.new_conversation') }}</button>
                 </div>
-                <p class="vy-tc-none" x-show="find && !rail.length && !people.length">Nobody matches “<span x-text="find"></span>”.</p>
+                <p class="vy-tc-none" x-show="find && !rail.length && !people.length">{!! __('livewire/operator/team-chat.nobody_matches', ['term' => '<span x-text="find"></span>']) !!}</p>
             </div>
         </aside>
 
         {{-- ── The open conversation ──────────────────────────────────────────────────────────────────────────── --}}
-        <section class="vy-card vy-card--flush vy-tc-pane" aria-label="Conversation"
+        <section class="vy-card vy-card--flush vy-tc-pane" aria-label="{{ __('livewire/operator/team-chat.pane_aria') }}"
                  @dragenter.prevent="dragIn($event)" @dragover.prevent="dragIn($event)" @dragleave="dragOut($event)" @drop.prevent="dropFiles($event)">
             <div class="vy-tc-blank" x-show="!active">
                 <span class="vy-tc-blank-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></span>
-                <strong>Talk to your team</strong>
-                <span>Pick a conversation, or start one with a colleague — pictures, documents and voice notes included.</span>
+                <strong>{{ __('livewire/operator/team-chat.blank_heading') }}</strong>
+                <span>{{ __('livewire/operator/team-chat.blank_body') }}</span>
             </div>
 
             <template x-if="active && current">
                 <div class="vy-tc-convo">
                     <header class="vy-tc-head">
-                        <button type="button" class="vy-tc-icon vy-tc-back" @click="back()" aria-label="Back to conversations">
+                        <button type="button" class="vy-tc-icon vy-tc-back" @click="back()" aria-label="{{ __('livewire/operator/team-chat.back_aria') }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
                         </button>
                         <span class="vy-tc-av vy-tc-av--lg" :class="{ 'is-group': current.kind === 'group' }" aria-hidden="true">
@@ -108,7 +108,7 @@
                             <strong class="vy-tc-head-name" x-text="current.name"></strong>
                             <span class="vy-tc-head-sub" x-text="headSub"></span>
                         </span>
-                        <button type="button" class="vy-tc-icon" :class="{ 'is-off': !sound }" @click="toggleSound()" :aria-pressed="sound ? 'true' : 'false'" :aria-label="sound ? 'Sound on — turn off' : 'Sound off — turn on'" :title="sound ? 'Sound on' : 'Sound off'">
+                        <button type="button" class="vy-tc-icon" :class="{ 'is-off': !sound }" @click="toggleSound()" :aria-pressed="sound ? 'true' : 'false'" :aria-label="sound ? @js(__('livewire/operator/team-chat.sound_on_aria')) : @js(__('livewire/operator/team-chat.sound_off_aria'))" :title="sound ? @js(__('livewire/operator/team-chat.sound_on')) : @js(__('livewire/operator/team-chat.sound_off'))">
                             <svg x-show="sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
                             <svg x-show="!sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
                         </button>
@@ -116,21 +116,21 @@
 
                     <div class="vy-tc-banner" x-show="offline" role="alert">
                         <span x-text="offline"></span>
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="location.reload()">Reload</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="location.reload()">{{ __('livewire/operator/team-chat.reload') }}</button>
                     </div>
                     <div class="vy-tc-banner vy-tc-banner--note" x-show="notice && !offline" role="status">
                         <span x-text="notice"></span>
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="notice = ''">Dismiss</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="notice = ''">{{ __('livewire/operator/team-chat.dismiss') }}</button>
                     </div>
 
-                    <div class="vy-tc-stream" x-ref="stream" @scroll.passive="onScroll()" role="log" aria-live="polite" aria-label="Messages">
+                    <div class="vy-tc-stream" x-ref="stream" @scroll.passive="onScroll()" role="log" aria-live="polite" aria-label="{{ __('livewire/operator/team-chat.stream_aria') }}">
                         <div class="vy-tc-older" x-show="hasOlder">
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="loadOlder()" :disabled="loadingOlder" x-text="loadingOlder ? 'Loading…' : 'Load earlier messages'"></button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="loadOlder()" :disabled="loadingOlder" x-text="loadingOlder ? @js(__('common.loading')) : @js(__('livewire/operator/team-chat.load_earlier'))"></button>
                         </div>
                         <div class="vy-tc-hello" x-show="!messages.length && !loading">
                             <span class="vy-tc-av vy-tc-av--xl" :class="{ 'is-group': current.kind === 'group' }" aria-hidden="true"><span x-text="current.kind === 'direct' ? current.initials : '#'"></span></span>
-                            <strong x-text="current.kind === 'direct' ? 'Say hello to ' + current.name : 'Say hello to the group'"></strong>
-                            <span>Messages here are seen only by the people in this conversation.</span>
+                            <strong x-text="current.kind === 'direct' ? @js(__('livewire/operator/team-chat.say_hello_to', ['name' => ':name'])).replace(':name', () => current.name) : @js(__('livewire/operator/team-chat.say_hello_group'))"></strong>
+                            <span>{{ __('livewire/operator/team-chat.hello_body') }}</span>
                         </div>
 
                         <template x-for="item in timeline" :key="item.key">
@@ -148,7 +148,7 @@
                                                     <template x-if="m.files.filter(f => f.kind === 'image').length">
                                                         <div class="vy-tc-photos" :class="'n' + Math.min(4, m.files.filter(f => f.kind === 'image').length)">
                                                             <template x-for="f in m.files.filter(f => f.kind === 'image')" :key="f.id">
-                                                                <button type="button" class="vy-tc-photo" @click="view(f)" :aria-label="'Open ' + f.name"><img :src="f.url" :alt="f.name" loading="lazy"></button>
+                                                                <button type="button" class="vy-tc-photo" @click="view(f)" :aria-label="@js(__('livewire/operator/team-chat.open_file_aria', ['name' => ':name'])).replace(':name', () => f.name)"><img :src="f.url" :alt="f.name" loading="lazy"></button>
                                                             </template>
                                                         </div>
                                                     </template>
@@ -156,7 +156,7 @@
                                                         <p class="vy-tc-bubble" x-text="m.body"></p>
                                                     </template>
                                                     <template x-for="f in m.files.filter(f => f.kind === 'file')" :key="f.id">
-                                                        <a class="vy-tc-file" :href="m.pending ? null : f.url" :aria-label="'Download ' + f.name">
+                                                        <a class="vy-tc-file" :href="m.pending ? null : f.url" :aria-label="@js(__('livewire/operator/team-chat.download_file_aria', ['name' => ':name'])).replace(':name', () => f.name)">
                                                             <span class="vy-tc-file-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></span>
                                                             <span class="vy-tc-file-text"><span class="vy-tc-file-name" x-text="f.name"></span><span class="vy-tc-file-size" x-text="f.size"></span></span>
                                                             <svg class="vy-tc-file-dl" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>
@@ -164,11 +164,11 @@
                                                     </template>
                                                     <template x-for="f in m.files.filter(f => f.kind === 'voice')" :key="f.id">
                                                         <div class="vy-tc-voice" x-data="vyVoice(f)">
-                                                            <button type="button" class="vy-tc-play" @click="toggle()" :aria-label="playing ? 'Pause voice message' : 'Play voice message'">
+                                                            <button type="button" class="vy-tc-play" @click="toggle()" :aria-label="playing ? @js(__('livewire/operator/team-chat.pause_voice_aria')) : @js(__('livewire/operator/team-chat.play_voice_aria'))">
                                                                 <svg x-show="!playing" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
                                                                 <svg x-show="playing" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
                                                             </button>
-                                                            <span class="vy-tc-track" @click="seek($event)" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-tc-track-fill" :style="{ width: pct + '%' }"></span></span>
+                                                            <span class="vy-tc-track" @click="seek($event)" role="slider" tabindex="0" aria-label="{{ __('livewire/operator/team-chat.position_aria') }}" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-tc-track-fill" :style="{ width: pct + '%' }"></span></span>
                                                             <span class="vy-tc-voice-time" x-text="clock()"></span>
                                                         </div>
                                                     </template>
@@ -187,11 +187,11 @@
                         </template>
                     </div>
 
-                    <button type="button" class="vy-tc-jump" x-show="unseenBelow > 0" @click="toBottom(true)" x-text="unseenBelow === 1 ? '1 new message ↓' : unseenBelow + ' new messages ↓'"></button>
+                    <button type="button" class="vy-tc-jump" x-show="unseenBelow > 0" @click="toBottom(true)" x-text="jumpLabel(unseenBelow)"></button>
 
                     {{-- ── The composer ─────────────────────────────────────────────────────────────────────────── --}}
                     <footer class="vy-tc-composer vy-tc-paused" x-show="readOnly">
-                        <p>This workspace is paused — messages can be read, not sent.</p>
+                        <p>{{ __('livewire/operator/team-chat.paused') }}</p>
                     </footer>
                     <footer class="vy-tc-composer" x-show="!readOnly">
                         <p class="vy-tc-error" x-show="error" x-text="error" role="alert"></p>
@@ -201,7 +201,7 @@
                                 <div class="vy-tc-chip" :class="{ 'is-image': p.kind === 'image' }">
                                     <template x-if="p.kind === 'image'"><img :src="p.preview" :alt="p.name"></template>
                                     <template x-if="p.kind === 'file'"><span class="vy-tc-chip-name" x-text="p.name"></span></template>
-                                    <button type="button" class="vy-tc-chip-x" @click="removePending(i)" :aria-label="'Remove ' + p.name">×</button>
+                                    <button type="button" class="vy-tc-chip-x" @click="removePending(i)" :aria-label="@js(__('livewire/operator/team-chat.remove_file_aria', ['name' => ':name'])).replace(':name', () => p.name)">×</button>
                                 </div>
                             </template>
                         </div>
@@ -209,37 +209,37 @@
                         <div class="vy-tc-rec" x-show="rec.state !== 'idle'">
                             <template x-if="rec.state === 'starting'">
                                 <div class="vy-tc-rec-row">
-                                    <span class="vy-tc-rec-time">Starting the microphone…</span>
-                                    <button type="button" class="vy-btn vy-btn--ghost" @click="cancelRec()">Cancel</button>
+                                    <span class="vy-tc-rec-time">{{ __('livewire/operator/team-chat.starting_mic') }}</span>
+                                    <button type="button" class="vy-btn vy-btn--ghost" @click="cancelRec()">{{ __('common.cancel') }}</button>
                                 </div>
                             </template>
                             <template x-if="rec.state === 'recording'">
                                 <div class="vy-tc-rec-row">
-                                    <button type="button" class="vy-tc-icon" @click="cancelRec()" aria-label="Cancel recording">
+                                    <button type="button" class="vy-tc-icon" @click="cancelRec()" aria-label="{{ __('livewire/operator/team-chat.cancel_recording_aria') }}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
                                     </button>
                                     <span class="vy-tc-rec-dot" aria-hidden="true"></span>
-                                    <span class="vy-tc-rec-time" x-text="'Recording ' + mmss(rec.seconds)"></span>
-                                    <span class="vy-tc-rec-cap" x-text="'up to ' + mmss(limits.voice)"></span>
-                                    <button type="button" class="vy-tc-send" @click="stopRec()" aria-label="Stop recording">
+                                    <span class="vy-tc-rec-time" x-text="@js(__('livewire/operator/team-chat.recording', ['time' => ':time'])).replace(':time', mmss(rec.seconds))"></span>
+                                    <span class="vy-tc-rec-cap" x-text="@js(__('livewire/operator/team-chat.recording_cap', ['time' => ':time'])).replace(':time', mmss(limits.voice))"></span>
+                                    <button type="button" class="vy-tc-send" @click="stopRec()" aria-label="{{ __('livewire/operator/team-chat.stop_recording_aria') }}">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                                     </button>
                                 </div>
                             </template>
                             <template x-if="rec.state === 'ready'">
                                 <div class="vy-tc-rec-row">
-                                    <button type="button" class="vy-tc-icon" @click="cancelRec()" aria-label="Discard voice note">
+                                    <button type="button" class="vy-tc-icon" @click="cancelRec()" aria-label="{{ __('livewire/operator/team-chat.discard_voice_aria') }}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
                                     </button>
                                     <div class="vy-tc-voice vy-tc-voice--preview" x-data="vyVoice({ url: rec.url, seconds: rec.seconds })">
-                                        <button type="button" class="vy-tc-play" @click="toggle()" :aria-label="playing ? 'Pause' : 'Listen before sending'">
+                                        <button type="button" class="vy-tc-play" @click="toggle()" :aria-label="playing ? @js(__('livewire/operator/team-chat.pause')) : @js(__('livewire/operator/team-chat.listen_before_sending'))">
                                             <svg x-show="!playing" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
                                             <svg x-show="playing" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
                                         </button>
-                                        <span class="vy-tc-track" @click="seek($event)" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-tc-track-fill" :style="{ width: pct + '%' }"></span></span>
+                                        <span class="vy-tc-track" @click="seek($event)" role="slider" tabindex="0" aria-label="{{ __('livewire/operator/team-chat.position_aria') }}" aria-valuemin="0" :aria-valuemax="Math.round(length)" :aria-valuenow="Math.round(at)" :aria-valuetext="spoken()" @keydown="key($event)"><span class="vy-tc-track-fill" :style="{ width: pct + '%' }"></span></span>
                                         <span class="vy-tc-voice-time" x-text="clock()"></span>
                                     </div>
-                                    <button type="button" class="vy-tc-send" @click="send()" :disabled="sending" aria-label="Send voice note">
+                                    <button type="button" class="vy-tc-send" @click="send()" :disabled="sending" aria-label="{{ __('livewire/operator/team-chat.send_voice_aria') }}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
                                     </button>
                                 </div>
@@ -247,27 +247,27 @@
                         </div>
 
                         <div class="vy-tc-input" x-show="rec.state === 'idle'">
-                            <button type="button" class="vy-tc-icon" @click="$refs.files.click()" aria-label="Attach documents" title="Attach documents">
+                            <button type="button" class="vy-tc-icon" @click="$refs.files.click()" aria-label="{{ __('livewire/operator/team-chat.attach_documents') }}" title="{{ __('livewire/operator/team-chat.attach_documents') }}">
                                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
                             </button>
-                            <button type="button" class="vy-tc-icon" @click="$refs.photos.click()" aria-label="Add pictures" title="Add pictures">
+                            <button type="button" class="vy-tc-icon" @click="$refs.photos.click()" aria-label="{{ __('livewire/operator/team-chat.add_pictures') }}" title="{{ __('livewire/operator/team-chat.add_pictures') }}">
                                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                             </button>
                             <input type="file" x-ref="files" class="vy-sr-only" multiple :accept="limits.accept" @change="addFiles($event.target.files); $event.target.value = ''" tabindex="-1" aria-hidden="true">
                             <input type="file" x-ref="photos" class="vy-sr-only" multiple accept="image/jpeg,image/png,image/webp,image/gif" @change="addFiles($event.target.files); $event.target.value = ''" tabindex="-1" aria-hidden="true">
-                            <label class="vy-sr-only" for="vy-tc-text">Message</label>
-                            <textarea id="vy-tc-text" class="vy-tc-text" x-ref="text" rows="1" x-model="draft" @input="grow()" @keydown.enter="enter($event)" @paste="paste($event)" :maxlength="limits.body" :placeholder="current.kind === 'direct' ? 'Message ' + current.name.split(' ')[0] : 'Message the group'"></textarea>
-                            <button type="button" class="vy-tc-send" x-show="draft.trim() || pending.length" @click="send()" :disabled="sending" aria-label="Send">
+                            <label class="vy-sr-only" for="vy-tc-text">{{ __('livewire/operator/team-chat.message_label') }}</label>
+                            <textarea id="vy-tc-text" class="vy-tc-text" x-ref="text" rows="1" x-model="draft" @input="grow()" @keydown.enter="enter($event)" @paste="paste($event)" :maxlength="limits.body" :placeholder="current.kind === 'direct' ? @js(__('livewire/operator/team-chat.message_placeholder_direct', ['name' => ':name'])).replace(':name', () => current.name.split(' ')[0]) : @js(__('livewire/operator/team-chat.message_placeholder_group'))"></textarea>
+                            <button type="button" class="vy-tc-send" x-show="draft.trim() || pending.length" @click="send()" :disabled="sending" aria-label="{{ __('livewire/operator/team-chat.send_aria') }}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
                             </button>
-                            <button type="button" class="vy-tc-mic" x-show="!draft.trim() && !pending.length" @click="startRec()" aria-label="Record a voice note" title="Record a voice note">
+                            <button type="button" class="vy-tc-mic" x-show="!draft.trim() && !pending.length" @click="startRec()" aria-label="{{ __('livewire/operator/team-chat.record_voice') }}" title="{{ __('livewire/operator/team-chat.record_voice') }}">
                                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>
                             </button>
                         </div>
-                        <p class="vy-tc-hint" x-show="rec.state === 'idle'">Enter to send · Shift + Enter for a new line · up to <span x-text="limits.files"></span> files of <span x-text="limits.mb"></span> MB</p>
+                        <p class="vy-tc-hint" x-show="rec.state === 'idle'">{!! trans_choice('livewire/operator/team-chat.composer_hint', $boot['limits']['files'], ['count' => '<span x-text="limits.files"></span>', 'mb' => '<span x-text="limits.mb"></span>']) !!}</p>
                     </footer>
 
-                    <div class="vy-tc-drop" x-show="dragging" aria-hidden="true"><span>Drop to attach</span></div>
+                    <div class="vy-tc-drop" x-show="dragging" aria-hidden="true"><span>{{ __('livewire/operator/team-chat.drop_to_attach') }}</span></div>
                 </div>
             </template>
         </section>
@@ -283,19 +283,19 @@
             <div class="vy-modal-head">
                 <span class="vy-modal-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6M9 10h6"/></svg></span>
                 <div class="vy-tc-dlg-head">
-                    <h2 class="vy-modal-title" id="vy-tc-new-title">New conversation</h2>
-                    <p class="vy-modal-sub">Pick one colleague, or several for a group. Only the people you add can read it.</p>
+                    <h2 class="vy-modal-title" id="vy-tc-new-title">{{ __('livewire/operator/team-chat.new_conversation') }}</h2>
+                    <p class="vy-modal-sub">{{ __('livewire/operator/team-chat.new_dialog_sub') }}</p>
                 </div>
-                <button type="button" class="vy-modal-x" @click="newOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                <button type="button" class="vy-modal-x" @click="newOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
             </div>
             <div class="vy-modal-body">
                 <label class="vy-gl-search vy-tc-search">
                     <svg class="vy-gl-search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                    <span class="vy-sr-only">Find a colleague</span>
-                    <input type="search" class="vy-gl-search-in" x-model="pickFind" placeholder="Find a colleague" autocomplete="off">
+                    <span class="vy-sr-only">{{ __('livewire/operator/team-chat.find_colleague') }}</span>
+                    <input type="search" class="vy-gl-search-in" x-model="pickFind" placeholder="{{ __('livewire/operator/team-chat.find_colleague') }}" autocomplete="off">
                 </label>
                 <fieldset class="vy-tc-pick">
-                    <legend class="vy-sr-only">Colleagues</legend>
+                    <legend class="vy-sr-only">{{ __('livewire/operator/team-chat.colleagues_legend') }}</legend>
                     <template x-for="p in pickList" :key="'k' + p.id">
                         <label class="vy-tc-pick-row" :class="{ 'is-on': pick.includes(p.id) }">
                             <input type="checkbox" :value="p.id" x-model="pick">
@@ -304,18 +304,18 @@
                             <span class="vy-tc-tick" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                         </label>
                     </template>
-                    <p class="vy-tc-none" x-show="!pickList.length">Nobody matches “<span x-text="pickFind"></span>”.</p>
+                    <p class="vy-tc-none" x-show="!pickList.length">{!! __('livewire/operator/team-chat.nobody_matches', ['term' => '<span x-text="pickFind"></span>']) !!}</p>
                 </fieldset>
                 <div class="vy-field vy-tc-group-name" x-show="pick.length > 1">
-                    <label class="vy-field-label" for="vy-tc-group-title">Group name · optional</label>
-                    <input id="vy-tc-group-title" type="text" class="vy-input" x-model="groupTitle" maxlength="80" placeholder="For example: Morning shift">
+                    <label class="vy-field-label" for="vy-tc-group-title">{{ __('livewire/operator/team-chat.group_name_label') }}</label>
+                    <input id="vy-tc-group-title" type="text" class="vy-input" x-model="groupTitle" maxlength="80" placeholder="{{ __('livewire/operator/team-chat.group_name_placeholder') }}">
                 </div>
                 <p class="vy-tc-error" x-show="newError" x-text="newError" role="alert"></p>
             </div>
             <div class="vy-modal-foot">
-                <button type="button" class="vy-btn vy-btn--ghost" @click="newOpen = false">Cancel</button>
+                <button type="button" class="vy-btn vy-btn--ghost" @click="newOpen = false">{{ __('common.cancel') }}</button>
                 <button type="button" class="vy-btn vy-btn--accent" @click="startWith(pick, groupTitle)" :disabled="!pick.length || starting"
-                        x-text="starting ? 'Starting…' : (pick.length > 1 ? 'Start group' : 'Start conversation')"></button>
+                        x-text="starting ? @js(__('livewire/operator/team-chat.starting')) : (pick.length > 1 ? @js(__('livewire/operator/team-chat.start_group')) : @js(__('livewire/operator/team-chat.start_conversation')))"></button>
             </div>
         </div>
     </div>
@@ -325,14 +325,29 @@
         <div class="vy-modal vy-tc-viewer-card" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="viewer" aria-labelledby="vy-tc-viewer-title">
             <div class="vy-tc-viewer-bar">
                 <h2 class="vy-tc-viewer-name" id="vy-tc-viewer-title" x-text="viewer ? viewer.name : ''"></h2>
-                <a class="vy-btn vy-btn--ghost" :href="viewer ? viewer.url : null" download>Download</a>
-                <button type="button" class="vy-modal-x" @click="viewer = null" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                <a class="vy-btn vy-btn--ghost" :href="viewer ? viewer.url : null" download>{{ __('common.download') }}</a>
+                <button type="button" class="vy-modal-x" @click="viewer = null" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
             </div>
             <img class="vy-tc-viewer-img" :src="viewer ? viewer.url : ''" :alt="viewer ? viewer.name : ''">
         </div>
     </div>
 
     @include('partials.chat-media')
+    {{-- A count's words are computed HERE, per count (a script cannot pluralise for every language): a group's members (up to
+         everyone here), the unread and new-message counts (1–99), the files of one message. A count outside its list falls back
+         to the many-form. --}}
+    @php
+        $__tcPl = [
+            'members' => collect(range(1, max(2, count($boot['teammates']) + 1)))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.members_line', $n, ['count' => $n, 'names' => ':names'])])->all(),
+            'membersOther' => trans_choice('livewire/operator/team-chat.members_line', 2, ['count' => ':count', 'names' => ':names']),
+            'unread' => collect(range(1, 99))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.unread_aria', $n, ['count' => $n])])->all(),
+            'unreadOther' => trans_choice('livewire/operator/team-chat.unread_aria', 2, ['count' => ':count']),
+            'jump' => collect(range(1, 99))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.new_messages_jump', $n, ['count' => $n])])->all(),
+            'jumpOther' => trans_choice('livewire/operator/team-chat.new_messages_jump', 2, ['count' => ':count']),
+            'files' => collect(range(1, max(1, (int) $boot['limits']['files'])))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.files_count', $n, ['count' => $n])])->all(),
+            'filesOther' => trans_choice('livewire/operator/team-chat.files_count', 2, ['count' => ':count']),
+        ];
+    @endphp
     <script type="application/json" id="vy-team-chat-data">@json($boot)</script>
     <script>
         document.addEventListener('alpine:init', () => {
@@ -341,6 +356,40 @@
             const RUN_GAP = 5 * 60 * 1000;
             const PICTURES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
             const DOCS = boot.limits.accept.split(',').map((x) => x.replace('.', '').toLowerCase());
+            // the words this script shows (translated on the server), and each count's words, per count
+            const T = {
+                formerTeammate: @js(__('livewire/operator/team-chat.former_teammate')),
+                sent: @js(__('livewire/operator/team-chat.receipt_sent')),
+                seen: @js(__('livewire/operator/team-chat.receipt_seen')),
+                seenByEveryone: @js(__('livewire/operator/team-chat.receipt_seen_by_everyone')),
+                seenBy: @js(__('livewire/operator/team-chat.receipt_seen_by', ['names' => ':names'])),
+                today: @js(__('common.today')),
+                yesterday: @js(__('livewire/operator/team-chat.yesterday')),
+                notSent: @js(__('livewire/operator/team-chat.not_sent')),
+                sending: @js(__('livewire/operator/team-chat.sending')),
+                signedOut: @js(__('livewire/operator/team-chat.signed_out_banner')),
+                startFailed: @js(__('livewire/operator/team-chat.start_failed')),
+                tooManyFiles: @js(trans_choice('livewire/operator/team-chat.too_many_files', $boot['limits']['files'], ['count' => $boot['limits']['files']])),
+                wrongFileType: @js(__('livewire/operator/team-chat.wrong_file_type')),
+                fileTooBig: @js(__('livewire/operator/team-chat.file_too_big', ['name' => ':name', 'mb' => ':mb'])),
+                messageTooLong: @js(__('livewire/operator/team-chat.message_too_long')),
+                filesTooBigTogether: @js(__('livewire/operator/team-chat.files_too_big_together', ['mb' => ':mb'])),
+                voiceMessage: @js(__('livewire/operator/team-chat.voice_message')),
+                photo: @js(__('livewire/operator/team-chat.photo')),
+                file: @js(__('livewire/operator/team-chat.file')),
+                notSentNoticeTo: @js(__('livewire/operator/team-chat.not_sent_notice_to', ['name' => ':name'])),
+                notSentNotice: @js(__('livewire/operator/team-chat.not_sent_notice')),
+                reasonSignedOut: @js(__('livewire/operator/team-chat.reason_signed_out')),
+                reasonNoConnection: @js(__('livewire/operator/team-chat.reason_no_connection')),
+                reasonTooLarge: @js(__('livewire/operator/team-chat.reason_too_large')),
+                reasonTooMany: @js(__('livewire/operator/team-chat.reason_too_many')),
+                reasonFailed: @js(__('livewire/operator/team-chat.reason_failed')),
+                nothingRecorded: @js(__('livewire/operator/team-chat.nothing_recorded')),
+            };
+            const PL = @js($__tcPl);
+            const plural = (map, other, n) => (map[n] !== undefined ? map[n] : other.replace(':count', String(n)));
+            // I18N-01 — dates in the PAGE's language; English keeps the browser's, as it always has
+            const DATE_LOCALE = @js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::tag()) ?? undefined;
 
             // the things that must never become reactive (the recorder, timers) live outside Alpine's state
             let recording = null, recToken = 0, pollTimer = null, readTimer = null;
@@ -436,10 +485,10 @@
                 get headSub() {
                     const c = this.current;
                     if (!c) return '';
-                    if (c.kind === 'group') return c.members.length + ' people · ' + c.members.filter((m) => m.id !== this.me.id).map((m) => m.name.split(' ')[0]).join(', ');
+                    if (c.kind === 'group') return plural(PL.members, PL.membersOther, c.members.length).replace(':names', () => c.members.filter((m) => m.id !== this.me.id).map((m) => m.name.split(' ')[0]).join(', '));
                     const other = c.members.find((m) => m.id !== this.me.id);
                     const mate = other && this.teammates.find((p) => p.id === other.id);
-                    return mate ? mate.role : 'Former teammate';
+                    return mate ? mate.role : T.formerTeammate;
                 },
                 get timeline() {
                     const out = [];
@@ -453,7 +502,7 @@
                         }
                         const sid = m.sender ? m.sender.id : null;
                         if (!run || run.sid !== sid || at - run.lastAt > RUN_GAP) {
-                            run = { key: 'r' + m.id, type: 'run', sid, mine: m.mine, sender: m.sender || { name: 'Former teammate', initials: '?' }, items: [], lastAt: at };
+                            run = { key: 'r' + m.id, type: 'run', sid, mine: m.mine, sender: m.sender || { name: T.formerTeammate, initials: '?' }, items: [], lastAt: at };
                             out.push(run);
                         }
                         run.items.push(m);
@@ -471,32 +520,34 @@
                     const id = this.lastMineId;
                     if (!id) return '';
                     const seen = this.reads.filter((r) => r.message_id && r.message_id >= id);
-                    if (!this.current || !seen.length) return '· Sent';
-                    if (this.current.kind === 'direct') return '· Seen';
-                    return seen.length === this.reads.length ? '· Seen by everyone' : '· Seen by ' + seen.map((r) => r.name.split(' ')[0]).join(', ');
+                    if (!this.current || !seen.length) return T.sent;
+                    if (this.current.kind === 'direct') return T.seen;
+                    return seen.length === this.reads.length ? T.seenByEveryone : T.seenBy.replace(':names', () => seen.map((r) => r.name.split(' ')[0]).join(', '));
                 },
 
                 // ── words and times ──────────────────────────────────────────────────────────────────────
                 dayLabel(d) {
                     const today = new Date(), yesterday = new Date(Date.now() - 86400000);
-                    if (sameDay(d, today)) return 'Today';
-                    if (sameDay(d, yesterday)) return 'Yesterday';
-                    if (today - d < 6 * 86400000) return d.toLocaleDateString(undefined, { weekday: 'long' });
-                    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
+                    if (sameDay(d, today)) return T.today;
+                    if (sameDay(d, yesterday)) return T.yesterday;
+                    if (today - d < 6 * 86400000) return d.toLocaleDateString(DATE_LOCALE, { weekday: 'long' });
+                    return d.toLocaleDateString(DATE_LOCALE, { day: 'numeric', month: 'long', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
                 },
                 railTime(iso) {
                     const d = new Date(iso), now = new Date();
                     if (sameDay(d, now)) return pad(d.getHours()) + ':' + pad(d.getMinutes());
-                    if (now - d < 6 * 86400000) return d.toLocaleDateString(undefined, { weekday: 'short' });
-                    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+                    if (now - d < 6 * 86400000) return d.toLocaleDateString(DATE_LOCALE, { weekday: 'short' });
+                    return d.toLocaleDateString(DATE_LOCALE, { day: 'numeric', month: 'short' });
                 },
                 clockOf(m) {
                     if (!m) return '';
-                    if (m.pending) return m.failed ? 'Not sent' : 'Sending…';
+                    if (m.pending) return m.failed ? T.notSent : T.sending;
                     const d = new Date(m.at);
                     return pad(d.getHours()) + ':' + pad(d.getMinutes());
                 },
                 mmss(s) { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + pad(s % 60); },
+                unreadLabel(n) { return plural(PL.unread, PL.unreadOther, n); },
+                jumpLabel(n) { return plural(PL.jump, PL.jumpOther, n); },
 
                 // ── the network ──────────────────────────────────────────────────────────────────────────
                 /**
@@ -523,7 +574,7 @@
                     return { ok: res.ok && json, status: res.status, data };
                 },
                 signedOut() {
-                    this.offline = 'You have been signed out, or this workspace needs attention. Reload to continue.';
+                    this.offline = T.signedOut;
                     this.stopPolling();
                 },
                 pollUrl(params) {
@@ -680,7 +731,7 @@
                     });
                     this.starting = false;
                     if (!ok || !data || !data.conversation) {
-                        this.newError = (data && data.message) || 'That conversation could not be started. Try again.';
+                        this.newError = (data && data.message) || T.startFailed;
                         return;
                     }
                     if (!this.conversations.some((c) => c.id === data.conversation.id)) this.conversations.unshift(data.conversation);
@@ -704,11 +755,11 @@
                 addFiles(list) {
                     this.error = '';
                     for (const file of Array.from(list || [])) {
-                        if (this.pending.length >= this.limits.files) { this.error = 'Send up to ' + this.limits.files + ' files at a time.'; break; }
+                        if (this.pending.length >= this.limits.files) { this.error = T.tooManyFiles; break; }
                         const ext = (file.name.split('.').pop() || '').toLowerCase();
                         const image = PICTURES.includes(file.type);
-                        if (!image && !DOCS.includes(ext)) { this.error = 'Send pictures (JPG, PNG, WebP, GIF) or documents (PDF, Word, Excel, CSV, text).'; continue; }
-                        if (file.size > this.limits.mb * 1048576) { this.error = file.name + ' is over ' + this.limits.mb + ' MB.'; continue; }
+                        if (!image && !DOCS.includes(ext)) { this.error = T.wrongFileType; continue; }
+                        if (file.size > this.limits.mb * 1048576) { this.error = T.fileTooBig.replace(':mb', () => String(this.limits.mb)).replace(':name', () => file.name); continue; }
                         this.pending.push({ key: 'f' + (++tempSeq), file, name: file.name, kind: image ? 'image' : 'file', preview: image ? URL.createObjectURL(file) : null });
                     }
                     this.$nextTick(() => this.$refs.text && this.$refs.text.focus());
@@ -732,9 +783,9 @@
                     const body = this.draft.trim();
                     const voice = this.rec.state === 'ready' && this.rec.blob ? { blob: this.rec.blob, seconds: this.rec.seconds, mime: this.rec.mime } : null;
                     if (!body && !this.pending.length && !voice) return;
-                    if (body.length > this.limits.body) { this.error = 'A message can be up to 5,000 characters.'; return; }
+                    if (body.length > this.limits.body) { this.error = T.messageTooLong; return; }
                     const size = this.pending.reduce((n, f) => n + f.file.size, 0) + (voice ? voice.blob.size : 0);
-                    if (size > this.limits.post) { this.error = 'Together these files are over ' + Math.floor(this.limits.post / 1048576) + ' MB — send fewer at a time.'; return; }
+                    if (size > this.limits.post) { this.error = T.filesTooBigTogether.replace(':mb', () => String(Math.floor(this.limits.post / 1048576))); return; }
 
                     const form = new FormData();
                     if (body) form.append('body', body);
@@ -751,7 +802,7 @@
                         id: 'tmp-' + (++tempSeq), pending: true, failed: '', progress: null, mine: true, body,
                         sender: { id: this.me.id, name: this.me.name, initials: '' }, at: new Date().toISOString(),
                         files: sent.map((f, i) => ({ id: 'tf' + tempSeq + '-' + i, kind: f.kind, name: f.name, size: '', url: f.preview, seconds: null }))
-                            .concat(voice ? [{ id: 'tv' + tempSeq, kind: 'voice', name: 'Voice message', size: '', url: this.rec.url, seconds: voice.seconds }] : []),
+                            .concat(voice ? [{ id: 'tv' + tempSeq, kind: 'voice', name: T.voiceMessage, size: '', url: this.rec.url, seconds: voice.seconds }] : []),
                     };
                     this.messages.push(temp);
                     this.draft = '';
@@ -772,7 +823,7 @@
                         if (keepRec && keepRec.url) URL.revokeObjectURL(keepRec.url);
                         const row = this.conversations.find((x) => x.id === convId);
                         if (row) {
-                            row.last = { text: body || (voice ? 'Voice message' : (sent.length === 1 ? (sent[0].kind === 'image' ? 'Photo' : 'File') : sent.length + ' files')), at: real.at, mine: true };
+                            row.last = { text: body || (voice ? T.voiceMessage : (sent.length === 1 ? (sent[0].kind === 'image' ? T.photo : T.file) : plural(PL.files, PL.filesOther, sent.length))), at: real.at, mine: true };
                             this.conversations = [row].concat(this.conversations.filter((x) => x.id !== convId));
                         }
                         return;
@@ -795,17 +846,17 @@
                     kept.error = reason;
                     this.stash[convId] = kept;
                     const row = this.conversations.find((x) => x.id === convId);
-                    this.notice = 'Your message' + (row ? ' to ' + row.name : '') + ' was not sent — it is waiting in that conversation.';
+                    this.notice = row ? T.notSentNoticeTo.replace(':name', () => row.name) : T.notSentNotice;
                     noticeFor = convId;
                 },
                 /** Why a message was not sent, in words: our own refusal (422, 404) as the server said it, else what went wrong. */
                 sendReason(res) {
                     if (res.data && res.data.message && (res.status === 422 || res.status === 404)) return res.data.message;
-                    if (res.signedOut) return 'You have been signed out — reload to continue. Your message was kept.';
-                    if (res.status === 0) return 'No connection — your message was kept. Try again.';
-                    if (res.status === 413) return 'Together these files are too large to send at once — send fewer at a time.';
-                    if (res.status === 429) return 'Too many messages at once — wait a moment, then try again. Your message was kept.';
-                    return 'Your message was not sent — something went wrong. It was kept; try again.';
+                    if (res.signedOut) return T.reasonSignedOut;
+                    if (res.status === 0) return T.reasonNoConnection;
+                    if (res.status === 413) return T.reasonTooLarge;
+                    if (res.status === 429) return T.reasonTooMany;
+                    return T.reasonFailed;
                 },
                 upload(url, form, temp) {
                     return new Promise((resolve) => {
@@ -854,7 +905,7 @@
                     this.rec = Object.assign(IDLE_REC(), { state: 'recording' });
                     started.finished.then((r) => {
                         if (recToken !== mine || this.rec.state !== 'recording') return;
-                        if (!r) { this.rec = IDLE_REC(); this.error = 'Nothing was recorded — try again.'; return; }
+                        if (!r) { this.rec = IDLE_REC(); this.error = T.nothingRecorded; return; }
                         this.rec = { state: 'ready', seconds: r.seconds, url: URL.createObjectURL(r.blob), mime: r.mime, blob: r.blob };
                     });
                 },

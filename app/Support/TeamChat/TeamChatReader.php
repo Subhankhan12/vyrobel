@@ -121,7 +121,7 @@ final class TeamChatReader
             ->where('user_id', '!=', $viewer->getKey())->with('user:id,name')->get()
             ->map(fn (TeamConversationMember $m): array => [
                 'user_id' => (string) $m->user_id,
-                'name' => (string) ($m->user->name ?? 'Former teammate'),
+                'name' => (string) ($m->user->name ?? __('php/support/team_chat/team_chat_reader.former_teammate')),
                 'message_id' => $m->last_read_message_id,
                 'at' => $m->last_read_at?->toIso8601String(),
             ])->values()->all();
@@ -160,7 +160,7 @@ final class TeamChatReader
             'mine' => $m->user_id !== null && $m->user_id === (string) $viewer->getKey(),
             'sender' => $sender instanceof User
                 ? ['id' => (string) $sender->getKey(), 'name' => (string) $sender->name, 'initials' => StaffRoster::initials((string) $sender->name)]
-                : ['id' => null, 'name' => 'Former teammate', 'initials' => '?'],
+                : ['id' => null, 'name' => __('php/support/team_chat/team_chat_reader.former_teammate'), 'initials' => '?'],
             'at' => $m->created_at->toIso8601String(),
             'files' => $this->files->rows($m),
         ];
@@ -230,7 +230,7 @@ final class TeamChatReader
         $others = $c->users->filter(fn (User $u): bool => (string) $u->getKey() !== (string) $viewer->getKey())->values();
 
         return $c->kind === TeamConversation::DIRECT
-            ? (string) ($others->first()->name ?? 'Former teammate')
+            ? (string) ($others->first()->name ?? __('php/support/team_chat/team_chat_reader.former_teammate'))
             : ($c->title ?: $this->groupName($others));
     }
 
@@ -241,7 +241,7 @@ final class TeamChatReader
 
         return match (true) {
             $first->count() <= 3 => $first->implode(', '),
-            default => $first->take(2)->implode(', ').' and '.($first->count() - 2).' others',
+            default => trans_choice('php/support/team_chat/team_chat_reader.group_name_others', $first->count() - 2, ['names' => $first->take(2)->implode(', '), 'count' => $first->count() - 2]),
         };
     }
 
@@ -255,9 +255,9 @@ final class TeamChatReader
         $kinds = collect($this->files->rows($m))->pluck('kind');
 
         return match (true) {
-            $kinds->contains('voice') => 'Voice message',
-            $kinds->isNotEmpty() && $kinds->every(fn (string $k): bool => $k === 'image') => $kinds->count() > 1 ? $kinds->count().' photos' : 'Photo',
-            $kinds->isNotEmpty() => $kinds->count() > 1 ? $kinds->count().' files' : 'File',
+            $kinds->contains('voice') => __('php/support/team_chat/team_chat_reader.preview_voice'),
+            $kinds->isNotEmpty() && $kinds->every(fn (string $k): bool => $k === 'image') => trans_choice('php/support/team_chat/team_chat_reader.preview_photos', $kinds->count(), ['count' => $kinds->count()]),
+            $kinds->isNotEmpty() => trans_choice('php/support/team_chat/team_chat_reader.preview_files', $kinds->count(), ['count' => $kinds->count()]),
             default => '',
         };
     }

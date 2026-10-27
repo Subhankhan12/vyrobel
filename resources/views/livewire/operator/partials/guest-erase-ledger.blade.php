@@ -3,11 +3,11 @@
      The kept/goes columns reuse the Portfolio removal's styles (one definition). --}}
 <div class="vy-rm-ledger">
     <div class="vy-rm-col is-goes">
-        <h4>Erased</h4>
-        <ul><li>Name and contact details</li><li>City, nationality and preferences</li><li>ID documents, notes and messages</li></ul>
+        <h4>{{ __('livewire/operator/partials/guest-erase-ledger.erased_heading') }}</h4>
+        <ul><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_name_contact') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_city_preferences') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_documents_messages') }}</li></ul>
     </div>
     <div class="vy-rm-col is-kept">
-        <h4>Kept, without a name</h4>
-        <ul><li>Bookings and stays</li><li>Invoices, payments and balances</li></ul>
+        <h4>{{ __('livewire/operator/partials/guest-erase-ledger.kept_heading') }}</h4>
+        <ul><li>{{ __('livewire/operator/partials/guest-erase-ledger.kept_bookings') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.kept_invoices') }}</li></ul>
     </div>
 </div>

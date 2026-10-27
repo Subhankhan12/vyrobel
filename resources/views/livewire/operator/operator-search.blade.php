@@ -16,7 +16,7 @@
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
 <div>
-    <x-operator.shell active="search" title="Search" :subtitle="'Everything, in one place'" :viewer="$viewer">
+    <x-operator.shell active="search" :title="__('livewire/operator/operator-search.title')" :subtitle="__('livewire/operator/operator-search.subtitle')" :viewer="$viewer">
 
         @php
             // A filter chip's href — carries the current query + every OTHER active filter, so a chip never
@@ -31,7 +31,9 @@
 
                 return route('app.search', array_filter($params, fn ($v): bool => $v !== '' && $v !== null));
             };
-            $label = fn (string $v): string => ucfirst(str_replace('_', ' ', $v));
+            // I18N — the words come from the class, keyed by the CODE; a code it does not know keeps the old fallback.
+            $statusLabel = fn (string $v): string => $statusLabels[$v] ?? ucfirst(str_replace('_', ' ', $v));
+            $sourceLabel = fn (string $v): string => $sourceLabels[$v] ?? ucfirst(str_replace('_', ' ', $v));
         @endphp
 
         {{-- ── The query bar (GET → drives the scoped search) ──────────────────────────────────────── --}}
@@ -48,14 +50,14 @@
                     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                 </span>
                 <input type="text" name="q" class="vys-bar-input" value="{{ $query }}" x-ref="q" autofocus autocomplete="off"
-                    aria-label="Search reservations, guests, units and owners"
-                    placeholder="Search reservations, guests, units, owners…">
+                    aria-label="{{ __('livewire/operator/operator-search.search_aria') }}"
+                    placeholder="{{ __('livewire/operator/operator-search.search_placeholder') }}">
                 @if ($query !== '')
-                    <a class="vys-bar-x" href="{{ route('app.search') }}" aria-label="Clear the search">
+                    <a class="vys-bar-x" href="{{ route('app.search') }}" aria-label="{{ __('livewire/operator/operator-search.clear_search') }}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </a>
                 @endif
-                <button type="submit" class="vy-btn vy-btn--accent vys-bar-go">Search</button>
+                <button type="submit" class="vy-btn vy-btn--accent vys-bar-go">{{ __('common.search') }}</button>
             </div>
 
             {{-- DATES — a REAL check-in range. The design's month presets (September / October / Upcoming)
@@ -63,45 +65,45 @@
             <div class="vys-frow">
                 <span class="vys-flabel">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-                    Dates
+                    {{ __('livewire/operator/operator-search.dates') }}
                 </span>
-                <x-date-field name="from" :value="$filters['from'] ?? ''" label="Check-in from" placeholder="From" />
+                <x-date-field name="from" :value="$filters['from'] ?? ''" :label="__('livewire/operator/operator-search.checkin_from')" :placeholder="__('livewire/operator/operator-search.from')" />
                 <span class="vys-dash">→</span>
-                <x-date-field name="to" :value="$filters['to'] ?? ''" label="Check-in to" placeholder="To" />
+                <x-date-field name="to" :value="$filters['to'] ?? ''" :label="__('livewire/operator/operator-search.checkin_to')" :placeholder="__('livewire/operator/operator-search.to')" />
             </div>
         </form>
 
         {{-- STATUS / SOURCE / OCCUPANCY — the design's chip rows. Each chip is a GET link (#20). --}}
         <div class="vys-frow vy-fade">
-            <span class="vys-flabel">Status</span>
-            <a class="vys-chip @if (($filters['status'] ?? '') === '') is-on @endif" href="{{ $chipUrl('status', '') }}">Any status</a>
+            <span class="vys-flabel">{{ __('common.status') }}</span>
+            <a class="vys-chip @if (($filters['status'] ?? '') === '') is-on @endif" href="{{ $chipUrl('status', '') }}">{{ __('livewire/operator/operator-search.any_status') }}</a>
             @foreach ($statuses as $st)
-                <a class="vys-chip @if (($filters['status'] ?? '') === $st) is-on @endif" href="{{ $chipUrl('status', $st) }}">{{ $label($st) }}</a>
+                <a class="vys-chip @if (($filters['status'] ?? '') === $st) is-on @endif" href="{{ $chipUrl('status', $st) }}">{{ $statusLabel($st) }}</a>
             @endforeach
         </div>
         <div class="vys-frow vy-fade">
-            <span class="vys-flabel">Source</span>
-            <a class="vys-chip @if (($filters['source'] ?? '') === '') is-on @endif" href="{{ $chipUrl('source', '') }}">Any source</a>
+            <span class="vys-flabel">{{ __('livewire/operator/operator-search.source') }}</span>
+            <a class="vys-chip @if (($filters['source'] ?? '') === '') is-on @endif" href="{{ $chipUrl('source', '') }}">{{ __('livewire/operator/operator-search.any_source') }}</a>
             @foreach ($sources as $sc)
-                <a class="vys-chip @if (($filters['source'] ?? '') === $sc) is-on @endif" href="{{ $chipUrl('source', $sc) }}">{{ $label($sc) }}</a>
+                <a class="vys-chip @if (($filters['source'] ?? '') === $sc) is-on @endif" href="{{ $chipUrl('source', $sc) }}">{{ $sourceLabel($sc) }}</a>
             @endforeach
         </div>
         <div class="vys-frow vy-fade" style="margin-bottom: 14px;">
-            <span class="vys-flabel">Occupancy</span>
-            <a class="vys-chip @if (($filters['occupancy'] ?? '') === '') is-on @endif" href="{{ $chipUrl('occupancy', '') }}">Any</a>
-            @foreach (['1' => '1 guest', '2' => '2 guests', '3plus' => '3+ guests'] as $val => $lab)
+            <span class="vys-flabel">{{ __('livewire/operator/operator-search.occupancy') }}</span>
+            <a class="vys-chip @if (($filters['occupancy'] ?? '') === '') is-on @endif" href="{{ $chipUrl('occupancy', '') }}">{{ __('livewire/operator/operator-search.any_occupancy') }}</a>
+            @foreach (['1' => __('livewire/operator/operator-search.occupancy_1'), '2' => __('livewire/operator/operator-search.occupancy_2'), '3plus' => __('livewire/operator/operator-search.occupancy_3plus')] as $val => $lab)
                 <a class="vys-chip @if (($filters['occupancy'] ?? '') === (string) $val) is-on @endif" href="{{ $chipUrl('occupancy', (string) $val) }}">{{ $lab }}</a>
             @endforeach
         </div>
 
         <p class="vys-hint vy-fade">
-            Search a guest by name or email, a reservation by reference (R-…), or a unit. Phone search isn’t available (numbers are stored encrypted).
+            {{ __('livewire/operator/operator-search.hint') }}
         </p>
 
         {{-- ⚠️ Encrypted-contact honesty callout — an email typed by a viewer without guest access. --}}
         @if ($contactNote)
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-amber); margin-bottom: 16px;">
-                <div style="font-size: 13px; color: var(--vy-ink);">Searching a guest by email needs guest access — you can search by <strong>name</strong> here.</div>
+                <div style="font-size: 13px; color: var(--vy-ink);">{!! __('livewire/operator/operator-search.email_needs_guest_access') !!}</div>
             </div>
         @endif
 
@@ -110,8 +112,8 @@
             <div x-data="searchBox()" x-init="load()">
                 <div class="vy-card vy-fade" style="margin-bottom: 16px;" x-show="recent.length > 0" x-cloak>
                     <div class="vys-cardhead">
-                        <span class="vys-cardtitle">Recent searches</span>
-                        <button type="button" class="vys-textbtn" x-on:click="clear()">Clear</button>
+                        <span class="vys-cardtitle">{{ __('livewire/operator/operator-search.recent_searches') }}</span>
+                        <button type="button" class="vys-textbtn" x-on:click="clear()">{{ __('common.clear') }}</button>
                     </div>
                     <template x-for="t in recent" x-bind:key="t">
                         <a class="vys-recent" x-bind:href="'{{ route('app.search') }}?q=' + encodeURIComponent(t)">
@@ -128,7 +130,7 @@
             @if (count($suggested) > 0)
                 {{-- Suggested = REAL upcoming arrivals, never a fabricated suggestion (#39). --}}
                 <div class="vy-card vy-fade" style="margin-bottom: 16px;">
-                    <div class="vys-cardhead"><span class="vys-cardtitle">Upcoming arrivals</span></div>
+                    <div class="vys-cardhead"><span class="vys-cardtitle">{{ __('livewire/operator/operator-search.upcoming_arrivals') }}</span></div>
                     @foreach ($suggested as $sug)
                         <a class="vys-row" href="{{ route('app.search', ['q' => $sug['reference']]) }}">
                             <span class="vys-tile" aria-hidden="true">
@@ -144,24 +146,24 @@
                 </div>
             @endif
 
-            <div class="vy-card vy-fade vys-empty">Type a reference, name, unit code or owner above to search across the whole property.</div>
+            <div class="vy-card vy-fade vys-empty">{{ __('livewire/operator/operator-search.start_prompt') }}</div>
         @else
             @if ($total === 0)
-                <div class="vy-card vy-fade vys-empty">No matches for “{{ $query }}”. Try a reference, a guest or owner name, or a unit code.</div>
+                <div class="vy-card vy-fade vys-empty">{{ __('livewire/operator/operator-search.no_matches', ['query' => $query]) }}</div>
             @else
                 <div x-data="{ tab: 'all' }">
                     {{-- Results header — the design's count line + SORT + clear.
                          ⚠️ "Relevance" is REFUSED: nothing scores relevance here. The three real orders stay. --}}
                     <div class="vys-head vy-fade">
-                        <span class="vys-count">{{ $total }} {{ \Illuminate\Support\Str::plural('result', $total) }} for “{{ $query }}”</span>
+                        <span class="vys-count">{{ trans_choice('livewire/operator/operator-search.results_for', $total, ['count' => $total, 'query' => $query]) }}</span>
                         <span class="vys-headright">
-                            <span class="vys-flabel">Sort</span>
+                            <span class="vys-flabel">{{ __('livewire/operator/operator-search.sort') }}</span>
                             <span class="vys-seg">
-                                @foreach (['recent' => 'Newest', 'checkin' => 'Check-in', 'reference' => 'Reference'] as $val => $lab)
+                                @foreach (['recent' => __('livewire/operator/operator-search.sort_newest'), 'checkin' => __('livewire/operator/operator-search.sort_checkin'), 'reference' => __('livewire/operator/operator-search.sort_reference')] as $val => $lab)
                                     <a class="vys-seg-i @if (($filters['sort'] ?? 'recent') === $val) is-on @endif" href="{{ $chipUrl('sort', $val) }}">{{ $lab }}</a>
                                 @endforeach
                             </span>
-                            <a class="vys-textbtn" href="{{ route('app.search', ['q' => $query]) }}">× Clear all filters</a>
+                            <a class="vys-textbtn" href="{{ route('app.search', ['q' => $query]) }}">{{ __('livewire/operator/operator-search.clear_all_filters') }}</a>
                         </span>
                     </div>
 
@@ -169,11 +171,11 @@
                     <div class="vys-tabs vy-fade">
                         @php
                             $tabs = [
-                                ['all', 'All', $counts['all']],
-                                ['reservations', 'Reservations', $counts['reservations']],
-                                ['guests', 'Guests', $counts['guests']],
-                                ['units', 'Units', $counts['units']],
-                                ['owners', 'Owners', $counts['owners']],
+                                ['all', __('common.all'), $counts['all']],
+                                ['reservations', __('livewire/operator/operator-search.type_reservations'), $counts['reservations']],
+                                ['guests', __('livewire/operator/operator-search.type_guests'), $counts['guests']],
+                                ['units', __('livewire/operator/operator-search.type_units'), $counts['units']],
+                                ['owners', __('livewire/operator/operator-search.type_owners'), $counts['owners']],
                             ];
                         @endphp
                         @foreach ($tabs as [$key, $tabLabel, $n])
@@ -186,7 +188,7 @@
                     {{-- Reservations --}}
                     @if ($results['reservations'] !== [])
                         <div class="vy-card vy-fade" style="margin-bottom: 14px;" x-show="tab === 'all' || tab === 'reservations'">
-                            <h2 class="vys-group-title">Reservations <span class="vys-group-n">{{ $counts['reservations'] }}</span></h2>
+                            <h2 class="vys-group-title">{{ __('livewire/operator/operator-search.type_reservations') }} <span class="vys-group-n">{{ $counts['reservations'] }}</span></h2>
                             @foreach ($results['reservations'] as $r)
                                 <a class="vys-row" href="{{ $r['url'] }}">
                                     <span class="vys-tile" aria-hidden="true">
@@ -195,11 +197,11 @@
                                     <span class="vys-row-main">
                                         {{-- NAME only — a reservation row never carries guest contact (#28). --}}
                                         <span class="vys-row-title">{{ $r['guest'] }}</span>
-                                        <span class="vys-row-sub">{{ $r['reference'] }} · {{ $label($r['source']) }}</span>
+                                        <span class="vys-row-sub">{{ $r['reference'] }} · {{ $sourceLabel($r['source']) }}</span>
                                     </span>
                                     <span class="vys-row-meta">
                                         {{-- Status carries its WORD, never colour alone (1.4.1). --}}
-                                        <span class="vys-badge">{{ $label($r['status']) }}</span>
+                                        <span class="vys-badge">{{ $statusLabel($r['status']) }}</span>
                                         <span class="vys-chev" aria-hidden="true">›</span>
                                     </span>
                                 </a>
@@ -210,14 +212,14 @@
                     {{-- Guests — ⚠️ NAME ONLY. The design's email + city are REFUSED here (#28). --}}
                     @if ($results['guests'] !== [])
                         <div class="vy-card vy-fade" style="margin-bottom: 14px;" x-show="tab === 'all' || tab === 'guests'">
-                            <h2 class="vys-group-title">Guests <span class="vys-group-n">{{ $counts['guests'] }}</span></h2>
+                            <h2 class="vys-group-title">{{ __('livewire/operator/operator-search.type_guests') }} <span class="vys-group-n">{{ $counts['guests'] }}</span></h2>
                             @foreach ($results['guests'] as $g)
                                 <a class="vys-row" href="{{ $g['url'] }}">
                                     <span class="vys-av">{{ $g['initials'] }}</span>
                                     <span class="vys-row-main">
                                         <span class="vys-row-title">{{ $g['name'] }}</span>
                                     </span>
-                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">Guest profile</span><span class="vys-chev" aria-hidden="true">›</span></span>
+                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">{{ __('livewire/operator/operator-search.guest_profile_badge') }}</span><span class="vys-chev" aria-hidden="true">›</span></span>
                                 </a>
                             @endforeach
                         </div>
@@ -226,7 +228,7 @@
                     {{-- Units --}}
                     @if ($results['units'] !== [])
                         <div class="vy-card vy-fade" style="margin-bottom: 14px;" x-show="tab === 'all' || tab === 'units'">
-                            <h2 class="vys-group-title">Units <span class="vys-group-n">{{ $counts['units'] }}</span></h2>
+                            <h2 class="vys-group-title">{{ __('livewire/operator/operator-search.type_units') }} <span class="vys-group-n">{{ $counts['units'] }}</span></h2>
                             @foreach ($results['units'] as $u)
                                 <a class="vys-row" href="{{ $u['url'] }}">
                                     <span class="vys-tile" aria-hidden="true">
@@ -236,7 +238,7 @@
                                         <span class="vys-row-title">{{ $u['code'] }}</span>
                                         <span class="vys-row-sub">{{ $u['name'] }}</span>
                                     </span>
-                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">Units</span><span class="vys-chev" aria-hidden="true">›</span></span>
+                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">{{ __('livewire/operator/operator-search.unit_badge') }}</span><span class="vys-chev" aria-hidden="true">›</span></span>
                                 </a>
                             @endforeach
                         </div>
@@ -245,14 +247,14 @@
                     {{-- Owners — name only; no owner contact and NEVER a bank detail on a search row (#28/#42). --}}
                     @if ($results['owners'] !== [])
                         <div class="vy-card vy-fade" style="margin-bottom: 14px;" x-show="tab === 'all' || tab === 'owners'">
-                            <h2 class="vys-group-title">Owners <span class="vys-group-n">{{ $counts['owners'] }}</span></h2>
+                            <h2 class="vys-group-title">{{ __('livewire/operator/operator-search.type_owners') }} <span class="vys-group-n">{{ $counts['owners'] }}</span></h2>
                             @foreach ($results['owners'] as $o)
                                 <a class="vys-row" href="{{ $o['url'] }}">
                                     <span class="vys-av">{{ $o['initials'] }}</span>
                                     <span class="vys-row-main">
                                         <span class="vys-row-title">{{ $o['name'] }}</span>
                                     </span>
-                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">Owner detail</span><span class="vys-chev" aria-hidden="true">›</span></span>
+                                    <span class="vys-row-meta"><span class="vys-badge vys-badge--soft">{{ __('livewire/operator/operator-search.owner_detail_badge') }}</span><span class="vys-chev" aria-hidden="true">›</span></span>
                                 </a>
                             @endforeach
                         </div>

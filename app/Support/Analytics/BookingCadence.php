@@ -32,12 +32,15 @@ use Illuminate\Support\Collection;
  */
 final class BookingCadence
 {
-    /** The lead-time buckets (inclusive day ranges) — the wireframe's "When guests book" distribution. */
+    /**
+     * The lead-time buckets (inclusive day ranges) — the wireframe's "When guests book" distribution. Each carries a
+     * CODE; its label is translated at call time by {@see bucketLabel()}.
+     */
     private const BUCKETS = [
-        ['label' => 'Under a week', 'min' => 0, 'max' => 6],
-        ['label' => '1–4 weeks', 'min' => 7, 'max' => 27],
-        ['label' => '1–3 months', 'min' => 28, 'max' => 89],
-        ['label' => '3+ months', 'min' => 90, 'max' => PHP_INT_MAX],
+        ['code' => 'under_week', 'min' => 0, 'max' => 6],
+        ['code' => 'one_to_four_weeks', 'min' => 7, 'max' => 27],
+        ['code' => 'one_to_three_months', 'min' => 28, 'max' => 89],
+        ['code' => 'three_plus_months', 'min' => 90, 'max' => PHP_INT_MAX],
     ];
 
     // ── LEAD TIME ────────────────────────────────────────────────────────────────────────────────────
@@ -108,7 +111,7 @@ final class BookingCadence
                     $c++;
                 }
             }
-            $buckets[] = ['label' => $def['label'], 'count' => $c, 'pct' => $count > 0 ? (int) round($c / $count * 100) : 0];
+            $buckets[] = ['label' => self::bucketLabel($def['code']), 'count' => $c, 'pct' => $count > 0 ? (int) round($c / $count * 100) : 0];
         }
 
         $median = null;
@@ -209,7 +212,6 @@ final class BookingCadence
 
         // Mon → Sun display order (Carbon dayOfWeek: 0 = Sun … 6 = Sat).
         $order = [1, 2, 3, 4, 5, 6, 0];
-        $labels = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 0 => 'Sun'];
 
         $weekdays = [];
         $any = false;
@@ -218,7 +220,7 @@ final class BookingCadence
             if ($num[$wd] > 0) {
                 $any = true;
             }
-            $weekdays[] = ['label' => $labels[$wd], 'pct' => $pct, 'display' => $pct.'%'];
+            $weekdays[] = ['label' => self::dayLabel($wd), 'pct' => $pct, 'display' => $pct.'%'];
         }
 
         return ['has_data' => $any, 'weekdays' => $weekdays];
@@ -254,7 +256,7 @@ final class BookingCadence
             'has_data' => false,
             'count' => 0,
             'median_days' => null,
-            'buckets' => array_map(fn (array $d): array => ['label' => $d['label'], 'count' => 0, 'pct' => 0], self::BUCKETS),
+            'buckets' => array_map(fn (array $d): array => ['label' => self::bucketLabel($d['code']), 'count' => 0, 'pct' => 0], self::BUCKETS),
         ];
     }
 
@@ -263,11 +265,30 @@ final class BookingCadence
      */
     private static function emptyWeekdays(): array
     {
-        $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
+        // Mon → Sun (Carbon dayOfWeek: 0 = Sun … 6 = Sat), the same order as {@see weekdayFrom()}.
         return [
             'has_data' => false,
-            'weekdays' => array_map(fn (string $l): array => ['label' => $l, 'pct' => 0, 'display' => '0%'], $labels),
+            'weekdays' => array_map(fn (int $wd): array => ['label' => self::dayLabel($wd), 'pct' => 0, 'display' => '0%'], [1, 2, 3, 4, 5, 6, 0]),
         ];
+    }
+
+    /** A lead-time bucket's label in the reader's language, by the bucket's code. */
+    private static function bucketLabel(string $code): string
+    {
+        return match ($code) {
+            'under_week' => __('php/support/analytics/booking_cadence.bucket_under_week'),
+            'one_to_four_weeks' => __('php/support/analytics/booking_cadence.bucket_one_to_four_weeks'),
+            'one_to_three_months' => __('php/support/analytics/booking_cadence.bucket_one_to_three_months'),
+            default => __('php/support/analytics/booking_cadence.bucket_three_plus_months'),
+        };
+    }
+
+    /**
+     * A weekday's short name in the reader's language ("Mon" … "Sun" in English), from Carbon's own locale data —
+     * $dayOfWeek is Carbon's 0 = Sun … 6 = Sat. 7 Jan 2024 was a Sunday, so adding $dayOfWeek days lands on that day.
+     */
+    private static function dayLabel(int $dayOfWeek): string
+    {
+        return CarbonImmutable::create(2024, 1, 7)->addDays($dayOfWeek)->translatedFormat('D');
     }
 }

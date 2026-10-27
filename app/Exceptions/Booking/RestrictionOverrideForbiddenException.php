@@ -16,6 +16,6 @@ class RestrictionOverrideForbiddenException extends RuntimeException
 {
     public function __construct()
     {
-        parent::__construct('You do not have permission to override a booking restriction.');
+        parent::__construct(__('php/exceptions/booking/restriction_override_forbidden_exception.message'));
     }
 }

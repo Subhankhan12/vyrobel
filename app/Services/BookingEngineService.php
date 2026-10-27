@@ -16,6 +16,7 @@ use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\PropertyCharges;
+use App\Support\I18n\Locales;
 use App\Support\Money\Money;
 use App\Support\Pricing\NightlyRate;
 use Carbon\CarbonImmutable;
@@ -167,6 +168,9 @@ class BookingEngineService
             'first_name' => $guestData['first_name'] ?? 'Guest',
             'last_name' => $guestData['last_name'] ?? '',
             'email' => $guestData['email'] ?? $quote->email,
+            // I18N-01 — the language the guest booked in (the storefront's language menu) goes with them, so the confirmation
+            // and pre-arrival emails arrive in it (Guest::preferredLocale). English stays unset, exactly as before.
+            ...(app()->getLocale() !== Locales::SOURCE ? ['language' => app()->getLocale()] : []),
         ]);
 
         $checkIn = CarbonImmutable::parse($quote->check_in)->toDateString();

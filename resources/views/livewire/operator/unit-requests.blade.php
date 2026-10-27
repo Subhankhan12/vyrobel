@@ -11,7 +11,7 @@
      ⚠️ Every dialog is the shared centred one and every display is a CLASS — x-show erases an inline display (A8).
      ⚠️ RAW-BLADE RULE: never `word@directive`. Alpine handlers use `x-on:` / `x-bind:`. --}}
 <div>
-    <x-operator.shell active="unit-requests" title="Unit requests" :subtitle="$pending . ' waiting for review'" :viewer="$viewer">
+    <x-operator.shell active="unit-requests" :title="__('livewire/operator/unit-requests.title')" :subtitle="trans_choice('livewire/operator/unit-requests.subtitle', $pending, ['count' => $pending])" :viewer="$viewer">
         @php
             // Which dialog a refused write reopens, and for which request: the form says both (`_form`, `_request`).
             $vyForm = (string) old('_form');
@@ -54,9 +54,9 @@
                 roomTypeId: @js((string) old('room_type_id', '')),
             })">
 
-            <p class="vyo-ur-intro vy-fade">Owners ask for new units here. Approve one to create it in your inventory, owned by them, or decline it.</p>
+            <p class="vyo-ur-intro vy-fade">{{ __('livewire/operator/unit-requests.intro') }}</p>
 
-            <nav class="vyo-ur-chips vy-fade" aria-label="Show requests">
+            <nav class="vyo-ur-chips vy-fade" aria-label="{{ __('livewire/operator/unit-requests.chips_label') }}">
                 @foreach ($chips as $chip)
                     <a class="vyo-ur-chip {{ $view === $chip['key'] ? 'is-on' : '' }}" href="{{ $chip['url'] }}" @if ($view === $chip['key']) aria-current="page" @endif>
                         {{ $chip['label'] }} <span class="vyo-ur-chipcount">{{ $chip['count'] }}</span>
@@ -64,12 +64,12 @@
                 @endforeach
             </nav>
 
-            <section class="vy-card vyo-ur-list vy-fade" aria-label="Requests">
+            <section class="vy-card vyo-ur-list vy-fade" aria-label="{{ __('livewire/operator/unit-requests.list_label') }}">
                 @forelse ($requests as $r)
                     <article class="vyo-ur-item" @if ($canManage && $r['status'] === 'pending') data-review="{{ json_encode($vyReview($r), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE) }}" @endif>
                         <div class="vyo-ur-media">
                             @if ($r['photos'] !== [])
-                                <img class="vyo-ur-cover" src="{{ $r['photos'][0] }}" alt="Photo of {{ $r['name'] }}" loading="lazy">
+                                <img class="vyo-ur-cover" src="{{ $r['photos'][0] }}" alt="{{ __('livewire/operator/unit-requests.photo_alt', ['name' => $r['name']]) }}" loading="lazy">
                             @else
                                 <span class="vyo-ur-noimg" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9.5 21v-5h5v5"/></svg></span>
                             @endif
@@ -77,11 +77,17 @@
                         <div class="vyo-ur-body">
                             <div class="vyo-ur-top">
                                 <h2 class="vyo-ur-name">{{ $r['name'] }}</h2>
-                                <span class="vyo-ur-status is-{{ $r['status'] }}">{{ $r['status'] === 'pending' ? 'Pending' : ucfirst($r['status']) }}</span>
+                                <span class="vyo-ur-status is-{{ $r['status'] }}">{{ match ($r['status']) {
+                                    'pending' => __('livewire/operator/unit-requests.status_pending'),
+                                    'approved' => __('livewire/operator/unit-requests.status_approved'),
+                                    'declined' => __('livewire/operator/unit-requests.status_declined'),
+                                    'withdrawn' => __('livewire/operator/unit-requests.status_withdrawn'),
+                                    default => ucfirst($r['status']),
+                                } }}</span>
                             </div>
-                            <div class="vyo-ur-meta">{{ $r['kind'] }} · from {{ $r['owner'] }} · sent {{ $r['when'] }}</div>
+                            <div class="vyo-ur-meta">{{ __('livewire/operator/unit-requests.meta', ['kind' => $r['kind'], 'owner' => $r['owner'], 'date' => $r['when']]) }}</div>
                             @if ($r['owner_removed'] && $r['status'] === 'pending')
-                                <p class="vyo-ur-removed">Owner removed — this request can only be declined.</p>
+                                <p class="vyo-ur-removed">{{ __('livewire/operator/unit-requests.owner_removed') }}</p>
                             @endif
                             <p class="vyo-ur-details">{{ $r['details'] }}</p>
                             @if (count($r['photos']) > 1)
@@ -90,38 +96,43 @@
                                         <img class="vyo-ur-thumb" src="{{ $vyPhoto }}" alt="" loading="lazy">
                                     @endforeach
                                     @if ($r['more_photos'] > 0)
-                                        <span class="vyo-ur-more">+{{ $r['more_photos'] }}</span>
+                                        <span class="vyo-ur-more">{{ __('livewire/operator/unit-requests.more_photos', ['number' => $r['more_photos']]) }}</span>
                                     @endif
                                 </div>
                             @endif
                             @if ($r['created_unit'])
-                                <p class="vyo-ur-outcome">Created as unit {{ $r['created_unit'] }}{{ $r['reviewed'] ? ' · ' . $r['reviewed'] : '' }}</p>
+                                <p class="vyo-ur-outcome">{{ $r['reviewed'] ? __('livewire/operator/unit-requests.created_as_unit_on', ['unit' => $r['created_unit'], 'date' => $r['reviewed']]) : __('livewire/operator/unit-requests.created_as_unit', ['unit' => $r['created_unit']]) }}</p>
                             @elseif ($r['status'] !== 'pending' && $r['reviewed'])
-                                <p class="vyo-ur-outcome is-quiet">{{ ucfirst($r['status']) }} {{ $r['reviewed'] }}</p>
+                                <p class="vyo-ur-outcome is-quiet">{{ match ($r['status']) {
+                                    'approved' => __('livewire/operator/unit-requests.outcome_approved', ['date' => $r['reviewed']]),
+                                    'declined' => __('livewire/operator/unit-requests.outcome_declined', ['date' => $r['reviewed']]),
+                                    'withdrawn' => __('livewire/operator/unit-requests.outcome_withdrawn', ['date' => $r['reviewed']]),
+                                    default => ucfirst($r['status']) . ' ' . $r['reviewed'],
+                                } }}</p>
                             @endif
                             @if ($r['review_note'] !== '')
-                                <p class="vyo-ur-note">“{{ $r['review_note'] }}”</p>
+                                <p class="vyo-ur-note">{{ __('livewire/operator/unit-requests.review_note', ['note' => $r['review_note']]) }}</p>
                             @endif
                         </div>
                         @if ($canManage && $r['status'] === 'pending')
                             <div class="vyo-ur-actions">
-                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="review('decline', $el)">Decline</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="review('decline', $el)">{{ __('livewire/operator/unit-requests.decline') }}</button>
                                 @unless ($r['owner_removed'])
-                                    <button type="button" class="vy-btn vy-btn--accent vyo-sm" x-on:click="review('approve', $el)">Approve</button>
+                                    <button type="button" class="vy-btn vy-btn--accent vyo-sm" x-on:click="review('approve', $el)">{{ __('livewire/operator/unit-requests.approve') }}</button>
                                 @endunless
                             </div>
                         @endif
                     </article>
                 @empty
                     <div class="vy-empty vyo-ur-empty">
-                        @if ($view === 'pending')
-                            No unit requests are waiting.
-                        @elseif ($view === 'all')
-                            No unit requests yet.
-                        @else
-                            No {{ $view }} requests.
-                        @endif
-                        <p class="vyo-ur-empty-sub">When an owner asks for a unit from their portal, it appears here for you to review.</p>
+                        {{ match ($view) {
+                            'pending' => __('livewire/operator/unit-requests.empty_pending'),
+                            'all' => __('livewire/operator/unit-requests.empty_all'),
+                            'approved' => __('livewire/operator/unit-requests.empty_approved'),
+                            'declined' => __('livewire/operator/unit-requests.empty_declined'),
+                            default => __('livewire/operator/unit-requests.empty_withdrawn'),
+                        } }}
+                        <p class="vyo-ur-empty-sub">{{ __('livewire/operator/unit-requests.empty_sub') }}</p>
                     </div>
                 @endforelse
             </section>
@@ -137,20 +148,20 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12"/><path d="M9.5 14l2 2 3.5-4"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyo-ur-approve-t" x-text="req ? 'Approve ' + req.name + '?' : 'Approve the request?'">Approve the request?</h3>
-                                    <p class="vyo-dlg-sub" x-text="req ? req.kind + ' · from ' + req.owner : ''"></p>
+                                    <h3 class="vy-modal-title" id="vyo-ur-approve-t" x-text="req ? @js(__('livewire/operator/unit-requests.approve_title_named', ['name' => ':name'])).replace(':name', () => req.name) : @js(__('livewire/operator/unit-requests.approve_title'))">{{ __('livewire/operator/unit-requests.approve_title') }}</h3>
+                                    <p class="vyo-dlg-sub" x-text="req ? @js(__('livewire/operator/unit-requests.dialog_sub', ['kind' => ':kind', 'owner' => ':owner'])).replace(/:kind|:owner/g, (m) => m === ':kind' ? req.kind : req.owner) : ''"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="approveOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="approveOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 @if ($properties === [])
-                                    <div class="vyo-errors" role="alert">You don’t work in any property yet, so there is nowhere to add the unit.</div>
+                                    <div class="vyo-errors" role="alert">{{ __('livewire/operator/unit-requests.no_properties') }}</div>
                                 @endif
                                 <div class="vyo-pair">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyo-ur-property">Property</label>
+                                        <label class="vy-field-label" for="vyo-ur-property">{{ __('livewire/operator/unit-requests.property') }}</label>
                                         <select id="vyo-ur-property" class="vy-input" name="property_id" x-model="propertyId" x-on:change="roomTypeId = ''" required>
-                                            <option value="">Choose…</option>
+                                            <option value="">{{ __('livewire/operator/unit-requests.choose') }}</option>
                                             @foreach ($properties as $p)
                                                 <option value="{{ $p['id'] }}">{{ $p['name'] }}</option>
                                             @endforeach
@@ -160,9 +171,9 @@
                                         @endif
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyo-ur-roomtype">Room type</label>
+                                        <label class="vy-field-label" for="vyo-ur-roomtype">{{ __('livewire/operator/unit-requests.room_type') }}</label>
                                         <select id="vyo-ur-roomtype" class="vy-input" name="room_type_id" x-model="roomTypeId" required>
-                                            <option value="" x-text="propertyId ? 'Choose…' : 'Choose a property first'">Choose a property first</option>
+                                            <option value="" x-text="propertyId ? @js(__('livewire/operator/unit-requests.choose')) : @js(__('livewire/operator/unit-requests.choose_property_first'))">{{ __('livewire/operator/unit-requests.choose_property_first') }}</option>
                                             <template x-for="rt in roomTypes()" x-bind:key="rt.id">
                                                 <option x-bind:value="rt.id" x-text="rt.name" x-bind:selected="rt.id === roomTypeId"></option>
                                             </template>
@@ -173,24 +184,24 @@
                                     </div>
                                 </div>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vyo-ur-anote">Note to the owner <span class="vy-fl-note">optional</span></label>
-                                    <input id="vyo-ur-anote" class="vy-input" type="text" name="note" maxlength="500" value="{{ $vyOpen === 'approve' ? old('note') : '' }}" placeholder="Anything to tell them">
+                                    <label class="vy-field-label" for="vyo-ur-anote">{!! __('livewire/operator/unit-requests.note_label') !!}</label>
+                                    <input id="vyo-ur-anote" class="vy-input" type="text" name="note" maxlength="500" value="{{ $vyOpen === 'approve' ? old('note') : '' }}" placeholder="{{ __('livewire/operator/unit-requests.note_placeholder') }}">
                                     @if ($vyOpen === 'approve')
                                         @error('note')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                     @endif
                                 </div>
                                 <template x-if="req">
                                     <ul class="vyo-factlist">
-                                        <li x-text="'“' + req.name + '” becomes a unit of the room type you choose, owned by ' + req.owner + ', and can take bookings.'"></li>
-                                        <li x-show="req.rate" x-text="'The ' + req.rate + ' a night they proposed is not applied — the unit takes the room type’s rates.'"></li>
-                                        <li x-text="req.notifiable ? req.owner + ' gets a notice in their portal, with your note — unless they’ve turned these notices off.' : req.owner + ' has no portal login, so nothing is sent.'"></li>
-                                        <li>Recorded in the audit log.</li>
+                                        <li x-text="@js(__('livewire/operator/unit-requests.fact_becomes_unit', ['name' => ':name', 'owner' => ':owner'])).replace(/:name|:owner/g, (m) => m === ':name' ? req.name : req.owner)"></li>
+                                        <li x-show="req.rate" x-text="@js(__('livewire/operator/unit-requests.fact_rate_not_applied', ['rate' => ':rate'])).replace(':rate', () => req.rate)"></li>
+                                        <li x-text="(req.notifiable ? @js(__('livewire/operator/unit-requests.fact_notified_note', ['owner' => ':owner'])) : @js(__('livewire/operator/unit-requests.fact_no_login', ['owner' => ':owner']))).replace(':owner', () => req.owner)"></li>
+                                        <li>{{ __('livewire/operator/unit-requests.fact_audit') }}</li>
                                     </ul>
                                 </template>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="approveOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" @disabled($properties === [])>Create unit</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="approveOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" @disabled($properties === [])>{{ __('livewire/operator/unit-requests.create_unit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -206,30 +217,30 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico is-danger" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyo-ur-decline-t" x-text="req ? 'Decline ' + req.name + '?' : 'Decline the request?'">Decline the request?</h3>
-                                    <p class="vyo-dlg-sub" x-text="req ? req.kind + ' · from ' + req.owner : ''"></p>
+                                    <h3 class="vy-modal-title" id="vyo-ur-decline-t" x-text="req ? @js(__('livewire/operator/unit-requests.decline_title_named', ['name' => ':name'])).replace(':name', () => req.name) : @js(__('livewire/operator/unit-requests.decline_title'))">{{ __('livewire/operator/unit-requests.decline_title') }}</h3>
+                                    <p class="vyo-dlg-sub" x-text="req ? @js(__('livewire/operator/unit-requests.dialog_sub', ['kind' => ':kind', 'owner' => ':owner'])).replace(/:kind|:owner/g, (m) => m === ':kind' ? req.kind : req.owner) : ''"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="declineOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="declineOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vyo-ur-dnote">Reason <span class="vy-fl-note">optional</span></label>
-                                    <input id="vyo-ur-dnote" class="vy-input" type="text" name="note" maxlength="500" value="{{ $vyOpen === 'decline' ? old('note') : '' }}" placeholder="Why it isn’t going ahead" autofocus>
+                                    <label class="vy-field-label" for="vyo-ur-dnote">{!! __('livewire/operator/unit-requests.reason_label') !!}</label>
+                                    <input id="vyo-ur-dnote" class="vy-input" type="text" name="note" maxlength="500" value="{{ $vyOpen === 'decline' ? old('note') : '' }}" placeholder="{{ __('livewire/operator/unit-requests.reason_placeholder') }}" autofocus>
                                     @if ($vyOpen === 'decline')
                                         @error('note')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                     @endif
                                 </div>
                                 <template x-if="req">
                                     <ul class="vyo-factlist">
-                                        <li>No unit is created.</li>
-                                        <li x-text="req.notifiable ? req.owner + ' gets a notice in their portal, with your reason — unless they’ve turned these notices off.' : (req.removed ? req.owner + ' has been removed, so nothing is sent.' : req.owner + ' has no portal login, so nothing is sent.')"></li>
-                                        <li>Recorded in the audit log.</li>
+                                        <li>{{ __('livewire/operator/unit-requests.fact_no_unit') }}</li>
+                                        <li x-text="(req.notifiable ? @js(__('livewire/operator/unit-requests.fact_notified_reason', ['owner' => ':owner'])) : (req.removed ? @js(__('livewire/operator/unit-requests.fact_owner_removed', ['owner' => ':owner'])) : @js(__('livewire/operator/unit-requests.fact_no_login', ['owner' => ':owner'])))).replace(':owner', () => req.owner)"></li>
+                                        <li>{{ __('livewire/operator/unit-requests.fact_audit') }}</li>
                                     </ul>
                                 </template>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="declineOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--danger">Decline request</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="declineOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger">{{ __('livewire/operator/unit-requests.decline_request') }}</button>
                             </div>
                         </form>
                     </div>

@@ -21,9 +21,6 @@ class OutstandingBalanceException extends RuntimeException
         public readonly string $currency,
         string $display,
     ) {
-        parent::__construct(
-            $display.' is still owed on this folio. Take the payment, bill it to a company account if they '
-            .'settle later, or post an adjustment or void the charge if it should not stand — then check out.'
-        );
+        parent::__construct(__('php/exceptions/folio/outstanding_balance_exception.message', ['amount' => $display]));
     }
 }

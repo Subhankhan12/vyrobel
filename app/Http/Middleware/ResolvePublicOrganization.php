@@ -36,7 +36,7 @@ class ResolvePublicOrganization
         );
 
         if ($organization === null) {
-            abort(404, 'Unknown organization.');
+            abort(404, __('php/http/middleware/resolve_public_organization.unknown_organization'));
         }
 
         $tenant->set((string) $organization->getKey());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Time;
 
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -17,7 +18,7 @@ final class TimezoneOptions
     /** @return list<array{value: string, label: string, hint: string}> */
     public static function all(): array
     {
-        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $now = CarbonImmutable::now('UTC');
 
         return array_map(fn (string $tz): array => [
             'value' => $tz,
@@ -38,7 +39,7 @@ final class TimezoneOptions
      */
     public static function choices(?string $keep = null, ?DateTimeImmutable $at = null): array
     {
-        $at ??= new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $at ??= CarbonImmutable::now('UTC');
         $ids = DateTimeZone::listIdentifiers();
 
         if ($keep !== null && $keep !== '' && ! in_array($keep, $ids, true)) {

@@ -1,0 +1,57 @@
+<?php
+
+// resources/views/components/operator/shell.blade.php — the operator back-office shell (sidebar, top bar, account menu,
+// read-only banner).
+
+return [
+    // the chip's name when nobody is signed in, and the role/name fallback for a user with none
+    'default_viewer' => 'Operator',
+    'staff' => 'Staff',
+    // sidebar section labels (shown in capitals as written)
+    'group_overview' => 'OVERVIEW',
+    'group_front_desk' => 'FRONT DESK',
+    'group_operations' => 'OPERATIONS',
+    'group_finance' => 'FINANCE',
+    'group_system' => 'SYSTEM',
+    // sidebar items
+    'nav_portfolio' => 'Portfolio',
+    'nav_dashboard' => 'Dashboard',
+    'nav_insights' => 'Insights',
+    'nav_search' => 'Search',
+    'nav_calendar' => 'Calendar',
+    'nav_front_desk' => 'Front desk',
+    'nav_reservations' => 'Reservations',
+    'nav_guest_requests' => 'Guest requests',
+    'nav_guests' => 'Guests',
+    'nav_reviews' => 'Reviews',
+    'nav_inbox' => 'Messages',
+    'nav_housekeeping' => 'Housekeeping',
+    'nav_schedule' => 'Team schedule',
+    'nav_maintenance' => 'Maintenance',
+    'nav_units' => 'Units',
+    'nav_rates' => 'Rates & availability',
+    'nav_channels' => 'Channels',
+    'nav_owners' => 'Owners',
+    'nav_payout_run' => 'Payout run',
+    'nav_reports' => 'Reports',
+    'nav_unit_requests' => 'Unit requests',
+    'nav_notifications' => 'Notifications',
+    'nav_profile' => 'Your profile',
+    'nav_roles' => 'Roles & access',
+    'nav_settings' => 'Settings',
+    'nav_security' => 'Security',
+    'nav_billing' => 'Billing',
+    'nav_email_templates' => 'Email templates',
+    'channels_pro_title' => 'Channels is a Pro feature — upgrade to unlock',
+    'coming_soon' => 'Coming soon',
+    'read_only' => 'Read-only',
+    'search_aria' => 'Search reservations, guests',
+    'search_long' => 'Search reservations, guests…',
+    'search_short' => 'Search…',
+    // :date is today, e.g. "Mon · 27 Oct"
+    'today_chip' => 'Today · :date',
+    'notification_preferences' => 'Notification preferences',
+    'paused_title' => 'Workspace paused — read-only until :date',
+    'paused_sub' => 'You can view everything, but nothing can change: channels stopped selling, new bookings and edits are off. In-house guests can still check out.',
+    'resume_now' => 'Resume now',
+];

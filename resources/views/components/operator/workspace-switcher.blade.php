@@ -45,7 +45,7 @@
     <form method="POST" action="{{ route('app.workspace.switch') }}" class="vy-propsw">
         @csrf
         <svg class="vy-propsw-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        <select name="organization_id" class="vy-propsw-select" onchange="this.form.submit()" aria-label="Workspace">
+        <select name="organization_id" class="vy-propsw-select" onchange="this.form.submit()" aria-label="{{ __('components/operator/workspace-switcher.workspace') }}">
             @foreach ($__wsOrgs as $o)
                 <option value="{{ $o->id }}" @selected($__wsActive === (string) $o->id)>{{ $o->name }}</option>
             @endforeach

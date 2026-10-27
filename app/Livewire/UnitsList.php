@@ -51,8 +51,8 @@ class UnitsList extends Component
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
 
-    /** The room-type kinds offered — the same four the controller accepts. */
-    private const KINDS = ['room' => 'Room', 'apartment' => 'Apartment', 'villa' => 'Villa', 'dorm' => 'Dorm'];
+    /** The room-type kinds offered — the same four the controller accepts (each one's word: {@see kindLabel()}). */
+    private const KINDS = ['room', 'apartment', 'villa', 'dorm'];
 
     /** One tile icon per kind (inner SVG paths for the choice tiles). */
     private const KIND_ICONS = [
@@ -133,11 +133,16 @@ class UnitsList extends Component
                 'value' => (string) $rt->getKey(),
                 'label' => (string) $rt->name,
                 // the room type's own kind word and size — and, when the page spans properties, which one it is in
-                'hint' => self::KINDS[(string) $rt->kind].' · sleeps '.((int) $rt->max_adults + (int) $rt->max_children)
-                    .($manyProperties ? ' · '.($propertyNames[(string) $rt->property_id] ?? '') : ''),
+                'hint' => $manyProperties
+                    ? __('php/livewire/units_list.hint_property', ['kind' => $this->kindLabel((string) $rt->kind),
+                        'sleeps' => (int) $rt->max_adults + (int) $rt->max_children, 'property' => $propertyNames[(string) $rt->property_id] ?? ''])
+                    : __('php/livewire/units_list.hint', ['kind' => $this->kindLabel((string) $rt->kind),
+                        'sleeps' => (int) $rt->max_adults + (int) $rt->max_children]),
+                // the size as a number, for the Add units dialog's "Sleeps" placeholder (never read back out of the hint)
+                'sleeps' => (int) $rt->max_adults + (int) $rt->max_children,
             ])->all(),
-            'kindChoices' => array_map(fn (string $value, string $label): array => ['value' => $value, 'label' => $label, 'icon' => self::KIND_ICONS[$value]],
-                array_keys(self::KINDS), self::KINDS),
+            'kindChoices' => array_map(fn (string $value): array => ['value' => $value, 'label' => $this->kindLabel($value), 'icon' => self::KIND_ICONS[$value]],
+                self::KINDS),
             'kindIcons' => self::KIND_ICONS,
             // a real sequence — and it is finished only when something can be sold: a room type, a unit, and a price
             'setup' => ['room_types' => $roomTypes->count(), 'units' => count($all), 'priced' => count($priced)],
@@ -289,10 +294,16 @@ class UnitsList extends Component
     private function chips(array $all, array $state, UnitRows $rowsOf): array
     {
         $chips = [];
-        foreach ([[null, 'All'], ['bookable', 'Bookable'], ['paused', 'Paused'], ['dirty', 'To clean'], ['ooo', 'Out of order']] as [$filter, $label]) {
+        foreach ([null, 'bookable', 'paused', 'dirty', 'ooo'] as $filter) {
             $chips[] = [
                 'key' => $filter ?? 'all',
-                'label' => $label,
+                'label' => match ($filter) {
+                    'bookable' => __('php/livewire/units_list.chip_bookable'),
+                    'paused' => __('php/livewire/units_list.chip_paused'),
+                    'dirty' => __('php/livewire/units_list.chip_to_clean'),
+                    'ooo' => __('php/livewire/units_list.chip_out_of_order'),
+                    default => __('php/livewire/units_list.chip_all'),
+                },
                 // the REAL count of what clicking it shows, the search included
                 'count' => count(array_filter($all, fn (array $r): bool => $rowsOf->matches($r, $filter, $state['q']))),
                 'active' => $state['filter'] === $filter,
@@ -352,12 +363,12 @@ class UnitsList extends Component
     private function sortedBy(array $state): string
     {
         return match ($state['sort'].'.'.$state['dir']) {
-            'unit.asc' => 'by unit, A–Z',
-            'unit.desc' => 'by unit, Z–A',
-            'room_type.asc' => 'by room type, A–Z',
-            'room_type.desc' => 'by room type, Z–A',
-            'sleeps.desc' => 'sleeps most first',
-            'sleeps.asc' => 'sleeps fewest first',
+            'unit.asc' => __('php/livewire/units_list.sorted_unit_asc'),
+            'unit.desc' => __('php/livewire/units_list.sorted_unit_desc'),
+            'room_type.asc' => __('php/livewire/units_list.sorted_room_type_asc'),
+            'room_type.desc' => __('php/livewire/units_list.sorted_room_type_desc'),
+            'sleeps.desc' => __('php/livewire/units_list.sorted_sleeps_desc'),
+            'sleeps.asc' => __('php/livewire/units_list.sorted_sleeps_asc'),
         };
     }
 
@@ -381,16 +392,16 @@ class UnitsList extends Component
         $isPriced = in_array($id, $priced, true);
 
         [$state, $tone] = match (true) {
-            $units === [] => ['No units yet', 'warn'],
-            $bookable === 0 => ['No unit taking bookings', 'warn'],
-            ! $isPriced => ['No prices yet', 'warn'],
-            default => ['Units and prices set', 'ok'],
+            $units === [] => [__('php/livewire/units_list.state_no_units'), 'warn'],
+            $bookable === 0 => [__('php/livewire/units_list.state_none_bookable'), 'warn'],
+            ! $isPriced => [__('php/livewire/units_list.state_no_prices'), 'warn'],
+            default => [__('php/livewire/units_list.state_ready'), 'ok'],
         };
 
         return [
             'id' => $id,
             'name' => (string) $rt->name,
-            'kind' => self::KINDS[(string) $rt->kind],
+            'kind' => $this->kindLabel((string) $rt->kind),
             'kind_key' => (string) $rt->kind,
             'property' => $property,
             'adults' => (int) $rt->max_adults,
@@ -411,6 +422,18 @@ class UnitsList extends Component
                 'is_cover' => (bool) $p->is_cover,
             ])->values()->all(),
         ];
+    }
+
+    /** The word for a room-type kind, by its code — the same four as {@see KINDS}. */
+    private function kindLabel(string $kind): string
+    {
+        return match ($kind) {
+            'room' => __('php/livewire/units_list.kind_room'),
+            'apartment' => __('php/livewire/units_list.kind_apartment'),
+            'villa' => __('php/livewire/units_list.kind_villa'),
+            'dorm' => __('php/livewire/units_list.kind_dorm'),
+            default => $kind,
+        };
     }
 
     // ── What the server just refused or revealed ─────────────────────────────────────────────────

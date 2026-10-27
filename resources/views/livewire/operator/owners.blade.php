@@ -13,7 +13,7 @@
      ⚠️ Every dialog sits on the shared centred backdrop and every display is a CLASS — x-show erases an inline display.
      ⚠️ RAW-BLADE RULE: never `word@directive`. Alpine handlers use `x-on:` / `x-bind:`. --}}
 <div>
-    <x-operator.shell active="owners" title="Owners" subtitle="Owners, their statements and management agreements" :viewer="$viewer">
+    <x-operator.shell active="owners" :title="__('livewire/operator/owners.page_title')" :subtitle="__('livewire/operator/owners.page_subtitle')" :viewer="$viewer">
         @php
             // Which dialog a refused write reopens: the form says which it was (`_form`), and its typed values come back.
             $vyForm = old('_form');
@@ -47,6 +47,11 @@
             // a refusal no dialog can show (the dialog's row has gone) is shown at the top instead
             $vyErrorsOnTop = $errors->any() && ! $vyInviteRetry && $vyResendInvite === null;
             $vySent = session('owner_invite_sent');
+            // The units hint under the picker, for every count the dialog can show (rule 12: plurals on the server).
+            $vyUnitHints = [__('livewire/operator/owners.units_hint_none')];
+            for ($vyN = 1; $vyN <= count($inviteUnits); $vyN++) {
+                $vyUnitHints[$vyN] = trans_choice('livewire/operator/owners.units_hint', $vyN, ['count' => $vyN]);
+            }
         @endphp
 
         {{-- Flashes — a success is a status, a refusal an alert. A refusal that reopens its dialog is shown in the dialog. --}}
@@ -93,22 +98,22 @@
             {{-- ── Four figures that agree with the rows below ────────────────────────────────────────────────── --}}
             <div class="vy-dash-kpis vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Owners</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owners.kpi_owners') }}</div>
                     <div class="vy-dk-val">{{ $kpis['owners'] }}</div>
                     <div class="vy-dk-sub">{{ $kpis['owners_sub'] }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Ready to pay</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owners.kpi_ready') }}</div>
                     <div class="vy-dk-val">{{ $kpis['ready'][0] }}</div>
                     <div class="vy-dk-sub">{{ count($kpis['ready']) > 1 ? implode(' · ', array_slice($kpis['ready'], 1)).' · ' : '' }}{{ $kpis['ready_sub'] }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">On hold</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owners.kpi_hold') }}</div>
                     <div class="vy-dk-val">{{ $kpis['hold'] }}</div>
                     <div class="vy-dk-sub">{{ $kpis['hold_sub'] }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Needs review</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owners.kpi_review') }}</div>
                     <div class="vy-dk-val">{{ $kpis['review'] }}</div>
                     <div class="vy-dk-sub">{{ $kpis['review_sub'] }}</div>
                 </div>
@@ -124,10 +129,10 @@
                     @endforeach
                     <svg class="vy-gl-search-ico" x-show="! loading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <span class="vy-gl-spinner" x-show="loading" x-cloak aria-hidden="true"></span>
-                    <label class="vy-sr-only" for="vyo-q">Search owners</label>
+                    <label class="vy-sr-only" for="vyo-q">{{ __('livewire/operator/owners.search_label') }}</label>
                     <input id="vyo-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" x-model="q"
-                           x-on:input.debounce.300ms="search()" placeholder="Search owner, email or unit" maxlength="80" autocomplete="off" spellcheck="false">
-                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak x-on:click="clearSearch()" aria-label="Clear search">
+                           x-on:input.debounce.300ms="search()" placeholder="{{ __('livewire/operator/owners.search_placeholder') }}" maxlength="80" autocomplete="off" spellcheck="false">
+                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak x-on:click="clearSearch()" aria-label="{{ __('livewire/operator/owners.clear_search') }}">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </form>
@@ -140,18 +145,18 @@
                         <a class="vy-btn vy-btn--ghost" href="{{ $exportUrl }}" data-export-base="{{ route('app.owners.export') }}"
                            x-on:click="$el.href = $el.dataset.exportBase + location.search">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
-                            Export
+                            {{ __('common.export') }}
                         </a>
                     @endif
                     @if ($canWrite)
                         <button type="button" class="vy-btn vy-btn--accent" x-on:click="openInvite()">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                            Add owner
+                            {{ __('livewire/operator/owners.add_owner') }}
                         </button>
                     @endif
                 </div>
 
-                <div class="vy-gl-chips vyo-chips" data-gl-region="chips" role="group" aria-label="Show">
+                <div class="vy-gl-chips vyo-chips" data-gl-region="chips" role="group" aria-label="{{ __('livewire/operator/owners.chips_label') }}">
                     @foreach ($chips as $chip)
                         <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
                     @endforeach
@@ -170,10 +175,10 @@
                                 <span class="vy-gl-empty-ico" aria-hidden="true">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5c1 0 2 .2 2.8.5"/><path d="M17 8.5v6M14 11.5h6"/></svg>
                                 </span>
-                                <h2 class="vy-gl-empty-title">No owners yet</h2>
-                                <p class="vy-gl-empty-text">Invite the people who own units here. They set a password, then see their statements and payouts in their own portal.</p>
+                                <h2 class="vy-gl-empty-title">{{ __('livewire/operator/owners.empty_title') }}</h2>
+                                <p class="vy-gl-empty-text">{{ __('livewire/operator/owners.empty_text') }}</p>
                                 @if ($canWrite)
-                                    <button type="button" class="vy-btn vy-btn--accent" x-on:click="openInvite()">Add owner</button>
+                                    <button type="button" class="vy-btn vy-btn--accent" x-on:click="openInvite()">{{ __('livewire/operator/owners.add_owner') }}</button>
                                 @endif
                             </div>
                         @elseif ($rows->total() === 0)
@@ -182,33 +187,33 @@
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                                 </span>
                                 <h2 class="vy-gl-empty-title">
-                                    @if ($query !== '') No owners match “{{ $query }}” @else No owners in this view @endif
+                                    @if ($query !== '') {{ __('livewire/operator/owners.no_match', ['query' => $query]) }} @else {{ __('livewire/operator/owners.none_in_view') }} @endif
                                 </h2>
-                                <p class="vy-gl-empty-text">Search looks at the owner’s name and email and the units they own. {{ $total }} {{ \Illuminate\Support\Str::plural('owner', $total) }} in all.</p>
-                                <a class="vy-btn vy-btn--ghost" href="{{ route('app.owners') }}" data-gl-key="clear-all">Clear search and filters</a>
+                                <p class="vy-gl-empty-text">{{ trans_choice('livewire/operator/owners.search_scope', $total, ['count' => $total]) }}</p>
+                                <a class="vy-btn vy-btn--ghost" href="{{ route('app.owners') }}" data-gl-key="clear-all">{{ __('livewire/operator/owners.clear_all') }}</a>
                             </div>
                         @else
                             <div class="vy-card vy-gl-card vy-fade">
                                 <div class="vy-gl-progress" aria-hidden="true"></div>
                                 <div class="vy-gl-scroll">
                                     <table class="vy-gl-table vyo-table">
-                                        <caption class="vy-sr-only">Owners, {{ $sortedBy }}</caption>
+                                        <caption class="vy-sr-only">{{ __('livewire/operator/owners.caption', ['sorted' => $sortedBy]) }}</caption>
                                         <thead>
                                             <tr>
                                                 <th aria-sort="{{ $sorts['name']['aria'] }}">
-                                                    <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">Owner<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                    <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">{{ __('livewire/operator/owners.col_owner') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                                 </th>
                                                 <th class="is-num" aria-sort="{{ $sorts['units']['aria'] }}">
-                                                    <a class="vy-gl-sort {{ $sorts['units']['active'] ? 'is-on is-'.$sorts['units']['dir'] : '' }}" href="{{ $sorts['units']['href'] }}" data-gl-key="sort-units">Units<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                    <a class="vy-gl-sort {{ $sorts['units']['active'] ? 'is-on is-'.$sorts['units']['dir'] : '' }}" href="{{ $sorts['units']['href'] }}" data-gl-key="sort-units">{{ __('livewire/operator/owners.col_units') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                                 </th>
-                                                <th>Commission</th>
+                                                <th>{{ __('livewire/operator/owners.col_commission') }}</th>
                                                 <th class="is-num" aria-sort="{{ $sorts['net']['aria'] }}">
-                                                    <a class="vy-gl-sort {{ $sorts['net']['active'] ? 'is-on is-'.$sorts['net']['dir'] : '' }}" href="{{ $sorts['net']['href'] }}" data-gl-key="sort-net">Net payable<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                    <a class="vy-gl-sort {{ $sorts['net']['active'] ? 'is-on is-'.$sorts['net']['dir'] : '' }}" href="{{ $sorts['net']['href'] }}" data-gl-key="sort-net">{{ __('livewire/operator/owners.col_net') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                                 </th>
                                                 <th aria-sort="{{ $sorts['status']['aria'] }}">
-                                                    <a class="vy-gl-sort {{ $sorts['status']['active'] ? 'is-on is-'.$sorts['status']['dir'] : '' }}" href="{{ $sorts['status']['href'] }}" data-gl-key="sort-status">Status<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                    <a class="vy-gl-sort {{ $sorts['status']['active'] ? 'is-on is-'.$sorts['status']['dir'] : '' }}" href="{{ $sorts['status']['href'] }}" data-gl-key="sort-status">{{ __('common.status') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                                 </th>
-                                                <th class="vy-gl-actcol"><span class="vy-sr-only">Actions</span></th>
+                                                <th class="vy-gl-actcol"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -236,7 +241,7 @@
                                                     <td class="is-num">
                                                         <span class="vy-gl-fig vyo-net">{{ $row['net'] }}</span>
                                                         @if ($row['period'] !== null)
-                                                            <div class="vyo-period">{{ $row['period'] }} statement</div>
+                                                            <div class="vyo-period">{{ __('livewire/operator/owners.period_statement', ['period' => $row['period']]) }}</div>
                                                         @endif
                                                     </td>
                                                     <td class="vyo-statuscell">
@@ -246,7 +251,7 @@
                                                         @endif
                                                     </td>
                                                     <td class="vy-gl-actcol">
-                                                        <button type="button" class="vy-gl-more" aria-label="Actions for {{ $row['name'] }}" aria-controls="vyo-menu"
+                                                        <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/operator/owners.row_actions', ['name' => $row['name']]) }}" aria-controls="vyo-menu"
                                                                 x-bind:aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" x-on:click="openMenu($event, row('{{ $row['id'] }}'))">
                                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
                                                         </button>
@@ -258,28 +263,28 @@
                                 </div>
 
                                 <div class="vy-gl-foot" data-gl-foot>
-                                    <p class="vy-gl-summary" data-gl-summary tabindex="-1"><strong>{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</strong> of <strong>{{ $rows->total() }}</strong> {{ \Illuminate\Support\Str::plural('owner', $rows->total()) }}<span class="vy-gl-sorted"> · {{ $sortedBy }}</span></p>
+                                    <p class="vy-gl-summary" data-gl-summary tabindex="-1">{!! trans_choice('livewire/operator/owners.summary', $rows->total(), ['first' => e($rows->firstItem()), 'last' => e($rows->lastItem()), 'count' => e($rows->total()), 'sorted' => e($sortedBy)]) !!}</p>
                                     {{-- the page size matters only once there is more than one page of the smallest size --}}
                                     @if ($rows->total() > \App\Support\Owner\OwnerListParams::PER_PAGE)
                                         <div class="vy-gl-paging">
-                                            <span class="vy-gl-rows-label" id="vyo-rows">Rows</span>
+                                            <span class="vy-gl-rows-label" id="vyo-rows">{{ __('livewire/operator/owners.rows_label') }}</span>
                                             <div class="vy-gl-sizes" role="group" aria-labelledby="vyo-rows">
                                                 @foreach ($sizes as $size)
                                                     <a class="vy-gl-size {{ $size['active'] ? 'is-on' : '' }}" href="{{ $size['href'] }}" data-gl-key="per-{{ $size['size'] }}" @if ($size['active']) aria-current="true" @endif>{{ $size['size'] }}</a>
                                                 @endforeach
                                             </div>
                                             @if ($rows->lastPage() > 1)
-                                                <nav class="vy-gl-pages" aria-label="Pages">
+                                                <nav class="vy-gl-pages" aria-label="{{ __('livewire/operator/owners.pages_label') }}">
                                                     @if ($pages['prev'] !== null)
-                                                        <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="Previous page">
+                                                        <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="{{ __('livewire/operator/owners.previous_page') }}">
                                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
                                                         </a>
                                                     @else
                                                         <span class="vy-gl-page is-off" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
                                                     @endif
-                                                    <span class="vy-gl-pagepos">Page {{ $rows->currentPage() }} of {{ $rows->lastPage() }}</span>
+                                                    <span class="vy-gl-pagepos">{{ __('livewire/operator/owners.page_of', ['page' => $rows->currentPage(), 'last' => $rows->lastPage()]) }}</span>
                                                     @if ($pages['next'] !== null)
-                                                        <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="Next page">
+                                                        <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="{{ __('livewire/operator/owners.next_page') }}">
                                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                                         </a>
                                                     @else
@@ -300,8 +305,8 @@
                     @if (count($invites) > 0)
                         <section class="vy-card vyo-invites vy-fade" id="vyo-invites" aria-labelledby="vyo-invites-t">
                             <div class="vyo-section-head">
-                                <h2 class="vy-card-title" id="vyo-invites-t">Invites waiting <span class="vyo-count">{{ count($invites) }}</span></h2>
-                                <p class="vyo-section-sub">Each person sets a password from the link in their email. Until then the link can be sent again or cancelled.</p>
+                                <h2 class="vy-card-title" id="vyo-invites-t">{{ __('livewire/operator/owners.invites_heading') }} <span class="vyo-count">{{ count($invites) }}</span></h2>
+                                <p class="vyo-section-sub">{{ __('livewire/operator/owners.invites_sub') }}</p>
                             </div>
                             @foreach ($invites as $invite)
                                 <div class="vyo-invite" x-data="{ confirm: false }">
@@ -310,25 +315,25 @@
                                         <div class="vyo-invite-name">{{ $invite['name'] }} <span class="vyo-role">{{ $invite['role'] }}</span></div>
                                         <div class="vyo-invite-meta">
                                             <span>{{ $invite['email'] }}</span>
-                                            <span>Sent {{ $invite['sent'] }}</span>
-                                            <span class="{{ $invite['expired'] ? 'is-late' : '' }}">{{ $invite['expired'] ? 'Link expired' : ($invite['expires'] ? 'expires '.$invite['expires'] : 'pending') }}</span>
-                                            @if ($invite['units'] > 0)<span>{{ $invite['units'] }} {{ \Illuminate\Support\Str::plural('unit', $invite['units']) }}</span>@endif
-                                            @if ($invite['commission'])<span>{{ $invite['commission'] }} commission</span>@endif
+                                            <span>{{ __('livewire/operator/owners.invite_sent_on', ['date' => $invite['sent']]) }}</span>
+                                            <span class="{{ $invite['expired'] ? 'is-late' : '' }}">{{ $invite['expired'] ? __('livewire/operator/owners.link_expired') : ($invite['expires'] ? __('livewire/operator/owners.invite_expires', ['date' => $invite['expires']]) : __('livewire/operator/owners.invite_pending')) }}</span>
+                                            @if ($invite['units'] > 0)<span>{{ trans_choice('livewire/operator/owners.invite_units', $invite['units'], ['count' => $invite['units']]) }}</span>@endif
+                                            @if ($invite['commission'])<span>{{ __('livewire/operator/owners.invite_commission', ['commission' => $invite['commission']]) }}</span>@endif
                                         </div>
                                     </div>
                                     @if ($canWrite)
                                         <div class="vyo-invite-actions" x-show="! confirm">
-                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="openResend({{ \Illuminate\Support\Js::from(['id' => $invite['id'], 'email' => $invite['email'], 'name' => $invite['name']]) }})">Resend</button>
-                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm is-danger" x-on:click="confirm = true">Cancel</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="openResend({{ \Illuminate\Support\Js::from(['id' => $invite['id'], 'email' => $invite['email'], 'name' => $invite['name']]) }})">{{ __('livewire/operator/owners.resend') }}</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm is-danger" x-on:click="confirm = true">{{ __('livewire/operator/owners.invite_cancel') }}</button>
                                         </div>
                                         {{-- Cancelling takes access away, so it asks once, here, and needs no password. --}}
                                         <form method="POST" action="{{ $invite['cancel'] }}" class="vyo-invite-actions vyo-confirmcancel" x-show="confirm" x-cloak x-on:submit="stamp($event.target)" data-guard-submit>
                                             @csrf
                                             <input type="hidden" name="return" value="list">
                                             <input type="hidden" name="return_query" value="">
-                                            <span class="vyo-ask">Cancel this invite?</span>
-                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="confirm = false">Keep</button>
-                                            <button type="submit" class="vy-btn vy-btn--danger vyo-sm">Cancel invite</button>
+                                            <span class="vyo-ask">{{ __('livewire/operator/owners.cancel_ask') }}</span>
+                                            <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="confirm = false">{{ __('livewire/operator/owners.keep') }}</button>
+                                            <button type="submit" class="vy-btn vy-btn--danger vyo-sm">{{ __('livewire/operator/owners.cancel_invite') }}</button>
                                         </form>
                                     @endif
                                 </div>
@@ -338,58 +343,57 @@
                 </div>
 
                 {{-- ── The side panel — money in motion, how owners are paid, the portal ───────────────────────────── --}}
-                <aside class="vyo-rail" aria-label="Payouts and the owner portal">
+                <aside class="vyo-rail" aria-label="{{ __('livewire/operator/owners.rail_label') }}">
                     <div class="vy-tonight vyo-payout vy-fade">
-                        <div class="vy-dk-label vyo-payout-label">Payout run · this period</div>
+                        <div class="vy-dk-label vyo-payout-label">{{ __('livewire/operator/owners.payout_label') }}</div>
                         <div class="vyo-payout-val">{{ $payout['ready'][0] }}</div>
-                        <div class="vyo-payout-sub">{{ $payout['due'] }} {{ \Illuminate\Support\Str::plural('owner', $payout['due']) }} ready{{ $payout['hold'] > 0 ? ' · '.$payout['hold'].' on hold' : '' }}{{ $payout['paused'] > 0 ? ' · '.$payout['paused'].' paused' : '' }}</div>
+                        <div class="vyo-payout-sub">{{ trans_choice('livewire/operator/owners.payout_owners_ready', $payout['due'], ['count' => $payout['due']]) }}{{ $payout['hold'] > 0 ? ' · '.__('livewire/operator/owners.payout_on_hold', ['number' => $payout['hold']]) : '' }}{{ $payout['paused'] > 0 ? ' · '.__('livewire/operator/owners.payout_paused', ['number' => $payout['paused']]) : '' }}</div>
                         @can('payouts.manage')
-                            <a class="vyo-payout-link" href="{{ route('app.payouts.run') }}">Open the payout run</a>
+                            <a class="vyo-payout-link" href="{{ route('app.payouts.run') }}">{{ __('livewire/operator/owners.open_payout_run') }}</a>
                         @endcan
                     </div>
 
                     {{-- ⚠️ ONLY WHAT THE SYSTEM DOES. This card said "Statements finalize 1st of the month" (nothing does) and "Payouts
                          sent 3rd business day" (only while the automatic run is on — it is off unless PAYOUT_ENGINE_ENABLED). --}}
                     <section class="vy-card vyo-howpaid vy-fade" aria-labelledby="vyo-howpaid-t">
-                        <h2 class="vy-card-title" id="vyo-howpaid-t">How owners are paid</h2>
+                        <h2 class="vy-card-title" id="vyo-howpaid-t">{{ __('livewire/operator/owners.howpaid_title') }}</h2>
                         <dl class="vyo-facts">
                             <div>
-                                <dt>Statements</dt>
-                                <dd>Close when you press <strong>Close period</strong> on an owner — nothing closes them on its own.</dd>
+                                <dt>{{ __('livewire/operator/owners.fact_statements') }}</dt>
+                                <dd>{!! __('livewire/operator/owners.fact_statements_text') !!}</dd>
                             </div>
                             <div>
-                                <dt>Payouts</dt>
+                                <dt>{{ __('livewire/operator/owners.fact_payouts') }}</dt>
                                 @if ($howPaid['engine'])
-                                    <dd>Sent automatically on the <strong>{{ $howPaid['schedule'] }}</strong>{{ $howPaid['own'] > 0 ? ' · '.$howPaid['own'].' '.\Illuminate\Support\Str::plural('owner', $howPaid['own']).' set their own schedule' : '' }}.</dd>
+                                    <dd>@if ($howPaid['own'] > 0){!! trans_choice('livewire/operator/owners.payouts_auto_own', $howPaid['own'], ['count' => e($howPaid['own']), 'schedule' => e($howPaid['schedule'])]) !!}@else{!! __('livewire/operator/owners.payouts_auto', ['schedule' => e($howPaid['schedule'])]) !!}@endif</dd>
                                 @else
-                                    <dd>Sent by your team from the payout run — the automatic run is off.</dd>
+                                    <dd>{{ __('livewire/operator/owners.payouts_manual') }}</dd>
                                 @endif
                             </div>
                             <div>
-                                <dt>Commission</dt>
+                                <dt>{{ __('livewire/operator/owners.fact_commission') }}</dt>
                                 @if ($howPaid['commission'] === '—')
-                                    <dd>No agreement yet — set a rate when you invite an owner, or later on their page.</dd>
+                                    <dd>{{ __('livewire/operator/owners.commission_none') }}</dd>
                                 @elseif ($howPaid['commission'] === 'varies')
-                                    <dd><strong>Varies by owner</strong> — each owner’s agreement sets their share of gross booking value.</dd>
+                                    <dd>{!! __('livewire/operator/owners.commission_varies') !!}</dd>
                                 @else
-                                    <dd><strong>{{ $howPaid['commission'] }} of gross</strong> booking value, from each owner’s agreement.</dd>
+                                    <dd>{!! __('livewire/operator/owners.commission_rate', ['rate' => e($howPaid['commission'])]) !!}</dd>
                                 @endif
                             </div>
                         </dl>
                     </section>
 
                     <section class="vy-card vyo-portal vy-fade" aria-labelledby="vyo-portal-t">
-                        <h2 class="vy-dk-label" id="vyo-portal-t">Owner portal</h2>
+                        <h2 class="vy-dk-label" id="vyo-portal-t">{{ __('livewire/operator/owners.portal_title') }}</h2>
                         <div class="vyo-portal-figure">
-                            <strong>{{ $portal['active'] }} of {{ $portal['total'] }}</strong>
-                            <span>{{ \Illuminate\Support\Str::plural('owner', $portal['total']) }} active</span>
+                            {!! trans_choice('livewire/operator/owners.portal_figure', $portal['total'], ['active' => e($portal['active']), 'count' => e($portal['total'])]) !!}
                         </div>
-                        <div class="vyo-portal-track" role="img" aria-label="{{ $portal['active'] }} of {{ $portal['total'] }} owners active in the portal">
+                        <div class="vyo-portal-track" role="img" aria-label="{{ __('livewire/operator/owners.portal_aria', ['active' => $portal['active'], 'total' => $portal['total']]) }}">
                             <span class="vyo-portal-fill" style="width: {{ $portal['total'] > 0 ? (int) round($portal['active'] / $portal['total'] * 100) : 0 }}%;"></span>
                         </div>
-                        <p class="vyo-portal-sub">{{ count($invites) }} {{ \Illuminate\Support\Str::plural('invite', count($invites)) }} waiting · owners see a statement and its payout the moment it closes.</p>
+                        <p class="vyo-portal-sub">{{ trans_choice('livewire/operator/owners.portal_sub', count($invites), ['count' => count($invites)]) }}</p>
                         @can('users.manage')
-                            <a class="vyo-portal-link" href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener">See the invite email</a>
+                            <a class="vyo-portal-link" href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener">{{ __('livewire/operator/owners.invite_email_link') }}</a>
                         @endcan
                     </section>
                 </aside>
@@ -397,28 +401,28 @@
 
             {{-- ── The one row menu ──────────────────────────────────────────────────────────────────────────────── --}}
             <div class="vy-gl-menu" id="vyo-menu" x-show="menu.open" x-cloak x-bind:class="menu.up && 'is-up'"
-                 x-bind:style="{ left: menu.x + 'px', top: menu.y + 'px' }" role="menu" aria-label="Owner actions"
+                 x-bind:style="{ left: menu.x + 'px', top: menu.y + 'px' }" role="menu" aria-label="{{ __('livewire/operator/owners.menu_label') }}"
                  x-on:keydown.escape.prevent="closeMenu(true)" x-on:focusout="leaveMenu($event)">
                 <a class="vy-gl-menu-item" role="menuitem" x-bind:href="menu.row ? link(urls.show, menu.row.id) : '#'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                    Open owner
+                    {{ __('livewire/operator/owners.menu_open') }}
                 </a>
                 <button type="button" class="vy-gl-menu-item" role="menuitem" x-show="menu.row && menu.row.email" x-on:click="copyEmail()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-                    Copy email
+                    {{ __('livewire/operator/owners.menu_copy_email') }}
                 </button>
                 <button type="button" class="vy-gl-menu-item" role="menuitem" x-show="can('resend')" x-on:click="menuAct('resend')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
-                    Send the invite again
+                    {{ __('livewire/operator/owners.menu_resend') }}
                 </button>
                 <span class="vy-gl-menu-sep" x-show="can('pause') || can('resume')" aria-hidden="true"></span>
                 <button type="button" class="vy-gl-menu-item is-danger" role="menuitem" x-show="can('pause')" x-on:click="menuAct('pause')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
-                    Pause payouts
+                    {{ __('livewire/operator/owners.pause_payouts') }}
                 </button>
                 <button type="button" class="vy-gl-menu-item" role="menuitem" x-show="can('resume')" x-on:click="menuAct('resume')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>
-                    Resume payouts
+                    {{ __('livewire/operator/owners.resume_payouts') }}
                 </button>
             </div>
             <p class="vyo-copied" x-show="copied" x-cloak role="status" x-text="copied"></p>
@@ -437,10 +441,10 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5c1 0 2 .2 2.8.5"/><path d="M17 8.5v6M14 11.5h6"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-invite-title" x-text="roleTitle()">Invite an owner</h3>
-                                    <p class="vyo-dlg-sub">They get an email with a link to set a password. Nothing is shared until they do.</p>
+                                    <h3 class="vy-modal-title" id="vy-invite-title" x-text="roleTitle()">{{ __('livewire/operator/owners.invite_title_owner') }}</h3>
+                                    <p class="vyo-dlg-sub">{{ __('livewire/operator/owners.invite_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="inviteOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="inviteOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
 
                             <div class="vy-modal-body">
@@ -457,30 +461,30 @@
 
                                 {{-- who they are --}}
                                 <fieldset class="vy-choices vyo-roles">
-                                    <legend class="vy-inv-lbl">They are</legend>
+                                    <legend class="vy-inv-lbl">{{ __('livewire/operator/owners.they_are') }}</legend>
                                     <div class="vy-choice-row">
                                         <label class="vy-choice">
                                             <input type="radio" name="role" value="owner" x-model="role">
                                             <span class="vy-choice-face">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9.5 21v-5h5v5"/></svg>
-                                                <span class="vy-choice-text">Owner</span>
-                                                <span class="vyo-choice-sub">Owns units · sees statements and payouts</span>
+                                                <span class="vy-choice-text">{{ __('livewire/operator/owners.role_owner') }}</span>
+                                                <span class="vyo-choice-sub">{{ __('livewire/operator/owners.role_owner_sub') }}</span>
                                             </span>
                                         </label>
                                         <label class="vy-choice">
                                             <input type="radio" name="role" value="manager" x-model="role">
                                             <span class="vy-choice-face">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2V7"/></svg>
-                                                <span class="vy-choice-text">Property manager</span>
-                                                <span class="vyo-choice-sub">Your staff · runs bookings and the calendar</span>
+                                                <span class="vy-choice-text">{{ __('livewire/operator/owners.role_manager') }}</span>
+                                                <span class="vyo-choice-sub">{{ __('livewire/operator/owners.role_manager_sub') }}</span>
                                             </span>
                                         </label>
                                         <label class="vy-choice">
                                             <input type="radio" name="role" value="accountant" x-model="role">
                                             <span class="vy-choice-face">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18l2-1 2 1 2-1 2 1 2-1 2 1 2-1V3l-2 1-2-1-2 1-2-1-2 1-2-1z"/><path d="M8 8h8M8 12h5"/></svg>
-                                                <span class="vy-choice-text">Accountant</span>
-                                                <span class="vyo-choice-sub">Reads and exports statements and payouts</span>
+                                                <span class="vy-choice-text">{{ __('livewire/operator/owners.role_accountant') }}</span>
+                                                <span class="vyo-choice-sub">{{ __('livewire/operator/owners.role_accountant_sub') }}</span>
                                             </span>
                                         </label>
                                     </div>
@@ -489,15 +493,15 @@
                                 {{-- name and email — one row, one height --}}
                                 <div class="vyo-pair">
                                     <div class="vy-field">
-                                        <label class="vy-inv-lbl" for="vy-lbl-owners-name">Name</label>
+                                        <label class="vy-inv-lbl" for="vy-lbl-owners-name">{{ __('common.name') }}</label>
                                         <input id="vy-lbl-owners-name" class="vy-input" type="text" name="name" value="{{ old('name') }}" maxlength="120" required @if ($vyInviteFocus === 'vy-lbl-owners-name') autofocus @endif
-                                               x-bind:placeholder="role === 'owner' ? 'Person or company' : 'Their full name'" autocomplete="off">
+                                               x-bind:placeholder="role === 'owner' ? @js(__('livewire/operator/owners.name_placeholder_owner')) : @js(__('livewire/operator/owners.name_placeholder_staff'))" autocomplete="off">
                                         @error('name')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-inv-lbl" for="vy-lbl-owners-email">Email</label>
+                                        <label class="vy-inv-lbl" for="vy-lbl-owners-email">{{ __('common.email') }}</label>
                                         <input id="vy-lbl-owners-email" class="vy-input" type="email" name="email" value="{{ old('email') }}" maxlength="190" required @if ($vyInviteFocus === 'vy-lbl-owners-email') autofocus @endif
-                                               placeholder="Where the invite is sent" autocomplete="off">
+                                               placeholder="{{ __('livewire/operator/owners.email_placeholder') }}" autocomplete="off">
                                         @error('email')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
@@ -510,41 +514,41 @@
                                     @endphp
                                     @if (count($inviteUnits) > 0 && $vyFreeUnits === 0)
                                         <div class="vyo-access">
-                                            <strong>Every unit here already has an owner</strong>
-                                            <span>So there are none to give them. Once they join, they can ask for a new unit from their portal.</span>
+                                            <strong>{{ __('livewire/operator/owners.all_units_owned_title') }}</strong>
+                                            <span>{{ __('livewire/operator/owners.all_units_owned_text') }}</span>
                                         </div>
                                     @elseif (count($inviteUnits) > 0)
                                         <fieldset class="vyo-unitfield">
-                                            <legend class="vy-inv-lbl">Their units <span class="vyo-optional">optional</span></legend>
+                                            <legend class="vy-inv-lbl">{{ __('livewire/operator/owners.their_units') }} <span class="vyo-optional">{{ __('livewire/operator/owners.optional') }}</span></legend>
                                             <div class="vyo-units-pick">
                                                 @foreach ($inviteUnits as $u)
-                                                    <label class="vyo-unitchip {{ $u['owner'] !== null ? 'is-taken' : '' }}" @if ($u['owner'] !== null) title="A unit’s owner decides who is paid for it — it can’t be moved through an invite" @endif>
+                                                    <label class="vyo-unitchip {{ $u['owner'] !== null ? 'is-taken' : '' }}" @if ($u['owner'] !== null) title="{{ __('livewire/operator/owners.unit_taken_title') }}" @endif>
                                                         <input type="checkbox" name="unit_ids[]" value="{{ $u['id'] }}" x-model="units" @disabled($u['owner'] !== null)>
                                                         <span class="vyo-unitchip-label">{{ $u['label'] }}</span>
                                                         @if ($u['owner'] !== null)
-                                                            <span class="vyo-unitchip-owner">Owned by {{ $u['owner'] }}</span>
+                                                            <span class="vyo-unitchip-owner">{{ __('livewire/operator/owners.owned_by', ['owner' => $u['owner']]) }}</span>
                                                         @endif
                                                     </label>
                                                 @endforeach
                                             </div>
-                                            <p class="vyo-hint" x-text="units.length === 0 ? 'None chosen — an owner is given existing units only in their invite.' : units.length + (units.length === 1 ? ' unit' : ' units') + ' — they become this owner’s when the invite is accepted.'"></p>
+                                            <p class="vyo-hint" x-text="unitHints[units.length] ?? ''"></p>
                                             @error('unit_ids')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                         </fieldset>
                                     @endif
 
                                     <fieldset class="vy-choices vy-choices--segmented vyo-commission">
-                                        <legend class="vy-inv-lbl">Management commission</legend>
+                                        <legend class="vy-inv-lbl">{{ __('livewire/operator/owners.commission_label') }}</legend>
                                         <div class="vy-choice-row">
                                             @foreach ($commissionChoices as $vyRate)
                                                 <label class="vy-choice"><input type="radio" value="{{ $vyRate }}" x-model="commission"><span class="vy-choice-face"><span class="vy-choice-text">{{ $vyRate }}%</span></span></label>
                                             @endforeach
-                                            <label class="vy-choice"><input type="radio" value="other" x-model="commission"><span class="vy-choice-face"><span class="vy-choice-text">Other</span></span></label>
-                                            <label class="vy-choice"><input type="radio" value="later" x-model="commission"><span class="vy-choice-face"><span class="vy-choice-text">Later</span></span></label>
+                                            <label class="vy-choice"><input type="radio" value="other" x-model="commission"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/owners.commission_other') }}</span></span></label>
+                                            <label class="vy-choice"><input type="radio" value="later" x-model="commission"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/owners.commission_later') }}</span></span></label>
                                         </div>
                                     </fieldset>
                                     <div class="vyo-other" x-show="commission === 'other'">
-                                        <label class="vy-sr-only" for="vyo-commission-other">Commission, in percent</label>
-                                        <input id="vyo-commission-other" class="vy-input" type="text" inputmode="decimal" x-model="commissionOther" placeholder="e.g. 20" maxlength="6">
+                                        <label class="vy-sr-only" for="vyo-commission-other">{{ __('livewire/operator/owners.commission_other_label') }}</label>
+                                        <input id="vyo-commission-other" class="vy-input" type="text" inputmode="decimal" x-model="commissionOther" placeholder="{{ __('livewire/operator/owners.commission_other_placeholder') }}" maxlength="6">
                                         <span aria-hidden="true">%</span>
                                     </div>
                                     <p class="vyo-hint" x-text="commissionHint()"></p>
@@ -552,34 +556,34 @@
                                 </div>
 
                                 <div class="vyo-access" x-show="role === 'manager'">
-                                    <strong>Full operations, no owner money</strong>
-                                    <span>Bookings, calendar, guest messages and maintenance — not statements or payouts.</span>
+                                    <strong>{{ __('livewire/operator/owners.manager_access_title') }}</strong>
+                                    <span>{{ __('livewire/operator/owners.manager_access_text') }}</span>
                                 </div>
                                 <div class="vyo-access" x-show="role === 'accountant'">
-                                    <strong>Read and export</strong>
-                                    <span>Statements, tax documents and payouts. No commission applies.</span>
+                                    <strong>{{ __('livewire/operator/owners.accountant_access_title') }}</strong>
+                                    <span>{{ __('livewire/operator/owners.accountant_access_text') }}</span>
                                 </div>
 
                                 {{-- ⚠️ RE-AUTH: an invite changes who can reach the organisation. Its own row — it shared one with both buttons. --}}
                                 <div class="vyo-confirm">
                                     {{-- the password-manager pattern: which account this password is for — unnamed, so never posted, and hidden from everyone --}}
                                     <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
-                                    <label class="vy-inv-lbl" for="invite_pw">Confirm it’s you</label>
+                                    <label class="vy-inv-lbl" for="invite_pw">{{ __('livewire/operator/owners.confirm_label') }}</label>
                                     <input id="invite_pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required @if ($vyInviteFocus === 'invite_pw') autofocus @endif
-                                           placeholder="Your password">
+                                           placeholder="{{ __('livewire/operator/owners.password_placeholder') }}">
                                     @error('current_password')
                                         <div class="vyo-fielderr">{{ $message }}</div>
                                     @else
-                                        <p class="vyo-hint">An invite gives someone a way into your workspace, so your password confirms it’s you.</p>
+                                        <p class="vyo-hint">{{ __('livewire/operator/owners.confirm_hint') }}</p>
                                     @enderror
                                 </div>
                             </div>
 
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="inviteOpen = false">Cancel</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="inviteOpen = false">{{ __('common.cancel') }}</button>
                                 <button type="submit" class="vy-btn vy-btn--accent">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
-                                    Send invite
+                                    {{ __('livewire/operator/owners.send_invite') }}
                                 </button>
                             </div>
                         </form>
@@ -591,13 +595,13 @@
                     <div class="vy-modal vy-modal-card vyo-dlg" x-show="sentOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyo-sent-t" tabindex="-1" x-trap.noscroll="sentOpen">
                         <div class="vyo-sent">
                             <span class="vyo-sent-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span>
-                            <h3 class="vy-modal-title" id="vyo-sent-t">Invite sent</h3>
-                            <p class="vyo-sent-sub">We emailed <strong>{{ $vySent['email'] ?? '' }}</strong> a link to set their password. They show as <strong>Invited</strong> until they do.</p>
-                            <p class="vyo-sent-note">The link works until {{ $vySent['expires'] ?? 'in 7 days' }}. Send it again or cancel it from <strong>Invites waiting</strong>.</p>
+                            <h3 class="vy-modal-title" id="vyo-sent-t">{{ __('livewire/operator/owners.sent_title') }}</h3>
+                            <p class="vyo-sent-sub">{!! __('livewire/operator/owners.sent_text', ['email' => e($vySent['email'] ?? '')]) !!}</p>
+                            <p class="vyo-sent-note">{!! __('livewire/operator/owners.sent_note', ['expires' => e($vySent['expires'] ?? __('livewire/operator/owners.sent_expires_fallback'))]) !!}</p>
                         </div>
                         <div class="vy-modal-foot">
-                            <a class="vy-btn vy-btn--ghost" href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener">Preview the email</a>
-                            <button type="button" class="vy-btn vy-btn--accent" x-on:click="sentOpen = false" autofocus>Done</button>
+                            <a class="vy-btn vy-btn--ghost" href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener">{{ __('livewire/operator/owners.preview_email') }}</a>
+                            <button type="button" class="vy-btn vy-btn--accent" x-on:click="sentOpen = false" autofocus>{{ __('common.done') }}</button>
                         </div>
                     </div>
                 </div>
@@ -614,25 +618,25 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyo-resend-t">Send the invite again?</h3>
-                                    <p class="vyo-dlg-sub" x-text="'A fresh link goes to ' + resend.email + '. The old one stops working.'"></p>
+                                    <h3 class="vy-modal-title" id="vyo-resend-t">{{ __('livewire/operator/owners.resend_title') }}</h3>
+                                    <p class="vyo-dlg-sub" x-text="@js(__('livewire/operator/owners.resend_sub', ['email' => ':email'])).replace(':email', () => resend.email)"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="resendOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="resendOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vyo-confirm">
                                     {{-- the password-manager pattern: which account this password is for — unnamed, so never posted, and hidden from everyone --}}
                                     <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
-                                    <label class="vy-inv-lbl" for="vyo-resend-pw">Confirm it’s you</label>
-                                    <input id="vyo-resend-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="Your password" autofocus>
+                                    <label class="vy-inv-lbl" for="vyo-resend-pw">{{ __('livewire/operator/owners.confirm_label') }}</label>
+                                    <input id="vyo-resend-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="{{ __('livewire/operator/owners.password_placeholder') }}" autofocus>
                                     @if ($vyResendRetry !== '')
                                         @error('current_password')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                     @endif
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="resendOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Send again</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="resendOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owners.send_again') }}</button>
                             </div>
                         </form>
                     </div>
@@ -651,23 +655,23 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" x-bind:class="! pause.resume && 'is-danger'" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyo-pause-t" x-text="(pause.resume ? 'Resume payouts to ' : 'Pause payouts to ') + pause.name + '?'">Pause payouts?</h3>
-                                    <p class="vyo-dlg-sub" x-text="pause.resume ? 'Their payouts can go out again.' : 'No payout goes out to them until you resume.'"></p>
+                                    <h3 class="vy-modal-title" id="vyo-pause-t" x-text="(pause.resume ? @js(__('livewire/operator/owners.resume_title', ['name' => ':name'])) : @js(__('livewire/operator/owners.pause_title', ['name' => ':name']))).replace(':name', () => pause.name)">{{ __('livewire/operator/owners.pause_title_default') }}</h3>
+                                    <p class="vyo-dlg-sub" x-text="pause.resume ? @js(__('livewire/operator/owners.resume_sub')) : @js(__('livewire/operator/owners.pause_sub'))"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="pauseOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="pauseOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vyo-factlist">
-                                    <li x-show="! pause.resume">No payout is created or sent to them — not by the automatic run, not by hand on the payout run page.</li>
-                                    <li x-show="! pause.resume">Nothing they are owed is lost — each closed statement stays owed until it is paid.</li>
-                                    <li x-show="! pause.resume">Statements still close as usual.</li>
-                                    <li x-show="pause.resume">Every closed statement still owed can be paid again from the payout run{{ $howPaid['engine'] ? ', and by the next automatic run' : '' }}.</li>
-                                    <li>Recorded in the audit log.</li>
+                                    <li x-show="! pause.resume">{{ __('livewire/operator/owners.pause_fact_none_sent') }}</li>
+                                    <li x-show="! pause.resume">{{ __('livewire/operator/owners.pause_fact_nothing_lost') }}</li>
+                                    <li x-show="! pause.resume">{{ __('livewire/operator/owners.pause_fact_statements') }}</li>
+                                    <li x-show="pause.resume">{{ $howPaid['engine'] ? __('livewire/operator/owners.resume_fact_engine') : __('livewire/operator/owners.resume_fact') }}</li>
+                                    <li>{{ __('livewire/operator/owners.fact_audit') }}</li>
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="pauseOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn" x-bind:class="pause.resume ? 'vy-btn--accent' : 'vy-btn--danger'" x-text="pause.resume ? 'Resume payouts' : 'Pause payouts'">Pause payouts</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="pauseOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn" x-bind:class="pause.resume ? 'vy-btn--accent' : 'vy-btn--danger'" x-text="pause.resume ? @js(__('livewire/operator/owners.resume_payouts')) : @js(__('livewire/operator/owners.pause_payouts'))">{{ __('livewire/operator/owners.pause_payouts') }}</button>
                             </div>
                         </form>
                     </div>
@@ -681,7 +685,7 @@
     @include('partials.operator-list-script')
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('vyOwners', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: 'No owners in this view' }), {
+            Alpine.data('vyOwners', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/operator/owners.none_in_view')) }), {
                 inviteOpen: @js($vyInviteRetry),
                 sentOpen: @js($vySent !== null && $canWrite),
                 resendOpen: false, resend: { id: '', email: '', name: '' },
@@ -690,6 +694,7 @@
                 commission: 'later', commissionOther: '',
                 units: @js(array_values(array_map('strval', (array) old('unit_ids', [])))),
                 copied: '',
+                unitHints: @js($vyUnitHints),
 
                 start() {
                     // the rate typed or chosen before a refusal; otherwise the organisation's own
@@ -704,16 +709,16 @@
                     if (retry) { this.resend = retry; this.resendOpen = true; }
                 },
                 roleTitle() {
-                    return this.role === 'owner' ? 'Invite an owner' : (this.role === 'manager' ? 'Invite a property manager' : 'Invite an accountant');
+                    return this.role === 'owner' ? @js(__('livewire/operator/owners.invite_title_owner')) : (this.role === 'manager' ? @js(__('livewire/operator/owners.invite_title_manager')) : @js(__('livewire/operator/owners.invite_title_accountant')));
                 },
                 commissionValue() {
                     if (this.role !== 'owner' || this.commission === 'later') return '';
                     return this.commission === 'other' ? (this.commissionOther || '').trim() : this.commission;
                 },
                 commissionHint() {
-                    if (this.commission === 'later') return 'Set it when their agreement is ready — on the owner’s page.';
+                    if (this.commission === 'later') return @js(__('livewire/operator/owners.commission_hint_later'));
                     const v = this.commissionValue();
-                    return (v ? v + '% of gross booking value' : 'A percentage of gross booking value') + ', taken from each statement. You can change it later.';
+                    return v ? @js(__('livewire/operator/owners.commission_hint_rate', ['rate' => ':rate'])).replace(':rate', () => v) : @js(__('livewire/operator/owners.commission_hint_none'));
                 },
 
                 // This page's rows, read from the JSON beside the table — swapped with it, so it describes the rows on screen.
@@ -743,7 +748,7 @@
                     const row = this.menu.row;
                     this.closeMenu(true);
                     if (! row || ! row.email) return;
-                    try { await navigator.clipboard.writeText(row.email); this.copied = 'Copied ' + row.email; }
+                    try { await navigator.clipboard.writeText(row.email); this.copied = @js(__('livewire/operator/owners.copied', ['email' => ':email'])).replace(':email', () => row.email); }
                     catch (e) { this.copied = row.email; }
                     setTimeout(() => { this.copied = ''; }, 2500);
                 },

@@ -81,7 +81,7 @@ class SettingsActionController extends Controller
 
         $settings->updateProperty($property, $data);
 
-        return $this->back('Property details saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.property_details_saved'));
     }
 
     public function updatePolicies(Request $request, SettingsService $settings): RedirectResponse
@@ -126,7 +126,7 @@ class SettingsActionController extends Controller
 
         $settings->updatePolicies($property, $data);
 
-        return $this->back('Stay policies saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.stay_policies_saved'));
     }
 
     /**
@@ -182,7 +182,7 @@ class SettingsActionController extends Controller
             $this->removeReplacedLogo($old);
         }
 
-        return $this->back('Guest-facing brand saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.brand_saved'));
     }
 
     /**
@@ -251,7 +251,7 @@ class SettingsActionController extends Controller
             'support_hours' => $this->blankToNull($data['support_hours'] ?? null),
         ]);
 
-        return $this->back('Guest support details saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.support_saved'));
     }
 
     /** '' and '   ' are as unset as null — a whitespace-only value must not draw an empty affordance. */
@@ -290,7 +290,7 @@ class SettingsActionController extends Controller
 
         $settings->createFee($property, $data['name'], $mode, (int) round(((float) $data['amount']) * 100), $request->boolean('optional'));
 
-        return $this->back('Fee added.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.fee_added'));
     }
 
     /**
@@ -311,16 +311,16 @@ class SettingsActionController extends Controller
         ]);
 
         if (trim((string) $request->input('confirm_name')) !== trim((string) $property->name)) {
-            return redirect()->to(route('app.settings'))->with('settings_error', 'The name you typed didn’t match — removal was not scheduled.');
+            return redirect()->to(route('app.settings'))->with('settings_error', __('php/http/controllers/operator/settings_action_controller.removal_name_mismatch'));
         }
 
         try {
             $removals->schedule($property, (string) auth()->id());
         } catch (PropertyRemovalRefused $e) {
-            return redirect()->to(route('app.settings'))->with('settings_error', 'Removal was not scheduled. '.$e->getMessage());
+            return redirect()->to(route('app.settings'))->with('settings_error', __('php/http/controllers/operator/settings_action_controller.removal_not_scheduled', ['reason' => $e->getMessage()]));
         }
 
-        return $this->back('Removal scheduled — you can cancel any time before it runs.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.removal_scheduled'));
     }
 
     /** Cancel a scheduled property removal (task #98 GATE 2). */
@@ -332,7 +332,7 @@ class SettingsActionController extends Controller
 
         $removals->cancel($this->currentProperty());
 
-        return $this->back('Scheduled removal cancelled — this property stays.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.removal_cancelled'));
     }
 
     /** Pause new bookings for the property (task #98) — real: fans out to units via the certified availability spine. */
@@ -344,7 +344,7 @@ class SettingsActionController extends Controller
 
         $pause->pause($this->currentProperty());
 
-        return $this->back('New bookings paused — existing stays keep running.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.bookings_paused'));
     }
 
     /** Resume new bookings for the property. */
@@ -356,7 +356,7 @@ class SettingsActionController extends Controller
 
         $pause->resume($this->currentProperty());
 
-        return $this->back('New bookings resumed.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.bookings_resumed'));
     }
 
     public function updateOrganization(Request $request, SettingsService $settings): RedirectResponse
@@ -376,7 +376,7 @@ class SettingsActionController extends Controller
 
         $settings->updateOrganization($organization, $data);
 
-        return $this->back('Organization settings saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.organization_saved'));
     }
 
     /**
@@ -408,7 +408,7 @@ class SettingsActionController extends Controller
         // Stripe, or which screen the operator happened to use would decide whether they get reverse charge.
         StripeTaxIdSync::push($organization->fresh() ?? $organization);
 
-        return $this->back('Invoice details saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.invoice_saved'));
     }
 
     /**
@@ -462,7 +462,7 @@ class SettingsActionController extends Controller
             }
         }
 
-        return $this->back('Taxes & fees saved.');
+        return $this->back(__('php/http/controllers/operator/settings_action_controller.taxes_fees_saved'));
     }
 
     /**
@@ -503,7 +503,7 @@ class SettingsActionController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [],
-            ['current_password' => 'current password'],
+            ['current_password' => __('php/http/controllers/operator/settings_action_controller.attr_current_password')],
         );
 
         $validated = $request->validate([
@@ -522,24 +522,24 @@ class SettingsActionController extends Controller
             ->find($validated['user_id']);
 
         if (! $target instanceof User) {
-            return $this->back('That team member could not be found in this organisation.');
+            return $this->back(__('php/http/controllers/operator/settings_action_controller.member_not_found'));
         }
 
         if ((string) $target->getKey() === (string) (auth()->id() ?? '')) {
-            return $this->back('You cannot change your own property access — ask another administrator.');
+            return $this->back(__('php/http/controllers/operator/settings_action_controller.cannot_change_own_access'));
         }
 
         $ids = $validated['scope'] === 'all' ? [] : array_values($validated['properties'] ?? []);
 
         if ($validated['scope'] === 'selected' && $ids === []) {
-            return $this->back('Choose at least one property, or give them access to all of them.');
+            return $this->back(__('php/http/controllers/operator/settings_action_controller.choose_properties'));
         }
 
         $applied = $scopes->setScope($target, $ids);
 
         return $this->back($applied === []
-            ? $target->name.' can now access every property.'
-            : $target->name.' is now scoped to '.count($applied).' '.(count($applied) === 1 ? 'property' : 'properties').'.');
+            ? __('php/http/controllers/operator/settings_action_controller.access_all', ['name' => $target->name])
+            : trans_choice('php/http/controllers/operator/settings_action_controller.access_scoped', count($applied), ['name' => $target->name, 'count' => count($applied)]));
     }
 
     /**
@@ -549,7 +549,7 @@ class SettingsActionController extends Controller
     private function guardReadOnly(): ?RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return redirect()->to(route('app.settings'))->with('settings_error', 'Your workspace is read-only right now — changes are paused.');
+            return redirect()->to(route('app.settings'))->with('settings_error', __('php/http/controllers/operator/settings_action_controller.read_only'));
         }
 
         return null;

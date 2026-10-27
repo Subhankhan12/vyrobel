@@ -64,7 +64,7 @@ class OwnerPayoutService
         // ⚠️⚠️ DEC-n (2026-10-02) — a PAUSED owner gets no payout, on any path. Refused HERE, after the idempotent return
         //    above (handing back an existing payout changes nothing) and before anything is written or carried forward.
         if (OwnerPayoutPreference::isPaused((string) $statement->owner_id)) {
-            throw PayoutsPausedException::forOwner((string) ($statement->owner->name ?? 'this owner'));
+            throw PayoutsPausedException::forOwner((string) ($statement->owner->name ?? __('php/services/owner_payout_service.this_owner')));
         }
 
         $net = (int) $statement->net_payable_minor;
@@ -124,7 +124,7 @@ class OwnerPayoutService
             // ⚠️⚠️ DEC-n — PAUSED: refused inside the lock and before any rail is touched, beside the tax-hold below. The row is
             //    left exactly as it was, so resuming makes it payable again.
             if (OwnerPayoutPreference::isPaused((string) $locked->owner_id)) {
-                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? 'this owner'));
+                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? __('php/services/owner_payout_service.this_owner')));
             }
 
             // HELD until tax details are on file (Sub-gate 4) — BEFORE the transfer, so no money moves for a
@@ -267,7 +267,7 @@ class OwnerPayoutService
 
             // ⚠️ DEC-n — a paused owner's payout is not re-queued either (no payout is created while paused).
             if (OwnerPayoutPreference::isPaused((string) $locked->owner_id)) {
-                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? 'this owner'));
+                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? __('php/services/owner_payout_service.this_owner')));
             }
 
             // 🔒 One live payout per statement — the createFromStatement invariant, enforced here too.

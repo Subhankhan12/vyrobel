@@ -5,7 +5,7 @@
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. Alpine uses x-on:/x-model, never `@click`. --}}
 <div>
-    <x-operator.shell active="roles" :title="'Roles & permissions'" :subtitle="'What each role can see and do'" :viewer="$viewer">
+    <x-operator.shell active="roles" :title="__('livewire/operator/operator-roles.title')" :subtitle="__('livewire/operator/operator-roles.subtitle')" :viewer="$viewer">
 
         @if (session('roles_notice'))
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
@@ -15,21 +15,30 @@
 
         @if ($readOnly)
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-amber); margin-bottom: 16px;">
-                <div style="font-size: 13px; color: var(--vy-ink);">Your workspace is read-only right now — role changes are paused.</div>
+                <div style="font-size: 13px; color: var(--vy-ink);">{{ __('livewire/operator/operator-roles.read_only_banner') }}</div>
             </div>
         @endif
 
         @if (count($matrix['roles']) === 0)
             <div class="vy-card vy-fade" style="text-align: center; padding: 40px 24px;">
-                <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">No editable roles</strong>
-                <span style="font-size: 13px; color: var(--vy-muted);">Your organization's back-office roles will appear here.</span>
+                <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">{{ __('livewire/operator/operator-roles.empty_heading') }}</strong>
+                <span style="font-size: 13px; color: var(--vy-muted);">{{ __('livewire/operator/operator-roles.empty_body') }}</span>
             </div>
         @else
+            @php
+                // I18N rule 13 — the Alpine-bound values inside a translated phrase are STATIC markup passed in as
+                // placeholders, so no translation value ever carries an `x-` attribute.
+                $selectedRoleHtml = '<span x-text="roles[selected].display_name"></span>';
+                $grantCountHtml = '<span x-text="grantCount()"></span>';
+                $totalCountHtml = '<span x-text="roles[selected].total_count"></span>';
+            @endphp
             <div x-data="rolesMatrix({
                 roles: @js($matrix['roles']),
                 sections: @js($matrix['sections']),
                 domainOrder: @js(\App\Services\RolePermissionService::DOMAIN_ORDER),
                 lockable: @js($matrix['lockable']),
+                domainLabels: @js($domainLabels),
+                grantedLabels: @js($grantedLabels),
                 canEdit: {{ $canEdit ? 'true' : 'false' }},
                 readOnly: {{ $readOnly ? 'true' : 'false' }},
             })">
@@ -43,8 +52,8 @@
                      invented per-role decoration. A role cannot show an authority glyph its permissions do
                      not support, and the glyph moves the moment its grants do. --}}
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-                    <h2 class="vy-card-title" style="margin: 0;">Roles</h2>
-                    <button type="button" class="vy-btn" style="padding: 6px 12px; font-size: 12px;" x-on:click="newRoleOpen = true">New role</button>
+                    <h2 class="vy-card-title" style="margin: 0;">{{ __('livewire/operator/operator-roles.roles_heading') }}</h2>
+                    <button type="button" class="vy-btn" style="padding: 6px 12px; font-size: 12px;" x-on:click="newRoleOpen = true">{{ __('livewire/operator/operator-roles.new_role') }}</button>
                 </div>
                 <div class="vyr-rolegrid">
                     <template x-for="(r, i) in roles" x-bind:key="r.name">
@@ -57,11 +66,11 @@
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
                                 </span>
                             </div>
-                            <div class="vyr-rolecard-name" x-text="r.name"></div>
+                            <div class="vyr-rolecard-name" x-text="r.display_name"></div>
                             <div class="vyr-rolecard-desc" x-text="r.desc"></div>
                             <div class="vyr-rolecard-meta">
-                                <span class="vyr-rolecard-level" x-bind:class="'is-' + levelKey(r.level)" x-text="r.level"></span>
-                                <span x-text="r.member_count + (r.member_count === 1 ? ' member' : ' members')"></span>
+                                <span class="vyr-rolecard-level" x-bind:class="'is-' + levelKey(r.level)" x-text="r.level_label"></span>
+                                <span x-text="r.members_label"></span>
                             </div>
                         </button>
                     </template>
@@ -73,10 +82,10 @@
                         @csrf
                         <input type="hidden" name="role" x-bind:value="roles[selected].name">
                         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                            <h2 class="vy-card-title" style="margin: 0;"><span x-text="roles[selected].name"></span> · permissions</h2>
-                            <span style="font-size: 12px; color: var(--vy-muted);"><span x-text="grantCount()"></span> of <span x-text="roles[selected].total_count"></span> on</span>
+                            <h2 class="vy-card-title" style="margin: 0;">{!! __('livewire/operator/operator-roles.permissions_heading', ['role' => $selectedRoleHtml]) !!}</h2>
+                            <span style="font-size: 12px; color: var(--vy-muted);">{!! __('livewire/operator/operator-roles.granted_of_total', ['granted' => $grantCountHtml, 'total' => $totalCountHtml]) !!}</span>
                         </div>
-                        <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">Toggle what this role can access. Changes apply to everyone assigned to it.</p>
+                        <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">{{ __('livewire/operator/operator-roles.matrix_hint') }}</p>
 
                         {{-- D23-2 — a coarser DOMAIN tier above the resource headings. 49 permissions sat
                              under 30 resource headings, 20 of them holding one row: grouped in name, flat to
@@ -87,10 +96,10 @@
                              grants them). --}}
                         <template x-for="domain in domains" x-bind:key="domain.domain">
                         <div>
-                            <div class="vyr-domain" x-text="domain.domain"></div>
+                            <div class="vyr-domain" x-text="domainLabels[domain.domain] || domain.domain"></div>
                         <template x-for="section in domain.sections" x-bind:key="section.section">
                             <div style="border-top: 1px solid var(--vy-hairline); padding: 10px 0;">
-                                <div class="vyr-section" x-text="section.section"></div>
+                                <div class="vyr-section" x-text="section.section_label"></div>
                                 <div class="vyr-perms-grid">
                                     <template x-for="perm in section.permissions" x-bind:key="perm.key">
                                         <label class="vyr-toggle" x-bind:class="{ 'is-locked': !canToggle(perm.key) }">
@@ -110,32 +119,32 @@
                         @if ($canEdit && ! $readOnly)
                             <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
                                 {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do. --}}
-                                <label class="vy-field-label" for="perm_pw">Confirm with your password</label>
+                                <label class="vy-field-label" for="perm_pw">{{ __('livewire/operator/operator-roles.confirm_password') }}</label>
                                 <input id="perm_pw" type="password" name="current_password" class="vy-input"
-                                       autocomplete="current-password" required aria-label="Current password">
+                                       autocomplete="current-password" required aria-label="{{ __('livewire/operator/operator-roles.current_password') }}">
                                 @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
-                                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">Save changes</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">{{ __('common.save_changes') }}</button>
                             </div>
                         @else
                             <div style="margin-top: 14px; font-size: 11.5px; color: var(--vy-faint);">
-                                Editing a role's permissions needs the organization-admin permission (roles.manage).
+                                {{ __('livewire/operator/operator-roles.needs_roles_manage') }}
                             </div>
                         @endif
                     </form>
 
                     {{-- ── RIGHT: the selected role card — DARK (D23-3). Same real figures, new treatment. --}}
                     <div class="vyr-selected vy-fade" style="align-self: start;">
-                        <span class="vy-eyebrow" style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">Selected role</span>
-                        <div class="vyr-sel-name" style="font-size: 20px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 2px;" x-text="roles[selected].name"></div>
-                        <div class="vyr-sel-sub" style="font-size: 12.5px;"><span x-text="roles[selected].level"></span> · <span x-text="roles[selected].member_count + (roles[selected].member_count === 1 ? ' member' : ' members')"></span></div>
-                        <div class="vyr-sel-sub" style="font-size: 12px; margin-top: 6px;"><span x-text="grantCount()"></span> permissions granted</div>
+                        <span class="vy-eyebrow" style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">{{ __('livewire/operator/operator-roles.selected_role') }}</span>
+                        <div class="vyr-sel-name" style="font-size: 20px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 2px;" x-text="roles[selected].display_name"></div>
+                        <div class="vyr-sel-sub" style="font-size: 12.5px;"><span x-text="roles[selected].level_label"></span> · <span x-text="roles[selected].members_label"></span></div>
+                        <div class="vyr-sel-sub" style="font-size: 12px; margin-top: 6px;"><span x-text="grantedLabels[grantCount()]"></span></div>
 
                         <div class="vyr-sel-rule" style="height: 1px; margin: 14px 0 12px;"></div>
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">Members</span>
+                                <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">{{ __('livewire/operator/operator-roles.members_heading') }}</span>
                                 @if ($canAssign && ! $readOnly)
-                                    <a href="#assign" class="vy-btn" style="padding: 5px 11px; font-size: 11.5px;">Add</a>
+                                    <a href="#assign" class="vy-btn" style="padding: 5px 11px; font-size: 11.5px;">{{ __('common.add') }}</a>
                                 @endif
                             </div>
                             <template x-for="m in roles[selected].members" x-bind:key="m.id">
@@ -147,12 +156,12 @@
                                     </div>
                                 </div>
                             </template>
-                            <div x-show="roles[selected].members.length === 0" style="font-size: 12px; color: var(--vy-faint);">No one holds this role yet.</div>
+                            <div x-show="roles[selected].members.length === 0" style="font-size: 12px; color: var(--vy-faint);">{{ __('livewire/operator/operator-roles.no_members') }}</div>
                         </div>
 
                         {{-- Delete-this-role — honestly deferred (the catalogue is config-anchored). --}}
                         <div style="margin-top: 14px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
-                            <button type="button" class="vy-btn" style="padding: 7px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);" x-on:click="deleteOpen = true">Delete this role</button>
+                            <button type="button" class="vy-btn" style="padding: 7px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);" x-on:click="deleteOpen = true">{{ __('livewire/operator/operator-roles.delete_role') }}</button>
                         </div>
                     </div>
                 </div>
@@ -160,18 +169,18 @@
                 {{-- New-role modal — honest (the back-office catalogue is fixed) --}}
                 <div x-show="newRoleOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="newRoleOpen = false" x-on:keydown.escape.window="newRoleOpen = false">
                     <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="newRoleOpen" aria-labelledby="vy-dlg-operator-roles-newroleopen-2">
-                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-newroleopen-2">The role catalogue is fixed</h3>
-                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">Back-office roles are anchored to how the app grants access, so new roles aren't created here. Instead, <strong>edit an existing role's permissions</strong> above to shape exactly what its members can do — the toggles take effect immediately.</p>
-                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="newRoleOpen = false">Got it</button></div>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-newroleopen-2">{{ __('livewire/operator/operator-roles.new_role_heading') }}</h3>
+                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">{!! __('livewire/operator/operator-roles.new_role_body') !!}</p>
+                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="newRoleOpen = false">{{ __('livewire/operator/operator-roles.got_it') }}</button></div>
                     </div>
                 </div>
 
                 {{-- Delete-role modal — honest --}}
                 <div x-show="deleteOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="deleteOpen = false" x-on:keydown.escape.window="deleteOpen = false">
                     <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="deleteOpen" aria-labelledby="vy-dlg-operator-roles-deleteopen-1">
-                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-deleteopen-1">Roles can't be deleted here</h3>
-                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">The back-office role catalogue is fixed. To take access away from a role, un-toggle its permissions above; to move a person off a role, revoke it from them in the assignment section — they keep their other roles.</p>
-                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="deleteOpen = false">Got it</button></div>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-deleteopen-1">{{ __('livewire/operator/operator-roles.delete_role_heading') }}</h3>
+                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">{{ __('livewire/operator/operator-roles.delete_role_body') }}</p>
+                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="deleteOpen = false">{{ __('livewire/operator/operator-roles.got_it') }}</button></div>
                     </div>
                 </div>
             </div>
@@ -180,36 +189,36 @@
             @if ($canAssign)
                 <form id="assign" method="POST" action="{{ route('app.roles.assign') }}" class="vy-card vy-fade" style="margin-top: 20px;">
                     @csrf
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Assign a role</h2>
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;">{{ __('livewire/operator/operator-roles.assign_heading') }}</h2>
                     <div class="vyr-assign">
                         <div class="vy-field" style="margin: 0;">
-                            <label class="vy-field-label" for="au">Team member</label>
+                            <label class="vy-field-label" for="au">{{ __('livewire/operator/operator-roles.team_member') }}</label>
                             <select id="au" name="user_id" class="vy-input" required {{ $readOnly ? 'disabled' : '' }}>
-                                <option value="">Choose a member…</option>
+                                <option value="">{{ __('livewire/operator/operator-roles.choose_member') }}</option>
                                 @foreach ($members as $member)
                                     <option value="{{ $member['id'] }}">{{ $member['name'] }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="vy-field" style="margin: 0;">
-                            <label class="vy-field-label" for="ar">Role</label>
+                            <label class="vy-field-label" for="ar">{{ __('livewire/operator/operator-roles.role_label') }}</label>
                             <select id="ar" name="role" class="vy-input" required {{ $readOnly ? 'disabled' : '' }}>
-                                <option value="">Choose a role…</option>
+                                <option value="">{{ __('livewire/operator/operator-roles.choose_role') }}</option>
                                 @foreach ($assignableRoles as $role)
-                                    <option value="{{ $role }}">{{ $role }}</option>
+                                    <option value="{{ $role }}">{{ $roleLabels[$role] ?? $role }}</option>
                                 @endforeach
                             </select>
                         </div>
                         @unless ($readOnly)
                             {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do. --}}
-                            <label class="vy-field-label" for="assign_pw">Confirm with your password</label>
+                            <label class="vy-field-label" for="assign_pw">{{ __('livewire/operator/operator-roles.confirm_password') }}</label>
                             <input id="assign_pw" type="password" name="current_password" class="vy-input"
-                                   autocomplete="current-password" required aria-label="Current password">
+                                   autocomplete="current-password" required aria-label="{{ __('livewire/operator/operator-roles.current_password') }}">
                             @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
-                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 18px;">Assign role</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 18px;">{{ __('livewire/operator/operator-roles.assign_button') }}</button>
                         @endunless
                     </div>
-                    <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">Only roles whose access you already hold are listed — you can't grant more than your own.</div>
+                    <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">{{ __('livewire/operator/operator-roles.assign_hint') }}</div>
                 </form>
 
                 {{-- ── ⚠️ REVOKE A ROLE (M-14) — the control this page has always told operators to use ──────
@@ -221,53 +230,54 @@
                      ⚠️ NO JAVASCRIPT: the confirmation is a native <details>, so it works even where the page's
                      Alpine does not, and a server-side test can read it. --}}
                 <div id="revoke" class="vy-card vy-fade" style="margin-top: 20px;">
-                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Revoke a role</h2>
-                    <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Removing a role takes access away immediately, and the person cannot undo it themselves. They keep any other roles they hold.</p>
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/operator-roles.revoke_heading') }}</h2>
+                    <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">{{ __('livewire/operator/operator-roles.revoke_hint') }}</p>
 
                     @forelse ($assignments as $holder)
                         @php
                             $rowKey = $holder['user_id'].'-'.\Illuminate\Support\Str::slug($holder['role']);
                             $manageable = in_array($holder['role'], $assignableRoles, true);
+                            $holderRoleLabel = $roleLabels[$holder['role']] ?? $holder['role'];
                         @endphp
                         <div style="border-top: 1px solid var(--vy-hairline); padding: 10px 0; display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
                             <div style="flex: 1; min-width: 200px;">
-                                <div style="font-size: 13px; color: var(--vy-ink);">{{ $holder['name'] }}@if ($holder['is_self'])<span style="color: var(--vy-faint); font-size: 12px;"> · You</span>@endif</div>
-                                <div style="font-size: 11.5px; color: var(--vy-muted);">{{ $holder['role'] }}</div>
+                                <div style="font-size: 13px; color: var(--vy-ink);">{{ $holder['name'] }}@if ($holder['is_self'])<span style="color: var(--vy-faint); font-size: 12px;"> {{ __('livewire/operator/operator-roles.you_marker') }}</span>@endif</div>
+                                <div style="font-size: 11.5px; color: var(--vy-muted);">{{ $holderRoleLabel }}</div>
                             </div>
 
                             @if ($readOnly)
-                                <span style="font-size: 11.5px; color: var(--vy-muted);">Your workspace is read-only right now.</span>
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">{{ __('livewire/operator/operator-roles.read_only_short') }}</span>
                             @elseif ($holder['is_self'])
                                 {{-- ⚠️ The service refuses self-management outright; saying so beats a button that 
                                      always fails. Same idiom as the property-scope editor. --}}
-                                <span style="font-size: 11.5px; color: var(--vy-muted);">Ask another administrator to change your own roles.</span>
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">{{ __('livewire/operator/operator-roles.self_note') }}</span>
                             @elseif (! $manageable)
-                                <span style="font-size: 11.5px; color: var(--vy-muted);">This role holds access you don't have yourself.</span>
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">{{ __('livewire/operator/operator-roles.not_manageable') }}</span>
                             @else
                                 <details style="min-width: 260px;">
-                                    <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: rgb(150,50,42);">Revoke this role…</summary>
+                                    <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: rgb(150,50,42);">{{ __('livewire/operator/operator-roles.revoke_summary') }}</summary>
                                     <form method="POST" action="{{ route('app.roles.revoke') }}" style="margin-top: 8px;">
                                         @csrf
                                         <input type="hidden" name="user_id" value="{{ $holder['user_id'] }}">
                                         <input type="hidden" name="role" value="{{ $holder['role'] }}">
                                         {{-- ⚠️ The confirmation names WHO loses WHAT — and nothing that doesn't exist. --}}
                                         <p style="font-size: 12px; color: var(--vy-ink); line-height: 1.55; margin: 0 0 8px;">
-                                            <strong>{{ $holder['name'] }}</strong> will lose the <strong>{{ $holder['role'] }}</strong> role and everything it grants. They keep any other roles they hold.
+                                            {!! __('livewire/operator/operator-roles.revoke_confirm', ['name' => e($holder['name']), 'role' => e($holderRoleLabel)]) !!}
                                         </p>
                                         {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do.
                                              ⚠️ Per-ROW id — a fixed one would repeat down the page and every
                                              row's <label for> would focus the first row's box (the defect the
                                              team-scope editor shipped two passes ago). --}}
-                                        <label class="vy-field-label" for="revoke_pw_{{ $rowKey }}">Confirm with your password</label>
+                                        <label class="vy-field-label" for="revoke_pw_{{ $rowKey }}">{{ __('livewire/operator/operator-roles.confirm_password') }}</label>
                                         <input id="revoke_pw_{{ $rowKey }}" type="password" name="current_password" class="vy-input"
-                                               autocomplete="current-password" required aria-label="Current password">
-                                        <button type="submit" class="vy-btn" style="margin-top: 8px; padding: 8px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);">Revoke {{ $holder['role'] }}</button>
+                                               autocomplete="current-password" required aria-label="{{ __('livewire/operator/operator-roles.current_password') }}">
+                                        <button type="submit" class="vy-btn" style="margin-top: 8px; padding: 8px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);">{{ __('livewire/operator/operator-roles.revoke_button', ['role' => $holderRoleLabel]) }}</button>
                                     </form>
                                 </details>
                             @endif
                         </div>
                     @empty
-                        <div style="font-size: 12px; color: var(--vy-faint);">No one holds a back-office role yet.</div>
+                        <div style="font-size: 12px; color: var(--vy-faint);">{{ __('livewire/operator/operator-roles.no_assignments') }}</div>
                     @endforelse
 
                     @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
@@ -307,6 +317,8 @@
                     .filter(d => d.sections.length > 0),
                 domainOrder: config.domainOrder,
                 lockable: config.lockable,
+                domainLabels: config.domainLabels,
+                grantedLabels: config.grantedLabels,
                 canEdit: config.canEdit,
                 readOnly: config.readOnly,
                 selected: 0,

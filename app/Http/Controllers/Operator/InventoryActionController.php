@@ -78,9 +78,6 @@ class InventoryActionController extends Controller
      */
     private const UNIT_KIND = ['room' => 'room', 'apartment' => 'apartment', 'villa' => 'villa', 'dorm' => 'dorm_bed'];
 
-    /** One sentence for one refusal: a unit code is unique within its property (the database's own rule). */
-    private const DUPLICATE_CODE = 'That unit code is already used in this property — choose another.';
-
     /** The units table's unique index on (property, code), as the database names it in a violation (MySQL and MariaDB alike). */
     private const UNIT_CODE_INDEX = 'units_property_id_code_unique';
 
@@ -142,9 +139,9 @@ class InventoryActionController extends Controller
         }));
 
         return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $codes === []
-            ? $roomType->name.' added. Next: add its units — the real rooms guests stay in — then give it prices in Rates.'
-            : $roomType->name.' added with '.count($codes).' '.Str::plural('unit', count($codes)).': '.UnitCodes::summary($codes)
-                .'. Next: give it prices in Rates, and it can be booked.');
+            ? __('php/http/controllers/operator/inventory_action_controller.room_type_added', ['name' => $roomType->name])
+            : trans_choice('php/http/controllers/operator/inventory_action_controller.room_type_added_with_units', count($codes),
+                ['count' => count($codes), 'name' => $roomType->name, 'codes' => UnitCodes::summary($codes)]));
     }
 
     /**
@@ -189,13 +186,16 @@ class InventoryActionController extends Controller
 
         $priced = in_array((string) $roomType->getKey(), RoomTypePricing::pricedIds([(string) $roomType->getKey()]), true);
         $one = count($codes) === 1;
-        $when = $priced
-            ? ($one ? 'It can be booked now.' : 'They can be booked now.')
-            : ($one ? 'It' : 'They').' can be booked once '.$roomType->name.' has prices — set them in Rates.';
+        $notice = match (true) {
+            $one && $priced => __('php/http/controllers/operator/inventory_action_controller.unit_added_bookable', ['code' => $codes[0], 'room_type' => $roomType->name]),
+            $one => __('php/http/controllers/operator/inventory_action_controller.unit_added_needs_prices', ['code' => $codes[0], 'room_type' => $roomType->name]),
+            $priced => trans_choice('php/http/controllers/operator/inventory_action_controller.units_added_bookable', count($codes),
+                ['count' => count($codes), 'room_type' => $roomType->name, 'codes' => UnitCodes::summary($codes)]),
+            default => trans_choice('php/http/controllers/operator/inventory_action_controller.units_added_needs_prices', count($codes),
+                ['count' => count($codes), 'room_type' => $roomType->name, 'codes' => UnitCodes::summary($codes)]),
+        };
 
-        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $one
-            ? $codes[0].' added to '.$roomType->name.'. '.$when
-            : count($codes).' units added to '.$roomType->name.': '.UnitCodes::summary($codes).'. '.$when);
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $notice);
     }
 
     /**
@@ -250,13 +250,12 @@ class InventoryActionController extends Controller
         $back = $this->listReturn($request, redirect()->to(route('app.units')));
 
         if ($blockers !== []) {
-            return $back->with('units_error', 'Unit '.$model->code.' can’t be deleted — it has '.InventoryDeletion::sentence($blockers).' on record.'
-                .($model->is_active
-                    ? ' Pause it instead: it stops taking new bookings and keeps its history.'
-                    : ' It is already paused, so it takes no new bookings, and its history stays.'));
+            return $back->with('units_error', $model->is_active
+                ? __('php/http/controllers/operator/inventory_action_controller.unit_delete_blocked_active', ['code' => $model->code, 'blockers' => InventoryDeletion::sentence($blockers)])
+                : __('php/http/controllers/operator/inventory_action_controller.unit_delete_blocked_paused', ['code' => $model->code, 'blockers' => InventoryDeletion::sentence($blockers)]));
         }
 
-        return $back->with('units_notice', "Unit {$model->code} deleted.");
+        return $back->with('units_notice', __('php/http/controllers/operator/inventory_action_controller.unit_deleted', ['code' => $model->code]));
     }
 
     /**
@@ -284,8 +283,8 @@ class InventoryActionController extends Controller
 
         $kind = (string) ($data['kind'] ?? $model->kind);
         if ($kind !== (string) $model->kind && Unit::withTrashed()->where('room_type_id', $model->getKey())->exists()) {
-            throw ValidationException::withMessages(['kind' => 'A room type’s kind can’t change while it has units — they were added as '
-                .InventoryDeletion::kindPlural((string) $model->kind).'.']);
+            throw ValidationException::withMessages(['kind' => __('php/http/controllers/operator/inventory_action_controller.kind_locked',
+                ['kind_plural' => InventoryDeletion::kindPlural((string) $model->kind)])]);
         }
 
         $fields = ['name', 'kind', 'max_adults', 'max_children', 'std_occupancy'];
@@ -305,7 +304,7 @@ class InventoryActionController extends Controller
         $audit->record('room_type.updated', $model, $before, $model->only($fields));
 
         return $this->listReturn($request, redirect()->to(route('app.units')))
-            ->with('units_notice', 'Room type “'.$model->name.'” updated.');
+            ->with('units_notice', __('php/http/controllers/operator/inventory_action_controller.room_type_updated', ['name' => $model->name]));
     }
 
     /**
@@ -349,15 +348,16 @@ class InventoryActionController extends Controller
         if ($blockers !== []) {
             $hasUnits = Unit::withTrashed()->where('room_type_id', $model->getKey())->exists();
 
-            return $back->with('units_error', $model->name.' can’t be deleted — it has '.InventoryDeletion::sentence($blockers).' on record.'
-                .($hasUnits ? ' A room type can be deleted once it has no units.' : ' Deleting it would erase that or leave it pointing at nothing.'));
+            return $back->with('units_error', $hasUnits
+                ? __('php/http/controllers/operator/inventory_action_controller.room_type_delete_blocked_has_units', ['name' => $model->name, 'blockers' => InventoryDeletion::sentence($blockers)])
+                : __('php/http/controllers/operator/inventory_action_controller.room_type_delete_blocked', ['name' => $model->name, 'blockers' => InventoryDeletion::sentence($blockers)]));
         }
 
         foreach ($files as [$disk, $path]) {
             Storage::disk($disk)->delete($path);
         }
 
-        return $back->with('units_notice', $model->name.' deleted.');
+        return $back->with('units_notice', __('php/http/controllers/operator/inventory_action_controller.room_type_deleted', ['name' => $model->name]));
     }
 
     public function storeRatePlan(Request $request, AuditEventRecorder $audit): RedirectResponse
@@ -404,7 +404,7 @@ class InventoryActionController extends Controller
 
         return RatesListParams::redirect($request)->with('rates_notice',
             // ⚠️ 2026-10-01 — this said "Set its nightly rates in the grid", which prices only each room type's MAIN plan.
-            $ratePlan->name.' created for '.$roomType->name.'. Use Set prices on its row to give it nightly prices — guests can be offered it once it has them.');
+            __('php/http/controllers/operator/inventory_action_controller.rate_plan_created', ['plan' => $ratePlan->name, 'room_type' => $roomType->name]));
     }
 
     /**
@@ -438,7 +438,7 @@ class InventoryActionController extends Controller
                 Rule::unique('units', 'code')->where('property_id', $model->property_id)->ignore($model->getKey())],
             'name' => ['nullable', 'string', 'max:255'],
             'max_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
-        ], ['code.unique' => self::DUPLICATE_CODE]);
+        ], ['code.unique' => __('php/http/controllers/operator/inventory_action_controller.duplicate_code')]);
 
         // ⚠️ CAPTURED BEFORE THE WRITE. A unit's previous name and code are cheap to record, unlike a rate's
         // previous price — Phase 11 found 11 of 11 rate sites passing a null `before`, and that is why an
@@ -466,7 +466,7 @@ class InventoryActionController extends Controller
         $audit->record('unit.updated', $model, $before, $after);
 
         return $this->listReturn($request, redirect()->to(route('app.units')))
-            ->with('units_notice', "Unit {$model->code} updated.");
+            ->with('units_notice', __('php/http/controllers/operator/inventory_action_controller.unit_updated', ['code' => $model->code]));
     }
 
     /**
@@ -502,8 +502,8 @@ class InventoryActionController extends Controller
         }
 
         return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $active
-            ? "Unit {$model->code} is taking bookings again."
-            : "Unit {$model->code} is paused. Bookings already taken are kept; no new ones can be made.");
+            ? __('php/http/controllers/operator/inventory_action_controller.unit_resumed', ['code' => $model->code])
+            : __('php/http/controllers/operator/inventory_action_controller.unit_paused', ['code' => $model->code]));
     }
 
     /**
@@ -537,14 +537,15 @@ class InventoryActionController extends Controller
 
         ['changed' => $done, 'already' => $already] = $status->setManyByOperator($units, $active, $actorId !== null ? (string) $actorId : null);
 
-        $verb = $active ? 'Resumed' : 'Paused';
-        $notice = $verb.' '.$done.' '.Str::plural('unit', $done);
-        if ($already > 0) {
-            $notice .= ' · '.$already.' already '.($active ? 'taking bookings' : 'paused');
-        }
+        $notice = match (true) {
+            $active && $already > 0 => trans_choice('php/http/controllers/operator/inventory_action_controller.bulk_resumed_some_already', $done, ['count' => $done, 'skipped' => $already]),
+            $active => trans_choice('php/http/controllers/operator/inventory_action_controller.bulk_resumed', $done, ['count' => $done]),
+            $already > 0 => trans_choice('php/http/controllers/operator/inventory_action_controller.bulk_paused_some_already', $done, ['count' => $done, 'skipped' => $already]),
+            default => trans_choice('php/http/controllers/operator/inventory_action_controller.bulk_paused', $done, ['count' => $done]),
+        };
 
         return $this->listReturn($request, redirect()->to(route('app.units')))
-            ->with('units_notice', $notice.($active ? '.' : '. Bookings already taken are kept.'));
+            ->with('units_notice', $notice);
     }
 
     /**
@@ -589,7 +590,7 @@ class InventoryActionController extends Controller
         // PII-safe: a plan's name and code are neither guest nor contact data.
         $audit->record('rate_plan.updated', $model, $before, ['name' => (string) $model->name, 'code' => $model->code]);
 
-        return RatesListParams::redirect($request)->with('rates_notice', "Rate plan “{$model->name}” updated. No prices changed.");
+        return RatesListParams::redirect($request)->with('rates_notice', __('php/http/controllers/operator/inventory_action_controller.rate_plan_updated', ['name' => $model->name]));
     }
 
     /**
@@ -625,12 +626,14 @@ class InventoryActionController extends Controller
 
             if ($otherActive === 0) {
                 return RatesListParams::redirect($request)->with('rates_error',
-                    "“{$model->name}” is the only rate plan still on sale for this room type. Taking it off sale would leave nothing to quote, so the room type could not be booked at all. Add or reactivate another plan first.");
+                    __('php/http/controllers/operator/inventory_action_controller.last_plan_on_sale', ['name' => $model->name]));
             }
         }
 
         if ((bool) $model->is_active === $active) {
-            return RatesListParams::redirect($request)->with('rates_notice', "Rate plan “{$model->name}” was already ".($active ? 'on sale' : 'off sale').'.');
+            return RatesListParams::redirect($request)->with('rates_notice', $active
+                ? __('php/http/controllers/operator/inventory_action_controller.rate_plan_already_on_sale', ['name' => $model->name])
+                : __('php/http/controllers/operator/inventory_action_controller.rate_plan_already_off_sale', ['name' => $model->name]));
         }
 
         $model->update(['is_active' => $active]);
@@ -639,8 +642,8 @@ class InventoryActionController extends Controller
             ['is_active' => ! $active], ['is_active' => $active]);
 
         return RatesListParams::redirect($request)->with('rates_notice', $active
-            ? "Rate plan “{$model->name}” is back on sale."
-            : "Rate plan “{$model->name}” is off sale. Existing bookings keep the price they were sold at; no nightly prices were changed.");
+            ? __('php/http/controllers/operator/inventory_action_controller.rate_plan_back_on_sale', ['name' => $model->name])
+            : __('php/http/controllers/operator/inventory_action_controller.rate_plan_off_sale', ['name' => $model->name]));
     }
 
     /**
@@ -663,7 +666,7 @@ class InventoryActionController extends Controller
         if ($context->active() && $context->isAll() && count($context->accessibleIds()) > 1) {
             $chosen = $request->input('property_id');
             if (! is_string($chosen) || ! in_array($chosen, $context->accessibleIds(), true)) {
-                throw ValidationException::withMessages(['property_id' => 'Choose the property this room type belongs to.']);
+                throw ValidationException::withMessages(['property_id' => __('php/http/controllers/operator/inventory_action_controller.choose_room_type_property')]);
             }
 
             return Property::query()->findOrFail($chosen);
@@ -684,7 +687,7 @@ class InventoryActionController extends Controller
         $properties = Property::query()->limit(2)->get();
 
         abort_unless($properties->count() === 1, 422,
-            'Choose which property this belongs to — your account has more than one.');
+            __('php/http/controllers/operator/inventory_action_controller.choose_property'));
 
         return $properties->first();
     }
@@ -724,8 +727,8 @@ class InventoryActionController extends Controller
         $changed = $arrival->update($target, $validated);
 
         return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $changed === []
-            ? 'Nothing changed — a blank field leaves the stored value alone.'
-            : 'Arrival info updated for '.($target->name ?? $target->code).'.');
+            ? __('php/http/controllers/operator/inventory_action_controller.arrival_nothing_changed')
+            : __('php/http/controllers/operator/inventory_action_controller.arrival_updated', ['unit' => $target->name ?? $target->code]));
     }
 
     /**
@@ -786,8 +789,8 @@ class InventoryActionController extends Controller
             ->orderBy('code')->pluck('code')->map(fn ($c): string => (string) $c)->all();
         if ($taken !== []) {
             throw ValidationException::withMessages([$field => count($taken) === 1
-                ? 'Unit code '.$taken[0].' is already used in this property — choose another.'
-                : 'Already used in this property: '.UnitCodes::summary($taken).' — choose other codes.']);
+                ? __('php/http/controllers/operator/inventory_action_controller.unit_code_taken', ['code' => $taken[0]])
+                : __('php/http/controllers/operator/inventory_action_controller.unit_codes_taken', ['codes' => UnitCodes::summary($taken)])]);
         }
 
         return $parsed['codes'];
@@ -815,8 +818,7 @@ class InventoryActionController extends Controller
                 throw $e;
             }
 
-            throw ValidationException::withMessages([$field => 'One of these codes is already used in this property — codes that differ '
-                .'only by accents or capitals count as the same. Choose another.']);
+            throw ValidationException::withMessages([$field => __('php/http/controllers/operator/inventory_action_controller.code_taken_ignoring_accents')]);
         }
     }
 
@@ -898,10 +900,14 @@ class InventoryActionController extends Controller
         // ⚠️ 2026-09-30 — the rate-plan writes said "adding inventory is read-only" (they add no inventory), and with no
         //    resume date on record the sentence ended "until ." — both fixed: each surface names what is paused, and an
         //    unknown date says so rather than printing nothing. 2026-10-05 — the unit writes now edit and delete too.
-        $what = $surface === 'rates' ? 'rate changes are' : 'changes to units and room types are';
         $until = $workspace->resumeLabel();
+        $dated = $until !== null && $until !== '';
 
-        return $back->with($surface.'_error',
-            'Workspace paused — '.$what.' read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.');
+        return $back->with($surface.'_error', match (true) {
+            $surface === 'rates' && $dated => __('php/http/controllers/operator/inventory_action_controller.paused_rates_until', ['date' => $until]),
+            $surface === 'rates' => __('php/http/controllers/operator/inventory_action_controller.paused_rates'),
+            $dated => __('php/http/controllers/operator/inventory_action_controller.paused_units_until', ['date' => $until]),
+            default => __('php/http/controllers/operator/inventory_action_controller.paused_units'),
+        });
     }
 }

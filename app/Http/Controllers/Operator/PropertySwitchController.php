@@ -49,7 +49,7 @@ class PropertySwitchController extends Controller
         if ($destination !== null && $data['property_id'] !== PropertyContext::ALL) {
             $name = (string) Property::query()->whereKey($data['property_id'])->value('name');
 
-            return redirect()->route($destination)->with('property_notice', 'You’re now working in '.$name.'.');
+            return redirect()->route($destination)->with('property_notice', __('php/http/controllers/operator/property_switch_controller.now_working_in', ['name' => $name]));
         }
 
         return redirect()->back();

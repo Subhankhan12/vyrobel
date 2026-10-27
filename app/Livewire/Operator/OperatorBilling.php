@@ -133,8 +133,14 @@ class OperatorBilling extends Component
                 // whitelist and fall back to… 'pro' — reproducing the very bug. Strip the interval suffix.
                 'code' => Str::beforeLast((string) $current->plan->code, '_'),
                 'interval' => (string) $current->plan->interval,
-                'subscribed_on' => CarbonImmutable::parse($current->created_at)->format('j M Y'),
-                'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->format('j M Y') : null,
+                // The interval as people read it, keyed by the plan's CODE (never compared as text).
+                'interval_label' => match ((string) $current->plan->interval) {
+                    'monthly' => __('php/livewire/operator/operator_billing.interval_monthly'),
+                    'yearly' => __('php/livewire/operator/operator_billing.interval_yearly'),
+                    default => ucfirst((string) $current->plan->interval),
+                },
+                'subscribed_on' => CarbonImmutable::parse($current->created_at)->translatedFormat('j M Y'),
+                'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->translatedFormat('j M Y') : null,
             ],
             'pricing' => [
                 'units' => $pricing['units'],
@@ -166,8 +172,8 @@ class OperatorBilling extends Component
             'lifecycle' => [
                 'is_paused' => $isPaused,
                 'is_canceling' => $isCanceling,
-                'paused_until' => $pausedUntil?->format('j M Y'),
-                'readonly_from' => $readonlyFrom?->format('j M Y'),
+                'paused_until' => $pausedUntil?->translatedFormat('j M Y'),
+                'readonly_from' => $readonlyFrom?->translatedFormat('j M Y'),
             ],
             // The honest invoice history — the real trial only; paid invoices are account-gated (no fabrication).
             // ⚠️ THE PLATFORM'S BILLING CURRENCY, NOT THE TENANT'S. What Vyrobel charges an operator is
@@ -217,9 +223,9 @@ class OperatorBilling extends Component
             $start = CarbonImmutable::parse($sub->created_at);
             $rows[] = [
                 'ref' => 'Trial',
-                'label' => $trialDays.'-day trial',
-                'period' => $start->format('j M').' – '.$start->addDays($trialDays)->format('j M Y'),
-                'status' => 'Free',
+                'label' => __('php/livewire/operator/operator_billing.trial_label', ['days' => $trialDays]),
+                'period' => $start->translatedFormat('j M').' – '.$start->addDays($trialDays)->translatedFormat('j M Y'),
+                'status' => __('php/livewire/operator/operator_billing.invoice_free'),
                 'amount' => $this->money(0, $currency),
                 'gated' => false,
             ];
@@ -238,7 +244,7 @@ class OperatorBilling extends Component
             $features = array_map(fn (array $f): array => [
                 'label' => $f['label'],
                 'on' => $f['enabled'],
-                'note' => $f['limit'] !== null ? 'up to '.$f['limit'] : null,
+                'note' => $f['limit'] !== null ? __('php/livewire/operator/operator_billing.feature_up_to', ['limit' => $f['limit']]) : null,
             ], $tier['features']);
 
             return [
@@ -299,8 +305,8 @@ class OperatorBilling extends Component
             // know the RATE baked into it (`vat_pct` is null on a flat plan), so "incl. 0% VAT" would be a fresh
             // falsehood. Silence is the honest rendering, and it is what pass 3 shipped.
             'tax_note' => match (true) {
-                ! $charge['tax_known'] => 'tax calculated at checkout',
-                $terms->vatPct > 0 => 'incl. '.$terms->vatPct.'% VAT',
+                ! $charge['tax_known'] => __('php/livewire/operator/operator_billing.tax_at_checkout'),
+                $terms->vatPct > 0 => __('php/livewire/operator/operator_billing.tax_incl_vat', ['pct' => $terms->vatPct]),
                 default => '',
             },
             'unit_rate' => $this->money($terms->unitRateMinor, $currency),

@@ -19,6 +19,7 @@
 @php
     $feed = \App\Support\Notifications\NotificationFeed::recentForUser(auth()->user());
     $unread = (int) $feed['unread'];
+    // I18N-01 — the category tag's words come from NotificationFeed::categoryLabel() (one map, this view's lang file).
 @endphp
 {{-- ⚠️ LINK MODE (`:panel="false"`) — for a shell that loads NO ALPINE. The guest portal is exactly that:
      its shell pulls in no Livewire/Alpine bundle at all ("all interactivity is native GET / progressive
@@ -27,21 +28,21 @@
      unread read, one honest click. The default stays the popover, so the operator and owner shells are
      byte-identical to before. --}}
 @unless ($panel)
-    <a href="{{ $openAllUrl }}" class="vy-bell" title="Notifications" aria-label="Notifications{{ $unread > 0 ? ' ('.$unread.' unread)' : '' }}" style="position:relative;text-decoration:none">
+    <a href="{{ $openAllUrl }}" class="vy-bell" title="{{ __('components/notifications/bell.notifications') }}" aria-label="{{ $unread > 0 ? trans_choice('components/notifications/bell.notifications_unread', $unread, ['count' => $unread]) : __('components/notifications/bell.notifications') }}" style="position:relative;text-decoration:none">
         <x-notifications.bell-glyph :unread="$unread" />
     </a>
 @else
 <div x-data="{ open: false }" data-vy-bell data-vy-bell-count="{{ $unread }}" @keydown.escape.window="open = false" style="position:relative;display:inline-flex">
-    <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" class="vy-bell" title="Notifications" aria-label="Notifications" style="position:relative;cursor:pointer">
+    <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" class="vy-bell" title="{{ __('components/notifications/bell.notifications') }}" aria-label="{{ __('components/notifications/bell.notifications') }}" style="position:relative;cursor:pointer">
         <x-notifications.bell-glyph :unread="$unread" />
     </button>
 
-    <div x-cloak x-show="open" x-transition.opacity.duration.150ms @click.outside="open = false" role="menu" aria-label="Notifications"
+    <div x-cloak x-show="open" x-transition.opacity.duration.150ms @click.outside="open = false" role="menu" aria-label="{{ __('components/notifications/bell.notifications') }}"
          style="position:absolute;top:calc(100% + 10px);right:0;width:360px;max-width:calc(100vw - 32px);background:rgba(255,252,248,0.98);backdrop-filter:blur(22px) saturate(1.15);-webkit-backdrop-filter:blur(22px) saturate(1.15);border:1px solid var(--vy-glass-border);border-radius:var(--vy-r-lg);box-shadow:var(--vy-shadow);z-index:80;overflow:hidden">
 
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 15px;border-bottom:1px solid var(--vy-hairline)">
-            <span style="font-size:13.5px;font-weight:700;color:var(--vy-ink)">Notifications</span>
-            <span style="font-size:11.5px;color:var(--vy-muted)">{{ $unread }} unread</span>
+            <span style="font-size:13.5px;font-weight:700;color:var(--vy-ink)">{{ __('components/notifications/bell.notifications') }}</span>
+            <span style="font-size:11.5px;color:var(--vy-muted)">{{ trans_choice('components/notifications/bell.unread_count', $unread, ['count' => $unread]) }}</span>
         </div>
 
         <div style="max-height:min(60vh,420px);overflow-y:auto">
@@ -52,13 +53,13 @@
                         <span style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
                             <span style="flex:1;min-width:0;font-size:12.5px;font-weight:{{ $item['read'] ? '500' : '700' }};color:var(--vy-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $item['title'] }}</span>
                             <span style="display:flex;align-items:center;gap:6px;flex:none">
-                                <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
+                                <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ \App\Support\Notifications\NotificationFeed::categoryLabel($item['category']) }}</span>
                                 {{-- ⚠️ 1.4.1 — SHARED BY BOTH SHELLS, so this single fix reaches the operator
                                      and the owner bell at once. The dot carried "unread" on colour alone; a
                                      bare `title` on a non-interactive span is not reliably announced. --}}
                                 @unless ($item['read'])
                                     <span aria-hidden="true" style="flex:none;width:7px;height:7px;border-radius:50%;background:var(--vy-accent)"></span>
-                                    <span class="vy-sr-only">Unread</span>
+                                    <span class="vy-sr-only">{{ __('components/notifications/bell.unread') }}</span>
                                 @endunless
                             </span>
                         </span>
@@ -67,7 +68,7 @@
                     </span>
                 </a>
             @empty
-                <div style="padding:28px 15px;text-align:center;font-size:12.5px;color:var(--vy-muted)">All caught up — no notifications.</div>
+                <div style="padding:28px 15px;text-align:center;font-size:12.5px;color:var(--vy-muted)">{{ __('components/notifications/bell.empty') }}</div>
             @endforelse
         </div>
 
@@ -75,12 +76,12 @@
             @if ($unread > 0)
                 <form method="POST" action="{{ route('notifications.read-all') }}" style="margin:0">
                     @csrf
-                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:11.5px">Mark all read</button>
+                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:11.5px">{{ __('components/notifications/bell.mark_all_read') }}</button>
                 </form>
             @else
                 <span></span>
             @endif
-            <a href="{{ $openAllUrl }}" style="font-size:12px;color:var(--vy-accent);text-decoration:none;font-weight:600">Open all notifications →</a>
+            <a href="{{ $openAllUrl }}" style="font-size:12px;color:var(--vy-accent);text-decoration:none;font-weight:600">{{ __('components/notifications/bell.open_all') }}</a>
         </div>
     </div>
 </div>

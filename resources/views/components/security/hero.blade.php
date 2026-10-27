@@ -8,17 +8,17 @@
 @endphp
 <section class="vy-sx-card vy-sx-hero vy-sx-in" aria-labelledby="vy-sx-hero-t">
     <div class="vy-sx-hero-id">
-        <div class="vy-sx-ring" role="img" aria-label="Security score {{ $score['num'] }} of 100">
+        <div class="vy-sx-ring" role="img" aria-label="{{ __('components/security/hero.score_aria', ['score' => $score['num']]) }}">
             <svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
                 <defs><linearGradient id="vySxRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F0A57A"/><stop offset="1" stop-color="#C2410C"/></linearGradient></defs>
                 <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(120,70,40,.12)" stroke-width="10"/>
                 <circle cx="60" cy="60" r="52" fill="none" stroke="url(#vySxRing)" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ $circ }}" stroke-dashoffset="{{ $ringOffset }}" transform="rotate(-90 60 60)"/>
             </svg>
-            <div class="vy-sx-ring-mid" aria-hidden="true"><span class="vy-sx-ring-n">{{ $score['num'] }}</span><span class="vy-sx-ring-of">of 100</span></div>
+            <div class="vy-sx-ring-mid" aria-hidden="true"><span class="vy-sx-ring-n">{{ $score['num'] }}</span><span class="vy-sx-ring-of">{{ __('components/security/hero.of_100') }}</span></div>
         </div>
         <div>
             <div class="vy-sx-tier-chip"><span class="vy-sx-tier-dot" aria-hidden="true"></span><span class="vy-sx-tier">{{ $score['tier'] }}</span></div>
-            <h2 class="vy-sx-hero-title" id="vy-sx-hero-t">Account security</h2>
+            <h2 class="vy-sx-hero-title" id="vy-sx-hero-t">{{ __('components/security/hero.heading') }}</h2>
             <p class="vy-sx-hero-cap">{{ $score['caption'] }}</p>
         </div>
     </div>

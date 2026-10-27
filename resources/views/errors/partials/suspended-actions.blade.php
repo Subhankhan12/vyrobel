@@ -6,12 +6,12 @@
         <form method="POST" action="{{ route('app.workspace.switch') }}">
             @csrf
             <input type="hidden" name="organization_id" value="{{ $id }}">
-            <button type="submit" class="btn">Switch to {{ $name }}</button>
+            <button type="submit" class="btn">{{ __('errors/partials/suspended-actions.switch_to', ['workspace' => $name]) }}</button>
         </form>
     @endforeach
     <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button type="submit" class="btn {{ ($otherWorkspaces ?? []) !== [] ? 'btn--ghost' : '' }}">Sign out</button>
+        <button type="submit" class="btn {{ ($otherWorkspaces ?? []) !== [] ? 'btn--ghost' : '' }}">{{ __('common.sign_out') }}</button>
     </form>
-    <a href="{{ route('marketing.page.contact') }}" style="font-size: 13px; color: inherit;">Contact Vyrobel</a>
+    <a href="{{ route('marketing.page.contact') }}" style="font-size: 13px; color: inherit;">{{ __('errors/partials/suspended-actions.contact_vyrobel') }}</a>
 </div>

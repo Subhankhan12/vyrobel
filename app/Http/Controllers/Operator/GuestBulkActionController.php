@@ -47,7 +47,7 @@ class GuestBulkActionController extends Controller
         // ⚠️⚠️ 2026-10-05 — NOTHING IS "MESSAGED" WHILE EMAIL IS NOT SENT. On production the mailer is `log`: every message was
         //    discarded, the notice said "N guests messaged" and each guest's inbox recorded it as sent. Refused, and said, instead.
         if (! MailSafetyGuard::sendingNow()) {
-            return $this->back('Email isn’t being sent from Vyrobel yet — nothing was sent.', 'guest_error');
+            return $this->back(__('php/http/controllers/operator/guest_bulk_action_controller.email_not_sent'), 'guest_error');
         }
 
         $data = $request->validate([
@@ -86,7 +86,7 @@ class GuestBulkActionController extends Controller
             // ⚠️ A MARKETING send carries a working opt-out — the footer link plus the RFC 8058 headers — so the
             // consent gate above is something the guest can actually reach. A SERVICE message carries neither:
             // it is not marketing, and offering to unsubscribe from it would be a promise we don't honour.
-            Mail::to($email)->send(new OperatorGuestMessageMail(
+            Mail::to($email)->locale($guest->preferredLocale())->send(new OperatorGuestMessageMail(
                 GuestName::display($guest),
                 $data['body'],
                 $current !== null ? (string) $current->name : null,
@@ -102,15 +102,15 @@ class GuestBulkActionController extends Controller
             $sent++;
         }
 
-        $parts = [$sent.' '.($sent === 1 ? 'guest' : 'guests').' messaged'];
+        $parts = [trans_choice('php/http/controllers/operator/guest_bulk_action_controller.guests_messaged', $sent, ['count' => $sent])];
         if ($skippedConsent > 0) {
-            $parts[] = $skippedConsent.' skipped (no marketing consent)';
+            $parts[] = trans_choice('php/http/controllers/operator/guest_bulk_action_controller.skipped_no_consent', $skippedConsent, ['count' => $skippedConsent]);
         }
         if ($skippedNoEmail > 0) {
-            $parts[] = $skippedNoEmail.' skipped (no email)';
+            $parts[] = trans_choice('php/http/controllers/operator/guest_bulk_action_controller.skipped_no_email', $skippedNoEmail, ['count' => $skippedNoEmail]);
         }
 
-        return $this->back(implode(' · ', $parts).'.');
+        return $this->back(__('php/http/controllers/operator/guest_bulk_action_controller.message_summary', ['parts' => implode(' · ', $parts)]));
     }
 
     /** Bulk-tag selected guests — reuses the certified per-guest {@see GuestService::attachTag} (audited). */
@@ -133,7 +133,7 @@ class GuestBulkActionController extends Controller
             }
         }
 
-        return $this->back($selected->count().' '.($selected->count() === 1 ? 'guest' : 'guests').' tagged “'.trim($data['name']).'”.');
+        return $this->back(trans_choice('php/http/controllers/operator/guest_bulk_action_controller.guests_tagged', $selected->count(), ['count' => $selected->count(), 'tag' => trim($data['name'])]));
     }
 
     /**
@@ -151,8 +151,8 @@ class GuestBulkActionController extends Controller
             'ids.*' => ['string'],
             'confirm' => ['required', 'string', 'in:ERASE'],
         ], [
-            'confirm.in' => 'Type ERASE exactly to confirm this permanent erasure.',
-            'confirm.required' => 'Type ERASE to confirm this permanent erasure.',
+            'confirm.in' => __('php/http/controllers/operator/guest_bulk_action_controller.confirm_exact'),
+            'confirm.required' => __('php/http/controllers/operator/guest_bulk_action_controller.confirm_required'),
         ]);
 
         $guests = Guest::query()->whereIn('id', (array) $request->input('ids'))->get();
@@ -166,7 +166,7 @@ class GuestBulkActionController extends Controller
             $erased++;
         }
 
-        return $this->back($erased.' '.($erased === 1 ? 'guest' : 'guests').' erased. Their personal data is gone; the financial history remains.');
+        return $this->back(trans_choice('php/http/controllers/operator/guest_bulk_action_controller.guests_erased', $erased, ['count' => $erased]));
     }
 
     /**
@@ -186,11 +186,21 @@ class GuestBulkActionController extends Controller
 
         $filename = 'Vyrobel-guests-'.$guests->count().'.csv';
 
-        return response()->streamDownload(function () use ($guests): void {
+        // the viewer's language, worked out now — before the download streams
+        $header = [
+            __('php/http/controllers/operator/guest_bulk_action_controller.csv_name'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_email'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_phone'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_city'),
+            __('php/http/controllers/operator/guest_bulk_action_controller.csv_nationality'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_stays'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_vip'), __('php/http/controllers/operator/guest_bulk_action_controller.csv_marketing_consent'),
+        ];
+        $anonymized = __('php/http/controllers/operator/guest_bulk_action_controller.anonymized_guest');
+        $unnamed = __('php/http/controllers/operator/guest_bulk_action_controller.unnamed_guest');
+        $yes = __('common.yes');
+        $no = __('common.no');
+
+        return response()->streamDownload(function () use ($guests, $header, $anonymized, $unnamed, $yes, $no): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, CsvSafe::row(['Name', 'Email', 'Phone', 'City', 'Nationality', 'Stays', 'VIP', 'Marketing consent']));
+            fputcsv($out, CsvSafe::row($header));
             foreach ($guests as $guest) {
-                $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: ($guest->isAnonymized() ? 'Anonymized guest' : 'Unnamed guest');
+                $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: ($guest->isAnonymized() ? $anonymized : $unnamed);
                 fputcsv($out, CsvSafe::row([
                     $name,
                     (string) $guest->email,
@@ -198,8 +208,8 @@ class GuestBulkActionController extends Controller
                     (string) $guest->city,
                     (string) $guest->nationality,
                     (string) $guest->reservations()->whereNotIn('status', ['cancelled', 'no_show'])->count(),
-                    $guest->is_vip ? 'Yes' : 'No',
-                    $guest->marketing_consent ? 'Yes' : 'No',
+                    $guest->is_vip ? $yes : $no,
+                    $guest->marketing_consent ? $yes : $no,
                 ]));
             }
             fclose($out);
@@ -225,7 +235,7 @@ class GuestBulkActionController extends Controller
 
     private function paused(): RedirectResponse
     {
-        return $this->back('Your workspace is paused (read-only) — bulk actions are off until you resume. Resume from Billing.', 'guest_error');
+        return $this->back(__('php/http/controllers/operator/guest_bulk_action_controller.workspace_paused'), 'guest_error');
     }
 
     private function back(string $message, string $key = 'guest_notice'): RedirectResponse

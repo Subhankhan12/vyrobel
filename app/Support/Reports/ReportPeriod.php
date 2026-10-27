@@ -30,7 +30,7 @@ final class ReportPeriod
         if ($monthStart !== null) {
             return [
                 'key' => 'month:'.$monthStart->format('Y-m'),
-                'label' => $monthStart->format('F Y'),
+                'label' => $monthStart->translatedFormat('F Y'),
                 'start' => $monthStart,
                 'end' => $monthStart->addMonth(),
             ];
@@ -39,8 +39,8 @@ final class ReportPeriod
         $today = CarbonImmutable::today();
 
         return match ((string) $rangeKey) {
-            'ytd' => ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay()],
-            '6m' => ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
+            'ytd' => ['key' => 'ytd', 'label' => __('php/support/reports/report_period.year_to_date'), 'start' => $today->startOfYear(), 'end' => $today->addDay()],
+            '6m' => ['key' => '6m', 'label' => __('php/support/reports/report_period.last_6_months'), 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
             default => ['key' => 'this-year', 'label' => $today->format('Y'), 'start' => $today->startOfYear(), 'end' => $today->startOfYear()->addYear()],
         };
     }
@@ -56,8 +56,8 @@ final class ReportPeriod
 
         return [
             ['key' => 'this-year', 'label' => $year, 'active' => $activeKey === 'this-year'],
-            ['key' => 'ytd', 'label' => 'Year to date', 'active' => $activeKey === 'ytd'],
-            ['key' => '6m', 'label' => 'Last 6 months', 'active' => $activeKey === '6m'],
+            ['key' => 'ytd', 'label' => __('php/support/reports/report_period.year_to_date'), 'active' => $activeKey === 'ytd'],
+            ['key' => '6m', 'label' => __('php/support/reports/report_period.last_6_months'), 'active' => $activeKey === '6m'],
         ];
     }
 
@@ -74,7 +74,7 @@ final class ReportPeriod
         for ($i = 0; $i < 12; $i++) {
             $m = $cursor->subMonths($i);
             $value = $m->format('Y-m');
-            $out[] = ['value' => $value, 'label' => $m->format('M Y'), 'active' => $value === $active];
+            $out[] = ['value' => $value, 'label' => $m->translatedFormat('M Y'), 'active' => $value === $active];
         }
 
         return $out;

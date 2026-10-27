@@ -17,6 +17,6 @@ class PayoutsPausedException extends RuntimeException
 {
     public static function forOwner(string $ownerName): self
     {
-        return new self("payouts to {$ownerName} are paused — resume them on the owner’s page first.");
+        return new self(__('php/exceptions/owner/payouts_paused_exception.paused', ['owner' => $ownerName]));
     }
 }

@@ -16,6 +16,7 @@ final class PreviewChangedException extends RuntimeException
 {
     public function __construct()
     {
-        parent::__construct('The rates changed while you were reviewing — nothing was applied. Please preview again.');
+        // Built where it is thrown (inside the request, after its language is set), so the operator reads it in theirs.
+        parent::__construct(__('php/services/preview_changed_exception.message'));
     }
 }

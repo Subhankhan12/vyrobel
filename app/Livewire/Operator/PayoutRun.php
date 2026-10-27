@@ -25,7 +25,6 @@ use DateTimeInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -242,8 +241,10 @@ class PayoutRun extends Component
     /** DERIVED from the real counts — never a claimed total. */
     private function subtitle(int $ready, int $pending): string
     {
-        return $ready.' '.Str::plural('statement', $ready).' ready · '
-            .$pending.' '.Str::plural('transfer', $pending).' pending';
+        return __('php/livewire/operator/payout_run.subtitle', [
+            'statements_ready' => trans_choice('php/livewire/operator/payout_run.statements_ready', $ready, ['count' => $ready]),
+            'transfers_pending' => trans_choice('php/livewire/operator/payout_run.transfers_pending', $pending, ['count' => $pending]),
+        ]);
     }
 
     // ── Stat strip — DERIVED, PER CURRENCY (invariant #17) ───────────────────────────────────────
@@ -397,7 +398,7 @@ class PayoutRun extends Component
             'owner_name' => $this->ownerName($p->owner),
             'amount' => $this->money((int) $p->amount_minor, (string) $p->currency),
             'iban' => $ibanByOwner[$this->ownerId($p->owner) ?? ''] ?? null,
-            'reason' => 'Tax details pending — carried until cleared',
+            'reason' => __('php/livewire/operator/payout_run.held_reason'),
         ])->values()->all();
     }
 
@@ -421,7 +422,7 @@ class PayoutRun extends Component
 
     private function period(OwnerStatement $s): string
     {
-        return $s->period_start->format('j M Y').' – '.$s->period_end->format('j M Y');
+        return $s->period_start->translatedFormat('j M Y').' – '.$s->period_end->translatedFormat('j M Y');
     }
 
     /** The payout's source statement number. Null `sequence_no` renders "—", never a made-up ref. */
@@ -450,7 +451,7 @@ class PayoutRun extends Component
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $value instanceof DateTimeInterface ? Carbon::instance($value)->format('j M Y') : null;
+        return $value instanceof DateTimeInterface ? Carbon::instance($value)->translatedFormat('j M Y') : null;
     }
 
     private function nullableString(mixed $value): ?string

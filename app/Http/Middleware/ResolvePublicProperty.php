@@ -78,7 +78,7 @@ class ResolvePublicProperty
         );
 
         if ($property === null) {
-            abort(404, 'Unknown property.');
+            abort(404, __('php/http/middleware/resolve_public_property.unknown_property'));
         }
 
         // ⚠️⚠️ R-SUSPEND — the organisation, not just the property. See the class docblock.
@@ -123,10 +123,8 @@ class ResolvePublicProperty
     {
         return response()->view('errors.layout', [
             'code' => 404,
-            'title' => 'Online booking isn’t available here',
-            'message' => 'This property isn’t taking online bookings at the moment. If you already have a '
-                .'booking, you can still manage it from the link in your confirmation email. To ask about '
-                .'staying here, please contact the property directly.',
+            'title' => __('php/http/middleware/resolve_public_property.closed_title'),
+            'message' => __('php/http/middleware/resolve_public_property.closed_message'),
         ], 404);
     }
 }

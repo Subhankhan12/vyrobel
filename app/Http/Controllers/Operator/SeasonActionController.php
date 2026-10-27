@@ -48,15 +48,15 @@ class SeasonActionController extends Controller
     private function messages(): array
     {
         return [
-            'rate_plan_id.required' => 'Choose a rate plan.',
-            'name.required' => 'Give the season a name.',
-            'name.max' => 'Keep the season name to 80 characters.',
-            'starts_on.required' => 'Choose the first night.',
-            'starts_on.date' => 'Choose the first night.',
-            'ends_on.required' => 'Choose the last night.',
-            'ends_on.date' => 'Choose the last night.',
-            'ends_on.after_or_equal' => 'The last night can’t be before the first night.',
-            'price.required' => 'Enter a nightly price.',
+            'rate_plan_id.required' => __('php/http/controllers/operator/season_action_controller.choose_rate_plan'),
+            'name.required' => __('php/http/controllers/operator/season_action_controller.name_required'),
+            'name.max' => __('php/http/controllers/operator/season_action_controller.name_too_long'),
+            'starts_on.required' => __('php/http/controllers/operator/season_action_controller.choose_first_night'),
+            'starts_on.date' => __('php/http/controllers/operator/season_action_controller.choose_first_night'),
+            'ends_on.required' => __('php/http/controllers/operator/season_action_controller.choose_last_night'),
+            'ends_on.date' => __('php/http/controllers/operator/season_action_controller.choose_last_night'),
+            'ends_on.after_or_equal' => __('php/http/controllers/operator/season_action_controller.last_before_first'),
+            'price.required' => __('php/http/controllers/operator/season_action_controller.price_required'),
         ];
     }
 
@@ -71,7 +71,7 @@ class SeasonActionController extends Controller
             return null;
         }
 
-        $message = 'Your workspace is read-only right now — rate changes are paused.';
+        $message = __('php/http/controllers/operator/season_action_controller.read_only');
 
         if (CalendarReturn::wanted($request)) {
             return redirect()->to(CalendarReturn::dialog($request))->with('calendar_dialog_error', $message);
@@ -161,7 +161,7 @@ class SeasonActionController extends Controller
 
         $minor = MoneyInput::toMinor($data['price'], self::MAX_PRICE_MINOR);
         if ($minor === null || $minor <= 0) {
-            return back()->withErrors(['price' => 'Enter a nightly price greater than zero and no more than 1,000,000.'])->withInput();
+            return back()->withErrors(['price' => __('php/http/controllers/operator/season_action_controller.price_out_of_range')])->withInput();
         }
 
         $season = RateSeason::create([
@@ -176,7 +176,7 @@ class SeasonActionController extends Controller
         // ⚠️ F-22 — `before` is genuinely null here: the season did not exist. Honest null, not a placeholder.
         $this->audit->record('rate_season.created', $season, null, $this->seasonState($season));
 
-        return $this->toPage($request)->with('rates_notice', 'Season saved. Review the blast radius, then apply it to write those nights.');
+        return $this->toPage($request)->with('rates_notice', __('php/http/controllers/operator/season_action_controller.season_saved'));
     }
 
     /**
@@ -208,9 +208,7 @@ class SeasonActionController extends Controller
             // ⚠️ The error key `season` is the contract (SeasonEditDeleteTest) — and since 2026-10-01 the page SHOWS it, as an
             //    alert at the top. Until then only `price` was rendered, so this refusal arrived silently.
             return $this->toPage($request)->withErrors([
-                'season' => 'This season has already been applied, so it cannot be edited — the nightly rates it '
-                    .'wrote have replaced whatever was there, and nothing recorded the previous prices. Author a new '
-                    .'season over those nights instead.',
+                'season' => __('php/http/controllers/operator/season_action_controller.already_applied'),
             ]);
         }
 
@@ -230,7 +228,7 @@ class SeasonActionController extends Controller
         $minor = MoneyInput::toMinor($data['price'], self::MAX_PRICE_MINOR);
 
         if ($minor === null || $minor <= 0) {
-            return $this->toPage($request)->with('rates_error', 'Enter a nightly price greater than zero and no more than 1,000,000.');
+            return $this->toPage($request)->with('rates_error', __('php/http/controllers/operator/season_action_controller.price_out_of_range'));
         }
 
         // ⚠️ CAPTURED BEFORE THE WRITE. Phase 11 found 11 of 11 rate-path call sites passing `before => null`,
@@ -247,7 +245,7 @@ class SeasonActionController extends Controller
 
         $this->audit->record('rate_season.updated', $model, $before, $this->seasonState($model->refresh()));
 
-        return $this->toPage($request)->with('rates_notice', 'Season updated. Review the blast radius, then apply it to write those nights.');
+        return $this->toPage($request)->with('rates_notice', __('php/http/controllers/operator/season_action_controller.season_updated'));
     }
 
     /**
@@ -285,9 +283,8 @@ class SeasonActionController extends Controller
         $this->audit->record('rate_season.deleted', $model, $before, null);
 
         return $this->toPage($request)->with('rates_notice', $wasApplied
-            ? sprintf('Season "%s" deleted. ⚠️ The nightly rates it already applied are unchanged — deleting a '
-                .'season does not restore the prices it replaced. Set those nights yourself if they are wrong.', $name)
-            : sprintf('Season "%s" deleted. It had not been applied, so no rates changed.', $name));
+            ? __('php/http/controllers/operator/season_action_controller.deleted_after_apply', ['season' => $name])
+            : __('php/http/controllers/operator/season_action_controller.deleted_not_applied', ['season' => $name]));
     }
 
     /**
@@ -312,23 +309,16 @@ class SeasonActionController extends Controller
         // this orchestrates it, it does not replace it.
         $written = $seasons->applyInPrecedenceOrder($model);
 
-        $notice = sprintf(
-            '%s applied — %d night%s rewritten across %d unit%s.',
-            $model->name,
-            $preview['nights'],
-            $preview['nights'] === 1 ? '' : 's',
-            $preview['units'],
-            $preview['units'] === 1 ? '' : 's',
-        );
+        $notice = __('php/http/controllers/operator/season_action_controller.applied', [
+            'season' => (string) $model->name,
+            'nights' => trans_choice('php/http/controllers/operator/season_action_controller.nights_count', (int) $preview['nights'], ['count' => (int) $preview['nights']]),
+            'units' => trans_choice('php/http/controllers/operator/season_action_controller.units_count', (int) $preview['units'], ['count' => (int) $preview['units']]),
+        ]);
 
         // ⚠️ SAY WHEN MORE THAN THIS SEASON WAS WRITTEN. Re-applying a neighbour is not something an operator
         // should discover from the calendar. Counted from what was ACTUALLY written, never assumed.
         if (count($written) > 1) {
-            $notice .= sprintf(
-                ' %d overlapping season%s re-applied in precedence order.',
-                count($written) - 1,
-                count($written) === 2 ? ' was' : 's were',
-            );
+            $notice .= ' '.trans_choice('php/http/controllers/operator/season_action_controller.overlapping_reapplied', count($written) - 1, ['count' => count($written) - 1]);
         }
 
         // ⚠️ 2026-10-04 (his next report) — and from the Calendar's New reservation dialog, back INTO it ({@see CalendarReturn}).
@@ -342,8 +332,9 @@ class SeasonActionController extends Controller
             if ($in !== null && $out !== null && $out > $in) {
                 $missing = (int) CarbonImmutable::parse($in)->diffInDays(CarbonImmutable::parse($out))
                     - RateCalendar::query()->where('rate_plan_id', $model->rate_plan_id)->where('date', '>=', $in)->where('date', '<', $out)->count();
-                $stay = $missing <= 0 ? ' Pick a unit to continue.'
-                    : ' '.$missing.' '.($missing === 1 ? 'night of the stay still has' : 'nights of the stay still have').' no price.';
+                $stay = ' '.($missing <= 0
+                    ? __('php/http/controllers/operator/season_action_controller.pick_unit_to_continue')
+                    : trans_choice('php/http/controllers/operator/season_action_controller.stay_nights_unpriced', $missing, ['count' => $missing]));
                 // the Calendar's dialog says what comes next itself, from what it shows (a unit may already be picked)
                 if ($missing <= 0 && CalendarReturn::wanted($request)) {
                     $stay = '';

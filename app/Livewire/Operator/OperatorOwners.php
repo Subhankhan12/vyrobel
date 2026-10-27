@@ -184,10 +184,17 @@ class OperatorOwners extends Component
     private function chips(array $all, array $state, OwnerRows $rowsOf): array
     {
         $chips = [];
-        foreach ([[null, 'All'], ['ready', 'Ready to pay'], ['hold', 'On hold'], ['review', 'Needs review'], ['paused', 'Payouts paused'], ['invited', 'Invited']] as [$filter, $label]) {
+        foreach ([null, 'ready', 'hold', 'review', 'paused', 'invited'] as $filter) {
             $chips[] = [
                 'key' => $filter ?? 'all',
-                'label' => $label,
+                'label' => match ($filter) {
+                    null => __('common.all'),
+                    'ready' => __('php/livewire/operator/operator_owners.chip_ready'),
+                    'hold' => __('php/livewire/operator/operator_owners.chip_hold'),
+                    'review' => __('php/livewire/operator/operator_owners.chip_review'),
+                    'paused' => __('php/livewire/operator/operator_owners.chip_paused'),
+                    'invited' => __('php/livewire/operator/operator_owners.chip_invited'),
+                },
                 // the REAL count of what clicking it shows, the search included
                 'count' => count(array_filter($all, fn (array $r): bool => $rowsOf->matches($r, $filter, $state['q']))),
                 'active' => $state['filter'] === $filter,
@@ -247,14 +254,14 @@ class OperatorOwners extends Component
     private function sortedBy(array $state): string
     {
         return match ($state['sort'].'.'.$state['dir']) {
-            'name.asc' => 'by owner, A–Z',
-            'name.desc' => 'by owner, Z–A',
-            'units.desc' => 'most units first',
-            'units.asc' => 'fewest units first',
-            'net.desc' => 'largest net payable first',
-            'net.asc' => 'smallest net payable first',
-            'status.asc' => 'what needs you first',
-            'status.desc' => 'what needs you last',
+            'name.asc' => __('php/livewire/operator/operator_owners.sorted_name_asc'),
+            'name.desc' => __('php/livewire/operator/operator_owners.sorted_name_desc'),
+            'units.desc' => __('php/livewire/operator/operator_owners.sorted_units_desc'),
+            'units.asc' => __('php/livewire/operator/operator_owners.sorted_units_asc'),
+            'net.desc' => __('php/livewire/operator/operator_owners.sorted_net_desc'),
+            'net.asc' => __('php/livewire/operator/operator_owners.sorted_net_asc'),
+            'status.asc' => __('php/livewire/operator/operator_owners.sorted_status_asc'),
+            'status.desc' => __('php/livewire/operator/operator_owners.sorted_status_desc'),
         };
     }
 
@@ -274,17 +281,20 @@ class OperatorOwners extends Component
         $review = count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'draft'));
         $invited = count(array_filter($all, fn (array $r): bool => in_array($r['pay_key'], ['invited', 'inactive'], true)));
         $paused = count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'paused'));
+        $units = array_sum(array_column($all, 'units'));
 
         return [
             'owners' => count(array_filter($all, fn (array $r): bool => $r['active'])),
-            'owners_sub' => $invited.' invited · '.array_sum(array_column($all, 'units')).' '.(array_sum(array_column($all, 'units')) === 1 ? 'unit' : 'units'),
+            'owners_sub' => __('php/livewire/operator/operator_owners.kpi_invited', ['number' => $invited]).' · '
+                .trans_choice('php/livewire/operator/operator_owners.kpi_units', $units, ['count' => $units]),
             'ready' => $this->sumLines($ready, $currency),
-            'ready_sub' => count($ready).' '.(count($ready) === 1 ? 'owner' : 'owners').' ready'
-                .($paused > 0 ? ' · '.$paused.' paused, not counted' : ''),
+            'ready_sub' => trans_choice('php/livewire/operator/operator_owners.kpi_owners_ready', count($ready), ['count' => count($ready)])
+                .($paused > 0 ? ' · '.__('php/livewire/operator/operator_owners.kpi_paused_not_counted', ['number' => $paused]) : ''),
             'hold' => count($hold),
-            'hold_sub' => count($hold) === 0 ? 'nothing waiting' : implode(' · ', $this->sumLines($hold, $currency)).' waiting',
+            'hold_sub' => count($hold) === 0 ? __('php/livewire/operator/operator_owners.kpi_hold_none')
+                : __('php/livewire/operator/operator_owners.kpi_hold_waiting', ['amounts' => implode(' · ', $this->sumLines($hold, $currency))]),
             'review' => $review,
-            'review_sub' => $review.' with lines the booking channel hasn’t confirmed',
+            'review_sub' => __('php/livewire/operator/operator_owners.kpi_review_sub', ['number' => $review]),
         ];
     }
 
@@ -320,7 +330,7 @@ class OperatorOwners extends Component
 
         return [
             'engine' => (bool) config('services.payouts.engine_enabled', false),
-            'schedule' => $this->ordinal((int) $defaults['payout_day']).' business day of the month',
+            'schedule' => __('php/livewire/operator/operator_owners.schedule', ['day' => $this->ordinal((int) $defaults['payout_day'])]),
             'own' => OwnerPayoutPreference::query()->where(fn ($q) => $q->where('frequency', '!=', $defaults['frequency'])
                 ->orWhere('payout_day', '!=', $defaults['payout_day']))->count(),
             'commission' => match (count($rates)) {
@@ -351,12 +361,12 @@ class OperatorOwners extends Component
             'name' => $name = (string) ($owners[$i->owner_id] ?? $users[$i->email] ?? $i->email),
             'initials' => OwnerRows::initials($name),
             'role' => match ((string) $i->role) {
-                'manager' => 'Property manager',
-                'accountant' => 'Accountant',
-                default => 'Owner',
+                'manager' => __('php/livewire/operator/operator_owners.role_manager'),
+                'accountant' => __('php/livewire/operator/operator_owners.role_accountant'),
+                default => __('php/livewire/operator/operator_owners.role_owner'),
             },
-            'sent' => $i->created_at?->format('j M') ?? '',
-            'expires' => $i->expires_at?->format('j M Y'),
+            'sent' => $i->created_at?->translatedFormat('j M') ?? '',
+            'expires' => $i->expires_at?->translatedFormat('j M Y'),
             'expired' => $i->expires_at !== null && $i->expires_at->isPast(),
             'units' => count($i->assigned_unit_ids ?? []),
             'commission' => $i->commission_pct !== null ? rtrim(rtrim((string) $i->commission_pct, '0'), '.').'%' : null,
@@ -381,7 +391,7 @@ class OperatorOwners extends Component
             ->map(fn (Unit $u): array => [
                 'id' => (string) $u->id,
                 'label' => (string) ($u->name ?: $u->code),
-                'owner' => $u->owner_id !== null ? (string) ($owners[$u->owner_id] ?? 'another owner') : null,
+                'owner' => $u->owner_id !== null ? (string) ($owners[$u->owner_id] ?? __('php/livewire/operator/operator_owners.another_owner')) : null,
             ])->all();
     }
 
@@ -441,12 +451,12 @@ class OperatorOwners extends Component
 
     private function ordinal(int $n): string
     {
-        return $n.match (true) {
-            $n % 100 >= 11 && $n % 100 <= 13 => 'th',
-            $n % 10 === 1 => 'st',
-            $n % 10 === 2 => 'nd',
-            $n % 10 === 3 => 'rd',
-            default => 'th',
+        return match (true) {
+            $n % 100 >= 11 && $n % 100 <= 13 => __('php/livewire/operator/operator_owners.ordinal_th', ['number' => $n]),
+            $n % 10 === 1 => __('php/livewire/operator/operator_owners.ordinal_st', ['number' => $n]),
+            $n % 10 === 2 => __('php/livewire/operator/operator_owners.ordinal_nd', ['number' => $n]),
+            $n % 10 === 3 => __('php/livewire/operator/operator_owners.ordinal_rd', ['number' => $n]),
+            default => __('php/livewire/operator/operator_owners.ordinal_th', ['number' => $n]),
         };
     }
 }

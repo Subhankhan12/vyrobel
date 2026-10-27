@@ -6,13 +6,13 @@
      CHARGE + stored CARD + PAID invoices are account-gated — NEVER fabricated (no fake "····4242"/"Paid").
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div>
-    <x-operator.shell active="billing" title="Billing" :subtitle="$status['label']" :viewer="$viewer">
+    <x-operator.shell active="billing" :title="__('livewire/operator/billing.page_title')" :subtitle="$status['label']" :viewer="$viewer">
 
         {{-- Settings sub-nav (General / Team / Billing) --}}
         <div class="vy-subnav vy-fade">
-            <a href="{{ route('app.settings') }}" class="vy-subnav-tab">General</a>
-            <a href="{{ route('app.roles') }}" class="vy-subnav-tab">Team</a>
-            <span class="vy-subnav-tab is-active">Billing</span>
+            <a href="{{ route('app.settings') }}" class="vy-subnav-tab">{{ __('livewire/operator/billing.tab_general') }}</a>
+            <a href="{{ route('app.roles') }}" class="vy-subnav-tab">{{ __('livewire/operator/billing.tab_team') }}</a>
+            <span class="vy-subnav-tab is-active">{{ __('livewire/operator/billing.tab_billing') }}</span>
         </div>
 
         @if (session('billing_notice'))
@@ -33,29 +33,27 @@
         <div class="vy-card vy-fade" style="margin-bottom:14px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                 <div>
-                    <div class="vy-card-title">Card acceptance</div>
-                    <div class="vy-recon" style="margin-top:2px">Card payments are taken on this account. Guests pay you directly.</div>
+                    <div class="vy-card-title">{{ __('livewire/operator/billing.card_acceptance') }}</div>
+                    <div class="vy-recon" style="margin-top:2px">{{ __('livewire/operator/billing.card_acceptance_sub') }}</div>
                 </div>
                 <div>
                     @if ($connect['ready'])
-                        <span class="vy-chip is-ok">Verified — cards can be taken</span>
+                        <span class="vy-chip is-ok">{{ __('livewire/operator/billing.connect_verified') }}</span>
                     @elseif ($connect['details_submitted'])
                         {{-- ⚠️ SUBMITTED IS NOT READY. Stripe still has to enable charges, and saying "done"
                              here is how a refused card later reads as a broken product. --}}
-                        <span class="vy-chip">Submitted — Stripe is reviewing</span>
+                        <span class="vy-chip">{{ __('livewire/operator/billing.connect_submitted') }}</span>
                     @elseif ($connect['connected'])
-                        <span class="vy-chip">Started — not finished</span>
+                        <span class="vy-chip">{{ __('livewire/operator/billing.connect_started') }}</span>
                     @else
-                        <span class="vy-chip">Not set up</span>
+                        <span class="vy-chip">{{ __('livewire/operator/billing.connect_not_set_up') }}</span>
                     @endif
                 </div>
             </div>
 
             @if (! $connect['ready'])
                 <div class="vy-recon" style="margin-top:12px">
-                    Until this account is verified by Stripe, no card can be taken — on your storefront, in
-                    the guest portal, or at the front desk. Take payment another way and record it on the
-                    folio in the meantime.
+                    {{ __('livewire/operator/billing.connect_not_ready') }}
                 </div>
             @endif
 
@@ -64,15 +62,13 @@
                      be changed afterwards, and nothing in Vyrobel stops an operator holding properties in
                      more than one country — so the trap is discovered months later, while expanding. --}}
                 <div class="vy-card" style="margin-top:12px;border-left:3px solid #B4400F">
-                    <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">Before you start: the country cannot be changed later</div>
+                    <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ __('livewire/operator/billing.country_heading') }}</div>
                     <div class="vy-recon" style="margin-top:4px">
-                        Stripe fixes the country when the account is created and it cannot be changed
-                        afterwards — a new account is the only way to change it. If you operate in more than
-                        one country, choose the one your business is registered in.
+                        {{ __('livewire/operator/billing.country_body') }}
                         @if ($connect['country'])
-                            Your account records <strong>{{ $connect['country'] }}</strong>; Stripe will ask you to confirm.
+                            {!! __('livewire/operator/billing.country_recorded', ['country' => e($connect['country'])]) !!}
                         @else
-                            No country is recorded here yet, so Stripe will ask you for one.
+                            {{ __('livewire/operator/billing.country_missing') }}
                         @endif
                     </div>
                 </div>
@@ -84,19 +80,15 @@
                  somewhere the operator can silently override — telling them they had configured something
                  they had not. Guidance instead, pointing at a destination that genuinely exists. --}}
             <div class="vy-card" style="margin-top:12px">
-                <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">What your guests will see on their card statement</div>
+                <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ __('livewire/operator/billing.descriptor_heading') }}</div>
                 <div class="vy-recon" style="margin-top:4px">
-                    Because the payment is taken on your own Stripe account, your business name appears on the
-                    guest's statement — not Vyrobel's. Stripe builds it from your business profile during
-                    setup, and only the first 22 characters reach the card networks.
+                    {{ __('livewire/operator/billing.descriptor_body') }}
                 </div>
                 <div class="vy-recon" style="margin-top:6px">
-                    A guest who booked one name and sees an unfamiliar legal entity is likely to dispute the
-                    charge, so it is worth checking it reads the way guests know you. You control it in your
-                    own Stripe dashboard — Vyrobel cannot set it for you.
+                    {{ __('livewire/operator/billing.descriptor_dispute') }}
                 </div>
                 @if ($connect['connected'])
-                    <div style="margin-top:8px"><a href="https://dashboard.stripe.com/settings/public" target="_blank" rel="noopener" class="vy-btn vy-btn-ghost">Open your Stripe settings</a></div>
+                    <div style="margin-top:8px"><a href="https://dashboard.stripe.com/settings/public" target="_blank" rel="noopener" class="vy-btn vy-btn-ghost">{{ __('livewire/operator/billing.open_stripe_settings') }}</a></div>
                 @endif
             </div>
 
@@ -108,11 +100,11 @@
                      account with a new link. --}}
                 <button type="submit" class="vy-btn">
                     @if ($connect['ready'])
-                        Review your Stripe account
+                        {{ __('livewire/operator/billing.connect_review') }}
                     @elseif ($connect['connected'])
-                        Continue setup with Stripe
+                        {{ __('livewire/operator/billing.connect_continue') }}
                     @else
-                        Set up card acceptance with Stripe
+                        {{ __('livewire/operator/billing.connect_start') }}
                     @endif
                 </button>
             </form>
@@ -121,13 +113,13 @@
         {{-- Live read-only lifecycle state (canceling / paused) — the REAL state this page writes --}}
         @if ($lifecycle['is_canceling'])
             <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-amber);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:14px">
-                <div><div class="vy-bill-line"><strong>Subscription ending.</strong> You keep full access until {{ $lifecycle['readonly_from'] }}, then the workspace goes read-only. Your data is kept.</div></div>
-                <form method="POST" action="{{ route('app.billing.resume') }}">@csrf<button type="submit" class="vy-btn vy-btn--accent">Keep my plan</button></form>
+                <div><div class="vy-bill-line">{!! __('livewire/operator/billing.subscription_ending', ['date' => e($lifecycle['readonly_from'])]) !!}</div></div>
+                <form method="POST" action="{{ route('app.billing.resume') }}">@csrf<button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/billing.keep_my_plan') }}</button></form>
             </div>
         @elseif ($lifecycle['is_paused'])
             <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-amber);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:14px">
-                <div><div class="vy-bill-line"><strong>Workspace paused.</strong> Read-only until {{ $lifecycle['paused_until'] }} — resume any time.</div></div>
-                <form method="POST" action="{{ route('app.billing.resume') }}">@csrf<button type="submit" class="vy-btn vy-btn--accent">Resume now</button></form>
+                <div><div class="vy-bill-line">{!! __('livewire/operator/billing.workspace_paused', ['date' => e($lifecycle['paused_until'])]) !!}</div></div>
+                <form method="POST" action="{{ route('app.billing.resume') }}">@csrf<button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/billing.resume_now') }}</button></form>
             </div>
         @endif
 
@@ -151,9 +143,9 @@
                                      "N units × €rate" line is unreachable rather than merely hidden (§N.16.3). --}}
                                 <div class="vy-bill-line" style="margin-top:8px;color:var(--vy-muted);font-size:12.5px">
                                     @if ($billing['is_per_unit'])
-                                        {{ ucfirst($plan['interval']) }} · {{ $billing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $billing['units']) }} × {{ $billing['unit_rate'] }} · subscribed {{ $plan['subscribed_on'] }}
+                                        {{ trans_choice('livewire/operator/billing.plan_line_per_unit', $billing['units'], ['interval' => $plan['interval_label'], 'count' => $billing['units'], 'rate' => $billing['unit_rate'], 'date' => $plan['subscribed_on']]) }}
                                     @else
-                                        {{ ucfirst($plan['interval']) }} · subscribed {{ $plan['subscribed_on'] }}
+                                        {{ __('livewire/operator/billing.plan_line_flat', ['interval' => $plan['interval_label'], 'date' => $plan['subscribed_on']]) }}
                                     @endif
                                 </div>
                             </div>
@@ -163,7 +155,7 @@
                                 {{-- $billing is non-null exactly when $plan is (both derive from the same
                                      subscription), so no fallback is needed — and a fallback to a key that does
                                      not exist would be a latent error rather than a safety net. --}}
-                                <div><span class="vy-bill-amt">{{ $billing['gross'] }}</span><span class="vy-bill-per">/mo</span></div>
+                                <div><span class="vy-bill-amt">{{ $billing['gross'] }}</span><span class="vy-bill-per">{{ __('livewire/operator/billing.per_month') }}</span></div>
                                 {{-- ⚠️ BILLING PASS 2b — THE PAGE STOPPED CLAIMING A TAX IT CANNOT KNOW. This printed
                                      "incl. 23% VAT" on a per-unit plan. Under Stripe Tax the rate is the CUSTOMER's
                                      (§N.16.2 — their country and VAT status are data Stripe resolves at checkout), and an
@@ -188,7 +180,7 @@
                                 {{-- ⚠️ 2b — this read SubscriptionPricing, a SECOND hardcoded 23% pass 3 left behind, and it
                                      asserted a VAT split on EVERY shape. It now reads the same plan-derived summary as the
                                      headline (§N.8f, one definition) and says only what that shape supports. --}}
-                                <span>Next invoice <strong>{{ $plan['period_end'] }}</strong> · {{ $billing['gross'] }}@if ($billing['tax_note'] !== '') · {{ $billing['tax_note'] }}@endif</span>
+                                <span>{!! __('livewire/operator/billing.next_invoice', ['date' => e($plan['period_end']), 'amount' => e($billing['gross'])]) !!}@if ($billing['tax_note'] !== '') · {{ $billing['tax_note'] }}@endif</span>
                             </div>
                         @else
                             <div class="vy-bill-line" style="margin-top:12px;color:var(--vy-muted);font-size:12px">{{ $billing['gross'] }}@if ($billing['tax_note'] !== '') · {{ $billing['tax_note'] }}@endif</div>
@@ -204,16 +196,16 @@
                                 {{-- The design makes this the primary action. The LINK is unchanged — it still
                                      carries the org's OWN plan code (the WAVE-2 · S3 fix), so restyling it
                                      cannot reintroduce the silent-upgrade-to-Pro bug. --}}
-                                <a href="{{ route('app.billing.checkout', ['plan' => $plan['code'], 'interval' => 'yearly']) }}" class="vy-btn vy-btn--accent">Switch to yearly · save {{ $pricing['yearly_saving'] }}</a>
+                                <a href="{{ route('app.billing.checkout', ['plan' => $plan['code'], 'interval' => 'yearly']) }}" class="vy-btn vy-btn--accent">{{ __('livewire/operator/billing.switch_to_yearly', ['amount' => $pricing['yearly_saving']]) }}</a>
                             @endif
-                            <a href="#vy-plans" class="vy-btn vy-btn--ghost">Change plan</a>
+                            <a href="#vy-plans" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/billing.change_plan_link') }}</a>
                         </div>
-                        <div class="vy-fx-note" style="margin-top:12px">Test mode — no card is charged until live billing is enabled. The figure is your real unit count at placeholder pricing.</div>
+                        <div class="vy-fx-note" style="margin-top:12px">{{ __('livewire/operator/billing.test_mode_note') }}</div>
                     </section>
 
                     {{-- Invoices (HONEST — the real trial; paid invoices are account-gated) --}}
                     <section class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom:12px">Invoices</h2>
+                        <h2 class="vy-card-title" style="margin-bottom:12px">{{ __('livewire/operator/billing.invoices') }}</h2>
                         @foreach ($invoices as $inv)
                             <div class="vy-inv-row">
                                 <div><div class="vy-inv-ref">{{ $inv['label'] }}</div><div class="vy-inv-sub">{{ $inv['period'] }}</div></div>
@@ -223,7 +215,7 @@
                                 </div>
                             </div>
                         @endforeach
-                        <div class="vy-fx-note" style="margin-top:10px">Paid invoices &amp; PDFs appear here once live billing is enabled — nothing is charged in test mode, so no invoice is invented.</div>
+                        <div class="vy-fx-note" style="margin-top:10px">{{ __('livewire/operator/billing.invoices_note') }}</div>
                     </section>
 
                 </div>
@@ -232,53 +224,53 @@
                 <div class="vy-stack">
                     {{-- What you're paying for (REAL counts) --}}
                     <section class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom:10px">What you’re paying for</h2>
+                        <h2 class="vy-card-title" style="margin-bottom:10px">{{ __('livewire/operator/billing.paying_for') }}</h2>
                         {{-- ⚠️ The unit COUNT is shown on every shape (it is a real fact about the account), but
                              what it COSTS and the proration promise belong to a per-unit plan only. On a flat
                              tier "+€9/mo · prorated" was simply false — adding a unit changes nothing. --}}
                         @if ($billing !== null && $billing['is_per_unit'])
-                            <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $billing['units'] }} × {{ $billing['unit_rate'] }}</span></div>
+                            <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.units_on_rack') }}</span><span class="vy-mini-v">{{ $billing['units'] }} × {{ $billing['unit_rate'] }}</span></div>
                         @else
-                            <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $counts['units'] }}</span></div>
+                            <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.units_on_rack') }}</span><span class="vy-mini-v">{{ $counts['units'] }}</span></div>
                         @endif
-                        <div class="vy-mini-row"><span class="vy-mini-k">Team members</span><span class="vy-mini-v">{{ $counts['team'] }}{{ $counts['team_limit'] !== null ? ' of '.$counts['team_limit'] : ' · unlimited' }}</span></div>
-                        <div class="vy-mini-row"><span class="vy-mini-k">Channels</span><span class="vy-mini-v">{{ $counts['channels'] }} connected</span></div>
+                        <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.team_members') }}</span><span class="vy-mini-v">{{ $counts['team_limit'] !== null ? __('livewire/operator/billing.team_of_limit', ['members' => $counts['team'], 'limit' => $counts['team_limit']]) : __('livewire/operator/billing.team_unlimited', ['members' => $counts['team']]) }}</span></div>
+                        <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.channels') }}</span><span class="vy-mini-v">{{ __('livewire/operator/billing.channels_connected', ['channels' => $counts['channels']]) }}</span></div>
                         @if ($billing !== null && $billing['is_per_unit'])
                             {{-- TRUE since BILLING PASS 1: a per-unit subscription re-quantifies with Stripe
                                  proration, so the difference really is charged immediately. --}}
-                            <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">+{{ $billing['unit_rate'] }}/mo · prorated</span></div>
+                            <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.adding_a_unit') }}</span><span class="vy-mini-v">{{ __('livewire/operator/billing.adding_unit_prorated', ['rate' => $billing['unit_rate']]) }}</span></div>
                         @else
-                            <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">included in your plan</span></div>
+                            <div class="vy-mini-row"><span class="vy-mini-k">{{ __('livewire/operator/billing.adding_a_unit') }}</span><span class="vy-mini-v">{{ __('livewire/operator/billing.adding_unit_included') }}</span></div>
                         @endif
                     </section>
 
                     {{-- Payment method (HONEST-GATED — no card stored) --}}
                     <section class="vy-card">
-                        <div class="vy-detail-head" style="margin-bottom:8px"><h2 class="vy-card-title">Payment method</h2></div>
+                        <div class="vy-detail-head" style="margin-bottom:8px"><h2 class="vy-card-title">{{ __('livewire/operator/billing.payment_method') }}</h2></div>
                         <div class="vy-deferred" style="margin-top:2px">
-                            <span class="vy-eyebrow">No card on file</span>
-                            Your card is added on Stripe’s secure page — it never touches Vyrobel. Add one when live billing is enabled; nothing is charged in test mode.
+                            <span class="vy-eyebrow">{{ __('livewire/operator/billing.no_card_on_file') }}</span>
+                            {{ __('livewire/operator/billing.no_card_body') }}
                         </div>
                     </section>
 
                     {{-- Billing details (REAL + Edit) --}}
                     <section class="vy-card" x-data="{ edit: false }">
                         <div class="vy-detail-head" style="margin-bottom:8px">
-                            <h2 class="vy-card-title">Billing details</h2>
-                            <button type="button" class="vy-arr-link" x-on:click="edit = ! edit">Edit</button>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/billing.billing_details') }}</h2>
+                            <button type="button" class="vy-arr-link" x-on:click="edit = ! edit">{{ __('common.edit') }}</button>
                         </div>
                         <div x-show="! edit">
-                            <div class="vy-bill-line" style="font-weight:600">{{ $billingDetails['company'] ?? 'Not set' }}</div>
+                            <div class="vy-bill-line" style="font-weight:600">{{ $billingDetails['company'] ?? __('livewire/operator/billing.not_set') }}</div>
                             @if ($billingDetails['country'])<div class="vy-line-sub">{{ $billingDetails['country'] }}</div>@endif
-                            @if ($billingDetails['vat_id'])<div class="vy-line-sub">VAT {{ $billingDetails['vat_id'] }}</div>@endif
+                            @if ($billingDetails['vat_id'])<div class="vy-line-sub">{{ __('livewire/operator/billing.vat_line', ['vat_id' => $billingDetails['vat_id']]) }}</div>@endif
                             @if ($billingDetails['email'])<div class="vy-line-sub">{{ $billingDetails['email'] }}</div>@endif
                         </div>
                         <form x-show="edit" x-cloak method="POST" action="{{ route('app.billing.company') }}" style="margin-top:6px">
                             @csrf
-                            <label class="vy-field" style="display:block;margin-bottom:8px"><span class="vy-field-label">Company legal name</span><input type="text" name="billing_company" value="{{ $billingDetails['company'] }}" class="vy-input"></label>
-                            <label class="vy-field" style="display:block;margin-bottom:8px"><span class="vy-field-label">VAT ID</span><input type="text" name="billing_vat_id" value="{{ $billingDetails['vat_id'] }}" class="vy-input"></label>
-                            <label class="vy-field" style="display:block;margin-bottom:10px"><span class="vy-field-label">Billing email</span><input type="email" name="billing_email" value="{{ $billingDetails['email'] }}" class="vy-input"></label>
-                            <button type="submit" class="vy-btn vy-btn--accent">Save</button>
+                            <label class="vy-field" style="display:block;margin-bottom:8px"><span class="vy-field-label">{{ __('livewire/operator/billing.company_legal_name') }}</span><input type="text" name="billing_company" value="{{ $billingDetails['company'] }}" class="vy-input"></label>
+                            <label class="vy-field" style="display:block;margin-bottom:8px"><span class="vy-field-label">{{ __('livewire/operator/billing.vat_id') }}</span><input type="text" name="billing_vat_id" value="{{ $billingDetails['vat_id'] }}" class="vy-input"></label>
+                            <label class="vy-field" style="display:block;margin-bottom:10px"><span class="vy-field-label">{{ __('livewire/operator/billing.billing_email') }}</span><input type="email" name="billing_email" value="{{ $billingDetails['email'] }}" class="vy-input"></label>
+                            <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save') }}</button>
                         </form>
                     </section>
 
@@ -301,11 +293,11 @@
                         <section class="vy-card vy-bill-cancel">
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
                                 <div style="min-width:0">
-                                    <h2 class="vy-card-title" style="font-size:13px">Cancel subscription</h2>
-                                    <div class="vy-line-sub">Pause for the off-season, or cancel — your data is kept either way.</div>
+                                    <h2 class="vy-card-title" style="font-size:13px">{{ __('livewire/operator/billing.cancel_heading') }}</h2>
+                                    <div class="vy-line-sub">{{ __('livewire/operator/billing.cancel_sub') }}</div>
                                 </div>
                                 @unless ($lifecycle['is_paused'] || $lifecycle['is_canceling'])
-                                    <button type="button" class="vy-btn vy-btn--ghost" style="flex:none" x-on:click="open = true">Cancel…</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="flex:none" x-on:click="open = true">{{ __('livewire/operator/billing.cancel_open') }}</button>
                                 @endunless
                             </div>
                         </section>
@@ -313,21 +305,21 @@
                         {{-- Retention modal (Pause instead / Cancel for good / yearly offer) --}}
                         <div x-show="open" x-cloak class="vy-modal-scrim" x-on:click.self="open = false">
                             <div class="vy-modal">
-                                <h3 style="font-family:var(--vy-display);font-size:18px;font-weight:600;margin:0">Before you go</h3>
-                                <p class="vy-line-sub" style="margin:6px 0 16px">{{ $plan['name'] }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }}. Everything you’ve built is kept.</p>
+                                <h3 style="font-family:var(--vy-display);font-size:18px;font-weight:600;margin:0">{{ __('livewire/operator/billing.before_you_go') }}</h3>
+                                <p class="vy-line-sub" style="margin:6px 0 16px">{{ trans_choice('livewire/operator/billing.retention_summary', $pricing['units'], ['plan' => $plan['name'], 'count' => $pricing['units']]) }}</p>
 
                                 <div class="vy-retain-opt">
-                                    <div><strong>Pause instead · {{ $pauseFree }}</strong><div class="vy-line-sub">Up to 3 months. Units, rates, owners &amp; history kept. Channels stop selling, the workspace goes read-only, and you restart with one click.</div></div>
-                                    <form method="POST" action="{{ route('app.billing.pause') }}">@csrf<input type="hidden" name="months" value="3"><button type="submit" class="vy-btn vy-btn--accent">Pause 3 months</button></form>
+                                    <div><strong>{{ __('livewire/operator/billing.pause_instead', ['amount' => $pauseFree]) }}</strong><div class="vy-line-sub">{{ __('livewire/operator/billing.pause_body') }}</div></div>
+                                    <form method="POST" action="{{ route('app.billing.pause') }}">@csrf<input type="hidden" name="months" value="3"><button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/billing.pause_3_months') }}</button></form>
                                 </div>
 
                                 <div class="vy-retain-opt">
-                                    <div><strong>Cancel for good</strong><div class="vy-line-sub">You keep full access until your paid period ends, then the workspace is read-only, owners lose portal access, channels disconnect. Data export stays available for 90 days.</div></div>
-                                    <form method="POST" action="{{ route('app.billing.cancel') }}">@csrf<button type="submit" class="vy-btn vy-btn--ghost">Cancel for good</button></form>
+                                    <div><strong>{{ __('livewire/operator/billing.cancel_for_good_heading') }}</strong><div class="vy-line-sub">{{ __('livewire/operator/billing.cancel_for_good_body') }}</div></div>
+                                    <form method="POST" action="{{ route('app.billing.cancel') }}">@csrf<button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/billing.cancel_for_good_button') }}</button></form>
                                 </div>
 
-                                <div class="vy-fx-note" style="margin-top:8px">Cost the reason? Yearly billing saves {{ $pricing['yearly_saving'] }} a year. No fees either way — you can come back any time.</div>
-                                <div style="text-align:right;margin-top:14px"><button type="button" class="vy-btn vy-btn--ghost" x-on:click="open = false">Keep my plan</button></div>
+                                <div class="vy-fx-note" style="margin-top:8px">{{ __('livewire/operator/billing.yearly_offer', ['amount' => $pricing['yearly_saving']]) }}</div>
+                                <div style="text-align:right;margin-top:14px"><button type="button" class="vy-btn vy-btn--ghost" x-on:click="open = false">{{ __('livewire/operator/billing.keep_my_plan') }}</button></div>
                             </div>
                         </div>
                     </div>
@@ -336,7 +328,7 @@
 
             {{-- Change plan — the real tier catalog (links to the certified Checkout) --}}
             <div id="vy-plans" style="margin-top:22px">
-                <h2 class="vy-card-title vy-fade" style="margin-bottom:12px">Change plan</h2>
+                <h2 class="vy-card-title vy-fade" style="margin-bottom:12px">{{ __('livewire/operator/billing.change_plan_heading') }}</h2>
                 @include('livewire.operator.partials.billing-tiers')
             </div>
         @else
@@ -345,21 +337,21 @@
                 <span class="vy-bill-badge vy-bill-{{ $status['active'] ? 'ok' : ($status['lapsed'] ? 'warn' : 'trial') }}"><span class="vy-status-dot"></span>{{ $status['label'] }}</span>
                 <div style="flex:1">
                     @if ($status['on_trial'])
-                        <div class="vy-bill-line"><strong>{{ $status['days'] }} {{ $status['days'] === 1 ? 'day' : 'days' }}</strong> left in your free trial — full access. Choose a plan to keep going after it ends.</div>
+                        <div class="vy-bill-line">{!! trans_choice('livewire/operator/billing.trial_days_left', $status['days'], ['count' => (int) $status['days']]) !!}</div>
                     @elseif ($status['trial_expired'] || $status['lapsed'])
-                        <div class="vy-bill-line">Your trial has ended. Choose a plan below to reactivate full access.</div>
+                        <div class="vy-bill-line">{{ __('livewire/operator/billing.trial_ended') }}</div>
                     @else
-                        <div class="vy-bill-line">Choose a plan to subscribe.</div>
+                        <div class="vy-bill-line">{{ __('livewire/operator/billing.choose_a_plan') }}</div>
                     @endif
                 </div>
             </div>
             @include('livewire.operator.partials.billing-tiers')
         @endif
 
-        <p class="vy-bill-disclaimer vy-fade">Prices are placeholders while we finalise pricing. Subscriptions are billed securely through Stripe — your card details never touch Vyrobel, and no charge is taken in test mode.</p>
+        <p class="vy-bill-disclaimer vy-fade">{{ __('livewire/operator/billing.disclaimer') }}</p>
 
         @if (app()->environment('local') && ($status['on_trial'] || $status['active']))
-            <form method="POST" action="{{ route('app.billing.dev-expire') }}" class="vy-fade" style="margin-top:8px">@csrf<button type="submit" class="vy-btn vy-btn--ghost" style="font-size:11px">Test only · expire trial</button></form>
+            <form method="POST" action="{{ route('app.billing.dev-expire') }}" class="vy-fade" style="margin-top:8px">@csrf<button type="submit" class="vy-btn vy-btn--ghost" style="font-size:11px">{{ __('livewire/operator/billing.dev_expire_trial') }}</button></form>
         @endif
     </x-operator.shell>
 </div>

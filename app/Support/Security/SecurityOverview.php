@@ -97,7 +97,7 @@ final class SecurityOverview
                 'id' => (string) $a->getKey(),
                 'device' => DeviceLabel::from($a->user_agent),
                 'ip' => $a->ip !== null ? (string) $a->ip : null,
-                'when' => $a->created_at !== null ? CarbonImmutable::parse($a->created_at)->diffForHumans() : 'just now',
+                'when' => $a->created_at !== null ? CarbonImmutable::parse($a->created_at)->diffForHumans() : __('php/support/security/security_overview.just_now'),
             ])->values()->all();
     }
 
@@ -138,8 +138,8 @@ final class SecurityOverview
             ->get()
             ->map(fn (Passkey $p): array => [
                 'id' => (string) $p->id,
-                'label' => (string) ($p->label ?? 'Passkey'),
-                'last_used' => $p->last_used_at !== null ? CarbonImmutable::parse($p->last_used_at)->diffForHumans() : 'not used yet',
+                'label' => (string) ($p->label ?? __('php/support/security/security_overview.passkey')),
+                'last_used' => $p->last_used_at !== null ? CarbonImmutable::parse($p->last_used_at)->diffForHumans() : __('php/support/security/security_overview.not_used_yet'),
             ])->values()->all();
     }
 
@@ -149,7 +149,7 @@ final class SecurityOverview
         return app(TrustedDeviceService::class)->forUser($user, $request)
             ->map(fn ($d): array => [
                 'id' => (string) $d->getKey(),
-                'label' => (string) ($d->label ?? $d->user_agent ?? 'Trusted device'),
+                'label' => (string) ($d->label ?? $d->user_agent ?? __('php/support/security/security_overview.trusted_device')),
                 'ip' => (string) ($d->ip ?? ''),
                 'last_used' => $d->last_used_at !== null ? CarbonImmutable::parse($d->last_used_at)->diffForHumans() : null,
                 'expires' => $d->expires_at !== null ? CarbonImmutable::parse($d->expires_at)->diffForHumans() : null,

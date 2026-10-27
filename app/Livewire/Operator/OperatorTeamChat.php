@@ -41,7 +41,7 @@ class OperatorTeamChat extends Component
 
         $canGuests = $user->can('guests.view');
         $common = [
-            'guestsLabel' => Owner::query()->exists() ? 'Guests & owners' : 'Guests',
+            'guestsLabel' => Owner::query()->exists() ? __('php/livewire/operator/operator_team_chat.guests_and_owners') : __('php/livewire/operator/operator_team_chat.guests'),
             'guestUnread' => $canGuests ? MessageThread::query()->where('unread_count', '>', 0)->where('status', '!=', 'closed')->count() : 0,
         ];
 

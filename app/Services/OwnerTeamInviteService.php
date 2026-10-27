@@ -11,6 +11,7 @@ use App\Models\Owner;
 use App\Models\OwnerTeamInvite;
 use App\Models\OwnerUser;
 use App\Models\User;
+use App\Support\I18n\Locales;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Tenancy\TenantContext;
@@ -72,7 +73,7 @@ class OwnerTeamInviteService
 
         $existing = User::query()->where('email', $email)->first();
         if ($existing !== null && $existing->status === 'active') {
-            throw new RuntimeException('A user with this email already exists.');
+            throw new RuntimeException(__('php/services/owner_team_invite_service.email_taken'));
         }
 
         [$invite, $token] = DB::transaction(function () use ($name, $email, $orgId, $owner, $role, $existing): array {
@@ -111,7 +112,7 @@ class OwnerTeamInviteService
             return [$invite, $plain];
         });
 
-        Mail::to($email)->send(new OwnerTeamInviteMail($invite, $token, $name));
+        Mail::to($email)->locale(Locales::resolve(Locales::organizationDefault((string) $invite->organization_id)))->send(new OwnerTeamInviteMail($invite, $token, $name));
 
         return ['invite' => $invite, 'token' => $token];
     }
@@ -206,7 +207,7 @@ class OwnerTeamInviteService
         $user = User::query()->where('email', $invite->email)->first();
         $name = $user !== null ? (string) $user->name : Str::before((string) $invite->email, '@');
 
-        Mail::to((string) $invite->email)->send(new OwnerTeamInviteMail($invite, $plain, $name));
+        Mail::to((string) $invite->email)->locale(Locales::resolve($user?->locale, Locales::organizationDefault((string) $invite->organization_id)))->send(new OwnerTeamInviteMail($invite, $plain, $name));
     }
 
     /**

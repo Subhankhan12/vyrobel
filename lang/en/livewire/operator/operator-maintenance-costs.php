@@ -1,0 +1,47 @@
+<?php
+
+// resources/views/livewire/operator/operator-maintenance-costs.blade.php — the operator's Maintenance costs report (/app/maintenance/costs).
+
+return [
+    'page_title' => 'Maintenance costs',
+    'page_subtitle' => 'Derived from resolved work orders',
+    'back_to_board' => '‹ Board',
+    // the period switcher — one label per MaintenancePeriod preset code
+    'period_all' => 'All time',
+    'period_3m' => '3M',
+    'period_6m' => '6M',
+    'period_12m' => '12M',
+    'export_button' => 'Export ▾',
+    'export_pdf' => 'PDF report',
+    'export_pdf_note' => '· formatted',
+    'export_csv' => 'CSV',
+    'export_csv_note' => '· billable line items',
+    'export_xlsx' => 'Excel workbook',
+    'export_xlsx_note' => '· summary & line items',
+    'export_email' => 'Email to me',
+    'export_email_note' => '· PDF attachment',
+    'empty_state' => 'No resolved work orders yet — costs appear here once tickets are resolved with a cost.',
+    'kpi_total_spend' => 'Total spend',
+    'kpi_orders_closed' => 'Orders closed',
+    'kpi_avg_per_order' => 'Avg / order',
+    'kpi_parts_on_order' => 'Parts on order',
+    'kpi_parts_on_order_sub' => 'active work orders',
+    'spend_by_category' => 'Spend by category',
+    'billable_heading' => 'Billable work orders',
+    'col_work_order' => 'Work order',
+    'col_labor' => 'Labor',
+    'col_parts' => 'Parts',
+    'preview_note' => 'Showing the most recent :shown of :total line items — the Total row above reflects all :total. Export the CSV or workbook for the complete detail.',
+    'reconcile_note' => 'Labour + parts reconcile to the total; owner-billed work orders match the amount charged on the owner statement.',
+    'hero_label' => 'Spend, all time',
+    // one form prints for every n in English (it always said "N orders closed")
+    'hero_sub' => ':count orders closed · avg :avg',
+    'owner_billed' => 'Owner-billed · :amount',
+    'operator_borne' => 'Operator-borne · :amount',
+    'labour_vs_parts' => 'Labour vs parts',
+    'labour_pct' => 'Labour :pct%',
+    'parts_pct' => 'Parts :pct%',
+    'spend_by_month' => 'Spend by month',
+    'no_monthly_history' => 'No monthly history yet.',
+    'top_units' => 'Top units by spend',
+];

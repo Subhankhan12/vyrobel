@@ -112,10 +112,10 @@ final class RetentionCoverage
     {
         $out = [];
         foreach (RetentionPolicy::windows() as $table => $window) {
-            $out[$table] = $window['days'].' days (RetentionPolicy, retention:prune)';
+            $out[$table] = trans_choice('php/support/privacy/retention_coverage.rule_retention_policy', (int) $window['days'], ['count' => $window['days']]);
         }
-        $out[(new LoginActivity)->getTable()] = LoginActivity::RETENTION_DAYS.' days (platform:prune-activity)';
-        $out[(new GuestDocument)->getTable()] = '30 days after check-out (guest-documents:purge-expired)';
+        $out[(new LoginActivity)->getTable()] = trans_choice('php/support/privacy/retention_coverage.rule_login_activity', LoginActivity::RETENTION_DAYS, ['count' => LoginActivity::RETENTION_DAYS]);
+        $out[(new GuestDocument)->getTable()] = __('php/support/privacy/retention_coverage.rule_guest_documents');
         ksort($out);
 
         return $out;
@@ -130,13 +130,13 @@ final class RetentionCoverage
         $path ??= self::inventoryPath();
 
         if (! is_readable($path)) {
-            return ['measurable' => false, 'reason' => 'The inventory it counts ('.self::DATA_FILE.') is not deployed on this host, so the categories cannot be counted here.',
+            return ['measurable' => false, 'reason' => __('php/support/privacy/retention_coverage.reason_not_deployed', ['file' => self::DATA_FILE]),
                 'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
         }
 
         $data = json_decode((string) file_get_contents($path), true);
         if (! is_array($data) || ! is_array($data['categories'] ?? null)) {
-            return ['measurable' => false, 'reason' => 'The inventory it counts ('.self::DATA_FILE.') could not be read, so the categories cannot be counted here.',
+            return ['measurable' => false, 'reason' => __('php/support/privacy/retention_coverage.reason_unreadable', ['file' => self::DATA_FILE]),
                 'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
         }
 

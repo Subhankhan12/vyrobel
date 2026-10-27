@@ -173,16 +173,11 @@ class CheckInReservation
 
         throw new RuntimeException(match ($from) {
             // ⚠️ R1 — F-18's exact shape: a rolled-back probe once revived a cancelled booking this way.
-            'cancelled' => 'Cannot check in a cancelled reservation: the booking is closed and the '
-                .'room may already have been resold. A returning guest needs a new booking.',
+            'cancelled' => __('php/actions/reservations/check_in_reservation.refused_cancelled'),
 
             // ⚠️⚠️ R1 EXTENDED TO `no_show` (F-60). The route below was DRIVEN before it was named.
-            'no_show' => 'Cannot check in a no-show reservation: the booking is closed and its nights were '
-                .'released back to sale. To put this guest in a room, take a New reservation on the front '
-                .'desk — it re-checks availability before it books. The no-show and any fee already charged '
-                .'on it stay on the guest record.',
-            'checked_out' => 'Cannot check in a checked-out reservation: the departure has already been '
-                .'recorded and acted on. Reversing a checkout is not available.',
+            'no_show' => __('php/actions/reservations/check_in_reservation.refused_no_show'),
+            'checked_out' => __('php/actions/reservations/check_in_reservation.refused_checked_out'),
 
             // ⚠️⚠️ R5 (F-60) — REFUSE, AND NAME THE WAY OUT, exactly as R1's arms do. ⚠️ THE ROUTE WAS BUILT
             // AND DRIVEN BEFORE THIS SENTENCE NAMED IT (FIX 54): when the ruling was first put, the proposed
@@ -199,16 +194,13 @@ class CheckInReservation
             // confirming converts what is held and takes nothing further. Unlike the `no_show` arm — where the
             // nights were RELEASED and a new booking must re-check availability — there is nothing here that
             // can be lost to another guest in between.
-            'tentative' => 'Cannot check in a tentative booking: the room is held but not confirmed, so '
-                .'nobody has promised this guest the stay yet. Press Confirm hold on this reservation first, '
-                .'then check them in. The nights are already held by this booking, so confirming takes '
-                .'nothing further and cannot fail for availability.',
+            'tentative' => __('php/actions/reservations/check_in_reservation.refused_tentative'),
 
             // ⚠️ `enquiry` DELIBERATELY GETS NO ARM AND NO COPY. 🔬 Nothing in this application writes that
             // status — it exists in the enum and in display labels and no code path produces it — so a
             // sentence naming a route out of it would describe a journey no guest can be on. Recorded as a
             // ruling in docs/STATUS-LADDERS.md: do not "fix" the missing enquiry flow.
-            default => "Cannot check in a {$from} reservation.",
+            default => __('php/actions/reservations/check_in_reservation.refused_other', ['status' => $from]),
         });
     }
 }

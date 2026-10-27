@@ -14,23 +14,23 @@
 <div class="vy-sx-block vy-twofactor" id="sx-two-factor">
     <div class="vy-sx-row">
         <div class="vy-sx-row-main">
-            <h3 class="vy-sx-row-title">Two-factor authentication
+            <h3 class="vy-sx-row-title">{{ __('livewire/partials/two-factor-panel.heading') }}
                 @if ($tf['state'] === 'enabled')
-                    <span class="vy-sx-chip">On</span>
+                    <span class="vy-sx-chip">{{ __('livewire/partials/two-factor-panel.state_on') }}</span>
                 @elseif ($tf['state'] === 'pending')
-                    <span class="vy-sx-chip is-warn">Setting up</span>
+                    <span class="vy-sx-chip is-warn">{{ __('livewire/partials/two-factor-panel.state_setting_up') }}</span>
                 @else
-                    <span class="vy-sx-chip is-quiet">Off</span>
+                    <span class="vy-sx-chip is-quiet">{{ __('livewire/partials/two-factor-panel.state_off') }}</span>
                 @endif
             </h3>
-            <span class="vy-sx-row-meta">A 6-digit code from your authenticator app (Google Authenticator, 1Password, …) at each sign-in.</span>
+            <span class="vy-sx-row-meta">{{ __('livewire/partials/two-factor-panel.meta') }}</span>
         </div>
         @if ($tf['state'] === 'enabled')
-            <button type="button" class="vy-sx-switch" role="switch" aria-checked="true" aria-label="Two-factor authentication — turn off" @click="tfOff = true"></button>
+            <button type="button" class="vy-sx-switch" role="switch" aria-checked="true" aria-label="{{ __('livewire/partials/two-factor-panel.turn_off_switch_label') }}" @click="tfOff = true"></button>
         @elseif ($tf['state'] === 'disabled')
             <form method="POST" action="{{ $tf['routes']['enable'] }}">
                 @csrf
-                <button type="submit" class="vy-sx-switch" role="switch" aria-checked="false"><span class="vy-sx-sr">Enable two-factor</span></button>
+                <button type="submit" class="vy-sx-switch" role="switch" aria-checked="false"><span class="vy-sx-sr">{{ __('livewire/partials/two-factor-panel.enable_label') }}</span></button>
             </form>
         @endif
     </div>
@@ -42,8 +42,8 @@
     {{-- Recovery codes — shown EXACTLY ONCE (flashed on confirm/regenerate); only the encrypted form is stored. --}}
     @if ($tf['recovery_codes'])
         <div class="vy-sx-codes">
-            <strong>Save your recovery codes</strong>
-            <p>Each code works once if you lose your authenticator device. They won’t be shown again — store them somewhere safe.</p>
+            <strong>{{ __('livewire/partials/two-factor-panel.save_codes_heading') }}</strong>
+            <p>{{ __('livewire/partials/two-factor-panel.save_codes_body') }}</p>
             <div class="vy-sx-codes-grid">
                 @foreach ($tf['recovery_codes'] as $code)
                     <code>{{ $code }}</code>
@@ -56,22 +56,22 @@
         <div class="vy-sx-item" id="sx-recovery">
             <span class="vy-sx-ico"><x-security.icon name="lock" /></span>
             <div class="vy-sx-row-main">
-                <span class="vy-sx-row-title">Recovery codes</span>
-                <span class="vy-sx-row-meta">{{ $rc['left'] > 0 ? $rc['left'].' of '.$rc['total'].' recovery codes left' : 'None left — make a new set now' }}</span>
+                <span class="vy-sx-row-title">{{ __('livewire/partials/two-factor-panel.recovery_codes') }}</span>
+                <span class="vy-sx-row-meta">{{ $rc['left'] > 0 ? __('livewire/partials/two-factor-panel.codes_left', ['left' => $rc['left'], 'total' => $rc['total']]) : __('livewire/partials/two-factor-panel.none_left') }}</span>
             </div>
             <form method="POST" action="{{ $tf['routes']['regenerate'] }}">
                 @csrf
-                <button type="submit" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm">Regenerate</button>
+                <button type="submit" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm">{{ __('livewire/partials/two-factor-panel.regenerate_button') }}</button>
             </form>
         </div>
         <div class="vy-sx-gap"></div>
 
     @elseif ($tf['state'] === 'pending')
-        <p class="vy-sx-row-meta">Scan this QR code in your authenticator app, then enter the 6-digit code it shows to finish.</p>
+        <p class="vy-sx-row-meta">{{ __('livewire/partials/two-factor-panel.scan_qr') }}</p>
         <div class="vy-sx-setup">
             <div class="vy-sx-qr">{!! $tf['qr_svg'] !!}</div>
             <div class="vy-sx-field">
-                <span class="vy-sx-label">Or enter this key manually</span>
+                <span class="vy-sx-label">{{ __('livewire/partials/two-factor-panel.manual_key') }}</span>
                 <code class="vy-sx-key">{{ $tf['secret'] }}</code>
             </div>
         </div>
@@ -80,10 +80,10 @@
             @csrf
             {{-- marked like the turn-off form, so a page that shows unplaced errors at its top knows this one has a place --}}
             <input type="hidden" name="_form" value="2fa-confirm">
-            <label class="vy-sx-label" for="tf_code">6-digit code from your app</label>
+            <label class="vy-sx-label" for="tf_code">{{ __('livewire/partials/two-factor-panel.code_label') }}</label>
             <div class="vy-sx-inline-form">
                 <input id="tf_code" type="text" name="code" class="vy-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" required>
-                <button type="submit" class="vy-sx-btn vy-sx-btn--grad">Confirm &amp; turn on</button>
+                <button type="submit" class="vy-sx-btn vy-sx-btn--grad">{{ __('livewire/partials/two-factor-panel.confirm_button') }}</button>
             </div>
             @if (old('_form') === '2fa-confirm')
                 @error('code') <span class="vy-sx-err">{{ $message }}</span> @enderror
@@ -92,7 +92,7 @@
 
         <form method="POST" action="{{ $tf['routes']['disable'] }}" class="vy-sx-gap">
             @csrf
-            <button type="submit" class="vy-sx-btn vy-sx-btn--text">Cancel setup</button>
+            <button type="submit" class="vy-sx-btn vy-sx-btn--text">{{ __('livewire/partials/two-factor-panel.cancel_setup_button') }}</button>
         </form>
     @endif
 </div>

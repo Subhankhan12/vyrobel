@@ -46,6 +46,6 @@ class NotificationPreferenceController extends Controller
 
         $route = $audience === 'operator' ? 'app.notification-preferences' : 'owner.notification-preferences';
 
-        return redirect()->to(route($route))->with('prefs_notice', 'Notification preferences saved.');
+        return redirect()->to(route($route))->with('prefs_notice', __('php/http/controllers/notification_preference_controller.saved'));
     }
 }

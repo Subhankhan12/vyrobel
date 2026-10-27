@@ -68,16 +68,13 @@ class EnsureSubscriptionActive
     private function closed(Request $request, Organization $organization): Response
     {
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'This workspace’s subscription has ended.'], 403);
+            return response()->json(['message' => __('php/http/middleware/ensure_subscription_active.ended_json')], 403);
         }
 
         return response()->view('errors.layout', [
             'code' => 403,
-            'title' => 'This workspace’s subscription has ended',
-            'message' => $organization->name.'’s Vyrobel trial or subscription has ended, so the back office is closed '
-                .'until it is renewed. Nothing has been deleted — reservations, guests and payments are kept exactly as '
-                .'they were. Only someone who manages billing for this workspace can renew it, so please ask your '
-                .'administrator.',
+            'title' => __('php/http/middleware/ensure_subscription_active.title'),
+            'message' => __('php/http/middleware/ensure_subscription_active.message', ['organization' => (string) $organization->name]),
             'actions' => 'errors.partials.suspended-actions',
             'otherWorkspaces' => OtherWorkspaces::for($request->user(), (string) $organization->getKey()),
         ], 403);

@@ -195,20 +195,21 @@ final class ReservationStage
     }
 
     /**
-     * Stage → badge label + tone. Warm tones only, keyed to the operator design system.
+     * Stage → badge label + tone. Warm tones only, keyed to the operator design system. The label is translated here, at
+     * call time, by the stage CODE (I18N-01) — compare the stage, never this label.
      *
      * @return array{label: string, tone: string}
      */
     public static function meta(string $stage): array
     {
         return match ($stage) {
-            self::IN_HOUSE => ['label' => 'In-house', 'tone' => 'in-house'],
-            self::UPCOMING => ['label' => 'Upcoming', 'tone' => 'confirmed'],
-            self::PAST => ['label' => 'Past', 'tone' => 'departed'],
-            self::DUE => ['label' => 'Arrival due', 'tone' => 'pending'],
-            self::TENTATIVE => ['label' => 'Tentative', 'tone' => 'pending'],
-            self::CANCELLED => ['label' => 'Cancelled', 'tone' => 'cancelled'],
-            default => ['label' => 'Unknown', 'tone' => 'pending'],
+            self::IN_HOUSE => ['label' => __('php/support/reservations/reservation_stage.in_house'), 'tone' => 'in-house'],
+            self::UPCOMING => ['label' => __('php/support/reservations/reservation_stage.upcoming'), 'tone' => 'confirmed'],
+            self::PAST => ['label' => __('php/support/reservations/reservation_stage.past'), 'tone' => 'departed'],
+            self::DUE => ['label' => __('php/support/reservations/reservation_stage.arrival_due'), 'tone' => 'pending'],
+            self::TENTATIVE => ['label' => __('php/support/reservations/reservation_stage.tentative'), 'tone' => 'pending'],
+            self::CANCELLED => ['label' => __('php/support/reservations/reservation_stage.cancelled'), 'tone' => 'cancelled'],
+            default => ['label' => __('php/support/reservations/reservation_stage.unknown'), 'tone' => 'pending'],
         };
     }
 

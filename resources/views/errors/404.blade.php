@@ -4,6 +4,6 @@
      this reason). --}}
 @include('errors.layout', [
     'code' => 404,
-    'title' => 'We couldn’t find that',
-    'message' => 'The page or record you asked for doesn’t exist, or it isn’t part of your account.',
+    'title' => __('errors/404.title'),
+    'message' => __('errors/404.message'),
 ])

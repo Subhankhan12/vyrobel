@@ -63,19 +63,17 @@ class ReverseCheckOut
         $pending = $tasks->filter(fn (HousekeepingTask $t): bool => (string) $t->status === 'pending');
         $started = $tasks->reject(fn (HousekeepingTask $t): bool => (string) $t->status === 'pending');
 
-        $reversible = ['The stay returns to checked in.'];
+        $reversible = [__('php/actions/reservations/reverse_check_out.reversible_status')];
         if ($pending->isNotEmpty()) {
-            $reversible[] = $pending->count().' departure cleaning task'.($pending->count() === 1 ? '' : 's')
-                .' will be removed — not started yet.';
+            $reversible[] = trans_choice('php/actions/reservations/reverse_check_out.pending_tasks_removed', $pending->count(), ['count' => $pending->count()]);
         }
 
         $notReversed = [];
         if ($started->isNotEmpty()) {
-            $notReversed[] = $started->count().' cleaning task'.($started->count() === 1 ? ' has' : 's have')
-                .' already been started and will be left alone — cancelling work someone has begun is a decision for housekeeping, not an undo.';
+            $notReversed[] = trans_choice('php/actions/reservations/reverse_check_out.started_tasks_kept', $started->count(), ['count' => $started->count()]);
         }
-        $notReversed[] = 'The unit stays marked dirty. The guest is back in the room, so "clean" may not be true.';
-        $notReversed[] = 'Notifications already delivered to staff and the guest stay delivered.';
+        $notReversed[] = __('php/actions/reservations/reverse_check_out.unit_stays_dirty');
+        $notReversed[] = __('php/actions/reservations/reverse_check_out.notifications_stay_delivered');
 
         return [
             'reversible' => $reversible,
@@ -152,16 +150,13 @@ class ReverseCheckOut
         $state = GuestReviewInvite::stateFor((string) $reservation->getKey());
 
         $message = match (true) {
-            ! $state['known'] => 'We have no record of whether a review request was sent for this stay, because '
-                .'it checked out before this product started recording them. It may or may not have been sent.',
-            $state['sent'] => 'A review request was emailed to the guest'
-                .($state['sent_at'] !== null ? ' on '.$state['sent_at']->format('j M Y, H:i') : '')
-                .'. It cannot be recalled.',
-            $state['state'] === GuestReviewInvite::SUPPRESSED_BY_OPERATOR => 'No review request was sent — this '
-                .'property has the review-request email switched off.',
-            $state['state'] === GuestReviewInvite::SUPPRESSED_BY_GUEST => 'No review request was sent — the '
-                .'guest has asked not to receive review emails.',
-            default => 'No review request was sent — there was no contact address, or the send failed.',
+            ! $state['known'] => __('php/actions/reservations/reverse_check_out.review_unknown'),
+            $state['sent'] => $state['sent_at'] !== null
+                ? __('php/actions/reservations/reverse_check_out.review_sent_on', ['date' => $state['sent_at']->translatedFormat('j M Y, H:i')])
+                : __('php/actions/reservations/reverse_check_out.review_sent'),
+            $state['state'] === GuestReviewInvite::SUPPRESSED_BY_OPERATOR => __('php/actions/reservations/reverse_check_out.review_suppressed_by_operator'),
+            $state['state'] === GuestReviewInvite::SUPPRESSED_BY_GUEST => __('php/actions/reservations/reverse_check_out.review_suppressed_by_guest'),
+            default => __('php/actions/reservations/reverse_check_out.review_not_sent'),
         };
 
         return ['state' => $state['state'], 'sent' => $state['sent'], 'known' => $state['known'], 'message' => $message];
@@ -172,9 +167,7 @@ class ReverseCheckOut
         $from = (string) $reservation->status;
 
         if ($from !== 'checked_out') {
-            throw new RuntimeException(
-                "Only a checked-out stay can have its checkout reversed; this one is {$from}."
-            );
+            throw new RuntimeException(__('php/actions/reservations/reverse_check_out.refused_not_checked_out', ['status' => $from]));
         }
     }
 }

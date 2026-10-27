@@ -44,8 +44,9 @@ class OperatorMaintenanceCosts extends Component
             'hasData' => $report['orders_closed'] > 0,
             // A formatter the view can call (money() is protected on the trait); null → "—".
             'money' => fn (?int $minor): string => $minor === null ? '—' : $this->money($minor, $currency),
-            'categoryLabel' => fn (string $c): string => ucfirst($c),
-            'monthLabel' => fn (string $ym): string => CarbonImmutable::createFromFormat('Y-m', $ym)->format('M Y'),
+            // The shared category label (same English as the old ucfirst for every real category; ucfirst stays its fallback).
+            'categoryLabel' => fn (string $c): string => $this->maintenanceCategoryLabel($c),
+            'monthLabel' => fn (string $ym): string => CarbonImmutable::createFromFormat('Y-m', $ym)->translatedFormat('M Y'),
         ]);
     }
 }

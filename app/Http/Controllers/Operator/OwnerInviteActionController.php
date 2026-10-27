@@ -35,8 +35,8 @@ class OwnerInviteActionController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [
-                'current_password.required' => 'Enter your password to send the invite again.',
-                'current_password.current_password' => 'That password isn’t right — enter the one you sign in with.',
+                'current_password.required' => __('php/http/controllers/operator/owner_invite_action_controller.password_required'),
+                'current_password.current_password' => __('php/http/controllers/operator/owner_invite_action_controller.password_wrong'),
             ],
         );
 
@@ -45,11 +45,14 @@ class OwnerInviteActionController extends Controller
         } catch (InviteNoLongerRedeemable $e) {
             return $this->back($request, $model)->with('owners_error', $e->getMessage());   // used or cancelled — its own sentence
         } catch (RuntimeException) {
-            return $this->back($request, $model)->with('owners_error', 'That invite can’t be sent again — the email may already have a Vyrobel account.');
+            return $this->back($request, $model)->with('owners_error', __('php/http/controllers/operator/owner_invite_action_controller.cannot_resend'));
         }
 
-        return $this->back($request, $model)->with('owners_notice', 'Invite sent again to '.$model->email.' — a fresh link, valid until '
-            .($result['invite']->expires_at?->format('j M Y') ?? 'in 7 days').'.');
+        $expiresAt = $result['invite']->expires_at;
+
+        return $this->back($request, $model)->with('owners_notice', $expiresAt !== null
+            ? __('php/http/controllers/operator/owner_invite_action_controller.resent_valid_until', ['email' => $model->email, 'date' => $expiresAt->translatedFormat('j M Y')])
+            : __('php/http/controllers/operator/owner_invite_action_controller.resent_valid_7_days', ['email' => $model->email]));
     }
 
     public function cancel(Request $request, OwnerInviteService $invites, string $invite): RedirectResponse
@@ -60,10 +63,10 @@ class OwnerInviteActionController extends Controller
         }
 
         if (! $invites->cancel($model)) {
-            return $this->back($request, $model)->with('owners_error', 'That invite has already been used or cancelled.');
+            return $this->back($request, $model)->with('owners_error', __('php/http/controllers/operator/owner_invite_action_controller.already_used_or_cancelled'));
         }
 
-        return $this->back($request, $model)->with('owners_notice', 'Invite to '.$model->email.' cancelled — the link no longer works.');
+        return $this->back($request, $model)->with('owners_notice', __('php/http/controllers/operator/owner_invite_action_controller.invite_cancelled', ['email' => $model->email]));
     }
 
     /** This organisation's invite (the tenant scope makes another's a 404) — never a founder's link. */
@@ -75,7 +78,7 @@ class OwnerInviteActionController extends Controller
     private function paused(Request $request, OwnerInvite $invite): ?RedirectResponse
     {
         return app(OperatorWorkspace::class)->isReadOnly()
-            ? $this->back($request, $invite)->with('owners_error', 'Workspace paused — invites can’t be sent or cancelled for now.')
+            ? $this->back($request, $invite)->with('owners_error', __('php/http/controllers/operator/owner_invite_action_controller.workspace_paused'))
             : null;
     }
 

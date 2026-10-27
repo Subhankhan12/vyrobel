@@ -124,8 +124,7 @@ class ReservationLifecycleController extends Controller
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
         if (! in_array((string) $model->status, self::CONFIRMABLE, true)) {
-            return $this->back($model->id, 'Only a tentative hold can be confirmed — this booking is '
-                .$model->status.'.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.only_tentative_confirmable', ['status' => (string) $model->status]));
         }
 
         try {
@@ -134,7 +133,7 @@ class ReservationLifecycleController extends Controller
             return $this->back($model->id, $e->getMessage());
         }
 
-        return $this->back($model->id, 'Hold confirmed — the booking is now a confirmed stay.');
+        return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.hold_confirmed'));
     }
 
     /** Cancel a reservation through the single write path, with the operator's optional free-text reason. */
@@ -151,7 +150,7 @@ class ReservationLifecycleController extends Controller
         }
 
         if (! in_array((string) $model->status, self::CANCELLABLE, true)) {
-            return $this->back($model->id, 'That reservation can’t be cancelled — it’s already closed.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.cannot_cancel_closed'));
         }
 
         // Read defensively (`reason[]=…` would make a naive string cast warn) and validate by hand rather
@@ -163,7 +162,7 @@ class ReservationLifecycleController extends Controller
 
         // `cancellation_reason` is a nullable string column — never silently truncate the operator's words.
         if (mb_strlen($reason) > 255) {
-            return $this->back($model->id, 'That cancellation reason is too long — 255 characters maximum.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.reason_too_long'));
         }
 
         try {
@@ -173,12 +172,12 @@ class ReservationLifecycleController extends Controller
         } catch (RuntimeException) {
             // An expected rejection (e.g. no published availability row for a night) — the whole
             // terminate() transaction rolled back, so nothing changed. Clean flash, never a 500.
-            return $this->back($model->id, 'That reservation couldn’t be cancelled — the booking service rejected it. Nothing was changed.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.cancel_rejected'));
         }
 
         $message = $result['refunded_minor'] > 0
-            ? 'Reservation cancelled + '.MoneyFormatter::display($result['refunded_minor'], (string) $model->currency).' refunded (within the free-cancellation window). The held nights are back on the calendar.'
-            : 'Reservation cancelled. The held nights are back on the calendar.';
+            ? __('php/http/controllers/operator/reservation_lifecycle_controller.cancelled_refunded', ['amount' => MoneyFormatter::display($result['refunded_minor'], (string) $model->currency)])
+            : __('php/http/controllers/operator/reservation_lifecycle_controller.cancelled');
 
         return $this->back($model->id, $message);
     }
@@ -195,16 +194,16 @@ class ReservationLifecycleController extends Controller
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
         if (! in_array((string) $model->status, self::NO_SHOWABLE, true)) {
-            return $this->back($model->id, 'That reservation can’t be marked a no-show — only a confirmed booking can be.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.cannot_no_show'));
         }
 
         try {
             $assignments->markNoShow($model);
         } catch (RuntimeException) {
-            return $this->back($model->id, 'That reservation couldn’t be marked a no-show — the booking service rejected it. Nothing was changed.');
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.no_show_rejected'));
         }
 
-        return $this->back($model->id, 'Marked as a no-show. The held nights are back on the calendar.');
+        return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.marked_no_show'));
     }
 
     /** PRG back to the detail screen, using the ONLY flash key that view renders. */

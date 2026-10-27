@@ -9,11 +9,11 @@
     when the asset pipeline is the thing that is broken.
 --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Status · Vyrobel</title>
+    <title>{{ __('status.page_title') }}</title>
     <x-favicon />
     <style>
         :root { --ink: rgb(43, 35, 32); --muted: rgb(110, 100, 94); --card: rgba(255, 252, 248, .78); --line: rgba(120, 70, 40, .14); --accent: #C2410C; }
@@ -35,18 +35,18 @@
 </head>
 <body>
     <main>
-        <h1>Vyrobel status</h1>
-        <p class="sub">Incidents posted by the Vyrobel team. Times are UTC.</p>
+        <h1>{{ __('status.heading') }}</h1>
+        <p class="sub">{{ __('status.intro') }}</p>
 
         @forelse ($incidents as $i)
             <article class="card">
-                <span class="tag {{ $i->impact === 'major' && $i->isOpen() ? 'tag--major' : '' }}">{{ \App\Models\StatusIncident::STATUSES[$i->status] ?? $i->status }}</span>
+                <span class="tag {{ $i->impact === 'major' && $i->isOpen() ? 'tag--major' : '' }}">{{ \App\Models\StatusIncident::statusLabel((string) $i->status) }}</span>
                 <h2 style="font-size: 18px; margin: 10px 0 0;">{{ $i->title }}</h2>
-                <div class="when">Started {{ $i->started_at->utc()->format('j M Y, H:i') }}{{ $i->resolved_at ? ' · resolved '.$i->resolved_at->utc()->format('j M Y, H:i') : ' · last update '.$i->updated_at?->utc()->format('j M Y, H:i') }}</div>
+                <div class="when">{{ $i->resolved_at ? __('status.when_resolved', ['started' => $i->started_at->utc()->translatedFormat('j M Y, H:i'), 'resolved' => $i->resolved_at->utc()->translatedFormat('j M Y, H:i')]) : __('status.when_open', ['started' => $i->started_at->utc()->translatedFormat('j M Y, H:i'), 'updated' => (string) $i->updated_at?->utc()->translatedFormat('j M Y, H:i')]) }}</div>
                 <p>{{ $i->message }}</p>
             </article>
         @empty
-            <div class="card">No incidents have been posted.</div>
+            <div class="card">{{ __('status.no_incidents') }}</div>
         @endforelse
 
         <p class="sub" style="margin-top: 24px;"><a href="{{ url('/') }}">vyrobel.com</a></p>

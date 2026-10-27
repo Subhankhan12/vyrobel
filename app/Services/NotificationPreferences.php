@@ -234,7 +234,123 @@ class NotificationPreferences
      */
     public static function catalogFor(string $audience): array
     {
-        return array_filter(self::CATALOG, fn (array $entry): bool => $entry['audience'] === $audience);
+        $entries = array_filter(self::CATALOG, fn (array $entry): bool => $entry['audience'] === $audience);
+
+        // I18N-01 — the label and description a person reads, in their language, by event KEY (the key never changes).
+        foreach ($entries as $key => $entry) {
+            $entries[$key]['label'] = self::eventLabel($key);
+            $entries[$key]['description'] = self::eventDescription($key);
+        }
+
+        return $entries;
+    }
+
+    /** The event's name as a person reads it, by event key (the CATALOG's English is the fallback for an unknown key). */
+    public static function eventLabel(string $key): string
+    {
+        return match ($key) {
+            'new_booking' => __('php/services/notification_preferences.new_booking_label'),
+            'arrivals_today' => __('php/services/notification_preferences.arrivals_today_label'),
+            'balance_due' => __('php/services/notification_preferences.balance_due_label'),
+            'housekeeping_behind' => __('php/services/notification_preferences.housekeeping_behind_label'),
+            'urgent_work_order' => __('php/services/notification_preferences.urgent_work_order_label'),
+            'unit_out_of_order' => __('php/services/notification_preferences.unit_out_of_order_label'),
+            'maintenance_resolved' => __('php/services/notification_preferences.maintenance_resolved_label'),
+            'maintenance_reassigned' => __('php/services/notification_preferences.maintenance_reassigned_label'),
+            'owner_payout_sent' => __('php/services/notification_preferences.owner_payout_sent_label'),
+            'statement_finalized' => __('php/services/notification_preferences.statement_finalized_label'),
+            'new_review' => __('php/services/notification_preferences.new_review_label'),
+            'low_rating' => __('php/services/notification_preferences.low_rating_label'),
+            'channel_sync_error' => __('php/services/notification_preferences.channel_sync_error_label'),
+            'new_device_login' => __('php/services/notification_preferences.new_device_login_label'),
+            'daily_summary' => __('php/services/notification_preferences.daily_summary_label'),
+            'schedule_published' => __('php/services/notification_preferences.schedule_published_label'),
+            'support_access' => __('php/services/notification_preferences.support_access_label'),
+            'statement_ready' => __('php/services/notification_preferences.statement_ready_label'),
+            'payout_sent' => __('php/services/notification_preferences.payout_sent_label'),
+            'performance_digest' => __('php/services/notification_preferences.performance_digest_label'),
+            'terms_changed' => __('php/services/notification_preferences.terms_changed_label'),
+            'unit_request_reviewed' => __('php/services/notification_preferences.unit_request_reviewed_label'),
+            'guest_booking_confirmed' => __('php/services/notification_preferences.guest_booking_confirmed_label'),
+            'guest_checkin_ready' => __('php/services/notification_preferences.guest_checkin_ready_label'),
+            'guest_message_received' => __('php/services/notification_preferences.guest_message_received_label'),
+            'guest_payment_due' => __('php/services/notification_preferences.guest_payment_due_label'),
+            'guest_booking_cancelled' => __('php/services/notification_preferences.guest_booking_cancelled_label'),
+            'guest_refund_processed' => __('php/services/notification_preferences.guest_refund_processed_label'),
+            'guest_review_request' => __('php/services/notification_preferences.guest_review_request_label'),
+            'guest_account_security' => __('php/services/notification_preferences.guest_account_security_label'),
+            'owner_new_booking' => __('php/services/notification_preferences.owner_new_booking_label'),
+            'owner_review_posted' => __('php/services/notification_preferences.owner_review_posted_label'),
+            'owner_message' => __('php/services/notification_preferences.owner_message_label'),
+            'account_security' => __('php/services/notification_preferences.account_security_label'),
+            'arrival_secret_revealed' => __('php/services/notification_preferences.arrival_secret_revealed_label'),
+            'property_archived' => __('php/services/notification_preferences.property_archived_label'),
+            default => self::CATALOG[$key]['label'] ?? $key,
+        };
+    }
+
+    /** The event's one-line description as a person reads it, by event key. */
+    public static function eventDescription(string $key): string
+    {
+        return match ($key) {
+            'new_booking' => __('php/services/notification_preferences.new_booking_description'),
+            'arrivals_today' => __('php/services/notification_preferences.arrivals_today_description'),
+            'balance_due' => __('php/services/notification_preferences.balance_due_description'),
+            'housekeeping_behind' => __('php/services/notification_preferences.housekeeping_behind_description'),
+            'urgent_work_order' => __('php/services/notification_preferences.urgent_work_order_description'),
+            'unit_out_of_order' => __('php/services/notification_preferences.unit_out_of_order_description'),
+            'maintenance_resolved' => __('php/services/notification_preferences.maintenance_resolved_description'),
+            'maintenance_reassigned' => __('php/services/notification_preferences.maintenance_reassigned_description'),
+            'owner_payout_sent' => __('php/services/notification_preferences.owner_payout_sent_description'),
+            'statement_finalized' => __('php/services/notification_preferences.statement_finalized_description'),
+            'new_review' => __('php/services/notification_preferences.new_review_description'),
+            'low_rating' => __('php/services/notification_preferences.low_rating_description'),
+            'channel_sync_error' => __('php/services/notification_preferences.channel_sync_error_description'),
+            'new_device_login' => __('php/services/notification_preferences.new_device_login_description'),
+            'daily_summary' => __('php/services/notification_preferences.daily_summary_description'),
+            'schedule_published' => __('php/services/notification_preferences.schedule_published_description'),
+            'support_access' => __('php/services/notification_preferences.support_access_description'),
+            'statement_ready' => __('php/services/notification_preferences.statement_ready_description'),
+            'payout_sent' => __('php/services/notification_preferences.payout_sent_description'),
+            'performance_digest' => __('php/services/notification_preferences.performance_digest_description'),
+            'terms_changed' => __('php/services/notification_preferences.terms_changed_description'),
+            'unit_request_reviewed' => __('php/services/notification_preferences.unit_request_reviewed_description'),
+            'guest_booking_confirmed' => __('php/services/notification_preferences.guest_booking_confirmed_description'),
+            'guest_checkin_ready' => __('php/services/notification_preferences.guest_checkin_ready_description'),
+            'guest_message_received' => __('php/services/notification_preferences.guest_message_received_description'),
+            'guest_payment_due' => __('php/services/notification_preferences.guest_payment_due_description'),
+            'guest_booking_cancelled' => __('php/services/notification_preferences.guest_booking_cancelled_description'),
+            'guest_refund_processed' => __('php/services/notification_preferences.guest_refund_processed_description'),
+            'guest_review_request' => __('php/services/notification_preferences.guest_review_request_description'),
+            'guest_account_security' => __('php/services/notification_preferences.guest_account_security_description'),
+            'owner_new_booking' => __('php/services/notification_preferences.owner_new_booking_description'),
+            'owner_review_posted' => __('php/services/notification_preferences.owner_review_posted_description'),
+            'owner_message' => __('php/services/notification_preferences.owner_message_description'),
+            'account_security' => __('php/services/notification_preferences.account_security_description'),
+            'arrival_secret_revealed' => __('php/services/notification_preferences.arrival_secret_revealed_description'),
+            'property_archived' => __('php/services/notification_preferences.property_archived_description'),
+            default => self::CATALOG[$key]['description'] ?? '',
+        };
+    }
+
+    /**
+     * A group's heading as a person reads it, by the group CODE stored in {@see CATALOG} (the English name, which stays
+     * the array key in {@see groupedFor()} — never key an array by a translated label).
+     */
+    public static function groupLabel(string $group): string
+    {
+        return match ($group) {
+            'Front desk' => __('php/services/notification_preferences.group_front_desk'),
+            'Operations' => __('php/services/notification_preferences.group_operations'),
+            'Finance' => __('php/services/notification_preferences.group_finance'),
+            'Reputation' => __('php/services/notification_preferences.group_reputation'),
+            'System' => __('php/services/notification_preferences.group_system'),
+            'Earnings' => __('php/services/notification_preferences.group_earnings'),
+            'Performance' => __('php/services/notification_preferences.group_performance'),
+            'Account' => __('php/services/notification_preferences.group_account'),
+            'Trips' => __('php/services/notification_preferences.group_trips'),
+            default => $group,
+        };
     }
 
     /** Whether an event is ALWAYS-ON (security) — such events ignore quiet hours + can't be toggled off. */
@@ -245,7 +361,8 @@ class NotificationPreferences
 
     /**
      * The audience's events grouped by their UI group, each with its current on/off state — drives the
-     * preferences screen.
+     * preferences screen. The array is keyed by the group CODE (its English name); a screen prints the heading
+     * through {@see groupLabel()}. Each event's label and description are already in the reader's language.
      *
      * @return array<string, list<array{key: string, label: string, description: string, always_on: bool, state: array<string, bool>}>>
      */

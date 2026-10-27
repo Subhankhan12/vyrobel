@@ -62,7 +62,7 @@ class OperatorSecurity extends Component
             'provider' => (string) $i->provider,
             'label' => SocialProviders::label((string) $i->provider),
             'email' => (string) ($i->provider_email ?? ''),
-            'last_used' => $i->last_used_at !== null ? CarbonImmutable::parse($i->last_used_at)->diffForHumans() : 'not used yet',
+            'last_used' => $i->last_used_at !== null ? CarbonImmutable::parse($i->last_used_at)->diffForHumans() : __('php/livewire/operator/operator_security.not_used_yet'),
             'can_unlink' => SignInCredentials::mayUnlink($user, (string) $i->getKey()),
         ])->all();
 

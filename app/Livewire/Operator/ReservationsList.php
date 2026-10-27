@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\FrontDesk;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Reservation;
+use App\Support\I18n\Locales;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -272,8 +273,8 @@ class ReservationsList extends Component
             'reference' => (string) $reservation->reference,
             'guest' => $name,
             'initials' => $this->initials($name),
-            'check_in' => $checkIn->format('j M Y'),
-            'check_out' => $checkOut->format('j M Y'),
+            'check_in' => $checkIn->translatedFormat('j M Y'),
+            'check_out' => $checkOut->translatedFormat('j M Y'),
             // Half-open [check_in, check_out) — the same arithmetic as the folio's room nights.
             'nights' => (int) $checkIn->diffInDays($checkOut),
             'guests' => (int) $reservation->adults + (int) $reservation->children,
@@ -307,7 +308,7 @@ class ReservationsList extends Component
     {
         $chips = [[
             'key' => null,
-            'label' => 'All',
+            'label' => __('common.all'),
             'count' => $this->baseQuery($search)->count(),
             'active' => $active === null,
             'href' => $this->href(null, $search),
@@ -406,7 +407,7 @@ class ReservationsList extends Component
 
     private function subtitle(int $total): string
     {
-        return $total.' '.($total === 1 ? 'reservation' : 'reservations');
+        return trans_choice('php/livewire/operator/reservations_list.subtitle', $total, ['count' => $total]);
     }
 
     /**
@@ -416,16 +417,16 @@ class ReservationsList extends Component
      */
     private function footer(int $shown, int $total, ?string $stage, string $search): string
     {
-        $line = 'Showing '.$shown.' of '.$total.' '.($total === 1 ? 'reservation' : 'reservations').' · newest arrivals first';
+        $line = trans_choice('php/livewire/operator/reservations_list.footer', $total, ['shown' => $shown, 'count' => $total]);
 
         $parts = [];
 
         if ($stage !== null) {
-            $parts[] = mb_strtolower(ReservationStage::meta($stage)['label']);
+            $parts[] = Locales::inSentence(ReservationStage::meta($stage)['label']);
         }
 
         if ($search !== '') {
-            $parts[] = '“'.$search.'”';
+            $parts[] = __('php/livewire/operator/reservations_list.footer_search', ['term' => $search]);
         }
 
         return $parts === [] ? $line : $line.' · '.implode(' · ', $parts);

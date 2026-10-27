@@ -63,8 +63,19 @@ final class Countries
      */
     public static function options(): array
     {
-        $out = self::NAMES;
-        asort($out);
+        $locale = app()->getLocale();
+        if (self::isEnglish($locale)) {
+            $out = self::NAMES;   // ⚠️ English stays byte-identical to the list above
+            asort($out);
+
+            return $out;
+        }
+
+        $out = [];
+        foreach (self::NAMES as $code => $english) {
+            $out[$code] = self::localName($code, $english, $locale);
+        }
+        self::sortForLocale($out, $locale);
 
         return $out;
     }
@@ -80,8 +91,13 @@ final class Countries
         }
 
         $key = strtoupper(trim($code));
+        if (! isset(self::NAMES[$key])) {
+            return trim($code);
+        }
 
-        return self::NAMES[$key] ?? trim($code);
+        $locale = app()->getLocale();
+
+        return self::isEnglish($locale) ? self::NAMES[$key] : self::localName($key, self::NAMES[$key], $locale);
     }
 
     /**
@@ -124,20 +140,54 @@ final class Countries
      */
     public static function everywhere(): array
     {
-        static $built = null;   // built once per request — the Guests list reads it for every row (2026-10-05)
-        if ($built !== null) {
-            return $built;
+        // built once per request PER LANGUAGE — the Guests list reads it for every row (2026-10-05)
+        static $built = [];
+        $locale = self::isEnglish(app()->getLocale()) ? 'en' : app()->getLocale();
+        if (isset($built[$locale])) {
+            return $built[$locale];
         }
         $out = [];
         foreach (explode(' ', self::ISO) as $code) {
             $name = class_exists(\Locale::class) ? \Locale::getDisplayRegion('-'.$code, 'en') : '';
-            $out[$code] = is_string($name) && $name !== '' && $name !== $code ? $name : $code;
+            $english = is_string($name) && $name !== '' && $name !== $code ? $name : $code;
+            $out[$code] = $locale === 'en' ? $english : self::localName($code, $english, $locale);
         }
         // by the alphabet a person reads, not by bytes ("Åland Islands" sorted after Zimbabwe — the review)
-        $collator = class_exists(\Collator::class) ? new \Collator('en') : null;
-        $collator !== null ? uasort($out, fn (string $a, string $b): int => (int) $collator->compare($a, $b)) : asort($out, SORT_NATURAL | SORT_FLAG_CASE);
+        self::sortForLocale($out, $locale);
 
-        return $built = $out;
+        return $built[$locale] = $out;
+    }
+
+    /**
+     * I18N-01 — is this an English locale? English keeps the names above exactly; every other language reads
+     * ICU's own name for the region (no hand-made key per country). Codes never change.
+     */
+    private static function isEnglish(string $locale): bool
+    {
+        $lower = strtolower($locale);
+
+        return $lower === 'en' || str_starts_with($lower, 'en_') || str_starts_with($lower, 'en-');
+    }
+
+    /** ICU's name for a region in `$locale`, falling back to the English name when ICU has none. */
+    private static function localName(string $code, string $english, string $locale): string
+    {
+        $name = class_exists(\Locale::class) ? \Locale::getDisplayRegion('-'.$code, $locale) : '';
+
+        return is_string($name) && $name !== '' && $name !== $code ? $name : $english;
+    }
+
+    /**
+     * Sort code => name by the reader's alphabet ({@see \Collator}), keeping the codes.
+     *
+     * @param  array<string, string>  $names
+     */
+    private static function sortForLocale(array &$names, string $locale): void
+    {
+        $collator = class_exists(\Collator::class) ? new \Collator($locale) : null;
+        $collator !== null
+            ? uasort($names, fn (string $a, string $b): int => (int) $collator->compare($a, $b))
+            : asort($names, SORT_NATURAL | SORT_FLAG_CASE);
     }
 
     /** The 249 officially assigned ISO-3166-1 alpha-2 codes. */

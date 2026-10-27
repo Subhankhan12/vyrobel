@@ -70,7 +70,6 @@ class ReservationInProgressException extends BookingException
      */
     public static function messageFor(string $toStatus): string
     {
-        return "This stay is checked in — the guest is in the room, so it cannot be marked {$toStatus}. "
-            ."Reverse the check-in first, then mark it {$toStatus} — or check the guest out if the stay really happened.";
+        return __('php/exceptions/booking/reservation_in_progress_exception.message', ['to_status' => $toStatus]);
     }
 }

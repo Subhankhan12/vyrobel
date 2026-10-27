@@ -12,8 +12,8 @@
     //    list and in the rates grid. A fixed id here would be duplicated N times and every `aria-labelledby` pointing at it
     //    would resolve to whichever came first. The dialog that owns each instance passes its own.
     'headingId' => null,
-    'heading' => 'Price units individually',
-    'subheading' => 'A price for one unit, not the whole room type.',
+    'heading' => __('components/rates/unit-price-form.heading'),
+    'subheading' => __('components/rates/unit-price-form.subheading'),
     // The Rates page brings the operator back to its window and filter after the preview (RatesListParams); the Units
     // page keeps its own destination, so it leaves this off.
     'returnToList' => false,
@@ -40,11 +40,11 @@
 
     <div class="vyr-upf-dates">
         <div class="vy-field">
-            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-from">First night</label>
+            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-from">{{ __('components/rates/unit-price-form.first_night') }}</label>
             <input id="{{ $headingId ?? 'upf' }}-from" type="date" name="start_date" class="vy-input" value="{{ $from }}" required>
         </div>
         <div class="vy-field">
-            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-to">Last night</label>
+            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-to">{{ __('components/rates/unit-price-form.last_night') }}</label>
             <input id="{{ $headingId ?? 'upf' }}-to" type="date" name="end_date" class="vy-input" value="{{ $to }}" required>
         </div>
     </div>
@@ -57,12 +57,12 @@
         <input type="hidden" name="room_type_id" value="{{ $vyRt['id'] ?? '' }}">
         <input type="hidden" name="unit_ids[]" value="{{ $preselect }}">
         <div class="vy-field">
-            <span class="vy-field-label">Unit</span>
+            <span class="vy-field-label">{{ __('components/rates/unit-price-form.unit') }}</span>
             <div class="vyr-upf-unit"><strong>{{ $vyUnit['name'] ?? $preselect }}</strong> <span>· {{ $vyRt['name'] ?? '' }}</span></div>
         </div>
     @else
         <div class="vy-field">
-            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-rt">Room type</label>
+            <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-rt">{{ __('components/rates/unit-price-form.room_type') }}</label>
             <select id="{{ $headingId ?? 'upf' }}-rt" name="room_type_id" class="vy-input" x-model="unitRt">
                 @foreach ($roomTypes as $opt)
                     <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
@@ -70,8 +70,8 @@
             </select>
         </div>
         <fieldset class="vy-field vyr-upf-units-field">
-            <legend class="vy-field-label">Units</legend>
-            <p class="vyr-upf-hint">Leave all unticked to price every unit of that room type.</p>
+            <legend class="vy-field-label">{{ __('components/rates/unit-price-form.units') }}</legend>
+            <p class="vyr-upf-hint">{{ __('components/rates/unit-price-form.units_hint') }}</p>
             @foreach ($units as $rtId => $rtUnits)
                 {{-- a class carries the layout — x-show erases an inline display (XShowInlineDisplayContractTest) --}}
                 <div class="vyr-upf-units" x-show="unitRt === '{{ $rtId }}'">
@@ -84,23 +84,23 @@
     @endif
 
     <fieldset class="vy-choices vy-choices--segmented vyr-upf-mode">
-        <legend class="vy-field-label">What to do</legend>
+        <legend class="vy-field-label">{{ __('components/rates/unit-price-form.what_to_do') }}</legend>
         <div class="vy-choice-row">
-            <label class="vy-choice"><input type="radio" name="mode" value="set" x-model="unitMode"><span class="vy-choice-face"><span class="vy-choice-text">Set its own price</span></span></label>
-            <label class="vy-choice"><input type="radio" name="mode" value="clear" x-model="unitMode"><span class="vy-choice-face"><span class="vy-choice-text">Back to the room-type price</span></span></label>
+            <label class="vy-choice"><input type="radio" name="mode" value="set" x-model="unitMode"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('components/rates/unit-price-form.mode_set') }}</span></span></label>
+            <label class="vy-choice"><input type="radio" name="mode" value="clear" x-model="unitMode"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('components/rates/unit-price-form.mode_clear') }}</span></span></label>
         </div>
     </fieldset>
     <div class="vy-field" x-show="unitMode === 'set'">
-        <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-amount">Nightly price</label>
-        <input id="{{ $headingId ?? 'upf' }}-amount" type="text" name="amount" class="vy-input" inputmode="decimal" placeholder="e.g. 175.00">
+        <label class="vy-field-label" for="{{ $headingId ?? 'upf' }}-amount">{{ __('components/rates/unit-price-form.nightly_price') }}</label>
+        <input id="{{ $headingId ?? 'upf' }}-amount" type="text" name="amount" class="vy-input" inputmode="decimal" placeholder="{{ __('components/rates/unit-price-form.amount_placeholder') }}">
     </div>
     {{-- ⚠️ CLEAR REMOVES THE OVERRIDE — it does not set €0. The unit goes back to following its room type's rate, and the
          preview shows that real figure before anything is written. --}}
-    <p class="vyr-upf-hint" x-show="unitMode === 'clear'">The unit goes back to following the room-type rate.</p>
+    <p class="vyr-upf-hint" x-show="unitMode === 'clear'">{{ __('components/rates/unit-price-form.clear_hint') }}</p>
 
-    <p class="vyr-upf-hint">Nothing changes yet — you’ll see every unit’s before and after, then apply.</p>
+    <p class="vyr-upf-hint">{{ __('components/rates/unit-price-form.preview_hint') }}</p>
     <div class="vyr-upf-foot">
         {{ $actions ?? '' }}
-        <button type="submit" class="vy-btn vy-btn--accent">Preview changes</button>
+        <button type="submit" class="vy-btn vy-btn--accent">{{ __('components/rates/unit-price-form.preview_button') }}</button>
     </div>
 </form>

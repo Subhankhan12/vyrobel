@@ -54,9 +54,9 @@ final class SavedSeasonOffer
             }
             // ⚠️ the facts (a preview each) only for whoever may apply it — for everyone else its name, price and dates (2026-10-04)
             $out[] = ($withFacts ? SeasonApplyFacts::of($season, $preview->preview($season)) : ['id' => (string) $season->getKey(), 'name' => (string) $season->name]) + [
-                'nightly' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency).' a night',
-                'from' => $season->starts_on->format('j M'),
-                'to' => $season->ends_on->format('j M'),
+                'nightly' => __('php/support/rates/saved_season_offer.nightly', ['amount' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency)]),
+                'from' => $season->starts_on->translatedFormat('j M'),
+                'to' => $season->ends_on->translatedFormat('j M'),
                 'prices' => $prices,
                 'missing' => count($missing),
             ];

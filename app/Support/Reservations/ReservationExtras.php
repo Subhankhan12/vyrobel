@@ -59,10 +59,10 @@ final class ReservationExtras
     public static function basisLabel(AddOn $addOn): string
     {
         return match (self::basisFor($addOn)) {
-            self::BASIS_PER_GUEST_NIGHT => 'per guest · night',
-            self::BASIS_PER_NIGHT => 'per night',
-            self::BASIS_PER_LEG => 'each way',
-            default => 'one-off',
+            self::BASIS_PER_GUEST_NIGHT => __('php/support/reservations/reservation_extras.per_guest_night'),
+            self::BASIS_PER_NIGHT => __('php/support/reservations/reservation_extras.per_night'),
+            self::BASIS_PER_LEG => __('php/support/reservations/reservation_extras.each_way'),
+            default => __('php/support/reservations/reservation_extras.one_off'),
         };
     }
 }

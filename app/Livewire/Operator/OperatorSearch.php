@@ -73,6 +73,9 @@ class OperatorSearch extends Component
             'canUnits' => $can['units'],
             'sources' => SearchService::SOURCES,
             'statuses' => SearchService::STATUSES,
+            // I18N — the chip and badge words, keyed by the CODE (the filter value and the stored column stay codes).
+            'statusLabels' => $this->statusLabels(),
+            'sourceLabels' => $this->sourceLabels(),
             'suggested' => $this->suggestedArrivals(),
         ]);
     }
@@ -119,8 +122,43 @@ class OperatorSearch extends Component
             ->get()
             ->map(fn (Reservation $r): array => [
                 'reference' => (string) $r->reference,
-                'guest' => trim(((string) $r->leadGuest?->first_name).' '.((string) $r->leadGuest?->last_name)) ?: 'Guest',
-                'when' => CarbonImmutable::parse($r->check_in)->format('j M'),
+                'guest' => trim(((string) $r->leadGuest?->first_name).' '.((string) $r->leadGuest?->last_name)) ?: __('php/livewire/operator/operator_search.guest_fallback'),
+                'when' => CarbonImmutable::parse($r->check_in)->translatedFormat('j M'),
             ])->all();
+    }
+
+    /**
+     * A reservation status as people read it, keyed by the status code ({@see SearchService::STATUSES}).
+     *
+     * @return array<string, string>
+     */
+    private function statusLabels(): array
+    {
+        return [
+            'confirmed' => __('php/livewire/operator/operator_search.status_confirmed'),
+            'checked_in' => __('php/livewire/operator/operator_search.status_checked_in'),
+            'checked_out' => __('php/livewire/operator/operator_search.status_checked_out'),
+            'tentative' => __('php/livewire/operator/operator_search.status_tentative'),
+            'enquiry' => __('php/livewire/operator/operator_search.status_enquiry'),
+            'no_show' => __('php/livewire/operator/operator_search.status_no_show'),
+            'cancelled' => __('php/livewire/operator/operator_search.status_cancelled'),
+        ];
+    }
+
+    /**
+     * A booking source as people read it, keyed by the source code ({@see SearchService::SOURCES}).
+     *
+     * @return array<string, string>
+     */
+    private function sourceLabels(): array
+    {
+        return [
+            'direct' => __('php/livewire/operator/operator_search.source_direct'),
+            'ota' => __('php/livewire/operator/operator_search.source_ota'),
+            'walk_in' => __('php/livewire/operator/operator_search.source_walk_in'),
+            'corporate' => __('php/livewire/operator/operator_search.source_corporate'),
+            'group' => __('php/livewire/operator/operator_search.source_group'),
+            'agent' => __('php/livewire/operator/operator_search.source_agent'),
+        ];
     }
 }

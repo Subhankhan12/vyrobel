@@ -63,14 +63,14 @@ class InboxActionController extends Controller
             'voice' => ['nullable', 'file', 'max:'.($mb * 1024), 'mimes:'.ChatFiles::VOICE_EXTENSIONS],
             'voice_seconds' => ['nullable', 'integer'],
         ], [
-            'body.max' => 'A reply can be up to 5,000 characters.',
-            'attachments.max' => 'Send up to '.ChatFiles::MAX_FILES.' files at a time.',
-            'attachments.*.max' => 'Each file can be up to '.$mb.' MB.',
-            'attachments.*.mimes' => 'Send pictures (JPG, PNG, WebP, GIF) or documents (PDF, Word, Excel, CSV, text).',
-            'attachments.*.file' => 'That file could not be read — files can be up to '.$mb.' MB. Choose it again.',
-            'voice.max' => 'A voice note can be up to '.$mb.' MB.',
-            'voice.mimes' => 'That voice note could not be read — record it again.',
-            'voice.file' => 'That voice note could not be read — record it again.',
+            'body.max' => __('php/http/controllers/operator/inbox_action_controller.body_max'),
+            'attachments.max' => __('php/http/controllers/operator/inbox_action_controller.attachments_max', ['max' => ChatFiles::MAX_FILES]),
+            'attachments.*.max' => __('php/http/controllers/operator/inbox_action_controller.attachment_too_big', ['mb' => $mb]),
+            'attachments.*.mimes' => __('php/http/controllers/operator/inbox_action_controller.attachment_type'),
+            'attachments.*.file' => __('php/http/controllers/operator/inbox_action_controller.attachment_unreadable', ['mb' => $mb]),
+            'voice.max' => __('php/http/controllers/operator/inbox_action_controller.voice_too_big', ['mb' => $mb]),
+            'voice.mimes' => __('php/http/controllers/operator/inbox_action_controller.voice_unreadable'),
+            'voice.file' => __('php/http/controllers/operator/inbox_action_controller.voice_unreadable'),
         ]);
         if ($check->fails()) {
             return $this->answer($request, $model, (string) $check->errors()->first(), false);
@@ -82,11 +82,11 @@ class InboxActionController extends Controller
         $body = trim((string) $request->input('body', ''));
 
         if ($body === '' && $files === [] && $voice === null) {
-            return $this->answer($request, $model, 'Write a reply, or add a file or a voice note.', false);
+            return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.reply_empty'), false);
         }
         // a file goes only where the other side can open it — the owner's portal, or the guest's own account (Direct)
         if (($files !== [] || $voice !== null) && $model->owner_id === null && $model->channel !== 'manual') {
-            return $this->answer($request, $model, 'Files and voice notes can be sent to owners and in Direct conversations only.', false);
+            return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.files_not_allowed'), false);
         }
 
         $author = $request->user();
@@ -108,7 +108,7 @@ class InboxActionController extends Controller
             report($e);
             $attachments->discard(array_column($kept, 'file'));
 
-            return $this->answer($request, $model, 'A file could not be saved — nothing was sent. Try again.', false);
+            return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.file_not_saved'), false);
         }
 
         try {
@@ -119,7 +119,7 @@ class InboxActionController extends Controller
             $attachments->discard(array_column($kept, 'file'));
             $inbox->markRead($model);
 
-            return $this->answer($request, $model, 'Couldn’t send — '.$e->getMessage(), false);
+            return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.could_not_send', ['reason' => $e->getMessage()]), false);
         }
 
         $recorded = [];
@@ -134,13 +134,13 @@ class InboxActionController extends Controller
             $attachments->discard(array_column($kept, 'file'));
             $inbox->markRead($model);
 
-            return $this->answer($request, $model, 'Your message was sent, but its files could not be saved — send them again.', true, filesKept: true);
+            return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.files_not_saved_after_send'), true, filesKept: true);
         }
 
         // Replying implies the operator has read the thread — clear the unread counter.
         $inbox->markRead($model);
 
-        return $this->answer($request, $model, 'Reply sent.', true);
+        return $this->answer($request, $model, __('php/http/controllers/operator/inbox_action_controller.reply_sent'), true);
     }
 
     /**
@@ -194,7 +194,7 @@ class InboxActionController extends Controller
                 ->exists();
 
             if (! $isMember) {
-                abort(422, 'That user is not a member of this organization.');
+                abort(422, __('php/http/controllers/operator/inbox_action_controller.not_a_member'));
             }
         } else {
             $userId = null;
@@ -209,7 +209,7 @@ class InboxActionController extends Controller
             $inbox->addNote($model, $note, $request->user() instanceof User ? $request->user() : null);
         }
 
-        return $this->back($model, 'inbox_notice', 'Conversation assignment updated.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.assignment_updated'));
     }
 
     /** Close / snooze / reopen — guarded lifecycle (illegal transition → clean flash, never a 500). */
@@ -218,7 +218,7 @@ class InboxActionController extends Controller
         $model = MessageThread::query()->findOrFail($thread);
         $inbox->close($model);
 
-        return $this->back($model, 'inbox_notice', 'Conversation closed.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.conversation_closed'));
     }
 
     public function reopen(InboxService $inbox, string $thread): RedirectResponse
@@ -226,7 +226,7 @@ class InboxActionController extends Controller
         $model = MessageThread::query()->findOrFail($thread);
         $inbox->reopen($model);
 
-        return $this->back($model, 'inbox_notice', 'Conversation reopened.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.conversation_reopened'));
     }
 
     public function snooze(InboxService $inbox, string $thread): RedirectResponse
@@ -239,7 +239,7 @@ class InboxActionController extends Controller
             return $this->back($model, 'inbox_error', $e->getMessage());
         }
 
-        return $this->back($model, 'inbox_notice', 'Conversation snoozed.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.conversation_snoozed'));
     }
 
     /**
@@ -266,10 +266,10 @@ class InboxActionController extends Controller
         try {
             $inbox->sendOutbound($model, (string) $original->body, $author instanceof User ? $author : null);
         } catch (RuntimeException $e) {
-            return $this->back($model, 'inbox_error', 'Still couldn’t send — '.$e->getMessage());
+            return $this->back($model, 'inbox_error', __('php/http/controllers/operator/inbox_action_controller.still_could_not_send', ['reason' => $e->getMessage()]));
         }
 
-        return $this->back($model, 'inbox_notice', 'Message re-sent.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.message_resent'));
     }
 
     /** Link the thread to one of the guest's reservations (tenant-scoped — a foreign id 404s). */
@@ -280,7 +280,7 @@ class InboxActionController extends Controller
         $model = MessageThread::query()->findOrFail($thread);
         $inbox->linkReservation($model, $validated['reservation_id'] ?? null);   // findOrFail inside → cross-org 404
 
-        return $this->back($model, 'inbox_notice', 'Reservation linked.');
+        return $this->back($model, 'inbox_notice', __('php/http/controllers/operator/inbox_action_controller.reservation_linked'));
     }
 
     /**
@@ -332,11 +332,11 @@ class InboxActionController extends Controller
             try {
                 $inbox->sendOutbound($thread, $body, $author instanceof User ? $author : null);
             } catch (RuntimeException $e) {
-                return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_error', 'Couldn’t send — '.$e->getMessage());
+                return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_error', __('php/http/controllers/operator/inbox_action_controller.could_not_send', ['reason' => $e->getMessage()]));
             }
         }
 
-        return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_notice', 'Conversation started.');
+        return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_notice', __('php/http/controllers/operator/inbox_action_controller.conversation_started'));
     }
 
     /** Resolve a #83 template's message with the guest/reservation merge vars — the composer seed (never door codes #33). */
@@ -352,7 +352,7 @@ class InboxActionController extends Controller
 
     private function pausedMessage(): string
     {
-        return 'Workspace paused — messaging is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.';
+        return __('php/http/controllers/operator/inbox_action_controller.workspace_paused', ['date' => app(OperatorWorkspace::class)->resumeLabel()]);
     }
 
     private function back(MessageThread $model, string $key, string $message): RedirectResponse

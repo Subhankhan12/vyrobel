@@ -34,6 +34,6 @@ final class ThreadName
             ? $thread->messages->first()?->sender_label
             : $thread->messages()->orderByDesc('created_at')->orderByDesc('id')->value('sender_label');
 
-        return $label !== null && $label !== '' ? (string) $label : 'Unknown sender';
+        return $label !== null && $label !== '' ? (string) $label : __('php/support/inbox/thread_name.unknown_sender');
     }
 }

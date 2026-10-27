@@ -43,6 +43,12 @@ final class SeasonApplyFacts
             'agreed_owners' => $preview['agreed_owners'],
             'agreed_from' => $preview['agreed_from'],
             'agreed_to' => $preview['agreed_to'],
+            // I18N-01 rule 12 — the disclosure's three counted phrases, each in the page language's real plural for THIS
+            // count (preview() is unbounded, so no per-count map: the server builds the one text the dialog shows). Built
+            // here, at render time, by the one builder every Apply dialog reads.
+            'units_text' => trans_choice('livewire/operator/partials/season-apply-disclosure.units', (int) $preview['units'], ['count' => (int) $preview['units']]),
+            'agreed_carry_text' => trans_choice('livewire/operator/partials/season-apply-disclosure.agreed_carry', (int) $preview['agreed_nights']),
+            'agreed_owners_text' => trans_choice('livewire/operator/partials/season-apply-disclosure.agreed_owners', (int) $preview['agreed_owners'], ['count' => (int) $preview['agreed_owners']]),
         ];
     }
 }

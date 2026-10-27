@@ -78,24 +78,25 @@ class ReverseCheckIn
         $this->assertReversible($reservation);
 
         $reversible = [
-            'The stay returns to confirmed, and the room stays held for the same nights.',
+            __('php/actions/reservations/reverse_check_in.reversible_status'),
         ];
 
         $notReversed = [
-            'The check-in itself stays in the booking history. It happened, and the record says so — the reversal is added alongside it.',
+            __('php/actions/reservations/reverse_check_in.history_kept'),
         ];
 
         // ⚠️ REAL FIGURES OR NO LINE AT ALL (#39). A fabricated "charges may remain" warning on a stay with an
         //    empty folio teaches an operator to ignore the panel.
         [$count, $minor, $currency] = $this->chargesSinceCheckIn($reservation);
         if ($count > 0) {
-            $notReversed[] = $count.' charge'.($count === 1 ? '' : 's').' posted since check-in, totalling '
-                .MoneyFormatter::display($minor, $currency)
-                .', stay on the folio. Reversing an arrival does not un-spend money — remove them on the folio if they were a mistake too.';
+            $notReversed[] = trans_choice('php/actions/reservations/reverse_check_in.charges_kept', $count, [
+                'count' => $count,
+                'amount' => MoneyFormatter::display($minor, $currency),
+            ]);
         }
 
         if ($reservation->guest_checked_in_at !== null) {
-            $notReversed[] = 'The guest\'s own online check-in stays completed. They really did fill it in, and this does not ask them to do it again.';
+            $notReversed[] = __('php/actions/reservations/reverse_check_in.online_check_in_kept');
         }
 
         return ['reversible' => $reversible, 'not_reversed' => $notReversed];
@@ -125,9 +126,7 @@ class ReverseCheckIn
                 //    would report "reversed" to someone whose press did nothing, which is the same class of
                 //    lie as a warning that never fired. Same exception type as assertReversible(), so the
                 //    controller's existing `catch (RuntimeException)` surfaces it as a flash, never a 500.
-                throw new RuntimeException(
-                    'That check-in was already reversed a moment ago — the stay is back to confirmed.'
-                );
+                throw new RuntimeException(__('php/actions/reservations/reverse_check_in.already_reversed'));
             }
 
             $locked->update(['status' => 'confirmed']);
@@ -194,9 +193,7 @@ class ReverseCheckIn
         if ($from !== self::ALLOWED_FROM) {
             // ⚠️ NAME THE REAL STATUS. "Cannot reverse" tells a front desk nothing; "this one is cancelled"
             //    tells them which screen to go to next.
-            throw new RuntimeException(
-                "Only a checked-in stay can have its check-in reversed; this one is {$from}."
-            );
+            throw new RuntimeException(__('php/actions/reservations/reverse_check_in.refused_not_checked_in', ['status' => $from]));
         }
 
         // ⚠️⚠️ A RUNTIME CHECK THAT THE TWO REFUSAL SETS HAVE NOT BEEN MERGED WAS WRITTEN HERE AND REMOVED,

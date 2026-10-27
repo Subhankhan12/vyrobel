@@ -13,6 +13,7 @@ use App\Models\OwnerInvite;
 use App\Models\Unit;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\Locales;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -164,7 +165,7 @@ class OwnerInviteService
             return [$invite, $plain];
         });
 
-        Mail::to($email)->send(new OwnerInviteMail($invite, $token, $name));
+        Mail::to($email)->locale(Locales::resolve(Locales::organizationDefault((string) $invite->organization_id)))->send(new OwnerInviteMail($invite, $token, $name));
 
         return ['invite' => $invite, 'token' => $token];
     }
@@ -303,7 +304,7 @@ class OwnerInviteService
     public function resend(OwnerInvite $invite): array
     {
         if (! in_array($invite->status, ['pending', 'expired'], true) || $invite->role === self::FOUNDER_ROLE) {
-            throw new InviteNoLongerRedeemable('That invite has already been used or cancelled.');
+            throw new InviteNoLongerRedeemable(__('php/services/owner_invite_service.invite_used_or_cancelled'));   // shown on the Owners page
         }
 
         $owner = $invite->owner_id !== null ? Owner::withTrashed()->find($invite->owner_id) : null;

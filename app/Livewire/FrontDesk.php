@@ -84,7 +84,7 @@ class FrontDesk extends Component
             'property' => $property !== null ? ['id' => $property->id, 'name' => $property->name] : null,
             'day' => [
                 'date' => $date,
-                'label' => $day->format('l, j M Y'),
+                'label' => $day->translatedFormat('l, j M Y'),
                 'prev' => $day->subDay()->toDateString(),
                 'next' => $day->addDay()->toDateString(),
                 'today' => CarbonImmutable::today()->toDateString(),
@@ -142,7 +142,7 @@ class FrontDesk extends Component
                     'unit_id' => (string) $u['id'],
                     'room_type_id' => (string) $rt['room_type_id'],
                     'label' => (string) $u['name'].' · '.(string) $rt['room_type_name'],
-                    'price' => $this->money((int) $rt['price_minor'], (string) $rt['currency']).' / night',
+                    'price' => __('php/livewire/front_desk.price_per_night', ['price' => $this->money((int) $rt['price_minor'], (string) $rt['currency'])]),
                 ];
             }
         }
@@ -370,8 +370,8 @@ class FrontDesk extends Component
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'check_in' => $checkIn->toDateString(),
                 'check_out' => $checkOut->toDateString(),
-                'check_in_label' => $checkIn->format('j M'),
-                'check_out_label' => $checkOut->format('j M'),
+                'check_in_label' => $checkIn->translatedFormat('j M'),
+                'check_out_label' => $checkOut->translatedFormat('j M'),
                 // #104 GATE 3 — the guest's estimated arrival (real, was dropped at booking). Free-text window.
                 'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
                 'balance_minor' => $balanceMinor,

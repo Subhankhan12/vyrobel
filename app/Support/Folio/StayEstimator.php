@@ -72,7 +72,7 @@ final class StayEstimator
     {
         $folios = app(FolioService::class);
         $lines = [[
-            'label' => 'Room',
+            'label' => (string) __('php/support/folio/stay_estimator.room'),
             'detail' => Money::of((int) round($room->amountMinor() / max(1, $nights)), $currency)->amountMinor() > 0
                 // ⚠️ The per-night sublabel hardcoded '€' while the amount beside it was built in `$currency`
                 // — the same function's own argument. This line renders on the PUBLIC GUEST CHECKOUT
@@ -124,21 +124,28 @@ final class StayEstimator
 
     private static function taxDetail(Tax $tax, int $nights, int $persons, bool $inclusive): string
     {
-        return match ((string) $tax->mode) {
-            'percentage' => rtrim(rtrim((string) $tax->rate, '0'), '.').'%'.($inclusive ? ' · included' : ' · added'),
-            'per_person_night' => '× '.$persons.' guests × '.$nights.' nights',
-            'per_night' => '× '.$nights.' nights',
-            default => 'flat',
+        $rate = rtrim(rtrim((string) $tax->rate, '0'), '.');
+
+        return (string) match ((string) $tax->mode) {
+            'percentage' => $inclusive
+                ? __('php/support/folio/stay_estimator.tax_percent_included', ['rate' => $rate])
+                : __('php/support/folio/stay_estimator.tax_percent_added', ['rate' => $rate]),
+            'per_person_night' => __('php/support/folio/stay_estimator.tax_per_person_night', [
+                'guests' => trans_choice('php/support/folio/stay_estimator.guests', $persons, ['count' => $persons]),
+                'nights' => trans_choice('php/support/folio/stay_estimator.nights', $nights, ['count' => $nights]),
+            ]),
+            'per_night' => __('php/support/folio/stay_estimator.tax_per_night', ['nights' => trans_choice('php/support/folio/stay_estimator.nights', $nights, ['count' => $nights])]),
+            default => __('php/support/folio/stay_estimator.tax_flat'),
         };
     }
 
     private static function feeDetail(Fee $fee): string
     {
-        return match ((string) $fee->mode) {
-            'per_night' => 'per night',
-            'per_person' => 'per guest',
+        return (string) match ((string) $fee->mode) {
+            'per_night' => __('php/support/folio/stay_estimator.fee_per_night'),
+            'per_person' => __('php/support/folio/stay_estimator.fee_per_guest'),
             'percentage' => rtrim(rtrim((string) $fee->rate, '0'), '.').'%',
-            default => 'per stay',
+            default => __('php/support/folio/stay_estimator.fee_per_stay'),
         };
     }
 }

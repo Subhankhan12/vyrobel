@@ -57,7 +57,7 @@ class OAuthConnectionService
 
                 return [
                     'client_id' => (string) $first->client_id,
-                    'name' => (string) ($first->client->name ?? 'Unknown app'),
+                    'name' => (string) ($first->client->name ?? __('php/services/o_auth_connection_service.unknown_app')),
                     'scopes' => $scopes,
                     'authorized_at' => $authorizedAt,
                 ];

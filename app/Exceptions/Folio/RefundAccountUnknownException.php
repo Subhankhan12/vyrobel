@@ -32,10 +32,6 @@ final class RefundAccountUnknownException extends RuntimeException
 {
     public static function make(): self
     {
-        return new self(
-            'This payment was taken through Stripe but does not record which account received it, so it '
-            .'cannot be refunded automatically. Someone who manages billing for the account can refund it '
-            .'with Stripe directly; record the refund on the folio once it is done.'
-        );
+        return new self(__('php/exceptions/folio/refund_account_unknown_exception.message'));
     }
 }

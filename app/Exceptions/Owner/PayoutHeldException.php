@@ -18,6 +18,6 @@ class PayoutHeldException extends RuntimeException
 {
     public static function missingTaxDetails(string $ownerName): self
     {
-        return new self("held until {$ownerName} adds their tax details in the Tax Center.");
+        return new self(__('php/exceptions/owner/payout_held_exception.missing_tax_details', ['owner' => $ownerName]));
     }
 }

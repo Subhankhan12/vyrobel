@@ -169,9 +169,9 @@ class OperatorPortfolio extends Component
             // The same rich list as the profile's (2026-10-10, the app-wide select): city first, region groups, live clocks.
             'timezones' => TimezoneOptions::choices(),
             'typeChoices' => [
-                ['value' => 'hotel', 'label' => 'Hotel', 'icon' => '<path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16"/><path d="M2 21h20M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/>'],
-                ['value' => 'villa', 'label' => 'Villas & apartments', 'icon' => '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'],
-                ['value' => 'guest_house', 'label' => 'Guesthouse / lodge', 'icon' => '<path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="2"/>'],
+                ['value' => 'hotel', 'label' => $this->typeLabel('hotel'), 'icon' => '<path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16"/><path d="M2 21h20M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/>'],
+                ['value' => 'villa', 'label' => $this->typeLabel('villa'), 'icon' => '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'],
+                ['value' => 'guest_house', 'label' => $this->typeLabel('guest_house'), 'icon' => '<path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="2"/>'],
             ],
         ]);
     }
@@ -189,10 +189,10 @@ class OperatorPortfolio extends Component
 
         return [
             'scheduled' => $property->removal_scheduled_at !== null,
-            'leaves_on' => $property->removal_effective_at?->format('j M Y'),
+            'leaves_on' => $property->removal_effective_at?->translatedFormat('j M Y'),
             'stays' => $o['stays'],
             'in_house' => $o['in_house'],
-            'last_checkout' => $o['last_checkout']?->format('j M Y'),
+            'last_checkout' => $o['last_checkout']?->translatedFormat('j M Y'),
             'clear' => $o['clear'],
             'last_remaining' => $o['last_remaining'],
         ];
@@ -208,16 +208,16 @@ class OperatorPortfolio extends Component
     private function channelStatus($channels): array
     {
         if ($channels === null || $channels->isEmpty()) {
-            return ['label' => 'No channels connected', 'tone' => 'muted', 'needs_fix' => false];
+            return ['label' => __('php/livewire/operator/operator_portfolio.sync_no_channels'), 'tone' => 'muted', 'needs_fix' => false];
         }
         if ($channels->contains(fn (Channel $c): bool => (string) $c->status === 'error')) {
-            return ['label' => 'Sync needs attention', 'tone' => 'warn', 'needs_fix' => true];
+            return ['label' => __('php/livewire/operator/operator_portfolio.sync_needs_attention'), 'tone' => 'warn', 'needs_fix' => true];
         }
         if ($channels->contains(fn (Channel $c): bool => (string) $c->status === 'connected')) {
-            return ['label' => 'Channels connected', 'tone' => 'ok', 'needs_fix' => false];
+            return ['label' => __('php/livewire/operator/operator_portfolio.sync_connected'), 'tone' => 'ok', 'needs_fix' => false];
         }
 
-        return ['label' => 'Channels disconnected', 'tone' => 'muted', 'needs_fix' => false];
+        return ['label' => __('php/livewire/operator/operator_portfolio.sync_disconnected'), 'tone' => 'muted', 'needs_fix' => false];
     }
 
     /**
@@ -276,36 +276,38 @@ class OperatorPortfolio extends Component
      *   • active but no room types/units    → "Finish setup to go live" (not yet operational)
      *   • active with inventory             → "Active"
      *
-     * @return array{label: string, tone: string, setup: bool}
+     * `code` is what logic compares (the Edit dialog's status); `label` is only ever shown.
+     *
+     * @return array{code: string, label: string, tone: string, setup: bool}
      */
     private function statusFor(Property $property, int $unitCount, int $roomTypeCount): array
     {
         if ((string) $property->status === 'inactive') {
-            return ['label' => 'Inactive', 'tone' => 'muted', 'setup' => false];
+            return ['code' => 'inactive', 'label' => __('php/livewire/operator/operator_portfolio.status_inactive'), 'tone' => 'muted', 'setup' => false];
         }
 
         if ($roomTypeCount === 0 || $unitCount === 0) {
-            return ['label' => 'Finish setup to go live', 'tone' => 'warn', 'setup' => true];
+            return ['code' => 'setup', 'label' => __('php/livewire/operator/operator_portfolio.status_finish_setup'), 'tone' => 'warn', 'setup' => true];
         }
 
-        return ['label' => 'Active', 'tone' => 'ok', 'setup' => false];
+        return ['code' => 'active', 'label' => __('php/livewire/operator/operator_portfolio.status_active'), 'tone' => 'ok', 'setup' => false];
     }
 
     /** A human label for the real `properties.type` enum (warm, no invented value). */
     private function typeLabel(string $type): string
     {
         return match ($type) {
-            'hotel' => 'Hotel',
-            'aparthotel' => 'Aparthotel',
-            'serviced_apartment' => 'Serviced apartment',
-            'apartment_building' => 'Apartment building',
-            'apartment' => 'Apartment',
-            'villa' => 'Villas & apartments',
-            'hostel' => 'Hostel',
-            'guest_house' => 'Guesthouse / lodge',
-            'resort' => 'Resort',
-            'mixed' => 'Mixed',
-            'portfolio' => 'Portfolio',
+            'hotel' => __('php/livewire/operator/operator_portfolio.type_hotel'),
+            'aparthotel' => __('php/livewire/operator/operator_portfolio.type_aparthotel'),
+            'serviced_apartment' => __('php/livewire/operator/operator_portfolio.type_serviced_apartment'),
+            'apartment_building' => __('php/livewire/operator/operator_portfolio.type_apartment_building'),
+            'apartment' => __('php/livewire/operator/operator_portfolio.type_apartment'),
+            'villa' => __('php/livewire/operator/operator_portfolio.type_villa'),
+            'hostel' => __('php/livewire/operator/operator_portfolio.type_hostel'),
+            'guest_house' => __('php/livewire/operator/operator_portfolio.type_guest_house'),
+            'resort' => __('php/livewire/operator/operator_portfolio.type_resort'),
+            'mixed' => __('php/livewire/operator/operator_portfolio.type_mixed'),
+            'portfolio' => __('php/livewire/operator/operator_portfolio.type_portfolio'),
             default => ucfirst(str_replace('_', ' ', $type)),
         };
     }

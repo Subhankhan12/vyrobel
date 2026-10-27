@@ -52,7 +52,7 @@ class HousekeepingActionController extends Controller
             return $this->pausedRedirect();
         }
 
-        $label = ucfirst(str_replace('_', ' ', $target));
+        $label = $this->markedLabel($target);
 
         // ⚠️ The ladder's bound lives in the SERVICE (F-15) — this controller holds no status logic, exactly as
         // the maintenance reference does. It reports the refusal in the task's own terms: what was attempted,
@@ -60,14 +60,14 @@ class HousekeepingActionController extends Controller
         try {
             $housekeeping->updateTaskStatus($model, $target);
         } catch (RuntimeException) {
-            $was = str_replace('_', ' ', (string) $model->status);
+            $was = $this->currentStatus((string) $model->status);
 
             return redirect()->to(route('app.housekeeping'))
-                ->with('hk_error', "Unit {$model->unit?->code} is {$was} — it can’t be marked {$label} from there.");
+                ->with('hk_error', __('php/http/controllers/housekeeping_action_controller.cannot_mark', ['unit' => $model->unit?->code, 'status' => $was, 'target' => $label]));
         }
 
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', "Unit {$model->unit?->code} marked {$label}.");
+            ->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.marked', ['unit' => $model->unit?->code, 'target' => $label]));
     }
 
     /**
@@ -109,7 +109,7 @@ class HousekeepingActionController extends Controller
         }
 
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', "Assigned {$user->name} to unit {$model->unit?->code}.")
+            ->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.assigned', ['name' => $user->name, 'unit' => $model->unit?->code]))
             ->with('hk_undo', $undo);
     }
 
@@ -130,7 +130,7 @@ class HousekeepingActionController extends Controller
             $model->update(['priority' => $restore]);
         }
 
-        return redirect()->to(route('app.housekeeping'))->with('hk_notice', "Unit {$model->unit?->code} unassigned.");
+        return redirect()->to(route('app.housekeeping'))->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.unassigned', ['unit' => $model->unit?->code]));
     }
 
     /**
@@ -158,7 +158,7 @@ class HousekeepingActionController extends Controller
         }
 
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', $n > 0 ? "{$n} ".($n === 1 ? 'room' : 'rooms').' unassigned.' : 'Nothing to undo.');
+            ->with('hk_notice', $n > 0 ? trans_choice('php/http/controllers/housekeeping_action_controller.rooms_unassigned', $n, ['count' => $n]) : __('php/http/controllers/housekeeping_action_controller.nothing_to_undo'));
     }
 
     /**
@@ -177,7 +177,7 @@ class HousekeepingActionController extends Controller
         $housekeepers = User::query()->whereIn('id', $housekeeperIds)->get()->all();
 
         if ($housekeepers === []) {
-            return redirect()->to(route('app.housekeeping'))->with('hk_error', 'No housekeepers on the roster to assign to.');
+            return redirect()->to(route('app.housekeeping'))->with('hk_error', __('php/http/controllers/housekeeping_action_controller.no_housekeepers'));
         }
 
         // Current open-task load per housekeeper (in scope) — the balance starts from reality, not zero.
@@ -217,7 +217,7 @@ class HousekeepingActionController extends Controller
         $count = $housekeeping->assignAll($tasks, $housekeepers, $load, $request->user());
 
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', $count > 0 ? "{$count} ".($count === 1 ? 'room' : 'rooms').' assigned · queues balanced.' : 'Nothing to assign — every room already has a housekeeper.')
+            ->with('hk_notice', $count > 0 ? trans_choice('php/http/controllers/housekeeping_action_controller.rooms_assigned', $count, ['count' => $count]) : __('php/http/controllers/housekeeping_action_controller.nothing_to_assign'))
             ->with('hk_undo', $count > 0 ? ['url' => route('app.housekeeping.bulk-unassign'), 'ids' => $assignedIds] : null);
     }
 
@@ -255,7 +255,7 @@ class HousekeepingActionController extends Controller
             'alt' => 'Housekeeping proof · '.(string) $model->unit->code,
         ]);
 
-        return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))->with('hk_notice', 'Photo added.');
+        return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.photo_added'));
     }
 
     /** Remove a proof photo — deletes the stored bytes + the row. Tenant + task scoped; gated + read-only. */
@@ -275,7 +275,30 @@ class HousekeepingActionController extends Controller
         Storage::disk((string) $row->disk)->delete((string) $row->path);
         $row->delete();
 
-        return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))->with('hk_notice', 'Photo removed.');
+        return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.photo_removed'));
+    }
+
+    /** The target status as it reads after "marked" (an ALLOWED code). */
+    private function markedLabel(string $target): string
+    {
+        return match ($target) {
+            'in_progress' => __('php/http/controllers/housekeeping_action_controller.marked_in_progress'),
+            'clean' => __('php/http/controllers/housekeeping_action_controller.marked_clean'),
+            'inspected' => __('php/http/controllers/housekeeping_action_controller.marked_inspected'),
+            default => ucfirst(str_replace('_', ' ', $target)),
+        };
+    }
+
+    /** The task's current status as it reads after "is" (a housekeeping_tasks.status code). */
+    private function currentStatus(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('php/http/controllers/housekeeping_action_controller.is_pending'),
+            'in_progress' => __('php/http/controllers/housekeeping_action_controller.is_in_progress'),
+            'clean' => __('php/http/controllers/housekeeping_action_controller.is_clean'),
+            'inspected' => __('php/http/controllers/housekeeping_action_controller.is_inspected'),
+            default => str_replace('_', ' ', $status),
+        };
     }
 
     private function paused(): bool
@@ -286,6 +309,6 @@ class HousekeepingActionController extends Controller
     private function pausedRedirect(): RedirectResponse
     {
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_error', 'Your workspace is paused (read-only) — housekeeping changes are off until you resume.');
+            ->with('hk_error', __('php/http/controllers/housekeeping_action_controller.workspace_paused'));
     }
 }

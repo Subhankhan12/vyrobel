@@ -45,18 +45,18 @@ class GroupBookingController extends Controller
         // intended property.
         $property = Property::query()->whereKey(app(PropertyContext::class)->id())->first();
         if ($property === null) {
-            return $this->back($request, 'No property is configured yet.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.no_property'));
         }
 
         $checkIn = $this->dateString($request->input('check_in'));
         $checkOut = $this->dateString($request->input('check_out'));
         if ($checkIn === null || $checkOut === null || $checkOut <= $checkIn) {
-            return $this->back($request, 'Choose valid stay dates for the block.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.invalid_dates'));
         }
 
         $name = trim((string) $request->input('name'));
         if ($name === '') {
-            return $this->back($request, 'Give the block a name, e.g. “Okafor–Bello Wedding”.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.name_required'));
         }
 
         $unitIds = array_values(array_filter(array_map(
@@ -64,7 +64,7 @@ class GroupBookingController extends Controller
             (array) $request->input('units', []),
         ), fn (string $id): bool => $id !== ''));
         if ($unitIds === []) {
-            return $this->back($request, 'Add at least one unit to the block.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.units_required'));
         }
 
         // GUARD 1 (server-side): re-derive the authoritative price + rate plan for every offered unit. A unit
@@ -74,14 +74,14 @@ class GroupBookingController extends Controller
         $members = [];
         foreach ($unitIds as $unitId) {
             if (! isset($unitMap[$unitId])) {
-                return $this->back($request, 'One of the chosen units is no longer free or priced for those dates. Re-check availability.');
+                return $this->back($request, __('php/http/controllers/operator/group_booking_controller.unit_unavailable'));
             }
             $members[] = $unitMap[$unitId];
         }
 
         $currency = $members[0]['currency'];
         if (collect($members)->pluck('currency')->unique()->count() > 1) {
-            return $this->back($request, 'All units in a block must share one currency.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.mixed_currency'));
         }
 
         $occasion = in_array($request->input('occasion'), self::OCCASIONS, true) ? (string) $request->input('occasion') : null;
@@ -137,7 +137,7 @@ class GroupBookingController extends Controller
                 ], $members),
             ]);
         } catch (BookingException) {
-            return $this->back($request, 'A unit in the block was just taken for those dates — nothing was created. Re-check availability.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.unit_just_taken'));
         }
 
         // PRG to the in-wizard DONE screen (the wireframe's success card: reference + summary + actions). "View
@@ -179,7 +179,7 @@ class GroupBookingController extends Controller
         if (is_string($existingId) && $existingId !== '') {
             $guest = Guest::query()->find($existingId);   // tenant-scoped
             if ($guest === null) {
-                return $this->back($request, 'That organiser could not be found.');
+                return $this->back($request, __('php/http/controllers/operator/group_booking_controller.organiser_not_found'));
             }
 
             return $guest;
@@ -188,12 +188,12 @@ class GroupBookingController extends Controller
         $first = trim((string) $request->input('organiser_first_name', ''));
         $last = trim((string) $request->input('organiser_last_name', ''));
         if ($first === '' && $last === '') {
-            return $this->back($request, 'Enter the organiser’s name, or pick an existing guest.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.organiser_name_required'));
         }
 
         $email = trim((string) $request->input('organiser_email', ''));
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return $this->back($request, 'The organiser’s email address isn’t valid.');
+            return $this->back($request, __('php/http/controllers/operator/group_booking_controller.organiser_email_invalid'));
         }
 
         return Guest::create([

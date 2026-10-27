@@ -98,7 +98,8 @@ class OperatorEmailEditor extends Component
     {
         $base = EmailPreviewSample::viewData($this->templateKey);
         if ($base === null) {
-            return '<div style="padding:40px;font-family:Inter,Arial,sans-serif;color:#8A8079;font-size:13px;text-align:center;">Create a booking to preview this email with real sample data.</div>';
+            return '<div style="padding:40px;font-family:Inter,Arial,sans-serif;color:#8A8079;font-size:13px;text-align:center;">'
+                .e(__('php/livewire/operator/operator_email_editor.preview_needs_booking')).'</div>';
         }
 
         // Overlay the draft (merged with the sample merge-vars) onto the real blade data — the same keys the
@@ -158,8 +159,10 @@ class OperatorEmailEditor extends Component
         }
 
         $who = $stored->updatedBy?->name;
-        $when = Carbon::parse($stored->updated_at)->format('j M Y');
+        $when = Carbon::parse($stored->updated_at)->translatedFormat('j M Y');
 
-        return $who !== null ? "Last edited by {$who} · {$when}" : "Last edited {$when}";
+        return $who !== null
+            ? __('php/livewire/operator/operator_email_editor.last_edited_by', ['name' => $who, 'date' => $when])
+            : __('php/livewire/operator/operator_email_editor.last_edited', ['date' => $when]);
     }
 }

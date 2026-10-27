@@ -3,7 +3,7 @@
      are HONEST-GATED — no infra exists, so they are display-only/disabled and NEVER submitted (#39). The real
      in_app channel (not a wireframe column) is preserved via hidden inputs. RAW-BLADE RULE: `@` follows a space/tag. --}}
 <div>
-    <x-operator.shell active="notifications" title="Notification preferences" :subtitle="'How Vyrobel reaches you'" :viewer="$viewer">
+    <x-operator.shell active="notifications" :title="__('livewire/operator/notification-preferences.page_title')" :subtitle="__('livewire/operator/notification-preferences.subtitle')" :viewer="$viewer">
 
         @if (session('prefs_notice')) <div class="vy-flash is-ok vy-fade">{{ session('prefs_notice') }}</div> @endif
 
@@ -16,37 +16,37 @@
                      permission gate, but /app/settings requires `properties.manage`. An ungated crumb would
                      invite a 403 for every user who can set their own preferences but cannot manage the
                      property — which is most of them. Link it only when the route would actually open. --}}
-                <nav class="vy-np-crumb" aria-label="Breadcrumb">
+                <nav class="vy-np-crumb" aria-label="{{ __('livewire/operator/notification-preferences.breadcrumb_label') }}">
                     @can('properties.manage')
-                        <a href="{{ route('app.settings') }}">Settings</a>
+                        <a href="{{ route('app.settings') }}">{{ __('livewire/operator/notification-preferences.crumb_settings') }}</a>
                         <span aria-hidden="true">/</span>
                     @endcan
-                    <span aria-current="page">Notifications</span>
+                    <span aria-current="page">{{ __('livewire/operator/notification-preferences.crumb_notifications') }}</span>
                 </nav>
-                <button type="submit" class="vy-btn vy-btn--accent vy-np-save-top">Save changes</button>
+                <button type="submit" class="vy-btn vy-btn--accent vy-np-save-top">{{ __('common.save_changes') }}</button>
             </div>
 
             {{-- ── Channel cards: Email (real) · Push (honest) · SMS (honest) ─────────────────────────── --}}
             <div class="vy-np-channels vy-fade">
                 <div class="vy-np-chan">
                     <div class="vy-np-chan-icon">✉</div>
-                    <div style="flex: 1;"><div class="vy-np-chan-name">Email</div><div class="vy-np-chan-detail">{{ $email !== '' ? $email : 'No email on file' }}</div></div>
+                    <div style="flex: 1;"><div class="vy-np-chan-name">{{ __('livewire/operator/notification-preferences.channel_email') }}</div><div class="vy-np-chan-detail">{{ $email !== '' ? $email : __('livewire/operator/notification-preferences.no_email_on_file') }}</div></div>
                     {{-- SESSIONS 01 · Part C — the "Unverified" branch was removed as unreachable: this page is behind the /app
                          group's `verified` middleware, and nothing ever clears a user's email_verified_at (checked
                          2026-09-25). The @if stays, so the badge still never claims "Verified" for an address that is not. --}}
                     @if ($emailVerified)
-                        <span class="vy-np-status is-on" title="Your login email is verified">Verified</span>
+                        <span class="vy-np-status is-on" title="{{ __('livewire/operator/notification-preferences.email_verified_title') }}">{{ __('livewire/operator/notification-preferences.email_verified') }}</span>
                     @endif
                 </div>
-                <div class="vy-np-chan is-off" title="Push isn’t set up yet">
+                <div class="vy-np-chan is-off" title="{{ __('livewire/operator/notification-preferences.push_not_set_up_title') }}">
                     <div class="vy-np-chan-icon">🔔</div>
-                    <div style="flex: 1;"><div class="vy-np-chan-name">Push <span class="vy-np-soon">not set up</span></div><div class="vy-np-chan-detail">Browser &amp; device push isn’t available yet</div></div>
-                    <span class="vy-np-status">Off</span>
+                    <div style="flex: 1;"><div class="vy-np-chan-name">{{ __('livewire/operator/notification-preferences.channel_push') }} <span class="vy-np-soon">{{ __('livewire/operator/notification-preferences.not_set_up_tag') }}</span></div><div class="vy-np-chan-detail">{{ __('livewire/operator/notification-preferences.push_not_available') }}</div></div>
+                    <span class="vy-np-status">{{ __('livewire/operator/notification-preferences.channel_off') }}</span>
                 </div>
-                <div class="vy-np-chan is-off" title="SMS isn’t set up yet">
+                <div class="vy-np-chan is-off" title="{{ __('livewire/operator/notification-preferences.sms_not_set_up_title') }}">
                     <div class="vy-np-chan-icon">💬</div>
-                    <div style="flex: 1;"><div class="vy-np-chan-name">SMS <span class="vy-np-soon">not set up</span></div><div class="vy-np-chan-detail">No SMS provider connected yet</div></div>
-                    <span class="vy-np-status">Off</span>
+                    <div style="flex: 1;"><div class="vy-np-chan-name">{{ __('livewire/operator/notification-preferences.channel_sms') }} <span class="vy-np-soon">{{ __('livewire/operator/notification-preferences.not_set_up_tag') }}</span></div><div class="vy-np-chan-detail">{{ __('livewire/operator/notification-preferences.sms_no_provider') }}</div></div>
+                    <span class="vy-np-status">{{ __('livewire/operator/notification-preferences.channel_off') }}</span>
                 </div>
             </div>
 
@@ -55,18 +55,18 @@
             {{-- ── Notify-me grid: Email real · Push / SMS honest-gated ───────────────────────────────── --}}
             <div class="vy-card vy-fade" style="margin-top: 16px;">
                 <div class="vy-np-grid vy-np-head">
-                    <span>Notify me when</span>
-                    <span style="text-align: center;">Email</span>
-                    <span style="text-align: center;">Push</span>
-                    <span style="text-align: center;">SMS</span>
+                    <span>{{ __('livewire/operator/notification-preferences.notify_me_when') }}</span>
+                    <span style="text-align: center;">{{ __('livewire/operator/notification-preferences.channel_email') }}</span>
+                    <span style="text-align: center;">{{ __('livewire/operator/notification-preferences.channel_push') }}</span>
+                    <span style="text-align: center;">{{ __('livewire/operator/notification-preferences.channel_sms') }}</span>
                 </div>
 
                 @foreach ($groups as $groupName => $events)
-                    <div class="vy-np-group">{{ $groupName }}</div>
+                    <div class="vy-np-group">{{ \App\Services\NotificationPreferences::groupLabel($groupName) }}</div>
                     @foreach ($events as $event)
                         <div class="vy-np-grid vy-np-row">
                             <div>
-                                <div class="vy-np-ev">{{ $event['label'] }}@if ($event['always_on'])<span class="vy-np-always">Always on</span>@endif</div>
+                                <div class="vy-np-ev">{{ $event['label'] }}@if ($event['always_on'])<span class="vy-np-always">{{ __('livewire/operator/notification-preferences.always_on') }}</span>@endif</div>
                                 <div class="vy-np-ev-sub">{{ $event['description'] }}</div>
                             </div>
 
@@ -81,11 +81,11 @@
                             <div style="text-align: center;">
                                 @if ($event['always_on'])
                                     <input type="hidden" name="prefs[{{ $event['key'] }}][email]" value="1">
-                                    <span class="vy-np-cell is-on is-locked">✓<span class="vy-sr-only">Email always on for {{ $event['label'] }}</span></span>
+                                    <span class="vy-np-cell is-on is-locked">✓<span class="vy-sr-only">{{ __('livewire/operator/notification-preferences.email_always_on_sr', ['event' => $event['label']]) }}</span></span>
                                 @else
                                     <label class="vy-np-cell-wrap">
                                         <input type="checkbox" name="prefs[{{ $event['key'] }}][email]" value="1" @checked($event['state']['email']) class="vy-np-check"
-                                            aria-label="Email me when: {{ $event['label'] }}">
+                                            aria-label="{{ __('livewire/operator/notification-preferences.email_me_when_aria', ['event' => $event['label']]) }}">
                                         <span class="vy-np-cell" aria-hidden="true"></span>
                                     </label>
                                 @endif
@@ -95,8 +95,8 @@
                                  ⚠️ The "no provider" state was carried by opacity alone with only a `title`,
                                  which is not announced on a non-interactive span — the same 1.4.1 gap found on
                                  the feed at P29. The state now has real text for assistive tech. --}}
-                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">Push not set up</span></span></div>
-                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">SMS not set up</span></span></div>
+                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">{{ __('livewire/operator/notification-preferences.push_not_set_up_sr') }}</span></span></div>
+                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">{{ __('livewire/operator/notification-preferences.sms_not_set_up_sr') }}</span></span></div>
                         </div>
                     @endforeach
                 @endforeach
@@ -107,25 +107,25 @@
             {{-- ── Quiet hours (REAL — holds routine EMAIL during the window; in-app unaffected) ──────── --}}
             <div class="vy-card vy-fade" style="margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div><h2 class="vy-card-title" style="margin: 0;">Quiet hours</h2><p style="font-size: 12.5px; color: var(--vy-muted); margin: 3px 0 0;">Hold routine email between these hours — urgent security alerts always come through; the in-app feed is unaffected.</p></div>
+                    <div><h2 class="vy-card-title" style="margin: 0;">{{ __('livewire/operator/notification-preferences.quiet_hours') }}</h2><p style="font-size: 12.5px; color: var(--vy-muted); margin: 3px 0 0;">{{ __('livewire/operator/notification-preferences.quiet_hours_help') }}</p></div>
                     <label class="vyms-switch"><input type="checkbox" name="quiet_hours_enabled" value="1" x-model="quietOn" @checked($quietOn)><span class="vyms-switch-track"><span class="vyms-switch-knob"></span></span></label>
                 </div>
                 <div class="vyn-grid3" style="margin-top: 12px;" :style="quietOn ? '' : 'opacity:.5;pointer-events:none;'">
-                    <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qs">From</label><input id="qs" type="time" name="quiet_start" value="{{ $quietStart }}" class="vy-input"></div>
-                    <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qe">To</label><input id="qe" type="time" name="quiet_end" value="{{ $quietEnd }}" class="vy-input"></div>
+                    <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qs">{{ __('livewire/operator/notification-preferences.quiet_from') }}</label><input id="qs" type="time" name="quiet_start" value="{{ $quietStart }}" class="vy-input"></div>
+                    <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qe">{{ __('livewire/operator/notification-preferences.quiet_to') }}</label><input id="qe" type="time" name="quiet_end" value="{{ $quietEnd }}" class="vy-input"></div>
                 </div>
             </div>
 
             {{-- ── Daily digest (HONEST — stores the real daily_summary email pref; not dispatched yet) ── --}}
             @if ($digest)
             <div class="vy-card vy-fade" style="margin-top: 16px;">
-                <h2 class="vy-card-title" style="margin: 0 0 3px;">Daily digest email</h2>
-                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">A morning summary of the day. <span class="vy-np-soon">not dispatched yet</span> — the preference is saved for when the digest job ships.</p>
+                <h2 class="vy-card-title" style="margin: 0 0 3px;">{{ __('livewire/operator/notification-preferences.digest_heading') }}</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">{!! __('livewire/operator/notification-preferences.digest_help') !!}</p>
                 <input type="hidden" name="prefs[{{ $digest['key'] }}][email]" x-bind:value="digest === 'on' ? '1' : ''">
                 @if ($digest['state']['in_app'])<input type="hidden" name="prefs[{{ $digest['key'] }}][in_app]" value="1">@endif
                 <div class="vy-seg" style="max-width: 260px;">
-                    <label class="vy-seg-opt" :class="digest === 'off' ? 'is-checked' : ''" x-on:click="digest = 'off'">Off</label>
-                    <label class="vy-seg-opt" :class="digest === 'on' ? 'is-checked' : ''" x-on:click="digest = 'on'">Morning · 08:00</label>
+                    <label class="vy-seg-opt" :class="digest === 'off' ? 'is-checked' : ''" x-on:click="digest = 'off'">{{ __('livewire/operator/notification-preferences.digest_off') }}</label>
+                    <label class="vy-seg-opt" :class="digest === 'on' ? 'is-checked' : ''" x-on:click="digest = 'on'">{{ __('livewire/operator/notification-preferences.digest_morning') }}</label>
                 </div>
             </div>
             @endif
@@ -135,7 +135,7 @@
             {{-- The foot Save is kept as well as the new top one: the matrix is long, and losing the
                  bottom control would make a keyboard user tab back up the whole grid to submit. --}}
             <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
-                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">Save changes</button>
+                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">{{ __('common.save_changes') }}</button>
             </div>
         </form>
 

@@ -56,6 +56,6 @@ final class PasswordPolicy
      */
     public static function hint(): string
     {
-        return 'At least '.self::MIN_LENGTH.' characters, including a number and a symbol.';
+        return __('php/support/auth/password_policy.hint', ['min' => self::MIN_LENGTH]);
     }
 }

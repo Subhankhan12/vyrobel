@@ -23,7 +23,6 @@ use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Pricing\NightlyRate;
-use App\Support\Pricing\SeasonPrecedence;
 use App\Support\Rates\SeasonApplyFacts;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -186,8 +185,9 @@ class RatesGrid extends Component
             'planChoices' => $this->planChoices($roomTypes, $primaryPlan),
             'mainPlans' => array_map(fn (?RatePlan $plan): ?string => $plan?->getKey() !== null ? (string) $plan->getKey() : null, $primaryPlan),
             'seasons' => $this->seasonList($roomTypeIds),
-            // ⚠️ THE RULE'S OWN SENTENCE, from the rule — so the copy on the page cannot drift from the code.
-            'seasonRule' => SeasonPrecedence::SENTENCE,
+            // ⚠️ THE RULE'S OWN SENTENCE, from the rule — so the copy on the page cannot drift from the code. I18N-01: the
+            //    English of this key is App\Support\Pricing\SeasonPrecedence::SENTENCE word for word (SeasonPrecedenceTest asserts it on the page).
+            'seasonRule' => __('php/livewire/operator/rates_grid.season_rule'),
             'channels' => $this->channelList(),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
@@ -252,7 +252,7 @@ class RatesGrid extends Component
                     // ⚠️ The edit form's price field needs the MAJOR-unit string the create form accepts, not
                     //    the display string — `MoneyInput::toMinor()` parses this back on the way in.
                     'price_input' => number_format((int) $season->price_minor / 100, 2, '.', ''),
-                    'applied_on' => $season->applied_at?->format('j M Y'),
+                    'applied_on' => $season->applied_at?->translatedFormat('j M Y'),
                 ] + SeasonApplyFacts::of($season, $p);
             })->all();
     }
@@ -301,14 +301,25 @@ class RatesGrid extends Component
                 $isMain = in_array((string) $plan->getKey(), $mainPlanIds, true);
                 // ⚠️ "the grid above" only where it is TRUE — the grid prices each room type's main plan and no other
                 //    (2026-10-01: every refundable plan said it, and a non-refundable one read "Base plan").
-                $sub = $pct !== null
-                    ? rtrim(rtrim(number_format($pct, 2), '0'), '.').'% · derived from '.((string) ($plan->derivedFrom->name ?? 'base'))
-                    : ($plan->is_refundable ? 'Free cancellation' : 'Non-refundable').($isMain ? ' · the grid above' : '');
+                $pctText = $pct !== null ? rtrim(rtrim(number_format($pct, 2), '0'), '.') : '';
+                $fromName = $plan->derivedFrom instanceof RatePlan ? $plan->derivedFrom->name : null;   // null → "base", as before
+                $sub = match (true) {
+                    $pct !== null && $fromName !== null => __('php/livewire/operator/rates_grid.derived_from', ['pct' => $pctText, 'plan' => (string) $fromName]),
+                    $pct !== null => __('php/livewire/operator/rates_grid.derived_from_base', ['pct' => $pctText]),
+                    $plan->is_refundable && $isMain => __('php/livewire/operator/rates_grid.free_cancellation_main'),
+                    (bool) $plan->is_refundable => __('php/livewire/operator/rates_grid.free_cancellation'),
+                    $isMain => __('php/livewire/operator/rates_grid.non_refundable_main'),
+                    default => __('php/livewire/operator/rates_grid.non_refundable'),
+                };
                 $p = $priced[(string) $plan->getKey()] ?? null;
                 $pricedLine = $p === null
-                    ? 'No prices in this fortnight'
-                    : 'Priced on '.$p['n'].' of '.$nights.' nights this fortnight · '.MoneyFormatter::display($p['lo'], $p['currency'])
-                        .($p['hi'] !== $p['lo'] ? ' – '.MoneyFormatter::display($p['hi'], $p['currency']) : '');
+                    ? __('php/livewire/operator/rates_grid.no_prices_fortnight')
+                    : trans_choice('php/livewire/operator/rates_grid.priced_on', $nights, [
+                        'priced' => $p['n'],
+                        'count' => $nights,
+                        'range' => MoneyFormatter::display($p['lo'], $p['currency'])
+                            .($p['hi'] !== $p['lo'] ? ' – '.MoneyFormatter::display($p['hi'], $p['currency']) : ''),
+                    ]);
 
                 return [
                     // ⚠️ ADDED for the seasonal-pricing panel's plan selector — a season is defined AGAINST a
@@ -331,7 +342,7 @@ class RatesGrid extends Component
                     'priced' => $pricedLine,
                     'refundable' => (bool) $plan->is_refundable,
                     'is_derived' => $pct !== null,
-                    'channel' => 'Direct',   // honest — the only live channel (#85)
+                    'channel' => __('php/livewire/operator/rates_grid.channel_direct'),   // honest — the only live channel (#85)
                 ];
             })->all();
     }
@@ -347,8 +358,8 @@ class RatesGrid extends Component
     {
         $rows = [[
             'init' => 'D',
-            'name' => 'Direct booking',
-            'status' => 'Live',
+            'name' => __('php/livewire/operator/rates_grid.direct_booking'),
+            'status' => __('php/livewire/operator/rates_grid.status_live'),
             'live' => true,
         ]];
 
@@ -358,10 +369,10 @@ class RatesGrid extends Component
                 'init' => mb_strtoupper(mb_substr((string) $channel->name, 0, 1)),
                 'name' => (string) $channel->name,
                 'status' => match ($status) {
-                    'connected' => 'Connected',
-                    'error' => 'Needs attention',
-                    'disabled' => 'Disabled',
-                    default => 'Not connected',
+                    'connected' => __('php/livewire/operator/rates_grid.status_connected'),
+                    'error' => __('php/livewire/operator/rates_grid.status_needs_attention'),
+                    'disabled' => __('php/livewire/operator/rates_grid.status_disabled'),
+                    default => __('php/livewire/operator/rates_grid.status_not_connected'),
                 },
                 'live' => false,   // no live two-way sync until the OTA rail is set up (#85)
             ];
@@ -370,7 +381,7 @@ class RatesGrid extends Component
         $connected = collect($rows)->filter(fn (array $r): bool => $r['live'])->count();
 
         return [
-            'summary' => $connected.' live · OTA sync needs setup',
+            'summary' => trans_choice('php/livewire/operator/rates_grid.channels_summary', $connected, ['count' => $connected]),
             'rows' => $rows,
         ];
     }
@@ -395,11 +406,19 @@ class RatesGrid extends Component
             if ($plans->count() < 2) {
                 continue;
             }
-            $choices[$rtId] = $plans->map(fn (RatePlan $plan): array => [
-                'id' => (string) $plan->getKey(),
-                'label' => (string) $plan->name.((string) $plan->getKey() === (string) $main ? ' — the plan the grid shows' : '')
-                    .($plan->is_active ? '' : ' (off sale)'),
-            ])->all();
+            $choices[$rtId] = $plans->map(function (RatePlan $plan) use ($main): array {
+                $isMain = (string) $plan->getKey() === (string) $main;
+
+                return [
+                    'id' => (string) $plan->getKey(),
+                    'label' => match (true) {
+                        $isMain && ! $plan->is_active => __('php/livewire/operator/rates_grid.plan_choice_main_off_sale', ['plan' => (string) $plan->name]),
+                        $isMain => __('php/livewire/operator/rates_grid.plan_choice_main', ['plan' => (string) $plan->name]),
+                        ! $plan->is_active => __('php/livewire/operator/rates_grid.plan_choice_off_sale', ['plan' => (string) $plan->name]),
+                        default => (string) $plan->name,
+                    },
+                ];
+            })->all();
         }
 
         return $choices;
@@ -695,8 +714,8 @@ class RatesGrid extends Component
             // override of its own shows its ROOM TYPE's rate, never €0.
             'unit_rows' => $planId === null ? [] : $this->unitRows($roomType, $planId, $dates),
             'units_label' => $overridden > 0
-                ? $affected.' of '.$units.' '.($units === 1 ? 'unit' : 'units').' · '.$overridden.' priced individually'
-                : $units.' '.($units === 1 ? 'unit' : 'units'),
+                ? trans_choice('php/livewire/operator/rates_grid.units_label_partial', $units, ['affected' => $affected, 'count' => $units, 'overridden' => $overridden])
+                : trans_choice('php/livewire/operator/rates_grid.units_count', $units, ['count' => $units]),
             'cells' => $cells,
         ];
     }
@@ -770,9 +789,9 @@ class RatesGrid extends Component
 
         return [
             'date' => $date,
-            'weekday' => $carbon->format('D'),
+            'weekday' => $carbon->translatedFormat('D'),
             'day' => $carbon->format('j'),
-            'month' => $carbon->format('M'),
+            'month' => $carbon->translatedFormat('M'),
             // ⚠️ 2026-09-30 — a weekend NIGHT is Friday or Saturday: the nights bulk edit's "Weekends" changes, the nights
             //    the weekend uplift prices and the nights a season counts as "Fri/Sat". The grid shaded Saturday and Sunday,
             //    so its colours disagreed with every price rule on the page.
@@ -854,7 +873,7 @@ class RatesGrid extends Component
         }
 
         return [
-            'label' => $from->format('j M').' – '.$through->format('j M Y'),
+            'label' => $from->translatedFormat('j M').' – '.$through->translatedFormat('j M Y'),
             // D18-6 — the raw bounds, so a dialog opened from a unit row defaults to the window the operator
             // is actually looking at. (The label above is for humans and cannot be put in a date input.)
             'from' => $fromStr,
@@ -883,6 +902,6 @@ class RatesGrid extends Component
 
     private function subtitle(int $count): string
     {
-        return $count.' '.($count === 1 ? 'room type' : 'room types');
+        return trans_choice('php/livewire/operator/rates_grid.subtitle', $count, ['count' => $count]);
     }
 }

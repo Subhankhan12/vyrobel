@@ -18,11 +18,11 @@
     {{-- Turnover, urgency and the arriving guest's flags (name-free) --}}
     @if ($card['turnover'] || $card['urgency'] || $card['guest_vip'] || $card['guest_preferences'] !== [])
         <div class="vy-hk-tags">
-            @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>Turnover</span> @endif
+            @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>{{ __('livewire/partials/hk-card.turnover') }}</span> @endif
             @if ($card['urgency'])
                 <span class="vy-tag tone-{{ $card['urgency']['tone'] === 'red' ? 'risk' : 'confirmed' }}"><span class="vy-dot"></span>{{ $card['urgency']['label'] }}</span>
             @endif
-            @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP</span> @endif
+            @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>{{ __('livewire/partials/hk-card.vip') }}</span> @endif
             @foreach ($card['guest_preferences'] as $pref) <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $pref }}</span> @endforeach
         </div>
     @endif
@@ -33,16 +33,16 @@
             <span class="vy-hk-who"><span class="vy-avatar vy-hk-avatar is-sm">{{ $card['assignee_initials'] }}</span>{{ $card['assignee'] }}</span>
         @elseif ($canAssign)
             <button type="button" class="vy-btn vy-btn--ghost vy-hk-small"
-                    @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">+ Assign</button>
+                    @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">{{ __('livewire/partials/hk-card.assign_button') }}</button>
         @else
-            <span class="vy-hk-none">Unassigned</span>
+            <span class="vy-hk-none">{{ __('livewire/partials/hk-card.unassigned') }}</span>
         @endif
     </div>
 
     {{-- Elapsed (in-progress only) --}}
     @if ($card['elapsed'])
         <div class="vy-hk-elapsed @if ($card['elapsed']['over']) is-over @endif">
-            <div class="vy-hk-elapsed-row"><span>Elapsed</span><span>{{ $card['elapsed']['minutes'] }}m / {{ $card['elapsed']['expected'] }}m</span></div>
+            <div class="vy-hk-elapsed-row"><span>{{ __('livewire/partials/hk-card.elapsed') }}</span><span>{{ __('livewire/partials/hk-card.elapsed_of_expected', ['minutes' => $card['elapsed']['minutes'], 'expected' => $card['elapsed']['expected']]) }}</span></div>
             <div class="vy-hk-elapsed-bar"><span style="width: {{ min(100, (int) round($card['elapsed']['minutes'] / max(1, $card['elapsed']['expected']) * 100)) }}%;"></span></div>
         </div>
     @endif
@@ -50,7 +50,7 @@
     {{-- Action / done --}}
     <div class="vy-hk-card-foot">
         @if ($card['status'] === 'inspected')
-            <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Guest-ready</span>
+            <span class="vy-tag tone-in-house"><span class="vy-dot"></span>{{ __('livewire/partials/hk-card.guest_ready') }}</span>
         @elseif ($canManage && $card['next'] !== [])
             <form method="POST" action="{{ route('app.housekeeping.status', $card['id']) }}" class="vy-hk-inline">
                 @csrf
@@ -61,7 +61,7 @@
         @if ($card['completed_label'])
             <span class="vy-hk-sub">{{ $card['completed_label'] }}</span>
         @elseif ($card['started_label'])
-            <span class="vy-hk-sub">started {{ $card['started_label'] }}</span>
+            <span class="vy-hk-sub">{{ __('livewire/partials/hk-card.started_at', ['time' => $card['started_label']]) }}</span>
         @endif
     </div>
 </div>

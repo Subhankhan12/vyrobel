@@ -143,13 +143,11 @@ class ConfirmTentativeReservation
         }
 
         throw new RuntimeException(match ($from) {
-            'cancelled', 'no_show' => "Cannot confirm a {$from} reservation: the booking is closed and its "
-                .'nights were released back to sale. A returning guest needs a new booking.',
-            'checked_in' => 'Cannot confirm a checked-in reservation: the guest has already arrived, so the '
-                .'booking is past confirmation.',
-            'checked_out' => 'Cannot confirm a checked-out reservation: the stay is already over.',
-            'enquiry' => 'Cannot confirm an enquiry: only a tentative hold can be confirmed.',
-            default => "Cannot confirm a {$from} reservation: only a tentative hold can be confirmed.",
+            'cancelled', 'no_show' => __('php/actions/reservations/confirm_tentative_reservation.refused_closed', ['status' => $from]),
+            'checked_in' => __('php/actions/reservations/confirm_tentative_reservation.refused_checked_in'),
+            'checked_out' => __('php/actions/reservations/confirm_tentative_reservation.refused_checked_out'),
+            'enquiry' => __('php/actions/reservations/confirm_tentative_reservation.refused_enquiry'),
+            default => __('php/actions/reservations/confirm_tentative_reservation.refused_other', ['status' => $from]),
         });
     }
 }

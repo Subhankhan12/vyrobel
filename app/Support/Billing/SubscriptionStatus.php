@@ -84,12 +84,12 @@ final class SubscriptionStatus
     public function label(): string
     {
         return match (true) {
-            $this->onTrial() => 'Trial · '.$this->trialDaysRemaining().' '.($this->trialDaysRemaining() === 1 ? 'day' : 'days').' left',
-            $this->active() => 'Active',
-            $this->trialExpired() => 'Trial ended',
-            $this->pastDue() => 'Payment past due',
-            $this->canceled() => 'Canceled',
-            default => 'No subscription',
+            $this->onTrial() => trans_choice('php/support/billing/subscription_status.trial_days_left', $this->trialDaysRemaining(), ['count' => $this->trialDaysRemaining()]),
+            $this->active() => __('php/support/billing/subscription_status.active'),
+            $this->trialExpired() => __('php/support/billing/subscription_status.trial_ended'),
+            $this->pastDue() => __('php/support/billing/subscription_status.past_due'),
+            $this->canceled() => __('php/support/billing/subscription_status.canceled'),
+            default => __('php/support/billing/subscription_status.none'),
         };
     }
 

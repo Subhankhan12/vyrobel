@@ -221,11 +221,11 @@ class SearchService
     private function guestName(?Guest $guest): string
     {
         if ($guest === null) {
-            return 'Guest';
+            return __('php/services/search_service.guest_fallback');
         }
 
         $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name));
 
-        return $name !== '' ? $name : 'Guest';
+        return $name !== '' ? $name : __('php/services/search_service.guest_fallback');
     }
 }

@@ -41,10 +41,6 @@ final class OperatorNotReadyForPaymentsException extends RuntimeException
 {
     public static function make(): self
     {
-        return new self(
-            'This property cannot take card payments yet: its Stripe account has not finished verification. '
-            .'Someone who manages billing for the account can finish it under Billing → Card acceptance. '
-            .'Until then, take payment another way and record it on the folio.'
-        );
+        return new self(__('php/exceptions/payments/operator_not_ready_for_payments_exception.message'));
     }
 }

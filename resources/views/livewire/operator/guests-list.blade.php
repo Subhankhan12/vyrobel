@@ -20,7 +20,7 @@
      RAW-BLADE RULE: never write `word@directive` — every `@` below follows a space, newline, tag or quote. Guest EMAILS
      contain a literal `@` but are echoed through Blade as data, never written into the template. --}}
 <div class="vy-gst">
-    <x-operator.shell active="guests" title="Guests" :subtitle="$subtitle" :viewer="$viewer">
+    <x-operator.shell active="guests" :title="__('livewire/operator/guests-list.page_title')" :subtitle="$subtitle" :viewer="$viewer">
 
         @if (session('guest_notice'))
             <div class="vy-flash is-ok vy-fade">{{ session('guest_notice') }}</div>
@@ -41,24 +41,24 @@
             {{-- ── Stat strip — DERIVED, recomputed from real rows (no design constant ported) ─────────── --}}
             <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Guest profiles</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/guests-list.kpi_profiles') }}</div>
                     <div class="vy-dk-val">{{ $stats['profiles'] }}</div>
-                    <div class="vy-dk-sub">in this workspace @if ($stats['anonymized'] > 0) · {{ $stats['anonymized'] }} anonymized @endif</div>
+                    <div class="vy-dk-sub">@if ($stats['anonymized'] > 0) {{ trans_choice('livewire/operator/guests-list.kpi_profiles_sub_anonymized', $stats['anonymized'], ['count' => $stats['anonymized']]) }} @else {{ __('livewire/operator/guests-list.kpi_profiles_sub') }} @endif</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">In-house tonight</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/guests-list.kpi_in_house') }}</div>
                     <div class="vy-dk-val">{{ $stats['in_house'] }}</div>
-                    <div class="vy-dk-sub">guests checked in · across every property</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/guests-list.kpi_in_house_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Repeat guests</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/guests-list.kpi_repeat') }}</div>
                     @if ($stats['repeat_pct'] === null)
                         <div class="vy-dk-val">—</div>
-                        <div class="vy-dk-sub">no bookings yet — cancellations and no-shows don’t count</div>
+                        <div class="vy-dk-sub">{{ __('livewire/operator/guests-list.kpi_repeat_none') }}</div>
                     @else
                         <div class="vy-dk-val">{{ $stats['repeat_pct'] }}<span class="vy-dk-unit">%</span></div>
                         {{-- ⚠️ 2026-10-05: "who have stayed" counted guests whose only booking is still ahead — the count is of bookings --}}
-                        <div class="vy-dk-sub">{{ $stats['repeat'] }} of {{ $stats['with_stays'] }} {{ \Illuminate\Support\Str::plural('guest', $stats['with_stays']) }} with a booking booked again</div>
+                        <div class="vy-dk-sub">{{ trans_choice('livewire/operator/guests-list.kpi_repeat_sub', $stats['with_stays'], ['repeat' => $stats['repeat'], 'count' => $stats['with_stays']]) }}</div>
                     @endif
                 </div>
             </div>
@@ -74,10 +74,10 @@
                     @endforeach
                     <svg class="vy-gl-search-ico" x-show="! loading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <span class="vy-gl-spinner" x-show="loading" x-cloak aria-hidden="true"></span>
-                    <label class="vy-sr-only" for="vy-gl-q">Search guests</label>
+                    <label class="vy-sr-only" for="vy-gl-q">{{ __('livewire/operator/guests-list.search_label') }}</label>
                     <input id="vy-gl-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" x-model="q" x-ref="q"
-                           @input.debounce.300ms="search()" placeholder="Search name, city or exact email" maxlength="100" autocomplete="off" spellcheck="false">
-                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="Clear search">
+                           @input.debounce.300ms="search()" placeholder="{{ __('livewire/operator/guests-list.search_placeholder') }}" maxlength="100" autocomplete="off" spellcheck="false">
+                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="{{ __('livewire/operator/guests-list.clear_search') }}">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                     {{-- ⚠️ 2026-10-05: the "i" button that sat 6 px from the field's edge is gone — what search cannot find is said where it
@@ -87,20 +87,20 @@
                 <div class="vy-gl-tools">
                     <button type="button" class="vy-btn vy-btn--ghost vy-gl-select" :class="selectMode && 'is-on'" :aria-pressed="selectMode ? 'true' : 'false'" @click="toggleMode()">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
-                        <span x-text="selectMode ? 'Done' : 'Select'">Select</span>
+                        <span x-text="selectMode ? @js(__('common.done')) : @js(__('livewire/operator/guests-list.select'))">{{ __('livewire/operator/guests-list.select') }}</span>
                     </button>
                     {{-- WAVE 2 · #18 — gate the CONTROL on the same permission as the route ("never invite a 403"). --}}
                     @can('guests.manage')
                         <button type="button" class="vy-btn vy-btn--accent" @click="addOpen = true">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                            Add guest
+                            {{ __('livewire/operator/guests-list.add_guest') }}
                         </button>
                     @endcan
                 </div>
 
                 {{-- the filters on their own row, under the search and the buttons, at every width (as on Units and Owners) --}}
                 <div class="vy-gs-filters">
-                    <div class="vy-gl-chips" data-gl-region="chips" role="group" aria-label="Show">
+                    <div class="vy-gl-chips" data-gl-region="chips" role="group" aria-label="{{ __('livewire/operator/guests-list.chips_label') }}">
                         @foreach ($chips as $chip)
                             <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
                         @endforeach
@@ -118,10 +118,10 @@
                         <span class="vy-gl-empty-ico" aria-hidden="true">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 11.5a3 3 0 1 0 0-6M21 20c0-2.6-1.6-4.8-4-5.6"/></svg>
                         </span>
-                        <h2 class="vy-gl-empty-title">No guests yet</h2>
-                        <p class="vy-gl-empty-text">A guest profile is created with their first booking — or add one now.</p>
+                        <h2 class="vy-gl-empty-title">{{ __('livewire/operator/guests-list.empty_title') }}</h2>
+                        <p class="vy-gl-empty-text">{{ __('livewire/operator/guests-list.empty_text') }}</p>
                         @can('guests.manage')
-                            <button type="button" class="vy-btn vy-btn--accent" @click="addOpen = true">Add guest</button>
+                            <button type="button" class="vy-btn vy-btn--accent" @click="addOpen = true">{{ __('livewire/operator/guests-list.add_guest') }}</button>
                         @endcan
                     </div>
                 @elseif ($rows->total() === 0)
@@ -130,41 +130,41 @@
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                         </span>
                         <h2 class="vy-gl-empty-title">
-                            @if ($query !== '') No guests match “{{ $query }}” @else No guests in this view @endif
+                            @if ($query !== '') {{ __('livewire/operator/guests-list.no_match', ['query' => $query]) }} @else {{ __('livewire/operator/guests-list.none_in_view') }} @endif
                         </h2>
                         <p class="vy-gl-empty-text">
-                            Search matches name, city and an exact email address — phone and partial email are encrypted at rest, so they cannot be searched.
-                            {{ $total }} {{ \Illuminate\Support\Str::plural('guest', $total) }} in total.
+                            {{ __('livewire/operator/guests-list.search_scope') }}
+                            {{ trans_choice('livewire/operator/guests-list.total_in_all', $total, ['count' => $total]) }}
                         </p>
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.guests') }}" data-gl-key="clear-all">Clear search and filters</a>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.guests') }}" data-gl-key="clear-all">{{ __('livewire/operator/guests-list.clear_all') }}</a>
                     </div>
                 @else
                     <div class="vy-card vy-gl-card vy-fade">
                         <div class="vy-gl-progress" aria-hidden="true"></div>
                         <div class="vy-gl-scroll">
                             <table class="vy-gl-table vy-utable--stick-action">
-                                <caption class="vy-sr-only">Guests, {{ $sortedBy }}</caption>
+                                <caption class="vy-sr-only">{{ __('livewire/operator/guests-list.caption', ['sorted' => $sortedBy]) }}</caption>
                                 <thead>
                                     <tr>
                                         <th class="vy-gl-check" x-show="selectMode" x-cloak>
-                                            <input type="checkbox" aria-label="Select every guest on this page"
+                                            <input type="checkbox" aria-label="{{ __('livewire/operator/guests-list.select_page') }}"
                                                    :checked="allOnPage()" x-effect="$el.indeterminate = someOnPage()" @change="selectPage($event.target.checked)">
                                         </th>
                                         <th aria-sort="{{ $sorts['name']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">Guest<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">{{ __('livewire/operator/guests-list.col_guest') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th class="vy-gl-c-nat">Nationality</th>
+                                        <th class="vy-gl-c-nat">{{ __('livewire/operator/guests-list.col_nationality') }}</th>
                                         <th class="is-num vy-gl-c-stays" aria-sort="{{ $sorts['stays']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['stays']['active'] ? 'is-on is-'.$sorts['stays']['dir'] : '' }}" href="{{ $sorts['stays']['href'] }}" data-gl-key="sort-stays">Stays<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['stays']['active'] ? 'is-on is-'.$sorts['stays']['dir'] : '' }}" href="{{ $sorts['stays']['href'] }}" data-gl-key="sort-stays">{{ __('livewire/operator/guests-list.col_stays') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         <th class="vy-gl-c-stay" aria-sort="{{ $sorts['last_stay']['aria'] }}">
                                             {{-- "Stay", not "Last stay": it shows an arrival ahead as well (2026-10-05) --}}
-                                            <a class="vy-gl-sort {{ $sorts['last_stay']['active'] ? 'is-on is-'.$sorts['last_stay']['dir'] : '' }}" href="{{ $sorts['last_stay']['href'] }}" data-gl-key="sort-last_stay">Stay<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                            <a class="vy-gl-sort {{ $sorts['last_stay']['active'] ? 'is-on is-'.$sorts['last_stay']['dir'] : '' }}" href="{{ $sorts['last_stay']['href'] }}" data-gl-key="sort-last_stay">{{ __('livewire/operator/guests-list.col_stay') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         {{-- Not sortable: lifetime is per currency, and ranking EUR against USD would invent an exchange rate. --}}
-                                        <th class="is-num vy-gl-c-life"><span title="Billed per currency — not sortable across currencies">Lifetime</span></th>
-                                        <th class="vy-gl-c-status">Status</th>
-                                        <th class="vy-gl-actcol"><span class="vy-sr-only">Actions</span></th>
+                                        <th class="is-num vy-gl-c-life"><span title="{{ __('livewire/operator/guests-list.col_lifetime_hint') }}">{{ __('livewire/operator/guests-list.col_lifetime') }}</span></th>
+                                        <th class="vy-gl-c-status">{{ __('common.status') }}</th>
+                                        <th class="vy-gl-actcol"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -175,7 +175,7 @@
                                         @endphp
                                         <tr data-gl-id="{{ $row['id'] }}" class="{{ $row['anonymized'] ? 'is-erased' : '' }}" :class="sel['{{ $row['id'] }}'] && 'is-selected'">
                                             <td class="vy-gl-check" x-show="selectMode" x-cloak>
-                                                <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="Select {{ $row['name'] }}">
+                                                <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="{{ __('livewire/operator/guests-list.select_guest', ['name' => $row['name']]) }}">
                                             </td>
                                             <td class="vy-gl-guestcell">
                                                 <div class="vy-gl-guest">
@@ -183,8 +183,8 @@
                                                     <div class="vy-gl-who">
                                                         <div class="vy-gl-nameline">
                                                             <a class="vy-gl-name" href="{{ route('app.guests.show', $row['id']) }}">{{ $row['name'] }}</a>
-                                                            @if ($row['is_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP</span> @endif
-                                                            @if ($row['risk_flag']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>At risk</span> @endif
+                                                            @if ($row['is_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>{{ __('livewire/operator/guests-list.tag_vip') }}</span> @endif
+                                                            @if ($row['risk_flag']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>{{ __('livewire/operator/guests-list.tag_at_risk') }}</span> @endif
                                                             @foreach ($row['tags'] as $tag) <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $tag }}</span> @endforeach
                                                         </div>
                                                         {{-- each on its own line (2026-10-05: an email broke mid-word and left a "·" dangling) --}}
@@ -195,41 +195,41 @@
                                                         @elseif ($row['phone'] !== null)
                                                             <div class="vy-gl-contact"><span class="vy-gl-phone">{{ $row['phone'] }}</span></div>
                                                         @elseif ($row['anonymized'])
-                                                            <div class="vy-gl-contact">Erased</div>
+                                                            <div class="vy-gl-contact">{{ __('livewire/operator/guests-list.contact_erased') }}</div>
                                                         @endif
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="vy-gl-c-nat{{ mb_strlen((string) $row['nationality']) > 16 ? ' is-long' : '' }}" data-label="Nationality">@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
-                                            <td class="is-num vy-gl-c-stays" data-label="Stays"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
-                                            <td class="vy-gl-c-stay" data-label="Stay">
+                                            <td class="vy-gl-c-nat{{ mb_strlen((string) $row['nationality']) > 16 ? ' is-long' : '' }}" data-label="{{ __('livewire/operator/guests-list.col_nationality') }}">@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
+                                            <td class="is-num vy-gl-c-stays" data-label="{{ __('livewire/operator/guests-list.col_stays') }}"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
+                                            <td class="vy-gl-c-stay" data-label="{{ __('livewire/operator/guests-list.col_stay') }}">
                                                 @if ($row['last_stay'] === null)
                                                     <span class="vy-gl-none">—</span>
-                                                @elseif ($row['last_stay'] === 'In house')
-                                                    <span class="vy-gl-when is-live">In house</span>
+                                                @elseif ($row['last_stay_code'] === 'in_house')
+                                                    <span class="vy-gl-when is-live">{{ $row['last_stay'] }}</span>
                                                 @else
                                                     <span class="vy-gl-when">{{ $row['last_stay'] }}</span>
                                                 @endif
                                             </td>
-                                            <td class="is-num vy-gl-c-life" data-label="Lifetime">
+                                            <td class="is-num vy-gl-c-life" data-label="{{ __('livewire/operator/guests-list.col_lifetime') }}">
                                                 @forelse ($row['billed'] as $line)
                                                     <div class="vy-gl-fig">{{ $line }}</div>
                                                 @empty
                                                     <span class="vy-gl-none">—</span>
                                                 @endforelse
                                                 @foreach ($row['balance'] as $line)
-                                                    <div class="vy-gl-due">{{ $line }} due</div>
+                                                    <div class="vy-gl-due">{{ __('livewire/operator/guests-list.amount_due', ['amount' => $line]) }}</div>
                                                 @endforeach
                                             </td>
-                                            <td class="vy-gl-c-status" data-label="Status">
+                                            <td class="vy-gl-c-status" data-label="{{ __('common.status') }}">
                                                 @if ($row['stage_meta'] !== null)
                                                     <span class="vy-tag tone-{{ $row['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['stage_meta']['label'] }}</span>
                                                 @else
-                                                    <span class="vy-gl-none">No bookings</span>
+                                                    <span class="vy-gl-none">{{ __('livewire/operator/guests-list.no_bookings') }}</span>
                                                 @endif
                                             </td>
                                             <td class="vy-gl-actcol">
-                                                <button type="button" class="vy-gl-more" aria-label="Actions for {{ $row['name'] }}" aria-controls="vy-gl-menu"
+                                                <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/operator/guests-list.actions_for', ['name' => $row['name']]) }}" aria-controls="vy-gl-menu"
                                                         :aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" @click="openMenu($event, @js($menu))">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
                                                 </button>
@@ -243,26 +243,26 @@
                         {{-- The footer — where you are, how many per page, and the way to the next page. OUTSIDE the table: the
                              pager used to render inside <tbody>, which is not valid markup. --}}
                         <div class="vy-gl-foot" data-gl-foot>
-                            <p class="vy-gl-summary" data-gl-summary tabindex="-1"><strong>{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</strong> of <strong>{{ $rows->total() }}</strong> {{ \Illuminate\Support\Str::plural('guest', $rows->total()) }}<span class="vy-gl-sorted"> · {{ $sortedBy }}</span></p>
+                            <p class="vy-gl-summary" data-gl-summary tabindex="-1">{!! trans_choice('livewire/operator/guests-list.summary', $rows->total(), ['first' => e($rows->firstItem()), 'last' => e($rows->lastItem()), 'count' => e($rows->total()), 'sorted' => e($sortedBy)]) !!}</p>
                             <div class="vy-gl-paging">
-                                <span class="vy-gl-rows-label" id="vy-gl-rows">Rows</span>
+                                <span class="vy-gl-rows-label" id="vy-gl-rows">{{ __('livewire/operator/guests-list.rows') }}</span>
                                 <div class="vy-gl-sizes" role="group" aria-labelledby="vy-gl-rows">
                                     @foreach ($sizes as $size)
                                         <a class="vy-gl-size {{ $size['active'] ? 'is-on' : '' }}" href="{{ $size['href'] }}" data-gl-key="per-{{ $size['size'] }}" @if ($size['active']) aria-current="true" @endif>{{ $size['size'] }}</a>
                                     @endforeach
                                 </div>
                                 @if ($rows->lastPage() > 1)
-                                    <nav class="vy-gl-pages" aria-label="Pages">
+                                    <nav class="vy-gl-pages" aria-label="{{ __('livewire/operator/guests-list.pages') }}">
                                         @if ($pages['prev'] !== null)
-                                            <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="Previous page">
+                                            <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="{{ __('livewire/operator/guests-list.previous_page') }}">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
                                             </a>
                                         @else
                                             <span class="vy-gl-page is-off" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
                                         @endif
-                                        <span class="vy-gl-pagepos">Page {{ $rows->currentPage() }} of {{ $rows->lastPage() }}</span>
+                                        <span class="vy-gl-pagepos">{{ __('livewire/operator/guests-list.page_of', ['current' => $rows->currentPage(), 'last' => $rows->lastPage()]) }}</span>
                                         @if ($pages['next'] !== null)
-                                            <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="Next page">
+                                            <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="{{ __('livewire/operator/guests-list.next_page') }}">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                             </a>
                                         @else
@@ -283,35 +283,35 @@
                  @click.outside="closeMenu(false)" @keydown.escape.prevent.stop="closeMenu(true)" @focusout="leaveMenu($event)">
                 <a class="vy-gl-menu-item" :href="menu.row ? menu.row.profile : '#'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
-                    Open profile
+                    {{ __('livewire/operator/guests-list.open_profile') }}
                 </a>
                 <button type="button" class="vy-gl-menu-item" x-show="menu.row && menu.row.edit" @click="startEdit()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-                    Edit details
+                    {{ __('livewire/operator/guests-list.edit_details') }}
                 </button>
                 <button type="button" class="vy-gl-menu-item is-danger" x-show="menu.row && menu.row.erase" @click="startErase()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
-                    Erase personal data
+                    {{ __('livewire/operator/guests-list.erase_personal_data') }}
                 </button>
-                <p class="vy-gl-menu-note" x-show="menu.row && menu.row.erased">Personal data erased — there is nothing to edit.</p>
+                <p class="vy-gl-menu-note" x-show="menu.row && menu.row.erased">{{ __('livewire/operator/guests-list.menu_erased_note') }}</p>
             </div>
 
             {{-- ── The bulk bar — select mode, one or more selected ───────────────────────────────────── --}}
-            <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="Selected guests">
-                <span class="vy-gl-bulk-count"><strong x-text="count()"></strong> selected</span>
-                <button type="button" class="vy-gl-bulk-clear" @click="clear()">Clear</button>
+            <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="{{ __('livewire/operator/guests-list.bulk_label') }}">
+                <span class="vy-gl-bulk-count" x-html="counts.selected[count()]"></span>
+                <button type="button" class="vy-gl-bulk-clear" @click="clear()">{{ __('common.clear') }}</button>
                 <span class="vy-gl-bulk-sep" aria-hidden="true"></span>
                 @can('guests.manage')
-                    <button type="button" class="vy-gl-bulk-act" @click="msgOpen = true; marketing = false">Message</button>
-                    <button type="button" class="vy-gl-bulk-act" @click="tagOpen = true">Add tag</button>
+                    <button type="button" class="vy-gl-bulk-act" @click="msgOpen = true; marketing = false">{{ __('livewire/operator/guests-list.bulk_message') }}</button>
+                    <button type="button" class="vy-gl-bulk-act" @click="tagOpen = true">{{ __('livewire/operator/guests-list.add_tag') }}</button>
                 @endcan
                 {{-- Export — a real audited CSV download of exactly what this reader can already see --}}
                 <form method="POST" action="{{ route('app.guests.bulk.export') }}">
                     @csrf
                     <template x-for="id in ids()" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
-                    <button type="submit" class="vy-gl-bulk-act">Export</button>
+                    <button type="submit" class="vy-gl-bulk-act">{{ __('common.export') }}</button>
                 </form>
-                <button type="button" class="vy-gl-bulk-act is-danger" @click="delOpen = true; bulkTyped = ''">Erase</button>
+                <button type="button" class="vy-gl-bulk-act is-danger" @click="delOpen = true; bulkTyped = ''">{{ __('livewire/operator/guests-list.bulk_erase') }}</button>
             </div>
 
             {{-- ── MESSAGE (bulk) ────────────────────────────────────────────────────────────────────── --}}
@@ -326,40 +326,40 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v10H8l-4 4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-gl-msg-t">Message <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h3>
+                                    <h3 class="vy-modal-title" id="vy-gl-msg-t" x-text="counts.message_title[count()]"></h3>
                                     {{-- ⚠️⚠️ 2026-10-05: "Sent by email" while production's mailer is `log` — nothing left, and each guest's inbox
                                          recorded a message as sent. Said as it is, and refused by the server too. And "replies land in your
                                          inbox" was never true of email (no inbound mail): a reply goes to the property's reply-to address. --}}
                                     <p class="vy-modal-sub">
                                         @if (! $mailSends)
-                                            Email isn’t being sent from Vyrobel yet, so a message can’t reach anyone from here.
+                                            {{ __('livewire/operator/guests-list.mail_off') }}
                                         @elseif ($mailReplyTo !== null)
-                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies go to {{ $mailReplyTo }}.
+                                            @if ($mailSender !== null) {{ __('livewire/operator/guests-list.sent_as_replies_to', ['sender' => $mailSender, 'reply_to' => $mailReplyTo]) }} @else {{ __('livewire/operator/guests-list.sent_replies_to', ['reply_to' => $mailReplyTo]) }} @endif
                                         @elseif ($canBrand)
-                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies won’t reach you yet — add a reply-to address in Settings → Guest-facing brand.
+                                            @if ($mailSender !== null) {{ __('livewire/operator/guests-list.sent_as_no_reply_settings', ['sender' => $mailSender]) }} @else {{ __('livewire/operator/guests-list.sent_no_reply_settings') }} @endif
                                         @else
                                             {{-- Settings is `properties.manage`; this role may send but not open it — never point at a page that refuses --}}
-                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies won’t reach you yet — ask someone who manages property settings to add a reply-to address.
+                                            @if ($mailSender !== null) {{ __('livewire/operator/guests-list.sent_as_no_reply_ask', ['sender' => $mailSender]) }} @else {{ __('livewire/operator/guests-list.sent_no_reply_ask') }} @endif
                                         @endif
                                     </p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="msgOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="msgOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-gl-msg-body">Message</label>
-                                    <textarea id="vy-gl-msg-body" class="vy-input vy-gl-textarea" name="body" rows="5" maxlength="2000" required placeholder="Write your message…" autofocus @disabled(! $mailSends)></textarea>
+                                    <label class="vy-field-label" for="vy-gl-msg-body">{{ __('livewire/operator/guests-list.message_label') }}</label>
+                                    <textarea id="vy-gl-msg-body" class="vy-input vy-gl-textarea" name="body" rows="5" maxlength="2000" required placeholder="{{ __('livewire/operator/guests-list.message_placeholder') }}" autofocus @disabled(! $mailSends)></textarea>
                                 </div>
                                 <label class="vy-gl-switch">
                                     <input type="checkbox" name="marketing" value="1" x-model="marketing" @disabled(! $mailSends)>
-                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>This is a marketing message</strong><span>Only guests who agreed to marketing get it — the rest are skipped.</span></span>
+                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.marketing_title') }}</strong><span>{{ __('livewire/operator/guests-list.marketing_hint') }}</span></span>
                                 </label>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="msgOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" @disabled(! $mailSends)><span>Send to <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></span></button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="msgOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" @disabled(! $mailSends)><span x-text="counts.send_button[count()]"></span></button>
                             </div>
                         </form>
                     </div>
@@ -376,22 +376,22 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-gl-tag-t">Tag <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h3>
-                                    <p class="vy-modal-sub">Tags are shared across this workspace — a new name joins the list.</p>
+                                    <h3 class="vy-modal-title" id="vy-gl-tag-t" x-text="counts.tag_title[count()]"></h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/operator/guests-list.tag_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="tagOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="tagOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vy-field" style="margin-bottom: 0;">
-                                    <label class="vy-field-label" for="vy-gl-tag-name">Tag</label>
-                                    <input id="vy-gl-tag-name" class="vy-input" type="text" name="name" maxlength="255" required placeholder="e.g. Corporate" autofocus>
+                                    <label class="vy-field-label" for="vy-gl-tag-name">{{ __('livewire/operator/guests-list.tag_label') }}</label>
+                                    <input id="vy-gl-tag-name" class="vy-input" type="text" name="name" maxlength="255" required placeholder="{{ __('livewire/operator/guests-list.tag_placeholder') }}" autofocus>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="tagOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Add tag</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="tagOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/guests-list.add_tag') }}</button>
                             </div>
                         </form>
                     </div>
@@ -409,36 +409,36 @@
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
                         </span>
                         <div class="vy-gl-head-text">
-                            <h3 class="vy-modal-title" id="vy-dlg-erase-t">Erase <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span>?</h3>
-                            <p class="vy-modal-sub">Their personal data is erased for good. This can’t be undone.</p>
+                            <h3 class="vy-modal-title" id="vy-dlg-erase-t" x-text="counts.erase_title[count()]"></h3>
+                            <p class="vy-modal-sub">{{ __('livewire/operator/guests-list.erase_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="delOpen = false" aria-label="Close">
+                        <button type="button" class="vy-modal-x" @click="delOpen = false" aria-label="{{ __('common.close') }}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         </button>
                     </div>
                     @can('guests.erase')
                         <form method="POST" action="{{ route('app.guests.bulk.anonymize') }}" data-guard-submit
-                              onsubmit="return confirm('Permanently erase the selected guests? Their personal data cannot be recovered.');">
+                              onsubmit="return confirm(@js(__('livewire/operator/guests-list.bulk_erase_confirm')));">
                             @csrf
                             <template x-for="id in ids()" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
                             <div class="vy-modal-body">
                                 @include('livewire.operator.partials.guest-erase-ledger')
                                 <div class="vy-field" style="margin-bottom: 0;">
-                                    <label class="vy-field-label" for="bulk_confirm">Type ERASE to confirm</label>
+                                    <label class="vy-field-label" for="bulk_confirm">{{ __('livewire/operator/guests-list.type_word_to_confirm', ['word' => 'ERASE']) }}</label>
                                     <input class="vy-input" type="text" id="bulk_confirm" name="confirm" x-model="bulkTyped" autocomplete="off" spellcheck="false" placeholder="ERASE" autofocus>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false">Keep them</button>
-                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="bulkTyped.trim() !== 'ERASE'"><span>Erase <span x-text="count()"></span></span></button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false">{{ __('livewire/operator/guests-list.keep_them') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="bulkTyped.trim() !== 'ERASE'"><span x-text="counts.erase_button[count()]"></span></button>
                             </div>
                         </form>
                     @else
                         <div class="vy-modal-body">
-                            <p class="vy-gl-note">Erasing a guest needs the erase permission (Property Owner or Group Admin).</p>
+                            <p class="vy-gl-note">{{ __('livewire/operator/guests-list.erase_needs_permission') }}</p>
                         </div>
                         <div class="vy-modal-foot">
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false">Close</button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false">{{ __('common.close') }}</button>
                         </div>
                     @endcan
                 </div>
@@ -455,31 +455,31 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c0-3.6 2.9-6.5 6.5-6.5 1.4 0 2.7.4 3.7 1.2M18 14v6M15 17h6"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-gl-add-t">Add guest</h3>
-                                    <p class="vy-modal-sub">Their profile is created now — bookings attach to it later.</p>
+                                    <h3 class="vy-modal-title" id="vy-gl-add-t">{{ __('livewire/operator/guests-list.add_guest') }}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/operator/guests-list.add_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vy-gl-fields">
-                                    <div class="vy-field"><label class="vy-field-label" for="a_first">First name</label><input class="vy-input" id="a_first" type="text" name="first_name" maxlength="255" autocomplete="off" autofocus></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_last">Last name</label><input class="vy-input" id="a_last" type="text" name="last_name" maxlength="255" required autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_email">Email</label><input class="vy-input" id="a_email" type="email" name="email" maxlength="255" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_phone">Phone</label><input class="vy-input" id="a_phone" type="tel" name="phone" maxlength="64" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_city">City / country</label><input class="vy-input" id="a_city" type="text" name="city" maxlength="255" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_nat">Nationality</label><select class="vy-input" id="a_nat" name="nationality"><option value="">Not given</option>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_first">{{ __('livewire/operator/guests-list.first_name') }}</label><input class="vy-input" id="a_first" type="text" name="first_name" maxlength="255" autocomplete="off" autofocus></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_last">{{ __('livewire/operator/guests-list.last_name') }}</label><input class="vy-input" id="a_last" type="text" name="last_name" maxlength="255" required autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_email">{{ __('common.email') }}</label><input class="vy-input" id="a_email" type="email" name="email" maxlength="255" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_phone">{{ __('common.phone') }}</label><input class="vy-input" id="a_phone" type="tel" name="phone" maxlength="64" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_city">{{ __('livewire/operator/guests-list.city_country') }}</label><input class="vy-input" id="a_city" type="text" name="city" maxlength="255" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_nat">{{ __('livewire/operator/guests-list.col_nationality') }}</label><select class="vy-input" id="a_nat" name="nationality"><option value="">{{ __('livewire/operator/guests-list.not_given') }}</option>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
                                 </div>
                                 <div class="vy-gl-switches">
-                                    <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>VIP guest</strong><span>Flagged on arrivals and at the front desk</span></span></label>
-                                    <label class="vy-gl-switch"><input type="checkbox" name="prefers_email" value="1" checked><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Prefers email</strong><span>How they like to be contacted</span></span></label>
-                                    <label class="vy-gl-switch"><input type="checkbox" name="marketing_consent" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Marketing consent</strong><span>They agreed to marketing email</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.vip_title') }}</strong><span>{{ __('livewire/operator/guests-list.vip_hint') }}</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="prefers_email" value="1" checked><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.prefers_email_title') }}</strong><span>{{ __('livewire/operator/guests-list.prefers_email_hint') }}</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="marketing_consent" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.marketing_consent_title') }}</strong><span>{{ __('livewire/operator/guests-list.marketing_consent_hint') }}</span></span></label>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="addOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Add guest</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="addOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/guests-list.add_guest') }}</button>
                             </div>
                         </form>
                     </div>
@@ -500,10 +500,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-gl-edit-t">Edit guest</h3>
+                                    <h3 class="vy-modal-title" id="vy-gl-edit-t">{{ __('livewire/operator/guests-list.edit_title') }}</h3>
                                     <p class="vy-modal-sub" x-text="edit.name"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -518,24 +518,24 @@
                                     </div>
                                 @endif
                                 <div class="vy-gl-fields">
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-first">First name</label><input class="vy-input" id="vy-gl-e-first" type="text" name="first_name" maxlength="255" x-model="edit.first_name" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-last">Last name</label><input class="vy-input" id="vy-gl-e-last" type="text" name="last_name" maxlength="255" x-model="edit.last_name" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-email">Email</label><input class="vy-input" id="vy-gl-e-email" type="email" name="email" maxlength="255" x-model="edit.email" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-phone">Phone</label><input class="vy-input" id="vy-gl-e-phone" type="tel" name="phone" maxlength="64" x-model="edit.phone" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-city">City / country</label><input class="vy-input" id="vy-gl-e-city" type="text" name="city" maxlength="255" x-model="edit.city" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-nat">Nationality</label><select class="vy-input" id="vy-gl-e-nat" name="nationality" x-model="edit.nationality" x-ref="nat"><option value="">Not given</option><template x-if="edit.nationality_unlisted"><option :value="edit.nationality_unlisted" x-text="edit.nationality_unlisted_label"></option></template>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-first">{{ __('livewire/operator/guests-list.first_name') }}</label><input class="vy-input" id="vy-gl-e-first" type="text" name="first_name" maxlength="255" x-model="edit.first_name" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-last">{{ __('livewire/operator/guests-list.last_name') }}</label><input class="vy-input" id="vy-gl-e-last" type="text" name="last_name" maxlength="255" x-model="edit.last_name" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-email">{{ __('common.email') }}</label><input class="vy-input" id="vy-gl-e-email" type="email" name="email" maxlength="255" x-model="edit.email" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-phone">{{ __('common.phone') }}</label><input class="vy-input" id="vy-gl-e-phone" type="tel" name="phone" maxlength="64" x-model="edit.phone" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-city">{{ __('livewire/operator/guests-list.city_country') }}</label><input class="vy-input" id="vy-gl-e-city" type="text" name="city" maxlength="255" x-model="edit.city" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-nat">{{ __('livewire/operator/guests-list.col_nationality') }}</label><select class="vy-input" id="vy-gl-e-nat" name="nationality" x-model="edit.nationality" x-ref="nat"><option value="">{{ __('livewire/operator/guests-list.not_given') }}</option><template x-if="edit.nationality_unlisted"><option :value="edit.nationality_unlisted" x-text="edit.nationality_unlisted_label"></option></template>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
                                 </div>
                                 <div class="vy-gl-switches">
-                                    <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1" x-model="edit.is_vip"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>VIP guest</strong><span>Flagged on arrivals and at the front desk</span></span></label>
-                                    <label class="vy-gl-switch"><input type="checkbox" name="risk_flag" value="1" x-model="edit.risk_flag"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>At risk</strong><span>Flag this guest for the team</span></span></label>
-                                    <label class="vy-gl-switch"><input type="checkbox" name="prefers_email" value="1" x-model="edit.prefers_email"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Prefers email</strong><span>How they like to be contacted</span></span></label>
-                                    <label class="vy-gl-switch"><input type="checkbox" name="marketing_consent" value="1" x-model="edit.marketing_consent"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Marketing consent</strong><span>They agreed to marketing email</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1" x-model="edit.is_vip"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.vip_title') }}</strong><span>{{ __('livewire/operator/guests-list.vip_hint') }}</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="risk_flag" value="1" x-model="edit.risk_flag"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.tag_at_risk') }}</strong><span>{{ __('livewire/operator/guests-list.at_risk_hint') }}</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="prefers_email" value="1" x-model="edit.prefers_email"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.prefers_email_title') }}</strong><span>{{ __('livewire/operator/guests-list.prefers_email_hint') }}</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="marketing_consent" value="1" x-model="edit.marketing_consent"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/guests-list.marketing_consent_title') }}</strong><span>{{ __('livewire/operator/guests-list.marketing_consent_hint') }}</span></span></label>
                                 </div>
-                                <p class="vy-gl-note">Stay preferences, notes and tags stay as they are — change them on the <a class="vy-gl-link" :href="link(urls.profile, edit.id)">guest’s profile</a>.</p>
+                                <p class="vy-gl-note">{!! __('livewire/operator/guests-list.edit_note', ['profile_link' => 'link(urls.profile, edit.id)']) !!}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                             </div>
                         </form>
                     </div>
@@ -555,25 +555,25 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-gl-erase-t">Erase <span x-text="erase.name"></span>?</h3>
-                                    <p class="vy-modal-sub">Their personal data is erased for good. This can’t be undone.</p>
+                                    <h3 class="vy-modal-title" id="vy-gl-erase-t" x-text="@js(__('livewire/operator/guests-list.erase_named', ['name' => ':name'])).replace(':name', () => erase.name)"></h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/operator/guests-list.erase_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="eraseOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="eraseOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 @include('livewire.operator.partials.guest-erase-ledger')
                                 <div class="vy-field" style="margin-bottom: 0;">
-                                    <label class="vy-field-label" for="vy-gl-erase-word">Type ERASE to confirm</label>
+                                    <label class="vy-field-label" for="vy-gl-erase-word">{{ __('livewire/operator/guests-list.type_word_to_confirm', ['word' => 'ERASE']) }}</label>
                                     <input class="vy-input" type="text" id="vy-gl-erase-word" name="confirm" x-model="typed" autocomplete="off" spellcheck="false" placeholder="ERASE" autofocus>
                                     <span class="vy-rm-check" :class="typed.trim() === 'ERASE' && 'is-ok'" aria-live="polite"
-                                          x-text="typed.trim() === 'ERASE' ? 'Ready to erase' : (typed.trim() === '' ? '' : 'Type ERASE in capitals')"></span>
+                                          x-text="typed.trim() === 'ERASE' ? @js(__('livewire/operator/guests-list.ready_to_erase')) : (typed.trim() === '' ? '' : @js(__('livewire/operator/guests-list.type_word_in_capitals', ['word' => 'ERASE'])))"></span>
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="eraseOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="typed.trim() !== 'ERASE'">Erase personal data</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="eraseOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="typed.trim() !== 'ERASE'">{{ __('livewire/operator/guests-list.erase_personal_data') }}</button>
                             </div>
                         </form>
                     </div>
@@ -584,10 +584,25 @@
 
     {{-- The page's controller — the shared list behaviour (selection, the row menu, search and the smooth links, in
          partials/operator-list-script) plus this page's own dialogs. Every link and form works without it. --}}
+    @php
+        // The selection's sentences, translated here with their real plural for every count the script can show: a selection
+        // is of the rows on one page (the list script clears it on every page change), so 0 … the largest page size.
+        $vyCountTexts = ['selected' => [], 'message_title' => [], 'send_button' => [], 'tag_title' => [], 'erase_title' => [], 'erase_button' => []];
+        foreach (range(0, max(\App\Support\Guest\GuestListParams::PER_PAGE_OPTIONS)) as $n) {
+            $vyCountTexts['selected'][$n] = trans_choice('livewire/operator/guests-list.bulk_selected', $n, ['count' => $n]);
+            $vyCountTexts['message_title'][$n] = trans_choice('livewire/operator/guests-list.message_title', $n, ['count' => $n]);
+            $vyCountTexts['send_button'][$n] = trans_choice('livewire/operator/guests-list.send_button', $n, ['count' => $n]);
+            $vyCountTexts['tag_title'][$n] = trans_choice('livewire/operator/guests-list.tag_title', $n, ['count' => $n]);
+            $vyCountTexts['erase_title'][$n] = trans_choice('livewire/operator/guests-list.erase_title', $n, ['count' => $n]);
+            $vyCountTexts['erase_button'][$n] = trans_choice('livewire/operator/guests-list.erase_button', $n, ['count' => $n]);
+        }
+    @endphp
     @include('partials.operator-list-script')
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('vyGuests', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: 'No guests in this view' }), {
+            Alpine.data('vyGuests', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/operator/guests-list.none_in_view')) }), {
+                // the selection's sentences, one per count (a selection is of the rows on one page, so 0 … the largest page size)
+                counts: @js($vyCountTexts),
                 msgOpen: false, marketing: false, tagOpen: false, delOpen: false, addOpen: false,
                 editOpen: false, eraseOpen: false,
                 edit: {}, erase: { id: '', name: '' }, typed: '', bulkTyped: '',

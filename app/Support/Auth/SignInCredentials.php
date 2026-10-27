@@ -80,6 +80,6 @@ final class SignInCredentials
     /** ⚠️ The refusal says WHAT WILL HAPPEN — never a silently disabled control with no explanation. */
     public static function unlinkRefusalReason(): string
     {
-        return 'This is the only way you can sign in. Set a password first, and then you can remove it.';
+        return __('php/support/auth/sign_in_credentials.unlink_refusal');
     }
 }

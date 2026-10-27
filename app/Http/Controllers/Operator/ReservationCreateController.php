@@ -82,29 +82,29 @@ class ReservationCreateController extends Controller
         // are OFF (the wireframe's rule). Enforced at the SINGLE certified write path, so both the calendar
         // quick-panel AND the full form respect it — the UI also hides the affordance, this is the real guard.
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($request, 'Your workspace is paused (read-only) — new bookings are off until you resume. Resume from Billing.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.workspace_paused'));
         }
 
         $checkIn = $this->dateString($request->input('check_in'));
         $checkOut = $this->dateString($request->input('check_out'));
 
         if ($checkIn === null || $checkOut === null || $checkOut <= $checkIn) {
-            return $this->back($request, 'Choose valid check-in and check-out dates.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.invalid_dates'));
         }
         if (CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut)) > UnitAvailabilityService::MAX_NIGHTS) {
-            return $this->back($request, 'A booking can be at most '.UnitAvailabilityService::MAX_NIGHTS.' nights — pick a shorter stay.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.too_many_nights', ['max' => UnitAvailabilityService::MAX_NIGHTS]));
         }
 
         $roomTypeId = $this->text($request, 'room_type_id');
         $unitId = $this->text($request, 'unit_id');
 
         if ($roomTypeId === '' || $unitId === '') {
-            return $this->back($request, 'Choose a room and a specific unit for the stay.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.choose_room_and_unit'));
         }
 
         $roomType = RoomType::query()->find($roomTypeId);   // tenant-scoped → cross-org is simply "not found"
         if ($roomType === null) {
-            return $this->back($request, 'That room type isn’t available.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.room_type_unavailable'));
         }
 
         // Phase 6a · multi-property: the reservation lands in the ROOM TYPE's property (a booking for
@@ -113,7 +113,7 @@ class ReservationCreateController extends Controller
         // so honour the property_user allow-list on the write path too, not just in the picker.
         $context = app(PropertyContext::class);
         if ($context->active() && ! in_array((string) $roomType->property_id, $context->accessibleIds(), true)) {
-            return $this->back($request, 'That room type isn’t available.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.room_type_unavailable'));
         }
 
         // GUARD 1, server-side: re-derive what is genuinely bookable + the authoritative price. The client
@@ -122,11 +122,11 @@ class ReservationCreateController extends Controller
             ->firstWhere('room_type_id', $roomTypeId);
 
         if (! is_array($offered) || $offered['priced'] !== true) {
-            return $this->back($request, 'That room isn’t free, or has no price for every night of these dates. Pick a unit from the list again.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.room_not_free_or_unpriced'));
         }
 
         if (Collection::make($offered['units'])->firstWhere('id', $unitId) === null) {
-            return $this->back($request, 'That unit is no longer free for these dates — pick another one.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.unit_no_longer_free'));
         }
 
         $currency = (string) $offered['currency'];
@@ -161,19 +161,19 @@ class ReservationCreateController extends Controller
         $paymentMinor = null;
 
         if ($method === 'card') {
-            return $this->back($request, 'Card payments are coming soon — take cash or bank transfer now, or record it later from the folio.', NewReservation::STEP_CONFIRM);
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.card_coming_soon'), NewReservation::STEP_CONFIRM);
         }
 
         if (in_array($method, ['cash', 'bank'], true)) {
             if ($request->user()?->cannot('payments.record')) {
-                return $this->back($request, 'You don’t have permission to record a payment.', NewReservation::STEP_CONFIRM);
+                return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.no_payment_permission'), NewReservation::STEP_CONFIRM);
             }
             // GATE 1 B.2 — deposit split: validate a positive amount here; it is CAPPED at the real folio
             // balance when recorded (below), so a deposit/full up to the whole stay cost is allowed but the
             // operator can never collect more than is owed. (Was capped at the room charge only.)
             $paymentMinor = MoneyInput::toMinor($this->text($request, 'payment_amount'));
             if ($paymentMinor === null) {
-                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.', NewReservation::STEP_CONFIRM);
+                return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.invalid_payment_amount'), NewReservation::STEP_CONFIRM);
             }
         }
 
@@ -196,10 +196,10 @@ class ReservationCreateController extends Controller
         //    service's own refusal ({@see RestrictionOverrideForbiddenException}) answers first, as before.
         if ($overrideReason !== '' && $request->user()?->can('reservations.restriction_override') === true) {
             if (! RestrictionOverrideReason::isValid($overrideReason)) {
-                return $this->backToOverride($request, 'Choose a reason from the list to book anyway.');
+                return $this->backToOverride($request, __('php/http/controllers/operator/reservation_create_controller.choose_override_reason'));
             }
             if ($overrideReason === RestrictionOverrideReason::OTHER && ($overrideLine['restriction_override_note'] ?? null) === null) {
-                return $this->backToOverride($request, 'Say why in the note — it’s needed when you choose Other.');
+                return $this->backToOverride($request, __('php/http/controllers/operator/reservation_create_controller.override_note_required'));
             }
         }
 
@@ -258,13 +258,13 @@ class ReservationCreateController extends Controller
             //    sentence ("5 night(s) … 2026-10-20") is kept only for a resubmit, where it says the rules CHANGED.
             $notice = $overrideReason !== ''
                 ? $e->getMessage()
-                : 'This booking wasn’t made — these dates are restricted. Book anyway with a reason below, or change the dates in step 1.';
+                : __('php/http/controllers/operator/reservation_create_controller.dates_restricted');
 
             return $this->back($request, $notice, NewReservation::STEP_CONFIRM)
                 ->with('restriction_breaches', $e->asRecords())
                 ->with('restriction_can_override', $request->user()?->can('reservations.restriction_override') === true);
         } catch (BookingException) {
-            return $this->back($request, 'That unit was just taken for these dates — nothing was booked. Pick another one.');
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.unit_just_taken'));
         } finally {
             // ⚠️⚠️ 2026-10-04 — A REFUSED BOOKING LEAVES NO GUEST BEHIND. The new guest is created just above, before the
             //    booking is tried, and every refusal used to leave that record — a name, and the email and phone in their
@@ -321,9 +321,9 @@ class ReservationCreateController extends Controller
         // Idempotent and a no-op for operator-owned inventory (see OwnerAttributionService).
         app(OwnerAttributionService::class)->attributeReservation($reservation->refresh());
 
-        $notice = 'Reservation '.$reservation->reference.' created.';
+        $notice = __('php/http/controllers/operator/reservation_create_controller.reservation_created', ['reference' => $reservation->reference]);
         if ($creditMinor > 0) {
-            $notice .= ' '.MoneyFormatter::display($creditMinor, $currency).' credit applied.';
+            $notice .= ' '.__('php/http/controllers/operator/reservation_create_controller.credit_applied', ['amount' => MoneyFormatter::display($creditMinor, $currency)]);
         }
 
         // Optional MANUAL payment (no card data ever) via the real folio path. The amount is capped at the
@@ -336,7 +336,7 @@ class ReservationCreateController extends Controller
             if ($pay > 0) {
                 $folios->recordPayment($folio, Money::of($pay, $currency));
                 $paidMinor = $pay;
-                $notice .= ' '.MoneyFormatter::display($pay, $currency).' recorded as paid.';
+                $notice .= ' '.__('php/http/controllers/operator/reservation_create_controller.recorded_as_paid', ['amount' => MoneyFormatter::display($pay, $currency)]);
             }
         }
 
@@ -346,14 +346,16 @@ class ReservationCreateController extends Controller
         // booking/pricing/money code. The check-in is gated on reservations.checkin (the actor may create a
         // walk-in but not work the desk → the booking still lands, just not checked in).
         if ($request->boolean('walk_in')) {
-            $verb = 'created';
+            $checkedIn = false;
             if ($reservation->status === 'confirmed' && $request->user()?->can('reservations.checkin')) {
                 app(FrontDeskService::class)->checkIn($reservation);
-                $verb = 'checked in';
+                $checkedIn = true;
             }
-            $deskNotice = 'Walk-in '.$reservation->reference.' '.$verb.'.';
+            $deskNotice = $checkedIn
+                ? __('php/http/controllers/operator/reservation_create_controller.walk_in_checked_in', ['reference' => $reservation->reference])
+                : __('php/http/controllers/operator/reservation_create_controller.walk_in_created', ['reference' => $reservation->reference]);
             if ($paidMinor > 0) {
-                $deskNotice .= ' '.MoneyFormatter::display($paidMinor, $currency).' recorded as paid.';
+                $deskNotice .= ' '.__('php/http/controllers/operator/reservation_create_controller.recorded_as_paid', ['amount' => MoneyFormatter::display($paidMinor, $currency)]);
             }
 
             return redirect()->to(route('app.front-desk').'?date='.urlencode(CarbonImmutable::parse($checkIn)->toDateString()))
@@ -469,7 +471,7 @@ class ReservationCreateController extends Controller
         if (is_string($existingId) && $existingId !== '') {
             $guest = Guest::query()->find($existingId);   // tenant-scoped
             if ($guest === null) {
-                return $this->back($request, 'That guest could not be found — search for them again.', NewReservation::STEP_GUEST);
+                return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.guest_not_found'), NewReservation::STEP_GUEST);
             }
 
             return $guest;
@@ -479,12 +481,12 @@ class ReservationCreateController extends Controller
         $last = $this->text($request, 'guest_last_name');
 
         if ($first === '' && $last === '') {
-            return $this->back($request, 'Choose an existing guest, or enter a name for a new one.', NewReservation::STEP_GUEST);
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.choose_or_name_guest'), NewReservation::STEP_GUEST);
         }
 
         $email = $this->text($request, 'guest_email');
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return $this->back($request, 'That guest email address isn’t valid.', NewReservation::STEP_GUEST);
+            return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.invalid_guest_email'), NewReservation::STEP_GUEST);
         }
         $phone = $this->text($request, 'guest_phone');
         // GATE 1 — the guest's Country (ISO-3166 alpha-2, e.g. "PT") → the guest's nationality. Bounded + upper;

@@ -58,7 +58,7 @@ class GuestActionController extends Controller
         // An anonymized guest must not be re-populated with PII: the row is kept ONLY so the financial
         // history that references it stays intact, and writing a name back would quietly un-erase them.
         if ($model->isAnonymized()) {
-            return $this->done($request, $model->id, 'guest_error', 'That guest has been anonymized — their details cannot be edited.');
+            return $this->done($request, $model->id, 'guest_error', __('php/http/controllers/operator/guest_action_controller.anonymized_cannot_edit'));
         }
 
         $validated = $request->validate([
@@ -96,7 +96,7 @@ class GuestActionController extends Controller
 
         $guests->updateProfile($model, $validated, $request->user());
 
-        return $this->done($request, $model->id, 'guest_notice', 'Profile updated.');
+        return $this->done($request, $model->id, 'guest_notice', __('php/http/controllers/operator/guest_action_controller.profile_updated'));
     }
 
     /**
@@ -127,7 +127,7 @@ class GuestActionController extends Controller
 
         $guest = $guests->create($validated, $request->user());
 
-        return redirect()->route('app.guests.show', $guest->id)->with('guest_notice', 'Guest added.');
+        return redirect()->route('app.guests.show', $guest->id)->with('guest_notice', __('php/http/controllers/operator/guest_action_controller.guest_added'));
     }
 
     /**
@@ -151,7 +151,7 @@ class GuestActionController extends Controller
             return $this->back($model->id, 'guest_error', $this->pausedMessage());
         }
         if ($model->isAnonymized()) {
-            return $this->back($model->id, 'guest_error', 'That guest has been anonymized — no new conversation can be started.');
+            return $this->back($model->id, 'guest_error', __('php/http/controllers/operator/guest_action_controller.anonymized_no_conversation'));
         }
 
         $thread = $inbox->startThread([
@@ -179,7 +179,7 @@ class GuestActionController extends Controller
 
         $guests->addNote($model, trim($validated['body']), $request->user());
 
-        return $this->back($model->id, 'guest_notice', 'Note added.');
+        return $this->back($model->id, 'guest_notice', __('php/http/controllers/operator/guest_action_controller.note_added'));
     }
 
     /**
@@ -201,7 +201,7 @@ class GuestActionController extends Controller
 
         $guests->attachTag($model, $validated['name'], $request->user());
 
-        return $this->back($model->id, 'guest_notice', 'Tag added.');
+        return $this->back($model->id, 'guest_notice', __('php/http/controllers/operator/guest_action_controller.tag_added'));
     }
 
     /** Untag a guest. The tenant's catalog entry survives — it is the workspace's vocabulary, not this row's. */
@@ -218,7 +218,7 @@ class GuestActionController extends Controller
 
         $guests->detachTag($model, $tag, $request->user());
 
-        return $this->back($model->id, 'guest_notice', 'Tag removed.');
+        return $this->back($model->id, 'guest_notice', __('php/http/controllers/operator/guest_action_controller.tag_removed'));
     }
 
     /**
@@ -252,7 +252,7 @@ class GuestActionController extends Controller
         // Idempotence with a clean flash, never a 500: re-erasing is harmless (the fields are already null)
         // but it would restamp `anonymized_at` and re-audit, implying a second erasure that did not happen.
         if ($model->isAnonymized()) {
-            return $this->done($request, $model->id, 'guest_error', 'That guest has already been anonymized.');
+            return $this->done($request, $model->id, 'guest_error', __('php/http/controllers/operator/guest_action_controller.already_anonymized'));
         }
 
         $request->validate([
@@ -260,14 +260,14 @@ class GuestActionController extends Controller
             // permanent, so "did you mean it?" must survive a bookmarked POST, not just a dialog.
             'confirm' => ['required', 'string', 'in:ERASE'],
         ], [
-            'confirm.required' => 'Type ERASE to confirm this permanent erasure.',
-            'confirm.in' => 'Type ERASE exactly to confirm this permanent erasure.',
+            'confirm.required' => __('php/http/controllers/operator/guest_action_controller.confirm_required'),
+            'confirm.in' => __('php/http/controllers/operator/guest_action_controller.confirm_exact'),
         ]);
 
         // The REAL erase — one call, the existing method, its own transaction + audit/domain events.
         $model->anonymize();
 
-        return $this->done($request, $model->id, 'guest_notice', 'Guest erased. Their personal data is gone; the financial history remains.');
+        return $this->done($request, $model->id, 'guest_notice', __('php/http/controllers/operator/guest_action_controller.guest_erased'));
     }
 
     /** PRG back to the profile, using the two flash keys that view renders. */
@@ -296,6 +296,6 @@ class GuestActionController extends Controller
     /** The read-only refusal message — the workspace is paused (#84), so no guest write lands. */
     private function pausedMessage(): string
     {
-        return 'Your workspace is paused (read-only) — changes are off until you resume. Resume from Billing.';
+        return __('php/http/controllers/operator/guest_action_controller.workspace_paused');
     }
 }

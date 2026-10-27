@@ -27,6 +27,28 @@ class StatusIncident extends Model
 
     public const STATUSES = ['investigating' => 'Investigating', 'identified' => 'Identified', 'monitoring' => 'Monitoring', 'resolved' => 'Resolved'];
 
+    /** An incident status CODE ({@see STATUSES}' key) → its label in the reader's language, translated at call time (I18N-01). */
+    public static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'investigating' => (string) __('php/models/status_incident.status_investigating'),
+            'identified' => (string) __('php/models/status_incident.status_identified'),
+            'monitoring' => (string) __('php/models/status_incident.status_monitoring'),
+            'resolved' => (string) __('php/models/status_incident.status_resolved'),
+            default => $status,
+        };
+    }
+
+    /** An incident impact CODE ({@see IMPACTS}' key) → its label in the reader's language. */
+    public static function impactLabel(string $impact): string
+    {
+        return match ($impact) {
+            'minor' => (string) __('php/models/status_incident.impact_minor'),
+            'major' => (string) __('php/models/status_incident.impact_major'),
+            default => $impact,
+        };
+    }
+
     /** Resolved incidents stay on the public page this long. */
     public const SHOW_RESOLVED_DAYS = 14;
 

@@ -148,7 +148,7 @@ class RolePermissionService
     public function save(User $actor, string $roleName, array $wantGranted): array
     {
         if (! $this->isEditable($roleName)) {
-            throw new RoleAssignmentException('That role’s permissions can’t be edited here.');
+            throw new RoleAssignmentException(__('php/services/role_permission_service.not_editable'));
         }
 
         $catalog = $this->catalogPermissions();
@@ -252,7 +252,10 @@ class RolePermissionService
     {
         foreach ($perms as $perm) {
             if (! in_array($perm, $actorPerms, true)) {
-                throw new RoleAssignmentException("You can’t {$verb} a permission you don’t hold yourself.");
+                // one whole sentence per verb, so each language words it its own way
+                throw new RoleAssignmentException($verb === 'grant'
+                    ? __('php/services/role_permission_service.cannot_grant_unheld')
+                    : __('php/services/role_permission_service.cannot_revoke_unheld'));
             }
         }
     }
@@ -271,7 +274,7 @@ class RolePermissionService
             return;
         }
 
-        throw new RoleAssignmentException('At least one role must keep permission-management access — this would lock the workspace out.');
+        throw new RoleAssignmentException(__('php/services/role_permission_service.last_role_manager'));
     }
 
     // ⚠️ `currentPermissionsUnsafe()` and `actorPermissions()` used to answer "what does this role hold?" with
@@ -283,7 +286,7 @@ class RolePermissionService
     {
         $role = Role::query()->where('name', $roleName)->where('organization_id', $this->orgId())->first();
         if ($role === null) {
-            throw new RoleAssignmentException('That role isn’t set up for your organization.');
+            throw new RoleAssignmentException(__('php/services/role_permission_service.role_not_set_up'));
         }
 
         return $role;

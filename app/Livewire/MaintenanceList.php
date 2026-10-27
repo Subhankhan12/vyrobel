@@ -245,7 +245,7 @@ class MaintenanceList extends Component
             'is_urgent' => $ticket->priority === 'urgent',
             'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
             'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
-            'part_eta' => $ticket->part_eta?->format('j M'),
+            'part_eta' => $ticket->part_eta?->translatedFormat('j M'),
             'sla' => [
                 'state' => $sla['state'],
                 'breached' => $sla['breached'],
@@ -260,7 +260,7 @@ class MaintenanceList extends Component
             'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, $currency) : null,
             'labor' => $ticket->labor_minor !== null ? $this->money((int) $ticket->labor_minor, $currency) : null,
             'parts_cost' => $ticket->parts_minor !== null ? $this->money((int) $ticket->parts_minor, $currency) : null,
-            'resolved' => $ticket->resolved_at?->format('j M'),
+            'resolved' => $ticket->resolved_at?->translatedFormat('j M'),
             'photos' => $photos[(string) $ticket->id] ?? [],
             // What this viewer may do to THIS ticket, in a fixed order. Nothing that writes on a closed ticket — the old
             // board offered Assign on a resolved one, which the service refuses.
@@ -373,11 +373,20 @@ class MaintenanceList extends Component
     private function chips(array $cards, array $state): array
     {
         $chips = [];
-        foreach ([[null, 'All'], ['active', 'Active'], ['open', 'Not started'], ['inprog', 'In progress'], ['urgent', 'Urgent'],
-            ['parts', 'Awaiting parts'], ['ooo', 'Out of order'], ['done', 'Resolved']] as [$filter, $label]) {
+        // translated here, at render time, keyed by the filter CODE — never by the label
+        foreach ([null, 'active', 'open', 'inprog', 'urgent', 'parts', 'ooo', 'done'] as $filter) {
             $chips[] = [
                 'key' => $filter ?? 'all',
-                'label' => $label,
+                'label' => match ($filter) {
+                    'active' => __('php/livewire/maintenance_list.chip_active'),
+                    'open' => __('php/livewire/maintenance_list.chip_open'),
+                    'inprog' => __('php/livewire/maintenance_list.chip_inprog'),
+                    'urgent' => __('php/livewire/maintenance_list.chip_urgent'),
+                    'parts' => __('php/livewire/maintenance_list.chip_parts'),
+                    'ooo' => __('php/livewire/maintenance_list.chip_ooo'),
+                    'done' => __('php/livewire/maintenance_list.chip_done'),
+                    default => __('php/livewire/maintenance_list.chip_all'),
+                },
                 // the REAL count of what clicking it shows, the search included
                 'count' => count(array_filter($cards, fn (array $c): bool => $this->matches($c, $filter, $state['q']))),
                 'active' => $state['filter'] === $filter,
@@ -441,14 +450,14 @@ class MaintenanceList extends Component
     private function sortedBy(array $state): string
     {
         return match ($state['sort'].'.'.$state['dir']) {
-            'priority.asc' => 'most urgent first',
-            'priority.desc' => 'least urgent first',
-            'due.asc' => 'soonest target first',
-            'due.desc' => 'latest target first',
-            'reported.desc' => 'newest first',
-            'reported.asc' => 'oldest first',
-            'unit.asc' => 'by unit, A–Z',
-            'unit.desc' => 'by unit, Z–A',
+            'priority.asc' => __('php/livewire/maintenance_list.sorted_priority_asc'),
+            'priority.desc' => __('php/livewire/maintenance_list.sorted_priority_desc'),
+            'due.asc' => __('php/livewire/maintenance_list.sorted_due_asc'),
+            'due.desc' => __('php/livewire/maintenance_list.sorted_due_desc'),
+            'reported.desc' => __('php/livewire/maintenance_list.sorted_reported_desc'),
+            'reported.asc' => __('php/livewire/maintenance_list.sorted_reported_asc'),
+            'unit.asc' => __('php/livewire/maintenance_list.sorted_unit_asc'),
+            'unit.desc' => __('php/livewire/maintenance_list.sorted_unit_desc'),
         };
     }
 
@@ -537,9 +546,28 @@ class MaintenanceList extends Component
             ->get(['action', 'created_at']);
 
         return $events->map(fn (AuditEvent $e): array => [
-            'label' => ucfirst(str_replace(['maintenance_ticket.', '_'], ['', ' '], (string) $e->action)),
+            'label' => $this->activityLabel((string) $e->action),
             'when' => $e->created_at !== null ? CarbonImmutable::parse($e->created_at)->diffForHumans() : '',
         ])->all();
+    }
+
+    /** One timeline line, labelled by its action CODE (translated at render time); an unknown code reads as before. */
+    private function activityLabel(string $action): string
+    {
+        $code = str_replace('maintenance_ticket.', '', $action);
+
+        return match ($code) {
+            'opened' => __('php/livewire/maintenance_list.activity_opened'),
+            'assigned' => __('php/livewire/maintenance_list.activity_assigned'),
+            'started' => __('php/livewire/maintenance_list.activity_started'),
+            'updated' => __('php/livewire/maintenance_list.activity_updated'),
+            'parts_updated' => __('php/livewire/maintenance_list.activity_parts_updated'),
+            'cost_corrected' => __('php/livewire/maintenance_list.activity_cost_corrected'),
+            'note_added' => __('php/livewire/maintenance_list.activity_note_added'),
+            'resolved' => __('php/livewire/maintenance_list.activity_resolved'),
+            'cancelled' => __('php/livewire/maintenance_list.activity_cancelled'),
+            default => ucfirst(str_replace('_', ' ', $code)),
+        };
     }
 
     /**

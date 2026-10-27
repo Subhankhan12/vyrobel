@@ -77,11 +77,11 @@ class UniquePlanTierCycle implements DataAwareRule, ValidationRule
             ->first(fn (Plan $plan): bool => MarketingPricing::tierKey((string) $plan->code) === $tier);
 
         if ($clash !== null) {
-            $fail(
-                "This code resolves to the tier [{$tier}], which plan [{$clash->code}] already occupies for the "
-                .$interval.' interval. Two plans in one tier and cycle cannot both be shown on the pricing page — '
-                .'one would silently disappear. Choose a different tier name.'
-            );
+            $fail(__('php/support/billing/unique_plan_tier_cycle.tier_taken', [
+                'tier' => $tier,
+                'plan' => (string) $clash->code,
+                'interval' => $interval,
+            ]));
         }
     }
 }

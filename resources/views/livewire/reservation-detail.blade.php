@@ -25,7 +25,7 @@
                     {{-- The design states a terminal reservation as a TINTED BANNER, keyed by which terminal
                          state it is — rose for a cancellation, amber for a no-show. The state is read from
                          the real at_label the component already derives, not from a second status read. --}}
-                    @php $vyTerm = $terminal['at_label'] === 'Marked no-show at' ? 'is-no-show' : 'is-cancelled'; @endphp
+                    @php $vyTerm = $terminal['is_no_show'] ? 'is-no-show' : 'is-cancelled'; @endphp
                     <div class="vy-card vy-term {{ $vyTerm }}">
                         <div class="vy-detail-head">
                             <span class="vy-term-head">
@@ -46,21 +46,21 @@
                                 <div><div class="vy-fact-label">{{ $terminal['at_label'] }}</div><div class="vy-fact-val">{{ $terminal['at'] }}</div></div>
                             @endif
                             @if ($terminal['reason'])
-                                <div><div class="vy-fact-label">Reason</div><div class="vy-fact-val">{{ $terminal['reason'] }}</div></div>
+                                <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.reason') }}</div><div class="vy-fact-val">{{ $terminal['reason'] }}</div></div>
                             @endif
                         </div>
 
                         {{-- REAL + automatic: terminate() → releaseLine() frees `sold`. Claims nothing more. --}}
                         <div class="vy-callout is-oos" style="margin-top: 14px;">
-                            <div class="vy-callout-title">Inventory released</div>
+                            <div class="vy-callout-title">{{ __('livewire/reservation-detail.inventory_released') }}</div>
                             {{ $terminal['released'] }}
                         </div>
 
                         {{-- DEFERRED (locked decision 5): there is no fee engine. A label, never a figure. --}}
                         <div class="vy-action-list" style="margin-top: 12px;">
-                            <div class="vy-defer-item"><span>{{ $terminal['fee_label'] }}</span><span class="vy-soon-tag">Soon</span></div>
+                            <div class="vy-defer-item"><span>{{ $terminal['fee_label'] }}</span><span class="vy-soon-tag">{{ __('livewire/reservation-detail.soon') }}</span></div>
                         </div>
-                        <div class="vy-recon" style="margin-top: 6px;">No fee was calculated or charged — cancellation fees need a policy engine that isn’t built.</div>
+                        <div class="vy-recon" style="margin-top: 6px;">{{ __('livewire/reservation-detail.no_fee_calculated') }}</div>
                     </div>
                 @endif
 
@@ -70,20 +70,20 @@
                         <span class="vy-tag tone-{{ $reservation['tone'] }}"><span class="vy-dot"></span>{{ $reservation['status_label'] }}</span>
                     </div>
                     <div class="vy-facts" style="margin-top: 14px;">
-                        <div><div class="vy-fact-label">Guest</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}@if (($reservation['guest_id'] ?? null) && auth()->user()?->can('guests.view'))<a href="{{ route('app.guests.show', $reservation['guest_id']) }}" style="margin-left:8px;font-size:12px;font-weight:600;color:var(--vy-accent)">View profile ›</a>@endif</div></div>
-                        <div><div class="vy-fact-label">Source</div><div class="vy-fact-val">{{ $reservation['source'] }}</div></div>
-                        <div><div class="vy-fact-label">Check-in → out</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
-                        <div><div class="vy-fact-label">Nights · guests</div><div class="vy-fact-val">{{ $reservation['nights'] }} {{ \Illuminate\Support\Str::plural('night', $reservation['nights']) }} · {{ $reservation['guests'] }} {{ \Illuminate\Support\Str::plural('guest', $reservation['guests']) }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.guest') }}</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}@if (($reservation['guest_id'] ?? null) && auth()->user()?->can('guests.view'))<a href="{{ route('app.guests.show', $reservation['guest_id']) }}" style="margin-left:8px;font-size:12px;font-weight:600;color:var(--vy-accent)">{{ __('livewire/reservation-detail.view_profile') }}</a>@endif</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.source') }}</div><div class="vy-fact-val">{{ $reservation['source'] }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.check_in_out') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.nights_guests') }}</div><div class="vy-fact-val">{{ __('livewire/reservation-detail.nights_and_guests', ['nights' => trans_choice('livewire/reservation-detail.nights_count', $reservation['nights'], ['count' => $reservation['nights']]), 'guests' => trans_choice('livewire/reservation-detail.guests_count', $reservation['guests'], ['count' => $reservation['guests']])]) }}</div></div>
                     </div>
                 </div>
 
                 <div class="vy-card">
-                    <h2 class="vy-card-title" style="margin-bottom: 10px;">Units</h2>
+                    <h2 class="vy-card-title" style="margin-bottom: 10px;">{{ __('livewire/reservation-detail.units') }}</h2>
                     @foreach ($units as $unit)
                         <div class="vy-unit-row">
                             <div>
-                                <div class="vy-um-name">{{ $unit['room_type'] }} · {{ $unit['unit'] ? 'Unit '.$unit['unit'] : 'Unassigned' }}</div>
-                                <div class="vy-um-sub">{{ $unit['check_in'] }} → {{ $unit['check_out'] }} · {{ ucfirst($unit['status']) }}</div>
+                                <div class="vy-um-name">{{ $unit['room_type'] }} · {{ $unit['unit'] ? __('livewire/reservation-detail.unit_code', ['code' => $unit['unit']]) : __('livewire/reservation-detail.unassigned') }}</div>
+                                <div class="vy-um-sub">{{ $unit['check_in'] }} → {{ $unit['check_out'] }} · {{ $unit['status_label'] }}</div>
                             </div>
                             <div class="vy-ledger-amt tone-charge">{{ $unit['price'] }}</div>
                         </div>
@@ -96,7 +96,7 @@
                      webhook cancel has no authenticated user). Nothing is invented. --}}
                 @if ($timeline !== [])
                     <div class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom: 6px;">Activity</h2>
+                        <h2 class="vy-card-title" style="margin-bottom: 6px;">{{ __('livewire/reservation-detail.activity') }}</h2>
                         <div class="vy-timeline">
                             @foreach ($timeline as $event)
                                 <div class="vy-tl-item">
@@ -115,7 +115,7 @@
                 @endif
 
                 <div class="vy-card">
-                    <h2 class="vy-card-title" style="margin-bottom: 6px;">Folio</h2>
+                    <h2 class="vy-card-title" style="margin-bottom: 6px;">{{ __('livewire/reservation-detail.folio') }}</h2>
 
                     {{-- ⚠️⚠️ THE BILLED STATE, AND ITS UNDO. Billing a folio to a company account is recorded on
                          the folio (`billed_to_account_id`), so this is where it is read — and until 2026-09-22
@@ -126,19 +126,19 @@
                          ⚠️ It says plainly what billing did and did NOT do: the money is still owed. --}}
                     @if ($billed_to !== null)
                         <div class="vy-recon" style="margin-bottom:10px">
-                            Billed to <strong>{{ $billed_to }}</strong> — the balance is still owed, by them rather than the guest.
+                            {!! __('livewire/reservation-detail.billed_to', ['account' => e($billed_to)]) !!}
                         </div>
                         @if ($can_unbill_from_account)
                             <form method="POST" action="{{ route('app.reservations.unbill-from-account', $reservation['id']) }}" style="margin-bottom:12px"
-                                onsubmit="return confirm('Return this folio to the guest? The balance goes back to them — nothing is refunded or charged.');">
+                                onsubmit="return confirm(@js(__('livewire/reservation-detail.unbill_confirm')));">
                                 @csrf
-                                <button type="submit" class="vy-act vy-act--ghost">Return to the guest’s folio</button>
+                                <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.unbill_button') }}</button>
                             </form>
                         @endif
                     @endif
 
                     @if ($folio === null)
-                        <div class="vy-empty">No folio opened yet — record a payment or post a charge to open one.</div>
+                        <div class="vy-empty">{{ __('livewire/reservation-detail.no_folio') }}</div>
                     @else
                         <div class="vy-ledger">
                             @forelse ($folio['ledger'] as $line)
@@ -163,22 +163,22 @@
                                         <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" class="vy-refund-btn">
                                             @csrf
                                             <input type="hidden" name="payment" value="{{ $line['payment_id'] }}">
-                                            <button type="submit" class="vy-act vy-act--ghost">Refund</button>
+                                            <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.refund_button') }}</button>
                                         </form>
                                     @endif
                                 </div>
                             @empty
-                                <div class="vy-empty">No folio lines yet.</div>
+                                <div class="vy-empty">{{ __('livewire/reservation-detail.no_folio_lines') }}</div>
                             @endforelse
                         </div>
 
                         {{-- The design sets the three totals SIDE BY SIDE with the balance carrying the
                              emphasis. Same three real figures from FolioTotals — layout only. --}}
                         <div class="vy-totals">
-                            <div class="vy-total-row"><span class="vy-t-label">Charges</span><span class="vy-t-val">{{ $folio['charges'] }}</span></div>
-                            <div class="vy-total-row"><span class="vy-t-label">Paid</span><span class="vy-t-val">{{ $folio['paid'] }}</span></div>
+                            <div class="vy-total-row"><span class="vy-t-label">{{ __('livewire/reservation-detail.charges') }}</span><span class="vy-t-val">{{ $folio['charges'] }}</span></div>
+                            <div class="vy-total-row"><span class="vy-t-label">{{ __('livewire/reservation-detail.paid') }}</span><span class="vy-t-val">{{ $folio['paid'] }}</span></div>
                             <div class="vy-total-row is-balance @unless ($folio['has_balance']) is-settled @endunless">
-                                <span class="vy-t-label">Balance due</span><span class="vy-t-val">{{ $folio['balance'] }}</span>
+                                <span class="vy-t-label">{{ __('livewire/reservation-detail.balance_due') }}</span><span class="vy-t-val">{{ $folio['balance'] }}</span>
                             </div>
                         </div>
                         {{-- "Paid" is NET of refunds by construction (paid = received − refunded). A refund is
@@ -188,7 +188,7 @@
                         @if ($folio['reconciles'])
                             <span class="vy-recon">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                                Reconciled to the folio ledger
+                                {{ __('livewire/reservation-detail.reconciled') }}
                             </span>
                         @endif
                     @endif
@@ -202,12 +202,12 @@
                      shared dark stat panel (.vy-tonight) introduced on the Dashboard. --}}
                 @if ($folio !== null)
                     <div class="vy-tonight">
-                        <span class="vy-eyebrow">Balance due</span>
+                        <span class="vy-eyebrow">{{ __('livewire/reservation-detail.balance_due') }}</span>
                         <div class="vy-tonight-val">{{ $folio['balance'] }}</div>
-                        <div class="vy-tonight-sub">of {{ $folio['charges'] }} total</div>
+                        <div class="vy-tonight-sub">{{ __('livewire/reservation-detail.of_total', ['amount' => $folio['charges']]) }}</div>
                         <div class="vy-tonight-row">
-                            <div class="vy-tonight-cell"><div class="vy-tc-k">Paid</div><div class="vy-tc-v">{{ $folio['paid'] }}</div></div>
-                            <div class="vy-tonight-cell"><div class="vy-tc-k">Status</div><div class="vy-tc-v">{{ $folio['has_balance'] ? 'Due' : 'Settled' }}</div></div>
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">{{ __('livewire/reservation-detail.paid') }}</div><div class="vy-tc-v">{{ $folio['paid'] }}</div></div>
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">{{ __('common.status') }}</div><div class="vy-tc-v">{{ $folio['has_balance'] ? __('livewire/reservation-detail.due') : __('livewire/reservation-detail.settled') }}</div></div>
                         </div>
                     </div>
                 @endif
@@ -218,7 +218,7 @@
                      never offer a transition the write path refuses. --}}
                 @if ($can_cancel || $can_no_show || $can_confirm_hold || $can_reverse_check_in || $can_reverse_check_out)
                     <div class="vy-card">
-                        <span class="vy-eyebrow">Lifecycle</span>
+                        <span class="vy-eyebrow">{{ __('livewire/reservation-detail.lifecycle') }}</span>
 
                         {{-- ⚠️ R5 (F-60) — a TENTATIVE group hold becomes a real stay. It is offered FIRST
                              because it is the only forward move from a hold, and a desk facing the guest
@@ -226,33 +226,33 @@
                              converts the hold and takes no second one. --}}
                         @if ($can_confirm_hold)
                             <form method="POST" action="{{ route('app.reservations.confirm', $reservation['id']) }}" style="margin-top: 12px;"
-                                onsubmit="return confirm('Confirm this held booking? The nights are already held — this turns the hold into a confirmed stay.');">
+                                onsubmit="return confirm(@js(__('livewire/reservation-detail.confirm_hold_confirm')));">
                                 @csrf
-                                <button type="submit" class="vy-act">Confirm hold</button>
+                                <button type="submit" class="vy-act">{{ __('livewire/reservation-detail.confirm_hold_button') }}</button>
                             </form>
-                            <div class="vy-recon" style="margin-top: 8px;">The nights stay held throughout — confirming changes what the booking means, not what it occupies.</div>
+                            <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.confirm_hold_note') }}</div>
                         @endif
 
                         @if ($can_no_show)
                             <form method="POST" action="{{ route('app.reservations.no-show', $reservation['id']) }}" style="margin-top: 12px;"
-                                onsubmit="return confirm('Mark this reservation as a no-show? The held nights are released back to the calendar.');">
+                                onsubmit="return confirm(@js(__('livewire/reservation-detail.no_show_confirm')));">
                                 @csrf
-                                <button type="submit" class="vy-act vy-act--ghost">Mark no-show</button>
+                                <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.no_show_button') }}</button>
                             </form>
-                            <div class="vy-recon" style="margin-top: 8px;">Frees the held nights. No reason is recorded — the service stores none for a no-show.</div>
+                            <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.no_show_note') }}</div>
                         @endif
 
                         @if ($can_cancel)
                             <form method="POST" action="{{ route('app.reservations.cancel', $reservation['id']) }}" style="margin-top: 14px;"
-                                onsubmit="return confirm('Cancel this reservation? The held nights are released back to the calendar. This cannot be undone.');">
+                                onsubmit="return confirm(@js(__('livewire/reservation-detail.cancel_confirm')));">
                                 @csrf
-                                <label class="vy-field-label" for="cancel-reason">Cancel · reason (optional)</label>
+                                <label class="vy-field-label" for="cancel-reason">{{ __('livewire/reservation-detail.cancel_reason_label') }}</label>
                                 <div class="vy-input-group">
-                                    <input class="vy-input" type="text" name="reason" id="cancel-reason" maxlength="255" placeholder="Why is it being cancelled?">
-                                    <button type="submit" class="vy-act vy-act--accent">Cancel</button>
+                                    <input class="vy-input" type="text" name="reason" id="cancel-reason" maxlength="255" placeholder="{{ __('livewire/reservation-detail.cancel_reason_placeholder') }}">
+                                    <button type="submit" class="vy-act vy-act--accent">{{ __('livewire/reservation-detail.cancel_button') }}</button>
                                 </div>
                             </form>
-                            <div class="vy-recon" style="margin-top: 8px;">Cancelling is final — there is no reinstate, and the freed nights can be resold immediately.</div>
+                            <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.cancel_note') }}</div>
                         @endif
 
                         {{-- ⚠️⚠️ R9 / R3 — THE TWO REVERSALS. ⚠️ THESE ARE LINKS (GET), NOT SUBMIT BUTTONS, AND THAT
@@ -266,14 +266,14 @@
                              403 — and on the status, so it never offers a transition the action would refuse. --}}
                         @if ($can_reverse_check_in)
                             <a href="{{ route('app.front-desk.reverse-checkin', $reservation['id']) }}"
-                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">Reverse check-in</a>
-                            <div class="vy-recon" style="margin-top: 8px;">Checked in by mistake? This puts the stay back to confirmed, where it can be cancelled. You will see what it does not undo before it happens.</div>
+                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">{{ __('livewire/reservation-detail.reverse_check_in') }}</a>
+                            <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.reverse_check_in_note') }}</div>
                         @endif
 
                         @if ($can_reverse_check_out)
                             <a href="{{ route('app.front-desk.reverse-checkout', $reservation['id']) }}"
-                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">Reverse check-out</a>
-                            <div class="vy-recon" style="margin-top: 8px;">Checked out by mistake? This puts the stay back to checked in. Some things cannot be undone — the next page lists them.</div>
+                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">{{ __('livewire/reservation-detail.reverse_check_out') }}</a>
+                            <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.reverse_check_out_note') }}</div>
                         @endif
                     </div>
                 @endif
@@ -286,14 +286,14 @@
                      capability that does not exist). No notes ⇒ no card, never an empty shell. --}}
                 @if (count($notes) > 0)
                     <div class="vy-card">
-                        <span class="vy-eyebrow">Notes &amp; requests</span>
+                        <span class="vy-eyebrow">{{ __('livewire/reservation-detail.notes_requests') }}</span>
                         @foreach ($notes as $note)
                             <div style="margin-top: 12px;">
                                 <div class="vy-field-label">{{ $note['label'] }}</div>
                                 <div class="vy-fact-val" style="white-space: pre-line; font-weight: 400;">{{ $note['body'] }}</div>
                             </div>
                         @endforeach
-                        <div class="vy-recon" style="margin-top: 12px;">Captured when the booking was made or at online check-in.</div>
+                        <div class="vy-recon" style="margin-top: 12px;">{{ __('livewire/reservation-detail.notes_captured') }}</div>
                     </div>
                 @endif
 
@@ -301,15 +301,15 @@
                      CONTEXT ONLY — no fee is computed against this stay; the copy says so explicitly. --}}
                 @if ($policy !== null)
                     <div class="vy-card">
-                        <span class="vy-eyebrow">Cancellation policy</span>
+                        <span class="vy-eyebrow">{{ __('livewire/reservation-detail.cancellation_policy') }}</span>
                         <div class="vy-fact-val" style="margin-top: 10px;">{{ $policy['summary'] }}</div>
-                        <div class="vy-recon" style="margin-top: 6px;">The policy on file for this property. Nothing has been calculated against this booking.</div>
+                        <div class="vy-recon" style="margin-top: 6px;">{{ __('livewire/reservation-detail.policy_note') }}</div>
                     </div>
                 @endif
 
                 @can('payments.record')
                 <div class="vy-card vy-card--accent">
-                    <span class="vy-eyebrow">Record a payment</span>
+                    <span class="vy-eyebrow">{{ __('livewire/reservation-detail.record_payment') }}</span>
                     {{-- WIRED: posts through FolioService::recordPayment (append-only, integer #17). Batch C ·
                          GATE 3 — a per-submit idempotency nonce records a double-click ONCE; a method selector
                          (Cash / Bank transfer = real manual now · Card = the Stripe test-mode seam, deferred). --}}
@@ -317,25 +317,25 @@
                           data-guard-submit>
                         @csrf
                         <input type="hidden" name="idempotency_key" value="{{ $payment_nonce }}">
-                        <label class="vy-field-label" for="pay_method">Method</label>
+                        <label class="vy-field-label" for="pay_method">{{ __('livewire/reservation-detail.method') }}</label>
                         <select class="vy-input" name="method" id="pay_method" style="margin-bottom: 8px;">
-                            <option value="cash">Cash</option>
-                            <option value="bank_transfer">Bank transfer</option>
-                            <option value="card">Card · via Stripe (test-mode)</option>
+                            <option value="cash">{{ __('livewire/reservation-detail.method_cash') }}</option>
+                            <option value="bank_transfer">{{ __('livewire/reservation-detail.method_bank_transfer') }}</option>
+                            <option value="card">{{ __('livewire/reservation-detail.method_card') }}</option>
                         </select>
-                        <label class="vy-field-label" for="amount">Amount ({{ $reservation['currency'] }})</label>
+                        <label class="vy-field-label" for="amount">{{ __('livewire/reservation-detail.amount_currency', ['currency' => $reservation['currency']]) }}</label>
                         <div class="vy-input-group">
                             <label class="vy-field-label" for="amount">0.00</label>
                             <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" id="amount" placeholder="0.00">
-                            <x-busy-btn class="vy-btn vy-btn--accent" busy-label="Recording…">Record</x-busy-btn>
+                            <x-busy-btn class="vy-btn vy-btn--accent" :busy-label="__('livewire/reservation-detail.recording')">{{ __('livewire/reservation-detail.record_button') }}</x-busy-btn>
                         </div>
                     </form>
-                    <div class="vy-recon" style="margin-top: 12px;">Cash &amp; bank transfer record now (offline / manual). Card is charged via Stripe (test-mode) — available at the live-key flip.</div>
+                    <div class="vy-recon" style="margin-top: 12px;">{{ __('livewire/reservation-detail.payment_note') }}</div>
                 </div>
                 @endcan
 
                 <div class="vy-card">
-                    <span class="vy-eyebrow">More actions</span>
+                    <span class="vy-eyebrow">{{ __('livewire/reservation-detail.more_actions') }}</span>
 
                     {{-- Batch C · GATE 2 — MOVE ROOM: only SAME-room-type units free for the dates (Q5). The
                          write goes through AssignmentService::assignUnit (availability lock + no-overlap +
@@ -348,14 +348,14 @@
                                       data-guard-submit>
                                     @csrf
                                     <input type="hidden" name="reservation_unit_id" value="{{ $u['id'] }}">
-                                    <label class="vy-field-label">Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</label>
+                                    <label class="vy-field-label">{{ $u['unit'] ? __('livewire/reservation-detail.move_unit', ['code' => $u['unit']]) : __('livewire/reservation-detail.move_room_type', ['room_type' => $u['room_type']]) }}</label>
                                     <div class="vy-input-group">
-                                        <select name="unit_id" class="vy-input" aria-label="Move to unit">
+                                        <select name="unit_id" class="vy-input" aria-label="{{ __('livewire/reservation-detail.move_to_unit') }}">
                                             @foreach ($u['move_targets'] as $t)
-                                                <option value="{{ $t['id'] }}">Unit {{ $t['code'] }}</option>
+                                                <option value="{{ $t['id'] }}">{{ __('livewire/reservation-detail.unit_code', ['code' => $t['code']]) }}</option>
                                             @endforeach
                                         </select>
-                                        <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Moving…">Move room</x-busy-btn>
+                                        <x-busy-btn class="vy-btn vy-btn--ghost" :busy-label="__('livewire/reservation-detail.moving')">{{ __('livewire/reservation-detail.move_room_button') }}</x-busy-btn>
                                     </div>
 
                                     {{-- ⚠️ MID-STAY: WHICH NIGHT DID THE GUEST FIRST SLEEP IN THE NEW UNIT?
@@ -366,16 +366,16 @@
                                          you stated it. ⚠️ Same wording as the audit and the guide, on purpose:
                                          two people reading "the move date" differently mis-attributes money. --}}
                                     @if ($stayStarted ?? false)
-                                        <label class="vy-field-label" style="margin-top:10px">First night in the new unit</label>
+                                        <label class="vy-field-label" style="margin-top:10px">{{ __('livewire/reservation-detail.first_night_new_unit') }}</label>
                                         <input type="date" name="effective_date" class="vy-input"
                                                value="{{ $today ?? '' }}" max="{{ $today ?? '' }}">
                                         <p style="font-size:11.5px;color:var(--vy-muted);margin:4px 0 0">
-                                            Nights before this date stay with the old unit; this night and after move with the guest.
+                                            {{ __('livewire/reservation-detail.first_night_help') }}
                                         </p>
                                     @endif
                                 </form>
                             @elseif ($u['status'] === 'active')
-                                <div class="vy-defer-item" style="margin-top: 12px;"><span>Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</span><span class="vy-soon-tag" title="No free same-type units for these dates">No free units</span></div>
+                                <div class="vy-defer-item" style="margin-top: 12px;"><span>{{ $u['unit'] ? __('livewire/reservation-detail.move_unit', ['code' => $u['unit']]) : __('livewire/reservation-detail.move_room_type', ['room_type' => $u['room_type']]) }}</span><span class="vy-soon-tag" title="{{ __('livewire/reservation-detail.no_free_units_title') }}">{{ __('livewire/reservation-detail.no_free_units') }}</span></div>
                             @endif
                         @endforeach
                     @endif
@@ -388,17 +388,17 @@
                             @csrf
                             {{-- Server-side idempotency: a duplicate submission (double-click / raced retry) records ONCE. --}}
                             <input type="hidden" name="idempotency_key" value="{{ $charge_nonce }}">
-                            <label class="vy-field-label">Add a charge</label>
+                            <label class="vy-field-label">{{ __('livewire/reservation-detail.add_charge') }}</label>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-                                <select name="type" class="vy-input" style="flex: 0 0 auto;" aria-label="Charge type">
+                                <select name="type" class="vy-input" style="flex: 0 0 auto;" aria-label="{{ __('livewire/reservation-detail.charge_type') }}">
                                     @foreach ($charge_types as $ct)
                                         <option value="{{ $ct['value'] }}">{{ $ct['label'] }}</option>
                                     @endforeach
                                 </select>
-                                <label class="vy-field-label" for="vy-lbl-reservation-detail-description">Description</label>
-                                <input id="vy-lbl-reservation-detail-description" class="vy-input" type="text" name="description" maxlength="120" placeholder="Description" style="flex: 1 1 110px;">
+                                <label class="vy-field-label" for="vy-lbl-reservation-detail-description">{{ __('livewire/reservation-detail.description') }}</label>
+                                <input id="vy-lbl-reservation-detail-description" class="vy-input" type="text" name="description" maxlength="120" placeholder="{{ __('livewire/reservation-detail.description') }}" style="flex: 1 1 110px;">
                                 <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" placeholder="0.00" style="flex: 0 0 88px;">
-                                <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Adding…">Add</x-busy-btn>
+                                <x-busy-btn class="vy-btn vy-btn--ghost" :busy-label="__('livewire/reservation-detail.adding')">{{ __('common.add') }}</x-busy-btn>
                             </div>
                         </form>
                     @endcan
@@ -406,25 +406,25 @@
                     {{-- Still deferred — need more UI / a policy subsystem; honest "Soon", never faked. Cancel
                          is wired in the Lifecycle card above; a full refund is inline per settled payment. --}}
                     <div class="vy-action-list" style="margin-top: 14px;">
-                        <div class="vy-defer-item"><span>Void</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Modify dates · guests</span><span class="vy-soon-tag">Soon</span></div>
+                        <div class="vy-defer-item"><span>{{ __('livewire/reservation-detail.void') }}</span><span class="vy-soon-tag">{{ __('livewire/reservation-detail.soon') }}</span></div>
+                        <div class="vy-defer-item"><span>{{ __('livewire/reservation-detail.modify_dates_guests') }}</span><span class="vy-soon-tag">{{ __('livewire/reservation-detail.soon') }}</span></div>
                     </div>
                     {{-- WIRED (Wave 2 · sub-gate 3): the dedicated refund screen — a real payment picker that
                          shows each payment's REMAINING refundable and caps a partial refund at it. The inline
                          per-payment full refund above still works and is unchanged. --}}
                     @can('payments.refund')
-                    <a href="{{ route('app.reservations.refund-screen', $reservation['id']) }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;width:100%;justify-content:center" title="Refund a settled payment in full or in part">
+                    <a href="{{ route('app.reservations.refund-screen', $reservation['id']) }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;width:100%;justify-content:center" title="{{ __('livewire/reservation-detail.partial_refund_title') }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
-                        Partial / custom refund
+                        {{ __('livewire/reservation-detail.partial_refund') }}
                     </a>
                     @endcan
                     {{-- REAL folio PDF export (tenant-scoped, reconciles to the cent). CSV export stays deferred. --}}
-                    <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="Download the folio as a PDF">
+                    <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="{{ __('livewire/reservation-detail.export_pdf_title') }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                        Export folio (PDF)
+                        {{ __('livewire/reservation-detail.export_pdf') }}
                     </a>
-                    <div class="vy-defer-item" style="margin-top:8px;"><span>Export CSV · print</span><span class="vy-soon-tag">Soon</span></div>
-                    <div class="vy-recon" style="margin-top: 6px;">Room moves route through the guarded AssignmentService (locked, no overbooking) and persist immediately.</div>
+                    <div class="vy-defer-item" style="margin-top:8px;"><span>{{ __('livewire/reservation-detail.export_csv_print') }}</span><span class="vy-soon-tag">{{ __('livewire/reservation-detail.soon') }}</span></div>
+                    <div class="vy-recon" style="margin-top: 6px;">{{ __('livewire/reservation-detail.room_moves_note') }}</div>
                 </div>
             </div>
         </div>

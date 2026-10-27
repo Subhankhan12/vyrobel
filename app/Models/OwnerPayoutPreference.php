@@ -91,9 +91,9 @@ class OwnerPayoutPreference extends Model
     public static function frequencyLabel(string $frequency): string
     {
         return match ($frequency) {
-            'twice_monthly' => 'Twice monthly',
-            'weekly' => 'Weekly',
-            default => 'Monthly',
+            'twice_monthly' => (string) __('php/models/owner_payout_preference.frequency_twice_monthly'),
+            'weekly' => (string) __('php/models/owner_payout_preference.frequency_weekly'),
+            default => (string) __('php/models/owner_payout_preference.frequency_monthly'),
         };
     }
 

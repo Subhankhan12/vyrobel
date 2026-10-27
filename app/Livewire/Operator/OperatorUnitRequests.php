@@ -78,7 +78,14 @@ class OperatorUnitRequests extends Component
             if ($key === 'withdrawn' && $counts['withdrawn'] === 0) {
                 continue;
             }
-            $chips[] = ['key' => $key, 'label' => $key === 'pending' ? 'Waiting' : ucfirst($key), 'count' => $counts[$key],
+            $label = match ($key) {
+                'pending' => __('php/livewire/operator/operator_unit_requests.chip_pending'),
+                'approved' => __('php/livewire/operator/operator_unit_requests.chip_approved'),
+                'declined' => __('php/livewire/operator/operator_unit_requests.chip_declined'),
+                'withdrawn' => __('php/livewire/operator/operator_unit_requests.chip_withdrawn'),
+                default => __('common.all'),
+            };
+            $chips[] = ['key' => $key, 'label' => $label, 'count' => $counts[$key],
                 'url' => route('app.unit-requests', ['status' => $key])];
         }
 
@@ -97,7 +104,7 @@ class OperatorUnitRequests extends Component
                 // removed after asking: the request can only be declined (OwnerUnitRequestService::approve refuses)
                 'owner_removed' => $r->owner?->trashed() ?? false,
                 'name' => (string) $r->requested_name,
-                'kind' => OwnerUnitRequestService::KINDS[$r->requested_kind],
+                'kind' => OwnerUnitRequestService::kindLabel((string) $r->requested_kind),
                 'details' => $this->detailSummary($r),
                 'rate' => $r->requested_rate_minor !== null ? $this->money((int) $r->requested_rate_minor, (string) ($r->currency ?? 'EUR')) : null,
                 'photos' => $r->photos->take(4)->map(fn (Media $m): string => (string) $m->url)->values()->all(),
@@ -105,8 +112,8 @@ class OperatorUnitRequests extends Component
                 'status' => (string) $r->status,
                 'review_note' => (string) ($r->review_note ?? ''),
                 'created_unit' => $r->createdUnit !== null ? (string) ($r->createdUnit->name ?: $r->createdUnit->code) : null,
-                'when' => $r->created_at?->format('j M Y'),
-                'reviewed' => $r->reviewed_at !== null ? CarbonImmutable::parse($r->reviewed_at)->format('j M Y') : null,
+                'when' => $r->created_at?->translatedFormat('j M Y'),
+                'reviewed' => $r->reviewed_at !== null ? CarbonImmutable::parse($r->reviewed_at)->translatedFormat('j M Y') : null,
             ])->all(),
         ]);
     }
@@ -127,30 +134,30 @@ class OperatorUnitRequests extends Component
 
         $capacity = [];
         if ($r->bedrooms > 0) {
-            $capacity[] = $r->bedrooms.' bd';
+            $capacity[] = trans_choice('php/livewire/operator/operator_unit_requests.bedrooms', $r->bedrooms, ['count' => $r->bedrooms]);
         }
         if ($r->bathrooms > 0) {
-            $capacity[] = $r->bathrooms.' ba';
+            $capacity[] = trans_choice('php/livewire/operator/operator_unit_requests.bathrooms', $r->bathrooms, ['count' => $r->bathrooms]);
         }
         if ($r->sleeps > 0) {
-            $capacity[] = 'sleeps '.$r->sleeps;
+            $capacity[] = trans_choice('php/livewire/operator/operator_unit_requests.sleeps', $r->sleeps, ['count' => $r->sleeps]);
         }
         if ($capacity !== []) {
             $parts[] = implode(' · ', $capacity);
         }
 
         if ($r->requested_rate_minor !== null) {
-            $parts[] = $this->money($r->requested_rate_minor, (string) ($r->currency ?? 'EUR')).'/night';
+            $parts[] = __('php/livewire/operator/operator_unit_requests.rate_per_night', ['amount' => $this->money($r->requested_rate_minor, (string) ($r->currency ?? 'EUR'))]);
         }
 
         $amenities = $r->amenities->count();
         if ($amenities > 0) {
-            $parts[] = $amenities.' '.($amenities === 1 ? 'amenity' : 'amenities');
+            $parts[] = trans_choice('php/livewire/operator/operator_unit_requests.amenities', $amenities, ['count' => $amenities]);
         }
 
         $photos = $r->photos->count();
         if ($photos > 0) {
-            $parts[] = $photos.' '.($photos === 1 ? 'photo' : 'photos');
+            $parts[] = trans_choice('php/livewire/operator/operator_unit_requests.photos', $photos, ['count' => $photos]);
         }
 
         if (($r->notes ?? '') !== '') {

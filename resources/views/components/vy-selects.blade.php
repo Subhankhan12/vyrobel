@@ -22,6 +22,12 @@
 
      RAW-BLADE RULE: every directive follows a space, a newline or a tag; and no component TAG is written in a comment here
      (Blade compiles a tag even inside CSS or a script comment, and the page breaks). --}}
+{{-- I18N-01 — forced capitals are English-only: CSS uppercase/capitalize is wrong for Turkish i/İ, German ß, and turns Georgian into
+     Mtavruli, which the fonts lack (the brief, Phase A rules; hrmzy's lesson). Every shell includes this file once, so one rule
+     covers all of them; an English page prints nothing new. --}}
+@if (app()->getLocale() !== 'en')
+    <style>*,*::before,*::after{text-transform:none!important}</style>
+@endif
 @once
 <style>
     /* ── The closed field ─────────────────────────────────────────────────────────────────────────────────────── */
@@ -214,12 +220,12 @@
         var panel = el('div', 'vys-panel'), list = el('ul', 'vys-list');
         list.id = id + '-vys-list'; list.setAttribute('role', 'listbox'); list.tabIndex = -1;
         var labelled = select.getAttribute('aria-labelledby') || select.getAttribute('data-labelledby') || (select.labels && select.labels[0] && select.labels[0].id) || '';
-        if (labelled) { list.setAttribute('aria-labelledby', labelled); } else { list.setAttribute('aria-label', select.getAttribute('aria-label') || select.name || 'Options'); }
+        if (labelled) { list.setAttribute('aria-labelledby', labelled); } else { list.setAttribute('aria-label', select.getAttribute('aria-label') || select.name || @js(__('components/vy-selects.options_label'))); }
         var canSearch = searchable(select, rows), text = null;
         if (canSearch) {
             var box = el('div', 'vys-search');
             box.appendChild(svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'));
-            text = el('span', 'vys-search-text is-empty', select.getAttribute('data-search-placeholder') || 'Type to search');
+            text = el('span', 'vys-search-text is-empty', select.getAttribute('data-search-placeholder') || @js(__('components/vy-selects.search_placeholder')));
             box.appendChild(text); box.appendChild(el('span', 'vys-caret'));
             panel.appendChild(box);
         }
@@ -229,8 +235,8 @@
             try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; device = rows.filter(function (r) { return r.value === tz; })[0] || null; } catch (e) {}
         }
         st = { select: select, id: id, panel: panel, list: list, text: text, rows: rows, shown: rows, searchable: canSearch, q: '', active: -1,
-               device: device, typed: '', typedAt: 0, home: home(select), empty: select.getAttribute('data-empty') || 'Nothing matches that.',
-               placeholder: select.getAttribute('data-search-placeholder') || 'Type to search' };
+               device: device, typed: '', typedAt: 0, home: home(select), empty: select.getAttribute('data-empty') || @js(__('components/vy-selects.empty_text')),
+               placeholder: select.getAttribute('data-search-placeholder') || @js(__('components/vy-selects.search_placeholder')) };
         st.home.appendChild(panel);
         select.setAttribute('aria-expanded', 'true');
         select.setAttribute('aria-controls', list.id);
@@ -266,7 +272,8 @@
             var li = el('li', 'vys-suggest'); li.setAttribute('role', 'presentation');
             var b = el('button', 'vys-suggest-btn'); b.type = 'button'; b.tabIndex = -1;
             b.appendChild(svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'));
-            var t = el('span', null, 'Use this device’s timezone: '); t.appendChild(el('strong', null, st.device.label));
+            var zp = @js(__('components/vy-selects.use_device_timezone', ['zone' => ':zone'])).split(':zone');
+            var t = el('span', null, zp[0]); t.appendChild(el('strong', null, st.device.label)); if (zp[1]) { t.appendChild(D.createTextNode(zp[1])); }
             t.appendChild(D.createTextNode(' ')); t.appendChild(el('span', 'vys-suggest-meta', st.device.hint));
             b.appendChild(t); b.setAttribute('data-vys-device', '1');
             li.appendChild(b); frag.appendChild(li);

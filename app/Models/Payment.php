@@ -94,9 +94,9 @@ class Payment extends Model
         }
 
         return match ($method) {
-            'cash' => 'Cash',
-            'bank_transfer', 'bank' => 'Bank transfer',
-            'card' => 'Card',
+            'cash' => (string) __('php/models/payment.method_cash'),
+            'bank_transfer', 'bank' => (string) __('php/models/payment.method_bank_transfer'),
+            'card' => (string) __('php/models/payment.method_card'),
             default => ucfirst(str_replace('_', ' ', $method)),
         };
     }

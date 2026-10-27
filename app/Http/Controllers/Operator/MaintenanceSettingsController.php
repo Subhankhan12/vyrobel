@@ -40,6 +40,6 @@ class MaintenanceSettingsController extends Controller
 
         $settings->update($input);
 
-        return redirect()->to(route('app.maintenance.settings'))->with('maintenance_settings_notice', 'Maintenance settings saved.');
+        return redirect()->to(route('app.maintenance.settings'))->with('maintenance_settings_notice', __('php/http/controllers/operator/maintenance_settings_controller.saved'));
     }
 }

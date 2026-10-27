@@ -62,7 +62,7 @@ class SendPreArrivalEmails extends Command
                         continue;
                     }
 
-                    Mail::to($email)->send(new PreArrivalMail($reservation));
+                    Mail::to($email)->locale(EmailTemplateResolver::localeFor((string) $reservation->organization_id, 'pre-arrival', $reservation->leadGuest->preferredLocale()))->send(new PreArrivalMail($reservation));
                     $sent++;
                 }
             });

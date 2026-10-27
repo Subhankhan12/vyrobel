@@ -79,7 +79,7 @@ final class ErrorRealm
     public static function home(?string $realm = null): array
     {
         return match ($realm ?? self::current()) {
-            'admin' => ['/admin', 'Back to the console'],
+            'admin' => ['/admin', __('php/support/error_realm.back_to_console')],
             // ⚠️⚠️ A GUEST WHO CANNOT CLAIM HAS NO ACCOUNT, SO "your trips" IS A LOGIN WALL. The refusal copy
             // is already good — 403, no identity leak, the expiry named, a human route suggested — but its
             // only CLICKABLE route required the very account the person was trying to create. Someone whose
@@ -93,8 +93,8 @@ final class ErrorRealm
             // reveals nothing about whether a booking exists — the wording does not change, only where the
             // link points, and it points somewhere that works.
             'guest' => auth('guest')->check()
-                ? ['/guest/trips', 'Back to your trips']
-                : ['/guest/claim', 'Access your bookings'],
+                ? ['/guest/trips', __('php/support/error_realm.back_to_trips')]
+                : ['/guest/claim', __('php/support/error_realm.access_bookings')],
             // ⚠️⚠️ F-50 — "Back to your portal" → `/owner` → REFUSED AGAIN. That loop is the finding, and it
             // is the THIRD time this shape has appeared here: F-27's paid-but-unclaimed window, F-47's claim
             // failure offering a door that needed the account being created, and now this. The class is
@@ -105,10 +105,10 @@ final class ErrorRealm
             // destination that admitted them — established by following each one as that person, never by
             // picking the one that sounded right.
             'owner' => self::ownerLinked()
-                ? ['/owner', 'Back to your portal']
-                : ['/', 'Back to Vyrobel'],
-            'app' => ['/app/dashboard', 'Back to the dashboard'],
-            default => ['/', 'Back to safety'],
+                ? ['/owner', __('php/support/error_realm.back_to_portal')]
+                : ['/', __('php/support/error_realm.back_to_vyrobel')],
+            'app' => ['/app/dashboard', __('php/support/error_realm.back_to_dashboard')],
+            default => ['/', __('php/support/error_realm.back_to_safety')],
         };
     }
 
@@ -122,15 +122,14 @@ final class ErrorRealm
      */
     public static function forbiddenMessage(?string $realm = null): string
     {
-        return match ($realm ?? self::current()) {
-            'guest' => 'This page belongs to a different booking, or it isn’t part of your account. If you reached it from a link we sent you, the link may have expired.',
+        return (string) match ($realm ?? self::current()) {
+            'guest' => __('php/support/error_realm.forbidden_guest'),
             // ⚠️⚠️ F-50 — ONE MESSAGE WAS SERVING TWO READERS. The capability wording below is exactly right
             // for an owner sub-user and NONSENSE for somebody with no owner account, who was being told to
             // ask about a capability they could never be granted.
             'owner' => self::ownerLinked()
-                ? 'Your owner account doesn’t include this area. If you need it, ask the primary owner on your account to grant the capability.'
-                : 'The owner portal is for property owners, and your account isn’t linked to one. If that’s '
-                    .'wrong, ask whoever manages your Vyrobel account to restore your access.',
+                ? __('php/support/error_realm.forbidden_owner')
+                : __('php/support/error_realm.forbidden_not_owner'),
             // ⚠️ NOT BRANCHED, DELIBERATELY — and this is a REPORTED observation, not an oversight.
             // The 'admin' realm falls through to the operator wording below, which tells a PLATFORM ADMIN to
             // "ask an administrator on your team" — they have neither. That reads like the same defect as
@@ -145,8 +144,8 @@ final class ErrorRealm
             // ⚠️ ENUMERATION DISCIPLINE KEPT (Fix 06): it does NOT say whether the page exists, whether an
             // account exists, or whether a link was merely expired versus never valid — distinguishing
             // those would be an oracle. One wording covers every reason a stranger lands here.
-            'public' => 'This page isn’t available without signing in. If you followed a link we sent you, it may have expired or already been used — sign in and try again, or ask whoever sent it for a new one.',
-            default => 'Your role doesn’t include this area. If you need it, ask an administrator on your team to grant the permission.',
+            'public' => __('php/support/error_realm.forbidden_public'),
+            default => __('php/support/error_realm.forbidden_app'),
         };
     }
 
@@ -163,12 +162,12 @@ final class ErrorRealm
      */
     public static function supportLine(?string $realm = null): string
     {
-        return match ($realm ?? self::current()) {
-            'guest' => 'If this keeps happening, reply to your booking confirmation email and the property will help.',
+        return (string) match ($realm ?? self::current()) {
+            'guest' => __('php/support/error_realm.support_guest'),
             'owner' => self::ownerLinked()
-                ? 'If this keeps happening, contact the primary owner on your account, or your property manager.'
-                : 'If this keeps happening, contact whoever set up your Vyrobel account.',
-            default => 'If this keeps happening, contact your Vyrobel administrator.',
+                ? __('php/support/error_realm.support_owner')
+                : __('php/support/error_realm.support_not_owner'),
+            default => __('php/support/error_realm.support_app'),
         };
     }
 }

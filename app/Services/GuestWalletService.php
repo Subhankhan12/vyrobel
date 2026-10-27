@@ -192,7 +192,7 @@ class GuestWalletService
 
         $promo = PromoCode::query()->where('code', $code)->where('is_active', true)->first();
         if ($promo === null || ($promo->expires_at !== null && $promo->expires_at->lessThanOrEqualTo($now))) {
-            return ['ok' => false, 'message' => 'That code isn’t valid.', 'entry' => null];
+            return ['ok' => false, 'message' => (string) __('php/services/guest_wallet_service.code_invalid'), 'entry' => null];
         }
 
         // 🔒 Both bounds — once-per-guest AND the total `max_redemptions` cap — used to be counted with no
@@ -227,10 +227,10 @@ class GuestWalletService
         }
 
         if ($entry === null) {
-            return ['ok' => false, 'message' => 'That code has already been used.', 'entry' => null];
+            return ['ok' => false, 'message' => (string) __('php/services/guest_wallet_service.code_used'), 'entry' => null];
         }
 
-        return ['ok' => true, 'message' => 'Credit added to your wallet.', 'entry' => $entry];
+        return ['ok' => true, 'message' => (string) __('php/services/guest_wallet_service.credit_added'), 'entry' => $entry];
     }
 
     /** The guard shared by every debit path — throws BEFORE any write if the spend would overdraw. */

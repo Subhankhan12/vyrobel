@@ -13,7 +13,7 @@
      RAW-BLADE RULE: never write `word@directive` — a directive whose `@` follows a word character ships raw source to the
      page. Alpine handlers use `x-on:` / `x-bind:` so no `@` reaches an attribute value. --}}
 <div>
-    <x-operator.shell active="rates" title="Rates & availability" :subtitle="$subtitle" :viewer="$viewer">
+    <x-operator.shell active="rates" :title="__('livewire/operator/rates-grid.page_title')" :subtitle="$subtitle" :viewer="$viewer">
         @php
             $vyCanWrite = $canManage && ! $readOnly;
             // a season is set on a plan that is on sale — with none, the season form is not offered
@@ -26,6 +26,35 @@
                 'currency' => $currencySymbol,
                 'main' => $mainPlans,
                 'planNames' => collect($ratePlans)->mapWithKeys(fn (array $p): array => [$p['id'] => $p['name']])->all(),
+                // I18N-01 — the words the script shows. Day and month names from the app's language (2023-01-01 is a Sunday);
+                // the two counted texts are built here for every count a range can have (the server refuses more than 370
+                // nights), and the `many` form takes over past that.
+                'i18n' => [
+                    'days' => collect(range(0, 6))->map(fn (int $i): string => \Carbon\CarbonImmutable::create(2023, 1, 1)->addDays($i)->translatedFormat('D'))->all(),
+                    'months' => collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2023, $m, 1)->translatedFormat('M'))->all(),
+                    'allPage' => __('livewire/operator/rates-grid.all_room_types_page'),
+                    'roomType' => __('livewire/operator/rates-grid.room_type'),
+                    'whoPlan' => __('livewire/operator/rates-grid.ed_who_plan'),
+                    'noNights' => __('livewire/operator/rates-grid.ed_summary_no_nights'),
+                    'summary' => collect(range(1, 370))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/rates-grid.ed_summary', $n, ['count' => $n])])->all(),
+                    'summaryMany' => trans_choice('livewire/operator/rates-grid.ed_summary', 370, ['count' => ':count']),
+                    'apply' => __('common.apply'),
+                    'applyTo' => collect(range(1, 370))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/rates-grid.apply_to_nights', $n, ['count' => $n])])->all(),
+                    'applyToMany' => trans_choice('livewire/operator/rates-grid.apply_to_nights', 370, ['count' => ':count']),
+                    'buWhoAll' => __('livewire/operator/rates-grid.bu_who_all'),
+                    'buWhoFallback' => __('livewire/operator/rates-grid.bu_who_fallback'),
+                    'buWeekends' => __('livewire/operator/rates-grid.bu_which_weekends'),
+                    'buMidweek' => __('livewire/operator/rates-grid.bu_which_midweek'),
+                    'buEvery' => __('livewire/operator/rates-grid.bu_which_every'),
+                    'buSpan' => __('livewire/operator/rates-grid.bu_span'),
+                    'buSpanBlank' => __('livewire/operator/rates-grid.bu_span_blank'),
+                    'buSet' => __('livewire/operator/rates-grid.bu_set'),
+                    'buSetBlank' => __('livewire/operator/rates-grid.bu_set_blank'),
+                    'buRaise' => __('livewire/operator/rates-grid.bu_raise'),
+                    'buRaiseBlank' => __('livewire/operator/rates-grid.bu_raise_blank'),
+                    'buLower' => __('livewire/operator/rates-grid.bu_lower'),
+                    'buLowerBlank' => __('livewire/operator/rates-grid.bu_lower_blank'),
+                ],
             ];
         @endphp
 
@@ -52,17 +81,23 @@
                      one above a later block swallows everything between them as raw PHP (it did, 2026-10-01). --}}
                 @php
                     $vyPreview = session('unit_rate_preview');
+                    $vyPreviewUnits = trans_choice('livewire/operator/rates-grid.units_count', count($vyPreview['units']), ['count' => count($vyPreview['units'])]);
+                    $vyPreviewNights = trans_choice('livewire/operator/rates-grid.nights_count', $vyPreview['nights'], ['count' => $vyPreview['nights']]);
                 @endphp
                 <div class="vy-card vy-fade vyr-unitpreview">
-                    <h2 class="vy-card-title">Review before applying</h2>
+                    <h2 class="vy-card-title">{{ __('livewire/operator/rates-grid.preview_heading') }}</h2>
                     <p class="vyr-panel-sub">
-                        {{ $vyPreview['room_type_name'] }} · {{ count($vyPreview['units']) }} {{ count($vyPreview['units']) === 1 ? 'unit' : 'units' }} ·
-                        {{ $vyPreview['nights'] }} {{ $vyPreview['nights'] === 1 ? 'night' : 'nights' }}, {{ \Carbon\CarbonImmutable::parse($vyPreview['start'])->format('D j M') }} – {{ \Carbon\CarbonImmutable::parse($vyPreview['end_inclusive'])->format('D j M Y') }} ·
-                        <strong>nothing has been changed yet</strong>
+                        {!! __('livewire/operator/rates-grid.preview_summary', [
+                            'room_type' => e($vyPreview['room_type_name']),
+                            'units' => e($vyPreviewUnits),
+                            'nights' => e($vyPreviewNights),
+                            'from' => e(\Carbon\CarbonImmutable::parse($vyPreview['start'])->translatedFormat('D j M')),
+                            'to' => e(\Carbon\CarbonImmutable::parse($vyPreview['end_inclusive'])->translatedFormat('D j M Y')),
+                        ]) !!}
                     </p>
                     <div class="vyr-tablewrap">
                         <table class="vy-table">
-                            <thead><tr><th>Unit</th><th>Now</th><th>After</th><th>Nights</th></tr></thead>
+                            <thead><tr><th>{{ __('livewire/operator/rates-grid.col_unit') }}</th><th>{{ __('livewire/operator/rates-grid.col_now') }}</th><th>{{ __('livewire/operator/rates-grid.col_after') }}</th><th>{{ __('livewire/operator/rates-grid.col_nights') }}</th></tr></thead>
                             <tbody>
                                 @foreach ($vyPreview['units'] as $vyRow)
                                     <tr>
@@ -71,19 +106,19 @@
                                         <td>
                                             <strong>{{ $vyRow['to_minor'] === null ? '—' : \App\Support\Money\MoneyFormatter::display($vyRow['to_minor'], $vyPreview['currency']) }}</strong>
                                             @if ($vyRow['state'] === 'cleared')
-                                                <span class="vyr-muted"> · room-type rate</span>
+                                                <span class="vyr-muted"> {{ __('livewire/operator/rates-grid.room_type_rate') }}</span>
                                             @elseif ($vyRow['state'] === 'pinned')
-                                                <span class="vyr-muted"> · unchanged, but pinned to this unit</span>
+                                                <span class="vyr-muted"> {{ __('livewire/operator/rates-grid.pinned_to_unit') }}</span>
                                             @endif
                                         </td>
-                                        <td>{{ $vyRow['nights_changing'] }} of {{ $vyRow['nights'] }}</td>
+                                        <td>{{ __('livewire/operator/rates-grid.nights_of', ['changing' => $vyRow['nights_changing'], 'nights' => $vyRow['nights']]) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                     @if ($vyPreview['skipped_units'] > 0)
-                        <p class="vyr-panel-sub">{{ $vyPreview['skipped_units'] }} {{ $vyPreview['skipped_units'] === 1 ? 'unit has' : 'units have' }} no per-unit price in this range and will be left alone.</p>
+                        <p class="vyr-panel-sub">{{ trans_choice('livewire/operator/rates-grid.skipped_units', $vyPreview['skipped_units'], ['count' => $vyPreview['skipped_units']]) }}</p>
                     @endif
                     <form method="POST" action="{{ route('app.rates.units.apply') }}" class="vyr-actions-end" x-data x-on:submit="$event.target.querySelector('[name=return_query]').value = location.search.replace(/^\?/, '')">
                         @csrf
@@ -99,8 +134,8 @@
                             <input type="hidden" name="unit_ids[]" value="{{ $vyRow['unit_id'] }}">
                         @endforeach
                         {{-- Cancel writes nothing: the page as it was (the preview is a one-read flash, so it is gone on arrival). --}}
-                        <a class="vy-btn vy-btn--ghost" href="{{ \App\Support\Rates\RatesListParams::returnUrl(request()->getQueryString()) }}">Cancel</a>
-                        <button type="submit" class="vy-btn vy-btn--accent">Apply to {{ count($vyPreview['units']) }} {{ count($vyPreview['units']) === 1 ? 'unit' : 'units' }}</button>
+                        <a class="vy-btn vy-btn--ghost" href="{{ \App\Support\Rates\RatesListParams::returnUrl(request()->getQueryString()) }}">{{ __('common.cancel') }}</a>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ trans_choice('livewire/operator/rates-grid.apply_to_units', count($vyPreview['units']), ['count' => count($vyPreview['units'])]) }}</button>
                     </form>
                 </div>
             @endif
@@ -111,41 +146,41 @@
             {{-- ── Toolbar: the fortnight, the filter, and what a manager can do ─────────────────────────────────────── --}}
             <div class="vyr-bar vy-fade">
                 <div class="vyr-winnav">
-                    <a class="vyr-navbtn" href="{{ $window['prev'] }}" aria-label="Previous two weeks" title="Previous two weeks">
+                    <a class="vyr-navbtn" href="{{ $window['prev'] }}" aria-label="{{ __('livewire/operator/rates-grid.previous_weeks') }}" title="{{ __('livewire/operator/rates-grid.previous_weeks') }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
                     </a>
                     <span class="vyr-winlabel">{{ $window['label'] }}</span>
-                    <a class="vyr-navbtn" href="{{ $window['next'] }}" aria-label="Next two weeks" title="Next two weeks">
+                    <a class="vyr-navbtn" href="{{ $window['next'] }}" aria-label="{{ __('livewire/operator/rates-grid.next_weeks') }}" title="{{ __('livewire/operator/rates-grid.next_weeks') }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                     </a>
-                    <a class="vy-btn vy-btn--ghost vyr-tool" href="{{ $window['today'] }}">Today</a>
+                    <a class="vy-btn vy-btn--ghost vyr-tool" href="{{ $window['today'] }}">{{ __('common.today') }}</a>
                 </div>
                 @if (count($roomTypeOptions) > 1)
                     {{-- #104 GATE 2d — narrows the grid to one room type; keeps the window. --}}
-                    <label class="vy-sr-only" for="vyr-filter">Show room type</label>
+                    <label class="vy-sr-only" for="vyr-filter">{{ __('livewire/operator/rates-grid.show_room_type') }}</label>
                     <select id="vyr-filter" class="vy-input vyr-filter" x-on:change="filterTo($event.target.value)">
-                        <option value="" @selected($rtFilter === '')>All room types</option>
+                        <option value="" @selected($rtFilter === '')>{{ __('livewire/operator/rates-grid.all_room_types') }}</option>
                         @foreach ($roomTypeOptions as $opt)
                             <option value="{{ $opt['id'] }}" @selected($rtFilter === $opt['id'])>{{ $opt['name'] }}</option>
                         @endforeach
                     </select>
                 @endif
                 @if ($window['jump'])
-                    <a class="vyr-jump" href="{{ $window['jump']['href'] }}">No prices here — go to the first priced night, {{ \Carbon\CarbonImmutable::parse($window['jump']['date'])->format('j M Y') }}</a>
+                    <a class="vyr-jump" href="{{ $window['jump']['href'] }}">{{ __('livewire/operator/rates-grid.jump_to_priced', ['date' => \Carbon\CarbonImmutable::parse($window['jump']['date'])->translatedFormat('j M Y')]) }}</a>
                 @endif
                 @if ($vyCanWrite && count($rows) > 0)
                     <div class="vyr-bar-tools">
                         <button type="button" class="vy-btn vy-btn--ghost vyr-tool" x-on:click="openBulk()">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/></svg>
-                            Bulk edit
+                            {{ __('livewire/operator/rates-grid.bulk_edit') }}
                         </button>
                         <button type="button" class="vy-btn vy-btn--ghost vyr-tool" x-on:click="unitOpen = true">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-                            Price units individually
+                            {{ __('livewire/operator/rates-grid.price_units_individually') }}
                         </button>
                         <button type="button" class="vy-btn vy-btn--accent vyr-tool" x-on:click="openEditor(null)">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg>
-                            Set rates
+                            {{ __('livewire/operator/rates-grid.set_rates') }}
                         </button>
                     </div>
                 @endif
@@ -155,28 +190,28 @@
                  historical baseline is stored, so a trend would be fabricated. ─────────────────────────────────────── --}}
             <div class="vy-dash-kpis vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Average nightly rate</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/rates-grid.tile_avg_label') }}</div>
                     @forelse ($tiles['avg'] as $line)
                         <div class="vy-dk-val @if (! $loop->first) vyr-dk-val-2 @endif">{{ $line }}</div>
                     @empty
                         <div class="vy-dk-val">—</div>
                     @endforelse
-                    <div class="vy-dk-sub">mean of set rates in this window{{ $tiles['multi_currency'] ? ' · per currency, never summed across' : '' }}</div>
+                    <div class="vy-dk-sub">{{ $tiles['multi_currency'] ? __('livewire/operator/rates-grid.tile_avg_sub_multi') : __('livewire/operator/rates-grid.tile_avg_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Booked</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/rates-grid.tile_booked_label') }}</div>
                     <div class="vy-dk-val">{{ $tiles['booked_pct'] !== null ? $tiles['booked_pct'].'%' : '—' }}</div>
-                    <div class="vy-dk-sub">sold ÷ published inventory in this window</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/rates-grid.tile_booked_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Open nights</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/rates-grid.tile_open_label') }}</div>
                     <div class="vy-dk-val">{{ $tiles['open_nights'] }}</div>
-                    <div class="vy-dk-sub">bookable unit-nights left in this window</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/rates-grid.tile_open_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Next 14 days</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/rates-grid.tile_ahead_label') }}</div>
                     <div class="vy-dk-val">{{ $ahead['booked_pct'] !== null ? $ahead['booked_pct'].'%' : '—' }}</div>
-                    <div class="vy-dk-sub">booked from today · {{ $ahead['open_nights'] }} open unit-{{ $ahead['open_nights'] === 1 ? 'night' : 'nights' }}</div>
+                    <div class="vy-dk-sub">{{ trans_choice('livewire/operator/rates-grid.tile_ahead_sub', $ahead['open_nights'], ['count' => $ahead['open_nights']]) }}</div>
                 </div>
             </div>
 
@@ -184,21 +219,21 @@
             <div class="vy-card vy-card--flush vy-fade">
                 @if (count($rows) === 0)
                     <div class="vyr-empty">
-                        <strong>No room types yet</strong>
-                        <span>Add a room type on the Units page, then give it a rate plan to price it here.</span>
+                        <strong>{{ __('livewire/operator/rates-grid.empty_heading') }}</strong>
+                        <span>{{ __('livewire/operator/rates-grid.empty_body') }}</span>
                     </div>
                 @else
                     <div class="vyr-gridhead">
                         {{-- Each swatch is the cell style it names, and is paired with its WORD (never colour alone, WCAG 1.4.1). --}}
                         <div class="vyr-legend">
-                            <span><i class="vyr-sw is-open" aria-hidden="true"></i>Open</span>
-                            <span><i class="vyr-sw is-last" aria-hidden="true"></i>Last one</span>
-                            <span><i class="vyr-sw is-full" aria-hidden="true"></i>Full</span>
-                            <span><i class="vyr-sw is-closed" aria-hidden="true"></i>Closed</span>
-                            <span><i class="vyr-sw is-weekend" aria-hidden="true"></i>Fri–Sat nights</span>
+                            <span><i class="vyr-sw is-open" aria-hidden="true"></i>{{ __('livewire/operator/rates-grid.state_open') }}</span>
+                            <span><i class="vyr-sw is-last" aria-hidden="true"></i>{{ __('livewire/operator/rates-grid.legend_last_one') }}</span>
+                            <span><i class="vyr-sw is-full" aria-hidden="true"></i>{{ __('livewire/operator/rates-grid.legend_full') }}</span>
+                            <span><i class="vyr-sw is-closed" aria-hidden="true"></i>{{ __('livewire/operator/rates-grid.state_closed') }}</span>
+                            <span><i class="vyr-sw is-weekend" aria-hidden="true"></i>{{ __('livewire/operator/rates-grid.fri_sat_nights') }}</span>
                         </div>
                         @if ($vyCanWrite)
-                            <span class="vyr-hint">Click a night — or drag across nights — to set prices and rules.</span>
+                            <span class="vyr-hint">{{ __('livewire/operator/rates-grid.grid_hint') }}</span>
                         @endif
                     </div>
                     <div class="vyr-scroll">
@@ -206,7 +241,7 @@
                             <colgroup><col class="vyr-col-rt">@foreach ($dates as $d)<col>@endforeach</colgroup>
                             <thead>
                                 <tr>
-                                    <th class="vyr-corner" scope="col"><span class="vy-sr-only">Room type</span></th>
+                                    <th class="vyr-corner" scope="col"><span class="vy-sr-only">{{ __('livewire/operator/rates-grid.room_type') }}</span></th>
                                     @foreach ($dates as $d)
                                         <th scope="col" class="vyr-dhead {{ $d['is_weekend'] ? 'is-weekend' : '' }} {{ $d['is_today'] ? 'is-today' : '' }}" @if ($d['is_today']) aria-current="date" @endif>
                                             <span class="vyr-dweekday">{{ $d['weekday'] }}</span>
@@ -224,11 +259,14 @@
                                             <span class="vyr-rt-sub">{{ $row['units_label'] }}{{ $row['plan_name'] ? ' · '.$row['plan_name'] : '' }}</span>
                                             @unless ($row['has_plan'])
                                                 <span class="vyr-rt-sub is-warn">
-                                                    No rate plan —
                                                     @if ($vyCanWrite)
-                                                        <button type="button" class="vyr-linkbtn" x-on:click="openPlanAdd('{{ $row['id'] }}')">add one</button> to price it
+                                                        {{-- the button is built from static markup and escaped parts, then placed in the sentence --}}
+                                                        @php
+                                                            $vyAddPlanHtml = '<button type="button" class="vyr-linkbtn" x-on:click="openPlanAdd(\''.e($row['id']).'\')">'.e(__('livewire/operator/rates-grid.add_one')).'</button>';
+                                                        @endphp
+                                                        {!! __('livewire/operator/rates-grid.no_plan_add', ['add_button' => $vyAddPlanHtml]) !!}
                                                     @else
-                                                        ask an administrator to add one
+                                                        {{ __('livewire/operator/rates-grid.no_plan_ask') }}
                                                     @endif
                                                 </span>
                                             @endunless
@@ -236,12 +274,24 @@
                                         @foreach ($row['cells'] as $cell)
                                             @php
                                                 $vyState = $cell['stop_sell'] ? 'is-closed' : ($cell['sold_out'] ? 'is-full' : ($cell['last_one'] ? 'is-last' : ''));
-                                                $vyDay = \Carbon\CarbonImmutable::parse($cell['date'])->format('D j M');
+                                                $vyDay = \Carbon\CarbonImmutable::parse($cell['date'])->translatedFormat('D j M');
+                                                $vyCellLabel = $cell['available'] !== null
+                                                    ? __('livewire/operator/rates-grid.cell_label_avail', [
+                                                        'room_type' => $row['name'],
+                                                        'day' => $vyDay,
+                                                        'rate' => $cell['rate'] ?? __('livewire/operator/rates-grid.no_price'),
+                                                        'availability' => $cell['sold_out'] ? __('livewire/operator/rates-grid.avail_full') : trans_choice('livewire/operator/rates-grid.avail_left', $cell['available'], ['count' => $cell['available']]),
+                                                    ])
+                                                    : __('livewire/operator/rates-grid.cell_label', [
+                                                        'room_type' => $row['name'],
+                                                        'day' => $vyDay,
+                                                        'rate' => $cell['rate'] ?? __('livewire/operator/rates-grid.no_price'),
+                                                    ]);
                                             @endphp
                                             <td class="vyr-cell {{ $dates[$loop->index]['is_weekend'] ? 'is-weekend' : '' }}">
                                                 @if ($vyCanWrite && $row['has_plan'])
                                                     <button type="button" class="vyr-cellbtn {{ $vyState }}"
-                                                        aria-label="{{ $row['name'] }}, {{ $vyDay }}: {{ $cell['rate'] ?? 'no price' }}{{ $cell['available'] !== null ? ', '.($cell['sold_out'] ? 'full' : $cell['available'].' left') : '' }} — set prices and rules"
+                                                        aria-label="{{ $vyCellLabel }}"
                                                         x-bind:class="{ 'is-selecting': inDrag('{{ $row['id'] }}', '{{ $cell['date'] }}') }"
                                                         x-on:pointerdown="dragStart($event, '{{ $row['id'] }}', '{{ $cell['date'] }}')"
                                                         x-on:pointerenter="dragOver('{{ $row['id'] }}', '{{ $cell['date'] }}')"
@@ -265,10 +315,10 @@
                                             <th scope="row" class="vyr-rt">
                                                 <span class="vyr-rt-name">{{ $vyUnitRow['label'] }}</span>
                                                 @if ($vyCanWrite)
-                                                    <button type="button" class="vyr-priceind" aria-label="Price {{ $vyUnitRow['label'] }} individually"
+                                                    <button type="button" class="vyr-priceind" aria-label="{{ __('livewire/operator/rates-grid.price_unit_individually_label', ['unit' => $vyUnitRow['label']]) }}"
                                                             x-on:click="unitPriceFor = '{{ $vyUnitRow['id'] }}'">
                                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg>
-                                                        Price individually
+                                                        {{ __('livewire/operator/rates-grid.price_individually') }}
                                                     </button>
                                                 @endif
                                             </th>
@@ -278,7 +328,7 @@
                                                     <div class="vyr-cell-static is-unit">
                                                         <span class="vyr-urate {{ $vyCell['rate_fit'] }}">{{ $vyCell['rate'] ?? '—' }}</span>
                                                         @if ($vyCell['overridden'])
-                                                            <i class="vyr-own" title="Priced individually"><span class="vy-sr-only">Priced individually</span></i>
+                                                            <i class="vyr-own" title="{{ __('livewire/operator/rates-grid.priced_individually') }}"><span class="vy-sr-only">{{ __('livewire/operator/rates-grid.priced_individually') }}</span></i>
                                                         @endif
                                                     </div>
                                                 </td>
@@ -303,8 +353,8 @@
                     <section class="vy-card vy-fade" aria-labelledby="vyr-seasons-t">
                         <div class="vyr-panel-head">
                             <div>
-                                <h2 class="vy-card-title" id="vyr-seasons-t">Seasonal pricing</h2>
-                                <p class="vyr-panel-sub">Save a season, review what it would change, then apply it. Saving writes no prices.
+                                <h2 class="vy-card-title" id="vyr-seasons-t">{{ __('livewire/operator/rates-grid.seasons_heading') }}</h2>
+                                <p class="vyr-panel-sub">{{ __('livewire/operator/rates-grid.seasons_sub') }}
                                     {{-- ⚠️ THE RULE, from `SeasonPrecedence::SENTENCE` — the copy and the code are the same string. --}}
                                     {{ $seasonRule }}</p>
                             </div>
@@ -314,7 +364,7 @@
                             <div class="vyr-tablewrap">
                                 <table class="vy-table vyr-seasons">
                                     <thead>
-                                        <tr><th>Season</th><th>Nights</th><th>Now</th><th>After</th><th>Would change</th><th>Status</th><th><span class="vy-sr-only">Actions</span></th></tr>
+                                        <tr><th>{{ __('livewire/operator/rates-grid.col_season') }}</th><th>{{ __('livewire/operator/rates-grid.col_season_nights') }}</th><th>{{ __('livewire/operator/rates-grid.col_now') }}</th><th>{{ __('livewire/operator/rates-grid.col_after') }}</th><th>{{ __('livewire/operator/rates-grid.col_would_change') }}</th><th>{{ __('common.status') }}</th><th><span class="vy-sr-only">{{ __('common.actions') }}</span></th></tr>
                                     </thead>
                                     <tbody>
                                         @foreach ($seasons as $vySeason)
@@ -323,31 +373,34 @@
                                                     <div class="vyr-cell-title">{{ $vySeason['name'] }}</div>
                                                     <div class="vyr-muted">{{ $vySeason['plan_name'] }}{{ $vySeason['room_type'] !== '' ? ' · '.$vySeason['room_type'] : '' }}</div>
                                                 </td>
-                                                <td class="vyr-nowrap">{{ \Carbon\CarbonImmutable::parse($vySeason['starts_on'])->format('j M') }} – {{ \Carbon\CarbonImmutable::parse($vySeason['ends_on'])->format('j M Y') }}</td>
+                                                <td class="vyr-nowrap">{{ \Carbon\CarbonImmutable::parse($vySeason['starts_on'])->translatedFormat('j M') }} – {{ \Carbon\CarbonImmutable::parse($vySeason['ends_on'])->translatedFormat('j M Y') }}</td>
                                                 <td class="vyr-nowrap">{{ $vySeason['from_display'] ?? '—' }}</td>
                                                 <td class="vyr-nowrap"><strong>{{ $vySeason['to_display'] }}</strong></td>
                                                 <td>
-                                                    {{ $vySeason['changing'] }} of {{ $vySeason['nights'] }} {{ $vySeason['nights'] === 1 ? 'night' : 'nights' }}
-                                                    · {{ $vySeason['units'] }} {{ $vySeason['units'] === 1 ? 'unit' : 'units' }}
+                                                    {{ __('livewire/operator/rates-grid.season_change', [
+                                                        'changing' => $vySeason['changing'],
+                                                        'nights' => trans_choice('livewire/operator/rates-grid.nights_count', $vySeason['nights'], ['count' => $vySeason['nights']]),
+                                                        'units' => trans_choice('livewire/operator/rates-grid.units_count', $vySeason['units'], ['count' => $vySeason['units']]),
+                                                    ]) }}
                                                     @if ($vySeason['weekend_nights'] > 0)
-                                                        <div class="vyr-muted">includes {{ $vySeason['weekend_nights'] }} Fri/Sat {{ $vySeason['weekend_nights'] === 1 ? 'night' : 'nights' }}, replacing any weekend uplift</div>
+                                                        <div class="vyr-muted">{{ trans_choice('livewire/operator/rates-grid.season_weekend', $vySeason['weekend_nights'], ['count' => $vySeason['weekend_nights']]) }}</div>
                                                     @endif
                                                     @if ($vySeason['losing_nights'] > 0)
-                                                        <div class="vyr-accent">{{ $vySeason['losing_nights'] }} of these {{ $vySeason['losing_nights'] === 1 ? 'night is' : 'nights are' }} governed by {{ $vySeason['losing_to'] }}, which wins under the rule</div>
+                                                        <div class="vyr-accent">{{ trans_choice('livewire/operator/rates-grid.season_losing', $vySeason['losing_nights'], ['count' => $vySeason['losing_nights'], 'season' => $vySeason['losing_to']]) }}</div>
                                                     @endif
                                                     @if ($vySeason['agreed_nights'] > 0)
-                                                        <div class="vyr-accent">{{ $vySeason['agreed_nights'] }} of these {{ $vySeason['agreed_nights'] === 1 ? 'night carries' : 'nights carry' }} a negotiated owner rate</div>
+                                                        <div class="vyr-accent">{{ trans_choice('livewire/operator/rates-grid.season_agreed', $vySeason['agreed_nights'], ['count' => $vySeason['agreed_nights']]) }}</div>
                                                     @endif
                                                     @if ($vySeason['rewritten_nights'] > 0)
-                                                        <div class="vyr-muted">applying also re-writes {{ $vySeason['rewritten_nights'] }} {{ $vySeason['rewritten_nights'] === 1 ? 'night' : 'nights' }} from overlapping seasons already applied</div>
+                                                        <div class="vyr-muted">{{ trans_choice('livewire/operator/rates-grid.season_rewritten', $vySeason['rewritten_nights'], ['count' => $vySeason['rewritten_nights']]) }}</div>
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if ($vySeason['applied'])
-                                                        <span class="vy-tag tone-ok">Applied {{ $vySeason['applied_on'] }}</span>
+                                                        <span class="vy-tag tone-ok">{{ __('livewire/operator/rates-grid.season_applied', ['date' => $vySeason['applied_on']]) }}</span>
                                                     @else
                                                         {{-- ⚠️ An unapplied season has written NOTHING — say so. --}}
-                                                        <span class="vy-tag tone-muted">Saved · no prices written</span>
+                                                        <span class="vy-tag tone-muted">{{ __('livewire/operator/rates-grid.season_saved') }}</span>
                                                     @endif
                                                 </td>
                                                 <td class="vyr-row-actions">
@@ -355,10 +408,10 @@
                                                         {{-- ⚠️⚠️ EDIT IS OFFERED ONLY WHILE THE SEASON IS A DRAFT — applying overwrote the nightly rates and
                                                              nothing recorded what they were, so an "edit" could not put them back. --}}
                                                         @if (! $vySeason['applied'])
-                                                            <button type="button" class="vy-btn vy-btn--ghost vyr-sm" x-on:click="editSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">Edit</button>
+                                                            <button type="button" class="vy-btn vy-btn--ghost vyr-sm" x-on:click="editSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">{{ __('common.edit') }}</button>
                                                         @endif
-                                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm" x-on:click="confirmSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">{{ $vySeason['applied'] ? 'Apply again' : 'Apply' }}</button>
-                                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm is-danger" x-on:click="deleteSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">Delete</button>
+                                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm" x-on:click="confirmSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">{{ $vySeason['applied'] ? __('livewire/operator/rates-grid.apply_again') : __('common.apply') }}</button>
+                                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm is-danger" x-on:click="deleteSeason = {{ \Illuminate\Support\Js::from($vySeason) }}">{{ __('common.delete') }}</button>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -367,13 +420,13 @@
                                 </table>
                             </div>
                         @else
-                            <p class="vyr-empty-line">{{ $vyCanWrite && $vyActivePlans > 0 ? 'No seasons yet — save one below, then apply it when the figures look right.' : 'No seasons yet.' }}</p>
+                            <p class="vyr-empty-line">{{ $vyCanWrite && $vyActivePlans > 0 ? __('livewire/operator/rates-grid.seasons_empty_cta') : __('livewire/operator/rates-grid.seasons_empty') }}</p>
                         @endif
 
                         {{-- ⚠️ A season is set on an ACTIVE plan, so with none there is nothing to offer — the form would only be refused
                              (🖥 production, 2026-10-01: an empty plan picker on a property with no room types). --}}
                         @if ($vyCanWrite && $vyActivePlans === 0)
-                            <p class="vyr-empty-line">A season is set on a rate plan that is on sale — add a room type and give it a plan first.</p>
+                            <p class="vyr-empty-line">{{ __('livewire/operator/rates-grid.seasons_no_active_plan') }}</p>
                         @elseif ($vyCanWrite)
                             {{-- ── Save a season. This writes NO prices. ─────────────────────────────────────────────────── --}}
                             <form method="POST" action="{{ route('app.seasons.store') }}" class="vyr-season-form" x-on:submit="stamp($event.target)">
@@ -381,7 +434,7 @@
                                 <input type="hidden" name="return" value="list">
                                 <input type="hidden" name="return_query" value="">
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-season-plan">Rate plan</label>
+                                    <label class="vy-field-label" for="vy-season-plan">{{ __('livewire/operator/rates-grid.rate_plan') }}</label>
                                     <select id="vy-season-plan" name="rate_plan_id" class="vy-input" required>
                                         {{-- ⚠️ ACTIVE PLANS ONLY — a season must never be defined against an off-sale plan. --}}
                                         @foreach ($ratePlans as $vyPlan)
@@ -391,23 +444,23 @@
                                     </select>
                                 </div>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-season-name">Season name</label>
-                                    <input id="vy-season-name" name="name" type="text" maxlength="80" class="vy-input" value="{{ old('name') }}" placeholder="e.g. Summer peak" required>
+                                    <label class="vy-field-label" for="vy-season-name">{{ __('livewire/operator/rates-grid.season_name') }}</label>
+                                    <input id="vy-season-name" name="name" type="text" maxlength="80" class="vy-input" value="{{ old('name') }}" placeholder="{{ __('livewire/operator/rates-grid.season_name_placeholder') }}" required>
                                 </div>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-season-from">First night</label>
+                                    <label class="vy-field-label" for="vy-season-from">{{ __('livewire/operator/rates-grid.first_night') }}</label>
                                     <input id="vy-season-from" name="starts_on" type="date" class="vy-input" value="{{ old('starts_on') }}" required>
                                 </div>
                                 <div class="vy-field">
                                     {{-- ⚠️ INCLUSIVE, and the label says so — the service converts to the exclusive bound once. --}}
-                                    <label class="vy-field-label" for="vy-season-to">Last night (included)</label>
+                                    <label class="vy-field-label" for="vy-season-to">{{ __('livewire/operator/rates-grid.last_night_included') }}</label>
                                     <input id="vy-season-to" name="ends_on" type="date" class="vy-input" value="{{ old('ends_on') }}" required>
                                 </div>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-season-price">Nightly price</label>
-                                    <input id="vy-season-price" name="price" type="text" inputmode="decimal" class="vy-input" value="{{ old('price') }}" placeholder="e.g. 175.00" required>
+                                    <label class="vy-field-label" for="vy-season-price">{{ __('livewire/operator/rates-grid.nightly_price') }}</label>
+                                    <input id="vy-season-price" name="price" type="text" inputmode="decimal" class="vy-input" value="{{ old('price') }}" placeholder="{{ __('livewire/operator/rates-grid.price_placeholder') }}" required>
                                 </div>
-                                <button type="submit" class="vy-btn vy-btn--accent vyr-season-save">Save season</button>
+                                <button type="submit" class="vy-btn vy-btn--accent vyr-season-save">{{ __('livewire/operator/rates-grid.save_season') }}</button>
                             </form>
                             {{-- ⚠️ Every refusal the save can return is shown here — only `price` was, before. --}}
                             @if ($errors->hasAny(['rate_plan_id', 'name', 'starts_on', 'ends_on', 'price']))
@@ -420,7 +473,7 @@
                                 </div>
                             @endif
                         @elseif ($readOnly)
-                            <p class="vyr-empty-line">Workspace paused — seasons can be saved and applied again once it resumes.</p>
+                            <p class="vyr-empty-line">{{ __('livewire/operator/rates-grid.workspace_paused') }}</p>
                         @endif
                     </section>
 
@@ -431,10 +484,10 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico is-danger" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
                                 <div class="vyr-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-dlg-season-t">Apply this season?</h3>
+                                    <h3 class="vy-modal-title" id="vy-dlg-season-t">{{ __('livewire/operator/rates-grid.apply_season_title') }}</h3>
                                     <p class="vyr-dlg-sub" x-text="confirmSeason?.name"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="confirmSeason = null" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="confirmSeason = null" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body vyr-prose">
                                 @include('livewire.operator.partials.season-apply-disclosure')
@@ -443,8 +496,8 @@
                                 @csrf
                                 <input type="hidden" name="return" value="list">
                                 <input type="hidden" name="return_query" value="">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="confirmSeason = null">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Apply and overwrite those nights</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="confirmSeason = null">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/rates-grid.apply_and_overwrite') }}</button>
                             </form>
                         </div>
                     </div>
@@ -460,35 +513,35 @@
                                 <div class="vy-modal-head">
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
                                     <div class="vyr-dlg-head">
-                                        <h3 class="vy-modal-title" id="vy-dlg-season-edit">Edit this season</h3>
+                                        <h3 class="vy-modal-title" id="vy-dlg-season-edit">{{ __('livewire/operator/rates-grid.edit_season_title') }}</h3>
                                         {{-- ⚠️⚠️ THE TWO-STEP IS PRESERVED, AND THIS SENTENCE IS THE PROMISE. --}}
-                                        <p class="vyr-dlg-sub">Saving updates the season only. <strong>No prices are written</strong> until you apply it.</p>
+                                        <p class="vyr-dlg-sub">{!! __('livewire/operator/rates-grid.edit_season_sub') !!}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" x-on:click="editSeason = null" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                    <button type="button" class="vy-modal-x" x-on:click="editSeason = null" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
                                 <div class="vy-modal-body">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-season-edit-name">Name</label>
+                                        <label class="vy-field-label" for="vy-season-edit-name">{{ __('common.name') }}</label>
                                         <input id="vy-season-edit-name" class="vy-input" type="text" name="name" x-bind:value="editSeason?.name" maxlength="80" required>
                                     </div>
                                     <div class="vyr-dlg-grid2">
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vy-season-edit-from">First night</label>
+                                            <label class="vy-field-label" for="vy-season-edit-from">{{ __('livewire/operator/rates-grid.first_night') }}</label>
                                             <input id="vy-season-edit-from" class="vy-input" type="date" name="starts_on" x-bind:value="editSeason?.starts_on" required>
                                         </div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vy-season-edit-to">Last night (included)</label>
+                                            <label class="vy-field-label" for="vy-season-edit-to">{{ __('livewire/operator/rates-grid.last_night_included') }}</label>
                                             <input id="vy-season-edit-to" class="vy-input" type="date" name="ends_on" x-bind:value="editSeason?.ends_on" required>
                                         </div>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-season-edit-price">Nightly price</label>
+                                        <label class="vy-field-label" for="vy-season-edit-price">{{ __('livewire/operator/rates-grid.nightly_price') }}</label>
                                         <input id="vy-season-edit-price" class="vy-input" type="text" inputmode="decimal" name="price" x-bind:value="editSeason?.price_input" required>
                                     </div>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="editSeason = null">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="editSeason = null">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -500,19 +553,19 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico is-danger" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></span>
                                 <div class="vyr-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-dlg-season-delete">Delete this season?</h3>
+                                    <h3 class="vy-modal-title" id="vy-dlg-season-delete">{{ __('livewire/operator/rates-grid.delete_season_title') }}</h3>
                                     <p class="vyr-dlg-sub" x-text="deleteSeason?.name"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="deleteSeason = null" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="deleteSeason = null" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body vyr-prose">
                                 {{-- ⚠️⚠️ A CONTROL MAY NOT IMPLY MORE THAN IT DOES — deleting an APPLIED season leaves every night it
                                      wrote exactly as it wrote them. --}}
                                 <template x-if="deleteSeason?.applied">
-                                    <p>This season has been applied. Deleting it removes the season only — <strong>the nightly prices it wrote stay as they are</strong>, and the prices they replaced are not stored anywhere. Set those nights yourself if they are wrong.</p>
+                                    <p>{!! __('livewire/operator/rates-grid.delete_applied_body') !!}</p>
                                 </template>
                                 <template x-if="! deleteSeason?.applied">
-                                    <p>This season has not been applied, so <strong>no prices change</strong>.</p>
+                                    <p>{!! __('livewire/operator/rates-grid.delete_draft_body') !!}</p>
                                 </template>
                             </div>
                             <form method="POST" x-bind:action="deleteSeason?.delete_url ?? ''" class="vy-modal-foot" x-on:submit="stamp($event.target)">
@@ -520,8 +573,8 @@
                                 @method('DELETE')
                                 <input type="hidden" name="return" value="list">
                                 <input type="hidden" name="return_query" value="">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="deleteSeason = null">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--danger">Delete season</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="deleteSeason = null">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger">{{ __('livewire/operator/rates-grid.delete_season') }}</button>
                             </form>
                         </div>
                     </div>
@@ -534,34 +587,34 @@
                 <section class="vy-card vy-fade" id="vy-add-rate-plan" aria-labelledby="vyr-plans-t">
                     <div class="vyr-panel-head">
                         <div>
-                            <h2 class="vy-card-title" id="vyr-plans-t">Rate plans</h2>
-                            <p class="vyr-panel-sub">A rate plan is what nightly prices hang off. Each room type is priced through its main plan in the grid above; plans take the property's currency.</p>
+                            <h2 class="vy-card-title" id="vyr-plans-t">{{ __('livewire/operator/rates-grid.plans_heading') }}</h2>
+                            <p class="vyr-panel-sub">{{ __('livewire/operator/rates-grid.plans_sub') }}</p>
                         </div>
                         @if ($vyCanWrite && count($roomTypeOptions) > 0)
                             <button type="button" class="vy-btn vy-btn--ghost vyr-tool" x-on:click="openPlanAdd('')">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                                Add rate plan
+                                {{ __('livewire/operator/rates-grid.add_rate_plan') }}
                             </button>
                         @endif
                     </div>
                     @foreach ($ratePlans as $plan)
                         <div class="vyr-plan">
                             <div class="vyr-plan-main">
-                                <div class="vyr-plan-name">{{ $plan['name'] }}@if ($plan['is_derived'])<span class="vyr-accent"> · derived</span>@endif</div>
+                                <div class="vyr-plan-name">{{ $plan['name'] }}@if ($plan['is_derived'])<span class="vyr-accent"> {{ __('livewire/operator/rates-grid.derived_tag') }}</span>@endif</div>
                                 {{-- ⚠️ ONE expression, not an @if around the text: Livewire's block markers would split the line. --}}
                                 <div class="vyr-plan-sub">{{ ($plan['room_type'] !== '' ? $plan['room_type'].' · ' : '').$plan['sub'] }}</div>
                                 {{-- What it charges in this fortnight — the grid shows only each room type's main plan. --}}
                                 <div class="vyr-plan-priced">{{ $plan['priced'] }}</div>
                             </div>
-                            <span class="vy-tag {{ $plan['is_active'] ? 'tone-ok' : 'tone-paused' }}">{{ $plan['is_active'] ? 'On sale' : 'Off sale' }}</span>
+                            <span class="vy-tag {{ $plan['is_active'] ? 'tone-ok' : 'tone-paused' }}">{{ $plan['is_active'] ? __('livewire/operator/rates-grid.on_sale') : __('livewire/operator/rates-grid.off_sale') }}</span>
                             <span class="vyr-muted vyr-channel">{{ $plan['channel'] }}</span>
                             @if ($vyCanWrite)
                                 <div class="vyr-plan-actions">
                                     @unless ($plan['is_derived'])
-                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="Set prices for {{ $plan['name'] }}" x-on:click="openEditor({ rt: '{{ $plan['room_type_id'] }}', plan: '{{ $plan['id'] }}' })">Set prices</button>
+                                        <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="{{ __('livewire/operator/rates-grid.set_prices_for', ['plan' => $plan['name']]) }}" x-on:click="openEditor({ rt: '{{ $plan['room_type_id'] }}', plan: '{{ $plan['id'] }}' })">{{ __('livewire/operator/rates-grid.set_prices') }}</button>
                                     @endunless
-                                    <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="Rename {{ $plan['name'] }}" x-on:click="editPlanFor = '{{ $plan['id'] }}'">Rename</button>
-                                    <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="{{ $plan['is_active'] ? 'Take '.$plan['name'].' off sale' : 'Put '.$plan['name'].' back on sale' }}" x-on:click="activePlanFor = '{{ $plan['id'] }}'">{{ $plan['is_active'] ? 'Take off sale' : 'Put back on sale' }}</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="{{ __('livewire/operator/rates-grid.rename_plan_label', ['plan' => $plan['name']]) }}" x-on:click="editPlanFor = '{{ $plan['id'] }}'">{{ __('livewire/operator/rates-grid.rename') }}</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost vyr-sm" aria-label="{{ $plan['is_active'] ? __('livewire/operator/rates-grid.take_off_sale_label', ['plan' => $plan['name']]) : __('livewire/operator/rates-grid.put_back_on_sale_label', ['plan' => $plan['name']]) }}" x-on:click="activePlanFor = '{{ $plan['id'] }}'">{{ $plan['is_active'] ? __('livewire/operator/rates-grid.take_off_sale') : __('livewire/operator/rates-grid.put_back_on_sale') }}</button>
                                 </div>
                             @endif
                         </div>
@@ -572,7 +625,7 @@
             {{-- ── Channels — HONEST (#85): Direct live; OTA sync needs setup, never a fabricated "Synced". ───────────────── --}}
             <section class="vy-card vy-fade" aria-labelledby="vyr-channels-t">
                 <div class="vyr-panel-head">
-                    <h2 class="vy-card-title" id="vyr-channels-t">Channels</h2>
+                    <h2 class="vy-card-title" id="vyr-channels-t">{{ __('livewire/operator/rates-grid.channels_heading') }}</h2>
                     <span class="vyr-muted">{{ $channels['summary'] }}</span>
                 </div>
                 @foreach ($channels['rows'] as $ch)
@@ -582,7 +635,7 @@
                         <span class="vy-tag {{ $ch['live'] ? 'tone-ok' : 'tone-muted' }}">{{ $ch['status'] }}</span>
                     </div>
                 @endforeach
-                <p class="vyr-note">Prices save to direct bookings now. Sending them to OTA channels starts once a channel connection is set up — nothing is sent to a channel until then.</p>
+                <p class="vyr-note">{{ __('livewire/operator/rates-grid.channels_note') }}</p>
             </section>
 
             {{-- ══════════════════════════════════════ DIALOGS ══════════════════════════════════════════════════════════
@@ -599,17 +652,17 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg></span>
                                 <div class="vyr-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-dlg-rates-ed-t">Set rates &amp; availability</h3>
+                                    <h3 class="vy-modal-title" id="vy-dlg-rates-ed-t">{{ __('livewire/operator/rates-grid.editor_title') }}</h3>
                                     <p class="vyr-dlg-sub" x-text="edSummary()"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="edOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="edOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vyr-dlg-range">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyr-ed-rt">Room type</label>
+                                        <label class="vy-field-label" for="vyr-ed-rt">{{ __('livewire/operator/rates-grid.room_type') }}</label>
                                         <select id="vyr-ed-rt" name="room_type_id" class="vy-input" x-model="ed.rt" x-on:change="ed.plan = mainPlan($event.target.value)">
-                                            <option value="all">All room types on this page</option>
+                                            <option value="all">{{ __('livewire/operator/rates-grid.all_room_types_page') }}</option>
                                             @foreach ($roomTypeOptions as $opt)
                                                 <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
                                             @endforeach
@@ -619,74 +672,74 @@
                                          type's picker is enabled, so only it is posted; the server checks the plan belongs to it. --}}
                                     @foreach ($planChoices as $vyRtId => $vyChoices)
                                         <div class="vy-field vyr-planpick" x-show="ed.rt === '{{ $vyRtId }}'">
-                                            <label class="vy-field-label" for="vyr-ed-plan-{{ $vyRtId }}">Rate plan</label>
+                                            <label class="vy-field-label" for="vyr-ed-plan-{{ $vyRtId }}">{{ __('livewire/operator/rates-grid.rate_plan') }}</label>
                                             <select id="vyr-ed-plan-{{ $vyRtId }}" name="rate_plan_id" class="vy-input" x-model="ed.plan" x-bind:disabled="ed.rt !== '{{ $vyRtId }}'">
                                                 @foreach ($vyChoices as $vyChoice)
                                                     <option value="{{ $vyChoice['id'] }}" @selected($loop->first)>{{ $vyChoice['label'] }}</option>
                                                 @endforeach
                                             </select>
-                                            <span class="vyr-fieldhint">The price goes on this plan. Stay rules and open or closed apply to the whole room type.</span>
+                                            <span class="vyr-fieldhint">{{ __('livewire/operator/rates-grid.plan_pick_hint') }}</span>
                                         </div>
                                     @endforeach
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyr-ed-from">First night</label>
+                                        <label class="vy-field-label" for="vyr-ed-from">{{ __('livewire/operator/rates-grid.first_night') }}</label>
                                         <input id="vyr-ed-from" type="date" name="start_date" class="vy-input" x-model="ed.from" required>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyr-ed-to">Last night</label>
+                                        <label class="vy-field-label" for="vyr-ed-to">{{ __('livewire/operator/rates-grid.last_night') }}</label>
                                         <input id="vyr-ed-to" type="date" name="end_date" class="vy-input" x-model="ed.to" required>
                                     </div>
                                 </div>
 
                                 <div class="vyr-rules">
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_rate" value="1" x-model="ed.setRate"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Nightly price</strong><span>What a guest pays for each night</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_rate" value="1" x-model="ed.setRate"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.nightly_price') }}</strong><span>{{ __('livewire/operator/rates-grid.nightly_price_help') }}</span></span></label>
                                         <div class="vyr-money" x-bind:class="{ 'is-off': ! ed.setRate }">
                                             <span aria-hidden="true">{{ $currencySymbol }}</span>
-                                            <input type="text" name="rate" class="vy-input" inputmode="decimal" placeholder="175.00" aria-label="Nightly price" x-model="ed.rate" x-bind:disabled="! ed.setRate">
+                                            <input type="text" name="rate" class="vy-input" inputmode="decimal" placeholder="175.00" aria-label="{{ __('livewire/operator/rates-grid.nightly_price') }}" x-model="ed.rate" x-bind:disabled="! ed.setRate">
                                         </div>
                                     </div>
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_min_stay" value="1" x-model="ed.setMin"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Minimum stay</strong><span>Blank removes it</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_min_stay" value="1" x-model="ed.setMin"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.min_stay') }}</strong><span>{{ __('livewire/operator/rates-grid.blank_removes') }}</span></span></label>
                                         <div class="vyr-nights" x-bind:class="{ 'is-off': ! ed.setMin }">
-                                            <input type="number" name="min_stay" class="vy-input" min="1" max="365" placeholder="2" aria-label="Minimum stay, in nights" x-model="ed.min" x-bind:disabled="! ed.setMin">
-                                            <span aria-hidden="true">nights</span>
+                                            <input type="number" name="min_stay" class="vy-input" min="1" max="365" placeholder="2" aria-label="{{ __('livewire/operator/rates-grid.min_stay_aria') }}" x-model="ed.min" x-bind:disabled="! ed.setMin">
+                                            <span aria-hidden="true">{{ __('livewire/operator/rates-grid.nights_unit') }}</span>
                                         </div>
                                     </div>
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_max_stay" value="1" x-model="ed.setMax"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Maximum stay</strong><span>Blank removes it</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_max_stay" value="1" x-model="ed.setMax"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.max_stay') }}</strong><span>{{ __('livewire/operator/rates-grid.blank_removes') }}</span></span></label>
                                         <div class="vyr-nights" x-bind:class="{ 'is-off': ! ed.setMax }">
-                                            <input type="number" name="max_stay" class="vy-input" min="1" max="365" placeholder="14" aria-label="Maximum stay, in nights" x-model="ed.max" x-bind:disabled="! ed.setMax">
-                                            <span aria-hidden="true">nights</span>
+                                            <input type="number" name="max_stay" class="vy-input" min="1" max="365" placeholder="14" aria-label="{{ __('livewire/operator/rates-grid.max_stay_aria') }}" x-model="ed.max" x-bind:disabled="! ed.setMax">
+                                            <span aria-hidden="true">{{ __('livewire/operator/rates-grid.nights_unit') }}</span>
                                         </div>
                                     </div>
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_stop_sell" value="1" x-model="ed.setStop"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Open or closed</strong><span>Closed nights can’t be booked</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_stop_sell" value="1" x-model="ed.setStop"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.open_or_closed') }}</strong><span>{{ __('livewire/operator/rates-grid.closed_help') }}</span></span></label>
                                         <fieldset class="vy-choices vy-choices--segmented vyr-seg" x-bind:disabled="! ed.setStop">
-                                            <legend class="vy-sr-only">Open or closed</legend>
+                                            <legend class="vy-sr-only">{{ __('livewire/operator/rates-grid.open_or_closed') }}</legend>
                                             <div class="vy-choice-row">
-                                                <label class="vy-choice"><input type="radio" name="stop_sell" value="0" x-model="ed.stop"><span class="vy-choice-face"><span class="vy-choice-text">Open</span></span></label>
-                                                <label class="vy-choice"><input type="radio" name="stop_sell" value="1" x-model="ed.stop"><span class="vy-choice-face"><span class="vy-choice-text">Closed</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="stop_sell" value="0" x-model="ed.stop"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.state_open') }}</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="stop_sell" value="1" x-model="ed.stop"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.state_closed') }}</span></span></label>
                                             </div>
                                         </fieldset>
                                     </div>
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_closed_to_arrival" value="1" x-model="ed.setCta"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Arrivals</strong><span>Whether a stay may start on these nights</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_closed_to_arrival" value="1" x-model="ed.setCta"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.arrivals') }}</strong><span>{{ __('livewire/operator/rates-grid.arrivals_help') }}</span></span></label>
                                         <fieldset class="vy-choices vy-choices--segmented vyr-seg" x-bind:disabled="! ed.setCta">
-                                            <legend class="vy-sr-only">Arrivals</legend>
+                                            <legend class="vy-sr-only">{{ __('livewire/operator/rates-grid.arrivals') }}</legend>
                                             <div class="vy-choice-row">
-                                                <label class="vy-choice"><input type="radio" name="closed_to_arrival" value="0" x-model="ed.cta"><span class="vy-choice-face"><span class="vy-choice-text">Allowed</span></span></label>
-                                                <label class="vy-choice"><input type="radio" name="closed_to_arrival" value="1" x-model="ed.cta"><span class="vy-choice-face"><span class="vy-choice-text">No arrivals</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="closed_to_arrival" value="0" x-model="ed.cta"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.allowed') }}</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="closed_to_arrival" value="1" x-model="ed.cta"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.no_arrivals') }}</span></span></label>
                                             </div>
                                         </fieldset>
                                     </div>
                                     <div class="vyr-rule">
-                                        <label class="vy-gl-switch"><input type="checkbox" name="set_closed_to_departure" value="1" x-model="ed.setCtd"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Departures</strong><span>Whether a stay may end on these nights</span></span></label>
+                                        <label class="vy-gl-switch"><input type="checkbox" name="set_closed_to_departure" value="1" x-model="ed.setCtd"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.departures') }}</strong><span>{{ __('livewire/operator/rates-grid.departures_help') }}</span></span></label>
                                         <fieldset class="vy-choices vy-choices--segmented vyr-seg" x-bind:disabled="! ed.setCtd">
-                                            <legend class="vy-sr-only">Departures</legend>
+                                            <legend class="vy-sr-only">{{ __('livewire/operator/rates-grid.departures') }}</legend>
                                             <div class="vy-choice-row">
-                                                <label class="vy-choice"><input type="radio" name="closed_to_departure" value="0" x-model="ed.ctd"><span class="vy-choice-face"><span class="vy-choice-text">Allowed</span></span></label>
-                                                <label class="vy-choice"><input type="radio" name="closed_to_departure" value="1" x-model="ed.ctd"><span class="vy-choice-face"><span class="vy-choice-text">No departures</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="closed_to_departure" value="0" x-model="ed.ctd"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.allowed') }}</span></span></label>
+                                                <label class="vy-choice"><input type="radio" name="closed_to_departure" value="1" x-model="ed.ctd"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.no_departures') }}</span></span></label>
                                             </div>
                                         </fieldset>
                                     </div>
@@ -694,13 +747,13 @@
 
                                 @if (count($derivedPlans) > 0)
                                     {{-- #100 — the REAL derived plans on screen (was a fixed "Non-refundable −10% and Weekly −15%"). --}}
-                                    <label class="vy-gl-switch vyr-derived"><input type="checkbox" name="update_derived" value="1" x-model="ed.derived"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Also update derived plans</strong><span>{{ implode(' · ', $derivedPlans) }} — they follow the new price</span></span></label>
+                                    <label class="vy-gl-switch vyr-derived"><input type="checkbox" name="update_derived" value="1" x-model="ed.derived"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.update_derived') }}</strong><span>{{ __('livewire/operator/rates-grid.update_derived_help', ['plans' => implode(' · ', $derivedPlans)]) }}</span></span></label>
                                 @endif
-                                <p class="vyr-note">Bookings already taken keep the price they were sold at. This changes what is offered from now on.</p>
+                                <p class="vyr-note">{{ __('livewire/operator/rates-grid.editor_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="edOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" x-bind:disabled="! edAny()" x-text="edApplyLabel()">Apply</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="edOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" x-bind:disabled="! edAny()" x-text="edApplyLabel()">{{ __('common.apply') }}</button>
                             </div>
                         </form>
                     </div>
@@ -718,63 +771,63 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h6"/></svg></span>
                                 <div class="vyr-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-dlg-bulk-t">Bulk edit rates</h3>
-                                    <p class="vyr-dlg-sub">Change many nights at once, on each room type’s main plan</p>
+                                    <h3 class="vy-modal-title" id="vy-dlg-bulk-t">{{ __('livewire/operator/rates-grid.bulk_title') }}</h3>
+                                    <p class="vyr-dlg-sub">{{ __('livewire/operator/rates-grid.bulk_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="bulkOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="bulkOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vyr-dlg-range">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="bu_rt">Room types</label>
+                                        <label class="vy-field-label" for="bu_rt">{{ __('livewire/operator/rates-grid.room_types') }}</label>
                                         <select id="bu_rt" name="room_type_id" class="vy-input" x-model="bu.rt">
-                                            <option value="all">All room types on this page</option>
+                                            <option value="all">{{ __('livewire/operator/rates-grid.all_room_types_page') }}</option>
                                             @foreach ($roomTypeOptions as $opt)
                                                 <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="bu_from">First night</label>
+                                        <label class="vy-field-label" for="bu_from">{{ __('livewire/operator/rates-grid.first_night') }}</label>
                                         <input id="bu_from" type="date" name="start_date" class="vy-input" x-model="bu.from" required>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="bu_to">Last night</label>
+                                        <label class="vy-field-label" for="bu_to">{{ __('livewire/operator/rates-grid.last_night') }}</label>
                                         <input id="bu_to" type="date" name="end_date" class="vy-input" x-model="bu.to" required>
                                     </div>
                                 </div>
                                 <fieldset class="vy-choices vyr-tiles3">
-                                    <legend class="vy-field-label">Change</legend>
+                                    <legend class="vy-field-label">{{ __('livewire/operator/rates-grid.bulk_change_legend') }}</legend>
                                     <div class="vy-choice-row">
-                                        <label class="vy-choice"><input type="radio" name="mode" value="increase_pct" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg><span class="vy-choice-text">Raise by %</span></span></label>
-                                        <label class="vy-choice"><input type="radio" name="mode" value="decrease_pct" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l10 10M17 9v8H9"/></svg><span class="vy-choice-text">Lower by %</span></span></label>
-                                        <label class="vy-choice"><input type="radio" name="mode" value="set_exact" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg><span class="vy-choice-text">Set a price</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="mode" value="increase_pct" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.raise_by_pct') }}</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="mode" value="decrease_pct" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l10 10M17 9v8H9"/></svg><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.lower_by_pct') }}</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="mode" value="set_exact" x-model="bu.mode"><span class="vy-choice-face"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></svg><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.set_a_price') }}</span></span></label>
                                     </div>
                                 </fieldset>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-lbl-rates-grid-amount" x-text="bu.mode === 'set_exact' ? 'Nightly price' : 'Percentage'">Percentage</label>
+                                    <label class="vy-field-label" for="vy-lbl-rates-grid-amount" x-text="bu.mode === 'set_exact' ? @js(__('livewire/operator/rates-grid.nightly_price')) : @js(__('livewire/operator/rates-grid.percentage'))">{{ __('livewire/operator/rates-grid.percentage') }}</label>
                                     <div class="vyr-money" x-bind:class="{ 'is-pct': bu.mode !== 'set_exact' }">
                                         <span aria-hidden="true" x-text="bu.mode === 'set_exact' ? @js($currencySymbol) : '%'">%</span>
                                         <input id="vy-lbl-rates-grid-amount" type="text" name="amount" class="vy-input" inputmode="decimal" x-model="bu.amount" x-bind:placeholder="bu.mode === 'set_exact' ? '175.00' : '10'" required>
                                     </div>
                                 </div>
                                 <fieldset class="vy-choices vy-choices--segmented vyr-seg">
-                                    <legend class="vy-field-label">Nights</legend>
+                                    <legend class="vy-field-label">{{ __('livewire/operator/rates-grid.bulk_nights_legend') }}</legend>
                                     <div class="vy-choice-row">
-                                        <label class="vy-choice"><input type="radio" name="nights" value="whole" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">Every night</span></span></label>
-                                        <label class="vy-choice"><input type="radio" name="nights" value="weekends" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">Fri–Sat nights</span></span></label>
-                                        <label class="vy-choice"><input type="radio" name="nights" value="midweek" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">Sun–Thu nights</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="nights" value="whole" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.every_night') }}</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="nights" value="weekends" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.fri_sat_nights') }}</span></span></label>
+                                        <label class="vy-choice"><input type="radio" name="nights" value="midweek" x-model="bu.nights"><span class="vy-choice-face"><span class="vy-choice-text">{{ __('livewire/operator/rates-grid.sun_thu_nights') }}</span></span></label>
                                     </div>
                                 </fieldset>
                                 @if (count($derivedPlans) > 0)
-                                    <label class="vy-gl-switch vyr-derived"><input type="checkbox" name="update_derived" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Also update derived plans</strong><span>{{ implode(' · ', $derivedPlans) }} — they follow the new price</span></span></label>
+                                    <label class="vy-gl-switch vyr-derived"><input type="checkbox" name="update_derived" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.update_derived') }}</strong><span>{{ __('livewire/operator/rates-grid.update_derived_help', ['plans' => implode(' · ', $derivedPlans)]) }}</span></span></label>
                                 @endif
                                 <p class="vyr-summary" x-text="buSummary()"></p>
-                                <p class="vyr-note">Fully booked and closed nights are left as they are, and so is any night a change would bring down to zero.</p>
+                                <p class="vyr-note">{{ __('livewire/operator/rates-grid.bulk_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="bulkOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Apply bulk edit</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="bulkOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/rates-grid.apply_bulk_edit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -791,9 +844,9 @@
                             :to="$window['through']"
                             :return-to-list="true"
                             heading-id="vy-dlg-rg-unit-t"
-                            subheading="A price for the units you choose — the rest of the room type is unchanged.">
+                            :subheading="__('livewire/operator/rates-grid.unit_form_sub')">
                             <x-slot:actions>
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="unitOpen = false">Cancel</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="unitOpen = false">{{ __('common.cancel') }}</button>
                             </x-slot:actions>
                         </x-rates.unit-price-form>
                     </div>
@@ -815,10 +868,10 @@
                                     :from="$window['from']"
                                     :to="$window['through']"
                                     :return-to-list="true"
-                                    heading="Price this unit individually"
-                                    subheading="A price for this unit only — the rest of its room type is unchanged.">
+                                    :heading="__('livewire/operator/rates-grid.unit_price_heading')"
+                                    :subheading="__('livewire/operator/rates-grid.unit_price_sub')">
                                     <x-slot:actions>
-                                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="unitPriceFor = null">Cancel</button>
+                                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="unitPriceFor = null">{{ __('common.cancel') }}</button>
                                     </x-slot:actions>
                                 </x-rates.unit-price-form>
                             </div>
@@ -841,25 +894,25 @@
                                 <div class="vy-modal-head">
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
                                     <div class="vyr-dlg-head">
-                                        <h3 class="vy-modal-title" id="vy-dlg-rg-plan-edit-{{ $vyP['id'] }}">Rename rate plan {{ $vyP['name'] }}</h3>
+                                        <h3 class="vy-modal-title" id="vy-dlg-rg-plan-edit-{{ $vyP['id'] }}">{{ __('livewire/operator/rates-grid.rename_title', ['plan' => $vyP['name']]) }}</h3>
                                         {{-- ⚠️ TRUE AND NARROW — `updateRatePlan()` accepts only `name` and `code`. --}}
-                                        <p class="vyr-dlg-sub">Only the name and code change. No nightly price moves, and a stay already sold keeps the price and terms it was sold with.</p>
+                                        <p class="vyr-dlg-sub">{{ __('livewire/operator/rates-grid.rename_sub') }}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" x-on:click="editPlanFor = null" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                    <button type="button" class="vy-modal-x" x-on:click="editPlanFor = null" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
                                 <div class="vy-modal-body vyr-dlg-grid2">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyr-plan-name-{{ $vyP['id'] }}">Plan name</label>
+                                        <label class="vy-field-label" for="vyr-plan-name-{{ $vyP['id'] }}">{{ __('livewire/operator/rates-grid.plan_name') }}</label>
                                         <input id="vyr-plan-name-{{ $vyP['id'] }}" class="vy-input" type="text" name="name" maxlength="255" value="{{ $vyP['name'] }}" required>
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyr-plan-code-{{ $vyP['id'] }}">Code <span class="vy-fl-note">(optional)</span></label>
+                                        <label class="vy-field-label" for="vyr-plan-code-{{ $vyP['id'] }}">{{ __('livewire/operator/rates-grid.code') }} <span class="vy-fl-note">{{ __('livewire/operator/rates-grid.optional_note') }}</span></label>
                                         <input id="vyr-plan-code-{{ $vyP['id'] }}" class="vy-input" type="text" name="code" maxlength="60" value="{{ $vyP['code'] }}">
                                     </div>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="editPlanFor = null">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent">Save plan name</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="editPlanFor = null">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/rates-grid.save_plan_name') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -871,16 +924,16 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico {{ $vyP['is_active'] ? 'is-danger' : '' }}" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="{{ $vyP['is_active'] ? 'M10 9v6M14 9v6' : 'M10 8.5l5 3.5-5 3.5z' }}"/></svg></span>
                                 <div class="vyr-dlg-head">
-                                    <h3 class="vy-modal-title" id="vy-dlg-rg-plan-active-{{ $vyP['id'] }}">{{ $vyP['is_active'] ? 'Take '.$vyP['name'].' off sale?' : 'Put '.$vyP['name'].' back on sale?' }}</h3>
+                                    <h3 class="vy-modal-title" id="vy-dlg-rg-plan-active-{{ $vyP['id'] }}">{{ $vyP['is_active'] ? __('livewire/operator/rates-grid.take_off_sale_title', ['plan' => $vyP['name']]) : __('livewire/operator/rates-grid.put_back_on_sale_title', ['plan' => $vyP['name']]) }}</h3>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="activePlanFor = null" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="activePlanFor = null" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body vyr-prose">
                                 @if ($vyP['is_active'])
                                     {{-- ⚠️ MEASURED, NOT ASSERTED — the storefront quotes only active plans; bookings snapshot their price. --}}
-                                    <p>It stops being quoted to new guests straight away. Bookings already taken on it keep their price and terms, and its nightly prices are kept, so putting it back on sale restores them unchanged.</p>
+                                    <p>{{ __('livewire/operator/rates-grid.take_off_sale_body') }}</p>
                                 @else
-                                    <p>It can be quoted to new guests again, at the nightly prices it already has.</p>
+                                    <p>{{ __('livewire/operator/rates-grid.put_back_on_sale_body') }}</p>
                                 @endif
                             </div>
                             <form method="POST" action="{{ route('app.inventory.rate-plans.active', $vyP['id']) }}" class="vy-modal-foot" x-on:submit="stamp($event.target)">
@@ -888,8 +941,8 @@
                                 <input type="hidden" name="return" value="list">
                                 <input type="hidden" name="return_query" value="">
                                 <input type="hidden" name="active" value="{{ $vyP['is_active'] ? '0' : '1' }}">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="activePlanFor = null">Cancel</button>
-                                <button type="submit" class="vy-btn {{ $vyP['is_active'] ? 'vy-btn--danger' : 'vy-btn--accent' }}">{{ $vyP['is_active'] ? 'Take off sale' : 'Put back on sale' }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="activePlanFor = null">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn {{ $vyP['is_active'] ? 'vy-btn--danger' : 'vy-btn--accent' }}">{{ $vyP['is_active'] ? __('livewire/operator/rates-grid.take_off_sale') : __('livewire/operator/rates-grid.put_back_on_sale') }}</button>
                             </form>
                         </div>
                     </div>
@@ -906,33 +959,33 @@
                                 <div class="vy-modal-head">
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
                                     <div class="vyr-dlg-head">
-                                        <h3 class="vy-modal-title" id="vy-dlg-rg-plan-add">Add a rate plan</h3>
-                                        <p class="vyr-dlg-sub">It takes the property’s currency. Set its nightly prices in the grid once it exists.</p>
+                                        <h3 class="vy-modal-title" id="vy-dlg-rg-plan-add">{{ __('livewire/operator/rates-grid.add_plan_title') }}</h3>
+                                        <p class="vyr-dlg-sub">{{ __('livewire/operator/rates-grid.add_plan_sub') }}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" x-on:click="planAddOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                    <button type="button" class="vy-modal-x" x-on:click="planAddOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
                                 <div class="vy-modal-body">
                                     <div class="vyr-dlg-grid2">
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyr-plan-add-rt">Room type</label>
+                                            <label class="vy-field-label" for="vyr-plan-add-rt">{{ __('livewire/operator/rates-grid.room_type') }}</label>
                                             <select id="vyr-plan-add-rt" class="vy-input" name="room_type_id" x-model="planAddRt" required>
                                                 @foreach ($roomTypeOptions as $rt)
-                                                    <option value="{{ $rt['id'] }}">{{ $rt['name'] }}{{ $rt['has_plan'] ? '' : ' — no plan yet' }}</option>
+                                                    <option value="{{ $rt['id'] }}">{{ $rt['has_plan'] ? $rt['name'] : __('livewire/operator/rates-grid.option_no_plan', ['name' => $rt['name']]) }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyr-plan-add-name">Plan name</label>
-                                            <input id="vyr-plan-add-name" class="vy-input" name="name" required maxlength="255" placeholder="e.g. Flexible">
+                                            <label class="vy-field-label" for="vyr-plan-add-name">{{ __('livewire/operator/rates-grid.plan_name') }}</label>
+                                            <input id="vyr-plan-add-name" class="vy-input" name="name" required maxlength="255" placeholder="{{ __('livewire/operator/rates-grid.plan_name_placeholder') }}">
                                         </div>
                                     </div>
                                     {{-- ⚠️ A real switch — off sends nothing, which the server now reads as "not refundable" (it used to
                                          default an absent box to refundable, so this could never be switched off). --}}
-                                    <label class="vy-gl-switch"><input type="checkbox" name="is_refundable" value="1" checked><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Refundable</strong><span>Guests can cancel for free under this plan</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="is_refundable" value="1" checked><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/operator/rates-grid.refundable') }}</strong><span>{{ __('livewire/operator/rates-grid.refundable_help') }}</span></span></label>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="planAddOpen = false">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent">Add rate plan</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="planAddOpen = false">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/rates-grid.add_rate_plan') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -944,10 +997,15 @@
 
     <script>
         window.vyRates = window.vyRates || function (boot) {
-            const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
-            // "Wed 30 Sep" — the grid's own format. The browser's en-GB locale prints "Sept", so the words are spelt out here.
-            const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            // I18N-01 — every word the script shows arrives in `boot.i18n` (the page's language). `fill` puts the values in a
+            // text's :placeholders (split/join, so a `$` in a name is never read as a pattern); `byCount` picks the text the
+            // server built for that count.
+            const T = boot.i18n;
+            const fill = (s, vals) => Object.keys(vals).reduce((t, k) => t.split(':' + k).join(String(vals[k])), s);
+            const byCount = (map, many, n) => (map[n] !== undefined ? map[n] : fill(many, { count: n }));
+            // "Wed 30 Sep" — the grid's own format. The browser's en-GB locale prints "Sept", so the words come from the server.
+            const DAYS = T.days;
+            const MONTHS = T.months;
             const fmt = (d) => {
                 if (! d) return '';
                 const [y, m, day] = d.split('-').map(Number);
@@ -1027,13 +1085,15 @@
                 edNights() { return nights(this.ed.from, this.ed.to); },
                 edAny() { const e = this.ed; return e.setRate || e.setMin || e.setMax || e.setStop || e.setCta || e.setCtd; },
                 edSummary() {
-                    const plan = this.ed.rt !== 'all' && this.ed.plan && this.ed.plan !== mainOf(this.ed.rt) ? ' · ' + (boot.planNames[this.ed.plan] || '') : '';
-                    const who = (this.ed.rt === 'all' ? 'All room types on this page' : (boot.names[this.ed.rt] || 'Room type')) + plan;
+                    const base = this.ed.rt === 'all' ? T.allPage : (boot.names[this.ed.rt] || T.roomType);
+                    const who = this.ed.rt !== 'all' && this.ed.plan && this.ed.plan !== mainOf(this.ed.rt)
+                        ? fill(T.whoPlan, { who: base, plan: boot.planNames[this.ed.plan] || '' })
+                        : base;
                     const n = this.edNights();
-                    if (n === 0) return who + ' · choose the nights';
-                    return who + ' · ' + plural(n, 'night', 'nights') + ' · ' + (n === 1 ? fmt(this.ed.from) : fmt(this.ed.from) + ' – ' + fmt(this.ed.to));
+                    if (n === 0) return fill(T.noNights, { who });
+                    return fill(byCount(T.summary, T.summaryMany, n), { who, dates: n === 1 ? fmt(this.ed.from) : fmt(this.ed.from) + ' – ' + fmt(this.ed.to) });
                 },
-                edApplyLabel() { const n = this.edNights(); return n > 0 ? 'Apply to ' + plural(n, 'night', 'nights') : 'Apply'; },
+                edApplyLabel() { const n = this.edNights(); return n > 0 ? byCount(T.applyTo, T.applyToMany, n) : T.apply; },
 
                 // ── the many-nights dialog
                 openBulk() {
@@ -1042,14 +1102,15 @@
                 },
                 buSummary() {
                     const b = this.bu;
-                    const who = b.rt === 'all' ? 'every room type on this page' : (boot.names[b.rt] || 'the room type');
-                    const which = b.nights === 'weekends' ? 'Friday and Saturday nights' : (b.nights === 'midweek' ? 'Sunday to Thursday nights' : 'every night');
-                    const span = b.from && b.to ? 'from ' + fmt(b.from) + ' to ' + fmt(b.to) : 'in the dates above';
+                    const who = b.rt === 'all' ? T.buWhoAll : (boot.names[b.rt] || T.buWhoFallback);
+                    const which = b.nights === 'weekends' ? T.buWeekends : (b.nights === 'midweek' ? T.buMidweek : T.buEvery);
+                    const span = b.from && b.to ? fill(T.buSpan, { from: fmt(b.from), to: fmt(b.to) }) : T.buSpanBlank;
                     const amount = (b.amount || '').trim();
-                    const change = b.mode === 'set_exact'
-                        ? 'Sets ' + which + ' to ' + (amount ? boot.currency + amount : 'the price you enter')
-                        : (b.mode === 'increase_pct' ? 'Raises ' : 'Lowers ') + which + ' by ' + (amount ? amount + '%' : 'the percentage you enter');
-                    return change + ' for ' + who + ', ' + span + '.';
+                    // the whole sentence is one text per mode, with or without an amount typed
+                    const text = b.mode === 'set_exact'
+                        ? (amount ? T.buSet : T.buSetBlank)
+                        : (b.mode === 'increase_pct' ? (amount ? T.buRaise : T.buRaiseBlank) : (amount ? T.buLower : T.buLowerBlank));
+                    return fill(text, { which, price: boot.currency + amount, amount, who, span });
                 },
 
                 // ── plans

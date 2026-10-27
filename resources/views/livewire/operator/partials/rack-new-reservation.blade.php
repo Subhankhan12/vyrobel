@@ -18,11 +18,12 @@
 @php
     $__rnr = $newRes;
     $__rnrPre = collect($__rnr['units'])->firstWhere('unit_id', $__rnr['preselect']);
-    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->format('j M').' → '
-        .\Carbon\CarbonImmutable::parse($__rnr['form']['check_out'])->format('j M');
-    $__rnrNights = $__rnr['nights'] === 1 ? '1 night' : $__rnr['nights'].' nights';
+    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M').' → '
+        .\Carbon\CarbonImmutable::parse($__rnr['form']['check_out'])->translatedFormat('j M');
+    $__rnrNights = trans_choice('livewire/operator/partials/rack-new-reservation.nights', $__rnr['nights'], ['count' => $__rnr['nights']]);
     $__rnrBack = '?start='.$window['start'].'&days='.$window['selected_days'].$window['rt_q'];
-    $__rnrThese = $__rnr['nights'] === 1 ? 'this night' : 'these nights';
+    // the "Open the full form" link inside its sentence (rule 13: the Alpine attribute stays out of the translation)
+    $__rnrFullFormHtml = '<a class="vy-rnr-link" x-on:click="forget()" href="'.e($__rnr['full_form_url']).'">'.e(__('livewire/operator/partials/rack-new-reservation.open_full_form')).'</a>';
 @endphp
 <div x-data="{
         open: true, dirty: false, booking: false, nameMissing: false, applying: false,
@@ -77,8 +78,8 @@
         // the server's own money format (MoneyInput, as the New reservation page reads it): a comma is thousands, never cents
         priceSubmit(e, i) {
             const field = document.getElementById('vy-rnr-rate-' + i); const raw = field ? field.value : '';
-            if (/^\s*\d+,\d{1,2}\s*$/.test(raw)) { e.preventDefault(); this.priceErr[i] = 'Use a dot for cents, e.g. 120.50 — a comma reads as thousands.'; return; }
-            if (window.vyRnrPriceMinor(raw) === null) { e.preventDefault(); this.priceErr[i] = 'Enter the price a night, e.g. 120 or 120.50.'; return; }
+            if (/^\s*\d+,\d{1,2}\s*$/.test(raw)) { e.preventDefault(); this.priceErr[i] = @js(__('livewire/operator/partials/rack-new-reservation.price_err_comma')); return; }
+            if (window.vyRnrPriceMinor(raw) === null) { e.preventDefault(); this.priceErr[i] = @js(__('livewire/operator/partials/rack-new-reservation.price_err_invalid')); return; }
             this.keep(); this.priceBusy = i;
         },
     }">
@@ -88,11 +89,11 @@
                 <span class="vy-modal-ico" aria-hidden="true" x-show="! confirmSeason"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg></span>
                 <span class="vy-modal-ico is-danger" aria-hidden="true" x-show="confirmSeason" x-cloak><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
                 <div class="vyo-dlg-head">
-                    <h3 class="vy-modal-title" id="vy-rnr-title" x-text="confirmSeason ? 'Apply this season?' : 'New reservation'">New reservation</h3>
-                    <p class="vyo-dlg-sub" x-show="! confirmSeason">{{ $property['name'] }} · a quick booking — extras and payment are in the full form</p>
+                    <h3 class="vy-modal-title" id="vy-rnr-title" x-text="confirmSeason ? @js(__('livewire/operator/partials/rack-new-reservation.apply_season_title')) : @js(__('livewire/operator/partials/rack-new-reservation.title'))">{{ __('livewire/operator/partials/rack-new-reservation.title') }}</h3>
+                    <p class="vyo-dlg-sub" x-show="! confirmSeason">{{ __('livewire/operator/partials/rack-new-reservation.subtitle', ['property' => $property['name']]) }}</p>
                     <p class="vyo-dlg-sub" x-show="confirmSeason" x-cloak x-text="confirmSeason ? confirmSeason.name + ' · ' + confirmSeason.nightly + ' · ' + confirmSeason.from + ' → ' + confirmSeason.to : ''"></p>
                 </div>
-                <button type="button" class="vy-modal-x" x-on:click="close()" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                <button type="button" class="vy-modal-x" x-on:click="close()" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>
 
             @if ($__rnr['rooms'] === 0)
@@ -106,11 +107,11 @@
                     @endif
                     <div class="vy-rnr-empty is-block">
                         @if ($__rnr['rooms_all'] === 0)
-                            <strong>{{ $property['name'] }} has no rooms yet</strong>
-                            <span>A booking needs a unit to stay in. Add this property’s units, then book them here.</span>
+                            <strong>{{ __('livewire/operator/partials/rack-new-reservation.no_rooms_title', ['property' => $property['name']]) }}</strong>
+                            <span>{{ __('livewire/operator/partials/rack-new-reservation.no_rooms_body') }}</span>
                         @else
-                            <strong>None of {{ $property['name'] }}’s units can take a booking</strong>
-                            <span>They’re all paused or out of service. Reopen one on the Units page, then book it here.</span>
+                            <strong>{{ __('livewire/operator/partials/rack-new-reservation.none_bookable_title', ['property' => $property['name']]) }}</strong>
+                            <span>{{ __('livewire/operator/partials/rack-new-reservation.none_bookable_body') }}</span>
                         @endif
                     </div>
                     {{-- ⚠️⚠️ 2026-10-04 (his workspace): "Go to Units" was the only way on, while his other property had three rooms. Choosing
@@ -118,12 +119,12 @@
                     @if ($__rnr['others'] !== [])
                         <form method="POST" action="{{ route('app.property.switch') }}" class="vy-rnr-others" aria-labelledby="vy-rnr-others-h">
                             @csrf
-                            <h4 id="vy-rnr-others-h" class="vy-rnr-others-h">Book into another property</h4>
+                            <h4 id="vy-rnr-others-h" class="vy-rnr-others-h">{{ __('livewire/operator/partials/rack-new-reservation.book_other_property') }}</h4>
                             @foreach ($__rnr['others'] as $__p)
                                 <button type="submit" name="property_id" value="{{ $__p['id'] }}" class="vy-rnr-other">
                                     <svg class="vy-rnr-other-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
                                     <span class="vy-rnr-other-name">{{ $__p['name'] }}</span>
-                                    <span class="vy-rnr-other-rooms">{{ $__p['rooms'] === 1 ? '1 room' : $__p['rooms'].' rooms' }}</span>
+                                    <span class="vy-rnr-other-rooms">{{ trans_choice('livewire/operator/partials/rack-new-reservation.rooms', $__p['rooms'], ['count' => $__p['rooms']]) }}</span>
                                     <svg class="vy-rnr-other-go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                 </button>
                             @endforeach
@@ -131,8 +132,8 @@
                     @endif
                 </div>
                 <div class="vy-modal-foot">
-                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="close()">Close</button>
-                    <a class="vy-btn vy-btn--accent" x-on:click="forget()" href="{{ route('app.units') }}">Go to Units</a>
+                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="close()">{{ __('common.close') }}</button>
+                    <a class="vy-btn vy-btn--accent" x-on:click="forget()" href="{{ route('app.units') }}">{{ __('livewire/operator/partials/rack-new-reservation.go_to_units') }}</a>
                 </div>
             @else
                 <div class="vy-modal-body" x-show="! confirmSeason">
@@ -141,7 +142,7 @@
                         <p class="vy-rnr-msg is-err" role="alert">{{ $__rnr['error'] }}</p>
                     @elseif ($__rnr['ok'] !== null)
                         {{-- what comes next, from what the dialog shows — the unit clicked may already be picked --}}
-                        <p class="vy-rnr-msg is-ok" role="status">{{ $__rnr['ok'] }}{{ $__rnrPre !== null ? ' '.$__rnrPre['unit_label'].' is picked — confirm to book it.' : ($__rnr['units'] !== [] ? ' Pick a unit below to continue.' : '') }}</p>
+                        <p class="vy-rnr-msg is-ok" role="status">{{ $__rnr['ok'] }}{{ $__rnrPre !== null ? ' '.__('livewire/operator/partials/rack-new-reservation.unit_picked', ['unit' => $__rnrPre['unit_label']]) : ($__rnr['units'] !== [] ? ' '.__('livewire/operator/partials/rack-new-reservation.pick_unit_below') : '') }}</p>
                     @endif
 
                     {{-- Phase 1 — who and when (a GET; the names stay in this tab and are not part of it) --}}
@@ -159,31 +160,31 @@
 
                         <div class="vyo-pair">
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-rnr-gf">First name</label>
+                                <label class="vy-field-label" for="vy-rnr-gf">{{ __('livewire/operator/partials/rack-new-reservation.first_name') }}</label>
                                 <input id="vy-rnr-gf" class="vy-input" type="text" x-model="gf" maxlength="80" autocomplete="off" autofocus>
                             </div>
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-rnr-gl">Last name</label>
+                                <label class="vy-field-label" for="vy-rnr-gl">{{ __('livewire/operator/partials/rack-new-reservation.last_name') }}</label>
                                 <input id="vy-rnr-gl" class="vy-input" type="text" x-model="gl" maxlength="80" autocomplete="off">
                             </div>
                         </div>
-                        <p class="vy-rnr-problem" x-show="nameMissing" x-cloak role="alert">Enter the guest’s first or last name.</p>
+                        <p class="vy-rnr-problem" x-show="nameMissing" x-cloak role="alert">{{ __('livewire/operator/partials/rack-new-reservation.name_missing') }}</p>
 
                         <div class="vy-rnr-when">
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-rnr-ci">Check-in</label>
+                                <label class="vy-field-label" for="vy-rnr-ci">{{ __('livewire/operator/partials/rack-new-reservation.check_in') }}</label>
                                 <input id="vy-rnr-ci" class="vy-input" type="date" name="ci" value="{{ $__rnr['form']['check_in'] }}" min="{{ $__rnr['today'] }}" autocomplete="off" x-on:change="dirty = true">
                             </div>
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-rnr-co">Check-out</label>
+                                <label class="vy-field-label" for="vy-rnr-co">{{ __('livewire/operator/partials/rack-new-reservation.check_out') }}</label>
                                 <input id="vy-rnr-co" class="vy-input" type="date" name="co" value="{{ $__rnr['form']['check_out'] }}" min="{{ $__rnr['today'] }}" autocomplete="off" x-on:change="dirty = true">
                             </div>
                             <div class="vy-field">
-                                <span class="vy-field-label" id="vy-rnr-adults-l">Adults</span>
+                                <span class="vy-field-label" id="vy-rnr-adults-l">{{ __('livewire/operator/partials/rack-new-reservation.adults') }}</span>
                                 <div class="vy-stepper vy-rnr-stepper" role="group" aria-labelledby="vy-rnr-adults-l">
-                                    <button type="button" x-on:click="adults = Math.max(1, adults - 1)" x-bind:disabled="adults &lt;= 1" aria-label="Fewer adults">&minus;</button>
+                                    <button type="button" x-on:click="adults = Math.max(1, adults - 1)" x-bind:disabled="adults &lt;= 1" aria-label="{{ __('livewire/operator/partials/rack-new-reservation.fewer_adults') }}">&minus;</button>
                                     <span x-text="adults" aria-live="polite">{{ (int) $__rnr['form']['adults'] }}</span>
-                                    <button type="button" x-on:click="adults = Math.min(12, adults + 1)" x-bind:disabled="adults &gt;= 12" aria-label="More adults">+</button>
+                                    <button type="button" x-on:click="adults = Math.min(12, adults + 1)" x-bind:disabled="adults &gt;= 12" aria-label="{{ __('livewire/operator/partials/rack-new-reservation.more_adults') }}">+</button>
                                 </div>
                             </div>
                         </div>
@@ -191,14 +192,14 @@
                         @if ($__rnr['date_problem'] !== null)
                             <p class="vy-rnr-problem" role="alert">{{ $__rnr['date_problem'] }}</p>
                         @endif
-                        <p class="vy-rnr-problem" x-show="dirty" x-cloak role="status">The dates changed — check the rack again to see what’s free.</p>
-                        <button type="submit" class="vy-btn vy-btn--ghost vy-rnr-check">Check rack</button>
+                        <p class="vy-rnr-problem" x-show="dirty" x-cloak role="status">{{ __('livewire/operator/partials/rack-new-reservation.dates_changed') }}</p>
+                        <button type="submit" class="vy-btn vy-btn--ghost vy-rnr-check">{{ __('livewire/operator/partials/rack-new-reservation.check_rack') }}</button>
                     </form>
 
                     {{-- Phase 2 — what is free, its price, and the source --}}
                     @if ($__rnr['checked'])
                         <div class="vy-rnr-free">
-                            <div class="vy-field-label" id="vy-rnr-free-l">What’s free · {{ $__rnrDates }} · {{ $__rnrNights }}</div>
+                            <div class="vy-field-label" id="vy-rnr-free-l">{{ __('livewire/operator/partials/rack-new-reservation.whats_free', ['dates' => $__rnrDates, 'nights' => $__rnrNights]) }}</div>
                             <div class="vy-rnr-units" role="radiogroup" aria-labelledby="vy-rnr-free-l">
                             @foreach ($__rnr['units'] as $u)
                                 {{-- data-* carries the (possibly apostrophe'd) room name into Alpine, never into a JS literal --}}
@@ -210,7 +211,7 @@
                                     <span class="vy-rnr-unit-info">
                                         {{-- the unit's code first: on a phone the line is cut, and the code is the part that matters --}}
                                         <span class="vy-rnr-unit-name">{{ $u['unit_label'] }}</span>
-                                        <span class="vy-rnr-unit-sub">{{ $u['room_type_name'] }} · {{ $__rnrNights }}{{ $u['sleeps'] > 0 ? ' · sleeps '.$u['sleeps'] : '' }}</span>
+                                        <span class="vy-rnr-unit-sub">{{ $u['room_type_name'] }} · {{ $__rnrNights }}{{ $u['sleeps'] > 0 ? ' · '.__('livewire/operator/partials/rack-new-reservation.sleeps', ['guests' => $u['sleeps']]) : '' }}</span>
                                     </span>
                                     <span class="vy-rnr-unit-rate">{{ $u['total_display'] }}</span>
                                     <span class="vy-rnr-radio" aria-hidden="true"></span>
@@ -236,16 +237,16 @@
                                 <div class="vy-rnr-waiting">
                                     <strong>{{ $w['name'] }}</strong>
                                     @if ($w['has_plan'])
-                                        <span>{{ $w['units'] }} free · No price for {{ $w['unpriced'] >= $__rnr['nights'] ? $__rnrThese : $w['unpriced'].' of these '.$__rnr['nights'].' nights' }} yet.@if (! $__rnr['can_set_price'] && $w['seasons'] === []) Ask someone who manages rates to set one.@endif</span>
+                                        <span>{{ $w['unpriced'] >= $__rnr['nights'] ? trans_choice('livewire/operator/partials/rack-new-reservation.no_price_all', $__rnr['nights'], ['count' => $__rnr['nights'], 'units' => $w['units']]) : trans_choice('livewire/operator/partials/rack-new-reservation.no_price_some', $__rnr['nights'], ['count' => $__rnr['nights'], 'units' => $w['units'], 'unpriced' => $w['unpriced']]) }}@if (! $__rnr['can_set_price'] && $w['seasons'] === []) {{ __('livewire/operator/partials/rack-new-reservation.ask_rates_manager_price') }}@endif</span>
                                         {{-- ⚠️⚠️ A SAVED SEASON, NEVER APPLIED — his "Winter" on production. Said, and applied from here by whoever
                                              manages rates: the button only opens the Rates page's own disclosure (below), never applies. --}}
                                         @foreach ($w['seasons'] as $season)
                                             <div class="vy-rnr-season">
-                                                <p class="vy-rnr-season-why"><strong>{{ $season['name'] }} · {{ $season['nightly'] }}</strong> · {{ $season['from'] }} → {{ $season['to'] }} — saved but not applied yet{{ $season['prices'] === $season['missing'] ? ', so '.($season['missing'] === 1 ? 'this night has' : 'these nights have').' no price.' : '. It would price '.$season['prices'].' of the '.$season['missing'].' nights that have none.' }}</p>
+                                                <p class="vy-rnr-season-why">{!! trans_choice($season['prices'] === $season['missing'] ? 'livewire/operator/partials/rack-new-reservation.season_saved_all' : 'livewire/operator/partials/rack-new-reservation.season_saved_some', $season['missing'], ['count' => e($season['missing']), 'season' => e($season['name']), 'nightly' => e($season['nightly']), 'from' => e($season['from']), 'to' => e($season['to']), 'prices' => e($season['prices'])]) !!}</p>
                                                 @if ($__rnr['can_set_price'])
-                                                    <button type="button" class="vy-btn vy-btn--accent vy-rnr-season-go" id="vy-rnr-apply-{{ $season['id'] }}" x-bind:disabled="dirty" x-on:click="openSeason(@js($season['id']))">Apply {{ $season['name'] }}…</button>
+                                                    <button type="button" class="vy-btn vy-btn--accent vy-rnr-season-go" id="vy-rnr-apply-{{ $season['id'] }}" x-bind:disabled="dirty" x-on:click="openSeason(@js($season['id']))">{{ __('livewire/operator/partials/rack-new-reservation.apply_season_button', ['season' => $season['name']]) }}</button>
                                                 @else
-                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">Someone who manages rates can apply it on the Rates page{{ $season['prices'] === $season['missing'] ? ' — its units can be booked here once they have.' : '.' }}</p>
+                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $season['prices'] === $season['missing'] ? __('livewire/operator/partials/rack-new-reservation.manager_can_apply_then_book') : __('livewire/operator/partials/rack-new-reservation.manager_can_apply') }}</p>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -259,37 +260,36 @@
                                                 <input type="hidden" name="end_date" value="{{ $__rnr['last_night'] }}">
                                                 <input type="hidden" name="set_rate" value="1">
                                                 @include('livewire.operator.partials.calendar-return-fields', ['__stay' => true])
-                                                <label class="vy-field-label" for="vy-rnr-rate-{{ $loop->index }}">{{ $w['seasons'] !== [] ? 'Or set a price for '.$__rnrThese.' only' : 'Price a night' }}<span class="vy-sr-only"> for {{ $w['name'] }}</span></label>
+                                                <label class="vy-field-label" for="vy-rnr-rate-{{ $loop->index }}">{!! $w['seasons'] !== [] ? trans_choice('livewire/operator/partials/rack-new-reservation.price_label_or', $__rnr['nights'], ['room_type' => e($w['name'])]) : __('livewire/operator/partials/rack-new-reservation.price_label', ['room_type' => e($w['name'])]) !!}</label>
                                                 <div class="vy-rnr-setprice-row">
                                                     <span class="vy-rnr-money">
                                                         <span class="vy-rnr-money-sym" aria-hidden="true">{{ $w['symbol'] }}</span>
-                                                        <input id="vy-rnr-rate-{{ $loop->index }}" class="vy-input" type="text" name="rate" inputmode="decimal" placeholder="e.g. 120" autocomplete="off" aria-describedby="vy-rnr-rate-err-{{ $loop->index }}" x-bind:aria-invalid="priceErr[{{ $loop->index }}] ? 'true' : 'false'" x-on:input="priceErr[{{ $loop->index }}] = ''">
+                                                        <input id="vy-rnr-rate-{{ $loop->index }}" class="vy-input" type="text" name="rate" inputmode="decimal" placeholder="{{ __('livewire/operator/partials/rack-new-reservation.price_placeholder') }}" autocomplete="off" aria-describedby="vy-rnr-rate-err-{{ $loop->index }}" x-bind:aria-invalid="priceErr[{{ $loop->index }}] ? 'true' : 'false'" x-on:input="priceErr[{{ $loop->index }}] = ''">
                                                     </span>
-                                                    <button type="submit" class="vy-btn {{ $w['seasons'] !== [] ? 'vy-btn--ghost' : 'vy-btn--accent' }}" aria-label="Set price for {{ $w['name'] }}" x-bind:disabled="dirty || priceBusy === {{ $loop->index }}" x-text="priceBusy === {{ $loop->index }} ? 'Setting…' : 'Set price'">Set price</button>
+                                                    <button type="submit" class="vy-btn {{ $w['seasons'] !== [] ? 'vy-btn--ghost' : 'vy-btn--accent' }}" aria-label="{{ __('livewire/operator/partials/rack-new-reservation.set_price_for', ['room_type' => $w['name']]) }}" x-bind:disabled="dirty || priceBusy === {{ $loop->index }}" x-text="priceBusy === {{ $loop->index }} ? @js(__('livewire/operator/partials/rack-new-reservation.setting')) : @js(__('livewire/operator/partials/rack-new-reservation.set_price'))">{{ __('livewire/operator/partials/rack-new-reservation.set_price') }}</button>
                                                 </div>
                                                 <p class="vy-rnr-problem vy-rnr-problem--tight" id="vy-rnr-rate-err-{{ $loop->index }}" x-show="priceErr[{{ $loop->index }}]" x-text="priceErr[{{ $loop->index }}]" x-cloak role="alert"></p>
-                                                @php $__on = $w['plan_name'] !== '' ? ' on the '.$w['plan_name'].' plan' : ''; @endphp
                                                 @if ($__rnr['nights'] === 1)
-                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">The price goes on the night of {{ \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->format('j M') }}{{ $__on }} — a price already there is replaced. Change it any time on the Rates page.</p>
+                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_one_plan', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_one', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M')]) }}</p>
                                                 @else
-                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">The same price goes on each night from {{ \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->format('j M') }} to {{ \Carbon\CarbonImmutable::parse($__rnr['last_night'])->format('j M') }}{{ $__on }} — a price already on one of them is replaced. Change it any time on the Rates page.</p>
+                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_many_plan', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat('j M'), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_many', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat('j M')]) }}</p>
                                                 @endif
                                             </form>
                                         @endif
                                     @else
                                         {{-- ⚠️ no plan at all: the full form cannot price it either — Rates is where a plan is added --}}
-                                        <span>{{ $w['units'] }} free · It has no rate plan yet, so no price.@if ($__rnr['can_set_price']) <a class="vy-rnr-link" x-on:click="forget()" href="{{ route('app.rates') }}">Add a rate plan on the Rates page</a>@else Someone who manages rates can add one.@endif</span>
+                                        <span>{{ __('livewire/operator/partials/rack-new-reservation.no_rate_plan', ['units' => $w['units']]) }}@if ($__rnr['can_set_price']) <a class="vy-rnr-link" x-on:click="forget()" href="{{ route('app.rates') }}">{{ __('livewire/operator/partials/rack-new-reservation.add_rate_plan_link') }}</a>@else {{ __('livewire/operator/partials/rack-new-reservation.manager_can_add_plan') }}@endif</span>
                                     @endif
                                 </div>
                             @endforeach
                             @if ($__rnr['units'] === [] && $__rnr['waiting'] === [])
-                                <p class="vy-rnr-empty">Nothing is free for these dates — try other dates.</p>
+                                <p class="vy-rnr-empty">{{ __('livewire/operator/partials/rack-new-reservation.nothing_free') }}</p>
                             @endif
                         </div>
 
                         @if ($__rnr['units'] !== [])
                             <fieldset class="vy-rnr-sources">
-                                <legend class="vy-field-label">Source</legend>
+                                <legend class="vy-field-label">{{ __('livewire/operator/partials/rack-new-reservation.source') }}</legend>
                                 <div class="vy-rnr-pills">
                                     @foreach ($__rnr['sources'] as $val => $label)
                                         <button type="button" class="vy-source-pill" x-bind:class="source === @js($val) ? 'on' : ''" x-bind:aria-pressed="String(source === @js($val))" x-on:click="source = @js($val)">{{ $label }}</button>
@@ -297,24 +297,24 @@
                                 </div>
                             </fieldset>
                             <div class="vy-rnr-total">
-                                <span class="vy-rnr-total-lbl" x-text="sel ? selLabel : 'Pick a unit above'">{{ $__rnrPre !== null ? $__rnrPre['room_type_name'].' · '.$__rnrPre['unit_label'] : 'Pick a unit above' }}</span>
+                                <span class="vy-rnr-total-lbl" x-text="sel ? selLabel : @js(__('livewire/operator/partials/rack-new-reservation.pick_unit_above'))">{{ $__rnrPre !== null ? $__rnrPre['room_type_name'].' · '.$__rnrPre['unit_label'] : __('livewire/operator/partials/rack-new-reservation.pick_unit_above') }}</span>
                                 <span class="vy-rnr-total-amt" x-text="sel ? selTotal : '—'">{{ $__rnrPre['total_display'] ?? '—' }}</span>
                             </div>
                             @if ($__rnr['adds_charges'])
-                                <p class="vy-rnr-fine">Room only — the property’s taxes and fees are added on the folio.</p>
+                                <p class="vy-rnr-fine">{{ __('livewire/operator/partials/rack-new-reservation.room_only') }}</p>
                             @endif
                         @endif
                     @endif
 
-                    <p class="vy-rnr-fine">Books it straight away, as a new guest — no extras, payment or email from here; if a stay rule such as a minimum stay applies, the full form opens to sort it out. <a class="vy-rnr-link" x-on:click="forget()" href="{{ $__rnr['full_form_url'] }}">Open the full form</a> for those.</p>
+                    <p class="vy-rnr-fine">{!! __('livewire/operator/partials/rack-new-reservation.books_straight_away', ['link' => $__rnrFullFormHtml]) !!}</p>
                 </div>
 
                 <div class="vy-modal-foot" x-show="! confirmSeason">
-                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="close()">Cancel</button>
+                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="close()">{{ __('common.cancel') }}</button>
                     @if ($__rnr['checked'] && $__rnr['units'] !== [])
                         {{-- one Confirm: submits the SELECTED unit's certified form (its x-bind values flushed by the earlier pick) --}}
                         <button type="button" class="vy-btn vy-btn--accent" x-bind:disabled="! sel || dirty || booking" x-on:click="confirm()">
-                            <span x-text="booking ? 'Booking…' : 'Confirm reservation'">Confirm reservation</span>
+                            <span x-text="booking ? @js(__('livewire/operator/partials/rack-new-reservation.booking_busy')) : @js(__('livewire/operator/partials/rack-new-reservation.confirm_reservation'))">{{ __('livewire/operator/partials/rack-new-reservation.confirm_reservation') }}</span>
                         </button>
                     @endif
                 </div>
@@ -324,13 +324,13 @@
                 @foreach ($__rnr['seasons'] as $season)
                     <div class="vy-modal-body vyr-prose vy-rnr-confirm" x-show="confirmSeason !== null &amp;&amp; confirmSeason.id === @js($season['id'])" x-cloak>
                         @include('livewire.operator.partials.season-apply-disclosure')
-                        <p>For this booking: it prices {{ $season['prices'] }} of the {{ $season['missing'] }} {{ $season['missing'] === 1 ? 'night of the stay that has' : 'nights of the stay that have' }} no price.</p>
+                        <p>{{ trans_choice('livewire/operator/partials/rack-new-reservation.for_this_booking', $season['missing'], ['count' => $season['missing'], 'prices' => $season['prices']]) }}</p>
                     </div>
                     <form method="POST" action="{{ $season['apply_url'] }}" class="vy-modal-foot" x-show="confirmSeason !== null &amp;&amp; confirmSeason.id === @js($season['id'])" x-cloak data-guard-submit x-on:submit="keep(); applying = true">
                         @csrf
                         @include('livewire.operator.partials.calendar-return-fields', ['__stay' => true])
-                        <button type="button" class="vy-btn vy-btn--ghost" id="vy-rnr-back-{{ $season['id'] }}" x-on:click="closeSeason()">Back</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Apply and overwrite those nights</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" id="vy-rnr-back-{{ $season['id'] }}" x-on:click="closeSeason()">{{ __('common.back') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/partials/rack-new-reservation.apply_and_overwrite') }}</button>
                     </form>
                 @endforeach
                 {{-- the price read the New reservation page's way (its toMinor) — in a script block, where a typed currency sign may be named

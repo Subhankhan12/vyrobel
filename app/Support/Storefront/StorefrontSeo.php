@@ -50,7 +50,8 @@ final class StorefrontSeo
     ];
 
     /**
-     * Human labels for `properties.type`, for titles and descriptions.
+     * The translation key of the human label for each `properties.type`, for titles and descriptions (translated where
+     * it is read, never here — a constant runs before the request's language is set).
      *
      * ⚠️ THIS MAP IS TOTAL OVER THE ENUM, AND IS READ WITHOUT A FALLBACK ON PURPOSE. A `?? 'Stay'` default
      * would silently label a newly added property type as a generic "Stay" on every title and description
@@ -61,17 +62,17 @@ final class StorefrontSeo
      * parent `LodgingBusiness` is always a TRUE statement, so falling back is correct rather than lossy.
      */
     private const TYPE_LABELS = [
-        'hotel' => 'Hotel',
-        'aparthotel' => 'Aparthotel',
-        'serviced_apartment' => 'Serviced apartments',
-        'apartment_building' => 'Apartments',
-        'apartment' => 'Apartment',
-        'villa' => 'Villa',
-        'hostel' => 'Hostel',
-        'guest_house' => 'Guest house',
-        'resort' => 'Resort',
-        'mixed' => 'Hotel & apartments',
-        'portfolio' => 'Stays',
+        'hotel' => 'php/support/storefront/storefront_seo.type_hotel',
+        'aparthotel' => 'php/support/storefront/storefront_seo.type_aparthotel',
+        'serviced_apartment' => 'php/support/storefront/storefront_seo.type_serviced_apartment',
+        'apartment_building' => 'php/support/storefront/storefront_seo.type_apartment_building',
+        'apartment' => 'php/support/storefront/storefront_seo.type_apartment',
+        'villa' => 'php/support/storefront/storefront_seo.type_villa',
+        'hostel' => 'php/support/storefront/storefront_seo.type_hostel',
+        'guest_house' => 'php/support/storefront/storefront_seo.type_guest_house',
+        'resort' => 'php/support/storefront/storefront_seo.type_resort',
+        'mixed' => 'php/support/storefront/storefront_seo.type_mixed',
+        'portfolio' => 'php/support/storefront/storefront_seo.type_portfolio',
     ];
 
     public function __construct(private readonly StorefrontOffer $offers) {}
@@ -90,11 +91,11 @@ final class StorefrontSeo
     {
         $name = (string) $property->name;
         $town = $this->town($property);
-        $typeLabel = self::TYPE_LABELS[(string) $property->type];
+        $typeLabel = __(self::TYPE_LABELS[(string) $property->type]);
 
         $title = $town !== null
-            ? "{$name}, {$town} — Book Direct"
-            : "{$name} — Book Direct";
+            ? __('php/support/storefront/storefront_seo.title_town', ['name' => $name, 'town' => $town])
+            : __('php/support/storefront/storefront_seo.title', ['name' => $name]);
 
         $rating = ReviewRating::forProperty((string) $property->getKey());
         $offer = $this->offers->probe($property);
@@ -128,7 +129,7 @@ final class StorefrontSeo
         $rating = ReviewRating::forRoomType((string) $roomType->getKey());
 
         return [
-            'title' => "{$roomName} at {$propertyName} — Book Direct",
+            'title' => __('php/support/storefront/storefront_seo.title_room', ['room' => $roomName, 'property' => $propertyName]),
             'description' => $this->roomDescription($roomName, $propertyName, $roomType, $this->town($property)),
             'canonical' => route('booking.room', [
                 'property' => (string) $property->slug,
@@ -160,14 +161,14 @@ final class StorefrontSeo
         ))));
 
         $count = count($properties);
-        $description = $count > 0
-            ? "Browse {$count} ".($count === 1 ? 'property' : 'properties')
-                .($towns !== [] ? ' in '.$this->list($towns) : '')
-                .". Check availability and book directly with {$orgName}."
-            : "Check availability and book directly with {$orgName}.";
+        $description = match (true) {
+            $count > 0 && $towns !== [] => trans_choice('php/support/storefront/storefront_seo.org_description_towns', $count, ['count' => $count, 'towns' => $this->list($towns), 'org' => $orgName]),
+            $count > 0 => trans_choice('php/support/storefront/storefront_seo.org_description', $count, ['count' => $count, 'org' => $orgName]),
+            default => __('php/support/storefront/storefront_seo.org_description_empty', ['org' => $orgName]),
+        };
 
         return [
-            'title' => "{$orgName} — Book Direct",
+            'title' => __('php/support/storefront/storefront_seo.title', ['name' => $orgName]),
             'description' => $description,
             'canonical' => route('storefront.landing', ['organization' => $orgSlug]),
             'og_type' => 'website',
@@ -209,18 +210,18 @@ final class StorefrontSeo
         $country = $this->addressPart($property, 'country');
 
         $place = $where !== null && $country !== null && $country !== $where
-            ? "{$where}, {$country}"
+            ? __('php/support/storefront/storefront_seo.place_town_country', ['town' => $where, 'country' => $country])
             : ($where ?? $country);
 
-        $lead = $place !== null
-            ? "{$typeLabel} in {$place}."
-            : "{$typeLabel}.";
+        // one whole sentence per shape: a clause whose data is absent is dropped, never filled
+        $replace = ['name' => $name, 'type' => $typeLabel, 'place' => (string) $place, 'count' => $roomTypeCount];
 
-        $rooms = $roomTypeCount > 0
-            ? ' '.$roomTypeCount.' '.($roomTypeCount === 1 ? 'room type' : 'room types').'.'
-            : '';
-
-        return "Book {$name} direct. {$lead}{$rooms} Check live availability and reserve without going through a booking site.";
+        return match (true) {
+            $place !== null && $roomTypeCount > 0 => trans_choice('php/support/storefront/storefront_seo.description_place_rooms', $roomTypeCount, $replace),
+            $place !== null => __('php/support/storefront/storefront_seo.description_place', $replace),
+            $roomTypeCount > 0 => trans_choice('php/support/storefront/storefront_seo.description_rooms', $roomTypeCount, $replace),
+            default => __('php/support/storefront/storefront_seo.description', $replace),
+        };
     }
 
     private function roomDescription(string $roomName, string $propertyName, RoomType $roomType, ?string $town): string
@@ -229,18 +230,22 @@ final class StorefrontSeo
 
         $sleeps = (int) $roomType->max_adults + (int) $roomType->max_children;
         if ($sleeps > 0) {
-            $parts[] = "sleeps up to {$sleeps}";
+            $parts[] = __('php/support/storefront/storefront_seo.detail_sleeps', ['guests' => $sleeps]);
         }
 
         if ($roomType->bedrooms !== null && (int) $roomType->bedrooms > 0) {
             $bedrooms = (int) $roomType->bedrooms;
-            $parts[] = $bedrooms.' '.($bedrooms === 1 ? 'bedroom' : 'bedrooms');
+            $parts[] = trans_choice('php/support/storefront/storefront_seo.detail_bedrooms', $bedrooms, ['count' => $bedrooms]);
         }
 
-        $detail = $parts === [] ? '' : ' — '.$this->list($parts);
-        $where = $town !== null ? " in {$town}" : '';
+        $replace = ['room' => $roomName, 'property' => $propertyName, 'town' => (string) $town, 'details' => $this->list($parts)];
 
-        return "{$roomName} at {$propertyName}{$where}{$detail}. Check live availability and book direct.";
+        return match (true) {
+            $town !== null && $parts !== [] => __('php/support/storefront/storefront_seo.room_description_town_details', $replace),
+            $town !== null => __('php/support/storefront/storefront_seo.room_description_town', $replace),
+            $parts !== [] => __('php/support/storefront/storefront_seo.room_description_details', $replace),
+            default => __('php/support/storefront/storefront_seo.room_description', $replace),
+        };
     }
 
     // ══ JSON-LD — every field conditional on real data ═════════════════════════════════════════════════
@@ -514,6 +519,6 @@ final class StorefrontSeo
 
         $last = array_pop($items);
 
-        return implode(', ', $items).' and '.$last;
+        return __('php/support/storefront/storefront_seo.list_and', ['items' => implode(', ', $items), 'last' => $last]);
     }
 }

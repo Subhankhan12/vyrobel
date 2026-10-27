@@ -18,7 +18,6 @@ use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -66,8 +65,7 @@ class PayoutRunActionController extends Controller
         // one is worse than no flag: it reads as "the engine is off" on every surface while one button still
         // moves money. Same family as `MAIL_MAILER=log` — nothing errors, the harm just happens.
         if (! (bool) config('services.payouts.engine_enabled', false)) {
-            return $this->back('payout_error',
-                'The payout engine is disabled (PAYOUT_ENGINE_ENABLED). Enable it before running a payout.');
+            return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.engine_disabled'));
         }
 
         if ($this->paused()) {
@@ -80,8 +78,7 @@ class PayoutRunActionController extends Controller
         [$ownerIds, $paused] = $this->ownersWithWork();
 
         if ($ownerIds === []) {
-            return $this->back('payout_notice', 'Nothing to run — no owner here has a payable statement or a held payout'
-                .$this->pausedNote($paused).'.');
+            return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.nothing_to_run', ['paused_note' => $this->pausedNote($paused)]));
         }
 
         // ⚠️ The run key carries the organisation: keys are unique across the platform, and a run whose key exists is handed
@@ -93,8 +90,9 @@ class PayoutRunActionController extends Controller
         $paid = (int) ($run->payouts_paid ?? 0);
         $held = (int) ($run->payouts_held ?? 0);
 
-        return $this->back('payout_notice', 'Payout run complete ('.$run->mode.' mode) — '.$created.' created · '.$paid.' paid · '.$held.' held'
-            .$this->pausedNote($paused).'.');
+        return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.run_complete', [
+            'mode' => $run->mode, 'created' => $created, 'paid' => $paid, 'held' => $held, 'paused_note' => $this->pausedNote($paused),
+        ]));
     }
 
     public function create(Request $request, OwnerPayoutService $payouts): RedirectResponse
@@ -120,7 +118,7 @@ class PayoutRunActionController extends Controller
             $payout = $payouts->createFromStatement($statement);
         } catch (RuntimeException $e) {
             // e.g. the statement is still a draft — guarded by the service, reported, never a 500.
-            return $this->back('payout_error', 'Couldn’t create the payout — '.$e->getMessage());
+            return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.create_failed', ['reason' => $e->getMessage()]));
         }
 
         // A null return is NOT an error: nothing was payable. Report which real reason it was.
@@ -131,10 +129,10 @@ class PayoutRunActionController extends Controller
         // The service is idempotent — an existing pending/paid payout comes back as-is. `wasRecentlyCreated`
         // is the DB's own answer to "did a row actually get inserted", so nothing is ever claimed twice.
         if (! $payout->wasRecentlyCreated) {
-            return $this->back('payout_notice', 'That statement already has a payout — nothing was created.');
+            return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.already_has_payout'));
         }
 
-        return $this->back('payout_notice', '1 payout created.');
+        return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.one_payout_created'));
     }
 
     /**
@@ -166,15 +164,17 @@ class PayoutRunActionController extends Controller
         } catch (RuntimeException $e) {
             // Two real causes, both honest, neither a 500: the payout is not pending, or the bound rail
             // threw (Stripe Connect — the deferred skeleton). The row is left exactly as it was.
-            return $this->back('payout_error', 'Couldn’t pay — '.$e->getMessage());
+            return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.pay_failed', ['reason' => $e->getMessage()]));
         }
 
         if ($paid->status === 'paid') {
-            return $this->back('payout_notice', '1 payout marked paid.');
+            return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.one_payout_paid'));
         }
 
         // The rail returned a failure rather than throwing: the payout is genuinely `failed` and says why.
-        return $this->back('payout_error', 'The payout failed — '.($paid->failure_reason ?? 'the rail gave no reason.'));
+        return $this->back('payout_error', $paid->failure_reason !== null
+            ? __('php/http/controllers/operator/payout_run_action_controller.payout_failed_reason', ['reason' => $paid->failure_reason])
+            : __('php/http/controllers/operator/payout_run_action_controller.payout_failed_no_reason'));
     }
 
     /**
@@ -218,22 +218,22 @@ class PayoutRunActionController extends Controller
 
         if ($created === 0) {
             if ($error !== null) {
-                return $this->back('payout_error', 'Couldn’t create payouts — '.$error);
+                return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.create_all_failed', ['reason' => $error]));
             }
 
             if ($ready->isEmpty() && $paused > 0) {
-                return $this->back('payout_notice', 'No payout created'.$this->pausedNote($paused).' — resume them on the owner’s page.');
+                return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.no_payout_created_paused', ['paused_note' => $this->pausedNote($paused)]));
             }
 
-            return $this->back('payout_notice', ($ready->isEmpty()
-                ? 'Nothing is ready to pay — no finalized statement has a positive net payable'
-                : 'No new payouts — every ready statement already has one').$this->pausedNote($paused).'.');
+            return $this->back('payout_notice', $ready->isEmpty()
+                ? __('php/http/controllers/operator/payout_run_action_controller.nothing_ready', ['paused_note' => $this->pausedNote($paused)])
+                : __('php/http/controllers/operator/payout_run_action_controller.no_new_payouts', ['paused_note' => $this->pausedNote($paused)]));
         }
 
-        $message = $created.' '.Str::plural('payout', $created).' created'.$this->pausedNote($paused).'.';
+        $message = trans_choice('php/http/controllers/operator/payout_run_action_controller.payouts_created', $created, ['count' => $created, 'paused_note' => $this->pausedNote($paused)]);
 
         if ($error !== null) {
-            return $this->back('payout_error', $message.' Some could not be created — '.$error);
+            return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.some_not_created', ['message' => $message, 'reason' => $error]));
         }
 
         return $this->back('payout_notice', $message);
@@ -269,31 +269,26 @@ class PayoutRunActionController extends Controller
             }
         }
 
-        $parts = [];
-
-        if ($paid > 0) {
-            $parts[] = $paid.' '.Str::plural('payout', $paid).' marked paid';
-        }
-
-        if ($failed > 0) {
-            $parts[] = $failed.' failed on the rail';
-        }
-
-        if ($parts === []) {
+        if ($paid === 0 && $failed === 0) {
             if ($error !== null) {
-                return $this->back('payout_error', 'Couldn’t pay — '.$error);
+                return $this->back('payout_error', __('php/http/controllers/operator/payout_run_action_controller.pay_failed', ['reason' => $error]));
             }
 
             return $this->back('payout_notice', $skipped > 0
-                ? 'Nothing paid'.$this->pausedNote($skipped).' — resume them on the owner’s page.'
-                : 'No pending payouts to pay.');
+                ? __('php/http/controllers/operator/payout_run_action_controller.nothing_paid_paused', ['paused_note' => $this->pausedNote($skipped)])
+                : __('php/http/controllers/operator/payout_run_action_controller.no_pending_payouts'));
         }
 
-        $message = implode(' · ', $parts).$this->pausedNote($skipped).'.';
+        $note = $this->pausedNote($skipped);
+        $message = match (true) {
+            $failed === 0 => trans_choice('php/http/controllers/operator/payout_run_action_controller.paid_only', $paid, ['count' => $paid, 'paused_note' => $note]),
+            $paid === 0 => trans_choice('php/http/controllers/operator/payout_run_action_controller.failed_only', $failed, ['count' => $failed, 'paused_note' => $note]),
+            default => trans_choice('php/http/controllers/operator/payout_run_action_controller.paid_and_failed', $paid, ['count' => $paid, 'failed' => $failed, 'paused_note' => $note]),
+        };
 
         // A partial success is NOT a success flash — the failures lead the sentence they are part of.
         if ($failed > 0 || $error !== null) {
-            return $this->back('payout_error', $error !== null ? $message.' Some could not be attempted — '.$error : $message);
+            return $this->back('payout_error', $error !== null ? __('php/http/controllers/operator/payout_run_action_controller.some_not_attempted', ['message' => $message, 'reason' => $error]) : $message);
         }
 
         return $this->back('payout_notice', $message);
@@ -307,8 +302,8 @@ class PayoutRunActionController extends Controller
     private function nothingPayable(OwnerStatement $statement): string
     {
         return (int) $statement->net_payable_minor < 0
-            ? 'Nothing payable — this statement’s net is negative, so the balance carries forward to offset the owner’s next statement.'
-            : 'Nothing payable — this statement’s net is zero, so nothing is owed.';
+            ? __('php/http/controllers/operator/payout_run_action_controller.nothing_payable_negative')
+            : __('php/http/controllers/operator/payout_run_action_controller.nothing_payable_zero');
     }
 
     private function paused(): bool
@@ -322,7 +317,9 @@ class PayoutRunActionController extends Controller
         //    owner and rate-plan writes)
         $until = app(OperatorWorkspace::class)->resumeLabel();
 
-        return 'Workspace paused — payouts are read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.';
+        return $until !== null && $until !== ''
+            ? __('php/http/controllers/operator/payout_run_action_controller.workspace_paused_until', ['date' => $until])
+            : __('php/http/controllers/operator/payout_run_action_controller.workspace_paused_for_now');
     }
 
     /**
@@ -353,7 +350,9 @@ class PayoutRunActionController extends Controller
     /** " · 2 paused owners skipped" — or nothing, when no paused owner was left out. */
     private function pausedNote(int $paused): string
     {
-        return $paused > 0 ? ' · '.$paused.' paused '.Str::plural('owner', $paused).' skipped' : '';
+        return $paused > 0
+            ? __('php/http/controllers/operator/payout_run_action_controller.paused_note', ['skipped' => trans_choice('php/http/controllers/operator/payout_run_action_controller.paused_owners_skipped', $paused, ['count' => $paused])])
+            : '';
     }
 
     private function back(string $key, string $message): RedirectResponse

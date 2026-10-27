@@ -114,8 +114,9 @@ final class ChatFiles
      * "invoice.vbs" holding text downloads as "invoice.txt" (the independent review, 2026-10-06). Within one kind
      * (`jpg`/`jpeg`, `txt`/`csv`) the sender's own name stands — a CSV stays a CSV.
      */
-    public static function displayName(string $sent, string $storedPath, string $fallback = 'Attachment'): string
+    public static function displayName(string $sent, string $storedPath, ?string $fallback = null): string
     {
+        $fallback ??= __('php/support/messaging/chat_files.attachment');   // shown when a file came with no name of its own
         $name = self::sentName($sent, $fallback);
         $earned = strtolower((string) pathinfo($storedPath, PATHINFO_EXTENSION));
         $earned = $earned !== '' ? $earned : 'bin';

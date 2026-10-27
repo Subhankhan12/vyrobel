@@ -4,10 +4,10 @@
      Honest where deferred: maintenance alerts aren't dispatched yet, require-photo isn't enforced yet — shown,
      never faked. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div x-data="{ autoAssign: @js((bool) $settings->auto_assign_enabled) }">
-    <x-operator.shell active="maintenance" title="Maintenance settings" :subtitle="'Rules for new work orders'" :viewer="$viewer">
+    <x-operator.shell active="maintenance" :title="__('livewire/operator/operator-maintenance-settings.page_title')" :subtitle="__('livewire/operator/operator-maintenance-settings.page_subtitle')" :viewer="$viewer">
 
         <div style="margin-bottom: 16px;">
-            <a href="{{ route('app.maintenance') }}" style="font-size: 12.5px; color: var(--vy-accent); text-decoration: none;">← Back to the board</a>
+            <a href="{{ route('app.maintenance') }}" style="font-size: 12.5px; color: var(--vy-accent); text-decoration: none;">{{ __('livewire/operator/operator-maintenance-settings.back_to_board') }}</a>
         </div>
 
         @if (session('maintenance_settings_notice'))
@@ -26,12 +26,17 @@
 
             {{-- Resolution targets (SLA) — REAL: MaintenanceSla computes a live breach from these, shown on the board --}}
             <div class="vy-card">
-                <h2 class="vy-card-title" style="margin-bottom: 4px;">Resolution targets</h2>
-                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">How quickly each priority should be resolved, in hours. A work order past its target shows a <strong>breach</strong> on the board.</p>
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/operator-maintenance-settings.sla_heading') }}</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">{!! __('livewire/operator/operator-maintenance-settings.sla_intro') !!}</p>
                 <div class="vyms-grid4">
-                    @foreach (['urgent' => 'Urgent', 'high' => 'High', 'normal' => 'Normal', 'low' => 'Low'] as $key => $label)
+                    @foreach ([
+                        'urgent' => __('livewire/operator/operator-maintenance-settings.sla_urgent_hours'),
+                        'high' => __('livewire/operator/operator-maintenance-settings.sla_high_hours'),
+                        'normal' => __('livewire/operator/operator-maintenance-settings.sla_normal_hours'),
+                        'low' => __('livewire/operator/operator-maintenance-settings.sla_low_hours'),
+                    ] as $key => $label)
                         <div class="vy-field" style="margin: 0;">
-                            <label class="vy-field-label" for="sla_{{ $key }}">{{ $label }} (hours)</label>
+                            <label class="vy-field-label" for="sla_{{ $key }}">{{ $label }}</label>
                             <input id="sla_{{ $key }}" type="number" name="sla_{{ $key }}_hours" class="vy-input" min="1" max="720"
                                 value="{{ $settings->{'sla_'.$key.'_hours'} }}">
                         </div>
@@ -43,10 +48,10 @@
             <div class="vy-card">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
                     <div>
-                        <h2 class="vy-card-title" style="margin-bottom: 4px;">Auto-assignment</h2>
-                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0;">Route a new order to a technician by its category, automatically.</p>
+                        <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/operator-maintenance-settings.auto_heading') }}</h2>
+                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0;">{{ __('livewire/operator/operator-maintenance-settings.auto_intro') }}</p>
                     </div>
-                    <label class="vyms-switch" title="Turn category routing on or off">
+                    <label class="vyms-switch" title="{{ __('livewire/operator/operator-maintenance-settings.auto_toggle_title') }}">
                         <input type="checkbox" name="auto_assign_enabled" value="1" x-model="autoAssign" @checked($settings->auto_assign_enabled)>
                         <span class="vyms-switch-track"><span class="vyms-switch-knob"></span></span>
                     </label>
@@ -55,9 +60,9 @@
                     @foreach ($categories as $category)
                         @php $field = 'assignee_'.$category.'_id'; @endphp
                         <div class="vy-field" style="margin: 0;">
-                            <label class="vy-field-label" for="{{ $field }}">{{ ucfirst($category) }}</label>
+                            <label class="vy-field-label" for="{{ $field }}">{{ $categoryLabel($category) }}</label>
                             <select id="{{ $field }}" name="{{ $field }}" class="vy-input">
-                                <option value="">Unassigned</option>
+                                <option value="">{{ __('livewire/operator/operator-maintenance-settings.unassigned') }}</option>
                                 @foreach ($technicians as $tech)
                                     <option value="{{ $tech['id'] }}" @selected($settings->{$field} === $tech['id'])>{{ $tech['name'] }}</option>
                                 @endforeach
@@ -65,29 +70,29 @@
                         </div>
                     @endforeach
                 </div>
-                <p style="font-size: 11.5px; color: var(--vy-faint); margin: 12px 0 0;" x-show="!autoAssign" x-cloak>Auto-assignment is off — new orders start unassigned until you assign them from the board.</p>
+                <p style="font-size: 11.5px; color: var(--vy-faint); margin: 12px 0 0;" x-show="!autoAssign" x-cloak>{{ __('livewire/operator/operator-maintenance-settings.auto_off_note') }}</p>
             </div>
 
             {{-- Technicians — REAL: category assignees + anyone holding an open order, with a real open-order load --}}
             <div class="vy-card">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    <h2 class="vy-card-title" style="margin: 0;">Technicians</h2>
-                    <a href="{{ route('app.roles') }}" class="vy-btn vy-btn--ghost" style="font-size: 12px; padding: 6px 12px;">Manage team &amp; roles →</a>
+                    <h2 class="vy-card-title" style="margin: 0;">{{ __('livewire/operator/operator-maintenance-settings.technicians_heading') }}</h2>
+                    <a href="{{ route('app.roles') }}" class="vy-btn vy-btn--ghost" style="font-size: 12px; padding: 6px 12px;">{{ __('livewire/operator/operator-maintenance-settings.manage_team_link') }}</a>
                 </div>
-                <p style="font-size: 12px; color: var(--vy-faint); margin: 0 0 12px;">Any active team member can be assigned work. Add people or grant access from Roles &amp; access — there's no separate technician invite.</p>
+                <p style="font-size: 12px; color: var(--vy-faint); margin: 0 0 12px;">{{ __('livewire/operator/operator-maintenance-settings.technicians_intro') }}</p>
                 @forelse ($technicianPanel as $tech)
                     <div class="vyms-tech">
                         <div class="vyms-tech-avatar">{{ \Illuminate\Support\Str::of($tech['name'])->explode(' ')->map(fn ($p) => \Illuminate\Support\Str::substr($p, 0, 1))->take(2)->implode('') }}</div>
                         <div style="flex: 1; min-width: 0;">
                             <div style="font-size: 13px; color: var(--vy-ink); font-weight: 600;">{{ $tech['name'] }}</div>
                             <div style="font-size: 11.5px; color: var(--vy-faint);">
-                                @if (count($tech['categories']) > 0){{ collect($tech['categories'])->map(fn ($c) => ucfirst($c))->implode(' · ') }}@else Assigned work @endif
+                                @if (count($tech['categories']) > 0){{ collect($tech['categories'])->map(fn ($c) => $categoryLabel($c))->implode(' · ') }}@else {{ __('livewire/operator/operator-maintenance-settings.assigned_work') }} @endif
                             </div>
                         </div>
-                        <div class="vyms-tech-load" title="Open work orders">{{ $tech['load'] }} open</div>
+                        <div class="vyms-tech-load" title="{{ __('livewire/operator/operator-maintenance-settings.open_orders_title') }}">{{ trans_choice('livewire/operator/operator-maintenance-settings.tech_load', $tech['load'], ['count' => $tech['load']]) }}</div>
                     </div>
                 @empty
-                    <div class="vy-empty" style="padding: 14px 0;">No technicians configured yet — set a category assignee above, or assign a work order from the board.</div>
+                    <div class="vy-empty" style="padding: 14px 0;">{{ __('livewire/operator/operator-maintenance-settings.no_technicians') }}</div>
                 @endforelse
             </div>
 
@@ -96,31 +101,31 @@
 
             {{-- Out-of-order policy --}}
             <div class="vy-card">
-                <h2 class="vy-card-title" style="margin-bottom: 12px;">Out-of-order policy</h2>
+                <h2 class="vy-card-title" style="margin-bottom: 12px;">{{ __('livewire/operator/operator-maintenance-settings.ooo_heading') }}</h2>
                 <label class="vyms-toggle">
                     <input type="checkbox" name="block_room_from_sale" value="1" @checked($settings->block_room_from_sale)>
-                    <span><strong>Block the room from sale</strong> when a ticket takes a unit out of service<br><span class="vyms-sub">Already enforced — an out-of-service unit is excluded from availability and can't be booked.</span></span>
+                    <span>{!! __('livewire/operator/operator-maintenance-settings.block_room') !!}<br><span class="vyms-sub">{{ __('livewire/operator/operator-maintenance-settings.block_room_sub') }}</span></span>
                 </label>
                 <label class="vyms-toggle">
                     <input type="checkbox" name="notify_front_desk" value="1" @checked($settings->notify_front_desk)>
-                    <span><strong>Notify front desk</strong> when a unit goes out of service <span class="vyms-soon">not dispatched yet</span><br><span class="vyms-sub">Preference stored; maintenance doesn't send this alert yet — nothing is sent.</span></span>
+                    <span>{!! __('livewire/operator/operator-maintenance-settings.notify_front_desk') !!} <span class="vyms-soon">{{ __('livewire/operator/operator-maintenance-settings.badge_not_dispatched') }}</span><br><span class="vyms-sub">{{ __('livewire/operator/operator-maintenance-settings.notify_front_desk_sub') }}</span></span>
                 </label>
                 <label class="vyms-toggle">
                     <input type="checkbox" name="require_photo_on_resolve" value="1" @checked($settings->require_photo_on_resolve)>
-                    <span><strong>Require a photo on resolve</strong> <span class="vyms-soon">not enforced yet</span><br><span class="vyms-sub">Preference stored. Photos on work orders are live, but resolve doesn't require one yet.</span></span>
+                    <span><strong>{{ __('livewire/operator/operator-maintenance-settings.require_photo') }}</strong> <span class="vyms-soon">{{ __('livewire/operator/operator-maintenance-settings.badge_not_enforced') }}</span><br><span class="vyms-sub">{{ __('livewire/operator/operator-maintenance-settings.require_photo_sub') }}</span></span>
                 </label>
             </div>
 
             {{-- Notifications --}}
             <div class="vy-card">
-                <h2 class="vy-card-title" style="margin-bottom: 4px;">Notify me about <span class="vyms-soon">not dispatched yet</span></h2>
-                <p style="font-size: 12px; color: var(--vy-faint); margin: 0 0 12px;">Your preferences are saved now. Maintenance doesn't dispatch these alerts yet — nothing is sent.</p>
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/operator-maintenance-settings.notify_heading') }} <span class="vyms-soon">{{ __('livewire/operator/operator-maintenance-settings.badge_not_dispatched') }}</span></h2>
+                <p style="font-size: 12px; color: var(--vy-faint); margin: 0 0 12px;">{{ __('livewire/operator/operator-maintenance-settings.notify_intro') }}</p>
                 @foreach ([
-                    'notify_new_urgent' => 'A new URGENT work order is opened',
-                    'notify_out_of_service' => 'A unit is taken out of service',
-                    'notify_parts_arrive' => 'Parts arrive for an order',
-                    'notify_sla_breach' => 'A work order breaches its resolution target',
-                    'notify_daily_digest' => 'A daily maintenance digest',
+                    'notify_new_urgent' => __('livewire/operator/operator-maintenance-settings.notify_new_urgent'),
+                    'notify_out_of_service' => __('livewire/operator/operator-maintenance-settings.notify_out_of_service'),
+                    'notify_parts_arrive' => __('livewire/operator/operator-maintenance-settings.notify_parts_arrive'),
+                    'notify_sla_breach' => __('livewire/operator/operator-maintenance-settings.notify_sla_breach'),
+                    'notify_daily_digest' => __('livewire/operator/operator-maintenance-settings.notify_daily_digest'),
                 ] as $field => $label)
                     <label class="vyms-toggle">
                         <input type="checkbox" name="{{ $field }}" value="1" @checked($settings->{$field})>
@@ -138,8 +143,8 @@
                  needs no backend. Ordered Discard-then-Save so the destructive-ish control is not the one
                  under the thumb. --}}
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 22px;">
-                <a class="vy-btn vy-btn--ghost" style="padding: 12px 20px;" href="{{ route('app.maintenance.settings') }}">Discard</a>
-                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 12px 22px;">Save changes</button>
+                <a class="vy-btn vy-btn--ghost" style="padding: 12px 20px;" href="{{ route('app.maintenance.settings') }}">{{ __('livewire/operator/operator-maintenance-settings.discard') }}</a>
+                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 12px 22px;">{{ __('common.save_changes') }}</button>
             </div>
         </form>
 

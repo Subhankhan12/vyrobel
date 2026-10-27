@@ -8,7 +8,6 @@ use App\Livewire\Operator\OperatorInbox;
 use App\Models\Reservation;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Str;
 
 /**
  * THE ONE definition of a guest's STAY HISTORY — how many times they have stayed, for how many nights, and
@@ -90,6 +89,8 @@ final class GuestHistory
             return null;
         }
 
-        return $stays.' '.Str::plural('stay', $stays).($sinceYear !== null ? ' · guest since '.$sinceYear : '');
+        return $sinceYear !== null
+            ? trans_choice('php/support/guest/guest_history.stat_since', $stays, ['count' => $stays, 'year' => $sinceYear])
+            : trans_choice('php/support/guest/guest_history.stat', $stays, ['count' => $stays]);
     }
 }

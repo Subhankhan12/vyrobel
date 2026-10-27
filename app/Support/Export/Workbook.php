@@ -124,6 +124,18 @@ final class Workbook
         return Cell::fromValue($whole / 100, (new Style)->withFormat(self::PERCENT_FORMAT));
     }
 
+    /**
+     * A sheet name Excel accepts (I18N-01): at most 31 characters and none of \ / ? * : [ ], and not starting or ending with
+     * an apostrophe. The English names already fit, so they pass through unchanged; a longer translation is cut, not refused —
+     * an invalid name would throw mid-download.
+     */
+    public static function sheetName(string $name): string
+    {
+        $clean = trim((string) preg_replace('~[\\\\/?*:\[\]]+~u', ' ', $name), " '");
+
+        return mb_substr($clean === '' ? 'Sheet' : $clean, 0, 31);
+    }
+
     /** A bold heading row (a title or a column header). */
     public static function headingRow(array $values): Row
     {

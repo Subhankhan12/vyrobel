@@ -21,11 +21,38 @@ final class CalendarReturn
     /** `return` when a write is sent from the Calendar. */
     public const TOKEN = 'calendar';
 
-    /** The sources a booking from the Calendar may carry — named as the full form names them. */
+    /** The sources a booking from the Calendar may carry — the codes are what count; {@see sourceLabels()} is what a person reads. */
     public const SOURCES = ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Travel agent'];
 
     /** How many nights the Calendar may show at once. */
     public const RANGES = [7, 14, 30];
+
+    /**
+     * The same sources, code => name in the reader's language — named as the full form names them.
+     *
+     * @return array<string, string>
+     */
+    public static function sourceLabels(): array
+    {
+        $out = [];
+        foreach (array_keys(self::SOURCES) as $code) {
+            $out[$code] = self::sourceLabel($code);
+        }
+
+        return $out;
+    }
+
+    /** One source's name in the reader's language, by its code. */
+    private static function sourceLabel(string $code): string
+    {
+        return match ($code) {
+            'direct' => __('php/support/operator/calendar_return.source_direct'),
+            'walk_in' => __('php/support/operator/calendar_return.source_walk_in'),
+            'corporate' => __('php/support/operator/calendar_return.source_corporate'),
+            'agent' => __('php/support/operator/calendar_return.source_agent'),
+            default => $code,
+        };
+    }
 
     public static function wanted(Request $request): bool
     {

@@ -1,8 +1,8 @@
 {{-- Operator Reviews (Phase 5 · SG3) — see reviews, respond, moderate (publish/reject). Guest NAME only (#28);
      controls gated on reviews.manage so the UI never invites a 403. RAW-BLADE RULE: every `@` follows a space,
      newline or tag. --}}
-<x-layouts.operator title="Reviews">
-<x-operator.shell active="reviews" title="Reviews">
+<x-layouts.operator :title="__('operator/reviews.title')">
+<x-operator.shell active="reviews" :title="__('operator/reviews.title')">
     @if (session('status'))
         <div class="vy-note" style="margin:0 0 14px;padding:12px 14px;border-radius:12px;background:rgba(70,120,60,.10);color:rgb(60,105,52);font-size:13px">{{ session('status') }}</div>
     @endif
@@ -11,8 +11,7 @@
     @endif
 
     <p style="color:var(--vy-muted,#6b6b6b);font-size:13px;margin:0 0 16px">
-        Respond to your guests and choose what’s published. Auto-responses and review-gating are coming soon —
-        for now, every response and publish decision is yours.
+        {{ __('operator/reviews.intro') }}
     </p>
 
     {{-- #104 GATE 2 — REAL reputation summary (overall rating + 5-star distribution + reply rate), all real
@@ -20,19 +19,23 @@
     @if ($summary['has_reviews'])
         <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade" style="margin-bottom:16px">
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Overall rating</div>
+                <div class="vy-dk-label">{{ __('operator/reviews.overall_rating') }}</div>
                 <div class="vy-dk-val">{{ number_format((float) $summary['average'], 1) }}<span class="vy-dk-unit"> ★</span></div>
-                <div class="vy-dk-sub">{{ $summary['count'] }} published {{ \Illuminate\Support\Str::plural('review', $summary['count']) }}</div>
+                <div class="vy-dk-sub">{{ trans_choice('operator/reviews.published_reviews', $summary['count'], ['count' => $summary['count']]) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Reply rate</div>
+                <div class="vy-dk-label">{{ __('operator/reviews.reply_rate') }}</div>
                 <div class="vy-dk-val">{{ $summary['reply_rate'] }}<span class="vy-dk-unit">%</span></div>
-                <div class="vy-dk-sub">{{ $summary['responded'] }} of {{ $summary['count'] }} answered
-                    @if ($summary['pending'] > 0)· {{ $summary['pending'] }} awaiting review @endif
+                <div class="vy-dk-sub">
+                    @if ($summary['pending'] > 0)
+                        {{ __('operator/reviews.answered_with_pending', ['responded' => $summary['responded'], 'total' => $summary['count'], 'pending' => $summary['pending']]) }}
+                    @else
+                        {{ __('operator/reviews.answered', ['responded' => $summary['responded'], 'total' => $summary['count']]) }}
+                    @endif
                 </div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Rating breakdown</div>
+                <div class="vy-dk-label">{{ __('operator/reviews.rating_breakdown') }}</div>
                 <div style="display:flex;flex-direction:column;gap:3px;margin-top:8px">
                     @foreach ([5, 4, 3, 2, 1] as $star)
                         @php $n = $summary['distribution'][$star]; $pct = $summary['count'] > 0 ? (int) round($n * 100 / $summary['count']) : 0; @endphp
@@ -49,7 +52,7 @@
 
     {{-- #104 GATE 2 — REAL status filter tabs (All / Published / Pending / Rejected), driven by the real column. --}}
     <div class="vy-fade" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-        @foreach (['all' => 'All', 'published' => 'Published', 'pending' => 'Pending', 'rejected' => 'Rejected'] as $key => $label)
+        @foreach (['all' => __('common.all'), 'published' => __('operator/reviews.status_published'), 'pending' => __('operator/reviews.status_pending'), 'rejected' => __('operator/reviews.status_rejected')] as $key => $label)
             <a class="vy-pill @if ($filter === $key) is-on @endif" href="?filter={{ $key }}">{{ $label }}</a>
         @endforeach
     </div>
@@ -68,20 +71,20 @@
                      shared ReviewRating (#76), which stays the only source of the AGGREGATE. --}}
                 <div>
                     <span style="font-size:18px;color:var(--vy-accent-text);letter-spacing:2px" aria-hidden="true">{{ $review['stars'] }}</span>
-                    <span style="font-size:12.5px;color:var(--vy-muted);font-weight:600;margin-left:4px">{{ $review['rating'] }}/5</span>
+                    <span style="font-size:12.5px;color:var(--vy-muted);font-weight:600;margin-left:4px">{{ __('operator/reviews.rating_of_five', ['rating' => $review['rating']]) }}</span>
                     <span style="font-size:13px;color:var(--vy-ink);font-weight:600;margin-left:8px">{{ $review['guest'] }}</span>
                     @if ($review['room'] !== '')<span style="font-size:12px;color:var(--vy-muted)"> · {{ $review['room'] }}</span>@endif
                     <span style="font-size:11px;color:var(--vy-faint)"> · {{ $review['at'] }}</span>
                 </div>
                 <div style="display:flex;gap:6px;align-items:center">
                     @if ($review['private'])
-                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#8A6410;background:#FBEFD8;border-radius:8px;padding:2px 8px">Private</span>
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#8A6410;background:#FBEFD8;border-radius:8px;padding:2px 8px">{{ __('operator/reviews.status_private') }}</span>
                     @elseif ($review['status'] === 'published')
-                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(60,105,52);background:rgba(70,120,60,.12);border-radius:8px;padding:2px 8px">Published</span>
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(60,105,52);background:rgba(70,120,60,.12);border-radius:8px;padding:2px 8px">{{ __('operator/reviews.status_published') }}</span>
                     @elseif ($review['status'] === 'rejected')
-                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(150,50,42);background:rgba(180,68,58,.10);border-radius:8px;padding:2px 8px">Rejected</span>
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(150,50,42);background:rgba(180,68,58,.10);border-radius:8px;padding:2px 8px">{{ __('operator/reviews.status_rejected') }}</span>
                     @else
-                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#B26A08;background:#FBEFD8;border-radius:8px;padding:2px 8px">Pending</span>
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#B26A08;background:#FBEFD8;border-radius:8px;padding:2px 8px">{{ __('operator/reviews.status_pending') }}</span>
                     @endif
                 </div>
             </div>
@@ -94,28 +97,28 @@
             @endif
 
             @if ($review['response'] !== '')
-                <div style="margin-top:12px;padding:10px 13px;border-radius:10px;background:var(--vy-accent-wash,#F6EBE2);font-size:13px;color:var(--vy-ink)"><strong style="color:var(--vy-ink)">Your response:</strong> {{ $review['response'] }}</div>
+                <div style="margin-top:12px;padding:10px 13px;border-radius:10px;background:var(--vy-accent-wash,#F6EBE2);font-size:13px;color:var(--vy-ink)"><strong style="color:var(--vy-ink)">{{ __('operator/reviews.your_response') }}</strong> {{ $review['response'] }}</div>
             @endif
 
             @can('reviews.manage')
                 <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
                     <form method="POST" action="{{ route('app.reviews.respond', $review['id']) }}" style="flex:1;min-width:220px;display:flex;gap:8px">
                         @csrf
-                        <label class="vy-sr-only" for="vy-lbl-reviews-response">Write a response…</label>
-                        <input id="vy-lbl-reviews-response" type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--vy-hairline);font-family:inherit;font-size:13px">
-                        <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:var(--vy-accent);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Respond</button>
+                        <label class="vy-sr-only" for="vy-lbl-reviews-response">{{ __('operator/reviews.response_placeholder') }}</label>
+                        <input id="vy-lbl-reviews-response" type="text" name="response" maxlength="2000" placeholder="{{ __('operator/reviews.response_placeholder') }}" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--vy-hairline);font-family:inherit;font-size:13px">
+                        <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:var(--vy-accent);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ __('operator/reviews.respond') }}</button>
                     </form>
                     @if (! $review['private'] && $review['status'] !== 'published')
-                        <form method="POST" action="{{ route('app.reviews.publish', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(70,120,60,.35);background:#fff;color:rgb(60,105,52);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Publish</button></form>
+                        <form method="POST" action="{{ route('app.reviews.publish', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(70,120,60,.35);background:#fff;color:rgb(60,105,52);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ __('operator/reviews.publish') }}</button></form>
                     @endif
                     @if ($review['status'] !== 'rejected')
-                        <form method="POST" action="{{ route('app.reviews.reject', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(180,68,58,.3);background:#fff;color:rgb(150,50,42);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Reject</button></form>
+                        <form method="POST" action="{{ route('app.reviews.reject', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(180,68,58,.3);background:#fff;color:rgb(150,50,42);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">{{ __('operator/reviews.reject') }}</button></form>
                     @endif
                 </div>
             @endcan
         </section>
     @empty
-        <section class="vy-card" style="padding:30px;text-align:center;color:var(--vy-muted);font-size:14px;background:var(--vy-card,#fff);border-radius:14px;border:1px solid var(--vy-hairline)">No reviews yet.</section>
+        <section class="vy-card" style="padding:30px;text-align:center;color:var(--vy-muted);font-size:14px;background:var(--vy-card,#fff);border-radius:14px;border:1px solid var(--vy-hairline)">{{ __('operator/reviews.empty_state') }}</section>
     @endforelse
 </x-operator.shell>
 </x-layouts.operator>

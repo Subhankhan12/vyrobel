@@ -39,36 +39,49 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 class EmailPreviewController extends Controller
 {
     /**
-     * key => [title, status] — status is the honest trigger state shown on the index.
+     * The catalog's keys — the email codes the gallery offers; {@see catalog()} names each one.
      *
-     * @var array<string, array{title: string, status: string}>
+     * @var list<string>
      */
-    private const CATALOG = [
-        'booking-confirmation' => ['title' => 'Booking confirmation', 'status' => 'Live · sends on booking confirmed'],
-        'cancellation' => ['title' => 'Cancellation', 'status' => 'Live · sends on booking cancelled'],
-        'refund-confirmation' => ['title' => 'Refund confirmation', 'status' => 'Live · sends on refund processed'],
-        'payment-reminder' => ['title' => 'Payment reminder', 'status' => 'Live · daily emails:send-payment-reminders'],
-        'pre-arrival' => ['title' => 'Pre-arrival', 'status' => 'Live · daily emails:send-pre-arrival (48h before)'],
-        'review-request' => ['title' => 'Review request', 'status' => 'Live · sends on check-out'],
-        'waitlist-notification' => ['title' => 'Waitlist notification', 'status' => 'Template ready · trigger deferred (Phase 4 · Waitlist)'],
-        'winback' => ['title' => 'Winback', 'status' => 'Template ready · trigger deferred (scheduler)'],
-        'verify-email' => ['title' => 'Verify email', 'status' => 'Live · sends on booking-tied account claim'],
+    private const KEYS = [
+        'booking-confirmation', 'cancellation', 'refund-confirmation', 'payment-reminder', 'pre-arrival',
+        'review-request', 'waitlist-notification', 'winback', 'verify-email',
     ];
+
+    /**
+     * key => [title, status] — status is the honest trigger state shown on the index. Translated at render time.
+     *
+     * @return array<string, array{title: string, status: string}>
+     */
+    private function catalog(): array
+    {
+        return [
+            'booking-confirmation' => ['title' => __('php/http/controllers/operator/email_preview_controller.booking_confirmation_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.booking_confirmation_status')],
+            'cancellation' => ['title' => __('php/http/controllers/operator/email_preview_controller.cancellation_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.cancellation_status')],
+            'refund-confirmation' => ['title' => __('php/http/controllers/operator/email_preview_controller.refund_confirmation_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.refund_confirmation_status')],
+            'payment-reminder' => ['title' => __('php/http/controllers/operator/email_preview_controller.payment_reminder_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.payment_reminder_status')],
+            'pre-arrival' => ['title' => __('php/http/controllers/operator/email_preview_controller.pre_arrival_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.pre_arrival_status')],
+            'review-request' => ['title' => __('php/http/controllers/operator/email_preview_controller.review_request_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.review_request_status')],
+            'waitlist-notification' => ['title' => __('php/http/controllers/operator/email_preview_controller.waitlist_notification_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.waitlist_notification_status')],
+            'winback' => ['title' => __('php/http/controllers/operator/email_preview_controller.winback_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.winback_status')],
+            'verify-email' => ['title' => __('php/http/controllers/operator/email_preview_controller.verify_email_title'), 'status' => __('php/http/controllers/operator/email_preview_controller.verify_email_status')],
+        ];
+    }
 
     public function index(Request $request): Response
     {
         return response()->view('operator.email-previews', [
-            'catalog' => self::CATALOG,
+            'catalog' => $this->catalog(),
             'operatorEmail' => (string) ($request->user()->email ?? ''),
         ]);
     }
 
     public function show(string $key): SymfonyResponse
     {
-        abort_unless(array_key_exists($key, self::CATALOG), 404);
+        abort_unless(in_array($key, self::KEYS, true), 404);
 
         $reservation = $this->sampleReservation();
-        abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
+        abort_if($reservation === null, 404, __('php/http/controllers/operator/email_preview_controller.no_sample_reservation'));
 
         return response($this->buildMailable($key, $reservation)->render());
     }
@@ -81,17 +94,17 @@ class EmailPreviewController extends Controller
      */
     public function testSend(Request $request, string $key): RedirectResponse
     {
-        abort_unless(array_key_exists($key, self::CATALOG), 404);
+        abort_unless(in_array($key, self::KEYS, true), 404);
 
         $reservation = $this->sampleReservation();
-        abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
+        abort_if($reservation === null, 404, __('php/http/controllers/operator/email_preview_controller.no_sample_reservation'));
 
         $email = (string) $request->user()->email;
-        abort_if($email === '', 422, 'Your account has no email address to send a test to.');
+        abort_if($email === '', 422, __('php/http/controllers/operator/email_preview_controller.no_email_address'));
 
-        Mail::to($email)->send($this->buildMailable($key, $reservation));
+        Mail::to($email)->locale($request->user()->preferredLocale())->send($this->buildMailable($key, $reservation));
 
-        return redirect()->route('app.email-previews')->with('email_preview_notice', "Test email sent to {$email}.");
+        return redirect()->route('app.email-previews')->with('email_preview_notice', __('php/http/controllers/operator/email_preview_controller.test_sent', ['email' => $email]));
     }
 
     /**
@@ -109,7 +122,7 @@ class EmailPreviewController extends Controller
     private function buildMailable(string $key, Reservation $reservation): Mailable
     {
         $guestName = GuestName::display($reservation->leadGuest);
-        $propertyName = (string) ($reservation->property->name ?? 'Your property');
+        $propertyName = (string) ($reservation->property->name ?? __('php/http/controllers/operator/email_preview_controller.sample_property_fallback'));
 
         // ⚠️ The payment reminder previews over a booking that really OWES money, so Total − Paid == Balance
         // holds (#17). Every other preview uses the shared sample reservation.
@@ -117,7 +130,7 @@ class EmailPreviewController extends Controller
 
         return match ($key) {
             'booking-confirmation' => new BookingConfirmationMail($reservation),
-            'cancellation' => new CancellationMail($reservation, 'Guest requested cancellation', (int) $reservation->total_minor),
+            'cancellation' => new CancellationMail($reservation, __('php/http/controllers/operator/email_preview_controller.sample_cancellation_reason'), (int) $reservation->total_minor),
             'refund-confirmation' => new RefundConfirmationMail($this->sampleRefund($reservation)),
             'payment-reminder' => new PaymentReminderMail($payable, $this->sampleBalance($payable)),
             'pre-arrival' => new PreArrivalMail($reservation),
@@ -130,7 +143,7 @@ class EmailPreviewController extends Controller
                 $reservation->leadGuest !== null ? MarketingUnsubscribe::oneClickUrl($reservation->leadGuest) : null,
             ),
             'verify-email' => new VerifyEmailMail($guestName, url('/verify-email/sample-token')),
-            default => abort(404),   // unreachable — callers guard on the CATALOG first
+            default => abort(404),   // unreachable — callers guard on the KEYS first
         };
     }
 

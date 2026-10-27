@@ -67,7 +67,7 @@ class PropertySupport
         $phone = self::trimmed($property->support_phone);
         $hours = self::trimmed($property->support_hours);
         $normKey = self::trimmed($property->support_reply_norm);
-        $norm = $normKey !== null ? (self::REPLY_NORMS[$normKey] ?? null) : null;
+        $norm = $normKey !== null ? self::replyNorm($normKey) : null;
 
         if ($phone === null && $hours === null && $norm === null) {
             return null;
@@ -79,6 +79,36 @@ class PropertySupport
             'reply_norm' => $norm,
             'hours' => $hours,
         ];
+    }
+
+    /**
+     * One reply norm's phrase in the reader's language, or null for a key the catalogue does not define. The
+     * constant above stays the catalogue of KEYS (and the English a test reads); this is what a person sees.
+     */
+    public static function replyNorm(string $key): ?string
+    {
+        return match ($key) {
+            'few_hours' => __('php/support/guest/property_support.few_hours'),
+            'same_day' => __('php/support/guest/property_support.same_day'),
+            'one_day' => __('php/support/guest/property_support.one_day'),
+            'two_days' => __('php/support/guest/property_support.two_days'),
+            default => null,
+        };
+    }
+
+    /**
+     * The whole catalogue as the reader sees it: stored key => phrase, in the catalogue's order.
+     *
+     * @return array<string, string>
+     */
+    public static function replyNorms(): array
+    {
+        $out = [];
+        foreach (array_keys(self::REPLY_NORMS) as $key) {
+            $out[$key] = (string) self::replyNorm($key);
+        }
+
+        return $out;
     }
 
     /** True when at least one support channel is populated — the same test {@see for()} applies. */

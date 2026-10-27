@@ -47,7 +47,7 @@ class OperatorBillingCheckout extends Component
             ],
             'interval' => $interval,
             'price' => $this->money($priceMinor, $currency),
-            'period_label' => $interval === 'yearly' ? 'per year' : 'per month',
+            'period_label' => $interval === 'yearly' ? __('php/livewire/operator/operator_billing_checkout.per_year') : __('php/livewire/operator/operator_billing_checkout.per_month'),
             'company' => (string) ($org->billing_company ?? $org->name),
             'vat_id' => (string) ($org->billing_vat_id ?? ''),
             'billing_email' => (string) ($org->billing_email ?? ''),

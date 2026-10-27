@@ -62,10 +62,10 @@ final class TeamChatController extends Controller
             'members.*' => ['string', 'max:40'],
             'title' => ['nullable', 'string', 'max:80'],
         ], [
-            'members.required' => 'Choose who to message.',
-            'members.min' => 'Choose who to message.',
-            'members.max' => 'A group can have up to '.TeamChatService::MAX_MEMBERS.' people.',
-            'title.max' => 'A group name can be up to 80 characters.',
+            'members.required' => __('php/http/controllers/operator/team_chat_controller.choose_members'),
+            'members.min' => __('php/http/controllers/operator/team_chat_controller.choose_members'),
+            'members.max' => __('php/http/controllers/operator/team_chat_controller.group_max_people', ['limit' => TeamChatService::MAX_MEMBERS]),
+            'title.max' => __('php/http/controllers/operator/team_chat_controller.group_name_max'),
         ]);
         if ($data->fails()) {
             return $this->refused((string) $data->errors()->first());
@@ -101,13 +101,13 @@ final class TeamChatController extends Controller
             'voice' => ['nullable', 'file', 'max:'.($mb * 1024), 'mimes:'.TeamChatFiles::VOICE_EXTENSIONS],
             'voice_seconds' => ['nullable', 'integer'],
         ], [
-            'files.max' => 'Send up to '.TeamChatFiles::MAX_FILES.' files at a time.',
-            'files.*.max' => 'Each file can be up to '.$mb.' MB.',
-            'files.*.mimes' => 'Send pictures (JPG, PNG, WebP, GIF) or documents (PDF, Word, Excel, CSV, text).',
-            'files.*.file' => 'That file could not be read — files can be up to '.$mb.' MB. Choose it again.',
-            'voice.max' => 'A voice note can be up to '.$mb.' MB.',
-            'voice.mimes' => 'That voice note could not be read — record it again.',
-            'voice.file' => 'That voice note could not be read — record it again.',
+            'files.max' => __('php/http/controllers/operator/team_chat_controller.files_max', ['limit' => TeamChatFiles::MAX_FILES]),
+            'files.*.max' => __('php/http/controllers/operator/team_chat_controller.file_too_big', ['size' => $mb]),
+            'files.*.mimes' => __('php/http/controllers/operator/team_chat_controller.file_types'),
+            'files.*.file' => __('php/http/controllers/operator/team_chat_controller.file_unreadable', ['size' => $mb]),
+            'voice.max' => __('php/http/controllers/operator/team_chat_controller.voice_too_big', ['size' => $mb]),
+            'voice.mimes' => __('php/http/controllers/operator/team_chat_controller.voice_unreadable'),
+            'voice.file' => __('php/http/controllers/operator/team_chat_controller.voice_unreadable'),
         ]);
         if ($data->fails()) {
             return $this->refused((string) $data->errors()->first());
@@ -178,6 +178,6 @@ final class TeamChatController extends Controller
 
     private function notFound(): JsonResponse
     {
-        return response()->json(['message' => 'That conversation was not found.'], 404);
+        return response()->json(['message' => __('php/http/controllers/operator/team_chat_controller.conversation_not_found')], 404);
     }
 }

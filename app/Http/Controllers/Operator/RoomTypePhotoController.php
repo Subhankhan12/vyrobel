@@ -78,7 +78,7 @@ class RoomTypePhotoController extends Controller
             'alt' => (string) $rt->name.' photo',
         ]);
 
-        return $this->back($rt)->with('units_notice', 'Photo added to '.$rt->name.'.');
+        return $this->back($rt)->with('units_notice', __('php/http/controllers/operator/room_type_photo_controller.photo_added', ['room_type' => $rt->name]));
     }
 
     /** Make a photo the cover (exactly one cover per room-type). */
@@ -93,7 +93,7 @@ class RoomTypePhotoController extends Controller
         $rt->photos()->update(['is_cover' => false]);
         $target->update(['is_cover' => true]);
 
-        return $this->back($rt)->with('units_notice', 'Cover photo updated.');
+        return $this->back($rt)->with('units_notice', __('php/http/controllers/operator/room_type_photo_controller.cover_updated'));
     }
 
     /** Reorder a photo up/down by swapping sort_order with its neighbour. */
@@ -119,7 +119,7 @@ class RoomTypePhotoController extends Controller
             $neighbour->update(['sort_order' => $targetOrder]);
         }
 
-        return $this->back($rt)->with('units_notice', 'Photo order updated.');
+        return $this->back($rt)->with('units_notice', __('php/http/controllers/operator/room_type_photo_controller.order_updated'));
     }
 
     /** Remove a photo (delete the file + soft-delete the row); promote a new cover if needed. */
@@ -140,7 +140,7 @@ class RoomTypePhotoController extends Controller
             $next?->update(['is_cover' => true]);
         }
 
-        return $this->back($rt)->with('units_notice', 'Photo removed.');
+        return $this->back($rt)->with('units_notice', __('php/http/controllers/operator/room_type_photo_controller.photo_removed'));
     }
 
     /**
@@ -171,8 +171,9 @@ class RoomTypePhotoController extends Controller
         }
         $until = $workspace->resumeLabel();
 
-        return $this->back($rt)->with('units_error', 'Workspace paused — photos can’t be changed '
-            .($until !== null && $until !== '' ? 'until '.$until : 'for now').'.');
+        return $this->back($rt)->with('units_error', $until !== null && $until !== ''
+            ? __('php/http/controllers/operator/room_type_photo_controller.paused_until', ['resume' => $until])
+            : __('php/http/controllers/operator/room_type_photo_controller.paused_for_now'));
     }
 
     /** A photo that belongs to THIS room-type's photo collection (never another entity's media). */

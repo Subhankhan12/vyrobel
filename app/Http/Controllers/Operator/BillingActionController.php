@@ -43,7 +43,7 @@ class BillingActionController extends Controller
         // on a number it has already given us. No-ops when there is no Stripe customer yet.
         StripeTaxIdSync::push($org->fresh() ?? $org);
 
-        return redirect()->back()->with('billing_notice', 'Billing details saved.');
+        return redirect()->back()->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.details_saved'));
     }
 
     /**
@@ -81,7 +81,7 @@ class BillingActionController extends Controller
             report($e);
 
             return redirect()->to(route('app.billing'))->with('billing_error',
-                'We couldn’t start checkout right now — please try again, or contact support.');
+                __('php/http/controllers/operator/billing_action_controller.checkout_failed'));
         }
 
         // UX only — fulfilment is on the webhook. Off-site to Stripe's hosted, PCI-scoped card page.
@@ -100,7 +100,7 @@ class BillingActionController extends Controller
 
         $until = $lifecycle->pause($org, $months);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', 'Your workspace is paused (read-only) until '.$until->format('j M Y').'. Resume any time.');
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.paused_until', ['date' => $until->translatedFormat('j M Y')]));
     }
 
     /** CANCEL — full access until the paid-through date, then read-only (data kept). REAL; audited. */
@@ -110,7 +110,7 @@ class BillingActionController extends Controller
 
         $from = $lifecycle->cancel($org);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', 'Your subscription is set to cancel. You keep full access until '.$from->format('j M Y').', then the workspace is read-only.');
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.cancel_scheduled', ['date' => $from->translatedFormat('j M Y')]));
     }
 
     /** RESUME — clear the pause / scheduled cancellation → the workspace is live again. */
@@ -120,7 +120,7 @@ class BillingActionController extends Controller
 
         $lifecycle->resume($org);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', 'Welcome back — your workspace is live again.');
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.resumed'));
     }
 
     /**
@@ -135,6 +135,6 @@ class BillingActionController extends Controller
         $subscription = $org->currentSubscription();
         $subscription?->update(['status' => 'trialing', 'trial_ends_at' => now()->subDay()]);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', 'Test only: your trial was expired.');
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.dev_trial_expired'));
     }
 }

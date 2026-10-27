@@ -40,14 +40,14 @@ class OperatorReportsExportController extends Controller
         return response()->streamDownload(function () use ($channels, $months, $currency, $range): void {
             $out = fopen('php://output', 'w');
 
-            fputcsv($out, CsvSafe::row(['Vyrobel report', $range['label']]));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.csv_title'), $range['label']]));
             // ⚠️ THE UNIT IS STATED IN THE FILE, not assumed by whoever opens it. Amounts are major units
             //    (euros, not cents) as a bare decimal; the ISO 4217 code sits in its own column per row.
-            fputcsv($out, CsvSafe::row(['Amounts', 'major units, decimal point, no thousands separator']));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.amounts'), __('php/http/controllers/operator/operator_reports_export_controller.amounts_unit_note')]));
             fputcsv($out, CsvSafe::row([]));
 
-            fputcsv($out, CsvSafe::row(['Revenue by channel']));
-            fputcsv($out, CsvSafe::row(['Channel', 'Bookings', 'Revenue', 'Currency', 'Share %']));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.revenue_by_channel')]));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.channel'), __('php/http/controllers/operator/operator_reports_export_controller.bookings'), __('php/http/controllers/operator/operator_reports_export_controller.revenue'), __('php/http/controllers/operator/operator_reports_export_controller.currency'), __('php/http/controllers/operator/operator_reports_export_controller.share_percent')]));
             foreach ($channels as $c) {
                 fputcsv($out, CsvSafe::row([
                     $this->sourceLabel($c['source']),
@@ -59,8 +59,8 @@ class OperatorReportsExportController extends Controller
             }
             fputcsv($out, CsvSafe::row([]));
 
-            fputcsv($out, CsvSafe::row(['Revenue by month']));
-            fputcsv($out, CsvSafe::row(['Month', 'Revenue', 'Currency']));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.revenue_by_month')]));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_reports_export_controller.month'), __('php/http/controllers/operator/operator_reports_export_controller.revenue'), __('php/http/controllers/operator/operator_reports_export_controller.currency')]));
             foreach ($months as $m) {
                 // ⚠️ `month` (ISO `Y-m`), NOT `label` ('Sep'). The breakdown has carried both all along and
                 //    this file took the wrong one — a human label does not sort, and `09/2026` would be read
@@ -90,8 +90,8 @@ class OperatorReportsExportController extends Controller
 
         $id = $ctx->id();
         $scopeLabel = $id !== null
-            ? (string) (Property::query()->whereKey($id)->value('name') ?? 'Property')
-            : 'All properties';
+            ? (string) (Property::query()->whereKey($id)->value('name') ?? __('php/http/controllers/operator/operator_reports_export_controller.property_fallback'))
+            : __('php/http/controllers/operator/operator_reports_export_controller.all_properties');
 
         $filename = 'report-'.str_replace(':', '-', $range['key']).'.pdf';
 
@@ -130,8 +130,8 @@ class OperatorReportsExportController extends Controller
 
         return Workbook::download($filename, function (Writer $writer) use ($channels, $months, $currency): void {
             // ── Sheet 1 · Revenue by channel ──────────────────────────────────────────────────────
-            $writer->getCurrentSheet()->setName('Revenue by channel');
-            $writer->addRow(Workbook::headingRow(['Channel', 'Bookings', 'Revenue', 'Share']));
+            $writer->getCurrentSheet()->setName(Workbook::sheetName(__('php/http/controllers/operator/operator_reports_export_controller.revenue_by_channel')));
+            $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/operator_reports_export_controller.channel'), __('php/http/controllers/operator/operator_reports_export_controller.bookings'), __('php/http/controllers/operator/operator_reports_export_controller.revenue'), __('php/http/controllers/operator/operator_reports_export_controller.share')]));
 
             foreach ($channels as $c) {
                 $writer->addRow(Workbook::row([
@@ -144,8 +144,8 @@ class OperatorReportsExportController extends Controller
 
             // ── Sheet 2 · Revenue by month (the trend) ────────────────────────────────────────────
             $trend = $writer->addNewSheetAndMakeItCurrent();
-            $trend->setName('Revenue by month');
-            $writer->addRow(Workbook::headingRow(['Month', 'Revenue']));
+            $trend->setName(Workbook::sheetName(__('php/http/controllers/operator/operator_reports_export_controller.revenue_by_month')));
+            $writer->addRow(Workbook::headingRow([__('php/http/controllers/operator/operator_reports_export_controller.month'), __('php/http/controllers/operator/operator_reports_export_controller.revenue')]));
 
             foreach ($months as $m) {
                 $writer->addRow(Workbook::row([

@@ -9,11 +9,11 @@
 
      Presentation only — no data, no backend. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Vyrobel — Owner Portal' }}</title>
+    <title>{{ $title ?? __('components/layouts/owner.default_title') }}</title>
 
     <x-favicon />
 

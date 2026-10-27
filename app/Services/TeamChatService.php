@@ -57,10 +57,10 @@ final class TeamChatService
         $others = array_values(array_unique(array_diff(array_map('strval', $memberIds), [(string) $by->getKey()])));
 
         if (! in_array((string) $by->getKey(), $staff, true) || $others === [] || array_diff($others, $staff) !== []) {
-            throw new TeamChatRefused('Choose people who work in this workspace.');
+            throw new TeamChatRefused(__('php/services/team_chat_service.choose_people'));
         }
         if (count($others) > self::MAX_MEMBERS) {
-            throw new TeamChatRefused('A group can have up to '.self::MAX_MEMBERS.' people.');
+            throw new TeamChatRefused(__('php/services/team_chat_service.group_too_large', ['max' => self::MAX_MEMBERS]));
         }
 
         return count($others) === 1 ? $this->direct($by, $others[0]) : $this->group($by, $others, $title);
@@ -77,10 +77,10 @@ final class TeamChatService
         $this->refuseWhilePaused();
         $body = $body !== null ? trim(str_replace("\r\n", "\n", $body)) : '';
         if ($body === '' && $files === [] && $voice === null) {
-            throw new TeamChatRefused('Write a message, or add a file or a voice note.');
+            throw new TeamChatRefused(__('php/services/team_chat_service.empty_message'));
         }
         if (mb_strlen($body) > self::MAX_BODY) {
-            throw new TeamChatRefused('A message can be up to 5,000 characters.');
+            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));
         }
 
         $written = [];
@@ -154,7 +154,7 @@ final class TeamChatService
     private function refuseWhilePaused(): void
     {
         if ($this->workspace->isReadOnly()) {
-            throw new TeamChatRefused('This workspace is paused — messages can be read, not sent.');
+            throw new TeamChatRefused(__('php/services/team_chat_service.workspace_paused'));
         }
     }
 

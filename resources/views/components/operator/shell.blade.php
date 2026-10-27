@@ -17,7 +17,7 @@
     'active' => '',
     'title' => '',
     'subtitle' => '',
-    'viewer' => ['name' => 'Operator', 'initials' => 'O'],
+    'viewer' => ['name' => __('components/operator/shell.default_viewer'), 'initials' => 'O'],
     'toolbar' => null,   // GATE 0 — optional per-page topbar controls (date-nav / filters / New-reservation),
                          // rendered INTO the bespoke chrome so each page keeps ONE shell (machinery preserved).
 ])
@@ -25,17 +25,17 @@
     // GATE 0 (bespoke-chrome, parameterized shell) — the account-dropdown identity, derived from the real
     // authed staff user (self only): role label + login email for the popover. No page needs to pass these.
     $__acctUser = auth()->user();
-    $__acctRole = $__acctUser?->getRoleNames()->first() ?? 'Staff';
+    $__acctRole = $__acctUser?->getRoleNames()->first() ?? __('components/operator/shell.staff');
     $__acctEmail = (string) ($__acctUser?->email ?? '');
     // F-OP-3 — the topbar identity chip ALWAYS reflects the REAL signed-in staff user (self only), so the
     // controller-rendered pages (email-previews / templates / guest-requests / reviews) show the same name as
     // the Livewire pages, never a generic "Operator / O" placeholder. Derives from auth, not the passed prop.
-    $__viewerName = $__acctUser?->name ?? ($viewer['name'] ?? 'Staff');
+    $__viewerName = $__acctUser?->name ?? ($viewer['name'] ?? __('components/operator/shell.staff'));
     $__viewerInitials = \Illuminate\Support\Str::of($__viewerName)->explode(' ')
         ->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
     $__viewerInitials = $__viewerInitials !== '' ? $__viewerInitials : 'S';
     $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
-    $__todayLabel = \Carbon\CarbonImmutable::now()->format('D · j M');
+    $__todayLabel = \Carbon\CarbonImmutable::now()->translatedFormat('D · j M');
     // #84 read-only workspace — resolved once, used by BOTH the topbar read-only pill and the banner below.
     $__workspace = app(\App\Support\Operator\OperatorWorkspace::class);
 @endphp
@@ -51,45 +51,45 @@
     // section grouping/order and two labels (Inbox→Messages, Rates→Rates & availability) match the design.
     // [key, label, icon-path, route|null]. A null route renders a disabled "Soon" placeholder.
     $navGroups = [
-        ['OVERVIEW', [
-            ['portfolio', 'Portfolio', 'M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01', auth()->user()?->can('properties.view') ? route('app.portfolio') : null],
-            ['dashboard', 'Dashboard', 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', route('app.dashboard')],
-            ['insights', 'Insights', 'M3 3v18h18M7 14l3-4 3 3 4-6', auth()->user()?->can('reports.view') ? route('app.insights') : null],
-            ['search', 'Search', 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35', auth()->user()?->can('reservations.view') ? route('app.search') : null],
+        [__('components/operator/shell.group_overview'), [
+            ['portfolio', __('components/operator/shell.nav_portfolio'), 'M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01', auth()->user()?->can('properties.view') ? route('app.portfolio') : null],
+            ['dashboard', __('components/operator/shell.nav_dashboard'), 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', route('app.dashboard')],
+            ['insights', __('components/operator/shell.nav_insights'), 'M3 3v18h18M7 14l3-4 3 3 4-6', auth()->user()?->can('reports.view') ? route('app.insights') : null],
+            ['search', __('components/operator/shell.nav_search'), 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35', auth()->user()?->can('reservations.view') ? route('app.search') : null],
         ]],
-        ['FRONT DESK', [
-            ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.calendar')],
-            ['front-desk', 'Front desk', 'M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.front-desk')],
-            ['reservations', 'Reservations', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('app.reservations')],
-            ['guest-requests', 'Guest requests', 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10h6M9 13h4', auth()->user()?->can('reservations.view') ? route('app.guest-requests') : null],
-            ['guests', 'Guests', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', auth()->user()?->can('guests.view') ? route('app.guests') : null],
-            ['reviews', 'Reviews', 'M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6L7.9 14 2 9.4h7.6z', auth()->user()?->can('reviews.view') ? route('app.reviews') : null],
+        [__('components/operator/shell.group_front_desk'), [
+            ['calendar', __('components/operator/shell.nav_calendar'), 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.calendar')],
+            ['front-desk', __('components/operator/shell.nav_front_desk'), 'M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.front-desk')],
+            ['reservations', __('components/operator/shell.nav_reservations'), 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('app.reservations')],
+            ['guest-requests', __('components/operator/shell.nav_guest_requests'), 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10h6M9 13h4', auth()->user()?->can('reservations.view') ? route('app.guest-requests') : null],
+            ['guests', __('components/operator/shell.nav_guests'), 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', auth()->user()?->can('guests.view') ? route('app.guests') : null],
+            ['reviews', __('components/operator/shell.nav_reviews'), 'M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6L7.9 14 2 9.4h7.6z', auth()->user()?->can('reviews.view') ? route('app.reviews') : null],
             // ⚠️ TEAM CHAT (2026-10-06) — Messages is for every back-office user now: the guest and owner conversations for
             //    whoever holds `guests.view`, team chat for everyone else (it was hidden from four of the eleven roles).
-            ['inbox', 'Messages', 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', auth()->user()?->can('guests.view') ? route('app.inbox') : route('app.inbox.team')],
+            ['inbox', __('components/operator/shell.nav_inbox'), 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', auth()->user()?->can('guests.view') ? route('app.inbox') : route('app.inbox.team')],
         ]],
-        ['OPERATIONS', [
-            ['housekeeping', 'Housekeeping', 'M3 21h18M6 21V10l6-4 6 4v11M10 21v-5h4v5', route('app.housekeeping')],
-            ['schedule', 'Team schedule', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 14h2M13 14h2M9 17h2', auth()->user()?->can('schedule.view') ? route('app.schedule') : null],
-            ['maintenance', 'Maintenance', 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z', route('app.maintenance')],
-            ['units', 'Units', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', route('app.units')],
-            ['rates', 'Rates & availability', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', auth()->user()?->can('rates.view') ? route('app.rates') : null],
-            ['channels', 'Channels', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', $channelsAllowed ? route('app.channels') : null],
+        [__('components/operator/shell.group_operations'), [
+            ['housekeeping', __('components/operator/shell.nav_housekeeping'), 'M3 21h18M6 21V10l6-4 6 4v11M10 21v-5h4v5', route('app.housekeeping')],
+            ['schedule', __('components/operator/shell.nav_schedule'), 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 14h2M13 14h2M9 17h2', auth()->user()?->can('schedule.view') ? route('app.schedule') : null],
+            ['maintenance', __('components/operator/shell.nav_maintenance'), 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z', route('app.maintenance')],
+            ['units', __('components/operator/shell.nav_units'), 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', route('app.units')],
+            ['rates', __('components/operator/shell.nav_rates'), 'M4 4h9l7 7-9 9-7-7zM8 8h.01', auth()->user()?->can('rates.view') ? route('app.rates') : null],
+            ['channels', __('components/operator/shell.nav_channels'), 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', $channelsAllowed ? route('app.channels') : null],
         ]],
-        ['FINANCE', [
-            ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', auth()->user()?->can('reports.view') ? route('app.owners') : null],
-            ['payout-run', 'Payout run', 'M3 7h18v12H3zM3 11h18M15 15h3', auth()->user()?->can('payouts.manage') ? route('app.payouts.run') : null],
-            ['reports', 'Reports', 'M9 17v-6M12 17V7M15 17v-3M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', auth()->user()?->can('reports.view') ? route('app.reports') : null],
-            ['unit-requests', 'Unit requests', 'M12 5v14M5 12h14M4 4h16', auth()->user()?->can('units.view') ? route('app.unit-requests') : null],
+        [__('components/operator/shell.group_finance'), [
+            ['owners', __('components/operator/shell.nav_owners'), 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', auth()->user()?->can('reports.view') ? route('app.owners') : null],
+            ['payout-run', __('components/operator/shell.nav_payout_run'), 'M3 7h18v12H3zM3 11h18M15 15h3', auth()->user()?->can('payouts.manage') ? route('app.payouts.run') : null],
+            ['reports', __('components/operator/shell.nav_reports'), 'M9 17v-6M12 17V7M15 17v-3M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', auth()->user()?->can('reports.view') ? route('app.reports') : null],
+            ['unit-requests', __('components/operator/shell.nav_unit_requests'), 'M12 5v14M5 12h14M4 4h16', auth()->user()?->can('units.view') ? route('app.unit-requests') : null],
         ]],
-        ['SYSTEM', [
-            ['notifications', 'Notifications', 'M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0', route('app.notifications')],
-            ['profile', 'Your profile', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.profile')],
-            ['roles', 'Roles & access', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6', auth()->user()?->can('users.manage') ? route('app.roles') : null],
-            ['settings', 'Settings', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', auth()->user()?->can('properties.manage') ? route('app.settings') : null],
-            ['security', 'Security', 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', route('app.security')],
-            ['billing', 'Billing', 'M3 7h18v12H3zM3 11h18M7 15h4', auth()->user()?->can('billing.manage') ? route('app.billing') : null],
-            ['email-templates', 'Email templates', 'M3 5h18v14H3zM3 7l9 6 9-6', auth()->user()?->can('email_templates.manage') ? route('app.email-templates') : null],
+        [__('components/operator/shell.group_system'), [
+            ['notifications', __('components/operator/shell.nav_notifications'), 'M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0', route('app.notifications')],
+            ['profile', __('components/operator/shell.nav_profile'), 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.profile')],
+            ['roles', __('components/operator/shell.nav_roles'), 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6', auth()->user()?->can('users.manage') ? route('app.roles') : null],
+            ['settings', __('components/operator/shell.nav_settings'), 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', auth()->user()?->can('properties.manage') ? route('app.settings') : null],
+            ['security', __('components/operator/shell.nav_security'), 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', route('app.security')],
+            ['billing', __('components/operator/shell.nav_billing'), 'M3 7h18v12H3zM3 11h18M7 15h4', auth()->user()?->can('billing.manage') ? route('app.billing') : null],
+            ['email-templates', __('components/operator/shell.nav_email_templates'), 'M3 5h18v14H3zM3 7l9 6 9-6', auth()->user()?->can('email_templates.manage') ? route('app.email-templates') : null],
         ]],
     ];
 
@@ -139,12 +139,12 @@
                         </a>
                     @elseif ($key === 'channels' && ! $channelsAllowed)
                         {{-- Feature-gated by plan: Channels is a Pro feature; an Essential org sees a "Pro" lock. --}}
-                        <span class="vy-nav-item" aria-disabled="true" title="Channels is a Pro feature — upgrade to unlock">
+                        <span class="vy-nav-item" aria-disabled="true" title="{{ __('components/operator/shell.channels_pro_title') }}">
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
                             {{ $label }}<span class="vy-plan-tag">Pro</span>
                         </span>
                     @else
-                        <span class="vy-nav-item" aria-disabled="true" title="Coming soon">
+                        <span class="vy-nav-item" aria-disabled="true" title="{{ __('components/operator/shell.coming_soon') }}">
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
                             {{ $label }}
                         </span>
@@ -171,7 +171,7 @@
                 @if ($__workspace->isReadOnly())
                     <span class="vy-ro-pill">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-                        Read-only
+                        {{ __('components/operator/shell.read_only') }}
                     </span>
                 @endif
             </div>
@@ -179,14 +179,14 @@
                 @if ($__searchHref)
                     {{-- ⚠️ 2026-10-05 — one line at every width: at 1,024 px the label broke into "Search reservations, / guests…". Where the bar
                          is narrow it shortens to "Search…"; its name for a screen reader stays the same throughout. --}}
-                    <a class="vy-search-pill" href="{{ $__searchHref }}" aria-label="Search reservations, guests">
+                    <a class="vy-search-pill" href="{{ $__searchHref }}" aria-label="{{ __('components/operator/shell.search_aria') }}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                        <span class="vy-search-long">Search reservations, guests…</span><span class="vy-search-short" aria-hidden="true">Search…</span>
+                        <span class="vy-search-long">{{ __('components/operator/shell.search_long') }}</span><span class="vy-search-short" aria-hidden="true">{{ __('components/operator/shell.search_short') }}</span>
                     </a>
                 @endif
                 <span class="vy-date-chip">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>
-                    Today · {{ $__todayLabel }}
+                    {{ __('components/operator/shell.today_chip', ['date' => $__todayLabel]) }}
                 </span>
                 <x-notifications.bell :open-all-url="route('app.notifications')" />
                 <div class="vy-acct" x-data="{ open: false }" @keydown.escape.window="open = false">
@@ -208,22 +208,22 @@
                         </div>
                         <a class="vy-acct-link" href="{{ route('app.profile') }}" role="menuitem">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.6 3.8-5.5 7-5.5s6.1 1.9 7 5.5"/></svg>
-                            Your profile
+                            {{ __('components/operator/shell.nav_profile') }}
                         </a>
                         <a class="vy-acct-link" href="{{ route('app.notification-preferences') }}" role="menuitem">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg>
-                            Notification preferences
+                            {{ __('components/operator/shell.notification_preferences') }}
                         </a>
                         <a class="vy-acct-link" href="{{ route('app.security') }}" role="menuitem">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-                            Security
+                            {{ __('components/operator/shell.nav_security') }}
                         </a>
                         <div class="vy-acct-div"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="vy-acct-link vy-acct-link--danger" role="menuitem">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                                Sign out
+                                {{ __('common.sign_out') }}
                             </button>
                         </form>
                     </div>
@@ -239,12 +239,12 @@
                 <div class="vy-ro-body">
                     <svg class="vy-ro-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                     <div>
-                        <div class="vy-ro-title">Workspace paused — read-only until {{ $__workspace->resumeLabel() }}</div>
-                        <div class="vy-ro-sub">You can view everything, but nothing can change: channels stopped selling, new bookings and edits are off. In-house guests can still check out.</div>
+                        <div class="vy-ro-title">{{ __('components/operator/shell.paused_title', ['date' => $__workspace->resumeLabel()]) }}</div>
+                        <div class="vy-ro-sub">{{ __('components/operator/shell.paused_sub') }}</div>
                     </div>
                 </div>
                 @if (auth()->user()?->can('billing.manage'))
-                    <a class="vy-ro-cta" href="{{ route('app.billing') }}">Resume now <span class="vy-ro-arrow">›</span></a>
+                    <a class="vy-ro-cta" href="{{ route('app.billing') }}">{{ __('components/operator/shell.resume_now') }} <span class="vy-ro-arrow">›</span></a>
                 @endif
             </div>
         @endif

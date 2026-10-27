@@ -65,7 +65,7 @@ use Livewire\Component;
  *   viewer: array{name: string, initials: string}
  *   property: array{id: string, name: string}|null
  *   window: array{start: string, end: string, label: string, days: int, prev: string, next: string, today: string}
- *   dates: list<array{date: string, dow: string, day: string, mon: string, weekend: bool}>
+ *   dates: list<array{date: string, dow: string, day: string, mon: string, label: string, weekend: bool}>
  *   rows: list<array{
  *     room_type_id: string, room_type: string, kind: string, units: int,
  *     availability: array<string, int>,
@@ -173,8 +173,8 @@ class ReservationRack extends Component
                     'name' => (string) ($unit->name ?? $unit->code),
                     'state' => $state,
                     'state_label' => match ($state) {
-                        'paused' => 'Paused',
-                        'out_of_service' => 'Out of service',
+                        'paused' => __('php/livewire/reservation_rack.state_paused'),
+                        'out_of_service' => __('php/livewire/reservation_rack.state_out_of_service'),
                         default => '',
                     },
                     /*
@@ -235,7 +235,7 @@ class ReservationRack extends Component
             'window' => [
                 'start' => $start->toDateString(),
                 'end' => $end->toDateString(),
-                'label' => $start->format('d M').' – '.$end->subDay()->format('d M Y'),
+                'label' => __('php/livewire/reservation_rack.window_label', ['from' => $start->translatedFormat('d M'), 'to' => $end->subDay()->translatedFormat('d M Y')]),
                 'days' => count($dates),
                 'selected_days' => $this->days,   // the chosen 7/14/30 (for the range switcher + to preserve across nav)
                 'prev' => $start->subDays(max(1, $this->days))->toDateString(),
@@ -343,10 +343,10 @@ class ReservationRack extends Component
             ? (int) CarbonImmutable::parse($form['check_in'])->diffInDays(CarbonImmutable::parse($form['check_out']))
             : 0;
         $dateProblem = match (true) {
-            $nights === 0 => 'Check-out must be after check-in.',
+            $nights === 0 => __('php/livewire/reservation_rack.check_out_after_check_in'),
             // ⚠️ `min` only guards the GET; Confirm posts its own form — so a past day is refused here, by name (the review)
-            $form['check_in'] < $bookFrom => 'Check-in can’t be in the past — pick today or later.',
-            $nights > UnitAvailabilityService::MAX_NIGHTS => 'A booking can be at most '.UnitAvailabilityService::MAX_NIGHTS.' nights — pick a shorter stay.',
+            $form['check_in'] < $bookFrom => __('php/livewire/reservation_rack.check_in_in_past'),
+            $nights > UnitAvailabilityService::MAX_NIGHTS => __('php/livewire/reservation_rack.stay_too_long', ['max' => UnitAvailabilityService::MAX_NIGHTS]),
             default => null,
         };
 
@@ -429,7 +429,7 @@ class ReservationRack extends Component
             'ok' => is_string(session('calendar_dialog_ok')) ? session('calendar_dialog_ok') : null,
             'error' => is_string(session('calendar_dialog_error')) ? session('calendar_dialog_error') : null,
             'checked' => $dateProblem === null,
-            'sources' => self::SOURCES,
+            'sources' => CalendarReturn::sourceLabels(),
             'can_set_price' => (bool) auth()->user()?->can('rates.manage'),
             'adds_charges' => $addsCharges,
             'full_form_url' => route('app.reservations.create', ['check_in' => $form['check_in'], 'check_out' => $form['check_out']]),
@@ -482,8 +482,8 @@ class ReservationRack extends Component
         }
 
         return Unit::query()->where('property_id', $property->getKey())->exists()
-            ? ['title' => 'None of '.$property->name.'’s units can take a booking', 'line' => 'They’re all paused or out of service — reopen one on the Units page to book it here.']
-            : ['title' => $property->name.' has no rooms yet', 'line' => 'Its rooms show here once its units are added.'];
+            ? ['title' => __('php/livewire/reservation_rack.none_bookable_title', ['property' => (string) $property->name]), 'line' => __('php/livewire/reservation_rack.none_bookable_line')]
+            : ['title' => __('php/livewire/reservation_rack.no_rooms_title', ['property' => (string) $property->name]), 'line' => __('php/livewire/reservation_rack.no_rooms_line')];
     }
 
     /**
@@ -553,14 +553,18 @@ class ReservationRack extends Component
             if (array_filter($nights, fn (string $d): bool => $d >= $from && $d <= $to) === []) {
                 continue;   // it covers none of its room type's marked nights — not the reason they have no price
             }
-            $seasons[(string) $season->getKey()] = $season->name.' ('.MoneyFormatter::display((int) $season->price_minor, (string) $season->currency)
-                .' a night, '.$season->starts_on->format('j M').' → '.$season->ends_on->format('j M').')';
+            $seasons[(string) $season->getKey()] = __('php/livewire/reservation_rack.season_offer', [
+                'name' => (string) $season->name,
+                'price' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency),
+                'from' => $season->starts_on->translatedFormat('j M'),
+                'to' => $season->ends_on->translatedFormat('j M'),
+            ]);
         }
 
         $names = array_map(fn (array $r): string => (string) $r['room_type'], $marked);
         $last = array_pop($names);
 
-        return ['names' => $names === [] ? (string) $last : implode(', ', $names).' and '.$last, 'seasons' => array_values($seasons)];
+        return ['names' => $names === [] ? (string) $last : __('php/livewire/reservation_rack.names_and', ['names' => implode(', ', $names), 'last' => (string) $last]), 'seasons' => array_values($seasons)];
     }
 
     /**
@@ -649,7 +653,7 @@ class ReservationRack extends Component
     }
 
     /**
-     * @return list<array{date: string, dow: string, day: string, mon: string, weekend: bool, past: bool}>
+     * @return list<array{date: string, dow: string, day: string, mon: string, label: string, weekend: bool, past: bool}>
      */
     private function buildDates(CarbonImmutable $start, CarbonImmutable $end, string $today): array
     {
@@ -657,9 +661,11 @@ class ReservationRack extends Component
         for ($date = $start; $date->lessThan($end); $date = $date->addDay()) {
             $dates[] = [
                 'date' => $date->toDateString(),
-                'dow' => $date->format('D'),
+                'dow' => $date->translatedFormat('D'),
                 'day' => $date->format('j'),
-                'mon' => $date->format('M'),
+                'mon' => $date->translatedFormat('M'),
+                // the night as a person reads it ("Mon 5 Oct") — for the cells' titles and labels, one piece so each language orders it
+                'label' => $date->translatedFormat('D j M'),
                 'weekend' => $date->isWeekend(),
                 // before the property's today — greyed, and never offered for a new booking (2026-10-04)
                 'past' => $date->toDateString() < $today,
@@ -862,10 +868,10 @@ class ReservationRack extends Component
                 'span' => $span,
                 'reason' => $reason,
                 'label' => match ($reason) {
-                    'maintenance' => 'Out of order',
-                    'owner' => 'Owner block',
-                    'overbooking_protection' => 'Held',
-                    default => 'Blocked',   // 'manual' + any legacy value
+                    'maintenance' => __('php/livewire/reservation_rack.block_out_of_order'),
+                    'owner' => __('php/livewire/reservation_rack.block_owner'),
+                    'overbooking_protection' => __('php/livewire/reservation_rack.block_held'),
+                    default => __('php/livewire/reservation_rack.block_blocked'),   // 'manual' + any legacy value
                 },
                 'clip_start' => $blockStart->lessThan($windowStart),
                 'clip_end' => $blockEnd->greaterThan($windowEnd),

@@ -19,9 +19,9 @@
     'value' => null,
     'labelledby' => null,
     'searchable' => null,
-    'placeholder' => 'Choose…',
-    'searchPlaceholder' => 'Type to search',
-    'emptyText' => 'Nothing matches that.',
+    'placeholder' => __('components/select.placeholder'),
+    'searchPlaceholder' => __('components/select.search_placeholder'),
+    'emptyText' => __('components/select.empty_text'),
     'deviceTimezone' => false,
     'minWidth' => 0,
 ])

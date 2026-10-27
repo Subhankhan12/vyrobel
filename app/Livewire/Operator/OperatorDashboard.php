@@ -97,7 +97,7 @@ class OperatorDashboard extends Component
         $yesterday = PropertyOccupancy::forProperties($propertyIds, $day->subDay()->toDateString());
         $occDelta = $occupancy['total'] > 0 && $yesterday['total'] > 0 ? $occupancy['pct'] - $yesterday['pct'] : null;
         $propertyLabel = $this->viewingAllProperties
-            ? ['id' => 'all', 'name' => 'All properties']
+            ? ['id' => 'all', 'name' => __('php/livewire/operator/operator_dashboard.all_properties')]
             : ($primary !== null ? ['id' => (string) $primary->id, 'name' => (string) $primary->name] : null);
 
         return view('livewire.operator.dashboard', [
@@ -105,7 +105,7 @@ class OperatorDashboard extends Component
             'property' => $propertyLabel,
             'day' => [
                 'date' => $date,
-                'label' => $day->format('l, j M Y'),
+                'label' => $day->translatedFormat('l, j M Y'),
                 'prev' => $day->subDay()->toDateString(),
                 'next' => $day->addDay()->toDateString(),
                 'today' => CarbonImmutable::today()->toDateString(),
@@ -254,7 +254,7 @@ class OperatorDashboard extends Component
         for ($i = 0; $i < 7; $i++) {
             $d = $start->addDays($i);
             $occ = $propertyIds === [] ? ['pct' => 0] : PropertyOccupancy::forProperties($propertyIds, $d->toDateString());
-            $out[] = ['day' => $d->format('D'), 'date' => $d->toDateString(), 'pct' => (int) $occ['pct']];
+            $out[] = ['day' => $d->translatedFormat('D'), 'date' => $d->toDateString(), 'pct' => (int) $occ['pct']];
         }
 
         return $out;
@@ -292,25 +292,25 @@ class OperatorDashboard extends Component
         $items = [];
 
         if ($workOrders['urgent'] > 0) {
-            $items[] = ['key' => 'work_orders.urgent', 'label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent', 'link' => $maintenanceUrl.'?filter=urgent'];
+            $items[] = ['key' => 'work_orders.urgent', 'label' => __('php/livewire/operator/operator_dashboard.task_resolve_urgent'), 'meta' => trans_choice('php/livewire/operator/operator_dashboard.task_urgent_meta', $workOrders['urgent'], ['count' => $workOrders['urgent']]), 'priority' => 'urgent', 'link' => $maintenanceUrl.'?filter=urgent'];
         }
         if ($workOrders['open'] - $workOrders['urgent'] > 0) {
-            $items[] = ['key' => 'work_orders.open', 'label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high', 'link' => $maintenanceUrl];
+            $items[] = ['key' => 'work_orders.open', 'label' => __('php/livewire/operator/operator_dashboard.task_work_through_open'), 'meta' => trans_choice('php/livewire/operator/operator_dashboard.task_open_meta', $workOrders['open'] - $workOrders['urgent'], ['count' => $workOrders['open'] - $workOrders['urgent']]), 'priority' => 'high', 'link' => $maintenanceUrl];
         }
         if ($housekeeping['to_clean'] > 0) {
-            $items[] = ['key' => 'housekeeping.to_clean', 'label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high', 'link' => route('app.housekeeping')];
+            $items[] = ['key' => 'housekeeping.to_clean', 'label' => __('php/livewire/operator/operator_dashboard.task_rooms_to_clean'), 'meta' => trans_choice('php/livewire/operator/operator_dashboard.task_to_clean_meta', $housekeeping['to_clean'], ['count' => $housekeeping['to_clean']]), 'priority' => 'high', 'link' => route('app.housekeeping')];
         }
 
         // Arrivals still to check in = those not yet checked_in (the real status enum has no 'in_house').
         $toArrive = $arrivals->reject(fn (Reservation $r): bool => (string) $r->status === 'checked_in')->count();
         if ($toArrive > 0) {
-            $items[] = ['key' => 'arrivals.to_check_in', 'label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal', 'link' => route('app.front-desk').'?date='.$date];
+            $items[] = ['key' => 'arrivals.to_check_in', 'label' => __('php/livewire/operator/operator_dashboard.task_check_in_arrivals'), 'meta' => trans_choice('php/livewire/operator/operator_dashboard.task_expected_meta', $toArrive, ['count' => $toArrive]), 'priority' => 'normal', 'link' => route('app.front-desk').'?date='.$date];
         }
 
         $groups = [
-            ['label' => 'Work orders', 'count' => $workOrders['open']],
-            ['label' => 'Housekeeping', 'count' => $housekeeping['to_clean']],
-            ['label' => 'Arrivals', 'count' => $toArrive],
+            ['label' => OperatorTaskState::categoryLabel('work_orders'), 'count' => $workOrders['open']],
+            ['label' => OperatorTaskState::categoryLabel('housekeeping'), 'count' => $housekeeping['to_clean']],
+            ['label' => OperatorTaskState::categoryLabel('arrivals'), 'count' => $toArrive],
         ];
 
         // D1-1 — this viewer's OWN ticks for this scope and this day. Personal: another user's dashboard is

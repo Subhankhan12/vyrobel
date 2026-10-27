@@ -62,7 +62,7 @@ class OperatorSettings extends Component
 
         return view('livewire.operator.operator-settings', [
             'viewer' => $this->viewer(),
-            'subtitle' => $property !== null ? (string) $property->name : 'No property configured',
+            'subtitle' => $property !== null ? (string) $property->name : __('php/livewire/operator/operator_settings.no_property_configured'),
             'hasProperty' => $property !== null,
             'canManageProperty' => (bool) auth()->user()?->can('properties.manage'),
             'canManageOrg' => (bool) auth()->user()?->can('settings.manage'),
@@ -88,7 +88,7 @@ class OperatorSettings extends Component
             'brand' => $property !== null ? $this->brandForm($property) : null,
             // DO-G13-1 — the guest support contact this property offers (all three optional).
             'support' => $property !== null ? $this->supportForm($property) : [],
-            'replyNorms' => PropertySupport::REPLY_NORMS,
+            'replyNorms' => PropertySupport::replyNorms(),
             'brandPreview' => $property !== null ? PropertyBrand::for($property) : PropertyBrand::default(),
             'sample' => $property !== null ? $this->sampleStay($property) : null,
             'removal' => $property !== null ? $this->removalState($property) : null,
@@ -137,7 +137,7 @@ class OperatorSettings extends Component
         $planName = $plan?->name;
 
         return [
-            'tier' => $planName !== null ? 'Vyrobel '.$planName : 'No plan',
+            'tier' => $planName !== null ? __('php/livewire/operator/operator_settings.plan_tier', ['plan' => $planName]) : __('php/livewire/operator/operator_settings.no_plan'),
             'status' => (string) $status->label(),
             // ⚠️ BILLING PASS 2b — THE PRICE IS THE ORG'S OWN PLAN, not a per-unit formula applied to everyone.
             // This read `SubscriptionPricing` (units × €9 + 23% VAT) whatever the org was actually on, so an org
@@ -147,7 +147,7 @@ class OperatorSettings extends Component
             // Same source as /app/billing — the SUBSCRIPTION's captured terms, so the two operator surfaces
             // cannot disagree and neither moves when the catalogue is edited.
             'price' => $subscription !== null && $plan !== null
-                ? $this->money((int) $subscription->chargeFor()['gross_minor'], $subscription->terms()->currency).'/mo'
+                ? __('php/livewire/operator/operator_settings.price_per_month', ['price' => $this->money((int) $subscription->chargeFor()['gross_minor'], $subscription->terms()->currency)])
                 : null,
             'manage_url' => route('app.billing'),
         ];
@@ -260,10 +260,10 @@ class OperatorSettings extends Component
         $primary = $current->first(fn (ManagementAgreement $a): bool => $a->unit_id === null) ?? $current->first();
 
         if (! $primary instanceof ManagementAgreement || $primary->commission_pct === null) {
-            return 'Not set';
+            return __('php/livewire/operator/operator_settings.commission_not_set');
         }
 
-        return rtrim(rtrim((string) $primary->commission_pct, '0'), '.').'% commission';
+        return __('php/livewire/operator/operator_settings.commission_rate', ['rate' => rtrim(rtrim((string) $primary->commission_pct, '0'), '.')]);
     }
 
     /**
@@ -350,8 +350,8 @@ class OperatorSettings extends Component
             // harmless while no pivot row could exist; cluster J makes them creatable, so the mismatch
             // would have become a screen that contradicts the access it describes.
             $scope = $pivotIds->isEmpty()
-                ? 'All properties'
-                : ($pivotIds->count() === 1 ? 'This property only' : $pivotIds->count().' properties');
+                ? __('php/livewire/operator/operator_settings.scope_all_properties')
+                : ($pivotIds->count() === 1 ? __('php/livewire/operator/operator_settings.scope_this_property_only') : trans_choice('php/livewire/operator/operator_settings.scope_properties', $pivotIds->count(), ['count' => $pivotIds->count()]));
 
             return [
                 'id' => (string) $u->getKey(),
@@ -396,9 +396,9 @@ class OperatorSettings extends Component
     private static function roleDefinitions(): array
     {
         return [
-            ['name' => 'Admin', 'blurb' => 'Everything — settings, rates, finance, team. Set at group level (Group Admin / Property Owner), applies to all properties.'],
-            ['name' => 'Front desk', 'blurb' => 'Reservations, calendar, folios, guests & messages — no settings or owner finance.'],
-            ['name' => 'Housekeeping', 'blurb' => 'The housekeeping board only — room statuses and their own assignments.'],
+            ['name' => __('php/livewire/operator/operator_settings.role_admin'), 'blurb' => __('php/livewire/operator/operator_settings.role_admin_blurb')],
+            ['name' => __('php/livewire/operator/operator_settings.role_front_desk'), 'blurb' => __('php/livewire/operator/operator_settings.role_front_desk_blurb')],
+            ['name' => __('php/livewire/operator/operator_settings.role_housekeeping'), 'blurb' => __('php/livewire/operator/operator_settings.role_housekeeping_blurb')],
         ];
     }
 
@@ -437,7 +437,7 @@ class OperatorSettings extends Component
             'phone' => (string) ($property->support_phone ?? ''),
             'reply_norm' => (string) ($normKey ?? ''),
             'hours' => (string) ($property->support_hours ?? ''),
-            'preview' => $normKey !== null ? PropertySupport::REPLY_NORMS[$normKey] : null,
+            'preview' => $normKey !== null ? PropertySupport::replyNorm($normKey) : null,
             'configured' => PropertySupport::hasAny($property),
         ];
     }
@@ -488,7 +488,7 @@ class OperatorSettings extends Component
 
         return [
             'scheduled' => $property->removal_scheduled_at !== null,
-            'effective' => $property->removal_effective_at?->format('j M Y') ?? '',
+            'effective' => $property->removal_effective_at?->translatedFormat('j M Y') ?? '',
             'in_house' => $inHouse,
             'name' => (string) $property->name,
             'units' => Unit::query()->where('property_id', $property->id)->count(),
@@ -505,7 +505,13 @@ class OperatorSettings extends Component
         return Tax::query()->where('property_id', $propertyId)->orderBy('name')->get()->map(fn (Tax $tax): array => [
             'id' => (string) $tax->id,
             'name' => (string) $tax->name,
-            'kind' => ucfirst(str_replace('_', ' ', (string) $tax->kind)),
+            // a match keyed by the stored code (never a key built from it); the column's type allows exactly these four
+            'kind' => match ((string) $tax->kind) {
+                'vat' => __('php/livewire/operator/operator_settings.tax_kind_vat'),
+                'city_tax' => __('php/livewire/operator/operator_settings.tax_kind_city_tax'),
+                'tourism_tax' => __('php/livewire/operator/operator_settings.tax_kind_tourism_tax'),
+                default => __('php/livewire/operator/operator_settings.tax_kind_other'),   // 'other' — the type's only remaining code
+            },
             'mode' => (string) $tax->mode,
             'inclusive' => (bool) $tax->inclusive,
             'percentage' => (string) $tax->mode === 'percentage',

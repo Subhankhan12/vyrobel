@@ -61,7 +61,7 @@ class OperatorInbox extends Component
         $filter = $this->resolveFilter();      // null|unread|arriving|mine|closed
         $search = $this->resolveQuery();
         $sort = $this->resolveSort();          // 'newest'|'oldest'
-        $channel = $this->resolveChannel();    // a channel LABEL, or null = all
+        $channel = $this->resolveChannel();    // a channel filter CODE (the English URL word), or null = all
 
         // Mark the explicitly-opened thread read FIRST (an explicit ?c=, never the default preview) so the rail
         // badge + unread count reflect it on THIS request. Tenant-scoped find → cross-org id = null.
@@ -92,7 +92,7 @@ class OperatorInbox extends Component
         $tabList = $this->applyStatusFilter($base, $filter);
         $channelTabs = $this->channelTabs($tabList, $channel);
         $filtered = $channel !== null
-            ? array_values(array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $channel))
+            ? array_values(array_filter($tabList, fn (array $r): bool => $r['channel_filter'] === $channel))
             : $tabList;
         $filtered = $this->applySearch($filtered, $search);
         $rows = $this->sortRows($filtered, $sort, $filter);
@@ -125,15 +125,15 @@ class OperatorInbox extends Component
             'staff' => app(StaffRoster::class)->staff(),
             'composeGuests' => $this->composeGuests(),
             'templates' => [
-                ['key' => 'pre-arrival', 'label' => 'Pre-arrival details'],
-                ['key' => 'payment-reminder', 'label' => 'Payment reminder'],
-                ['key' => 'review-request', 'label' => 'Thanks & review'],
+                ['key' => 'pre-arrival', 'label' => __('php/livewire/operator/operator_inbox.template_pre_arrival')],
+                ['key' => 'payment-reminder', 'label' => __('php/livewire/operator/operator_inbox.template_payment_reminder')],
+                ['key' => 'review-request', 'label' => __('php/livewire/operator/operator_inbox.template_review_request')],
             ],
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
             // Guests | Team (team chat, 2026-10-06) — the toggle's two counts (kept live by the pulse) and its label
             // (a support session borrows a staff member's view, never their team chat — its count stays theirs)
             'teamUnread' => auth()->user() instanceof User && ! BreakGlass::hasStash(request()) ? app(TeamChatReader::class)->unreadTotal(auth()->user()) : 0,
-            'guestsLabel' => Owner::query()->exists() ? 'Guests & owners' : 'Guests',
+            'guestsLabel' => Owner::query()->exists() ? __('php/livewire/operator/operator_inbox.guests_and_owners') : __('php/livewire/operator/operator_inbox.guests'),
             // the live refresh (2026-10-06): the stamp to ask, and the open conversation it covers
             // `opened`: the person opened it (?c=) — only then does the page read new messages for them, never a preview
             'live' => ['live' => route('app.inbox.live'), 'c' => $active['id'] ?? null, 'opened' => $explicitThread !== null,
@@ -158,7 +158,7 @@ class OperatorInbox extends Component
             $channel = $this->channelMeta((string) $thread->channel);
             $name = $this->displayName($thread);
             $assignee = $thread->assignedTo;
-            $preview = $last !== null ? Str::limit((string) $last->body, 90) : 'No messages yet';
+            $preview = $last !== null ? Str::limit((string) $last->body, 90) : __('php/livewire/operator/operator_inbox.no_messages_yet');
             $closed = (string) $thread->status === 'closed';
 
             // Who sent the last message, and — when it was ours (outbound) — its delivery state. This drives the
@@ -177,6 +177,7 @@ class OperatorInbox extends Component
                 'name' => $name,
                 'initials' => $this->initials($name),
                 'channel_label' => $channel['label'],
+                'channel_filter' => $channel['filter'],
                 'channel_tone' => $channel['tone'],
                 'is_unread' => $thread->unread_count > 0 && ! $closed,
                 'status' => (string) $thread->status,
@@ -244,18 +245,18 @@ class OperatorInbox extends Component
     {
         $order = ['Direct', 'Booking.com', 'Airbnb', 'Expedia', 'WhatsApp', 'Email'];
         $present = array_values(array_filter($order, fn (string $c): bool => $c === $selected
-            || array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $c) !== []));
+            || array_filter($tabList, fn (array $r): bool => $r['channel_filter'] === $c) !== []));
 
         if ($present === [] || (count($present) === 1 && $selected === null)) {
             return [];   // a single channel (the common case today) → no filter row needed
         }
 
-        $tabs = [['key' => 'all', 'label' => 'All channels', 'count' => count($tabList), 'active' => $selected === null]];
+        $tabs = [['key' => 'all', 'label' => __('php/livewire/operator/operator_inbox.all_channels'), 'count' => count($tabList), 'active' => $selected === null]];
         foreach ($present as $c) {
             $tabs[] = [
                 'key' => $c,
-                'label' => $c,
-                'count' => count(array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $c)),
+                'label' => $this->channelFilterLabel($c),
+                'count' => count(array_filter($tabList, fn (array $r): bool => $r['channel_filter'] === $c)),
                 'active' => $selected === $c,
             ];
         }
@@ -325,13 +326,18 @@ class OperatorInbox extends Component
      */
     private function chips(?string $filter, ?string $channel): array
     {
-        $labels = ['unread' => 'Unread', 'arriving' => 'Arriving today', 'mine' => 'Assigned to me', 'closed' => 'Closed'];
+        $labels = [
+            'unread' => __('php/livewire/operator/operator_inbox.chip_unread'),
+            'arriving' => __('php/livewire/operator/operator_inbox.chip_arriving'),
+            'mine' => __('php/livewire/operator/operator_inbox.chip_mine'),
+            'closed' => __('php/livewire/operator/operator_inbox.chip_closed'),
+        ];
         $chips = [];
         if ($filter !== null && isset($labels[$filter])) {
             $chips[] = ['label' => $labels[$filter], 'clear_filter' => true, 'clear_channel' => false];
         }
         if ($channel !== null) {
-            $chips[] = ['label' => $channel, 'clear_filter' => false, 'clear_channel' => true];
+            $chips[] = ['label' => $this->channelFilterLabel($channel), 'clear_filter' => false, 'clear_channel' => true];
         }
 
         return $chips;
@@ -435,7 +441,7 @@ class OperatorInbox extends Component
 
         return [
             'body' => (string) $note->body,
-            'author' => $note->author instanceof User ? (string) $note->author->name : 'Staff',
+            'author' => $note->author instanceof User ? (string) $note->author->name : __('php/livewire/operator/operator_inbox.staff_fallback'),
             'time' => $note->created_at !== null ? CarbonImmutable::parse($note->created_at)->diffForHumans() : '',
         ];
     }
@@ -467,7 +473,7 @@ class OperatorInbox extends Component
                     'id' => (string) $r->getKey(),
                     'label' => (string) $r->reference
                         .($unit !== null ? ' · '.($unit->name ?? $unit->code) : '')
-                        .' · '.CarbonImmutable::parse($r->check_in)->format('j M').'–'.CarbonImmutable::parse($r->check_out)->format('j M'),
+                        .' · '.CarbonImmutable::parse($r->check_in)->translatedFormat('j M').'–'.CarbonImmutable::parse($r->check_out)->translatedFormat('j M'),
                     'linked' => (string) $thread->reservation_id === (string) $r->getKey(),
                 ];
             })
@@ -487,7 +493,7 @@ class OperatorInbox extends Component
             'out' => $out,
             'body' => (string) $m->body,
             'author' => $out
-                ? ($m->author instanceof User ? (string) $m->author->name : ((string) $m->sender_label ?: 'Operator'))
+                ? ($m->author instanceof User ? (string) $m->author->name : ((string) $m->sender_label ?: __('php/livewire/operator/operator_inbox.operator_fallback')))
                 : $this->displayName($thread),
             'delivery' => $out ? $this->deliveryMeta((string) $m->delivery_status, (string) $m->channel) : null,
             // ⚠️ DEC-m (2026-09-30) — what an owner attached, for the staff they sent it to: each file opens through the
@@ -505,10 +511,10 @@ class OperatorInbox extends Component
     {
         return match ($status) {
             // ⚠️ 2026-10-05 — Direct "delivers" by keeping the message in Vyrobel (ManualChannel sends nothing): "Saved", never "Delivered"
-            'delivered' => ['label' => $channel === 'manual' ? 'Saved' : 'Delivered', 'failed' => false],
-            'sent' => ['label' => 'Sent', 'failed' => false],
-            'queued' => ['label' => 'Sending…', 'failed' => false],
-            'failed' => ['label' => 'Failed', 'failed' => true],
+            'delivered' => ['label' => $channel === 'manual' ? __('php/livewire/operator/operator_inbox.delivery_saved') : __('php/livewire/operator/operator_inbox.delivery_delivered'), 'failed' => false],
+            'sent' => ['label' => __('php/livewire/operator/operator_inbox.delivery_sent'), 'failed' => false],
+            'queued' => ['label' => __('php/livewire/operator/operator_inbox.delivery_queued'), 'failed' => false],
+            'failed' => ['label' => __('php/livewire/operator/operator_inbox.delivery_failed'), 'failed' => true],
             default => ['label' => ucfirst($status), 'failed' => false],
         };
     }
@@ -529,7 +535,7 @@ class OperatorInbox extends Component
 
         return [
             'name' => $this->displayName($thread),
-            'channel' => 'via '.$channel['label'],
+            'channel' => __('php/livewire/operator/operator_inbox.via_channel', ['channel' => $channel['label']]),
             'stat' => $stat,
             'guest_id' => $guest?->getKey() !== null ? (string) $guest->getKey() : null,
             /*
@@ -566,7 +572,10 @@ class OperatorInbox extends Component
             'id' => (string) $reservation->getKey(),
             'reference' => (string) $reservation->reference,
             'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : null,
-            'dates' => CarbonImmutable::parse($reservation->check_in)->format('j M').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M'),
+            'dates' => __('php/livewire/operator/operator_inbox.reservation_dates', [
+                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M'),
+                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M'),
+            ]),
             'status' => (string) $reservation->status,
             /*
              * D10-2 — the reservation's LIFECYCLE STAGE, from the ONE shared resolver.
@@ -622,7 +631,7 @@ class OperatorInbox extends Component
                 continue;
             }
 
-            $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: 'Guest';
+            $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: __('php/livewire/operator/operator_inbox.guest_fallback');
             $unit = $reservation->reservationUnits->first()?->unit;
             $unitLabel = $unit !== null ? (string) ($unit->name ?? $unit->code) : '';
             $in = CarbonImmutable::parse($reservation->check_in);
@@ -686,13 +695,13 @@ class OperatorInbox extends Component
     {
         $now = CarbonImmutable::now();
         if ($at->isSameDay($now)) {
-            return 'Today';
+            return __('common.today');
         }
         if ($at->isSameDay($now->subDay())) {
-            return 'Yesterday';
+            return __('php/livewire/operator/operator_inbox.yesterday');
         }
 
-        return $at->format('j M Y');
+        return $at->translatedFormat('j M Y');
     }
 
     private function shortTime(?\DateTimeInterface $at): string
@@ -707,10 +716,10 @@ class OperatorInbox extends Component
             return $at->format('H:i');
         }
         if ($at->greaterThan($now->subDays(6))) {
-            return $at->format('D');
+            return $at->translatedFormat('D');
         }
 
-        return $at->format('j M');
+        return $at->translatedFormat('j M');
     }
 
     private function resolveFilter(): ?string
@@ -726,7 +735,7 @@ class OperatorInbox extends Component
         return request()->query('sort') === 'oldest' ? 'oldest' : 'newest';
     }
 
-    /** A channel display LABEL to filter by, or null for all. Validated against the known channel labels. */
+    /** A channel filter CODE (the English word the URL carries) to filter by, or null for all. Validated against the known codes. */
     private function resolveChannel(): ?string
     {
         $c = request()->query('channel');

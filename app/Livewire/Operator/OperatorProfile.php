@@ -8,6 +8,7 @@ use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\User;
+use App\Support\I18n\Locales;
 use App\Support\Property\PropertyContext;
 use App\Support\Security\ActiveSessions;
 use App\Support\Time\TimezoneOptions;
@@ -28,15 +29,42 @@ class OperatorProfile extends Component
 {
     use FormatsOperatorData;
 
-    /** The REAL capabilities to summarise as "Key permissions" — read from the actual role via spatie can(). */
+    /**
+     * The REAL capabilities to summarise as "Key permissions" — read from the actual role via spatie can(). Their
+     * labels are translated at render time ({@see capLabel()}), never in this constant.
+     */
     private const KEY_CAPS = [
-        ['perm' => 'reservations.create', 'label' => 'Create & manage reservations'],
-        ['perm' => 'payments.record', 'label' => 'Take payments & issue refunds'],
-        ['perm' => 'payouts.manage', 'label' => 'Owner payouts & billing'],
-        ['perm' => 'messages.manage', 'label' => 'Guest & owner messages'],
-        ['perm' => 'reports.view', 'label' => 'Reports & analytics'],
-        ['perm' => 'users.manage', 'label' => 'Manage team & owners'],
+        'reservations.create',
+        'payments.record',
+        'payouts.manage',
+        'messages.manage',
+        'reports.view',
+        'users.manage',
     ];
+
+    /** A key capability's label, in the request's language. */
+    private function capLabel(string $perm): string
+    {
+        return match ($perm) {
+            'reservations.create' => __('php/livewire/operator/operator_profile.cap_reservations'),
+            'payments.record' => __('php/livewire/operator/operator_profile.cap_payments'),
+            'payouts.manage' => __('php/livewire/operator/operator_profile.cap_payouts'),
+            'messages.manage' => __('php/livewire/operator/operator_profile.cap_messages'),
+            'reports.view' => __('php/livewire/operator/operator_profile.cap_reports'),
+            'users.manage' => __('php/livewire/operator/operator_profile.cap_users'),
+            default => $perm,
+        };
+    }
+
+    /** The account status word (`users.status` is active | disabled). */
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'active' => __('php/livewire/operator/operator_profile.status_active'),
+            'disabled' => __('php/livewire/operator/operator_profile.status_disabled'),
+            default => ucfirst($status),
+        };
+    }
 
     public function render(): View
     {
@@ -49,7 +77,7 @@ class OperatorProfile extends Component
         // The REAL role capabilities — a read-only display, never fabricated. Key caps the user actually holds +
         // the full real permission set (spatie), "managed by your workspace admin".
         $keyCaps = collect(self::KEY_CAPS)
-            ->map(fn (array $c): array => ['label' => $c['label'], 'granted' => (bool) $user->can($c['perm'])])
+            ->map(fn (string $perm): array => ['label' => $this->capLabel($perm), 'granted' => (bool) $user->can($perm)])
             ->all();
         $allPermissions = $user->getAllPermissions()
             ->map(fn ($p): string => (string) $p->name)
@@ -62,7 +90,8 @@ class OperatorProfile extends Component
             'viewer' => $this->viewer(),
             'user' => $user,
             'roles' => $user->getRoleNames()->implode(' · '),
-            'memberSince' => $user->created_at?->format('M Y'),
+            'statusLabel' => $this->statusLabel((string) $user->status),
+            'memberSince' => $user->created_at?->translatedFormat('M Y'),
             'propertyLabel' => $property !== null ? (string) $property->name : null,
             // Personal details (real columns).
             'personal' => [
@@ -86,14 +115,9 @@ class OperatorProfile extends Component
             'twoFactorEnabled' => $user->hasTwoFactorEnabled(),
             'lastLogin' => $user->last_login_at,
             'sessions' => ActiveSessions::forUser((string) $user->getKey()),
-            'localeOptions' => ['en' => 'English', 'pt' => 'Português', 'es' => 'Español', 'fr' => 'Français'],
-            // The new select (2026-10-09): each language in its own name, with the English name beside it.
-            'languageOptions' => [
-                ['value' => 'en', 'label' => 'English'],
-                ['value' => 'pt', 'label' => 'Português', 'hint' => 'Portuguese'],
-                ['value' => 'es', 'label' => 'Español', 'hint' => 'Spanish'],
-                ['value' => 'fr', 'label' => 'Français', 'hint' => 'French'],
-            ],
+            'localeOptions' => Locales::offeredOptions(),
+            // The new select (2026-10-09): each language in its own name, with its name in the reader's language beside it.
+            'languageOptions' => Locales::pickerOptions(),
             // ⚠️ Every zone the `timezone` rule accepts — the page used to offer five, so a person elsewhere saw (and could
             //    save) Lisbon in place of their own zone. The saved zone is kept even if the list ever lacks it.
             'timezoneOptions' => TimezoneOptions::choices((string) ($user->timezone ?? ($property !== null ? $property->timezone : 'UTC'))),

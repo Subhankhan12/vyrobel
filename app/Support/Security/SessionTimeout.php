@@ -50,15 +50,21 @@ final class SessionTimeout
     {
         $minutes = (int) config('session.lifetime', 120);
 
-        return $minutes % 60 === 0 ? ($minutes / 60).' '.($minutes === 60 ? 'hour' : 'hours') : $minutes.' minutes';
+        if ($minutes % 60 === 0) {
+            $hours = intdiv($minutes, 60);
+
+            return trans_choice('php/support/security/session_timeout.hours', $hours, ['count' => $hours]);
+        }
+
+        return trans_choice('php/support/security/session_timeout.minutes', $minutes, ['count' => $minutes]);
     }
 
     public static function label(?int $minutes): string
     {
         return match ($minutes) {
-            null => 'Off — '.self::defaultLabel().' (the default)',
-            60 => '1 hour',
-            default => $minutes.' minutes',
+            null => __('php/support/security/session_timeout.off_default', ['default' => self::defaultLabel()]),
+            60 => trans_choice('php/support/security/session_timeout.hours', 1, ['count' => 1]),
+            default => trans_choice('php/support/security/session_timeout.minutes', $minutes, ['count' => $minutes]),
         };
     }
 }

@@ -31,15 +31,64 @@ final class SecurityScore
         'login_alerts' => 5,
     ];
 
-    /** @var array<string, array{label: string, desc: string, button: string, target: string, caption: string}> */
-    private const COPY = [
-        'password' => ['label' => 'Set a password', 'desc' => 'Sign in with your email and a password.', 'button' => 'Set', 'target' => '#sx-password', 'caption' => 'Set a password so you can always sign in.'],
-        'two_factor' => ['label' => 'Turn on two-factor', 'desc' => 'A code from your phone at each sign-in.', 'button' => 'Enable', 'target' => '#sx-two-factor', 'caption' => 'Turn on two-factor to strengthen your account.'],
-        'recovery_codes' => ['label' => 'Save recovery codes', 'desc' => 'Back-up codes for a lost phone.', 'button' => 'Enable', 'target' => '#sx-two-factor', 'caption' => 'Save your recovery codes so a lost phone can’t lock you out.'],
-        'passkey' => ['label' => 'Add a passkey', 'desc' => 'Face or fingerprint instead of a password.', 'button' => 'Enable', 'target' => '#sx-passkeys', 'caption' => 'Add a passkey for a faster, safer sign-in.'],
-        'login_approval' => ['label' => 'Approve new devices', 'desc' => 'A new device waits for your yes.', 'button' => 'Enable', 'target' => '#sx-approval', 'caption' => 'Approve new devices before they can sign in.'],
-        'login_alerts' => ['label' => 'Login alerts', 'desc' => 'Hear about sign-ins from new devices.', 'button' => 'Enable', 'target' => '#sx-alerts', 'caption' => 'Turn on login alerts to hear about new sign-ins.'],
+    /** Where each protection's button points (its row on the page). The words are {@see copy()}, translated at call time. */
+    private const TARGETS = [
+        'password' => '#sx-password',
+        'two_factor' => '#sx-two-factor',
+        'recovery_codes' => '#sx-two-factor',
+        'passkey' => '#sx-passkeys',
+        'login_approval' => '#sx-approval',
+        'login_alerts' => '#sx-alerts',
     ];
+
+    /**
+     * One protection's words, by its key (I18N-01 — translated when the score is built, never in a constant).
+     *
+     * @return array{label: string, desc: string, button: string, target: string, caption: string}
+     */
+    private static function copy(string $key): array
+    {
+        $words = match ($key) {
+            'password' => [
+                'label' => __('php/support/security/security_score.password_label'),
+                'desc' => __('php/support/security/security_score.password_desc'),
+                'button' => __('php/support/security/security_score.button_set'),
+                'caption' => __('php/support/security/security_score.password_caption'),
+            ],
+            'two_factor' => [
+                'label' => __('php/support/security/security_score.two_factor_label'),
+                'desc' => __('php/support/security/security_score.two_factor_desc'),
+                'button' => __('php/support/security/security_score.button_enable'),
+                'caption' => __('php/support/security/security_score.two_factor_caption'),
+            ],
+            'recovery_codes' => [
+                'label' => __('php/support/security/security_score.recovery_codes_label'),
+                'desc' => __('php/support/security/security_score.recovery_codes_desc'),
+                'button' => __('php/support/security/security_score.button_enable'),
+                'caption' => __('php/support/security/security_score.recovery_codes_caption'),
+            ],
+            'passkey' => [
+                'label' => __('php/support/security/security_score.passkey_label'),
+                'desc' => __('php/support/security/security_score.passkey_desc'),
+                'button' => __('php/support/security/security_score.button_enable'),
+                'caption' => __('php/support/security/security_score.passkey_caption'),
+            ],
+            'login_approval' => [
+                'label' => __('php/support/security/security_score.login_approval_label'),
+                'desc' => __('php/support/security/security_score.login_approval_desc'),
+                'button' => __('php/support/security/security_score.button_enable'),
+                'caption' => __('php/support/security/security_score.login_approval_caption'),
+            ],
+            default => [
+                'label' => __('php/support/security/security_score.login_alerts_label'),
+                'desc' => __('php/support/security/security_score.login_alerts_desc'),
+                'button' => __('php/support/security/security_score.button_enable'),
+                'caption' => __('php/support/security/security_score.login_alerts_caption'),
+            ],
+        };
+
+        return $words + ['target' => self::TARGETS[$key] ?? ''];
+    }
 
     /**
      * @param  array<string, array{done: bool, offered: bool}>  $state  one entry per key of WEIGHTS
@@ -63,12 +112,12 @@ final class SecurityScore
 
         foreach ($offered as $key => $weight) {
             $done = ($state[$key]['done'] ?? false) === true;
-            $copy = self::COPY[$key];
+            $copy = self::copy($key);
             $protections[] = [
                 'key' => $key,
                 'label' => $copy['label'],
                 'desc' => $key === 'recovery_codes' && ! ($state['two_factor']['done'] ?? false)
-                    ? 'They come with two-factor — turn it on first.'
+                    ? __('php/support/security/security_score.recovery_codes_need_two_factor')
                     : $copy['desc'],
                 'button' => $copy['button'],
                 'action' => $copy['label'],
@@ -86,8 +135,8 @@ final class SecurityScore
 
         return [
             'num' => $num,
-            'tier' => $num >= 85 ? 'Strong' : ($num >= 55 ? 'Good' : 'Basic'),
-            'caption' => $next === null ? 'All protections are on — your account is fully secured.' : self::COPY[$next]['caption'],
+            'tier' => $num >= 85 ? __('php/support/security/security_score.tier_strong') : ($num >= 55 ? __('php/support/security/security_score.tier_good') : __('php/support/security/security_score.tier_basic')),
+            'caption' => $next === null ? __('php/support/security/security_score.all_on_caption') : self::copy($next)['caption'],
             'on' => $on,
             'total' => count($offered),
             'available' => 100 - $num,

@@ -130,14 +130,14 @@ final class RosterWeek
             $notWorking[] = [
                 'init' => $r['staff']['initials'],
                 'name' => $r['staff']['name'],
-                'reason' => $cell['on_leave'] ? 'On leave' : 'Day off',
+                'reason' => $cell['on_leave'] ? __('php/support/schedule/roster_week.on_leave') : __('php/support/schedule/roster_week.day_off'),
             ];
         }
 
         return [
             'date' => $day['date'],
             'index' => $focusIdx,
-            'label' => CarbonImmutable::parse($day['date'])->format('l j M'),
+            'label' => CarbonImmutable::parse($day['date'])->translatedFormat('l j M'),
             'working_count' => $workingCount,
             'groups' => $groups,
             'not_working' => $notWorking,
@@ -269,7 +269,7 @@ final class RosterWeek
             ->map(fn (OpenShift $o): array => [
                 'id' => (string) $o->getKey(),
                 'date' => $o->date->toDateString(),
-                'day_label' => $o->date->format('D j M'),
+                'day_label' => $o->date->translatedFormat('D j M'),
                 'shift_label' => ShiftType::label((string) $o->shift_type),
                 'department' => $o->department,
             ])->all();
@@ -290,7 +290,7 @@ final class RosterWeek
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $d = $monday->addDays($i);
-            $days[] = ['date' => $d->toDateString(), 'dow' => $d->format('D'), 'label' => $d->format('j M'), 'today' => $d->isSameDay($today)];
+            $days[] = ['date' => $d->toDateString(), 'dow' => $d->translatedFormat('D'), 'label' => $d->translatedFormat('j M'), 'today' => $d->isSameDay($today)];
         }
         $from = $days[0]['date'];
         $to = $days[6]['date'];
@@ -335,7 +335,7 @@ final class RosterWeek
                     'working' => $working,
                     'on_leave' => $onLeave,
                     'conflict' => $conflict,
-                    'display' => $onLeave ? 'Leave' : ($working ? ShiftType::label($type) : '—'),
+                    'display' => $onLeave ? __('php/support/schedule/roster_week.leave') : ($working ? ShiftType::label($type) : '—'),
                 ];
             }, $days);
 
@@ -345,7 +345,7 @@ final class RosterWeek
         return new self(
             days: $days,
             rows: $rows,
-            weekLabel: $monday->format('j M').' – '.$monday->addDays(6)->format('j M Y'),
+            weekLabel: __('php/support/schedule/roster_week.week_range', ['start' => $monday->translatedFormat('j M'), 'end' => $monday->addDays(6)->translatedFormat('j M Y')]),
             isThisWeek: $week === 0,
             week: $week,
             dept: $dept,

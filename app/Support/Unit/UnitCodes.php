@@ -47,10 +47,10 @@ final class UnitCodes
         }
 
         if ($specs === []) {
-            return ['codes' => [], 'error' => 'Enter at least one unit code.'];
+            return ['codes' => [], 'error' => __('php/support/unit/unit_codes.none_entered')];
         }
         if ($total > self::MAX) {
-            return ['codes' => [], 'error' => 'That is '.number_format($total).' units — add at most '.self::MAX.' at a time.'];
+            return ['codes' => [], 'error' => __('php/support/unit/unit_codes.too_many', ['total' => number_format($total), 'max' => self::MAX])];
         }
 
         $codes = [];
@@ -58,11 +58,11 @@ final class UnitCodes
         foreach ($specs as $spec) {
             foreach (self::expand($spec) as $code) {
                 if (mb_strlen($code) > self::MAX_LENGTH) {
-                    return ['codes' => [], 'error' => '“'.mb_substr($code, 0, 24).'…” is longer than '.self::MAX_LENGTH.' characters.'];
+                    return ['codes' => [], 'error' => __('php/support/unit/unit_codes.too_long', ['start' => mb_substr($code, 0, 24), 'max' => self::MAX_LENGTH])];
                 }
                 $key = mb_strtolower($code);
                 if (isset($seen[$key])) {
-                    return ['codes' => [], 'error' => $code.' is listed twice.'];
+                    return ['codes' => [], 'error' => __('php/support/unit/unit_codes.listed_twice', ['code' => $code])];
                 }
                 $seen[$key] = true;
                 $codes[] = $code;
@@ -107,7 +107,9 @@ final class UnitCodes
         $shown = array_slice($parts, 0, 6);
         $more = count($parts) - count($shown);
 
-        return implode(', ', $shown).($more > 0 ? ' and '.$more.' more' : '');
+        return $more > 0
+            ? trans_choice('php/support/unit/unit_codes.summary_more', $more, ['codes' => implode(', ', $shown), 'count' => $more])
+            : implode(', ', $shown);
     }
 
     /** @return array{part: string, prefix: string, from: int, to: int, width: int, count: int} */

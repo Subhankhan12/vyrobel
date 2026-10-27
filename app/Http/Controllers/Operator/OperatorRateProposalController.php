@@ -42,17 +42,17 @@ class OperatorRateProposalController extends Controller
         ], [
             // ⚠️ 2026-10-03 — the owner's page reopens its dialog with these beside the fields; before, a refused proposal
             //    closed the form and the page said nothing.
-            'rate.required' => 'Enter the nightly rate you propose.',
-            'weekend_uplift.numeric' => 'The weekend uplift is a percentage between 0 and 200.',
-            'weekend_uplift.min' => 'The weekend uplift is a percentage between 0 and 200.',
-            'weekend_uplift.max' => 'The weekend uplift is a percentage between 0 and 200.',
-            'min_stay.integer' => 'The minimum stay is a whole number of nights, 1 to 365.',
-            'min_stay.min' => 'The minimum stay is a whole number of nights, 1 to 365.',
-            'min_stay.max' => 'The minimum stay is a whole number of nights, 1 to 365.',
-            'from_date.required' => 'Choose the first night.',
-            'to_date.required' => 'Choose the last night.',
-            'to_date.after_or_equal' => 'The last night has to be on or after the first.',
-            'note.max' => 'A note to the owner can be up to 500 characters.',
+            'rate.required' => __('php/http/controllers/operator/operator_rate_proposal_controller.rate_required'),
+            'weekend_uplift.numeric' => __('php/http/controllers/operator/operator_rate_proposal_controller.weekend_uplift_range'),
+            'weekend_uplift.min' => __('php/http/controllers/operator/operator_rate_proposal_controller.weekend_uplift_range'),
+            'weekend_uplift.max' => __('php/http/controllers/operator/operator_rate_proposal_controller.weekend_uplift_range'),
+            'min_stay.integer' => __('php/http/controllers/operator/operator_rate_proposal_controller.min_stay_range'),
+            'min_stay.min' => __('php/http/controllers/operator/operator_rate_proposal_controller.min_stay_range'),
+            'min_stay.max' => __('php/http/controllers/operator/operator_rate_proposal_controller.min_stay_range'),
+            'from_date.required' => __('php/http/controllers/operator/operator_rate_proposal_controller.from_date_required'),
+            'to_date.required' => __('php/http/controllers/operator/operator_rate_proposal_controller.to_date_required'),
+            'to_date.after_or_equal' => __('php/http/controllers/operator/operator_rate_proposal_controller.to_date_after_from'),
+            'note.max' => __('php/http/controllers/operator/operator_rate_proposal_controller.note_max'),
         ]);
 
         // The owner must belong to the operator's tenant (Owner is BelongsToOrganization → org-scoped).
@@ -60,7 +60,7 @@ class OperatorRateProposalController extends Controller
 
         $priceMinor = MoneyInput::toMinor((string) $data['rate'], self::MAX_PRICE_MINOR);
         if ($priceMinor === null) {
-            return back()->withInput()->withErrors(['rate' => 'Enter a valid nightly rate, e.g. 175 or 175.50.']);
+            return back()->withInput()->withErrors(['rate' => __('php/http/controllers/operator/operator_rate_proposal_controller.rate_invalid')]);
         }
 
         $back = route('app.owners.show', $owner->getKey());
@@ -81,7 +81,7 @@ class OperatorRateProposalController extends Controller
             return redirect()->to($back)->withInput()->with('rate_error', $e->getMessage());
         }
 
-        return redirect()->to($back)->with('rate_notice', 'Rate proposal sent to the owner for approval.');
+        return redirect()->to($back)->with('rate_notice', __('php/http/controllers/operator/operator_rate_proposal_controller.proposal_sent'));
     }
 
     public function withdraw(Request $request, string $proposal): RedirectResponse
@@ -93,10 +93,10 @@ class OperatorRateProposalController extends Controller
         try {
             $this->proposals->withdraw($model, $request->user());
         } catch (\RuntimeException) {
-            return redirect()->to($back)->with('rate_notice', 'That proposal was already decided.');
+            return redirect()->to($back)->with('rate_notice', __('php/http/controllers/operator/operator_rate_proposal_controller.already_decided'));
         }
 
-        return redirect()->to($back)->with('rate_notice', 'Proposal withdrawn.');
+        return redirect()->to($back)->with('rate_notice', __('php/http/controllers/operator/operator_rate_proposal_controller.proposal_withdrawn'));
     }
 
     /**
@@ -112,9 +112,9 @@ class OperatorRateProposalController extends Controller
         try {
             $this->proposals->acceptCounter($model, $request->user());
         } catch (\RuntimeException) {
-            return redirect()->to($back)->with('rate_notice', 'That counter is no longer open.');
+            return redirect()->to($back)->with('rate_notice', __('php/http/controllers/operator/operator_rate_proposal_controller.counter_not_open'));
         }
 
-        return redirect()->to($back)->with('rate_notice', 'Counter accepted — the owner’s rate is now live.');
+        return redirect()->to($back)->with('rate_notice', __('php/http/controllers/operator/operator_rate_proposal_controller.counter_accepted'));
     }
 }

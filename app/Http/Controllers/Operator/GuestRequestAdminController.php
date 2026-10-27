@@ -44,7 +44,7 @@ class GuestRequestAdminController extends Controller
                 'reference' => (string) ($r->reservation->reference ?? ''),
                 'type' => $this->typeLabel((string) $r->type),
                 'detail' => $this->detail($r),
-                'at' => CarbonImmutable::parse($r->created_at)->format('j M Y · H:i'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y · H:i'),
             ]);
 
         return response()->view('operator.guest-requests', ['requests' => $pending->all()]);
@@ -54,14 +54,14 @@ class GuestRequestAdminController extends Controller
     {
         $this->requests->confirm($this->owned($guestRequest));
 
-        return back()->with('status', 'Request confirmed — now apply the change with your tools (front desk / reservations / folio).');
+        return back()->with('status', __('php/http/controllers/operator/guest_request_admin_controller.request_confirmed'));
     }
 
     public function decline(string $guestRequest): RedirectResponse
     {
         $this->requests->decline($this->owned($guestRequest));
 
-        return back()->with('status', 'Request declined.');
+        return back()->with('status', __('php/http/controllers/operator/guest_request_admin_controller.request_declined'));
     }
 
     /** This org's request, or 404 — resolved in-action so the tenant scope is set (cross-org → not found). */
@@ -73,10 +73,10 @@ class GuestRequestAdminController extends Controller
     private function typeLabel(string $type): string
     {
         return match ($type) {
-            GuestChangeRequest::TYPE_DATE_CHANGE => 'Date change',
-            GuestChangeRequest::TYPE_ADD_ON => 'Add-ons',
-            GuestChangeRequest::TYPE_CANCELLATION => 'Cancellation',
-            default => 'Change',
+            GuestChangeRequest::TYPE_DATE_CHANGE => __('php/http/controllers/operator/guest_request_admin_controller.type_date_change'),
+            GuestChangeRequest::TYPE_ADD_ON => __('php/http/controllers/operator/guest_request_admin_controller.type_add_ons'),
+            GuestChangeRequest::TYPE_CANCELLATION => __('php/http/controllers/operator/guest_request_admin_controller.type_cancellation'),
+            default => __('php/http/controllers/operator/guest_request_admin_controller.type_change'),
         };
     }
 

@@ -70,6 +70,6 @@ class RequirePasswordBeforeReauth
         return redirect()
             ->route($target)
             ->withInput($request->except(['current_password', 'password', 'password_confirmation', '_token']))
-            ->with('password_status', 'This action needs confirming with your password, and your account does not have one yet. Set one now and you will be brought back.');
+            ->with('password_status', __('php/http/middleware/require_password_before_reauth.set_password_first'));
     }
 }

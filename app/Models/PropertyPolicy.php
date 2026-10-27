@@ -42,7 +42,12 @@ class PropertyPolicy extends Model
             return null;
         }
 
-        return self::RULE_LABELS[trim($value)] ?? trim($value);
+        return match (trim($value)) {
+            'allowed' => (string) __('php/models/property_policy.rule_allowed'),
+            'on_request' => (string) __('php/models/property_policy.rule_on_request'),
+            'not_allowed' => (string) __('php/models/property_policy.rule_not_allowed'),
+            default => trim($value),
+        };
     }
 
     protected $fillable = [

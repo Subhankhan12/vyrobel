@@ -51,7 +51,7 @@ class RefuseSuspendedOrganization
             return $next($request);
         }
 
-        $message = 'Access to this organisation’s Vyrobel workspace is suspended.';
+        $message = __('php/http/middleware/refuse_suspended_organization.suspended_json');
 
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json(['message' => $message], 403);
@@ -59,12 +59,10 @@ class RefuseSuspendedOrganization
 
         return response()->view('errors.layout', [
             'code' => 403,
-            'title' => 'This workspace is suspended',
-            'message' => ($organization !== null ? $organization->name.'’s' : 'This')
-                .' Vyrobel workspace has been suspended, so the back office and the owner portal can’t be opened '
-                .'right now. Nothing has been deleted — reservations, guests and payments are kept exactly as they '
-                .'were, and guests can still reach their own bookings. To find out why, or to restore access, '
-                .'contact Vyrobel.',
+            'title' => __('php/http/middleware/refuse_suspended_organization.title'),
+            'message' => $organization !== null
+                ? __('php/http/middleware/refuse_suspended_organization.message_named', ['organization' => (string) $organization->name])
+                : __('php/http/middleware/refuse_suspended_organization.message'),
             'actions' => 'errors.partials.suspended-actions',
             'otherWorkspaces' => OtherWorkspaces::for($request->user(), $organizationId),
         ], 403);

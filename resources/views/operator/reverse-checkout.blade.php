@@ -2,11 +2,11 @@
      ⚠️ THE WHOLE POINT IS THAT THE CONSEQUENCES APPEAR BEFORE THE PRESS, NOT AFTER IT. The three blocks below
      are the action's own preview() — what will be reversed, what will NOT be, and what the guest has already
      received. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-layouts.operator title="Reverse checkout">
-<x-operator.shell active="front-desk" title="Reverse this checkout" subtitle="{{ $reservation->reference }}">
+<x-layouts.operator :title="__('operator/reverse-checkout.page_title')">
+<x-operator.shell active="front-desk" :title="__('operator/reverse-checkout.heading')" subtitle="{{ $reservation->reference }}">
 
     <div class="vy-card">
-        <h2 class="vy-card-title">What this will reverse</h2>
+        <h2 class="vy-card-title">{{ __('operator/reverse-checkout.will_reverse') }}</h2>
         <ul>
             @foreach ($disclosure['reversible'] as $line)
                 <li>{{ $line }}</li>
@@ -15,7 +15,7 @@
     </div>
 
     <div class="vy-card">
-        <h2 class="vy-card-title">What this will NOT reverse</h2>
+        <h2 class="vy-card-title">{{ __('operator/reverse-checkout.will_not_reverse') }}</h2>
         <ul>
             @foreach ($disclosure['not_reversed'] as $line)
                 <li>{{ $line }}</li>
@@ -28,11 +28,11 @@
     <div class="vy-card {{ $disclosure['review_email']['known'] ? '' : 'is-warn' }}">
         <h2 class="vy-card-title">
             @if (! $disclosure['review_email']['known'])
-                The review request — we have no record
+                {{ __('operator/reverse-checkout.review_request_unknown') }}
             @elseif ($disclosure['review_email']['sent'])
-                The review request — already sent
+                {{ __('operator/reverse-checkout.review_request_sent') }}
             @else
-                The review request — not sent
+                {{ __('operator/reverse-checkout.review_request_not_sent') }}
             @endif
         </h2>
         <p>{{ $disclosure['review_email']['message'] }}</p>
@@ -40,8 +40,8 @@
 
     <form method="POST" action="{{ route('app.front-desk.reverse-checkout.store', $reservation->getKey()) }}">
         @csrf
-        <button type="submit" class="vy-btn is-primary">Reverse the checkout</button>
-        <a class="vy-btn" href="{{ route('app.front-desk') }}">Cancel</a>
+        <button type="submit" class="vy-btn is-primary">{{ __('operator/reverse-checkout.reverse_button') }}</button>
+        <a class="vy-btn" href="{{ route('app.front-desk') }}">{{ __('common.cancel') }}</a>
     </form>
 
 </x-operator.shell>

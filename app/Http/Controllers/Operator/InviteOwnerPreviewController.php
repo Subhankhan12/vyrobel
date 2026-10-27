@@ -36,7 +36,7 @@ class InviteOwnerPreviewController extends Controller
         ]);
 
         // The REAL Mailable, rendered to HTML — a preview never sends and never redeems (placeholder token).
-        $html = (new OwnerInviteMail($invite, 'preview-not-a-real-token', 'Sample Recipient'))->render();
+        $html = (new OwnerInviteMail($invite, 'preview-not-a-real-token', __('php/http/controllers/operator/invite_owner_preview_controller.sample_recipient')))->render();
 
         return Response::make($html);
     }

@@ -61,13 +61,14 @@ final class OperatorRevenueBreakdown
     public static function sourceLabel(string $source): string
     {
         return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'ota' => 'OTA',
-            default => ucwords(str_replace('_', ' ', $source)),
+            'direct' => __('php/support/reports/operator_revenue_breakdown.source_direct'),
+            'walk_in' => __('php/support/reports/operator_revenue_breakdown.source_walk_in'),
+            'corporate' => __('php/support/reports/operator_revenue_breakdown.source_corporate'),
+            'group' => __('php/support/reports/operator_revenue_breakdown.source_group'),
+            'agent' => __('php/support/reports/operator_revenue_breakdown.source_agent'),
+            'ota' => __('php/support/reports/operator_revenue_breakdown.source_ota'),
+            'manual' => __('php/support/reports/operator_revenue_breakdown.source_manual'),
+            default => ucwords(str_replace('_', ' ', $source)),   // an unknown code, shown as itself
         };
     }
 
@@ -113,7 +114,7 @@ final class OperatorRevenueBreakdown
         $cursor = $start->startOfMonth();
         $guard = 0;
         while ($cursor->lessThan($end) && $guard < 13) {
-            $buckets[$cursor->format('Y-m')] = ['month' => $cursor->format('Y-m'), 'label' => $cursor->format('M'), 'revenue_minor' => 0];
+            $buckets[$cursor->format('Y-m')] = ['month' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat('M'), 'revenue_minor' => 0];
             $cursor = $cursor->addMonth();
             $guard++;
         }

@@ -18,7 +18,7 @@
      ⚠️ RAW-BLADE RULE: never `word@directive`. Alpine handlers use `x-on:` / `x-bind:`. --}}
 <div>
     {{-- The page heading is the kind of page, as on a work order; the owner's name heads the card below it, once. --}}
-    <x-operator.shell active="owners" title="Owner" subtitle="Their statements, payouts, agreement and units" :viewer="$viewer">
+    <x-operator.shell active="owners" :title="__('livewire/operator/owner-detail.page_title')" :subtitle="__('livewire/operator/owner-detail.page_subtitle')" :viewer="$viewer">
         @php
             // Which dialog a refused write reopens: the form says which it was (`_form`), and what was typed comes back.
             $vyForm = (string) old('_form');
@@ -61,7 +61,7 @@
 
             <a class="vy-convo-back vyo-back" href="{{ route('app.owners') }}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-                All owners
+                {{ __('livewire/operator/owner-detail.all_owners') }}
             </a>
 
             {{-- ══ WHO — and every action on them, in one bar ══════════════════════════════════════════════════════════════ --}}
@@ -76,9 +76,9 @@
                         <div class="vyo-hero-tags">
                             <span class="vy-tag tone-{{ $owner['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $owner['status_meta']['label'] }}</span>
                             <span class="vyo-hero-fact">{{ $owner['type_label'] }}</span>
-                            <span class="vyo-hero-fact">Paid in {{ $owner['payout_currency'] }}</span>
+                            <span class="vyo-hero-fact">{{ __('livewire/operator/owner-detail.paid_in', ['currency' => $owner['payout_currency']]) }}</span>
                             @if ($payoutPaused)
-                                <span class="vyo-tag-paused">Payouts paused</span>
+                                <span class="vyo-tag-paused">{{ __('livewire/operator/owner-detail.payouts_paused') }}</span>
                             @endif
                         </div>
                         {{-- The operator's own record of a counterparty they invited (tax id and address are never read). --}}
@@ -89,7 +89,7 @@
                                     <span>{{ $owner['email'] }}</span>
                                 </a>
                             @else
-                                <span class="vyo-hero-none">No email on record</span>
+                                <span class="vyo-hero-none">{{ __('livewire/operator/owner-detail.no_email') }}</span>
                             @endif
                             @if ($owner['phone'])
                                 <a class="vyo-hero-link" href="tel:{{ preg_replace('/[^0-9+]/', '', $owner['phone']) }}">
@@ -106,23 +106,23 @@
                         @if ($canManage)
                             <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="commissionOpen = true">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-                                Change commission
+                                {{ __('livewire/operator/owner-detail.change_commission') }}
                             </button>
                             <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="pauseOpen = true">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@if ($payoutPaused)<path d="M8 5l11 7-11 7z"/>@else<path d="M9 5v14M15 5v14"/>@endif</svg>
-                                {{ $payoutPaused ? 'Resume payouts' : 'Pause payouts' }}
+                                {{ $payoutPaused ? __('livewire/operator/owner-detail.resume_payouts') : __('livewire/operator/owner-detail.pause_payouts') }}
                             </button>
                         @endif
                         @if ($canPayout)
                             <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="closeOpen = true">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>
-                                Close a period
+                                {{ __('livewire/operator/owner-detail.close_a_period') }}
                             </button>
                         @endif
                         @if ($canManage)
                             <button type="button" class="vy-btn vy-btn--ghost vyo-sm is-danger" x-on:click="removeOpen = true">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
-                                Remove owner
+                                {{ __('livewire/operator/owner-detail.remove_owner') }}
                             </button>
                         @endif
                     </div>
@@ -132,30 +132,30 @@
             {{-- ══ The figures — DERIVED from the real ledger and payouts, per currency, never summed across (#17) ═════════ --}}
             <div class="vy-dash-kpis vyo-kpis vy-fade">
                 <div class="vy-dash-kpi is-feature">
-                    <div class="vy-dk-label">Balance</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owner-detail.kpi_balance') }}</div>
                     @foreach ($kpis['balance'] as $line)
                         <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                     @endforeach
-                    <div class="vy-dk-sub">Every owner-ledger line, netted{{ $kpis['multi_currency'] ? ' · per currency, never summed across' : '' }}</div>
+                    <div class="vy-dk-sub">{{ $kpis['multi_currency'] ? __('livewire/operator/owner-detail.balance_sub_multi') : __('livewire/operator/owner-detail.balance_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Paid out</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owner-detail.kpi_paid_out') }}</div>
                     @foreach ($kpis['paid'] as $line)
                         <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                     @endforeach
-                    <div class="vy-dk-sub">Payouts marked paid</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/owner-detail.kpi_paid_out_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Waiting to be paid</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owner-detail.kpi_waiting') }}</div>
                     @foreach ($kpis['pending'] as $line)
                         <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                     @endforeach
-                    <div class="vy-dk-sub">Payouts created, not paid yet</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/owner-detail.kpi_waiting_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Paid this year</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/owner-detail.kpi_paid_year') }}</div>
                     <div class="vy-dk-val">{{ $paidYear['display'] }}</div>
-                    <div class="vy-dk-sub">{{ $paidYear['count'] }} {{ \Illuminate\Support\Str::plural('payout', $paidYear['count']) }} · {{ $occupancy }}% occupancy</div>
+                    <div class="vy-dk-sub">{{ trans_choice('livewire/operator/owner-detail.kpi_paid_year_sub', $paidYear['count'], ['count' => $paidYear['count'], 'occupancy' => $occupancy]) }}</div>
                 </div>
             </div>
 
@@ -166,36 +166,36 @@
                     @if ($netToOwner)
                         <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-net-t">
                             <div class="vy-detail-head vyo-card-head">
-                                <h2 class="vy-card-title" id="vyod-net-t">Net to owner · {{ $netToOwner['period'] }}</h2>
-                                <span class="vy-eyebrow">reconciles to the cent</span>
+                                <h2 class="vy-card-title" id="vyod-net-t">{{ __('livewire/operator/owner-detail.net_to_owner_heading', ['period' => $netToOwner['period']]) }}</h2>
+                                <span class="vy-eyebrow">{{ __('livewire/operator/owner-detail.reconciles') }}</span>
                             </div>
                             <div class="vyo-net-grid">
                                 <div>
-                                    <div class="vyo-net-label">Credited</div>
+                                    <div class="vyo-net-label">{{ __('livewire/operator/owner-detail.credited') }}</div>
                                     @foreach ($netToOwner['credits'] as $c)
                                         <div class="vyo-net-row"><span>{{ $c['label'] }}</span><span class="vy-u-code">{{ $c['display'] }}</span></div>
                                     @endforeach
-                                    <div class="vyo-net-row is-sum"><span>Credited</span><span class="vy-u-code">{{ $netToOwner['credited_display'] }}</span></div>
+                                    <div class="vyo-net-row is-sum"><span>{{ __('livewire/operator/owner-detail.credited') }}</span><span class="vy-u-code">{{ $netToOwner['credited_display'] }}</span></div>
                                 </div>
                                 <div>
-                                    <div class="vyo-net-label">Deducted <span class="vyo-net-note">incl. {{ $netToOwner['commission_pct'] ?? '—' }}% commission</span></div>
+                                    <div class="vyo-net-label">{{ __('livewire/operator/owner-detail.deducted') }} <span class="vyo-net-note">{{ __('livewire/operator/owner-detail.incl_commission', ['pct' => $netToOwner['commission_pct'] ?? '—']) }}</span></div>
                                     @foreach ($netToOwner['deductions'] as $d)
                                         <div class="vyo-net-row"><span>{{ $d['label'] }}</span><span class="vy-u-code">{{ $d['display'] }}</span></div>
                                     @endforeach
-                                    <div class="vyo-net-row is-sum"><span>Deducted</span><span class="vy-u-code">{{ $netToOwner['deducted_display'] }}</span></div>
+                                    <div class="vyo-net-row is-sum"><span>{{ __('livewire/operator/owner-detail.deducted') }}</span><span class="vy-u-code">{{ $netToOwner['deducted_display'] }}</span></div>
                                 </div>
                             </div>
-                            <div class="vyo-net-total"><span>Net to owner</span><span class="vy-u-code">{{ $netToOwner['net_display'] }}</span></div>
+                            <div class="vyo-net-total"><span>{{ __('livewire/operator/owner-detail.net_to_owner') }}</span><span class="vy-u-code">{{ $netToOwner['net_display'] }}</span></div>
                         </section>
                     @endif
 
                     {{-- Statements — REAL rows. No link: the statement page is the OWNER's, and an operator would get a 404. --}}
                     <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-st-t">
                         <div class="vy-detail-head vyo-card-head">
-                            <h2 class="vy-card-title" id="vyod-st-t">Statements <span class="vyo-count">{{ count($statements) }}</span></h2>
+                            <h2 class="vy-card-title" id="vyod-st-t">{{ __('livewire/operator/owner-detail.statements') }} <span class="vyo-count">{{ count($statements) }}</span></h2>
                             {{-- ⚠️ AUDIT H-2 — the front door for `app.owners.close-period`, gated on the route's own permission. --}}
                             @if ($canPayout)
-                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="closeOpen = true">Close a period</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="closeOpen = true">{{ __('livewire/operator/owner-detail.close_a_period') }}</button>
                             @endif
                         </div>
                         @if (count($statements) > 0)
@@ -203,12 +203,12 @@
                                 <table class="vy-utable">
                                     <thead>
                                         <tr>
-                                            <th>No.</th>
-                                            <th>Period</th>
-                                            <th>Gross</th>
-                                            <th>Commission</th>
-                                            <th>Net payable</th>
-                                            <th>Status</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_number') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_period') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_gross') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_commission') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_net_payable') }}</th>
+                                            <th>{{ __('common.status') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -218,7 +218,7 @@
                                                 <td>
                                                     <div>{{ $st['period'] }}</div>
                                                     @if ($st['finalized'])
-                                                        <div class="vy-u-sub">Finalized {{ $st['finalized'] }}</div>
+                                                        <div class="vy-u-sub">{{ __('livewire/operator/owner-detail.finalized_on', ['date' => $st['finalized']]) }}</div>
                                                     @endif
                                                 </td>
                                                 <td class="vyo-num">{{ $st['gross'] }}</td>
@@ -228,8 +228,8 @@
                                                     <span class="vy-tag tone-{{ $st['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $st['status_meta']['label'] }}</span>
                                                     @if ($st['has_unverified'] || $st['locked'])
                                                         <div class="vyo-flags">
-                                                            @if ($st['has_unverified'])<span class="vy-ledger-flag">Unverified lines</span>@endif
-                                                            @if ($st['locked'])<span class="vy-ledger-flag">Locked</span>@endif
+                                                            @if ($st['has_unverified'])<span class="vy-ledger-flag">{{ __('livewire/operator/owner-detail.unverified_lines') }}</span>@endif
+                                                            @if ($st['locked'])<span class="vy-ledger-flag">{{ __('livewire/operator/owner-detail.locked') }}</span>@endif
                                                         </div>
                                                     @endif
                                                 </td>
@@ -240,9 +240,9 @@
                             </div>
                         @else
                             <div class="vy-empty vyo-empty">
-                                No statements for this owner yet.
+                                {{ __('livewire/operator/owner-detail.no_statements') }}
                                 @if ($canPayout)
-                                    <p class="vyo-empty-sub">Close a period to produce the first one — a payout can only be created from a finalised statement.</p>
+                                    <p class="vyo-empty-sub">{{ __('livewire/operator/owner-detail.no_statements_hint') }}</p>
                                 @endif
                             </div>
                         @endif
@@ -251,9 +251,9 @@
                     {{-- Payouts — REAL rows; the method from the SHARED RailLabel map, a failure with its real reason. --}}
                     <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-po-t">
                         <div class="vy-detail-head vyo-card-head">
-                            <h2 class="vy-card-title" id="vyod-po-t">Payouts <span class="vyo-count">{{ count($payouts) }}</span></h2>
+                            <h2 class="vy-card-title" id="vyod-po-t">{{ __('livewire/operator/owner-detail.payouts') }} <span class="vyo-count">{{ count($payouts) }}</span></h2>
                             @if ($canPayout)
-                                <a class="vyo-card-link" href="{{ route('app.payouts.run') }}">Payout run</a>
+                                <a class="vyo-card-link" href="{{ route('app.payouts.run') }}">{{ __('livewire/operator/owner-detail.payout_run') }}</a>
                             @endif
                         </div>
                         <div class="vy-ledger">
@@ -266,14 +266,14 @@
                                         </div>
                                         <div class="vy-ledger-sub">
                                             @if ($p['paid_at'])
-                                                Paid {{ $p['paid_at'] }}
+                                                {{ __('livewire/operator/owner-detail.paid_on', ['date' => $p['paid_at']]) }}
                                             @elseif ($p['failed_at'])
-                                                Failed {{ $p['failed_at'] }}
+                                                {{ __('livewire/operator/owner-detail.failed_on', ['date' => $p['failed_at']]) }}
                                             @else
-                                                Not paid yet
+                                                {{ __('livewire/operator/owner-detail.not_paid_yet') }}
                                             @endif
                                             @if ($p['external_ref'])
-                                                <span class="vy-sep">·</span> Ref {{ $p['external_ref'] }}
+                                                <span class="vy-sep">·</span> {{ __('livewire/operator/owner-detail.payout_ref', ['ref' => $p['external_ref']]) }}
                                             @endif
                                         </div>
                                         @if ($p['failure_reason'])
@@ -283,7 +283,7 @@
                                     <div class="vy-ledger-amt tone-{{ $p['status_meta']['tone'] === 'confirmed' ? 'paid' : 'muted' }}">{{ $p['amount'] }}</div>
                                 </div>
                             @empty
-                                <div class="vy-empty vyo-empty">No payouts for this owner yet.</div>
+                                <div class="vy-empty vyo-empty">{{ __('livewire/operator/owner-detail.no_payouts') }}</div>
                             @endforelse
                         </div>
                     </section>
@@ -291,59 +291,59 @@
                     {{-- Management agreement — the terms in effect today (the model's certified effectiveOn); "Not set", never "0%". --}}
                     <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-ag-t">
                         <div class="vy-detail-head vyo-card-head">
-                            <h2 class="vy-card-title" id="vyod-ag-t">Management agreement</h2>
+                            <h2 class="vy-card-title" id="vyod-ag-t">{{ __('livewire/operator/owner-detail.management_agreement') }}</h2>
                             @if ($agreement)
                                 <span class="vy-tag tone-{{ $agreement['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $agreement['status_meta']['label'] }}</span>
                             @endif
                         </div>
                         @if ($agreement)
-                            <div class="vy-eyebrow vyo-sublabel">In effect today</div>
+                            <div class="vy-eyebrow vyo-sublabel">{{ __('livewire/operator/owner-detail.in_effect_today') }}</div>
                             <div class="vy-facts">
                                 <div>
-                                    <div class="vy-fact-label">Commission</div>
-                                    <div class="vy-fact-val">{{ $agreement['commission_display'] ?? 'Not set' }}</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.commission') }}</div>
+                                    <div class="vy-fact-val">{{ $agreement['commission_display'] ?? __('livewire/operator/owner-detail.not_set') }}</div>
                                 </div>
                                 <div>
-                                    <div class="vy-fact-label">Management fee</div>
-                                    <div class="vy-fact-val">{{ $agreement['fee_display'] ?? 'Not set' }}{{ $agreement['fee_display'] && $agreement['fee_interval'] ? ' · ' . $agreement['fee_interval'] : '' }}</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.management_fee') }}</div>
+                                    <div class="vy-fact-val">{{ $agreement['fee_display'] && $agreement['fee_interval'] ? __('livewire/operator/owner-detail.fee_with_interval', ['fee' => $agreement['fee_display'], 'interval' => $agreement['fee_interval']]) : ($agreement['fee_display'] ?? __('livewire/operator/owner-detail.not_set')) }}</div>
                                 </div>
                                 <div>
-                                    <div class="vy-fact-label">Payout schedule</div>
-                                    <div class="vy-fact-val">{{ $agreement['schedule'] ?? 'Not set' }}</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.payout_schedule') }}</div>
+                                    <div class="vy-fact-val">{{ $agreement['schedule'] ?? __('livewire/operator/owner-detail.not_set') }}</div>
                                 </div>
                                 <div>
-                                    <div class="vy-fact-label">Payout currency</div>
-                                    <div class="vy-fact-val">{{ $agreement['payout_currency'] ?? 'Not set' }}</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.payout_currency') }}</div>
+                                    <div class="vy-fact-val">{{ $agreement['payout_currency'] ?? __('livewire/operator/owner-detail.not_set') }}</div>
                                     @if ($agreement['payout_currency_source'])
                                         {{-- ⚠️ `.vy-um-sub` is sized only inside a unit row; here it printed at the body size --}}
                                         <div class="vyo-fact-note">{{ $agreement['payout_currency_source'] }}</div>
                                     @endif
                                 </div>
                                 <div>
-                                    <div class="vy-fact-label">Scope</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.scope') }}</div>
                                     <div class="vy-fact-val">{{ $agreement['scope_label'] }}</div>
                                 </div>
                                 <div>
-                                    <div class="vy-fact-label">Effective</div>
-                                    <div class="vy-fact-val">{{ $agreement['from_display'] ?? '—' }} → {{ $agreement['to_display'] ?? 'Open-ended' }}</div>
+                                    <div class="vy-fact-label">{{ __('livewire/operator/owner-detail.effective') }}</div>
+                                    <div class="vy-fact-val">{{ __('livewire/operator/owner-detail.effective_range', ['from' => $agreement['from_display'] ?? '—', 'to' => $agreement['to_display'] ?? __('livewire/operator/owner-detail.open_ended')]) }}</div>
                                 </div>
                             </div>
                         @else
-                            <div class="vy-empty vyo-empty">No management agreement is in effect for this owner today.</div>
+                            <div class="vy-empty vyo-empty">{{ __('livewire/operator/owner-detail.no_agreement') }}</div>
                         @endif
 
                         {{-- Other and earlier terms — REAL rows; one not in effect carries a factual DATE note, never an invented status. --}}
                         @if (count($agreementHistory) > 0)
-                            <div class="vy-eyebrow vyo-sublabel is-spaced">Other terms on record</div>
+                            <div class="vy-eyebrow vyo-sublabel is-spaced">{{ __('livewire/operator/owner-detail.other_terms') }}</div>
                             <div class="vy-utable-wrap">
                                 <table class="vy-utable vyo-terms-table">
                                     <thead>
                                         <tr>
-                                            <th>Scope</th>
-                                            <th>Commission</th>
-                                            <th>Fee</th>
-                                            <th>Effective</th>
-                                            <th>Status</th>
+                                            <th>{{ __('livewire/operator/owner-detail.scope') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.commission') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.th_fee') }}</th>
+                                            <th>{{ __('livewire/operator/owner-detail.effective') }}</th>
+                                            <th>{{ __('common.status') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -354,12 +354,12 @@
                                                     @if ($h['timing_note'])
                                                         <div class="vy-u-sub">{{ $h['timing_note'] }}</div>
                                                     @elseif ($h['in_effect'])
-                                                        <div class="vy-u-sub">In effect today</div>
+                                                        <div class="vy-u-sub">{{ __('livewire/operator/owner-detail.in_effect_today') }}</div>
                                                     @endif
                                                 </td>
-                                                <td>{{ $h['commission_display'] ?? 'Not set' }}</td>
-                                                <td>{{ $h['fee_display'] ?? 'Not set' }}</td>
-                                                <td>{{ $h['never_applied'] ? 'Never applied' : ($h['from_display'] ?? '—') . ' → ' . ($h['to_display'] ?? 'Open-ended') }}</td>
+                                                <td>{{ $h['commission_display'] ?? __('livewire/operator/owner-detail.not_set') }}</td>
+                                                <td>{{ $h['fee_display'] ?? __('livewire/operator/owner-detail.not_set') }}</td>
+                                                <td>{{ $h['never_applied'] ? __('livewire/operator/owner-detail.never_applied') : __('livewire/operator/owner-detail.effective_range', ['from' => $h['from_display'] ?? '—', 'to' => $h['to_display'] ?? __('livewire/operator/owner-detail.open_ended')]) }}</td>
                                                 <td><span class="vy-tag tone-{{ $h['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $h['status_meta']['label'] }}</span></td>
                                             </tr>
                                         @endforeach
@@ -372,7 +372,7 @@
                     {{-- Units — REAL, filtered by owner_id --}}
                     <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-un-t">
                         <div class="vy-detail-head vyo-card-head">
-                            <h2 class="vy-card-title" id="vyod-un-t">Units <span class="vyo-count">{{ count($units) }}</span></h2>
+                            <h2 class="vy-card-title" id="vyod-un-t">{{ __('livewire/operator/owner-detail.units') }} <span class="vyo-count">{{ count($units) }}</span></h2>
                         </div>
                         @forelse ($units as $u)
                             <div class="vy-unit-row">
@@ -384,15 +384,15 @@
                                             <span class="vy-sep">·</span> {{ $u['room_type'] }}
                                         @endif
                                         {{-- units.max_occupancy is NOT NULL (default 2) — always a real fact. --}}
-                                        <span class="vy-sep">·</span> Sleeps {{ $u['sleeps'] }}
+                                        <span class="vy-sep">·</span> {{ trans_choice('livewire/operator/owner-detail.sleeps', $u['sleeps'], ['count' => $u['sleeps']]) }}
                                     </div>
                                 </div>
                                 @unless ($u['active'])
-                                    <span class="vy-u-inactive">Inactive</span>
+                                    <span class="vy-u-inactive">{{ __('livewire/operator/owner-detail.unit_inactive') }}</span>
                                 @endunless
                             </div>
                         @empty
-                            <div class="vy-empty vyo-empty">No units are assigned to this owner yet.</div>
+                            <div class="vy-empty vyo-empty">{{ __('livewire/operator/owner-detail.no_units') }}</div>
                         @endforelse
                     </section>
 
@@ -401,9 +401,9 @@
                     @can('rates.manage')
                         <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-rp-t">
                             <div class="vy-detail-head vyo-card-head">
-                                <h2 class="vy-card-title" id="vyod-rp-t">Rate proposals</h2>
+                                <h2 class="vy-card-title" id="vyod-rp-t">{{ __('livewire/operator/owner-detail.rate_proposals') }}</h2>
                                 @if (count($roomTypes) > 0)
-                                    <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="proposeOpen = true">Propose a change</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="proposeOpen = true">{{ __('livewire/operator/owner-detail.propose_a_change') }}</button>
                                 @endif
                             </div>
                             @if (session('rate_notice'))
@@ -420,28 +420,28 @@
                                         {{-- ⚠️⚠️ THE COUNTER REACHES THE SCREEN (audit M-14 · F1) — the owner's figure is the headline, the
                                              operator's own ask kept beside it. --}}
                                         <div class="vy-um-sub">
-                                            Status: {{ ucfirst($p['state']) }}
+                                            {{ __('livewire/operator/owner-detail.proposal_status', ['status' => $p['state_label']]) }}
                                             @if ($p['countered'])
-                                                · owner countered at <strong>{{ $p['counter'] }}</strong> (you proposed {{ $p['proposed'] }})
+                                                {!! __('livewire/operator/owner-detail.owner_countered', ['counter' => e($p['counter']), 'proposed' => e($p['proposed'])]) !!}
                                             @endif
                                         </div>
                                     </div>
                                     @if ($p['pending'])
                                         <form method="POST" action="{{ route('app.rate-proposals.withdraw', $p['id']) }}" class="vyo-inline-form" data-guard-submit>
                                             @csrf
-                                            <button type="submit" class="vy-btn vy-btn--ghost vyo-sm">Withdraw</button>
+                                            <button type="submit" class="vy-btn vy-btn--ghost vyo-sm">{{ __('livewire/operator/owner-detail.withdraw') }}</button>
                                         </form>
                                     @elseif ($p['countered'])
                                         {{-- ⚠️⚠️ MONEY PATH: accepting applies the OWNER'S rate through the certified
                                              RateProposalService::acceptCounter(). The amount is on the button. --}}
                                         <form method="POST" action="{{ route('app.rate-proposals.accept-counter', $p['id']) }}" class="vyo-inline-form" data-guard-submit>
                                             @csrf
-                                            <button type="submit" class="vy-btn vy-btn--accent vyo-sm">Accept {{ $p['counter'] }}</button>
+                                            <button type="submit" class="vy-btn vy-btn--accent vyo-sm">{{ __('livewire/operator/owner-detail.accept_counter', ['amount' => $p['counter']]) }}</button>
                                         </form>
                                     @endif
                                 </div>
                             @empty
-                                <div class="vy-empty vyo-empty">No rate proposals yet.</div>
+                                <div class="vy-empty vyo-empty">{{ __('livewire/operator/owner-detail.no_proposals') }}</div>
                             @endforelse
                         </section>
                     @endcan
@@ -450,38 +450,38 @@
                 {{-- ══ RAIL — how they're paid · the owner portal · notes ═══════════════════════════════════════════════════ --}}
                 <aside class="vyo-rail">
                     <section class="vy-card vyo-terms vy-fade" aria-labelledby="vyod-pay-t">
-                        <h2 class="vy-card-title" id="vyod-pay-t">How they’re paid</h2>
+                        <h2 class="vy-card-title" id="vyod-pay-t">{{ __('livewire/operator/owner-detail.how_paid') }}</h2>
                         <dl class="vyo-facts">
                             <div>
-                                <dt>Commission</dt>
+                                <dt>{{ __('livewire/operator/owner-detail.commission') }}</dt>
                                 <dd>
-                                    <strong class="vyo-terms-big">{{ $commission['now'] ?? 'Not set' }}</strong>
+                                    <strong class="vyo-terms-big">{{ $commission['now'] ?? __('livewire/operator/owner-detail.not_set') }}</strong>
                                     @if ($commission['next'])
-                                        <span class="vyo-terms-next">Changes to {{ $commission['next']['display'] }} on {{ $commission['next']['from'] }}</span>
+                                        <span class="vyo-terms-next">{{ __('livewire/operator/owner-detail.commission_changes_to', ['rate' => $commission['next']['display'], 'date' => $commission['next']['from']]) }}</span>
                                     @endif
                                 </dd>
                             </div>
                             <div>
-                                <dt>Payouts</dt>
+                                <dt>{{ __('livewire/operator/owner-detail.payouts') }}</dt>
                                 @if ($payoutPaused)
                                     {{-- DEC-n (2026-10-02): a pause stops EVERY payout — the payout service refuses a paused owner. --}}
-                                    <dd><strong class="vyo-paused-word">Paused.</strong> No payout is created or sent until resumed — closed statements stay owed.</dd>
+                                    <dd>{!! __('livewire/operator/owner-detail.payouts_paused_detail') !!}</dd>
                                 @else
-                                    <dd>Not paused — paid from the payout run.</dd>
+                                    <dd>{{ __('livewire/operator/owner-detail.payouts_not_paused') }}</dd>
                                 @endif
                             </div>
                             <div>
-                                <dt>Schedule</dt>
-                                <dd>{{ $agreement['schedule'] ?? 'Not set' }} · in {{ $agreement['payout_currency'] ?? $owner['payout_currency'] }}</dd>
+                                <dt>{{ __('livewire/operator/owner-detail.schedule') }}</dt>
+                                <dd>{{ __('livewire/operator/owner-detail.schedule_in_currency', ['schedule' => $agreement['schedule'] ?? __('livewire/operator/owner-detail.not_set'), 'currency' => $agreement['payout_currency'] ?? $owner['payout_currency']]) }}</dd>
                             </div>
                             {{-- MASKED, payouts.manage only, never the full number, never entered here (#28). --}}
                             @if ($canPayout)
                                 <div>
-                                    <dt>Payout account</dt>
+                                    <dt>{{ __('livewire/operator/owner-detail.payout_account') }}</dt>
                                     @if ($ibanMasked)
-                                        <dd class="vyo-num">IBAN {{ $ibanMasked }} <span class="vyo-dd-note">on file</span></dd>
+                                        <dd class="vyo-num">{!! __('livewire/operator/owner-detail.iban_on_file', ['iban' => e($ibanMasked)]) !!}</dd>
                                     @else
-                                        <dd>None yet — the owner adds it in their portal.</dd>
+                                        <dd>{{ __('livewire/operator/owner-detail.no_payout_account') }}</dd>
                                     @endif
                                 </div>
                             @endif
@@ -491,28 +491,28 @@
                     {{-- Portal access — the REAL state: a live invite is the pending invite it is; "active" needs an active login. --}}
                     <section class="vy-card vyo-portalcard vy-fade" aria-labelledby="vyod-portal-t">
                         <div class="vy-detail-head vyo-card-head">
-                            <h2 class="vy-card-title" id="vyod-portal-t">Owner portal</h2>
+                            <h2 class="vy-card-title" id="vyod-portal-t">{{ __('livewire/operator/owner-detail.owner_portal') }}</h2>
                             <span class="vy-tag tone-{{ $portal['tone'] }}"><span class="vy-dot"></span>{{ $portal['label'] }}</span>
                         </div>
                         @if ($portal['detail'])
                             <p class="vyo-card-sub">{{ $portal['detail'] }}</p>
                         @endif
                         @if ($canManage && $invite !== null)
-                            <p class="vyo-card-sub">The invite went to <strong>{{ $invite['email'] }}</strong>.</p>
+                            <p class="vyo-card-sub">{!! __('livewire/operator/owner-detail.invite_went_to', ['email' => e($invite['email'])]) !!}</p>
                             <div class="vyo-portal-actions">
-                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="resendOpen = true">Send invite again</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="resendOpen = true">{{ __('livewire/operator/owner-detail.send_invite_again') }}</button>
                                 @if ($invite['cancellable'])
-                                    <button type="button" class="vy-btn vy-btn--ghost vyo-sm is-danger" x-on:click="cancelOpen = true">Cancel invite</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost vyo-sm is-danger" x-on:click="cancelOpen = true">{{ __('livewire/operator/owner-detail.cancel_invite') }}</button>
                                 @endif
                             </div>
                         @else
-                            <a class="vyo-card-link" href="{{ route('app.owners') }}">All owners and invites</a>
+                            <a class="vyo-card-link" href="{{ route('app.owners') }}">{{ __('livewire/operator/owner-detail.all_owners_and_invites') }}</a>
                         @endif
                     </section>
 
                     {{-- Notes — the team's own timeline, never shown in the owner portal. --}}
                     <section class="vy-card vyo-notes vy-fade" aria-labelledby="vyod-notes-t">
-                        <h2 class="vy-card-title" id="vyod-notes-t">Notes</h2>
+                        <h2 class="vy-card-title" id="vyod-notes-t">{{ __('common.notes') }}</h2>
                         @if ($owner['notes'])
                             <div class="vyo-note vyo-note-legacy">{{ $owner['notes'] }}</div>
                         @endif
@@ -523,20 +523,20 @@
                             </div>
                         @endforeach
                         @if (! $owner['notes'] && count($noteEntries) === 0)
-                            <p class="vyo-card-sub">No notes yet.</p>
+                            <p class="vyo-card-sub">{{ __('livewire/operator/owner-detail.no_notes') }}</p>
                         @endif
                         @if ($canManage)
                             <form method="POST" action="{{ route('app.owners.note', $ownerId) }}" class="vyo-note-form" data-guard-submit>
                                 @csrf
                                 <input type="hidden" name="_form" value="note">
-                                <label class="vy-sr-only" for="vyod-note">Add a note for your team</label>
-                                <textarea id="vyod-note" name="body" rows="2" class="vy-input" placeholder="Add a note for your team…" maxlength="2000" required>{{ $vyForm === 'note' ? old('body') : '' }}</textarea>
+                                <label class="vy-sr-only" for="vyod-note">{{ __('livewire/operator/owner-detail.note_label') }}</label>
+                                <textarea id="vyod-note" name="body" rows="2" class="vy-input" placeholder="{{ __('livewire/operator/owner-detail.note_placeholder') }}" maxlength="2000" required>{{ $vyForm === 'note' ? old('body') : '' }}</textarea>
                                 @if ($vyNoteError !== '')
                                     <div class="vyo-fielderr">{{ $vyNoteError }}</div>
                                 @endif
                                 <div class="vyo-note-foot">
-                                    <span class="vyo-hint">Only your team sees notes.</span>
-                                    <button type="submit" class="vy-btn vy-btn--ghost vyo-sm">Add note</button>
+                                    <span class="vyo-hint">{{ __('livewire/operator/owner-detail.notes_hint') }}</span>
+                                    <button type="submit" class="vy-btn vy-btn--ghost vyo-sm">{{ __('livewire/operator/owner-detail.add_note') }}</button>
                                 </div>
                             </form>
                         @endif
@@ -555,20 +555,20 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5L5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyod-commission-t">Change the commission</h3>
-                                    <p class="vyo-dlg-sub">{{ $owner['name'] }} · now {{ $commission['now'] ?? 'not set' }}</p>
+                                    <h3 class="vy-modal-title" id="vyod-commission-t">{{ __('livewire/operator/owner-detail.commission_dialog_title') }}</h3>
+                                    <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.commission_dialog_sub', ['name' => $owner['name'], 'rate' => $commission['now'] ?? __('livewire/operator/owner-detail.not_set_lower')]) }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="commissionOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="commissionOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 @if ($vyOpen === 'commission' && session('owners_error'))
                                     <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vyod-rate">Commission from {{ $commission['starts_today'] ? 'today' : $commission['starts_on'] }}</label>
+                                    <label class="vy-field-label" for="vyod-rate">{{ $commission['starts_today'] ? __('livewire/operator/owner-detail.commission_from_today') : __('livewire/operator/owner-detail.commission_from_date', ['date' => $commission['starts_on']]) }}</label>
                                     <div class="vyo-rate">
                                         <input id="vyod-rate" class="vy-input" type="text" inputmode="decimal" name="commission_pct" maxlength="6" required autofocus
-                                               value="{{ $vyForm === 'commission' ? old('commission_pct') : $commission['prefill'] }}" placeholder="e.g. 18">
+                                               value="{{ $vyForm === 'commission' ? old('commission_pct') : $commission['prefill'] }}" placeholder="{{ __('livewire/operator/owner-detail.example_placeholder', ['value' => '18']) }}">
                                         <span class="vyo-rate-unit" aria-hidden="true">%</span>
                                     </div>
                                     @if ($vyForm === 'commission')
@@ -577,27 +577,27 @@
                                 </div>
                                 <ul class="vyo-factlist">
                                     @if ($commission['starts_today'])
-                                        <li>It starts today — {{ $owner['name'] }} has no agreement in effect.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.starts_today_no_agreement', ['name' => $owner['name']]) }}</li>
                                     @else
-                                        <li>It starts on {{ $commission['starts_on'] }}.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.starts_on', ['date' => $commission['starts_on']]) }}</li>
                                     @endif
                                     {{-- ⚠️ "worked out", not "booked" — earnings are worked out when a booking is made, later for one imported
                                          without them, and again when a booking moves to another owner's unit (the review) --}}
-                                    <li>It applies to bookings whose owner earnings are worked out after you save — usually as they are booked. Bookings already worked out keep their rate, and closed statements don’t change.</li>
+                                    <li>{{ __('livewire/operator/owner-detail.commission_applies_to') }}</li>
                                     @if ($commission['next'] && $commission['next']['replaced_by_save'])
-                                        <li>It replaces the change to {{ $commission['next']['display'] }} waiting for {{ $commission['next']['from'] }}.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.replaces_waiting_change', ['rate' => $commission['next']['display'], 'date' => $commission['next']['from']]) }}</li>
                                     @endif
                                     @if ($commission['starts_today'])
                                         {{-- CommissionChange's defaults when there is no agreement to carry terms from --}}
-                                        <li>It is a new agreement, paid monthly in {{ $owner['payout_currency'] }}. Recorded in the audit log.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.new_agreement_note', ['currency' => $owner['payout_currency']]) }}</li>
                                     @else
-                                        <li>Every other term of the agreement stays as it is. Recorded in the audit log.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.other_terms_stay') }}</li>
                                     @endif
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="commissionOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Save commission</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="commissionOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owner-detail.save_commission') }}</button>
                             </div>
                         </form>
                     </div>
@@ -613,26 +613,26 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico {{ $payoutPaused ? '' : 'is-danger' }}" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyod-pause-t">{{ $payoutPaused ? 'Resume payouts to ' : 'Pause payouts to ' }}{{ $owner['name'] }}?</h3>
-                                    <p class="vyo-dlg-sub">{{ $payoutPaused ? 'Their payouts can go out again.' : 'No payout goes out to them until you resume.' }}</p>
+                                    <h3 class="vy-modal-title" id="vyod-pause-t">{{ $payoutPaused ? __('livewire/operator/owner-detail.resume_payouts_to', ['name' => $owner['name']]) : __('livewire/operator/owner-detail.pause_payouts_to', ['name' => $owner['name']]) }}</h3>
+                                    <p class="vyo-dlg-sub">{{ $payoutPaused ? __('livewire/operator/owner-detail.resume_sub') : __('livewire/operator/owner-detail.pause_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="pauseOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="pauseOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vyo-factlist">
                                     @if ($payoutPaused)
-                                        <li>Every closed statement still owed can be paid again from the payout run{{ $engineOn ? ', and by the next automatic run' : '' }}.</li>
+                                        <li>{{ $engineOn ? __('livewire/operator/owner-detail.resume_fact_engine') : __('livewire/operator/owner-detail.resume_fact') }}</li>
                                     @else
-                                        <li>No payout is created or sent to them — not by the automatic run, not by hand on the payout run page.</li>
-                                        <li>Nothing they are owed is lost — each closed statement stays owed until it is paid.</li>
-                                        <li>Statements still close as usual.</li>
+                                        <li>{{ __('livewire/operator/owner-detail.pause_fact_none') }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.pause_fact_owed') }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.pause_fact_statements') }}</li>
                                     @endif
-                                    <li>Recorded in the audit log.</li>
+                                    <li>{{ __('livewire/operator/owner-detail.recorded_in_audit_log') }}</li>
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="pauseOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn {{ $payoutPaused ? 'vy-btn--accent' : 'vy-btn--danger' }}">{{ $payoutPaused ? 'Resume payouts' : 'Pause payouts' }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="pauseOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn {{ $payoutPaused ? 'vy-btn--accent' : 'vy-btn--danger' }}">{{ $payoutPaused ? __('livewire/operator/owner-detail.resume_payouts') : __('livewire/operator/owner-detail.pause_payouts') }}</button>
                             </div>
                         </form>
                     </div>
@@ -649,26 +649,26 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico is-danger" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyod-remove-t">Remove {{ $owner['name'] }}?</h3>
-                                    <p class="vyo-dlg-sub">An archive, not a delete — bookings, statements and payouts are all kept.</p>
+                                    <h3 class="vy-modal-title" id="vyod-remove-t">{{ __('livewire/operator/owner-detail.remove_title', ['name' => $owner['name']]) }}</h3>
+                                    <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.remove_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="removeOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="removeOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 @if ($vyOpen === 'remove' && session('owners_error'))
                                     <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
                                 @endif
                                 <ul class="vyo-factlist vyo-factlist--spaced">
-                                    <li>@if (count($removeUnitNames)){{ implode(', ', $removeUnitNames) }} become @else Their units become @endif unassigned — <strong>bookings stay intact</strong></li>
+                                    <li>@if (count($removeUnitNames)){!! __('livewire/operator/owner-detail.remove_units_named', ['units' => e(implode(', ', $removeUnitNames))]) !!}@else{!! __('livewire/operator/owner-detail.remove_units_generic') !!}@endif</li>
                                     {{-- ⚠️ Removal cascades to the owner's team (2026-08-31) — so the claim is true, and spelled out. --}}
-                                    <li>Portal access ends immediately — for {{ $owner['name'] }} <strong>and everyone on their team</strong>@if ($removeTeamCount > 0) ({{ $removeTeamCount }} {{ $removeTeamCount === 1 ? 'person' : 'people' }})@endif</li>
+                                    <li>@if ($removeTeamCount > 0){!! trans_choice('livewire/operator/owner-detail.remove_portal_ends_team', $removeTeamCount, ['count' => $removeTeamCount, 'name' => e($owner['name'])]) !!}@else{!! __('livewire/operator/owner-detail.remove_portal_ends', ['name' => e($owner['name'])]) !!}@endif</li>
                                     {{-- ⚠️ OwnerLoginLifecycle spares a person who still holds a back-office role — the owner too. --}}
-                                    <li>Anyone who also works for you — <strong>including {{ $owner['name'] }}</strong> — keeps their own login; only their access to this owner ends</li>
-                                    <li>All statements &amp; payout records <strong>stay archived for accounting</strong></li>
-                                    <li>It can’t be undone — adding them again later starts a fresh owner record</li>
+                                    <li>{!! __('livewire/operator/owner-detail.remove_keeps_login', ['name' => e($owner['name'])]) !!}</li>
+                                    <li>{!! __('livewire/operator/owner-detail.remove_records_archived') !!}</li>
+                                    <li>{{ __('livewire/operator/owner-detail.remove_cannot_undo') }}</li>
                                 </ul>
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vyod-remove-name">Type {{ $owner['name'] }} to confirm</label>
+                                    <label class="vy-field-label" for="vyod-remove-name">{{ __('livewire/operator/owner-detail.type_name_to_confirm', ['name' => $owner['name']]) }}</label>
                                     <input id="vyod-remove-name" class="vy-input" type="text" name="confirm_name" value="{{ $vyForm === 'remove' ? old('confirm_name') : '' }}"
                                            autocomplete="off" required @if ($vyOpen === 'remove' && ! $errors->has('current_password')) autofocus @endif>
                                     @if ($vyForm === 'remove')
@@ -680,19 +680,19 @@
                                 <div class="vyo-confirm">
                                     {{-- the password-manager pattern: which account this password is for — unnamed, so never posted, and hidden from everyone --}}
                                     <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
-                                    <label class="vy-field-label" for="vyod-remove-pw">Confirm it’s you</label>
-                                    <input id="vyod-remove-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="Your password"
+                                    <label class="vy-field-label" for="vyod-remove-pw">{{ __('livewire/operator/owner-detail.confirm_its_you') }}</label>
+                                    <input id="vyod-remove-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="{{ __('livewire/operator/owner-detail.password_placeholder') }}"
                                            @if ($vyOpen === 'remove' && $errors->has('current_password')) autofocus @endif>
                                     @if ($vyForm === 'remove' && $errors->has('current_password'))
                                         <div class="vyo-fielderr">{{ $errors->first('current_password') }}</div>
                                     @else
-                                        <p class="vyo-hint">Removing an owner ends access to their money and their units, so your password confirms it’s you.</p>
+                                        <p class="vyo-hint">{{ __('livewire/operator/owner-detail.remove_password_hint') }}</p>
                                     @endif
                                 </div>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="removeOpen = false">Keep owner</button>
-                                <button type="submit" class="vy-btn vy-btn--danger">Remove owner</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="removeOpen = false">{{ __('livewire/operator/owner-detail.keep_owner') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger">{{ __('livewire/operator/owner-detail.remove_owner') }}</button>
                             </div>
                         </form>
                     </div>
@@ -709,10 +709,10 @@
                                 <div class="vy-modal-head">
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span>
                                     <div class="vyo-dlg-head">
-                                        <h3 class="vy-modal-title" id="vyod-resend-t">Send the invite again?</h3>
-                                        <p class="vyo-dlg-sub">A fresh link goes to {{ $invite['email'] }}. The old one stops working.</p>
+                                        <h3 class="vy-modal-title" id="vyod-resend-t">{{ __('livewire/operator/owner-detail.resend_title') }}</h3>
+                                        <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.resend_sub', ['email' => $invite['email']]) }}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" x-on:click="resendOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                    <button type="button" class="vy-modal-x" x-on:click="resendOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
                                 <div class="vy-modal-body">
                                     @if ($vyOpen === 'resend' && session('owners_error'))
@@ -720,16 +720,16 @@
                                     @endif
                                     <div class="vyo-confirm">
                                         <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
-                                        <label class="vy-field-label" for="vyod-resend-pw">Confirm it’s you</label>
-                                        <input id="vyod-resend-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="Your password" autofocus>
+                                        <label class="vy-field-label" for="vyod-resend-pw">{{ __('livewire/operator/owner-detail.confirm_its_you') }}</label>
+                                        <input id="vyod-resend-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="{{ __('livewire/operator/owner-detail.password_placeholder') }}" autofocus>
                                         @if ($vyForm === 'resend')
                                             @error('current_password')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                         @endif
                                     </div>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="resendOpen = false">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent">Send again</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="resendOpen = false">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owner-detail.send_again') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -745,22 +745,22 @@
                                     <div class="vy-modal-head">
                                         <span class="vy-modal-ico is-danger" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>
                                         <div class="vyo-dlg-head">
-                                            <h3 class="vy-modal-title" id="vyod-cancel-t">Cancel the invite?</h3>
-                                            <p class="vyo-dlg-sub">The link sent to {{ $invite['email'] }} stops working.</p>
+                                            <h3 class="vy-modal-title" id="vyod-cancel-t">{{ __('livewire/operator/owner-detail.cancel_invite_title') }}</h3>
+                                            <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.cancel_invite_sub', ['email' => $invite['email']]) }}</p>
                                         </div>
-                                        <button type="button" class="vy-modal-x" x-on:click="cancelOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                        <button type="button" class="vy-modal-x" x-on:click="cancelOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                     </div>
                                     <div class="vy-modal-body">
                                         <ul class="vyo-factlist">
                                             @if ($inviteCancelRemoves)
-                                                <li>{{ $owner['name'] }} never accepted, so they leave your owners list too.</li>
+                                                <li>{{ __('livewire/operator/owner-detail.cancel_invite_removes', ['name' => $owner['name']]) }}</li>
                                             @endif
-                                            <li>You can invite them again later.</li>
+                                            <li>{{ __('livewire/operator/owner-detail.cancel_invite_again_later') }}</li>
                                         </ul>
                                     </div>
                                     <div class="vy-modal-foot">
-                                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="cancelOpen = false">Keep invite</button>
-                                        <button type="submit" class="vy-btn vy-btn--danger">Cancel invite</button>
+                                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="cancelOpen = false">{{ __('livewire/operator/owner-detail.keep_invite') }}</button>
+                                        <button type="submit" class="vy-btn vy-btn--danger">{{ __('livewire/operator/owner-detail.cancel_invite') }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -782,21 +782,21 @@
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span>
                                 <div class="vyo-dlg-head">
-                                    <h3 class="vy-modal-title" id="vyod-close-t">Close a period for {{ $owner['name'] }}?</h3>
-                                    <p class="vyo-dlg-sub">This finalises a statement. It can’t be undone.</p>
+                                    <h3 class="vy-modal-title" id="vyod-close-t">{{ __('livewire/operator/owner-detail.close_title', ['name' => $owner['name']]) }}</h3>
+                                    <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.close_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" x-on:click="closeOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                <button type="button" class="vy-modal-x" x-on:click="closeOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 @if ($vyOpen === 'close' && session('owners_error'))
                                     <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
                                 @endif
                                 @if ($closePeriod['lockedThroughWords'])
-                                    <p class="vyo-closed-upto">Closed up to {{ $closePeriod['lockedThroughWords'] }} — a new period starts the day after.</p>
+                                    <p class="vyo-closed-upto">{{ __('livewire/operator/owner-detail.closed_up_to', ['date' => $closePeriod['lockedThroughWords']]) }}</p>
                                 @endif
                                 <div class="vyo-pair">
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyod-start">First day</label>
+                                        <label class="vy-field-label" for="vyod-start">{{ __('livewire/operator/owner-detail.first_day') }}</label>
                                         <input id="vyod-start" class="vy-input" type="date" name="period_start" x-model="start" value="{{ old('period_start', $closePeriod['start']) }}"
                                                @if ($closePeriod['minStart']) min="{{ $closePeriod['minStart'] }}" @endif required>
                                         @if ($vyForm === 'close')
@@ -804,7 +804,7 @@
                                         @endif
                                     </div>
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyod-end">Last day</label>
+                                        <label class="vy-field-label" for="vyod-end">{{ __('livewire/operator/owner-detail.last_day') }}</label>
                                         <input id="vyod-end" class="vy-input" type="date" name="period_end" x-model="end" value="{{ old('period_end', $closePeriod['end']) }}"
                                                @if ($closePeriod['minStart']) min="{{ $closePeriod['minStart'] }}" @endif required>
                                         @if ($vyForm === 'close')
@@ -814,16 +814,16 @@
                                 </div>
                                 <p class="vyo-span" x-text="span()" aria-live="polite"></p>
                                 <ul class="vyo-factlist">
-                                    <li>The statement is <strong>sealed</strong> — its figures can no longer change</li>
-                                    <li>Anything that arrives later dated inside this period becomes a <strong>prior-period adjustment</strong> on the next statement</li>
-                                    <li>Revenue not yet collected from guests <strong>stays unclaimed</strong> and appears on a later statement</li>
-                                    <li>{{ $owner['name'] }} can see the statement in their owner portal</li>
-                                    <li><strong>Nothing is paid by this.</strong> A payout is created separately on the payout run page</li>
+                                    <li>{!! __('livewire/operator/owner-detail.close_fact_sealed') !!}</li>
+                                    <li>{!! __('livewire/operator/owner-detail.close_fact_adjustment') !!}</li>
+                                    <li>{!! __('livewire/operator/owner-detail.close_fact_uncollected') !!}</li>
+                                    <li>{{ __('livewire/operator/owner-detail.close_fact_portal', ['name' => $owner['name']]) }}</li>
+                                    <li>{!! __('livewire/operator/owner-detail.close_fact_nothing_paid') !!}</li>
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="closeOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Close period</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="closeOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owner-detail.close_period') }}</button>
                             </div>
                         </form>
                     </div>
@@ -842,17 +842,17 @@
                                 <div class="vy-modal-head">
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
                                     <div class="vyo-dlg-head">
-                                        <h3 class="vy-modal-title" id="vyod-propose-t">Propose a rate change</h3>
-                                        <p class="vyo-dlg-sub">{{ $owner['name'] }} approves, counters or declines it in their portal. Nothing changes until they do.</p>
+                                        <h3 class="vy-modal-title" id="vyod-propose-t">{{ __('livewire/operator/owner-detail.propose_title') }}</h3>
+                                        <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.propose_sub', ['name' => $owner['name']]) }}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" x-on:click="proposeOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                    <button type="button" class="vy-modal-x" x-on:click="proposeOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
                                 <div class="vy-modal-body">
                                     @if ($vyOpen === 'propose' && session('rate_error'))
                                         <div class="vyo-errors" role="alert">{{ session('rate_error') }}</div>
                                     @endif
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vyod-rt">Room type</label>
+                                        <label class="vy-field-label" for="vyod-rt">{{ __('livewire/operator/owner-detail.room_type') }}</label>
                                         <select id="vyod-rt" name="room_type_id" class="vy-input" required>
                                             @foreach ($roomTypes as $rt)
                                                 <option value="{{ $rt['id'] }}" @selected($vyForm === 'propose' && old('room_type_id') === $rt['id'])>{{ $rt['name'] }}</option>
@@ -861,7 +861,7 @@
                                     </div>
                                     <div class="vyo-trio">
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyod-prate">Nightly rate ({{ $rateCurrencySymbol }})</label>
+                                            <label class="vy-field-label" for="vyod-prate">{{ __('livewire/operator/owner-detail.nightly_rate', ['symbol' => $rateCurrencySymbol]) }}</label>
                                             <input id="vyod-prate" class="vy-input" type="text" inputmode="decimal" name="rate" maxlength="20" required placeholder="185" autofocus
                                                    value="{{ $vyForm === 'propose' ? old('rate') : '' }}">
                                             @if ($vyForm === 'propose')
@@ -869,16 +869,16 @@
                                             @endif
                                         </div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyod-uplift">Weekend uplift <span class="vy-fl-note">% · optional</span></label>
-                                            <input id="vyod-uplift" class="vy-input" type="text" inputmode="decimal" name="weekend_uplift" maxlength="6" placeholder="e.g. 10"
+                                            <label class="vy-field-label" for="vyod-uplift">{!! __('livewire/operator/owner-detail.weekend_uplift_label') !!}</label>
+                                            <input id="vyod-uplift" class="vy-input" type="text" inputmode="decimal" name="weekend_uplift" maxlength="6" placeholder="{{ __('livewire/operator/owner-detail.example_placeholder', ['value' => '10']) }}"
                                                    value="{{ $vyForm === 'propose' ? old('weekend_uplift') : '' }}">
                                             @if ($vyForm === 'propose')
                                                 @error('weekend_uplift')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                             @endif
                                         </div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyod-minstay">Minimum stay <span class="vy-fl-note">nights · optional</span></label>
-                                            <input id="vyod-minstay" class="vy-input" type="text" inputmode="numeric" name="min_stay" maxlength="3" placeholder="e.g. 2"
+                                            <label class="vy-field-label" for="vyod-minstay">{!! __('livewire/operator/owner-detail.min_stay_label') !!}</label>
+                                            <input id="vyod-minstay" class="vy-input" type="text" inputmode="numeric" name="min_stay" maxlength="3" placeholder="{{ __('livewire/operator/owner-detail.example_placeholder', ['value' => '2']) }}"
                                                    value="{{ $vyForm === 'propose' ? old('min_stay') : '' }}">
                                             @if ($vyForm === 'propose')
                                                 @error('min_stay')<div class="vyo-fielderr">{{ $message }}</div>@enderror
@@ -887,7 +887,7 @@
                                     </div>
                                     <div class="vyo-pair">
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyod-pfrom">First night</label>
+                                            <label class="vy-field-label" for="vyod-pfrom">{{ __('livewire/operator/owner-detail.first_night') }}</label>
                                             <input id="vyod-pfrom" class="vy-input" type="date" name="from_date" required
                                                    value="{{ $vyForm === 'propose' ? old('from_date') : now()->toDateString() }}">
                                             @if ($vyForm === 'propose')
@@ -895,7 +895,7 @@
                                             @endif
                                         </div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vyod-pto">Last night</label>
+                                            <label class="vy-field-label" for="vyod-pto">{{ __('livewire/operator/owner-detail.last_night') }}</label>
                                             <input id="vyod-pto" class="vy-input" type="date" name="to_date" required
                                                    value="{{ $vyForm === 'propose' ? old('to_date') : now()->addYear()->subDay()->toDateString() }}">
                                             @if ($vyForm === 'propose')
@@ -904,7 +904,7 @@
                                         </div>
                                     </div>
                                     <div class="vy-field vyo-field-last">
-                                        <label class="vy-field-label" for="vyod-pnote">Note to {{ $owner['name'] }} <span class="vy-fl-note">optional</span></label>
+                                        <label class="vy-field-label" for="vyod-pnote">{!! __('livewire/operator/owner-detail.note_to_label', ['name' => e($owner['name'])]) !!}</label>
                                         <input id="vyod-pnote" class="vy-input" type="text" name="note" maxlength="500" value="{{ $vyForm === 'propose' ? old('note') : '' }}">
                                         @if ($vyForm === 'propose')
                                             @error('note')<div class="vyo-fielderr">{{ $message }}</div>@enderror
@@ -912,8 +912,8 @@
                                     </div>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="proposeOpen = false">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent">Send proposal</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="proposeOpen = false">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owner-detail.send_proposal') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -927,7 +927,11 @@
          it. The period line reads the two dates in words. --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            // I18N-01: the month names, the error and the "N days" plural are all worked out on the server (CONVERSION.md rules 5, 12)
+            const months = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('M'))->all());
+            const dayWords = @js(collect(range(1, 366))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/owner-detail.span_days', $n, ['count' => $n])])->all());
+            const dayWordsMany = @js(trans_choice('livewire/operator/owner-detail.span_days', 1000, ['count' => ':n']));
+            const spanText = @js(__('livewire/operator/owner-detail.span', ['from' => ':from', 'to' => ':to', 'days' => ':days']));
             const day = (iso) => {
                 const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
                 return m ? { y: +m[1], m: +m[2] - 1, d: +m[3], t: Date.UTC(+m[1], +m[2] - 1, +m[3]) } : null;
@@ -936,10 +940,12 @@
                 span() {
                     const a = day(this.start), b = day(this.end);
                     if (! a || ! b) return '';
-                    if (b.t < a.t) return 'The period has to end on or after the day it starts.';
+                    if (b.t < a.t) return @js(__('livewire/operator/owner-detail.span_backwards'));
                     const days = Math.round((b.t - a.t) / 86400000) + 1;
                     const from = a.d + ' ' + months[a.m] + (a.y !== b.y ? ' ' + a.y : '');
-                    return from + ' – ' + b.d + ' ' + months[b.m] + ' ' + b.y + ' · ' + days + (days === 1 ? ' day' : ' days');
+                    const to = b.d + ' ' + months[b.m] + ' ' + b.y;
+                    const words = dayWords[days] || dayWordsMany.replace(':n', days);
+                    return spanText.replace(':from', from).replace(':to', to).replace(':days', words);
                 },
             }, state));
         });

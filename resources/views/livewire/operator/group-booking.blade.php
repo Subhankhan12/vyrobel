@@ -13,24 +13,24 @@
          style block only renders in the wizard branch — the New-Reservation done-screen lesson). ── --}}
     <div class="vy-gb-standalone">
         <div class="vy-gb-topbar vy-fade">
-            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">{{ $done['title'] }}</h1><span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span></span></div>
-            <a class="vy-gb-close" href="{{ $done['rack_url'] }}" title="Close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
+            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">{{ $done['title'] }}</h1><span class="vy-gb-brand-sub">{{ __('livewire/operator/group-booking.brand_sub', ['property' => $subtitle]) }}</span></span></div>
+            <a class="vy-gb-close" href="{{ $done['rack_url'] }}" title="{{ __('common.close') }}" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
         </div>
         <div class="vy-gb-donewrap vy-fade">
             <div class="vy-gb-donecheck"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg></div>
             <div class="vy-gb-donetitle">{{ $done['title'] }}</div>
-            <div class="vy-gb-doneref">Reference <span class="vy-u-code">{{ $done['reference'] }}</span> · {{ $done['sub'] }}</div>
+            <div class="vy-gb-doneref">{!! __('livewire/operator/group-booking.done_reference', ['reference' => e($done['reference']), 'sub' => e($done['sub'])]) !!}</div>
             <div class="vy-gb-donecard">
-                <div class="vy-gb-drow"><span>Organiser</span><strong>{{ $done['organiser'] }}</strong></div>
-                <div class="vy-gb-drow"><span>Units &amp; dates</span><strong>{{ $done['units'] }} {{ \Illuminate\Support\Str::plural('unit', $done['units']) }} · {{ $done['dates'] }}</strong></div>
-                <div class="vy-gb-drow"><span>Block total</span><strong>{{ $done['total'] }}</strong></div>
+                <div class="vy-gb-drow"><span>{{ __('livewire/operator/group-booking.organiser') }}</span><strong>{{ $done['organiser'] }}</strong></div>
+                <div class="vy-gb-drow"><span>{{ __('livewire/operator/group-booking.units_and_dates') }}</span><strong>{{ trans_choice('livewire/operator/group-booking.done_units_dates', $done['units'], ['count' => $done['units'], 'dates' => $done['dates']]) }}</strong></div>
+                <div class="vy-gb-drow"><span>{{ __('livewire/operator/group-booking.block_total') }}</span><strong>{{ $done['total'] }}</strong></div>
                 @if ($done['deposit'])
-                    <div class="vy-gb-drow"><span>Deposit taken</span><strong>{{ $done['deposit'] }}</strong></div>
+                    <div class="vy-gb-drow"><span>{{ __('livewire/operator/group-booking.deposit_taken') }}</span><strong>{{ $done['deposit'] }}</strong></div>
                 @endif
             </div>
             <div class="vy-gb-doneactions">
-                <a href="{{ $done['rack_url'] }}" class="vy-gb-btn vy-gb-btn--accent">View on the rack</a>
-                <a href="{{ $done['new_url'] }}" class="vy-gb-btn">Create another block</a>
+                <a href="{{ $done['rack_url'] }}" class="vy-gb-btn vy-gb-btn--accent">{{ __('livewire/operator/group-booking.view_on_rack') }}</a>
+                <a href="{{ $done['new_url'] }}" class="vy-gb-btn">{{ __('livewire/operator/group-booking.create_another') }}</a>
             </div>
             {{-- ⚠️ THE DRAFT DIES WITH THE BLOCK IT BECAME. Without this, "Create another block" would open the
                  wizard pre-filled with the group that was just created — and the second block would inherit the
@@ -63,28 +63,53 @@
 @elseif (! $hasProperty)
     <div class="vy-gb-standalone">
         <div class="vy-gb-topbar vy-fade">
-            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">Group booking</h1><span class="vy-gb-brand-sub">No property configured</span></span></div>
-            <a class="vy-gb-close" href="{{ route('app.rack') }}" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
+            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">{{ __('livewire/operator/group-booking.heading') }}</h1><span class="vy-gb-brand-sub">{{ __('livewire/operator/group-booking.no_property') }}</span></span></div>
+            <a class="vy-gb-close" href="{{ route('app.rack') }}" title="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
         </div>
         <div class="vy-gb-card vy-fade" style="text-align:center; padding: 40px 24px;">
-            <strong style="display:block; font-size:15px; color:var(--vy-ink); margin-bottom:6px;">No property configured</strong>
-            <span style="font-size:13px; color:var(--vy-muted);">Add a property before creating a block.</span>
+            <strong style="display:block; font-size:15px; color:var(--vy-ink); margin-bottom:6px;">{{ __('livewire/operator/group-booking.no_property') }}</strong>
+            <span style="font-size:13px; color:var(--vy-muted);">{{ __('livewire/operator/group-booking.add_property_first') }}</span>
         </div>
     </div>
 @else
+    @php $__gbMonths = array_map(fn (int $m) => \Carbon\CarbonImmutable::create(2000, $m, 1)->translatedFormat('M'), range(1, 12)); @endphp
+    @php
+        // I18N-01 rule 12 — every count the wizard shows gets its real plural here, never `n === 1 ?` in the script.
+        // Guests: the headcount counter is clamped to 1 … 80 (and a restored draft is clamped to the same range), so 0 … 80.
+        // Units: only the units rendered below can be ticked, so 0 … $freeUnitCount — exact, nothing can go past it.
+        // Nights: the dates are the SERVER's (changing them is a page load), so the one count the script computes is
+        // known here — the signed day difference between the two dates (what the script used to work out), 0 when either is missing.
+        $__gbGuestMax = 80;
+        $__gbCounts = ['headcountGuests' => [], 'sleepsOf' => [], 'headcountValue' => [], 'roomingList' => [], 'railUnits' => []];
+        foreach (range(0, $__gbGuestMax) as $__n) {
+            $__gbCounts['headcountGuests'][$__n] = trans_choice('livewire/operator/group-booking.headcount_guests', $__n, ['count' => $__n]);
+            $__gbCounts['sleepsOf'][$__n] = trans_choice('livewire/operator/group-booking.sleeps_of_guests', $__n, ['count' => $__n, 'cap' => ':cap']);
+            $__gbCounts['headcountValue'][$__n] = trans_choice('livewire/operator/group-booking.review_headcount_value', $__n, ['count' => $__n, 'cap' => ':cap']);
+        }
+        foreach (range(0, $freeUnitCount) as $__n) {
+            $__gbCounts['roomingList'][$__n] = trans_choice('livewire/operator/group-booking.rooming_list', $__n, ['count' => $__n]);
+            $__gbCounts['railUnits'][$__n] = trans_choice('livewire/operator/group-booking.rail_units', $__n, ['count' => $__n, 'cap' => ':cap']);
+        }
+        $__gbNightsN = ($checkIn !== null && $checkOut !== null)
+            ? (int) round(\Carbon\CarbonImmutable::parse($checkIn)->diffInDays(\Carbon\CarbonImmutable::parse($checkOut), false))
+            : 0;
+        // trim(): dates typed into the URL back to front give a negative count, which no plural range matches, and
+        // Laravel then answers with the form's leading space — the old script printed it without one.
+        $__gbNightsText = trim(trans_choice('livewire/operator/group-booking.nights', $__gbNightsN, ['count' => $__gbNightsN]));
+    @endphp
     <div class="vy-gb-standalone" x-data="groupBookingWizard(@js($currency), @js($roomTypes), @js((string) $checkIn), @js((string) $checkOut))" x-init="init()">
         {{-- Topbar --}}
         <div class="vy-gb-topbar vy-fade">
             <div class="vy-gb-brand">
                 <span class="vy-gb-logo">V</span>
                 <span class="vy-gb-brand-id">
-                    <h1 class="vy-gb-brand-title" style="margin:0;">Group booking</h1>
-                    <span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span>
+                    <h1 class="vy-gb-brand-title" style="margin:0;">{{ __('livewire/operator/group-booking.heading') }}</h1>
+                    <span class="vy-gb-brand-sub">{{ __('livewire/operator/group-booking.brand_sub', ['property' => $subtitle]) }}</span>
                 </span>
             </div>
             <div class="vy-gb-topright">
-                <span class="vy-gb-stepcount" x-text="'Step ' + step + ' of 5'"></span>
-                <a class="vy-gb-close" href="{{ route('app.rack') }}" title="Close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
+                <span class="vy-gb-stepcount" x-text="t.stepOf.replace(':step', step)"></span>
+                <a class="vy-gb-close" href="{{ route('app.rack') }}" title="{{ __('common.close') }}" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
             </div>
         </div>
 
@@ -92,21 +117,21 @@
             <div class="vy-gb-flash vy-fade">{{ session('group_notice') }}</div>
         @endif
         @if ($__gbReadOnly)
-            <div class="vy-gb-ro vy-fade" role="status">Your workspace is paused — new blocks are off until you resume from Billing.</div>
+            <div class="vy-gb-ro vy-fade" role="status">{{ __('livewire/operator/group-booking.read_only') }}</div>
         @endif
 
         {{-- Clickable 5-node stepper — the SHARED `.vy-wiz-*` stepper (see the operator layout), the same
              control New Reservation uses and the one both wizard prototypes draw: circular nodes joined by
              connector bars, with the labels beneath. This page previously had a compact variant that matched
              neither its own design nor its sibling wizard. --}}
-        @php $__gbSteps = ['Block', 'Units', 'Organiser', 'Terms', 'Review']; @endphp
+        @php $__gbSteps = [__('livewire/operator/group-booking.step_block'), __('livewire/operator/group-booking.step_units'), __('livewire/operator/group-booking.step_organiser'), __('livewire/operator/group-booking.step_terms'), __('livewire/operator/group-booking.step_review')]; @endphp
         <div class="vy-wiz-stepper vy-fade">
             @foreach ($__gbSteps as $i => $label)
                 @php $n = $i + 1; @endphp
                 <div class="vy-wiz-node" x-bind:class="step === {{ $n }} ? 'is-on' : (step > {{ $n }} ? 'is-done' : '')">
                     <div class="vy-wiz-node-row">
                         <span class="vy-wiz-bar" @if ($i === 0) style="visibility:hidden" @endif></span>
-                        <button type="button" class="vy-wiz-circle" x-on:click="goto({{ $n }})" aria-label="Go to {{ $label }}">
+                        <button type="button" class="vy-wiz-circle" x-on:click="goto({{ $n }})" aria-label="{{ __('livewire/operator/group-booking.go_to_step', ['step' => $label]) }}">
                             <span class="vy-wiz-circle-num">{{ $n }}</span>
                             <svg class="vy-wiz-circle-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                         </button>
@@ -138,17 +163,17 @@
 
                 {{-- STEP 1 · Block --}}
                 <section class="vy-gb-step" x-show="step === 1" x-cloak>
-                    <h2 class="vy-gb-h">The group</h2>
-                    <p class="vy-gb-sub">Name the block, the occasion, and roughly how many guests.</p>
+                    <h2 class="vy-gb-h">{{ __('livewire/operator/group-booking.group_heading') }}</h2>
+                    <p class="vy-gb-sub">{{ __('livewire/operator/group-booking.group_sub') }}</p>
 
-                    <div class="vy-gb-field"><label class="vy-gb-label">Group name</label>
-                        <input id="vy-lbl-group-booking-e-g-okafor-bello-wedding" type="text" class="vy-gb-input" x-model="name" placeholder="e.g. Okafor–Bello Wedding" autocomplete="off">
+                    <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.group_name') }}</label>
+                        <input id="vy-lbl-group-booking-e-g-okafor-bello-wedding" type="text" class="vy-gb-input" x-model="name" placeholder="{{ __('livewire/operator/group-booking.group_name_placeholder') }}" autocomplete="off">
                         {{-- ⚠️ THE MISSING THING IS NAMED BESIDE ITSELF. Continue used to be merely DISABLED, which
                              tells an operator that something is wrong and never which thing — on a five-step wizard
                              whose first step has three requirements, two of them further down the page. --}}
-                        <p class="vy-gb-miss" x-show="attempted &amp;&amp; ! name.trim()" x-cloak>Give the block a name — it is how this group is found later.</p>
+                        <p class="vy-gb-miss" x-show="attempted &amp;&amp; ! name.trim()" x-cloak>{{ __('livewire/operator/group-booking.missing_name') }}</p>
                     </div>
-                    <div class="vy-gb-field"><label class="vy-gb-label">Occasion</label>
+                    <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.occasion') }}</label>
                         <div class="vy-gb-chips">
                             @foreach ($occasions as $occ)
                                 <button type="button" class="vy-gb-chip" x-bind:class="occasion === '{{ $occ['value'] }}' ? 'is-on' : ''" x-on:click="occasion = '{{ $occ['value'] }}'">{{ $occ['label'] }}</button>
@@ -156,18 +181,18 @@
                         </div>
                     </div>
                     <div class="vy-gb-row2">
-                        <div class="vy-gb-field"><label class="vy-gb-label">Stay dates</label>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.stay_dates') }}</label>
                             <div class="vy-gb-dates">
                                 {{-- ⚠️ F-8 — the visible "Stay dates" label above names the PAIR, not either
                                      input, and was never associated with either. These two hidden labels
                                      name each end of the range; the text is derived from the authored
                                      label plus the → between them, not invented. --}}
-                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-in">Stay dates — check-in</label>
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-in">{{ __('livewire/operator/group-booking.stay_dates_check_in') }}</label>
                                 <input type="date" id="vy-lbl-group-booking-check-in" class="vy-gb-input" x-model="ci">
                                 <span class="vy-gb-dates-arrow" aria-hidden="true">→</span>
-                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-out">Stay dates — check-out</label>
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-out">{{ __('livewire/operator/group-booking.stay_dates_check_out') }}</label>
                                 <input type="date" id="vy-lbl-group-booking-check-out" class="vy-gb-input" x-model="co">
-                                <button type="button" class="vy-gb-datesbtn" x-on:click="applyDates()" x-bind:disabled="! ci || ! co || co <= ci">Check availability</button>
+                                <button type="button" class="vy-gb-datesbtn" x-on:click="applyDates()" x-bind:disabled="! ci || ! co || co <= ci">{{ __('livewire/operator/group-booking.check_availability') }}</button>
                             </div>
                             <div class="vy-gb-hint" x-text="datesLabel"></div>
                             {{-- ⚠️⚠️ THE SUBTLE HALF, AND THE ONE THAT ACTUALLY STRANDED PEOPLE. `ci`/`co` are what
@@ -176,13 +201,13 @@
                                  availability" leaves the wizard refusing to advance with both date boxes visibly
                                  filled in. That is unexplainable from the screen, so it is explained here. --}}
                             <p class="vy-gb-miss" x-show="attempted &amp;&amp; (! checkIn || ! checkOut)" x-cloak
-                               x-text="(ci &amp;&amp; co &amp;&amp; co &gt; ci) ? 'Press “Check availability” to load rooms for these dates.' : 'Pick the block dates — check-out must be after check-in.'"></p>
+                               x-text="(ci &amp;&amp; co &amp;&amp; co &gt; ci) ? @js(__('livewire/operator/group-booking.missing_apply_dates')) : @js(__('livewire/operator/group-booking.missing_dates'))"></p>
                         </div>
-                        <div class="vy-gb-field"><label class="vy-gb-label">Approx. headcount</label>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.headcount_label') }}</label>
                             <div class="vy-gb-counter">
-                                <button type="button" x-on:click="headcount = Math.max(1, headcount - 1)" aria-label="Fewer">−</button>
-                                <span x-text="headcount + ' guests'"></span>
-                                <button type="button" x-on:click="headcount = Math.min(80, headcount + 1)" aria-label="More">+</button>
+                                <button type="button" x-on:click="headcount = Math.max(1, headcount - 1)" aria-label="{{ __('livewire/operator/group-booking.fewer') }}">−</button>
+                                <span x-text="tc(t.headcountGuests, headcount)"></span>
+                                <button type="button" x-on:click="headcount = Math.min(@js($__gbGuestMax), headcount + 1)" aria-label="{{ __('livewire/operator/group-booking.more') }}">+</button>
                             </div>
                         </div>
                     </div>
@@ -190,14 +215,14 @@
 
                 {{-- STEP 2 · Units + capacity meter --}}
                 <section class="vy-gb-step" x-show="step === 2" x-cloak>
-                    <h2 class="vy-gb-h">Build the block</h2>
-                    <p class="vy-gb-sub" x-text="'Select the units to hold for ' + datesShort + '. Rates are per stay.'"></p>
+                    <h2 class="vy-gb-h">{{ __('livewire/operator/group-booking.build_heading') }}</h2>
+                    <p class="vy-gb-sub" x-text="t.buildSub.replace(':dates', datesShort)"></p>
 
                     {{-- Capacity meter — REAL sleeps vs headcount --}}
                     <div class="vy-gb-cap">
                         <div class="vy-gb-cap-head">
-                            <span x-text="'Sleeps ' + cap + ' of ' + headcount + ' guests'"></span>
-                            <span x-bind:style="'color:' + (capOk ? '#1F7A52' : '#8F3110')" x-text="capOk ? 'Enough beds' : 'Add more beds'"></span>
+                            <span x-text="tc(t.sleepsOf, headcount).replace(':cap', cap)"></span>
+                            <span x-bind:style="'color:' + (capOk ? '#1F7A52' : '#8F3110')" x-text="capOk ? @js(__('livewire/operator/group-booking.enough_beds')) : @js(__('livewire/operator/group-booking.add_more_beds'))"></span>
                         </div>
                         <div class="vy-gb-cap-bar"><div class="vy-gb-cap-fill" x-bind:class="capOk ? 'is-ok' : ''" x-bind:style="'width:' + capPct + '%'"></div></div>
                     </div>
@@ -205,21 +230,21 @@
                     {{-- ⚠️ Step 2's own requirement, named where the operator is looking. The capacity meter above
                          reports beds-vs-heads and says nothing about the real blocker, which is that no unit is
                          ticked at all. --}}
-                    <p class="vy-gb-miss" x-show="attempted &amp;&amp; count === 0" x-cloak>Tick at least one unit to hold for this block.</p>
+                    <p class="vy-gb-miss" x-show="attempted &amp;&amp; count === 0" x-cloak>{{ __('livewire/operator/group-booking.missing_units') }}</p>
 
                     @if ($roomTypes === [])
-                        <div class="vy-gb-empty">No free, priced units for these dates. Change the dates in step 1.</div>
+                        <div class="vy-gb-empty">{{ __('livewire/operator/group-booking.no_units_available') }}</div>
                     @endif
                     @foreach ($roomTypes as $rt)
                         <div class="vy-gb-rt">
-                            <div class="vy-gb-rt-head"><span class="vy-gb-rt-name">{{ $rt['name'] }}</span><span class="vy-gb-rt-price">{{ $rt['price'] }} · stay</span></div>
+                            <div class="vy-gb-rt-head"><span class="vy-gb-rt-name">{{ $rt['name'] }}</span><span class="vy-gb-rt-price">{{ __('livewire/operator/group-booking.price_per_stay', ['price' => $rt['price']]) }}</span></div>
                             <div class="vy-gb-units">
                                 @foreach ($rt['units'] as $unit)
                                     <label class="vy-gb-unit" x-bind:class="isSelected('{{ $unit['id'] }}') ? 'is-on' : ''">
                                         <input type="checkbox" x-bind:checked="isSelected('{{ $unit['id'] }}')"
                                             x-on:change="toggleUnit({ id: '{{ $unit['id'] }}', code: @js($unit['code']), rt: @js($rt['name']), priceMinor: {{ $rt['price_minor'] }}, sleeps: {{ $unit['sleeps'] }} }, $event.target.checked)">
                                         <span class="vy-gb-unit-code">{{ $unit['code'] }}</span>
-                                        <span class="vy-gb-unit-sleeps">sleeps {{ $unit['sleeps'] }}</span>
+                                        <span class="vy-gb-unit-sleeps">{{ __('livewire/operator/group-booking.unit_sleeps', ['sleeps' => $unit['sleeps']]) }}</span>
                                     </label>
                                 @endforeach
                             </div>
@@ -229,25 +254,25 @@
 
                 {{-- STEP 3 · Organiser (rooming list is added in 4.3) --}}
                 <section class="vy-gb-step" x-show="step === 3" x-cloak>
-                    <h2 class="vy-gb-h">Organiser</h2>
-                    <p class="vy-gb-sub">Who's booking the block? Contact details stay private (encrypted).</p>
+                    <h2 class="vy-gb-h">{{ __('livewire/operator/group-booking.organiser') }}</h2>
+                    <p class="vy-gb-sub">{{ __('livewire/operator/group-booking.organiser_sub') }}</p>
                     <div class="vy-gb-row2">
-                        <div class="vy-gb-field"><label class="vy-gb-label">First name</label><input type="text" name="organiser_first_name" class="vy-gb-input" x-model="orgFirst" autocomplete="off"></div>
-                        <div class="vy-gb-field"><label class="vy-gb-label">Last name</label><input type="text" name="organiser_last_name" class="vy-gb-input" x-model="orgLast" autocomplete="off"></div>
-                        <div class="vy-gb-field"><label class="vy-gb-label">Company · optional</label><input type="text" name="organiser_company" class="vy-gb-input" autocomplete="off"></div>
-                        <div class="vy-gb-field"><label class="vy-gb-label">Email · optional</label><input type="email" name="organiser_email" class="vy-gb-input" autocomplete="off"></div>
-                        <div class="vy-gb-field"><label class="vy-gb-label">Phone · optional</label><input type="text" name="organiser_phone" class="vy-gb-input" autocomplete="off"></div>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.first_name') }}</label><input type="text" name="organiser_first_name" class="vy-gb-input" x-model="orgFirst" autocomplete="off"></div>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.last_name') }}</label><input type="text" name="organiser_last_name" class="vy-gb-input" x-model="orgLast" autocomplete="off"></div>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.company_optional') }}</label><input type="text" name="organiser_company" class="vy-gb-input" autocomplete="off"></div>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.email_optional') }}</label><input type="email" name="organiser_email" class="vy-gb-input" autocomplete="off"></div>
+                        <div class="vy-gb-field"><label class="vy-gb-label">{{ __('livewire/operator/group-booking.phone_optional') }}</label><input type="text" name="organiser_phone" class="vy-gb-input" autocomplete="off"></div>
                     </div>
 
                     {{-- Rooming list — a lead-guest NAME per selected unit (optional; blank → the organiser leads it).
                          Name-only (#28) — no contact captured here. Persists to each member reservation's lead_guest. --}}
                     <div class="vy-gb-field" x-show="count > 0" x-cloak style="margin-top: 6px;">
-                        <label class="vy-gb-label"><span x-text="'Rooming list · ' + count + (count === 1 ? ' unit' : ' units')"></span></label>
+                        <label class="vy-gb-label"><span x-text="tc(t.roomingList, count)"></span></label>
                         <template x-for="u in selected" x-bind:key="u.id">
                             <div class="vy-gb-rooming">
-                                <span class="vy-gb-rooming-unit"><span x-text="u.code"></span> · <span class="vy-gb-faint" x-text="'sleeps ' + u.sleeps"></span></span>
-                                <label class="vy-sr-only" for="vy-lbl-group-booking-rooming-u-id">Lead guest — TBC</label>
-                                <input id="vy-lbl-group-booking-rooming-u-id" type="text" class="vy-gb-input vy-gb-rooming-input" x-model="rooming[u.id]" x-bind:name="'rooming[' + u.id + ']'" placeholder="Lead guest — TBC" autocomplete="off">
+                                <span class="vy-gb-rooming-unit"><span x-text="u.code"></span> · <span class="vy-gb-faint" x-text="t.unitSleeps.replace(':sleeps', u.sleeps)"></span></span>
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-rooming-u-id">{{ __('livewire/operator/group-booking.lead_guest_tbc') }}</label>
+                                <input id="vy-lbl-group-booking-rooming-u-id" type="text" class="vy-gb-input vy-gb-rooming-input" x-model="rooming[u.id]" x-bind:name="'rooming[' + u.id + ']'" placeholder="{{ __('livewire/operator/group-booking.lead_guest_tbc') }}" autocomplete="off">
                             </div>
                         </template>
                     </div>
@@ -255,25 +280,25 @@
 
                 {{-- STEP 4 · Terms — hold + billing (discount/deposit added in 4.2) --}}
                 <section class="vy-gb-step" x-show="step === 4" x-cloak>
-                    <h2 class="vy-gb-h">Rate &amp; hold</h2>
-                    <p class="vy-gb-sub">How you're holding the block, and who settles the bill.</p>
+                    <h2 class="vy-gb-h">{{ __('livewire/operator/group-booking.terms_heading') }}</h2>
+                    <p class="vy-gb-sub">{{ __('livewire/operator/group-booking.terms_sub') }}</p>
                     <div class="vy-gb-row2">
                         <div>
-                            <div class="vy-gb-label">Hold type</div>
-                            <label class="vy-gb-opt" x-bind:class="holdType === 'confirmed' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="confirmed"><span><strong>Confirmed</strong><br><span class="vy-gb-opt-sub">Units held firm on the rack</span></span></label>
-                            <label class="vy-gb-opt" x-bind:class="holdType === 'tentative' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="tentative"><span><strong>Tentative hold</strong><br><span class="vy-gb-opt-sub">Option expires if not confirmed</span></span></label>
-                            <div class="vy-gb-field" x-show="holdType === 'tentative'" x-cloak style="margin-top:8px;"><label class="vy-gb-label" for="vy-lbl-group-booking-pickup-deadline">Option held until</label><input type="date" id="vy-lbl-group-booking-pickup-deadline" class="vy-gb-input" x-model="pickupDeadline"></div>
+                            <div class="vy-gb-label">{{ __('livewire/operator/group-booking.hold_type') }}</div>
+                            <label class="vy-gb-opt" x-bind:class="holdType === 'confirmed' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="confirmed"><span><strong>{{ __('livewire/operator/group-booking.hold_confirmed') }}</strong><br><span class="vy-gb-opt-sub">{{ __('livewire/operator/group-booking.hold_confirmed_sub') }}</span></span></label>
+                            <label class="vy-gb-opt" x-bind:class="holdType === 'tentative' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="tentative"><span><strong>{{ __('livewire/operator/group-booking.hold_tentative') }}</strong><br><span class="vy-gb-opt-sub">{{ __('livewire/operator/group-booking.hold_tentative_sub') }}</span></span></label>
+                            <div class="vy-gb-field" x-show="holdType === 'tentative'" x-cloak style="margin-top:8px;"><label class="vy-gb-label" for="vy-lbl-group-booking-pickup-deadline">{{ __('livewire/operator/group-booking.option_held_until') }}</label><input type="date" id="vy-lbl-group-booking-pickup-deadline" class="vy-gb-input" x-model="pickupDeadline"></div>
                         </div>
                         <div>
-                            <div class="vy-gb-label">Payment</div>
-                            <label class="vy-gb-opt" x-bind:class="billingMode === 'individual' ? 'is-on' : ''"><input type="radio" x-model="billingMode" value="individual"><span><strong>Individual pay</strong><br><span class="vy-gb-opt-sub">Each unit gets its own folio</span></span></label>
-                            <label class="vy-gb-opt" x-bind:class="billingMode === 'master' ? 'is-on' : ''"><input type="radio" x-model="billingMode" value="master"><span><strong>Master invoice</strong><br><span class="vy-gb-opt-sub">Organiser settles one bill for the block</span></span></label>
+                            <div class="vy-gb-label">{{ __('livewire/operator/group-booking.payment') }}</div>
+                            <label class="vy-gb-opt" x-bind:class="billingMode === 'individual' ? 'is-on' : ''"><input type="radio" x-model="billingMode" value="individual"><span><strong>{{ __('livewire/operator/group-booking.billing_individual') }}</strong><br><span class="vy-gb-opt-sub">{{ __('livewire/operator/group-booking.billing_individual_sub') }}</span></span></label>
+                            <label class="vy-gb-opt" x-bind:class="billingMode === 'master' ? 'is-on' : ''"><input type="radio" x-model="billingMode" value="master"><span><strong>{{ __('livewire/operator/group-booking.billing_master') }}</strong><br><span class="vy-gb-opt-sub">{{ __('livewire/operator/group-booking.billing_master_sub') }}</span></span></label>
                         </div>
                     </div>
 
                     {{-- Group discount — a REAL negative folio line (re-derived server-side from the fixed set). --}}
                     <div class="vy-gb-field" style="margin-top: 18px;">
-                        <label class="vy-gb-label">Group discount</label>
+                        <label class="vy-gb-label">{{ __('livewire/operator/group-booking.group_discount') }}</label>
                         <div class="vy-gb-chips">
                             <template x-for="p in [0, 5, 10, 15]" x-bind:key="p">
                                 <button type="button" class="vy-gb-chip" x-bind:class="discountPct === p ? 'is-on' : ''" x-on:click="discountPct = p" x-text="p + '%'"></button>
@@ -284,60 +309,60 @@
                     {{-- Deposit-to-confirm — a REAL cash/bank payment on the master invoice; card is the deferred
                          Stripe seam. Only on a master invoice (an individual-pay block has no single folio). --}}
                     <div class="vy-gb-field" style="margin-top: 4px;">
-                        <label class="vy-gb-label">Deposit to confirm</label>
+                        <label class="vy-gb-label">{{ __('livewire/operator/group-booking.deposit_to_confirm') }}</label>
                         <template x-if="billingMode === 'master'">
                             <div>
                                 <div class="vy-gb-chips">
-                                    <button type="button" class="vy-gb-chip" x-bind:class="depositPct === 0 ? 'is-on' : ''" x-on:click="depositPct = 0">None</button>
+                                    <button type="button" class="vy-gb-chip" x-bind:class="depositPct === 0 ? 'is-on' : ''" x-on:click="depositPct = 0">{{ __('common.none') }}</button>
                                     <template x-for="p in [25, 50, 100]" x-bind:key="p">
                                         <button type="button" class="vy-gb-chip" x-bind:class="depositPct === p ? 'is-on' : ''" x-on:click="depositPct = p" x-text="p + '%'"></button>
                                     </template>
                                 </div>
                                 <div x-show="depositPct > 0" x-cloak style="margin-top: 8px;">
                                     <div class="vy-gb-chips">
-                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'cash' ? 'is-on' : ''" x-on:click="depositMethod = 'cash'">Cash</button>
-                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'bank' ? 'is-on' : ''" x-on:click="depositMethod = 'bank'">Bank transfer</button>
-                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'card' ? 'is-on' : ''" x-on:click="depositMethod = 'card'">Card <span style="font-size:10px; opacity:.7;">· soon</span></button>
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'cash' ? 'is-on' : ''" x-on:click="depositMethod = 'cash'">{{ __('livewire/operator/group-booking.deposit_cash') }}</button>
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'bank' ? 'is-on' : ''" x-on:click="depositMethod = 'bank'">{{ __('livewire/operator/group-booking.deposit_bank') }}</button>
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'card' ? 'is-on' : ''" x-on:click="depositMethod = 'card'">{!! __('livewire/operator/group-booking.deposit_card') !!}</button>
                                     </div>
-                                    <div class="vy-gb-hint" x-show="depositMethod === 'card'">Card deposits arrive with secure Stripe checkout (test-mode until go-live) — take cash or a bank transfer to record a deposit now.</div>
+                                    <div class="vy-gb-hint" x-show="depositMethod === 'card'">{{ __('livewire/operator/group-booking.card_deposit_hint') }}</div>
                                 </div>
                             </div>
                         </template>
                         <template x-if="billingMode !== 'master'">
-                            <div class="vy-gb-hint">Deposits are collected on a master invoice — switch to “Master invoice” above to take one.</div>
+                            <div class="vy-gb-hint">{{ __('livewire/operator/group-booking.deposit_master_only_hint') }}</div>
                         </template>
                     </div>
                 </section>
 
                 {{-- STEP 5 · Review (fleshed out with agree + done in 4.4) --}}
                 <section class="vy-gb-step" x-show="step === 5" x-cloak>
-                    <h2 class="vy-gb-h">Review the block</h2>
-                    <p class="vy-gb-sub">Check the details, then confirm. Every unit is held together — all or none.</p>
+                    <h2 class="vy-gb-h">{{ __('livewire/operator/group-booking.review_heading') }}</h2>
+                    <p class="vy-gb-sub">{{ __('livewire/operator/group-booking.review_sub') }}</p>
                     <div class="vy-gb-review">
-                        <div class="vy-gb-rev-row"><span>Group</span><strong x-text="(name || '—') + ' · ' + occasionLabel"></strong></div>
-                        <div class="vy-gb-rev-row"><span>Dates</span><strong x-text="datesShort + ' · ' + nights + (nights === 1 ? ' night' : ' nights')"></strong></div>
-                        <div class="vy-gb-rev-row"><span>Headcount</span><strong x-text="headcount + ' guests · sleeps ' + cap"></strong></div>
-                        <div class="vy-gb-rev-row"><span>Organiser</span><strong x-text="(orgFirst + ' ' + orgLast).trim() || '—'"></strong></div>
-                        <div class="vy-gb-rev-row"><span>Hold</span><strong x-text="(holdType === 'tentative' ? 'Tentative' : 'Confirmed') + ' · ' + (billingMode === 'master' ? 'master invoice' : 'individual folios')"></strong></div>
-                        <div class="vy-gb-rev-row" x-show="discountPct > 0" x-cloak><span>Discount</span><strong x-text="discountPct + '% · −' + fmt(discountMinor)"></strong></div>
-                        <div class="vy-gb-rev-row" x-show="billingMode === 'master' && depositPct > 0" x-cloak><span>Deposit</span><strong x-text="depositPct + '% · ' + (depositMethod === 'card' ? 'card (soon)' : depositMethod)"></strong></div>
+                        <div class="vy-gb-rev-row"><span>{{ __('livewire/operator/group-booking.review_group') }}</span><strong x-text="(name || '—') + ' · ' + occasionLabel"></strong></div>
+                        <div class="vy-gb-rev-row"><span>{{ __('livewire/operator/group-booking.review_dates') }}</span><strong x-text="datesShort + ' · ' + t.nightsText"></strong></div>
+                        <div class="vy-gb-rev-row"><span>{{ __('livewire/operator/group-booking.review_headcount') }}</span><strong x-text="tc(t.headcountValue, headcount).replace(':cap', cap)"></strong></div>
+                        <div class="vy-gb-rev-row"><span>{{ __('livewire/operator/group-booking.organiser') }}</span><strong x-text="(orgFirst + ' ' + orgLast).trim() || '—'"></strong></div>
+                        <div class="vy-gb-rev-row"><span>{{ __('livewire/operator/group-booking.review_hold') }}</span><strong x-text="(holdType === 'tentative' ? @js(__('livewire/operator/group-booking.review_tentative')) : @js(__('livewire/operator/group-booking.hold_confirmed'))) + ' · ' + (billingMode === 'master' ? @js(__('livewire/operator/group-booking.review_master')) : @js(__('livewire/operator/group-booking.review_individual')))"></strong></div>
+                        <div class="vy-gb-rev-row" x-show="discountPct > 0" x-cloak><span>{{ __('livewire/operator/group-booking.review_discount') }}</span><strong x-text="discountPct + '% · −' + fmt(discountMinor)"></strong></div>
+                        <div class="vy-gb-rev-row" x-show="billingMode === 'master' && depositPct > 0" x-cloak><span>{{ __('livewire/operator/group-booking.review_deposit') }}</span><strong x-text="depositPct + '% · ' + (depositMethod === 'card' ? @js(__('livewire/operator/group-booking.method_card_soon')) : (t.methods[depositMethod] || depositMethod))"></strong></div>
                         <div class="vy-gb-rev-units">
-                            <div class="vy-gb-rev-units-h" x-text="'Units · ' + count"></div>
+                            <div class="vy-gb-rev-units-h" x-text="t.reviewUnits.replace(':units', count)"></div>
                             <template x-for="u in selected" x-bind:key="u.id">
                                 <div class="vy-gb-rev-unit"><span x-text="u.code + ' · ' + u.rt + ((rooming[u.id] && rooming[u.id].trim()) ? ' · ' + rooming[u.id].trim() : '')"></span><span x-text="fmt(u.priceMinor)"></span></div>
                             </template>
                         </div>
                     </div>
-                    <label class="vy-gb-agree"><input type="checkbox" x-model="agree"><span>I've checked availability with the property and confirmed the organiser's details.</span></label>
+                    <label class="vy-gb-agree"><input type="checkbox" x-model="agree"><span>{{ __('livewire/operator/group-booking.agree') }}</span></label>
                 </section>
 
                 {{-- Footer nav --}}
                 <div class="vy-gb-nav">
-                    <button type="button" class="vy-gb-btn vy-gb-btn--ghost" x-show="step > 1" x-on:click="prev()">Back</button>
+                    <button type="button" class="vy-gb-btn vy-gb-btn--ghost" x-show="step > 1" x-on:click="prev()">{{ __('common.back') }}</button>
                     <span style="flex:1"></span>
-                    <button type="button" class="vy-gb-btn vy-gb-btn--accent" x-show="step < 5" x-on:click="next()">Continue</button>
+                    <button type="button" class="vy-gb-btn vy-gb-btn--accent" x-show="step < 5" x-on:click="next()">{{ __('common.continue') }}</button>
                     @unless ($__gbReadOnly)
-                        <button type="submit" class="vy-gb-btn vy-gb-btn--accent" x-show="step === 5" x-bind:disabled="count === 0 || ! name.trim() || ! agree">Confirm block</button>
+                        <button type="submit" class="vy-gb-btn vy-gb-btn--accent" x-show="step === 5" x-bind:disabled="count === 0 || ! name.trim() || ! agree">{{ __('livewire/operator/group-booking.confirm_block') }}</button>
                     @endunless
                 </div>
             </form>
@@ -345,7 +370,7 @@
             {{-- ═══ Sticky live pricing rail (accommodation subtotal; discount/deposit/tax lines in 4.2) ═══ --}}
             <aside class="vy-gb-rail">
                 <div class="vy-gb-rail-card">
-                    <div class="vy-gb-rail-title">Block summary</div>
+                    <div class="vy-gb-rail-title">{{ __('livewire/operator/group-booking.summary_title') }}</div>
                     {{-- ⚠️ Until at least one unit is in the block there is NO priced stay, so no figure and no
                          COMPONENT of one is stated — "—", never "€0.00" (a zero price is a claim).
                          The discount and deposit lines are gated on `count` too, not just on their own
@@ -354,12 +379,12 @@
                          −€0.00" against an Accommodation of "—". That is exactly the follow-on the New
                          Reservation gate uncovered (a date-derived tax rendering against an empty total),
                          applied here up front. --}}
-                    <div class="vy-gb-rail-line"><span x-text="count > 0 ? count + (count === 1 ? ' unit' : ' units') + ' · sleeps ' + cap : 'No units selected yet'"></span><span></span></div>
-                    <div class="vy-gb-rail-line"><span>Accommodation</span><span class="vy-u-code" x-text="count > 0 ? fmt(blockSubMinor) : '—'"></span></div>
-                    <div class="vy-gb-rail-line" x-show="count > 0 && discountPct > 0" x-cloak style="color:#1F8A5B;"><span x-text="'Group discount (' + discountPct + '%)'"></span><span class="vy-u-code" x-text="'−' + fmt(discountMinor)"></span></div>
-                    <div class="vy-gb-rail-total"><span x-text="count > 0 && discountPct > 0 ? 'After discount' : 'Block total'"></span><span class="vy-u-code" x-text="count > 0 ? fmt(afterDiscMinor) : '—'"></span></div>
-                    <div class="vy-gb-rail-line" x-show="count > 0 && billingMode === 'master' && depositPct > 0" x-cloak style="color:var(--vy-accent-text);"><span x-text="'Deposit ' + depositPct + '% to confirm'"></span><span x-text="depositMethod === 'card' ? 'soon' : depositMethod"></span></div>
-                    <div class="vy-gb-rail-note">Taxes &amp; fees are posted to the real folio on confirm — the authoritative total is the folio.</div>
+                    <div class="vy-gb-rail-line"><span x-text="count > 0 ? tc(t.railUnits, count).replace(':cap', cap) : @js(__('livewire/operator/group-booking.no_units_selected'))"></span><span></span></div>
+                    <div class="vy-gb-rail-line"><span>{{ __('livewire/operator/group-booking.accommodation') }}</span><span class="vy-u-code" x-text="count > 0 ? fmt(blockSubMinor) : '—'"></span></div>
+                    <div class="vy-gb-rail-line" x-show="count > 0 && discountPct > 0" x-cloak style="color:#1F8A5B;"><span x-text="t.railDiscount.replace(':pct', discountPct)"></span><span class="vy-u-code" x-text="'−' + fmt(discountMinor)"></span></div>
+                    <div class="vy-gb-rail-total"><span x-text="count > 0 && discountPct > 0 ? @js(__('livewire/operator/group-booking.after_discount')) : @js(__('livewire/operator/group-booking.block_total'))"></span><span class="vy-u-code" x-text="count > 0 ? fmt(afterDiscMinor) : '—'"></span></div>
+                    <div class="vy-gb-rail-line" x-show="count > 0 && billingMode === 'master' && depositPct > 0" x-cloak style="color:var(--vy-accent-text);"><span x-text="t.railDeposit.replace(':pct', depositPct)"></span><span x-text="depositMethod === 'card' ? @js(__('livewire/operator/group-booking.rail_soon')) : (t.methods[depositMethod] || depositMethod)"></span></div>
+                    <div class="vy-gb-rail-note">{{ __('livewire/operator/group-booking.rail_note') }}</div>
                 </div>
             </aside>
         </div>
@@ -377,6 +402,27 @@
                     holdType: 'confirmed', billingMode: 'individual', pickupDeadline: checkIn,
                     discountPct: 0, depositPct: 0, depositMethod: 'cash', agree: false,
                     attempted: false,
+                    // I18N-01 — the texts this script shows. A count's texts are a map, one per count it can show, built on the
+                    // server with each language's real plural (rule 12); tc() picks from it.
+                    t: {
+                        stepOf: @js(__('livewire/operator/group-booking.step_of', ['step' => ':step'])),
+                        headcountGuests: @js($__gbCounts['headcountGuests']),
+                        buildSub: @js(__('livewire/operator/group-booking.build_sub', ['dates' => ':dates'])),
+                        sleepsOf: @js($__gbCounts['sleepsOf']),
+                        roomingList: @js($__gbCounts['roomingList']),
+                        unitSleeps: @js(__('livewire/operator/group-booking.unit_sleeps', ['sleeps' => ':sleeps'])),
+                        headcountValue: @js($__gbCounts['headcountValue']),
+                        reviewUnits: @js(__('livewire/operator/group-booking.review_units', ['units' => ':units'])),
+                        railUnits: @js($__gbCounts['railUnits']),
+                        railDiscount: @js(__('livewire/operator/group-booking.rail_discount', ['pct' => ':pct'])),
+                        railDeposit: @js(__('livewire/operator/group-booking.rail_deposit', ['pct' => ':pct'])),
+                        nightsText: @js($__gbNightsText),
+                        pickDates: @js(__('livewire/operator/group-booking.pick_dates')),
+                        methods: { cash: @js(__('livewire/operator/group-booking.method_cash')), bank: @js(__('livewire/operator/group-booking.method_bank')) },
+                        occasions: @js(collect($occasions)->pluck('label', 'value')->all()),
+                        months: @js($__gbMonths),
+                    },
+                    tc(texts, n) { return texts[n]; },
                     // ⚠️⚠️ THE DRAFT SURVIVES THE "CHECK AVAILABILITY" NAVIGATION. applyDates() is a real page
                     // load (invariant #20 — the availability read is scope-dependent, so the dates MUST ride a
                     // GET through the tenant middleware rather than a Livewire action). That is correct and
@@ -403,7 +449,8 @@
                                 const d = JSON.parse(raw);
                                 if (typeof d.name === 'string') this.name = d.name;
                                 if (typeof d.occasion === 'string') this.occasion = d.occasion;
-                                if (typeof d.headcount === 'number') this.headcount = d.headcount;
+                                // the counter's own range (1 … @js($__gbGuestMax)), so the restored count is one the texts above cover
+                                if (Number.isInteger(d.headcount)) this.headcount = Math.min(@js($__gbGuestMax), Math.max(1, d.headcount));
                             }
                         } catch (e) { /* storage unavailable — the wizard still works, it just forgets */ }
                     },
@@ -420,11 +467,10 @@
                     // dates change → GET nav (re-reads availability server-side, invariant #20). LOCAL date strings
                     // straight from the inputs — never toISOString (which shifts the day for +UTC users).
                     applyDates() { if (this.ci && this.co && this.co > this.ci) { this.saveDraft(); window.location = '?check_in=' + this.ci + '&check_out=' + this.co; } },
-                    get nights() { if (! this.checkIn || ! this.checkOut) return 0; return Math.round((new Date(this.checkOut + 'T00:00:00') - new Date(this.checkIn + 'T00:00:00')) / 86400000); },
                     get datesShort() { return this.checkIn && this.checkOut ? this.fmtDate(this.checkIn) + '–' + this.fmtDate(this.checkOut) : '—'; },
-                    get datesLabel() { return this.checkIn && this.checkOut ? this.datesShort + ' · ' + this.nights + (this.nights === 1 ? ' night' : ' nights') : 'Pick the block dates'; },
-                    fmtDate(s) { const d = new Date(s + 'T00:00:00'); return d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; },
-                    get occasionLabel() { const m = { wedding: 'Wedding', corporate: 'Corporate', family: 'Family', sports: 'Sports', other: 'Other' }; return m[this.occasion] || 'Other'; },
+                    get datesLabel() { return this.checkIn && this.checkOut ? this.datesShort + ' · ' + this.t.nightsText : this.t.pickDates; },
+                    fmtDate(s) { const d = new Date(s + 'T00:00:00'); return d.getDate() + ' ' + this.t.months[d.getMonth()]; },
+                    get occasionLabel() { const m = this.t.occasions; return m[this.occasion] || m.other; },
                     toggleUnit(u, checked) {
                         if (checked) {
                             if (! this.selected.some(x => x.id === u.id)) this.selected.push(u);

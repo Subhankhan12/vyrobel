@@ -46,14 +46,14 @@
         toggleLane(k) { this.collapsed = { ...this.collapsed, [k]: ! this.collapsed[k] }; localStorage.setItem('vy:hk:collapsed', JSON.stringify(this.collapsed)); },
         laneOpen(k) { return ! this.collapsed[k]; },
      }">
-    <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Cleaning across your rooms, by day" :viewer="$viewer">
+    <x-operator.shell active="housekeeping" :title="__('livewire/housekeeping-board.page_title')" :subtitle="__('livewire/housekeeping-board.page_subtitle')" :viewer="$viewer">
 
         {{-- ⚠️ F-13 — THE BOARD USED TO SAY NOTHING to a role with `housekeeping.view` and not `housekeeping.manage` (Front Desk,
              Maintenance, Guest Support Agent): every task, zero controls, no reason. The controls stay absent; this says why, and
              who can change it. ⚠️ Above the flashes on purpose — at 375 px they sit below the first screen. No script needed. --}}
         @unless ($canManage)
             <div class="vy-hk-notice" role="status">
-                You can see the cleaning, but not update it. Changing a room’s cleaning status needs housekeeping access — a Property Owner or Group Admin can grant it.
+                {{ __('livewire/housekeeping-board.view_only_notice') }}
             </div>
         @endunless
 
@@ -68,7 +68,7 @@
                         @csrf
                         @foreach ($hkUndo['ids'] ?? [] as $undoId)<input type="hidden" name="task_ids[]" value="{{ $undoId }}">@endforeach
                         @if (! empty($hkUndo['restore_priority']))<input type="hidden" name="restore_priority" value="{{ $hkUndo['restore_priority'] }}">@endif
-                        <button type="submit" class="vy-btn vy-btn--ghost">Undo</button>
+                        <button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/housekeeping-board.undo') }}</button>
                     </form>
                 @endif
             </div>
@@ -82,11 +82,11 @@
         @php $canAssign = $canManage && $crew !== []; @endphp
         @if ($canManage && $crew === [])
             <div class="vy-hk-notice is-info" role="status">
-                No housekeepers on the roster yet, so rooms can’t be assigned.
+                {{ __('livewire/housekeeping-board.no_roster_notice') }}
                 @if ($canStaff)
-                    Give a team member the Housekeeping role in <a class="vy-gl-link" href="{{ route('app.roles') }}">Roles &amp; access</a>.
+                    {!! __('livewire/housekeeping-board.no_roster_grant_link', ['url' => e(route('app.roles'))]) !!}
                 @else
-                    Someone who manages your team can give a team member the Housekeeping role.
+                    {{ __('livewire/housekeeping-board.no_roster_ask') }}
                 @endif
             </div>
         @endif
@@ -99,11 +99,11 @@
                  never the sole carrier of the state (WCAG 1.4.1). --}}
             @php
                 $chips = [
-                    ['k' => 'pending', 'label' => 'Pending', 'dot' => 'var(--vy-hk-pending)'],
-                    ['k' => 'in_progress', 'label' => 'In progress', 'dot' => 'var(--vy-hk-progress)'],
-                    ['k' => 'clean', 'label' => 'Clean', 'dot' => 'var(--vy-hk-clean)'],
-                    ['k' => 'inspected', 'label' => 'Inspected', 'dot' => 'var(--vy-hk-inspected)'],
-                    ['k' => 'out_of_order', 'label' => 'Out of order', 'dot' => 'var(--vy-hk-ooo)'],
+                    ['k' => 'pending', 'label' => __('livewire/housekeeping-board.status_pending'), 'dot' => 'var(--vy-hk-pending)'],
+                    ['k' => 'in_progress', 'label' => __('livewire/housekeeping-board.status_in_progress'), 'dot' => 'var(--vy-hk-progress)'],
+                    ['k' => 'clean', 'label' => __('livewire/housekeeping-board.status_clean'), 'dot' => 'var(--vy-hk-clean)'],
+                    ['k' => 'inspected', 'label' => __('livewire/housekeeping-board.status_inspected'), 'dot' => 'var(--vy-hk-inspected)'],
+                    ['k' => 'out_of_order', 'label' => __('livewire/housekeeping-board.status_out_of_order'), 'dot' => 'var(--vy-hk-ooo)'],
                 ];
             @endphp
             @foreach ($chips as $chip)
@@ -122,36 +122,36 @@
                 {{-- Searching must not silently drop the active crew filter (#20 — a scoped read rides the GET link). --}}
                 @if ($crewFilter) <input type="hidden" name="crew" value="{{ $crewFilter }}"> @endif
                 <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                <label class="vy-sr-only" for="vy-hk-q">Search rooms</label>
-                <input id="vy-hk-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" placeholder="Search room, type or housekeeper" maxlength="80" autocomplete="off">
+                <label class="vy-sr-only" for="vy-hk-q">{{ __('livewire/housekeeping-board.search_label') }}</label>
+                <input id="vy-hk-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" placeholder="{{ __('livewire/housekeeping-board.search_placeholder') }}" maxlength="80" autocomplete="off">
                 @if ($query !== '')
-                    <a class="vy-gl-clear" href="{{ route('app.housekeeping', array_filter(['crew' => $crewFilter])) }}" aria-label="Clear search">
+                    <a class="vy-gl-clear" href="{{ route('app.housekeeping', array_filter(['crew' => $crewFilter])) }}" aria-label="{{ __('livewire/housekeeping-board.clear_search') }}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                     </a>
                 @endif
             </form>
             <div class="vy-gl-tools">
-                <div class="vy-hk-views" role="group" aria-label="View">
+                <div class="vy-hk-views" role="group" aria-label="{{ __('livewire/housekeeping-board.view_switch_label') }}">
                     <button type="button" class="vy-hk-view" :class="view === 'list' && 'is-on'" :aria-pressed="view === 'list' ? 'true' : 'false'" @click="setView('list')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
-                        <span>List</span>
+                        <span>{{ __('livewire/housekeeping-board.view_list') }}</span>
                     </button>
                     <button type="button" class="vy-hk-view" :class="view === 'board' && 'is-on'" :aria-pressed="view === 'board' ? 'true' : 'false'" @click="setView('board')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>
-                        <span>Board</span>
+                        <span>{{ __('livewire/housekeeping-board.view_board') }}</span>
                     </button>
                 </div>
                 @if ($canAssign && $unassignedCount > 0)
-                    <button type="button" class="vy-btn vy-btn--accent" @click="assignAllOpen = true">Assign all · {{ $unassignedCount }}</button>
+                    <button type="button" class="vy-btn vy-btn--accent" @click="assignAllOpen = true">{{ __('livewire/housekeeping-board.assign_all_button', ['number' => $unassignedCount]) }}</button>
                 @endif
             </div>
             <div class="vy-gs-filters">
-                <div class="vy-gl-chips" role="group" aria-label="Housekeeper">
-                    <a class="vy-gl-chip @if ($crewFilter === null) is-on @endif" href="{{ route('app.housekeeping', array_filter(['q' => $query])) }}" data-gl-key="crew-all" @if ($crewFilter === null) aria-current="page" @endif>Everyone<span class="vy-gl-count">{{ $chipCounts['all'] }}</span></a>
+                <div class="vy-gl-chips" role="group" aria-label="{{ __('livewire/housekeeping-board.housekeeper') }}">
+                    <a class="vy-gl-chip @if ($crewFilter === null) is-on @endif" href="{{ route('app.housekeeping', array_filter(['q' => $query])) }}" data-gl-key="crew-all" @if ($crewFilter === null) aria-current="page" @endif>{{ __('livewire/housekeeping-board.everyone') }}<span class="vy-gl-count">{{ $chipCounts['all'] }}</span></a>
                     @foreach ($crew as $member)
                         <a class="vy-gl-chip @if ($member['active']) is-on @endif" href="{{ route('app.housekeeping', array_filter(['crew' => $member['id'], 'q' => $query])) }}" data-gl-key="crew-{{ $member['id'] }}" @if ($member['active']) aria-current="page" @endif>{{ $member['name'] }}<span class="vy-gl-count">{{ $member['count'] }}</span></a>
                     @endforeach
-                    <a class="vy-gl-chip @if ($crewFilter === 'unassigned') is-on @endif" href="{{ route('app.housekeeping', array_filter(['crew' => 'unassigned', 'q' => $query])) }}" data-gl-key="crew-unassigned" @if ($crewFilter === 'unassigned') aria-current="page" @endif>Unassigned<span class="vy-gl-count">{{ $chipCounts['unassigned'] }}</span></a>
+                    <a class="vy-gl-chip @if ($crewFilter === 'unassigned') is-on @endif" href="{{ route('app.housekeeping', array_filter(['crew' => 'unassigned', 'q' => $query])) }}" data-gl-key="crew-unassigned" @if ($crewFilter === 'unassigned') aria-current="page" @endif>{{ __('livewire/housekeeping-board.unassigned') }}<span class="vy-gl-count">{{ $chipCounts['unassigned'] }}</span></a>
                 </div>
             </div>
         </div>
@@ -160,21 +160,21 @@
         <div x-show="view === 'board'" x-cloak>
             {{-- Crew panel --}}
             <div class="vy-card vy-fade vy-hk-crew">
-                <span class="vy-eyebrow">Crew</span>
+                <span class="vy-eyebrow">{{ __('livewire/housekeeping-board.crew') }}</span>
                 @forelse ($crew as $member)
                     <div class="vy-hk-crew-who">
                         <span class="vy-avatar vy-hk-avatar">{{ $member['initials'] }}</span>
                         <div>
                             <div class="vy-hk-crew-name">{{ $member['name'] }}</div>
-                            <div class="vy-hk-crew-load">{{ $member['load'] }} {{ \Illuminate\Support\Str::plural('room', $member['load']) }} open</div>
+                            <div class="vy-hk-crew-load">{{ trans_choice('livewire/housekeeping-board.rooms_open', $member['load'], ['count' => $member['load']]) }}</div>
                         </div>
                     </div>
                 @empty
-                    <span class="vy-hk-crew-none">No housekeepers on the roster yet — add staff with the Housekeeping role.</span>
+                    <span class="vy-hk-crew-none">{{ __('livewire/housekeeping-board.no_housekeepers') }}</span>
                 @endforelse
                 <div class="vy-hk-crew-end">
-                    <span class="vy-tag tone-tag"><span class="vy-dot"></span>Out of order · {{ $outOfOrder }}</span>
-                    <a class="vy-arr-link" href="{{ route('app.schedule') }}">Schedule →</a>
+                    <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ __('livewire/housekeeping-board.out_of_order_count', ['number' => $outOfOrder]) }}</span>
+                    <a class="vy-arr-link" href="{{ route('app.schedule') }}">{{ __('livewire/housekeeping-board.schedule_link') }}</a>
                 </div>
             </div>
 
@@ -199,7 +199,7 @@
                             @forelse ($column['tasks'] as $card)
                                 @include('livewire.partials.hk-card', ['card' => $card])
                             @empty
-                                <div class="vy-hk-lane-empty">Nothing here</div>
+                                <div class="vy-hk-lane-empty">{{ __('livewire/housekeeping-board.lane_empty') }}</div>
                             @endforelse
                         </div>
                     </div>
@@ -220,12 +220,12 @@
                     <table class="vy-gl-table vy-hk-table">
                         <thead>
                             <tr>
-                                <th>Room</th>
-                                <th class="vy-hk-c-day">Day</th>
-                                <th class="vy-hk-c-who">Housekeeper</th>
-                                <th class="vy-hk-c-stage">Stage</th>
-                                <th class="vy-hk-c-ready">Ready</th>
-                                <th class="vy-hk-c-act"><span class="vy-sr-only">Next step</span></th>
+                                <th>{{ __('livewire/housekeeping-board.col_room') }}</th>
+                                <th class="vy-hk-c-day">{{ __('livewire/housekeeping-board.col_day') }}</th>
+                                <th class="vy-hk-c-who">{{ __('livewire/housekeeping-board.housekeeper') }}</th>
+                                <th class="vy-hk-c-stage">{{ __('livewire/housekeeping-board.col_stage') }}</th>
+                                <th class="vy-hk-c-ready">{{ __('livewire/housekeeping-board.col_ready') }}</th>
+                                <th class="vy-hk-c-act"><span class="vy-sr-only">{{ __('livewire/housekeeping-board.col_next_step') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -235,36 +235,36 @@
                                         <button type="button" class="vy-hk-room" @click="detail = {{ \Illuminate\Support\Js::from($card) }}">{{ $card['unit'] }}</button>
                                         @if ($card['turnover'] || $card['urgency'] || $card['guest_vip'])
                                             <div class="vy-hk-tags">
-                                                @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>Turnover</span> @endif
+                                                @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>{{ __('livewire/housekeeping-board.turnover') }}</span> @endif
                                                 @if ($card['urgency']) <span class="vy-tag tone-{{ $card['urgency']['tone'] === 'red' ? 'risk' : 'confirmed' }}"><span class="vy-dot"></span>{{ $card['urgency']['label'] }}</span> @endif
-                                                @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP</span> @endif
+                                                @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>{{ __('livewire/housekeeping-board.vip') }}</span> @endif
                                             </div>
                                         @endif
                                         <div class="vy-hk-sub">{{ $card['type'] }}@foreach ($card['guest_preferences'] as $p) · {{ $p }}@endforeach</div>
                                     </td>
-                                    <td class="vy-hk-c-day" data-label="Day"><span class="vy-hk-day is-{{ $card['day_tone'] }}">{{ $card['day'] }}</span></td>
-                                    <td class="vy-hk-c-who" data-label="Housekeeper">
+                                    <td class="vy-hk-c-day" data-label="{{ __('livewire/housekeeping-board.col_day') }}"><span class="vy-hk-day is-{{ $card['day_tone'] }}">{{ $card['day'] }}</span></td>
+                                    <td class="vy-hk-c-who" data-label="{{ __('livewire/housekeeping-board.housekeeper') }}">
                                         @if ($card['assignee'])
                                             <span class="vy-hk-who"><span class="vy-avatar vy-hk-avatar is-sm">{{ $card['assignee_initials'] }}</span>{{ $card['assignee'] }}</span>
                                         @elseif ($canAssign)
-                                            <button type="button" class="vy-btn vy-btn--ghost vy-hk-small" @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">Assign</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost vy-hk-small" @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">{{ __('livewire/housekeeping-board.assign') }}</button>
                                         @else
-                                            <span class="vy-hk-none">Unassigned</span>
+                                            <span class="vy-hk-none">{{ __('livewire/housekeeping-board.unassigned') }}</span>
                                         @endif
                                     </td>
-                                    <td class="vy-hk-c-stage" data-label="Stage"><span class="vy-tag tone-{{ $card['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $card['status_meta']['label'] }}</span></td>
+                                    <td class="vy-hk-c-stage" data-label="{{ __('livewire/housekeeping-board.col_stage') }}"><span class="vy-tag tone-{{ $card['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $card['status_meta']['label'] }}</span></td>
                                     {{-- D8-2 — the READY column: the hour a guest may actually turn up at THIS room (its property's published
                                          check-in time), only when a real reservation arrives here on this date; otherwise the honest "—". --}}
-                                    <td class="vy-hk-c-ready" data-label="Ready">
+                                    <td class="vy-hk-c-ready" data-label="{{ __('livewire/housekeeping-board.col_ready') }}">
                                         @if ($card['status'] === 'inspected')
-                                            <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Ready</span>
+                                            <span class="vy-tag tone-in-house"><span class="vy-dot"></span>{{ __('livewire/housekeeping-board.ready_tag') }}</span>
                                         @elseif ($card['elapsed'])
-                                            <span class="vy-hk-sub">{{ $card['elapsed']['minutes'] }}m / {{ $card['elapsed']['expected'] }}m</span>
+                                            <span class="vy-hk-sub">{{ __('livewire/housekeeping-board.elapsed_of_expected', ['minutes' => $card['elapsed']['minutes'], 'expected' => $card['elapsed']['expected']]) }}</span>
                                             @if ($card['ready_by'])
-                                                <span class="vy-hk-sub">by {{ $card['ready_by'] }}</span>
+                                                <span class="vy-hk-sub">{{ __('livewire/housekeeping-board.ready_by_time', ['time' => $card['ready_by']]) }}</span>
                                             @endif
                                         @elseif ($card['ready_by'])
-                                            <span class="vy-hk-sub">by {{ $card['ready_by'] }}</span>
+                                            <span class="vy-hk-sub">{{ __('livewire/housekeeping-board.ready_by_time', ['time' => $card['ready_by']]) }}</span>
                                         @else
                                             <span class="vy-hk-none">—</span>
                                         @endif
@@ -280,7 +280,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6"><div class="vy-empty">No rooms match this view.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">{{ __('livewire/housekeeping-board.no_rooms_match') }}</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -298,34 +298,34 @@
                     <div class="vy-modal-head">
                         <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg></span>
                         <div class="vy-hk-head-text">
-                            <h2 class="vy-modal-title" id="vy-hk-assign-t">Assign housekeeper</h2>
+                            <h2 class="vy-modal-title" id="vy-hk-assign-t">{{ __('livewire/housekeeping-board.assign_housekeeper') }}</h2>
                             <p class="vy-modal-sub" x-text="assign ? (assign.unit + ' · ' + assign.type) : ''"></p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="assign = null" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" @click="assign = null" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
                         <fieldset class="vy-hk-pick">
-                            <legend class="vy-field-label">Housekeeper</legend>
+                            <legend class="vy-field-label">{{ __('livewire/housekeeping-board.housekeeper') }}</legend>
                             <div class="vy-hk-options">
                                 @forelse ($crew as $member)
                                     <label class="vy-hk-option">
                                         {{-- WAVE 3 — "Suggested" means genuinely LEAST-LOADED, not the first name in the list (#39). --}}
                                         <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($member['id'] === $suggestedCrewId)>
                                         <span class="vy-avatar vy-hk-avatar">{{ $member['initials'] }}</span>
-                                        <span class="vy-hk-option-name">{{ $member['name'] }}@if ($member['id'] === $suggestedCrewId) <span class="vy-tag tone-vip">Suggested</span>@endif</span>
-                                        <span class="vy-hk-option-load">{{ $member['load'] }} open</span>
+                                        <span class="vy-hk-option-name">{{ $member['name'] }}@if ($member['id'] === $suggestedCrewId) <span class="vy-tag tone-vip">{{ __('livewire/housekeeping-board.suggested') }}</span>@endif</span>
+                                        <span class="vy-hk-option-load">{{ trans_choice('livewire/housekeeping-board.open_load', $member['load'], ['count' => $member['load']]) }}</span>
                                     </label>
                                 @empty
-                                    <p class="vy-hk-crew-none">No housekeepers on the roster yet — add staff with the Housekeeping role.</p>
+                                    <p class="vy-hk-crew-none">{{ __('livewire/housekeeping-board.no_housekeepers') }}</p>
                                 @endforelse
                             </div>
                         </fieldset>
-                        <label class="vy-hk-check"><input type="checkbox" name="priority" value="1" checked> Clean next · priority</label>
-                        <p class="vy-hk-hint">It shows under their name on this board. Nothing is sent to their phone.</p>
+                        <label class="vy-hk-check"><input type="checkbox" name="priority" value="1" checked> {{ __('livewire/housekeeping-board.clean_next_priority') }}</label>
+                        <p class="vy-hk-hint">{{ __('livewire/housekeeping-board.assign_hint') }}</p>
                     </div>
                     <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="assign = null">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="assign = null">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/housekeeping-board.assign') }}</button>
                     </div>
                 </form>
             </div>
@@ -339,18 +339,18 @@
                     <div class="vy-modal-head">
                         <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20a6 6 0 0 1 12 0M14 20a4.5 4.5 0 0 1 8 0"/></svg></span>
                         <div class="vy-hk-head-text">
-                            <h2 class="vy-modal-title" id="vy-hk-assignall-t">Assign all unassigned</h2>
-                            <p class="vy-modal-sub">Shared by load — whoever has the fewest open rooms gets the next one, rooms with a guest waiting first.</p>
+                            <h2 class="vy-modal-title" id="vy-hk-assignall-t">{{ __('livewire/housekeeping-board.assign_all_title') }}</h2>
+                            <p class="vy-modal-sub">{{ __('livewire/housekeeping-board.assign_all_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-modal-x" @click="assignAllOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" @click="assignAllOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
-                        <p class="vy-hk-lead">{{ $unassignedCount }} unassigned {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }} will be shared across {{ count($crew) }} {{ \Illuminate\Support\Str::plural('housekeeper', count($crew)) }}.</p>
-                        <p class="vy-hk-hint">Each room shows under its housekeeper’s name on this board.</p>
+                        <p class="vy-hk-lead">{{ trans_choice('livewire/housekeeping-board.assign_all_lead', $unassignedCount, ['count' => $unassignedCount, 'housekeepers' => trans_choice('livewire/housekeeping-board.housekeepers_count', count($crew), ['count' => count($crew)])]) }}</p>
+                        <p class="vy-hk-hint">{{ __('livewire/housekeeping-board.assign_all_hint') }}</p>
                     </div>
                     <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="assignAllOpen = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Assign {{ $unassignedCount }} {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }}</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="assignAllOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ trans_choice('livewire/housekeeping-board.assign_rooms_button', $unassignedCount, ['count' => $unassignedCount]) }}</button>
                     </div>
                 </form>
             </div>
@@ -361,7 +361,7 @@
         {{-- ── ROOM DETAIL — the shared solid card. ⚠️ 2026-10-05: it opens on load when the address names a task (`?task=` — where
              the photo routes send you back), so adding or removing a photo lands back on the room, not on the bare list. ── --}}
         <div x-show="detail" x-cloak class="vy-modal-backdrop" @click.self="detail = null" @keydown.escape.window="detail = null">
-            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-label="Task detail" tabindex="-1" x-trap.noscroll="detail">
+            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-label="{{ __('livewire/housekeeping-board.task_detail') }}" tabindex="-1" x-trap.noscroll="detail">
                 <template x-if="detail">
                     <div>
                         <div class="vy-modal-head">
@@ -370,21 +370,21 @@
                                 <h2 class="vy-modal-title" x-text="detail.unit"></h2>
                                 <p class="vy-modal-sub" x-text="detail.type + ' · ' + detail.day"></p>
                             </div>
-                            <button type="button" class="vy-modal-x" @click="detail = null" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                            <button type="button" class="vy-modal-x" @click="detail = null" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                         </div>
                         <div class="vy-modal-body">
                             {{-- Stage pipeline — the page's own words for the stages --}}
-                            <ol class="vy-hk-steps" aria-label="Stage">
-                                <template x-for="(step, i) in ['Pending', 'In progress', 'Clean', 'Inspected']" :key="step">
+                            <ol class="vy-hk-steps" aria-label="{{ __('livewire/housekeeping-board.col_stage') }}">
+                                <template x-for="(step, i) in [@js(__('livewire/housekeeping-board.status_pending')), @js(__('livewire/housekeeping-board.status_in_progress')), @js(__('livewire/housekeeping-board.status_clean')), @js(__('livewire/housekeeping-board.status_inspected'))]" :key="i">
                                     <li class="vy-hk-step" :class="['pending', 'in_progress', 'clean', 'inspected'].indexOf(detail.status) >= i && 'is-done'"><span class="vy-hk-step-bar"></span><span x-text="step"></span></li>
                                 </template>
                             </ol>
 
                             <dl class="vy-hk-facts">
-                                <dt>Housekeeper</dt><dd x-text="detail.assignee || 'Unassigned'"></dd>
-                                <template x-if="detail.elapsed"><dt>Elapsed</dt></template>
-                                <template x-if="detail.elapsed"><dd x-text="detail.elapsed.minutes + 'm / ' + detail.elapsed.expected + 'm'"></dd></template>
-                                <template x-if="detail.ready_by"><dt>Ready by</dt></template>
+                                <dt>{{ __('livewire/housekeeping-board.housekeeper') }}</dt><dd x-text="detail.assignee || @js(__('livewire/housekeeping-board.unassigned'))"></dd>
+                                <template x-if="detail.elapsed"><dt>{{ __('livewire/housekeeping-board.elapsed') }}</dt></template>
+                                <template x-if="detail.elapsed"><dd x-text="@js(__('livewire/housekeeping-board.elapsed_of_expected', ['minutes' => ':minutes', 'expected' => ':expected'])).replace(':minutes', detail.elapsed.minutes).replace(':expected', detail.elapsed.expected)"></dd></template>
+                                <template x-if="detail.ready_by"><dt>{{ __('livewire/housekeeping-board.ready_by') }}</dt></template>
                                 <template x-if="detail.ready_by"><dd x-text="detail.ready_by"></dd></template>
                             </dl>
                             <template x-if="detail.urgency">
@@ -395,35 +395,35 @@
                             @if ($canAssign)
                                 <button type="button" class="vy-btn vy-btn--ghost vy-hk-wide"
                                         @click="assign = { id: detail.id, unit: detail.unit, type: detail.type }; detail = null"
-                                        x-text="detail && detail.assignee ? 'Reassign housekeeper' : 'Assign housekeeper'"></button>
+                                        x-text="detail && detail.assignee ? @js(__('livewire/housekeeping-board.reassign_housekeeper')) : @js(__('livewire/housekeeping-board.assign_housekeeper'))"></button>
                             @endif
 
                             {{-- Photos --}}
-                            <h3 class="vy-hk-h3">Photos</h3>
+                            <h3 class="vy-hk-h3">{{ __('livewire/housekeeping-board.photos') }}</h3>
                             <div class="vy-hk-photos">
                                 <template x-for="photo in detail.photos" :key="photo.id">
                                     <div class="vy-hk-photo">
-                                        <img :src="photo.url" alt="Proof photo">
+                                        <img :src="photo.url" alt="{{ __('livewire/housekeeping-board.proof_photo') }}">
                                         @if ($canManage)
                                             {{-- ⚠️ The SAME permission as the upload and the route (`housekeeping.manage`) — #30: the UI never
                                                  invites a 403. Same × and confirm as the maintenance ticket's photos. --}}
                                             <form method="POST" :action="photoDeleteUrl(detail.id, photo.id)" class="vy-hk-photo-x"
-                                                  onsubmit="return confirm('Remove this photo? The image file is deleted — this cannot be undone.');">
+                                                  onsubmit="return confirm(@js(__('livewire/housekeeping-board.remove_photo_confirm')));">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" title="Remove photo" aria-label="Remove photo">&times;</button>
+                                                <button type="submit" title="{{ __('livewire/housekeeping-board.remove_photo') }}" aria-label="{{ __('livewire/housekeeping-board.remove_photo') }}">&times;</button>
                                             </form>
                                         @endif
                                     </div>
                                 </template>
                                 <template x-if="detail.photos.length === 0">
-                                    <span class="vy-hk-none">Add a photo of the finished room.</span>
+                                    <span class="vy-hk-none">{{ __('livewire/housekeeping-board.add_photo_hint') }}</span>
                                 </template>
                             </div>
                             @if ($canManage)
                                 <form method="POST" :action="detail ? photoUrl(detail.id) : ''" enctype="multipart/form-data">
                                     @csrf
                                     <label class="vy-btn vy-btn--ghost vy-hk-upload">
-                                        Take or upload a photo
+                                        {{ __('livewire/housekeeping-board.take_or_upload_photo') }}
                                         <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-sr-only" onchange="this.form.submit()">
                                     </label>
                                 </form>
@@ -440,9 +440,9 @@
                                 </template>
                             @endif
                             <template x-if="detail.status === 'inspected'">
-                                <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Guest-ready</span>
+                                <span class="vy-tag tone-in-house"><span class="vy-dot"></span>{{ __('livewire/housekeeping-board.guest_ready') }}</span>
                             </template>
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="detail = null">Close</button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="detail = null">{{ __('common.close') }}</button>
                         </div>
                     </div>
                 </template>

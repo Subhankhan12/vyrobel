@@ -136,11 +136,11 @@ class CheckOutReservation
         //    evaluate, and the honest measure of this whole block is the override RATE.
         if ($overrideReason !== null) {
             if (! CheckoutOverrideReason::isValid($overrideReason)) {
-                throw new InvalidArgumentException('That is not a recognised checkout-override reason.');
+                throw new InvalidArgumentException(__('php/actions/reservations/check_out_reservation.override_reason_unknown'));
             }
 
             if ($overrideReason === CheckoutOverrideReason::OTHER && trim((string) $overrideNote) === '') {
-                throw new InvalidArgumentException('An "other" override needs a note saying what happened.');
+                throw new InvalidArgumentException(__('php/actions/reservations/check_out_reservation.override_note_required'));
             }
 
             // ⚠️ THE AMOUNT IS PART OF THE RECORD, not just the act: a €0.01 override and a €900 override
@@ -212,12 +212,9 @@ class CheckOutReservation
 
         throw new RuntimeException(match ($from) {
             // ⚠️ R4, and the case a front desk actually meets: the guest is leaving and was never arrived.
-            'confirmed' => 'Cannot check out a confirmed reservation: a stay must be checked in before it can '
-                .'be checked out. If the guest stayed and is leaving early, check them in first and then out. '
-                .'If they never arrived, mark the booking a no-show instead.',
-            'cancelled', 'no_show' => "Cannot check out a {$from} reservation: the booking is closed and no "
-                .'stay took place. A guest who turned up after all needs a new booking.',
-            default => "Cannot check out a {$from} reservation.",
+            'confirmed' => __('php/actions/reservations/check_out_reservation.refused_confirmed'),
+            'cancelled', 'no_show' => __('php/actions/reservations/check_out_reservation.refused_closed', ['status' => $from]),
+            default => __('php/actions/reservations/check_out_reservation.refused_other', ['status' => $from]),
         });
     }
 }

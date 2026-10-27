@@ -35,6 +35,50 @@ class PrivacyRequest extends Model
 
     public const STATUSES = ['received' => 'Received', 'in_progress' => 'In progress', 'completed' => 'Completed', 'refused' => 'Refused'];
 
+    /** A request kind CODE ({@see KINDS}' key) → its label in the reader's language, translated at call time (I18N-01). */
+    public static function kindLabel(string $kind): string
+    {
+        return match ($kind) {
+            'export' => (string) __('php/models/privacy_request.kind_export'),
+            'delete' => (string) __('php/models/privacy_request.kind_delete'),
+            default => $kind,
+        };
+    }
+
+    /** Whom a request is about: a {@see SUBJECTS} CODE → its label in the reader's language. */
+    public static function subjectLabel(string $subject): string
+    {
+        return match ($subject) {
+            'account_holder' => (string) __('php/models/privacy_request.subject_account_holder'),
+            'relayed_guest' => (string) __('php/models/privacy_request.subject_relayed_guest'),
+            default => $subject,
+        };
+    }
+
+    /** How a request arrived: a {@see CHANNELS} CODE → its label in the reader's language. */
+    public static function channelLabel(string $channel): string
+    {
+        return match ($channel) {
+            'email' => (string) __('php/models/privacy_request.channel_email'),
+            'letter' => (string) __('php/models/privacy_request.channel_letter'),
+            'phone' => (string) __('php/models/privacy_request.channel_phone'),
+            'hotel' => (string) __('php/models/privacy_request.channel_hotel'),
+            default => $channel,
+        };
+    }
+
+    /** A request status CODE ({@see STATUSES}' key) → its label in the reader's language. */
+    public static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'received' => (string) __('php/models/privacy_request.status_received'),
+            'in_progress' => (string) __('php/models/privacy_request.status_in_progress'),
+            'completed' => (string) __('php/models/privacy_request.status_completed'),
+            'refused' => (string) __('php/models/privacy_request.status_refused'),
+            default => $status,
+        };
+    }
+
     /** GDPR Art. 12(3): answer "without undue delay and in any event within one month". */
     public const DUE_MONTHS = 1;
 

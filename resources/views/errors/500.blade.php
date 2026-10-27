@@ -3,6 +3,6 @@
      so developers lose no detail. --}}
 @include('errors.layout', [
     'code' => 500,
-    'title' => 'Something went wrong',
-    'message' => 'That’s on us, not you. The error has been logged. Nothing you were working on has been lost.',
+    'title' => __('errors/500.title'),
+    'message' => __('errors/500.message'),
 ])

@@ -8,12 +8,12 @@
     <input type="hidden" name="return_to" value="front-desk">
     <input type="hidden" name="return_date" value="{{ $day['date'] }}">
     <div class="vy-fdm-collect-row">
-        <input type="text" name="amount" x-model="collectAmt" inputmode="decimal" class="vy-input vy-fdm-amt" placeholder="0.00" aria-label="Amount to collect">
-        <select name="method" class="vy-input vy-fdm-method" aria-label="Payment method">
-            <option value="cash">Cash</option>
-            <option value="bank_transfer">Bank transfer</option>
+        <input type="text" name="amount" x-model="collectAmt" inputmode="decimal" class="vy-input vy-fdm-amt" placeholder="0.00" aria-label="{{ __('livewire/partials/fd-collect-form.amount_label') }}">
+        <select name="method" class="vy-input vy-fdm-method" aria-label="{{ __('livewire/partials/fd-collect-form.method_label') }}">
+            <option value="cash">{{ __('livewire/partials/fd-collect-form.method_cash') }}</option>
+            <option value="bank_transfer">{{ __('livewire/partials/fd-collect-form.method_bank_transfer') }}</option>
         </select>
-        <button type="submit" class="vy-act vy-act--accent">Collect</button>
+        <button type="submit" class="vy-act vy-act--accent">{{ __('livewire/partials/fd-collect-form.collect_button') }}</button>
     </div>
-    <div class="vy-fdm-hint">Records against the real folio · card terminal is the deferred Stripe seam — take cash or a bank transfer now.</div>
+    <div class="vy-fdm-hint">{{ __('livewire/partials/fd-collect-form.hint') }}</div>
 </form>

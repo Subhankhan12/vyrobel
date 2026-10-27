@@ -135,7 +135,7 @@ final class TeamChatFiles
             $out[] = [
                 'id' => (string) $m->getKey(),
                 'kind' => $kind,
-                'name' => $kind === 'voice' ? 'Voice message' : ChatFiles::displayName((string) $m->alt, (string) $m->path),
+                'name' => $kind === 'voice' ? __('php/support/team_chat/team_chat_files.voice_message') : ChatFiles::displayName((string) $m->alt, (string) $m->path),
                 'size' => ChatFiles::humanSize((int) $m->size),
                 'url' => route('app.inbox.team.file', (string) $m->getKey()),
                 'seconds' => $seconds,

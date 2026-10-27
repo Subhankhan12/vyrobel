@@ -45,12 +45,12 @@ class ReservationFolioActionController extends Controller
 
         if ($validated['method'] === 'card') {
             // 🔒 NOT a live charge in the build: on-desk card is the account-gated Stripe seam.
-            return $this->afterPayment($request, $model->id, 'Card payments go through Stripe (test-mode) — available at the live-key flip. Record cash or a bank transfer to take an on-desk payment now.');
+            return $this->afterPayment($request, $model->id, __('php/http/controllers/reservation_folio_action_controller.card_not_live'));
         }
 
         $minor = $this->parseAmountMinor($validated['amount']);
         if ($minor <= 0) {
-            return $this->afterPayment($request, $model->id, 'Enter a payment amount greater than zero.');
+            return $this->afterPayment($request, $model->id, __('php/http/controllers/reservation_folio_action_controller.payment_amount_invalid'));
         }
 
         $folio = $folios->openFolio($model);
@@ -62,7 +62,7 @@ class ReservationFolioActionController extends Controller
             idempotencyKey: (string) $validated['idempotency_key'],
         );
 
-        return $this->afterPayment($request, $model->id, 'Payment recorded.');
+        return $this->afterPayment($request, $model->id, __('php/http/controllers/reservation_folio_action_controller.payment_recorded'));
     }
 
     /**
@@ -104,7 +104,7 @@ class ReservationFolioActionController extends Controller
 
         $minor = $this->parseAmountMinor($validated['amount']);
         if ($minor <= 0) {
-            return $this->back($model->id, 'Enter a charge amount greater than zero.', refused: true);
+            return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.charge_amount_invalid'), refused: true);
         }
 
         $folio = $folios->openFolio($model);
@@ -116,7 +116,7 @@ class ReservationFolioActionController extends Controller
             idempotencyKey: (string) $validated['idempotency_key'],
         );
 
-        return $this->back($model->id, 'Charge added.');
+        return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.charge_added'));
     }
 
     /**
@@ -144,7 +144,7 @@ class ReservationFolioActionController extends Controller
             ->findOrFail((string) $request->input('payment'));
 
         if (! in_array($payment->status, ['succeeded', 'captured'], true) || ! in_array($payment->type, ['payment', 'capture'], true)) {
-            return $this->back($model->id, 'Only a settled payment can be refunded.', refused: true);
+            return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.refund_only_settled'), refused: true);
         }
 
         // Refund what is genuinely LEFT, not blindly the original: FolioService bounds the CUMULATIVE total
@@ -153,7 +153,7 @@ class ReservationFolioActionController extends Controller
         $remaining = $folios->remainingRefundableMinor($payment);
 
         if ($remaining <= 0) {
-            return $this->back($model->id, 'That payment is already fully refunded.', refused: true);
+            return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.already_fully_refunded'), refused: true);
         }
 
         $raw = $request->input('amount');
@@ -163,7 +163,7 @@ class ReservationFolioActionController extends Controller
         $minor = $requested ? $this->parseAmountMinor($raw) : $remaining;
 
         if ($minor <= 0) {
-            return $this->back($model->id, 'Enter a refund amount greater than zero.', refused: true);
+            return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.refund_amount_invalid'), refused: true);
         }
 
         // #100 — the operator's reason (a chip label + optional note) + the destination, recorded on the refund
@@ -192,11 +192,11 @@ class ReservationFolioActionController extends Controller
             $left = $folios->remainingRefundableMinor($payment->fresh() ?? $payment);
 
             return $this->back($model->id, $left > 0
-                ? 'That refund was refused — only '.$this->majorUnits($left).' '.$payment->currency.' is still refundable against that payment.'
-                : 'That payment is already fully refunded.', refused: true);
+                ? __('php/http/controllers/reservation_folio_action_controller.refund_exceeds', ['amount' => $this->majorUnits($left), 'currency' => (string) $payment->currency])
+                : __('php/http/controllers/reservation_folio_action_controller.already_fully_refunded'), refused: true);
         }
 
-        return $this->back($model->id, 'Refund issued.');
+        return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.refund_issued'));
     }
 
     /**
@@ -299,7 +299,7 @@ class ReservationFolioActionController extends Controller
             return $this->back($model->id, $e->getMessage(), refused: true);
         }
 
-        return $this->back($model->id, 'Billed to '.$account->name.'. The balance stays owed until they pay.');
+        return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.billed_to_account', ['account' => (string) $account->name]));
     }
 
     /** ⚠️ Un-billing is a NEW STATE, not a reversal — nothing was posted, so there is nothing to reverse. */
@@ -308,6 +308,6 @@ class ReservationFolioActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
         $accounts->unbill($folios->openFolio($model));
 
-        return $this->back($model->id, 'Returned to the guest’s folio.');
+        return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.returned_to_guest'));
     }
 }

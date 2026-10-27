@@ -14,15 +14,15 @@
              ⚠️ The buttons live outside their forms and reach them with the HTML5 `form=` attribute — the same
              two real POSTs (guarded save · guarded self-only test-send), just repositioned. Nothing rewired. --}}
         <div class="vy-card vy-fade vy-ee-bar">
-            <a href="{{ route('app.email-templates') }}" class="vy-btn vy-btn--ghost vy-ee-back">← Templates</a>
+            <a href="{{ route('app.email-templates') }}" class="vy-btn vy-btn--ghost vy-ee-back">{{ __('livewire/operator/operator-email-editor.back_to_templates') }}</a>
 
             <div class="vy-ee-ident">
                 <div class="vy-ee-title">
                     <h2 class="vy-card-title" style="margin: 0;">{{ $catalog['label'] }}</h2>
                     {{-- Status carries its WORD, never colour alone (1.4.1). --}}
-                    <span class="vy-ee-status @if ($enabled) is-on @endif">{{ $enabled ? 'Active' : 'Off' }}</span>
+                    <span class="vy-ee-status @if ($enabled) is-on @endif">{{ $enabled ? __('livewire/operator/operator-email-editor.status_active') : __('livewire/operator/operator-email-editor.status_off') }}</span>
                 </div>
-                <div class="vy-ee-sub">{{ $catalog['trigger'] }} · via {{ $catalog['channel'] }}@if ($lastEdited) · {{ $lastEdited }}@endif</div>
+                <div class="vy-ee-sub">@if ($lastEdited){{ __('livewire/operator/operator-email-editor.sub_line_edited', ['trigger' => $catalog['trigger'], 'channel' => $catalog['channel'], 'last_edited' => $lastEdited]) }}@else{{ __('livewire/operator/operator-email-editor.sub_line', ['trigger' => $catalog['trigger'], 'channel' => $catalog['channel']]) }}@endif</div>
             </div>
 
             {{-- ⚠️ OPERATOR FIX 1 (audit Finding 5) — both controls submit to routes requiring
@@ -31,8 +31,8 @@
                  controls this way and asserts it in OperatorEmailTemplatesTest — same pattern (#30, §N.8f). --}}
             @can('properties.manage')
                 <div class="vy-ee-actions">
-                    <button type="submit" form="vy-ee-test" class="vy-btn vy-btn--ghost vy-ee-btn">Send me a test</button>
-                    <button type="submit" form="vy-ee-save" class="vy-btn vy-btn--accent vy-ee-btn">Save template</button>
+                    <button type="submit" form="vy-ee-test" class="vy-btn vy-btn--ghost vy-ee-btn">{{ __('livewire/operator/operator-email-editor.send_test') }}</button>
+                    <button type="submit" form="vy-ee-save" class="vy-btn vy-btn--accent vy-ee-btn">{{ __('livewire/operator/operator-email-editor.save_template') }}</button>
                 </div>
             @endcan
         </div>
@@ -50,12 +50,12 @@
 
                     {{-- Subject + insert chips --}}
                     <div class="vy-card vy-fade" style="margin-bottom: 16px;">
-                        <label class="vy-field-label" for="tpl-subject">Subject line</label>
+                        <label class="vy-field-label" for="tpl-subject">{{ __('livewire/operator/operator-email-editor.subject_line') }}</label>
                         <input id="tpl-subject" type="text" name="subject" x-ref="subject" wire:model.live="subject" class="vy-input" maxlength="255">
                         @error('subject') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
 
                         <div style="margin-top: 10px;">
-                            <span style="font-size: 11px; color: var(--vy-faint); text-transform: uppercase; letter-spacing: .5px;">Insert a variable</span>
+                            <span style="font-size: 11px; color: var(--vy-faint); text-transform: uppercase; letter-spacing: .5px;">{{ __('livewire/operator/operator-email-editor.insert_variable') }}</span>
                             <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap;">
                                 @foreach ($vars as $var)
                                     <button type="button"
@@ -63,24 +63,24 @@
                                         class="vy-ee-chip">{{ '{'.$var.'}' }}</button>
                                 @endforeach
                             </div>
-                            <p style="font-size: 11px; color: var(--vy-faint); margin: 8px 0 0;">These fill in from the real booking — <span style="color: var(--vy-muted);">{first_name}</span> becomes the guest’s name, and so on.</p>
+                            <p style="font-size: 11px; color: var(--vy-faint); margin: 8px 0 0;">{!! __('livewire/operator/operator-email-editor.variables_help') !!}</p>
                         </div>
                     </div>
 
                     {{-- Content --}}
                     <div class="vy-card vy-fade" style="margin-bottom: 16px;">
                         <div class="vy-field" style="margin: 0 0 14px;">
-                            <label class="vy-field-label" for="tpl-heading">Heading</label>
+                            <label class="vy-field-label" for="tpl-heading">{{ __('livewire/operator/operator-email-editor.heading') }}</label>
                             <input id="tpl-heading" type="text" name="heading" wire:model.live="heading" class="vy-input" maxlength="255">
                             @error('heading') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field" style="margin: 0 0 14px;">
-                            <label class="vy-field-label" for="tpl-message">Message</label>
+                            <label class="vy-field-label" for="tpl-message">{{ __('livewire/operator/operator-email-editor.message') }}</label>
                             <textarea id="tpl-message" name="message" wire:model.live="message" class="vy-input" rows="5" maxlength="2000" style="resize: vertical;"></textarea>
                             @error('message') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field" style="margin: 0;">
-                            <label class="vy-field-label" for="tpl-button">Button label</label>
+                            <label class="vy-field-label" for="tpl-button">{{ __('livewire/operator/operator-email-editor.button_label') }}</label>
                             <input id="tpl-button" type="text" name="button_label" wire:model.live="button" class="vy-input" maxlength="120">
                             @error('button_label') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
@@ -88,8 +88,8 @@
 
                     {{-- Block toggles --}}
                     <div class="vy-card vy-fade" style="margin-bottom: 16px;">
-                        <h3 style="font-size: 13.5px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;">Sections</h3>
-                        <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Turn a section off and it won’t appear in the sent email.</p>
+                        <h3 style="font-size: 13.5px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;">{{ __('livewire/operator/operator-email-editor.sections') }}</h3>
+                        <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">{{ __('livewire/operator/operator-email-editor.sections_help') }}</p>
                         @foreach ($blockDefs as $blockKey => $def)
                             <label class="vy-ee-blockrow">
                                 <span class="vy-ee-blocklabel">{{ $def['label'] }}</span>
@@ -101,7 +101,7 @@
                     {{-- The foot Save stays as well as the new top one: this form is long, and removing it
                          would make a keyboard user tab back up the whole editor to submit. --}}
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">Save template</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">{{ __('livewire/operator/operator-email-editor.save_template') }}</button>
                     </div>
                 </form>
                 @endcan
@@ -110,7 +110,7 @@
                 {{-- Test send — separate form; sends the SAVED template to your own inbox (Save first). --}}
                 <form id="vy-ee-test" method="POST" action="{{ route('app.email-templates.test', $templateKey) }}" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                     @csrf
-                    <span style="font-size: 11.5px; color: var(--vy-faint);">“Send me a test” delivers the SAVED version to your own address — save your changes first.</span>
+                    <span style="font-size: 11.5px; color: var(--vy-faint);">{{ __('livewire/operator/operator-email-editor.test_send_help') }}</span>
                 </form>
                 @endcan
             </div>
@@ -119,13 +119,13 @@
             <div>
                 <div class="vy-card vy-fade" style="position: sticky; top: 16px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="font-size: 12px; font-weight: 700; color: var(--vy-ink); text-transform: uppercase; letter-spacing: .5px;">Live preview</span>
-                        <span style="font-size: 11px; color: var(--vy-faint);">Real layout · sample data</span>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--vy-ink); text-transform: uppercase; letter-spacing: .5px;">{{ __('livewire/operator/operator-email-editor.live_preview') }}</span>
+                        <span style="font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-email-editor.preview_note') }}</span>
                     </div>
                     <div style="font-size: 12px; color: var(--vy-muted); border: 1px solid var(--vy-hairline); border-radius: 8px 8px 0 0; padding: 8px 12px; background: var(--vy-hairline);">
-                        <span style="color: var(--vy-faint);">Subject:</span> <span style="color: var(--vy-ink);">{{ $previewSubject }}</span>
+                        <span style="color: var(--vy-faint);">{{ __('livewire/operator/operator-email-editor.preview_subject') }}</span> <span style="color: var(--vy-ink);">{{ $previewSubject }}</span>
                     </div>
-                    <iframe title="Email preview" srcdoc="{{ $previewHtml }}" style="width: 100%; height: 680px; border: 1px solid var(--vy-hairline); border-top: none; border-radius: 0 0 8px 8px; background: #fff;"></iframe>
+                    <iframe title="{{ __('livewire/operator/operator-email-editor.preview_frame_title') }}" srcdoc="{{ $previewHtml }}" style="width: 100%; height: 680px; border: 1px solid var(--vy-hairline); border-top: none; border-radius: 0 0 8px 8px; background: #fff;"></iframe>
                 </div>
             </div>
         </div>

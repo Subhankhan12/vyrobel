@@ -15,7 +15,7 @@
      change), `[data-gl-summary]` (the footer line, read out after a change) and `.vy-gl-search-in` (the search box). --}}
 <script>
     window.vyListBehaviour = window.vyListBehaviour || function (boot, options) {
-        const opts = Object.assign({ empty: 'Nothing in this view' }, options || {});
+        const opts = Object.assign({ empty: @js(__('partials/operator-list-script.empty_view')) }, options || {});
         // ⚠️ DOM handles live HERE, captured once in init(), not behind `this.$root` / `this.$refs`. Those magics resolve
         //    from whichever element is evaluating, and a swap detaches the old rows while their bindings can still run once
         //    more — a detached element has no root, and the page threw (🖥 measured on the Guests page's first swap).

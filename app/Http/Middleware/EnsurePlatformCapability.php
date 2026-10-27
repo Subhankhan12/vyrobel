@@ -37,7 +37,7 @@ class EnsurePlatformCapability
         }
 
         if (! $admin->may($capability)) {
-            abort(403, 'Your console role does not allow this.');
+            abort(403, __('php/http/middleware/ensure_platform_capability.role_not_allowed'));
         }
 
         return $next($request);

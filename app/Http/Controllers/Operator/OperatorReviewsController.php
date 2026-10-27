@@ -57,7 +57,7 @@ class OperatorReviewsController extends Controller
                 'private' => $r->visibility === Review::VISIBILITY_PRIVATE,
                 'status' => (string) $r->status,
                 'response' => (string) $r->operator_response,
-                'at' => CarbonImmutable::parse($r->created_at)->format('j M Y'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y'),
             ]);
 
         return response()->view('operator.reviews', [
@@ -72,7 +72,7 @@ class OperatorReviewsController extends Controller
         $data = $request->validate(['response' => ['required', 'string', 'max:2000']]);
         $this->reviews->respond($this->owned($review), (string) $data['response']);
 
-        return back()->with('status', 'Your response has been saved.');
+        return back()->with('status', __('php/http/controllers/operator/operator_reviews_controller.response_saved'));
     }
 
     public function publish(string $review): RedirectResponse
@@ -83,14 +83,14 @@ class OperatorReviewsController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Review published.');
+        return back()->with('status', __('php/http/controllers/operator/operator_reviews_controller.review_published'));
     }
 
     public function reject(string $review): RedirectResponse
     {
         $this->reviews->reject($this->owned($review));
 
-        return back()->with('status', 'Review rejected — it won’t be shown publicly.');
+        return back()->with('status', __('php/http/controllers/operator/operator_reviews_controller.review_rejected'));
     }
 
     /** This org's review, or 404 — resolved in-action so the tenant scope is set (cross-org → not found). */

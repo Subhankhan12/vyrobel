@@ -45,7 +45,7 @@ class FrontDeskActionController extends Controller
         // Only a confirmed booking can be checked in — guard against nonsensical transitions
         // (e.g. re-opening a checked-out stay) without weakening the underlying idempotent action.
         if ($model->status !== 'confirmed') {
-            return $this->backToBoard($request, "{$model->reference} can’t be checked in from “{$model->status}”.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_in_from', ['reference' => $model->reference, 'status' => $model->status]), refused: true);
         }
 
         // ⚠️⚠️ THE EARLY CHECK-IN CONFIRMATION (APPLY 01 #2, 2026-09-22) — A WARNING, NOT A CONTROL.
@@ -73,7 +73,7 @@ class FrontDeskActionController extends Controller
 
         $desk->checkIn($model);
 
-        return $this->backToBoard($request, "Checked in {$model->reference}.");
+        return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.checked_in', ['reference' => $model->reference]));
     }
 
     public function checkOut(Request $request, FrontDeskService $desk, string $reservation): RedirectResponse
@@ -81,7 +81,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_in') {
-            return $this->backToBoard($request, "{$model->reference} can’t be checked out from “{$model->status}”.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_out_from', ['reference' => $model->reference, 'status' => $model->status]), refused: true);
         }
 
         // ⚠️ THE SUPERVISOR OVERRIDE — gated on its OWN permission, checked HERE rather than relying on the
@@ -91,7 +91,7 @@ class FrontDeskActionController extends Controller
         $overrideNote = null;
         if ($request->filled('override_reason')) {
             if ($request->user()?->can('reservations.checkout_override') !== true) {
-                return $this->backToBoard($request, 'Only a supervisor can check out over an outstanding balance.', refused: true);
+                return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.override_supervisor_only'), refused: true);
             }
             $overrideReason = (string) $request->input('override_reason');
             $overrideNote = $request->filled('override_note') ? (string) $request->input('override_note') : null;
@@ -107,7 +107,7 @@ class FrontDeskActionController extends Controller
             return $this->backToBoard($request, $e->getMessage(), refused: true);
         }
 
-        return $this->backToBoard($request, "Checked out {$model->reference}.");
+        return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.checked_out', ['reference' => $model->reference]));
     }
 
     /**
@@ -128,7 +128,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_out') {
-            return $this->backToBoard($request, "{$model->reference} is not checked out, so there is no checkout to reverse.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_out', ['reference' => $model->reference]), refused: true);
         }
 
         return view('operator.reverse-checkout', [
@@ -143,12 +143,12 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_out') {
-            return $this->backToBoard($request, "{$model->reference} is not checked out, so there is no checkout to reverse.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_out', ['reference' => $model->reference]), refused: true);
         }
 
         $disclosure = $reverse->handle($model, $request->user());
 
-        return $this->backToBoard($request, "{$model->reference} is checked in again. ".$disclosure['review_email']['message']);
+        return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.checked_in_again', ['reference' => $model->reference]).' '.$disclosure['review_email']['message']);
     }
 
     /**
@@ -163,7 +163,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
         if ($model->status !== 'checked_in') {
-            return $this->backToBoard($request, "{$model->reference} is not checked in, so there is no check-in to reverse.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_in', ['reference' => $model->reference]), refused: true);
         }
 
         return view('operator.reverse-checkin', [
@@ -178,7 +178,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_in') {
-            return $this->backToBoard($request, "{$model->reference} is not checked in, so there is no check-in to reverse.", refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_in', ['reference' => $model->reference]), refused: true);
         }
 
         try {
@@ -192,14 +192,14 @@ class FrontDeskActionController extends Controller
             ? ' '.$disclosure['not_reversed'][1]   // the money line when there is one — never invented
             : '';
 
-        return $this->backToBoard($request, "{$model->reference} is back to confirmed.".$tail);
+        return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.back_to_confirmed', ['reference' => $model->reference]).$tail);
     }
 
     public function move(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse
     {
         // READ-ONLY workspace — edits off (same guard as reschedule/create; the UI hides the control).
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->afterMove($request, $reservation, 'The workspace is paused — moves are off.', refused: true);
+            return $this->afterMove($request, $reservation, __('php/http/controllers/front_desk_action_controller.workspace_paused'), refused: true);
         }
 
         $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
@@ -226,10 +226,10 @@ class FrontDeskActionController extends Controller
             $assignment->assignUnit($line, (string) $validated['unit_id'], is_string($eff) && $eff !== '' ? $eff : null);
         } catch (UnitUnavailableException|InvalidArgumentException) {
             // Occupied for these dates, or a different room type — the move is refused by the guard.
-            return $this->afterMove($request, $model->id, 'That room isn’t available for these dates — pick another.', refused: true);
+            return $this->afterMove($request, $model->id, __('php/http/controllers/front_desk_action_controller.room_unavailable'), refused: true);
         }
 
-        return $this->afterMove($request, $model->id, "Moved {$model->reference} to a new unit.");
+        return $this->afterMove($request, $model->id, __('php/http/controllers/front_desk_action_controller.moved_to_new_unit', ['reference' => $model->reference]));
     }
 
     /**
@@ -246,7 +246,7 @@ class FrontDeskActionController extends Controller
         // READ-ONLY workspace (billing paused/canceled but still in /app): edits are OFF. The UI hides the drag,
         // but this is the real server guard — the same self-check every operator write does (create/rate/desk).
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->afterReschedule($request, 'The workspace is paused — moves are off.', refused: true);
+            return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.workspace_paused'), refused: true);
         }
 
         $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
@@ -273,10 +273,10 @@ class FrontDeskActionController extends Controller
         try {
             $assignment->reschedule($line, $newCheckIn->toDateString(), $newCheckOut->toDateString(), $unitId);
         } catch (UnitUnavailableException|InsufficientAvailabilityException|InvalidArgumentException) {
-            return $this->afterReschedule($request, 'That move isn’t available — the unit or nights are already taken.', refused: true);
+            return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.move_unavailable'), refused: true);
         }
 
-        return $this->afterReschedule($request, "Moved {$model->reference} to {$newCheckIn->format('j M')}.");
+        return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.moved_to_date', ['reference' => $model->reference, 'date' => $newCheckIn->translatedFormat('j M')]));
     }
 
     /**

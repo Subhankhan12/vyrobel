@@ -46,7 +46,7 @@ class RoleAssignmentController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [],
-            ['current_password' => 'current password'],
+            ['current_password' => __('php/http/controllers/operator/role_assignment_controller.attr_current_password')],
         );
     }
 
@@ -68,7 +68,7 @@ class RoleAssignmentController extends Controller
     public function savePermissions(Request $request, RolePermissionService $perms): RedirectResponse
     {
         if ($this->readOnly()) {
-            return $this->back('Your workspace is read-only right now — role changes are paused.');
+            return $this->back(__('php/http/controllers/operator/role_assignment_controller.read_only'));
         }
 
         /** @var User $actor */
@@ -79,7 +79,7 @@ class RoleAssignmentController extends Controller
         $granted = array_values(array_filter((array) $request->input('permissions', []), 'is_string'));
 
         if ($roleName === '') {
-            return $this->back('Choose a role to edit.');
+            return $this->back(__('php/http/controllers/operator/role_assignment_controller.choose_role'));
         }
 
         $this->reauthenticate($request);   // ⚠️ the QUIET one — no user or assignment changes, yet everyone with the role is affected
@@ -93,8 +93,8 @@ class RoleAssignmentController extends Controller
         $changed = $result['granted'] + $result['revoked'];
 
         return $this->back($changed === 0
-            ? 'No changes to “'.$roleName.'”.'
-            : '“'.$roleName.'” updated — '.$result['granted'].' granted, '.$result['revoked'].' revoked.');
+            ? __('php/http/controllers/operator/role_assignment_controller.no_changes', ['role' => $roleName])
+            : __('php/http/controllers/operator/role_assignment_controller.permissions_updated', ['role' => $roleName, 'granted' => $result['granted'], 'revoked' => $result['revoked']]));
     }
 
     /**
@@ -103,7 +103,7 @@ class RoleAssignmentController extends Controller
     private function manage(Request $request, callable $action): RedirectResponse
     {
         if ($this->readOnly()) {
-            return $this->back('Your workspace is read-only right now — role changes are paused.');
+            return $this->back(__('php/http/controllers/operator/role_assignment_controller.read_only'));
         }
 
         /** @var User $actor */
@@ -117,7 +117,7 @@ class RoleAssignmentController extends Controller
         $roleName = trim((string) $request->input('role'));
 
         if ($target === null || $roleName === '') {
-            return $this->back('Choose a team member and a role.');
+            return $this->back(__('php/http/controllers/operator/role_assignment_controller.choose_member_and_role'));
         }
 
         try {
@@ -126,7 +126,7 @@ class RoleAssignmentController extends Controller
             return $this->back($e->getMessage());   // an expected refusal (escalation / self / cross-org) — never a 500
         }
 
-        return $this->back('“'.$target->name.'” — role updated.');
+        return $this->back(__('php/http/controllers/operator/role_assignment_controller.role_updated', ['name' => $target->name]));
     }
 
     /** #102 — the role write path now respects the paused/read-only workspace (was a gap). */

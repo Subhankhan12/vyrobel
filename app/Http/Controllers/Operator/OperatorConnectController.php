@@ -40,7 +40,7 @@ class OperatorConnectController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->to(route('app.billing'))->with('error', 'We couldn’t start Stripe onboarding — please try again.');
+            return redirect()->to(route('app.billing'))->with('error', __('php/http/controllers/operator/operator_connect_controller.onboarding_failed'));
         }
 
         // Off-site to Stripe's hosted onboarding — no identity data touches our server.

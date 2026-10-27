@@ -16,12 +16,12 @@ class GuestName
     public static function display(?Guest $guest): string
     {
         if ($guest === null) {
-            return 'Guest';
+            return (string) __('php/support/guest/guest_name.guest');
         }
 
         $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name));
 
-        return $name !== '' ? $name : 'Guest';
+        return $name !== '' ? $name : (string) __('php/support/guest/guest_name.guest');
     }
 
     /**
@@ -32,7 +32,7 @@ class GuestName
     {
         $first = trim((string) $guest?->first_name);
         if ($first === '') {
-            return 'A guest';
+            return (string) __('php/support/guest/guest_name.a_guest');
         }
 
         $last = trim((string) $guest?->last_name);

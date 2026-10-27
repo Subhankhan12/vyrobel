@@ -5,11 +5,11 @@
 <div class="vy-bill-tiers vy-fade">
     @foreach ($tiers as $tier)
         <div class="vy-bill-tier @if ($tier['code'] === 'pro') is-featured @endif">
-            @if ($tier['code'] === 'pro')<span class="vy-bill-tag">Most popular</span>@endif
+            @if ($tier['code'] === 'pro')<span class="vy-bill-tag">{{ __('livewire/operator/partials/billing-tiers.most_popular') }}</span>@endif
             <h3 class="vy-bill-name">{{ $tier['name'] }}</h3>
             <p class="vy-bill-blurb">{{ $tier['blurb'] }}</p>
-            <div class="vy-bill-price">{{ $tier['monthly'] }}<span class="vy-bill-per">/mo</span></div>
-            <div class="vy-bill-yearly">or {{ $tier['yearly'] }}/yr ({{ $tier['yearly_monthly_equiv'] }}/mo billed yearly)</div>
+            <div class="vy-bill-price">{{ $tier['monthly'] }}<span class="vy-bill-per">{{ __('livewire/operator/partials/billing-tiers.per_month') }}</span></div>
+            <div class="vy-bill-yearly">{{ __('livewire/operator/partials/billing-tiers.or_yearly', ['yearly' => $tier['yearly'], 'monthly_equiv' => $tier['yearly_monthly_equiv']]) }}</div>
             <ul class="vy-bill-feats">
                 @foreach ($tier['features'] as $f)
                     <li class="@if (! $f['on']) is-off @endif">
@@ -22,7 +22,7 @@
                     </li>
                 @endforeach
             </ul>
-            <a class="vy-btn @if ($tier['code'] === 'pro') vy-btn--accent @else vy-btn--ghost @endif" href="{{ route('app.billing.checkout', ['plan' => $tier['code'], 'interval' => 'monthly']) }}">Continue with {{ $tier['name'] }}</a>
+            <a class="vy-btn @if ($tier['code'] === 'pro') vy-btn--accent @else vy-btn--ghost @endif" href="{{ route('app.billing.checkout', ['plan' => $tier['code'], 'interval' => 'monthly']) }}">{{ __('livewire/operator/partials/billing-tiers.continue_with', ['plan' => $tier['name']]) }}</a>
         </div>
     @endforeach
 </div>

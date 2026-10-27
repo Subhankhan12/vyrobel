@@ -39,7 +39,7 @@ class OperatorChannels extends Component
 
         $monthStart = CarbonImmutable::today()->startOfMonth();
         $monthEnd = $monthStart->addMonth();
-        $monthLabel = $monthStart->format('M');
+        $monthLabel = $monthStart->translatedFormat('M');
 
         // REAL bookings by source this month (tenant-scoped) — the honest booking mix.
         $bySource = $orgId === null
@@ -105,11 +105,12 @@ class OperatorChannels extends Component
                 'name' => (string) $c->name,
                 'initial' => strtoupper(substr((string) $c->name, 0, 1)),
                 'status' => $status,
+                // Translated here (render time), keyed by the status CODE; the view branches on `status`, never this.
                 'status_label' => match ($status) {
-                    'connected' => 'Connected',
-                    'error' => 'Action needed',
-                    'disabled' => 'Disabled',
-                    default => 'Disconnected',
+                    'connected' => __('php/livewire/operator/operator_channels.status_connected'),
+                    'error' => __('php/livewire/operator/operator_channels.status_error'),
+                    'disabled' => __('php/livewire/operator/operator_channels.status_disabled'),
+                    default => __('php/livewire/operator/operator_channels.status_disconnected'),
                 },
                 // A genuine sync timestamp ONLY if the real integration ever set it (it doesn't yet) — else
                 // the honest gated line. Never a fabricated "last sync 3 min ago".

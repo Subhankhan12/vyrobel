@@ -7,10 +7,10 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\Locales;
 use App\Support\Security\ActiveSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -24,8 +24,6 @@ use Illuminate\Validation\Rule;
  */
 class OperatorProfileController extends Controller
 {
-    private const LOCALES = ['en', 'pt', 'es', 'fr'];
-
     private const DATE_FORMATS = ['DD/MM/YYYY', 'MM/DD/YYYY'];
 
     /** Personal details — name / preferred name / email / phone / language (locale) / timezone. */
@@ -39,14 +37,14 @@ class OperatorProfileController extends Controller
             'preferred_name' => ['nullable', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->getKey())],
             'phone' => ['nullable', 'string', 'max:40'],
-            'locale' => ['nullable', Rule::in(self::LOCALES)],
+            'locale' => ['nullable', Rule::in(Locales::offered())],
             'timezone' => ['nullable', 'timezone'],
         ]);
 
         $user->forceFill($data)->save();
         $audit->record('user.profile_updated', $user, null, ['fields' => array_keys($data)]);
 
-        return redirect()->route('app.profile')->with('profile_notice', 'Your profile is saved.');
+        return redirect()->route('app.profile')->with('profile_notice', __('php/http/controllers/operator/operator_profile_controller.profile_saved'));
     }
 
     /** UI preferences — compact density / onboarding tips / interface motion / date format (stored + applied). */
@@ -67,7 +65,7 @@ class OperatorProfileController extends Controller
         ])->save();
         $audit->record('user.preferences_updated', $user, null, ['fields' => ['compact_density', 'onboarding_tips', 'reduce_motion', 'date_format']]);
 
-        return redirect()->route('app.profile')->with('profile_notice', 'Preferences saved.');
+        return redirect()->route('app.profile')->with('profile_notice', __('php/http/controllers/operator/operator_profile_controller.preferences_saved'));
     }
 
     /**
@@ -87,8 +85,8 @@ class OperatorProfileController extends Controller
         $audit->record('user.other_sessions_signed_out', $user, null, ['count' => $deleted]);
 
         $message = $deleted > 0
-            ? 'Signed out of '.$deleted.' other '.Str::plural('session', $deleted).'.'
-            : 'You have no other active sessions.';
+            ? trans_choice('php/http/controllers/operator/operator_profile_controller.signed_out_others', $deleted, ['count' => $deleted])
+            : __('php/http/controllers/operator/operator_profile_controller.no_other_sessions');
 
         // 2026-10-05 — started from the Security page, it comes back there (📖 it always landed on Profile)
         return $request->input('return') === 'security'

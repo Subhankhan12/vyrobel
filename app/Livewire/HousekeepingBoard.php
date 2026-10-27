@@ -65,11 +65,12 @@ class HousekeepingBoard extends Component
     /** The kanban columns, in workflow order — exactly the real status enum. */
     private const STATUSES = ['pending', 'in_progress', 'clean', 'inspected'];
 
-    /** Forward status moves offered per column (label + target), all through the real enum. */
+    /** Forward status moves offered per column (action code + target), all through the real enum. The label is
+     * translated at render time ({@see nextActions()}) — a constant runs before the request's language is set. */
     private const NEXT_ACTIONS = [
-        'pending' => [['label' => 'Start', 'to' => 'in_progress']],
-        'in_progress' => [['label' => 'Mark clean', 'to' => 'clean']],
-        'clean' => [['label' => 'Inspect', 'to' => 'inspected']],
+        'pending' => [['action' => 'start', 'to' => 'in_progress']],
+        'in_progress' => [['action' => 'mark_clean', 'to' => 'clean']],
+        'clean' => [['action' => 'inspect', 'to' => 'inspected']],
         'inspected' => [],
     ];
 
@@ -199,8 +200,8 @@ class HousekeepingBoard extends Component
         $arriving = $todayArrivals[(string) $task->unit_id] ?? null;
         if ($arriving !== null && ! in_array($status, ['clean', 'inspected'], true)) {
             $urgency = $arriving === 'checked_in'
-                ? ['tone' => 'red', 'label' => 'Guest waiting']
-                : ['tone' => 'amber', 'label' => 'Guest arriving today'];
+                ? ['tone' => 'red', 'label' => __('php/livewire/housekeeping_board.urgency_guest_waiting')]
+                : ['tone' => 'amber', 'label' => __('php/livewire/housekeeping_board.urgency_guest_arriving_today')];
         }
 
         return [
@@ -214,7 +215,7 @@ class HousekeepingBoard extends Component
             'priority_label' => $priority['label'],
             'priority_tone' => $priority['tone'],
             'is_priority' => $task->priority === 'high',
-            'date' => CarbonImmutable::parse($task->date)->format('j M'),
+            'date' => CarbonImmutable::parse($task->date)->translatedFormat('j M'),
             // ⚠️ 2026-10-05 — which DAY this room is for. The page lists every day's cleaning (no date filter), and said "Today's":
             //    tomorrow's rooms read as today's. Today · Tomorrow · Overdue · <date> (not done, its day passed) · <weekday date>
             ...$this->day((string) $task->date, $status, $now->startOfDay()),
@@ -226,7 +227,7 @@ class HousekeepingBoard extends Component
             'started_label' => $task->started_at !== null ? CarbonImmutable::parse($task->started_at)->format('H:i') : null,
             'completed_label' => $task->completed_at !== null ? CarbonImmutable::parse($task->completed_at)->format('H:i') : null,
             'photos' => $photos[(string) $task->id] ?? [],
-            'next' => self::NEXT_ACTIONS[$status],
+            'next' => $this->nextActions($status),
             // #87 — the incoming guest's VIP flag + preferences, so the room is prepped right. Name-free.
             'guest_vip' => $guest !== null && (bool) $guest->is_vip,
             'guest_preferences' => $guest !== null ? $guest->preferenceLabels() : [],
@@ -246,11 +247,29 @@ class HousekeepingBoard extends Component
         $done = in_array($status, ['clean', 'inspected'], true);
 
         return match (true) {
-            $d->isSameDay($today) => ['day' => 'Today', 'day_tone' => 'today'],
-            $d->isSameDay($today->addDay()) => ['day' => 'Tomorrow', 'day_tone' => 'later'],
-            $d->lessThan($today) && ! $done => ['day' => 'Overdue · '.$d->format('j M'), 'day_tone' => 'overdue'],
-            default => ['day' => $d->format('D j M'), 'day_tone' => $d->lessThan($today) ? 'past' : 'later'],
+            $d->isSameDay($today) => ['day' => __('common.today'), 'day_tone' => 'today'],
+            $d->isSameDay($today->addDay()) => ['day' => __('php/livewire/housekeeping_board.day_tomorrow'), 'day_tone' => 'later'],
+            $d->lessThan($today) && ! $done => ['day' => __('php/livewire/housekeeping_board.day_overdue', ['date' => $d->translatedFormat('j M')]), 'day_tone' => 'overdue'],
+            default => ['day' => $d->translatedFormat('D j M'), 'day_tone' => $d->lessThan($today) ? 'past' : 'later'],
         };
+    }
+
+    /**
+     * The forward step(s) offered on a room at this stage, labelled in the request's language. The view (and the
+     * room detail's script) read `label` to show and `to` to post — never the label to decide anything.
+     *
+     * @return list<array{label: string, to: string}>
+     */
+    private function nextActions(string $status): array
+    {
+        return array_map(fn (array $a): array => [
+            'label' => match ($a['action']) {
+                'start' => __('php/livewire/housekeeping_board.next_start'),
+                'mark_clean' => __('php/livewire/housekeeping_board.next_mark_clean'),
+                'inspect' => __('php/livewire/housekeeping_board.next_inspect'),
+            },
+            'to' => $a['to'],
+        ], self::NEXT_ACTIONS[$status]);
     }
 
     /** Whether a card passes the active crew filter + search (unit / type / housekeeper name). */

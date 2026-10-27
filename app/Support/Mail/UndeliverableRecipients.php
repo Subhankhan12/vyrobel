@@ -58,6 +58,37 @@ final class UndeliverableRecipients
         return null;
     }
 
+    /**
+     * The same answer as {@see reason()} in the reader's language, for a SCREEN (the admin console's refusals). reason()
+     * stays English: it is also what the mail listener logs and what tests pin.
+     */
+    public static function displayReason(string $address): ?string
+    {
+        $address = strtolower(trim($address));
+        $at = strrpos($address, '@');
+        $domain = $at === false ? '' : substr($address, $at + 1);
+        $why = self::reason($address);
+
+        if ($why === null) {
+            return null;
+        }
+        if ($why === 'no domain') {
+            return __('php/support/mail/undeliverable_recipients.no_domain');
+        }
+        foreach (self::RESERVED_DOMAINS as $reserved) {
+            if ($why === 'reserved domain '.$reserved) {
+                return __('php/support/mail/undeliverable_recipients.reserved_domain', ['domain' => $reserved]);
+            }
+        }
+        if (str_starts_with($why, 'reserved top-level domain .')) {
+            $dot = strrpos($domain, '.');
+
+            return __('php/support/mail/undeliverable_recipients.reserved_tld', ['tld' => $dot === false ? $domain : substr($domain, $dot + 1)]);
+        }
+
+        return __('php/support/mail/undeliverable_recipients.suppressed');
+    }
+
     /** @return list<string> */
     private static function listed(): array
     {

@@ -62,11 +62,11 @@ final class StaffDepartment
     public static function label(string $dept): string
     {
         return match ($dept) {
-            'all' => 'All teams',
-            self::FRONTDESK => 'Front desk',
-            self::HOUSEKEEPING => 'Housekeeping',
-            self::MANAGER => 'Manager',
-            default => ucfirst($dept),
+            'all' => __('php/support/schedule/staff_department.all_teams'),
+            self::FRONTDESK => __('php/support/schedule/staff_department.front_desk'),
+            self::HOUSEKEEPING => __('php/support/schedule/staff_department.housekeeping'),
+            self::MANAGER => __('php/support/schedule/staff_department.manager'),
+            default => ucfirst($dept),   // an unknown code, shown as itself
         };
     }
 }

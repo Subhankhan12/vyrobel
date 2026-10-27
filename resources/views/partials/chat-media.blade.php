@@ -16,13 +16,13 @@
         window.VyRecorder = {
             supported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); },
             async start({ limit, onTick }) {
-                if (!this.supported()) throw new Error('This browser cannot record voice notes.');
+                if (!this.supported()) throw new Error(@js(__('partials/chat-media.unsupported')));
                 let stream;
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 } catch (e) {
-                    throw new Error(e && e.name === 'NotAllowedError' ? 'Allow the microphone for this site to record a voice note.'
-                        : (e && e.name === 'NotFoundError' ? 'No microphone was found.' : 'The microphone could not be started.'));
+                    throw new Error(e && e.name === 'NotAllowedError' ? @js(__('partials/chat-media.mic_not_allowed'))
+                        : (e && e.name === 'NotFoundError' ? @js(__('partials/chat-media.mic_not_found')) : @js(__('partials/chat-media.mic_failed'))));
                 }
                 const mime = TYPES.find((t) => window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported(t)) || '';
                 const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
@@ -68,7 +68,7 @@
                 },
                 clock() { return this.fmt(this.playing || this.at ? this.at : this.length); },
                 /** What a screen reader says for the slider: "0:12 of 0:40". */
-                spoken() { return this.fmt(this.at) + ' of ' + this.fmt(this.length); },
+                spoken() { return @js(__('partials/chat-media.spoken_position', ['at' => ':at', 'length' => ':length'])).replace(':at', this.fmt(this.at)).replace(':length', this.fmt(this.length)); },
                 ensure() {
                     if (this.audio) return this.audio;
                     const a = new Audio(file.url);

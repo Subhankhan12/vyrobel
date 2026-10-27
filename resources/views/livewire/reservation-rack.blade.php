@@ -3,32 +3,32 @@
      tenant-scoped (availability from AvailabilityService; bars from active reservation_unit lines).
      Presentation only — this view READS, it never mutates inventory. --}}
 <div class="vy-cal">
-    <x-operator.shell active="calendar" title="Calendar"
-        :subtitle="$property['name'] ?? 'No property yet'" :viewer="$viewer">
+    <x-operator.shell active="calendar" :title="__('livewire/reservation-rack.page_title')"
+        :subtitle="$property['name'] ?? __('livewire/reservation-rack.no_property_yet')" :viewer="$viewer">
 
         {{-- Toolbar: REAL window navigation (GET links, RMB-safe) + honest NO-BACKEND affordances --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
-                <a class="vy-icobtn" href="?start={{ $window['prev'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="Previous {{ $window['days'] }} nights" title="Previous {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['prev'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="{{ trans_choice('livewire/reservation-rack.previous_nights', $window['days'], ['count' => $window['days']]) }}" title="{{ trans_choice('livewire/reservation-rack.previous_nights', $window['days'], ['count' => $window['days']]) }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
                 </a>
                 <span class="vy-range">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>
                     {{ $window['label'] }}
                 </span>
-                <a class="vy-icobtn" href="?start={{ $window['next'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="Next {{ $window['days'] }} nights" title="Next {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['next'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="{{ trans_choice('livewire/reservation-rack.next_nights', $window['days'], ['count' => $window['days']]) }}" title="{{ trans_choice('livewire/reservation-rack.next_nights', $window['days'], ['count' => $window['days']]) }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
-                <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}">Today</a>
+                <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}">{{ __('common.today') }}</a>
             </div>
             <div class="vy-right">
                 {{-- #104 GATE 3d — view-range switcher (7 / 14 / 30 nights), preserving the current window
                      start. The design places it in the right-hand control group as a segmented pill. --}}
-                <span class="vy-seg-range" role="group" aria-label="Nights in view">
+                <span class="vy-seg-range" role="group" aria-label="{{ __('livewire/reservation-rack.nights_in_view') }}">
                     @foreach ($window['ranges'] as $d)
                         <a class="vy-seg-btn @if ($window['selected_days'] === $d) is-on @endif"
                            @if ($window['selected_days'] === $d) aria-current="true" @endif
-                           href="?start={{ $window['start'] }}&days={{ $d }}{{ $window['rt_q'] }}">{{ $d }}n</a>
+                           href="?start={{ $window['start'] }}&days={{ $d }}{{ $window['rt_q'] }}">{{ __('livewire/reservation-rack.range_short', ['nights' => $d]) }}</a>
                     @endforeach
                 </span>
                 {{-- REAL room-type filter (GET; RMB-safe) --}}
@@ -37,8 +37,8 @@
                         <input type="hidden" name="start" value="{{ $window['start'] }}">
                         <input type="hidden" name="days" value="{{ $window['selected_days'] }}">
                         <svg class="vy-rack-filter-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-                        <select name="rt" class="vy-propsw-select" onchange="this.form.submit()" aria-label="Filter by room type">
-                            <option value="">All room types</option>
+                        <select name="rt" class="vy-propsw-select" onchange="this.form.submit()" aria-label="{{ __('livewire/reservation-rack.filter_by_room_type') }}">
+                            <option value="">{{ __('livewire/reservation-rack.all_room_types') }}</option>
                             @foreach ($roomTypeOptions as $opt)
                                 <option value="{{ $opt['id'] }}" @selected($filterRt === $opt['id'])>{{ $opt['name'] }}</option>
                             @endforeach
@@ -54,7 +54,7 @@
                     @can('reservations.create')
                     <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}&new=1">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                        New reservation
+                        {{ __('livewire/reservation-rack.new_reservation') }}
                     </a>
                     @endcan
                 @endif
@@ -68,7 +68,7 @@
         @endphp
         @if ($notice)
             {{-- ⚠️ 2026-10-04 — a REFUSED move was this same quiet status line as one that worked; now an alert --}}
-            <div class="vy-flash{{ $refused ? ' is-err' : '' }} vy-rack-notice vy-fade" role="{{ $refused ? 'alert' : 'status' }}">{{ $notice }}@if ($created !== null) <a class="vy-rnr-link" href="{{ route('app.reservations.show', $created) }}">Open it</a>@endif</div>
+            <div class="vy-flash{{ $refused ? ' is-err' : '' }} vy-rack-notice vy-fade" role="{{ $refused ? 'alert' : 'status' }}">{{ $notice }}@if ($created !== null) <a class="vy-rnr-link" href="{{ route('app.reservations.show', $created) }}">{{ __('livewire/reservation-rack.open_it') }}</a>@endif</div>
         @endif
         @if ($dialogSaid !== null)
             <div class="vy-flash {{ $dialogError !== null ? 'is-err' : 'is-ok' }} vy-rack-notice vy-fade" role="{{ $dialogError !== null ? 'alert' : 'status' }}">{{ $dialogSaid }}</div>
@@ -90,17 +90,17 @@
                 <div class="vy-rack-empty">
                     <strong>{{ $noRooms['title'] }}</strong>
                     <span>{{ $noRooms['line'] }}</span>
-                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.units') }}">Go to Units</a>
+                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.units') }}">{{ __('livewire/reservation-rack.go_to_units') }}</a>
                 </div>
                 @if ($elsewhere !== [])
                     <form method="POST" action="{{ route('app.property.switch') }}" class="vy-rnr-others vy-rack-others" aria-labelledby="vy-rack-others-h">
                         @csrf
-                        <h3 id="vy-rack-others-h" class="vy-rnr-others-h">Open another property’s calendar</h3>
+                        <h3 id="vy-rack-others-h" class="vy-rnr-others-h">{{ __('livewire/reservation-rack.open_other_calendar') }}</h3>
                         @foreach ($elsewhere as $__p)
                             <button type="submit" name="property_id" value="{{ $__p['id'] }}" class="vy-rnr-other">
                                 <svg class="vy-rnr-other-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
                                 <span class="vy-rnr-other-name">{{ $__p['name'] }}</span>
-                                <span class="vy-rnr-other-rooms">{{ $__p['rooms'] === 1 ? '1 room' : $__p['rooms'].' rooms' }}</span>
+                                <span class="vy-rnr-other-rooms">{{ trans_choice('livewire/reservation-rack.rooms', $__p['rooms'], ['count' => $__p['rooms']]) }}</span>
                                 <svg class="vy-rnr-other-go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </button>
                         @endforeach
@@ -111,13 +111,13 @@
 
         @if ($property === null)
             <div class="vy-card vy-fade">
-                <div class="vy-empty">No property yet — add a property to see its reservation rack.</div>
+                <div class="vy-empty">{{ __('livewire/reservation-rack.no_property_empty') }}</div>
             </div>
         @elseif (count($rows) > 0)
             {{-- ⚠️⚠️ 2026-10-04 (his report — "it is not possible to do reservation"): rooms free and no price on a night cannot be booked,
                  and the strip said "2" either way. The marked nights, and why, said once above the grid. --}}
             @if ($priceNote !== null)
-                <p class="vy-rack-pricenote vy-fade" role="note"><span class="vy-rack-pricenote-mark" aria-hidden="true"></span><span>No price yet on the marked nights for {{ $priceNote['names'] }}, so they can’t be booked here.@foreach ($priceNote['seasons'] as $__season) {{ $__season }} is saved but not applied.@endforeach @if ($canSetPrice && ! $readOnly)<a class="vy-rnr-link" href="{{ route('app.rates') }}">Set prices on the Rates page</a>{{ $canBook ? ', or set one for a stay from New reservation.' : '.' }}@elseif (! $readOnly) Ask someone who manages rates to set them.@endif</span></p>
+                <p class="vy-rack-pricenote vy-fade" role="note"><span class="vy-rack-pricenote-mark" aria-hidden="true"></span><span>{{ __('livewire/reservation-rack.no_price_note', ['names' => $priceNote['names']]) }}@foreach ($priceNote['seasons'] as $__season) {{ __('livewire/reservation-rack.season_not_applied', ['season' => $__season]) }}@endforeach @if ($canSetPrice && ! $readOnly){!! $canBook ? __('livewire/reservation-rack.set_prices_or_dialog', ['url' => e(route('app.rates'))]) : __('livewire/reservation-rack.set_prices', ['url' => e(route('app.rates'))]) !!}@elseif (! $readOnly) {{ __('livewire/reservation-rack.ask_rates_manager') }}@endif</span></p>
             @endif
             {{-- GATE 5.3 — drag-to-reschedule. A booking bar is draggable; the drop cells (only on ACTIVE unit
                  rows) POST to the certified AssignmentService::reschedule. The drop cell's date is a
@@ -147,7 +147,7 @@
 
                         {{-- Date header (REAL window) --}}
                         <div class="vy-rack-flexrow vy-rack-head">
-                            <div class="vy-rack-corner vy-rack-labelcol">Room type</div>
+                            <div class="vy-rack-corner vy-rack-labelcol">{{ __('livewire/reservation-rack.room_type') }}</div>
                             <div class="vy-nights">
                                 @foreach ($dates as $d)
                                     {{-- The design marks today with a short gradient rule across the top of
@@ -170,13 +170,13 @@
                                 <div class="vy-rt-label vy-rack-labelcol">
                                     <span class="vy-rt-name">{{ $row['room_type'] }}</span>
                                     <span class="vy-rt-kind">{{ $row['kind'] }}</span>
-                                    <span class="vy-rt-meta">{{ $row['units'] }} {{ \Illuminate\Support\Str::plural('unit', $row['units']) }}</span>
+                                    <span class="vy-rt-meta">{{ trans_choice('livewire/reservation-rack.units', $row['units'], ['count' => $row['units']]) }}</span>
                                 </div>
                                 <div class="vy-nights">
                                     @foreach ($dates as $d)
                                         @php $avail = $row['availability'][$d['date']] ?? 0; $__noPrice = isset($row['no_price'][$d['date']]); @endphp
                                         <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($d['past']) is-past @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif @if ($__noPrice) is-noprice @endif"
-                                             title="{{ $avail }} available on {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}{{ $__noPrice ? ' — no price yet, so it can’t be booked here' : '' }}">{{ $avail }}</div>
+                                             title="{{ $__noPrice ? trans_choice('livewire/reservation-rack.available_on_no_price', $avail, ['count' => $avail, 'date' => $d['label']]) : trans_choice('livewire/reservation-rack.available_on', $avail, ['count' => $avail, 'date' => $d['label']]) }}">{{ $avail }}</div>
                                     @endforeach
                                 </div>
                             </div>
@@ -198,7 +198,7 @@
                                              would assert that the unit sleeps nobody; 0 means nobody recorded a
                                              capacity. Absent is the honest rendering of an unrecorded fact.
                                              ⚠️ This is the UNIT's capacity, never the reservation's party size. --}}
-                                        @if ($unit['sleeps'])<span class="vy-unit-name">Sleeps {{ $unit['sleeps'] }}</span>@endif
+                                        @if ($unit['sleeps'])<span class="vy-unit-name">{{ trans_choice('livewire/reservation-rack.sleeps', $unit['sleeps'], ['count' => $unit['sleeps']]) }}</span>@endif
                                     </div>
                                     <div style="flex: 1; min-width: 0;">
                                         <div class="vy-lane">
@@ -215,7 +215,7 @@
                                                 <div class="vy-lane-ooo">
                                                     <span class="vy-ooo vy-ooo--full state-{{ $unit['state'] }}"
                                                           style="grid-column: 1 / span {{ count($dates) }};"
-                                                          title="{{ $unit['state_label'] }} — not accepting new bookings">
+                                                          title="{{ __('livewire/reservation-rack.state_not_accepting', ['state' => $unit['state_label']]) }}">
                                                         <span class="vy-ooo-label">{{ $unit['state_label'] }}</span>
                                                     </span>
                                                 </div>
@@ -242,7 +242,7 @@
                                                 <div class="vy-lane-book" aria-hidden="true">
                                                     @foreach ($dates as $d)
                                                         @if (isset($unit['free_nights'][$d['date']]))
-                                                            <a class="vy-lane-book-cell" tabindex="-1" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}&new=1&ci={{ $d['date'] }}&co={{ $unit['free_nights'][$d['date']] }}&unit={{ $unit['unit_id'] }}" title="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}" aria-label="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}"><span aria-hidden="true">+</span></a>
+                                                            <a class="vy-lane-book-cell" tabindex="-1" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}&new=1&ci={{ $d['date'] }}&co={{ $unit['free_nights'][$d['date']] }}&unit={{ $unit['unit_id'] }}" title="{{ __('livewire/reservation-rack.book_unit_from', ['unit' => $unit['code'], 'date' => $d['label']]) }}" aria-label="{{ __('livewire/reservation-rack.book_unit_from', ['unit' => $unit['code'], 'date' => $d['label']]) }}"><span aria-hidden="true">+</span></a>
                                                         @else
                                                             <span class="vy-lane-book-cell is-off" aria-hidden="true"></span>
                                                         @endif
@@ -269,13 +269,13 @@
                                                        href="{{ route('app.reservations.show', $bar['id']) }}"
                                                        @if ($canMove) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
-                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}{{ $canMove ? ' · drag to reschedule' : '' }}">
+                                                       title="{{ trans_choice($canMove ? 'livewire/reservation-rack.bar_title_draggable' : 'livewire/reservation-rack.bar_title', $bar['nights'], ['count' => $bar['nights'], 'guest' => $bar['guest'], 'status' => $bar['status_label'], 'source' => $bar['source'], 'ref' => $bar['ref']]) }}">
                                                         <span class="vy-bar-txt">
                                                             <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
                                                             {{-- The design's second line. Status stays as TEXT here, not colour-only:
                                                                  the design encodes status purely by bar colour, which would make the
                                                                  legend the sole key (WCAG 1.4.1). Same two-line shape, still readable. --}}
-                                                            <span class="vy-bar-sub">{{ $bar['status_label'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }}</span>
+                                                            <span class="vy-bar-sub">{{ trans_choice('livewire/reservation-rack.bar_sub', $bar['nights'], ['count' => $bar['nights'], 'status' => $bar['status_label']]) }}</span>
                                                         </span>
                                                     </a>
                                                 @endforeach
@@ -289,8 +289,8 @@
                             @foreach ($row['unassigned'] as $lane)
                                 <div class="vy-rack-flexrow vy-unit-row vy-unit-row--unassigned">
                                     <div class="vy-unit-label vy-rack-labelcol">
-                                        <span class="vy-unit-code">Unassigned</span>
-                                        @if (! $loop->first)<span class="vy-unit-name">overflow</span>@endif
+                                        <span class="vy-unit-code">{{ __('livewire/reservation-rack.unassigned') }}</span>
+                                        @if (! $loop->first)<span class="vy-unit-name">{{ __('livewire/reservation-rack.overflow') }}</span>@endif
                                     </div>
                                     <div style="flex: 1; min-width: 0;">
                                         <div class="vy-lane">
@@ -304,13 +304,13 @@
                                                     <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
                                                        href="{{ route('app.reservations.show', $bar['id']) }}"
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
-                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }} · not yet assigned to a unit">
+                                                       title="{{ trans_choice('livewire/reservation-rack.bar_title_unassigned', $bar['nights'], ['count' => $bar['nights'], 'guest' => $bar['guest'], 'status' => $bar['status_label'], 'source' => $bar['source'], 'ref' => $bar['ref']]) }}">
                                                         <span class="vy-bar-txt">
                                                             <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
                                                             {{-- The design's second line. Status stays as TEXT here, not colour-only:
                                                                  the design encodes status purely by bar colour, which would make the
                                                                  legend the sole key (WCAG 1.4.1). Same two-line shape, still readable. --}}
-                                                            <span class="vy-bar-sub">{{ $bar['status_label'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }}</span>
+                                                            <span class="vy-bar-sub">{{ trans_choice('livewire/reservation-rack.bar_sub', $bar['nights'], ['count' => $bar['nights'], 'status' => $bar['status_label']]) }}</span>
                                                         </span>
                                                     </a>
                                                 @endforeach
@@ -326,26 +326,26 @@
                 {{-- Legend (warm status tones — the REAL reservation statuses, no green/red) --}}
                 <div style="padding: 16px 22px 20px;">
                     <div class="vy-legend">
-                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-confirmed"></span> Confirmed</span>
-                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-in-house"></span> Checked in</span>
-                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-departed"></span> Checked out</span>
-                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-pending"></span> Tentative / enquiry</span>
-                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-no-show"></span> No-show</span>
-                        <span class="vy-legend-item"><span class="vy-legend-swatch swatch-ooo"></span> Out of order / blocked</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-confirmed"></span> {{ __('livewire/reservation-rack.legend_confirmed') }}</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-in-house"></span> {{ __('livewire/reservation-rack.legend_checked_in') }}</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-departed"></span> {{ __('livewire/reservation-rack.legend_checked_out') }}</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-pending"></span> {{ __('livewire/reservation-rack.legend_tentative') }}</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch tone-no-show"></span> {{ __('livewire/reservation-rack.legend_no_show') }}</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch swatch-ooo"></span> {{ __('livewire/reservation-rack.legend_blocked') }}</span>
                         @if ($priceNote !== null)
-                            <span class="vy-legend-item"><span class="vy-legend-swatch swatch-noprice"></span> No price yet</span>
+                            <span class="vy-legend-item"><span class="vy-legend-swatch swatch-noprice"></span> {{ __('livewire/reservation-rack.legend_no_price') }}</span>
                         @endif
                     </div>
                     {{-- Drag-to-reschedule is LIVE (→ the certified AssignmentService::reschedule, availability
                          locked, no-overlap). Each row is a physical unit; hatched bars are real blocks. --}}
                     {{-- ⚠️ one sentence: inside the old inline-flex note "Drag a booking" sat in one column and the rest in another --}}
                     @if ($canMove)
-                        <p class="vy-rack-hint"><strong>Drag a booking</strong> to a new date or unit to reschedule it — the stay length is kept and availability is re-checked.@if ($canBook) Click an empty night on a unit’s row to book it there.@endif Hatched bars are real out-of-order / owner blocks; the header strip shows units available per night.</p>
+                        <p class="vy-rack-hint">{!! __('livewire/reservation-rack.hint_drag') !!}@if ($canBook) {{ __('livewire/reservation-rack.hint_click_night') }}@endif {{ __('livewire/reservation-rack.hint_hatched') }}</p>
                     @elseif (! $readOnly)
                         {{-- ⚠️ 2026-10-04 — moving a booking needs `reservations.assign`; this role books (or reads) and does not move --}}
-                        <p class="vy-rack-hint">Each row is a physical unit.@if ($canBook) Click an empty night on a unit’s row to book it there.@endif Hatched bars are real out-of-order / owner blocks; the header strip shows units available per night.</p>
+                        <p class="vy-rack-hint">{{ __('livewire/reservation-rack.hint_each_row') }}@if ($canBook) {{ __('livewire/reservation-rack.hint_click_night') }}@endif {{ __('livewire/reservation-rack.hint_hatched') }}</p>
                     @else
-                        <p class="vy-rack-hint">Each row is a physical unit; hatched bars are real out-of-order / owner blocks; the header strip shows units available per night. (The workspace is paused — moves are off.)</p>
+                        <p class="vy-rack-hint">{{ __('livewire/reservation-rack.hint_paused') }}</p>
                     @endif
                 </div>
             </div>

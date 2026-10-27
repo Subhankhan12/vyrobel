@@ -7,6 +7,7 @@
         URL and server read is unchanged.
 
      Props: name · id · value (ISO yyyy-mm-dd or '') · label (accessible) · placeholder.
+     I18N-01: the month and weekday names come from Carbon in the request's language (rule 8), not from keys.
      Other attributes (min, max, required, …) land on the native input.
 
      RAW-BLADE RULE: every directive follows a space, a newline or a tag. --}}
@@ -14,8 +15,8 @@
     'name',
     'id' => null,
     'value' => '',
-    'label' => 'Date',
-    'placeholder' => 'Pick a date',
+    'label' => __('common.date'),
+    'placeholder' => __('components/date-field.placeholder'),
 ])
 @php($fieldId = $id ?? ('vydf-'.\Illuminate\Support\Str::random(6)))
 <div class="vy-df" x-data="vyDateField(@js((string) $value))" @keydown.escape.stop="close()" @click.outside="close()">
@@ -28,24 +29,24 @@
     {{-- Enhancement: the colourful trigger. Shown only when Alpine runs (x-cloak hides it until then). --}}
     <button type="button" class="vy-df-trigger" x-cloak @click="toggle()"
             :class="{ 'is-set': iso, 'is-open': open }" :aria-expanded="open.toString()"
-            aria-haspopup="dialog" :aria-label="iso ? ('{{ $label }}: ' + prettyFull) : '{{ $label }}'">
+            aria-haspopup="dialog" :aria-label="iso ? @js(__('components/date-field.label_value', ['label' => $label, 'value' => ':value'])).replace(':value', prettyFull) : @js($label)">
         <svg class="vy-df-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
-        <span class="vy-df-value" x-text="iso ? pretty : '{{ $placeholder }}'"></span>
+        <span class="vy-df-value" x-text="iso ? pretty : @js($placeholder)"></span>
         <svg class="vy-df-caret" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
 
     {{-- The custom calendar popover. --}}
-    <div class="vy-df-pop" x-cloak x-show="open" x-transition.origin.top.left role="dialog" aria-label="{{ $label }} calendar">
+    <div class="vy-df-pop" x-cloak x-show="open" x-transition.origin.top.left role="dialog" aria-label="{{ __('components/date-field.calendar', ['label' => $label]) }}">
         <div class="vy-df-head">
-            <button type="button" class="vy-df-nav" @click="shiftMonth(-1)" aria-label="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <button type="button" class="vy-df-nav" @click="shiftMonth(-1)" aria-label="{{ __('components/date-field.previous_month') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
             <div class="vy-df-title">
                 <span class="vy-df-month" x-text="monthName"></span>
                 <span class="vy-df-year" x-text="viewYear"></span>
             </div>
-            <button type="button" class="vy-df-nav" @click="shiftMonth(1)" aria-label="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+            <button type="button" class="vy-df-nav" @click="shiftMonth(1)" aria-label="{{ __('components/date-field.next_month') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         </div>
         <div class="vy-df-grid vy-df-dow">
-            <template x-for="d in ['Mo','Tu','We','Th','Fr','Sa','Su']" :key="d"><span class="vy-df-dowcell" x-text="d"></span></template>
+            <template x-for="d in @js(collect(range(0, 6))->map(fn (int $d): string => \Carbon\CarbonImmutable::create(2024, 1, 1)->addDays($d)->isoFormat('dd'))->all())" :key="d"><span class="vy-df-dowcell" x-text="d"></span></template>
         </div>
         <div class="vy-df-grid">
             <template x-for="(cell, i) in cells" :key="i">
@@ -56,8 +57,8 @@
             </template>
         </div>
         <div class="vy-df-foot">
-            <button type="button" class="vy-df-foot-btn" @click="goToday()">Today</button>
-            <button type="button" class="vy-df-foot-btn" x-show="iso" @click="clearDate()">Clear</button>
+            <button type="button" class="vy-df-foot-btn" @click="goToday()">{{ __('common.today') }}</button>
+            <button type="button" class="vy-df-foot-btn" x-show="iso" @click="clearDate()">{{ __('common.clear') }}</button>
         </div>
     </div>
 </div>
@@ -84,18 +85,19 @@
                     return d.getFullYear() + '-' + m + '-' + day;
                 },
                 get monthName() {
-                    return ['January','February','March','April','May','June','July','August','September','October','November','December'][this.viewMonth];
+                    return @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('F'))->all())[this.viewMonth];
                 },
                 get pretty() {
                     if (! this.iso) { return ''; }
                     var d = this.parse(this.iso);
-                    var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+                    var mo = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('M'))->all())[d.getMonth()];
                     return d.getDate() + ' ' + mo + ' ' + d.getFullYear();
                 },
                 get prettyFull() {
                     if (! this.iso) { return ''; }
                     var d = this.parse(this.iso);
-                    return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                    // I18N-01 — the PAGE's language (English keeps the browser's, as it always has)
+                    return d.toLocaleDateString(@js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::tag()) ?? undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 },
                 get cells() {
                     var first = new Date(this.viewYear, this.viewMonth, 1);

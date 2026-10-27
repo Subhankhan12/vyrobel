@@ -37,6 +37,35 @@ class OwnerBlockService
      */
     public const REASONS = ['Personal stay', 'Maintenance', 'Seasonal hold'];
 
+    /**
+     * A block reason as a person reads it, by its stored CODE (one of {@see REASONS} — the value the form posts and
+     * `notes` keeps, which never changes). Anything else is returned as it is.
+     */
+    public static function reasonLabel(string $reason): string
+    {
+        return match ($reason) {
+            'Personal stay' => __('php/services/owner_block_service.reason_personal_stay'),
+            'Maintenance' => __('php/services/owner_block_service.reason_maintenance'),
+            'Seasonal hold' => __('php/services/owner_block_service.reason_seasonal_hold'),
+            default => $reason,
+        };
+    }
+
+    /**
+     * Every block reason's display label, keyed by its stored CODE (never by the translated text).
+     *
+     * @return array<string, string>
+     */
+    public static function reasonLabels(): array
+    {
+        $labels = [];
+        foreach (self::REASONS as $reason) {
+            $labels[$reason] = self::reasonLabel($reason);
+        }
+
+        return $labels;
+    }
+
     /** The recurrence frequencies a REPEAT block expands over — each occurrence becomes a REAL individual block. */
     public const FREQUENCIES = ['weekly', 'fortnightly', 'monthly'];
 

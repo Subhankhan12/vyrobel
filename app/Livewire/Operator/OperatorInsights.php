@@ -65,7 +65,7 @@ class OperatorInsights extends Component
 
         return view('livewire.operator.insights', [
             'viewer' => $this->viewer(),
-            'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
+            'scopeLabel' => $this->viewingAllProperties ? __('php/livewire/operator/operator_insights.all_properties') : $this->currentPropertyName(),
             'ranges' => $this->rangeOptions($range['key']),
             // D3-1 — echo the submitted values so the fields keep what was typed after a GET, and flag a
             // rejected window so the page can say so rather than silently showing a preset.
@@ -110,14 +110,14 @@ class OperatorInsights extends Component
         $adrDelta = $hasLy ? $m->adrMinor() - $ly->adrMinor() : null;
 
         return [
-            ['key' => 'occupancy', 'label' => 'Occupancy', 'value' => $m->occupancyPct().'%',
-                'delta' => $occDelta !== null ? $this->signed($occDelta).' pts' : null, 'delta_dir' => $this->dir($occDelta), 'sub' => $m->roomNightsSold.' of '.$m->availableRoomNights.' room-nights'],
-            ['key' => 'revpar', 'label' => 'RevPAR', 'value' => $this->money($m->revparMinor(), $currency),
-                'delta' => $revparDelta !== null ? $this->signedMoney($revparDelta, $currency) : null, 'delta_dir' => $this->dir($revparDelta), 'sub' => 'revenue per available room'],
-            ['key' => 'adr', 'label' => 'ADR', 'value' => $this->money($m->adrMinor(), $currency),
-                'delta' => $adrDelta !== null ? $this->signedMoney($adrDelta, $currency) : null, 'delta_dir' => $this->dir($adrDelta), 'sub' => 'achieved, selected range'],
-            ['key' => 'window', 'label' => 'Booking window', 'value' => $leadTime['median_days'] !== null ? $leadTime['median_days'].' days' : '—',
-                'delta' => null, 'delta_dir' => null, 'sub' => $leadTime['has_data'] ? 'median, booking to check-in' : 'needs booking history'],
+            ['key' => 'occupancy', 'label' => __('php/livewire/operator/operator_insights.card_occupancy'), 'value' => $m->occupancyPct().'%',
+                'delta' => $occDelta !== null ? __('php/livewire/operator/operator_insights.occupancy_delta', ['delta' => $this->signed($occDelta)]) : null, 'delta_dir' => $this->dir($occDelta), 'sub' => __('php/livewire/operator/operator_insights.occupancy_sub', ['sold' => $m->roomNightsSold, 'available' => $m->availableRoomNights])],
+            ['key' => 'revpar', 'label' => __('php/livewire/operator/operator_insights.card_revpar'), 'value' => $this->money($m->revparMinor(), $currency),
+                'delta' => $revparDelta !== null ? $this->signedMoney($revparDelta, $currency) : null, 'delta_dir' => $this->dir($revparDelta), 'sub' => __('php/livewire/operator/operator_insights.revpar_sub')],
+            ['key' => 'adr', 'label' => __('php/livewire/operator/operator_insights.card_adr'), 'value' => $this->money($m->adrMinor(), $currency),
+                'delta' => $adrDelta !== null ? $this->signedMoney($adrDelta, $currency) : null, 'delta_dir' => $this->dir($adrDelta), 'sub' => __('php/livewire/operator/operator_insights.adr_sub')],
+            ['key' => 'window', 'label' => __('php/livewire/operator/operator_insights.card_booking_window'), 'value' => $leadTime['median_days'] !== null ? trans_choice('php/livewire/operator/operator_insights.window_days', $leadTime['median_days'], ['count' => $leadTime['median_days']]) : '—',
+                'delta' => null, 'delta_dir' => null, 'sub' => $leadTime['has_data'] ? __('php/livewire/operator/operator_insights.window_sub') : __('php/livewire/operator/operator_insights.window_sub_no_data')],
         ];
     }
 
@@ -245,7 +245,7 @@ class OperatorInsights extends Component
 
         if (count($rows) > 1) {
             $g = PerformanceMetrics::forProperties($ids, $range['start'], $range['end'], $currency);
-            $rows[] = ['name' => 'Group', 'occ' => $g->occupancyPct().'%', 'adr' => $this->money($g->adrMinor(), $currency), 'revpar' => $this->money($g->revparMinor(), $currency), 'group' => true];
+            $rows[] = ['name' => __('php/livewire/operator/operator_insights.group_row'), 'occ' => $g->occupancyPct().'%', 'adr' => $this->money($g->adrMinor(), $currency), 'revpar' => $this->money($g->revparMinor(), $currency), 'group' => true];
         }
 
         return $rows;
@@ -311,9 +311,9 @@ class OperatorInsights extends Component
             }
             if ($peak !== null && $peak['pct'] >= 80) {
                 $cards[] = [
-                    'title' => $peak['label'].'s run hottest',
-                    'body' => $peak['label'].' nights sit at '.$peak['pct'].'% across your rooms — there may be headroom for a modest premium on the strongest nights.',
-                    'link' => ['label' => 'Review rates', 'url' => route('app.rates')],
+                    'title' => __('php/livewire/operator/operator_insights.peak_title', ['day' => $peak['label']]),
+                    'body' => __('php/livewire/operator/operator_insights.peak_body', ['day' => $peak['label'], 'percent' => $peak['pct']]),
+                    'link' => ['label' => __('php/livewire/operator/operator_insights.review_rates'), 'url' => route('app.rates')],
                 ];
             }
         }
@@ -322,18 +322,18 @@ class OperatorInsights extends Component
         $dep = $this->departureConcentration($ids, $range);
         if ($dep !== null) {
             $cards[] = [
-                'title' => 'Turnover piles up on '.$dep['label'].'s',
-                'body' => $dep['pct'].'% of departures land '.$dep['label'].'–'.$dep['next'].', so housekeeping load follows the same curve. A midweek nudge would flatten both.',
-                'link' => ['label' => 'Balance the schedule', 'url' => route('app.schedule')],
+                'title' => __('php/livewire/operator/operator_insights.turnover_title', ['day' => $dep['label']]),
+                'body' => __('php/livewire/operator/operator_insights.turnover_body', ['percent' => $dep['pct'], 'day' => $dep['label'], 'next_day' => $dep['next']]),
+                'link' => ['label' => __('php/livewire/operator/operator_insights.balance_schedule'), 'url' => route('app.schedule')],
             ];
         }
 
         // 3. Forward revenue on the books — a real, plain figure (no suggestion invented).
         if ($onTheBooks > 0) {
             $cards[] = [
-                'title' => $this->money($onTheBooks, $currency).' already on the books',
-                'body' => 'Room revenue confirmed for the next 90 days. Rates for the open dates are where the upside is.',
-                'link' => ['label' => 'Open rates & availability', 'url' => route('app.rates')],
+                'title' => __('php/livewire/operator/operator_insights.on_books_title', ['amount' => $this->money($onTheBooks, $currency)]),
+                'body' => __('php/livewire/operator/operator_insights.on_books_body'),
+                'link' => ['label' => __('php/livewire/operator/operator_insights.open_rates_availability'), 'url' => route('app.rates')],
             ];
         }
 
@@ -381,9 +381,10 @@ class OperatorInsights extends Component
             return null;   // not concentrated enough to be worth flagging
         }
 
-        $names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        // The full weekday name in the reader's language (2023-01-01 was a Sunday, so day 0 = Sunday … 6 = Saturday).
+        $name = fn (int $d): string => CarbonImmutable::create(2023, 1, 1)->addDays($d)->translatedFormat('l');
 
-        return ['label' => $names[$bestStart], 'next' => $names[($bestStart + 1) % 7], 'pct' => $pct];
+        return ['label' => $name($bestStart), 'next' => $name(($bestStart + 1) % 7), 'pct' => $pct];
     }
 
     /**
@@ -416,10 +417,10 @@ class OperatorInsights extends Component
         $year = $today->year;
 
         return match ($key) {
-            'ytd' => ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay()],
-            '6m' => ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
-            'summer' => ['key' => 'summer', 'label' => 'Summer (Jun–Aug)', 'start' => CarbonImmutable::create($year, 6, 1), 'end' => CarbonImmutable::create($year, 9, 1)],
-            'q4' => ['key' => 'q4', 'label' => 'Q4 · on the books', 'start' => CarbonImmutable::create($year, 10, 1), 'end' => CarbonImmutable::create($year + 1, 1, 1)],
+            'ytd' => ['key' => 'ytd', 'label' => __('php/livewire/operator/operator_insights.range_ytd'), 'start' => $today->startOfYear(), 'end' => $today->addDay()],
+            '6m' => ['key' => '6m', 'label' => __('php/livewire/operator/operator_insights.range_6m'), 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
+            'summer' => ['key' => 'summer', 'label' => __('php/livewire/operator/operator_insights.range_summer'), 'start' => CarbonImmutable::create($year, 6, 1), 'end' => CarbonImmutable::create($year, 9, 1)],
+            'q4' => ['key' => 'q4', 'label' => __('php/livewire/operator/operator_insights.range_q4'), 'start' => CarbonImmutable::create($year, 10, 1), 'end' => CarbonImmutable::create($year + 1, 1, 1)],
             default => ['key' => 'this-year', 'label' => $today->format('Y'), 'start' => $today->startOfYear(), 'end' => $today->startOfYear()->addYear()],
         };
     }
@@ -432,11 +433,11 @@ class OperatorInsights extends Component
         $year = CarbonImmutable::today()->format('Y');
 
         return [
-            ['key' => 'ytd', 'label' => 'Year to date', 'active' => $active === 'ytd'],
-            ['key' => '6m', 'label' => 'Last 6 months', 'active' => $active === '6m'],
-            ['key' => 'summer', 'label' => 'Summer (Jun–Aug)', 'active' => $active === 'summer'],
-            ['key' => 'q4', 'label' => 'Q4 · on the books', 'active' => $active === 'q4'],
-            ['key' => 'this-year', 'label' => 'Full year '.$year, 'active' => $active === 'this-year'],
+            ['key' => 'ytd', 'label' => __('php/livewire/operator/operator_insights.range_ytd'), 'active' => $active === 'ytd'],
+            ['key' => '6m', 'label' => __('php/livewire/operator/operator_insights.range_6m'), 'active' => $active === '6m'],
+            ['key' => 'summer', 'label' => __('php/livewire/operator/operator_insights.range_summer'), 'active' => $active === 'summer'],
+            ['key' => 'q4', 'label' => __('php/livewire/operator/operator_insights.range_q4'), 'active' => $active === 'q4'],
+            ['key' => 'this-year', 'label' => __('php/livewire/operator/operator_insights.range_full_year', ['year' => $year]), 'active' => $active === 'this-year'],
         ];
     }
 
@@ -457,6 +458,6 @@ class OperatorInsights extends Component
     {
         $property = $this->currentProperty();
 
-        return $property !== null ? (string) $property->name : 'No property';
+        return $property !== null ? (string) $property->name : __('php/livewire/operator/operator_insights.no_property');
     }
 }

@@ -33,15 +33,19 @@ final class RestrictionOverrideReason
         return [self::REGULAR_GUEST, self::FILLS_A_GAP, self::RATE_NOT_UPDATED, self::GROUP_OR_CONTRACT, self::OTHER];
     }
 
-    /** @return array<string, string> */
+    /**
+     * Every reason => its label in the reader's language, keyed by the reason CODE (translated at call time).
+     *
+     * @return array<string, string>
+     */
     public static function labels(): array
     {
         return [
-            self::REGULAR_GUEST => 'A regular guest we want to take',
-            self::FILLS_A_GAP => 'It fills a gap that would otherwise stay empty',
-            self::RATE_NOT_UPDATED => 'The restriction is out of date and needs changing',
-            self::GROUP_OR_CONTRACT => 'Part of a group or contracted arrangement',
-            self::OTHER => 'Other (note required)',
+            self::REGULAR_GUEST => __('php/support/booking/restriction_override_reason.regular_guest'),
+            self::FILLS_A_GAP => __('php/support/booking/restriction_override_reason.fills_a_gap'),
+            self::RATE_NOT_UPDATED => __('php/support/booking/restriction_override_reason.rate_not_updated'),
+            self::GROUP_OR_CONTRACT => __('php/support/booking/restriction_override_reason.group_or_contract'),
+            self::OTHER => __('php/support/booking/restriction_override_reason.other'),
         ];
     }
 

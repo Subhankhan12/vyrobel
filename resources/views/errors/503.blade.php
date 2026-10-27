@@ -2,6 +2,6 @@
      sequence in docs/DEPLOYMENT.md runs). --}}
 @include('errors.layout', [
     'code' => 503,
-    'title' => 'Back in a moment',
-    'message' => 'Vyrobel is being updated. This usually takes less than a minute — please try again shortly.',
+    'title' => __('errors/503.title'),
+    'message' => __('errors/503.message'),
 ])

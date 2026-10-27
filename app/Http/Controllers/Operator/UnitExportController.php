@@ -58,7 +58,7 @@ class UnitExportController extends Controller
 
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, CsvSafe::row(['Unit', 'Name', 'Room type', 'Kind', 'Sleeps', 'Housekeeping', 'Condition', 'Sales', 'Owner']));
+            fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/unit_export_controller.unit'), __('php/http/controllers/operator/unit_export_controller.name'), __('php/http/controllers/operator/unit_export_controller.room_type'), __('php/http/controllers/operator/unit_export_controller.kind'), __('php/http/controllers/operator/unit_export_controller.sleeps'), __('php/http/controllers/operator/unit_export_controller.housekeeping'), __('php/http/controllers/operator/unit_export_controller.condition'), __('php/http/controllers/operator/unit_export_controller.sales'), __('php/http/controllers/operator/unit_export_controller.owner')]));
             foreach ($rows as $r) {
                 fputcsv($out, CsvSafe::row([
                     (string) $r['code'],
@@ -68,8 +68,8 @@ class UnitExportController extends Controller
                     (string) $r['occupancy'],
                     (string) $r['hk_label'],
                     (string) $r['condition_label'],
-                    $r['is_active'] ? 'Taking bookings' : 'Paused',
-                    (string) ($r['owner'] ?? 'Operator-owned'),
+                    $r['is_active'] ? __('php/http/controllers/operator/unit_export_controller.taking_bookings') : __('php/http/controllers/operator/unit_export_controller.paused'),
+                    (string) ($r['owner'] ?? __('php/http/controllers/operator/unit_export_controller.operator_owned')),
                 ]));
             }
             fclose($out);

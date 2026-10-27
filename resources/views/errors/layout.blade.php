@@ -25,12 +25,12 @@
     $isAdmin = $realm === 'admin';
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ $title }} · Vyrobel</title>
+    <title>{{ __('errors/layout.page_title', ['title' => $title]) }}</title>
     <x-favicon />
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -80,7 +80,7 @@
 <body>
     <main class="card">
         <div class="mark" aria-hidden="true">V</div>
-        <p class="code">Error {{ $code }}</p>
+        <p class="code">{{ __('errors/layout.error_code', ['code' => $code]) }}</p>
         <h1>{{ $title }}</h1>
         <p>{{ $message }}</p>
         {{-- ⚠️ ADMIN 01 · PHASE 2 — a page may replace the home link with its own actions. The suspended-workspace

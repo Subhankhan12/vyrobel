@@ -129,7 +129,7 @@ class GuestsList extends Component
 
         return view('livewire.operator.guests-list', [
             'viewer' => $this->viewer(),
-            'subtitle' => $total.' '.($total === 1 ? 'guest profile' : 'guest profiles'),
+            'subtitle' => trans_choice('php/livewire/operator/guests_list.subtitle_profiles', $total, ['count' => $total]),
             'query' => $state['q'],
             // What a search keeps when submitted without script — every other setting, and page 1.
             'keep' => array_diff_key(GuestListParams::clean($this->params($state)), ['q' => true]),
@@ -382,8 +382,8 @@ class GuestsList extends Component
         // row or inventing a placeholder name.
         $label = match (true) {
             $name !== '' => $name,
-            $anonymized => 'Anonymized guest',
-            default => 'Unnamed guest',
+            $anonymized => __('php/livewire/operator/guests_list.anonymized_guest'),
+            default => __('php/livewire/operator/guests_list.unnamed_guest'),
         };
 
         $stage = ReservationStage::mostSignificant($guest->reservations, $today);
@@ -412,6 +412,9 @@ class GuestsList extends Component
             'stage_meta' => $stage !== null ? ReservationStage::meta($stage) : null,
             // The wireframe's "Last stay" cell — a live state (In house / Arrives …) or the real date.
             'last_stay' => $this->lastStay($guest->reservations, $today),
+            // the code beside that label, so the view styles "In house" without comparing the (translated) words — the same
+            // test lastStay() makes, on the same stage
+            'last_stay_code' => $stage === ReservationStage::IN_HOUSE ? 'in_house' : null,
             // Decision 1 (locked) — BILLED, with the open balance BESIDE it, never netted into it.
             // Per currency, never summed across (invariant #17).
             'billed' => $this->moneyLines($spend, 'billed_minor'),
@@ -453,7 +456,7 @@ class GuestsList extends Component
             return null;
         }
         if ($stage === ReservationStage::IN_HOUSE) {
-            return 'In house';
+            return __('php/livewire/operator/guests_list.in_house');
         }
 
         // The latest non-cancelled reservation by check-in → its arrival (ahead) or its departure (past). A
@@ -552,7 +555,7 @@ class GuestsList extends Component
             return ['nationality_unlisted' => '', 'nationality_unlisted_label' => ''];
         }
 
-        return ['nationality_unlisted' => $code, 'nationality_unlisted_label' => ($this->countryName($code) ?? $code).' (as saved)'];
+        return ['nationality_unlisted' => $code, 'nationality_unlisted_label' => __('php/livewire/operator/guests_list.country_as_saved', ['country' => $this->countryName($code) ?? $code])];
     }
 
     // ── The controls — each link keeps every other setting ───────────────────────────────────────
@@ -570,10 +573,15 @@ class GuestsList extends Component
     {
         $chips = [];
 
-        foreach ([[null, 'All'], ['in_house', 'In-house'], ['upcoming', 'Upcoming'], ['vip', 'VIP']] as [$filter, $label]) {
+        foreach ([null, 'in_house', 'upcoming', 'vip'] as $filter) {
             $chips[] = [
                 'key' => $filter ?? 'all',
-                'label' => $label,
+                'label' => match ($filter) {
+                    null => __('common.all'),
+                    'in_house' => __('php/livewire/operator/guests_list.chip_in_house'),
+                    'upcoming' => __('php/livewire/operator/guests_list.chip_upcoming'),
+                    'vip' => __('php/livewire/operator/guests_list.chip_vip'),
+                },
                 'count' => $this->baseQuery($filter, null, $state['q'])->count(),
                 'active' => $state['filter'] === $filter,
                 'href' => $this->href($state, ['filter' => $filter, 'tag' => null]),
@@ -644,12 +652,12 @@ class GuestsList extends Component
     private function sortedBy(array $state): string
     {
         return match ($state['sort'].'.'.$state['dir']) {
-            'name.asc' => 'A–Z by surname',
-            'name.desc' => 'Z–A by surname',
-            'stays.desc' => 'most stays first',
-            'stays.asc' => 'fewest stays first',
-            'last_stay.desc' => 'latest stay first',
-            'last_stay.asc' => 'earliest stay first',
+            'name.asc' => __('php/livewire/operator/guests_list.sorted_name_asc'),
+            'name.desc' => __('php/livewire/operator/guests_list.sorted_name_desc'),
+            'stays.desc' => __('php/livewire/operator/guests_list.sorted_stays_desc'),
+            'stays.asc' => __('php/livewire/operator/guests_list.sorted_stays_asc'),
+            'last_stay.desc' => __('php/livewire/operator/guests_list.sorted_last_stay_desc'),
+            'last_stay.asc' => __('php/livewire/operator/guests_list.sorted_last_stay_asc'),
         };
     }
 

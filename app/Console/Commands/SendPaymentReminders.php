@@ -79,7 +79,7 @@ class SendPaymentReminders extends Command
                         continue;
                     }
 
-                    Mail::to($email)->send(new PaymentReminderMail($reservation, $balance));
+                    Mail::to($email)->locale(EmailTemplateResolver::localeFor((string) $reservation->organization_id, 'payment-reminder', $reservation->leadGuest->preferredLocale()))->send(new PaymentReminderMail($reservation, $balance));
                     $sent++;
                 }
             });

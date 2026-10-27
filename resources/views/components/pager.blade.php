@@ -14,7 +14,7 @@
 
      Renders NOTHING on a single page — no decorative control.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-@props(['paginator', 'label' => 'results'])
+@props(['paginator', 'label' => __('components/pager.results')])
 
 @php
     // The wireframes render prev/next as round icon buttons. The visible "Page N of M" between them is
@@ -29,24 +29,24 @@
 
 @if ($paginator->hasPages())
     <nav style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid var(--vy-hairline)"
-         role="navigation" aria-label="Pagination" data-vy-pager>
+         role="navigation" aria-label="{{ __('components/pager.pagination') }}" data-vy-pager>
         <span style="{{ $vyMeta }}">
-            {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }} {{ $label }}
+            {{ __('components/pager.range', ['first' => $paginator->firstItem(), 'last' => $paginator->lastItem(), 'total' => $paginator->total(), 'label' => $label]) }}
         </span>
 
         <span style="display:inline-flex;align-items:center;gap:8px">
             @if ($paginator->onFirstPage())
-                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="Previous page">{!! $vyPrevIco !!}</span>
+                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="{{ __('components/pager.previous_page') }}">{!! $vyPrevIco !!}</span>
             @else
-                <a style="{{ $vyBtn }}" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Previous page" title="Previous page">{!! $vyPrevIco !!}</a>
+                <a style="{{ $vyBtn }}" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('components/pager.previous_page') }}" title="{{ __('components/pager.previous_page') }}">{!! $vyPrevIco !!}</a>
             @endif
 
-            <span style="{{ $vyMeta }};padding:0 2px">Page {{ $paginator->currentPage() }} of {{ $paginator->lastPage() }}</span>
+            <span style="{{ $vyMeta }};padding:0 2px">{{ __('components/pager.page_of', ['current' => $paginator->currentPage(), 'last' => $paginator->lastPage()]) }}</span>
 
             @if ($paginator->hasMorePages())
-                <a style="{{ $vyBtn }}" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Next page" title="Next page">{!! $vyNextIco !!}</a>
+                <a style="{{ $vyBtn }}" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('components/pager.next_page') }}" title="{{ __('components/pager.next_page') }}">{!! $vyNextIco !!}</a>
             @else
-                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="Next page">{!! $vyNextIco !!}</span>
+                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="{{ __('components/pager.next_page') }}">{!! $vyNextIco !!}</span>
             @endif
         </span>
     </nav>

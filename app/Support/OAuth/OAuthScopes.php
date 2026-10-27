@@ -28,17 +28,34 @@ final class OAuthScopes
     public const READ_UNITS = 'read:units';
 
     /**
-     * scope → human description (what the owner sees on the consent screen).
+     * scope → human description, in ENGLISH: the catalog `Passport::tokensCan()` is given at boot, before any
+     * request's language is set. What a PERSON reads (the consent screen, the Security page) comes from
+     * {@see description()} in their own language.
      *
      * @return array<string, string>
      */
     public static function catalog(): array
     {
-        return [
-            self::READ_BOOKINGS => 'Read your bookings — reference, guest name, dates, unit and status (never guest contact details).',
-            self::READ_STATEMENTS => 'Read your statements — periods, amounts and status.',
-            self::READ_UNITS => 'Read your units — code, name, type and occupancy (never door codes or Wi-Fi).',
-        ];
+        $out = [];
+        foreach ([self::READ_BOOKINGS, self::READ_STATEMENTS, self::READ_UNITS] as $scope) {
+            $out[$scope] = (string) self::description($scope, 'en');
+        }
+
+        return $out;
+    }
+
+    /**
+     * One scope's human description (what the owner sees on the consent screen) in the reader's language — or in
+     * $locale — or null for an unknown scope id. The ids never change; only these words are translated.
+     */
+    public static function description(string $scope, ?string $locale = null): ?string
+    {
+        return match ($scope) {
+            self::READ_BOOKINGS => __('php/support/o_auth/o_auth_scopes.read_bookings', [], $locale),
+            self::READ_STATEMENTS => __('php/support/o_auth/o_auth_scopes.read_statements', [], $locale),
+            self::READ_UNITS => __('php/support/o_auth/o_auth_scopes.read_units', [], $locale),
+            default => null,
+        };
     }
 
     /**

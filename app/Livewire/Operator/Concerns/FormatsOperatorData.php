@@ -28,7 +28,7 @@ trait FormatsOperatorData
     protected function viewer(): array
     {
         $user = auth()->user();
-        $name = $user instanceof User ? (string) $user->name : 'Operator';
+        $name = $user instanceof User ? (string) $user->name : (string) __('php/livewire/operator/concerns/formats_operator_data.viewer_fallback');
 
         return ['name' => $name, 'initials' => $this->initials($name)];
     }
@@ -91,13 +91,13 @@ trait FormatsOperatorData
     protected function reservationStatusMeta(string $status): array
     {
         return match ($status) {
-            'confirmed' => ['label' => 'Confirmed', 'tone' => 'confirmed'],
-            'checked_in' => ['label' => 'Checked in', 'tone' => 'in-house'],
-            'checked_out' => ['label' => 'Checked out', 'tone' => 'departed'],
-            'tentative' => ['label' => 'Tentative', 'tone' => 'pending'],
-            'enquiry' => ['label' => 'Enquiry', 'tone' => 'pending'],
-            'no_show' => ['label' => 'No-show', 'tone' => 'no-show'],
-            'cancelled' => ['label' => 'Cancelled', 'tone' => 'cancelled'],
+            'confirmed' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_confirmed'), 'tone' => 'confirmed'],
+            'checked_in' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_checked_in'), 'tone' => 'in-house'],
+            'checked_out' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_checked_out'), 'tone' => 'departed'],
+            'tentative' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_tentative'), 'tone' => 'pending'],
+            'enquiry' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_enquiry'), 'tone' => 'pending'],
+            'no_show' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_no_show'), 'tone' => 'no-show'],
+            'cancelled' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.reservation_cancelled'), 'tone' => 'cancelled'],
             default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'pending'],
         };
     }
@@ -153,10 +153,10 @@ trait FormatsOperatorData
     protected function housekeepingStatusMeta(string $status): array
     {
         return match ($status) {
-            'pending' => ['label' => 'Pending', 'tone' => 'pending'],
-            'in_progress' => ['label' => 'In progress', 'tone' => 'in-progress'],
-            'clean' => ['label' => 'Clean', 'tone' => 'clean'],
-            'inspected' => ['label' => 'Inspected', 'tone' => 'inspected'],
+            'pending' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.hk_status_pending'), 'tone' => 'pending'],
+            'in_progress' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.hk_status_in_progress'), 'tone' => 'in-progress'],
+            'clean' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.hk_status_clean'), 'tone' => 'clean'],
+            'inspected' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.hk_status_inspected'), 'tone' => 'inspected'],
             default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'pending'],
         };
     }
@@ -165,10 +165,10 @@ trait FormatsOperatorData
     protected function housekeepingTypeLabel(string $type): string
     {
         return match ($type) {
-            'departure' => 'Departure clean',
-            'stayover' => 'Stayover',
-            'deep' => 'Deep clean',
-            'arrival_prep' => 'Arrival prep',
+            'departure' => __('php/livewire/operator/concerns/formats_operator_data.hk_type_departure'),
+            'stayover' => __('php/livewire/operator/concerns/formats_operator_data.hk_type_stayover'),
+            'deep' => __('php/livewire/operator/concerns/formats_operator_data.hk_type_deep'),
+            'arrival_prep' => __('php/livewire/operator/concerns/formats_operator_data.hk_type_arrival_prep'),
             default => ucwords(str_replace('_', ' ', $type)),
         };
     }
@@ -181,9 +181,9 @@ trait FormatsOperatorData
     protected function priorityMeta(string $priority): array
     {
         return match ($priority) {
-            'high' => ['label' => 'High', 'tone' => 'high'],
-            'low' => ['label' => 'Low', 'tone' => 'low'],
-            default => ['label' => 'Normal', 'tone' => 'normal'],
+            'high' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.priority_high'), 'tone' => 'high'],
+            'low' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.priority_low'), 'tone' => 'low'],
+            default => ['label' => __('php/livewire/operator/concerns/formats_operator_data.priority_normal'), 'tone' => 'normal'],
         };
     }
 
@@ -191,10 +191,10 @@ trait FormatsOperatorData
     protected function unitKindLabel(string $kind): string
     {
         return match ($kind) {
-            'room' => 'Room',
-            'apartment' => 'Apartment',
-            'villa' => 'Villa',
-            'dorm_bed' => 'Dorm bed',
+            'room' => __('php/livewire/operator/concerns/formats_operator_data.unit_kind_room'),
+            'apartment' => __('php/livewire/operator/concerns/formats_operator_data.unit_kind_apartment'),
+            'villa' => __('php/livewire/operator/concerns/formats_operator_data.unit_kind_villa'),
+            'dorm_bed' => __('php/livewire/operator/concerns/formats_operator_data.unit_kind_dorm_bed'),
             default => ucwords(str_replace('_', ' ', $kind)),
         };
     }
@@ -208,9 +208,9 @@ trait FormatsOperatorData
     protected function unitHousekeepingMeta(string $status): array
     {
         return match ($status) {
-            'clean' => ['label' => 'Clean', 'tone' => 'clean'],
-            'dirty' => ['label' => 'Dirty', 'tone' => 'dirty'],
-            'inspected' => ['label' => 'Inspected', 'tone' => 'inspected'],
+            'clean' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.unit_hk_clean'), 'tone' => 'clean'],
+            'dirty' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.unit_hk_dirty'), 'tone' => 'dirty'],
+            'inspected' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.unit_hk_inspected'), 'tone' => 'inspected'],
             default => ['label' => ucfirst($status), 'tone' => 'dirty'],
         };
     }
@@ -224,9 +224,9 @@ trait FormatsOperatorData
     protected function unitConditionMeta(string $status): array
     {
         return match ($status) {
-            'in_service' => ['label' => 'In service', 'tone' => 'in-service'],
-            'out_of_order' => ['label' => 'Out of order', 'tone' => 'ooo'],
-            'out_of_service' => ['label' => 'Out of service', 'tone' => 'oos'],
+            'in_service' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.condition_in_service'), 'tone' => 'in-service'],
+            'out_of_order' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.condition_out_of_order'), 'tone' => 'ooo'],
+            'out_of_service' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.condition_out_of_service'), 'tone' => 'oos'],
             default => ['label' => ucwords(str_replace('_', ' ', $status)), 'tone' => 'oos'],
         };
     }
@@ -240,10 +240,10 @@ trait FormatsOperatorData
     protected function maintenanceStatusMeta(string $status): array
     {
         return match ($status) {
-            'open' => ['label' => 'Open', 'tone' => 'pending'],
-            'in_progress' => ['label' => 'In progress', 'tone' => 'confirmed'],
-            'resolved' => ['label' => 'Resolved', 'tone' => 'departed'],
-            'cancelled' => ['label' => 'Cancelled', 'tone' => 'cancelled'],
+            'open' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_open'), 'tone' => 'pending'],
+            'in_progress' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_in_progress'), 'tone' => 'confirmed'],
+            'resolved' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_resolved'), 'tone' => 'departed'],
+            'cancelled' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_cancelled'), 'tone' => 'cancelled'],
             default => ['label' => ucwords(str_replace('_', ' ', $status)), 'tone' => 'pending'],
         };
     }
@@ -257,10 +257,10 @@ trait FormatsOperatorData
     protected function maintenancePriorityMeta(string $priority): array
     {
         return match ($priority) {
-            'urgent' => ['label' => 'Urgent', 'tone' => 'urgent'],
-            'high' => ['label' => 'High', 'tone' => 'high'],
-            'normal' => ['label' => 'Normal', 'tone' => 'normal'],
-            'low' => ['label' => 'Low', 'tone' => 'low'],
+            'urgent' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_priority_urgent'), 'tone' => 'urgent'],
+            'high' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_priority_high'), 'tone' => 'high'],
+            'normal' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_priority_normal'), 'tone' => 'normal'],
+            'low' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.maintenance_priority_low'), 'tone' => 'low'],
             default => ['label' => ucfirst($priority), 'tone' => 'normal'],
         };
     }
@@ -274,10 +274,10 @@ trait FormatsOperatorData
     protected function slaLabel(array $sla): string
     {
         return match ($sla['state']) {
-            'breached' => 'SLA breached · '.$sla['over_hours'].'h over',
-            'due_soon' => 'Due in '.$sla['remaining_hours'].'h',
-            'on_track' => $sla['remaining_hours'].'h to target',
-            'no_target' => 'No SLA target set',
+            'breached' => (string) __('php/livewire/operator/concerns/formats_operator_data.sla_breached', ['hours' => $sla['over_hours']]),
+            'due_soon' => (string) __('php/livewire/operator/concerns/formats_operator_data.sla_due_soon', ['hours' => $sla['remaining_hours']]),
+            'on_track' => (string) __('php/livewire/operator/concerns/formats_operator_data.sla_on_track', ['hours' => $sla['remaining_hours']]),
+            'no_target' => (string) __('php/livewire/operator/concerns/formats_operator_data.sla_no_target'),
             default => '',
         };
     }
@@ -286,11 +286,11 @@ trait FormatsOperatorData
     protected function maintenanceCategoryLabel(string $category): string
     {
         return match ($category) {
-            'plumbing' => 'Plumbing',
-            'electrical' => 'Electrical',
-            'appliance' => 'Appliance',
-            'structural' => 'Structural',
-            'other' => 'Other',
+            'plumbing' => __('php/livewire/operator/concerns/formats_operator_data.category_plumbing'),
+            'electrical' => __('php/livewire/operator/concerns/formats_operator_data.category_electrical'),
+            'appliance' => __('php/livewire/operator/concerns/formats_operator_data.category_appliance'),
+            'structural' => __('php/livewire/operator/concerns/formats_operator_data.category_structural'),
+            'other' => __('php/livewire/operator/concerns/formats_operator_data.category_other'),
             default => ucfirst($category),
         };
     }
@@ -299,13 +299,13 @@ trait FormatsOperatorData
     protected function folioItemLabel(string $type): string
     {
         return match ($type) {
-            'room' => 'Room',
-            'tax' => 'Tax',
-            'fee' => 'Fee',
-            'add_on' => 'Add-on',
-            'product' => 'Product',
-            'discount' => 'Discount',
-            'manual' => 'Charge',
+            'room' => __('php/livewire/operator/concerns/formats_operator_data.folio_room'),
+            'tax' => __('php/livewire/operator/concerns/formats_operator_data.folio_tax'),
+            'fee' => __('php/livewire/operator/concerns/formats_operator_data.folio_fee'),
+            'add_on' => __('php/livewire/operator/concerns/formats_operator_data.folio_add_on'),
+            'product' => __('php/livewire/operator/concerns/formats_operator_data.folio_product'),
+            'discount' => __('php/livewire/operator/concerns/formats_operator_data.folio_discount'),
+            'manual' => __('php/livewire/operator/concerns/formats_operator_data.folio_manual'),
             default => ucwords(str_replace('_', ' ', $type)),
         };
     }
@@ -316,17 +316,37 @@ trait FormatsOperatorData
      * tones are warm tints (terracotta/amber/muted) distinguished by the glyph — never a green/blue brand
      * colour, per the design rule.
      *
-     * @return array{label: string, short: string, tone: string}
+     * `filter` is the channel's CODE in the inbox's `?channel=` filter. It is the English word the URL has always
+     * carried ("Direct", "Booking.com", …) and is never translated — the inbox filters and compares on it, while
+     * `label` is the word a person reads, in their language (I18N-01).
+     *
+     * @return array{label: string, short: string, tone: string, filter: string}
      */
     protected function channelMeta(string $channel): array
     {
         return match ($channel) {
-            'manual' => ['label' => 'Direct', 'short' => 'D', 'tone' => 'manual'],
-            'email' => ['label' => 'Email', 'short' => 'E', 'tone' => 'email'],
-            'whatsapp' => ['label' => 'WhatsApp', 'short' => 'W', 'tone' => 'whatsapp'],
-            'booking_com' => ['label' => 'Booking.com', 'short' => 'B', 'tone' => 'bookingcom'],
-            'airbnb' => ['label' => 'Airbnb', 'short' => 'A', 'tone' => 'airbnb'],
-            default => ['label' => ucfirst($channel), 'short' => mb_strtoupper(mb_substr($channel, 0, 1)), 'tone' => 'manual'],
+            'manual' => ['label' => (string) __('php/livewire/operator/concerns/formats_operator_data.channel_direct'), 'short' => 'D', 'tone' => 'manual', 'filter' => 'Direct'],
+            'email' => ['label' => (string) __('php/livewire/operator/concerns/formats_operator_data.channel_email'), 'short' => 'E', 'tone' => 'email', 'filter' => 'Email'],
+            'whatsapp' => ['label' => 'WhatsApp', 'short' => 'W', 'tone' => 'whatsapp', 'filter' => 'WhatsApp'],
+            'booking_com' => ['label' => 'Booking.com', 'short' => 'B', 'tone' => 'bookingcom', 'filter' => 'Booking.com'],
+            'airbnb' => ['label' => 'Airbnb', 'short' => 'A', 'tone' => 'airbnb', 'filter' => 'Airbnb'],
+            default => ['label' => ucfirst($channel), 'short' => mb_strtoupper(mb_substr($channel, 0, 1)), 'tone' => 'manual', 'filter' => ucfirst($channel)],
+        };
+    }
+
+    /**
+     * An inbox `?channel=` filter CODE → the label a person reads for it (the same word {@see channelMeta()} gives
+     * that channel). Used by the inbox's channel tabs and active-filter chip.
+     */
+    protected function channelFilterLabel(string $filter): string
+    {
+        return match ($filter) {
+            'Direct' => $this->channelMeta('manual')['label'],
+            'Email' => $this->channelMeta('email')['label'],
+            'WhatsApp' => $this->channelMeta('whatsapp')['label'],
+            'Booking.com' => $this->channelMeta('booking_com')['label'],
+            'Airbnb' => $this->channelMeta('airbnb')['label'],
+            default => $filter,
         };
     }
 
@@ -372,10 +392,10 @@ trait FormatsOperatorData
     protected function payoutStatusMeta(string $status): array
     {
         return match ($status) {
-            'pending' => ['label' => 'Pending', 'tone' => 'pending'],
-            'paid' => ['label' => 'Paid', 'tone' => 'confirmed'],
-            'failed' => ['label' => 'Failed', 'tone' => 'no-show'],
-            'reversed' => ['label' => 'Reversed', 'tone' => 'cancelled'],
+            'pending' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.payout_pending'), 'tone' => 'pending'],
+            'paid' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.payout_paid'), 'tone' => 'confirmed'],
+            'failed' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.payout_failed'), 'tone' => 'no-show'],
+            'reversed' => ['label' => __('php/livewire/operator/concerns/formats_operator_data.payout_reversed'), 'tone' => 'cancelled'],
             default => ['label' => ucfirst($status), 'tone' => 'departed'],
         };
     }

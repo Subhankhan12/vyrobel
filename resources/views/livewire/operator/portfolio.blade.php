@@ -5,8 +5,8 @@
      this docblock said "deferred" long after it shipped). Add/Edit render only for `properties.manage`.
      ⚠️ An average over ZERO room-nights renders "—", not a zero — a computed zero (revenue) still shows. --}}
 <div x-data="{ addOpen: {{ $errors->any() && old('_form') === 'add' ? 'true' : 'false' }}, editOpen: false, editing: {}, removing: null }">
-    <x-operator.shell active="portfolio" title="Portfolio"
-        :subtitle="$summary['properties'] . ' ' . \Illuminate\Support\Str::plural('property', $summary['properties']) . ' · ' . $summary['units'] . ' ' . \Illuminate\Support\Str::plural('unit', $summary['units'])"
+    <x-operator.shell active="portfolio" :title="__('livewire/operator/portfolio.title')"
+        :subtitle="__('livewire/operator/portfolio.subtitle', ['properties' => trans_choice('livewire/operator/portfolio.property_count', $summary['properties'], ['count' => $summary['properties']]), 'units' => trans_choice('livewire/operator/portfolio.unit_count', $summary['units'], ['count' => $summary['units']])])"
         :viewer="$viewer">
 
         {{-- Toolbar: Add property (managers only) --}}
@@ -14,17 +14,17 @@
             <div class="vy-left">
                 <span class="vy-range">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
-                    Your properties
+                    {{ __('livewire/operator/portfolio.your_properties') }}
                 </span>
             </div>
             <div class="vy-right">
                 @if ($canManage)
                     <button type="button" class="vy-btn vy-btn--accent" @click="addOpen = true">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Add property
+                        {{ __('livewire/operator/portfolio.add_property') }}
                     </button>
                 @else
-                    <span class="vy-pill is-soon" aria-disabled="true" title="Requires the Manage properties permission">Add property <span class="vy-soon-tag">Manager</span></span>
+                    <span class="vy-pill is-soon" aria-disabled="true" title="{{ __('livewire/operator/portfolio.add_property_requires_permission') }}">{{ __('livewire/operator/portfolio.add_property') }} <span class="vy-soon-tag">{{ __('livewire/operator/portfolio.manager_tag') }}</span></span>
                 @endif
             </div>
         </div>
@@ -36,31 +36,31 @@
              Arrivals / Needs-attention), matching the wireframe. Every figure REAL/DERIVED (#39). --}}
         <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Revenue · month</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/portfolio.kpi_revenue_month') }}</div>
                 <div class="vy-dk-val">{{ $summary['revenue_month'] }}</div>
-                <div class="vy-dk-sub">room revenue · {{ $summary['properties'] }} {{ \Illuminate\Support\Str::plural('property', $summary['properties']) }}</div>
+                <div class="vy-dk-sub">{{ trans_choice('livewire/operator/portfolio.room_revenue_across', $summary['properties'], ['count' => $summary['properties']]) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Occupancy tonight</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/portfolio.kpi_occupancy_tonight') }}</div>
                 <div class="vy-dk-val">{{ $summary['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
                 <div class="vy-dk-track" style="background: rgba(120, 70, 40, 0.10);"><span style="width: {{ min(100, $summary['occupancy_pct']) }}%"></span></div>
-                <div class="vy-dk-sub">{{ $summary['rooms_sold'] }} of {{ $summary['rooms_total'] }} rooms sold</div>
+                <div class="vy-dk-sub">{{ trans_choice('livewire/operator/portfolio.rooms_sold_of', $summary['rooms_total'], ['sold' => $summary['rooms_sold'], 'count' => $summary['rooms_total']]) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Arrivals today</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/portfolio.kpi_arrivals_today') }}</div>
                 <div class="vy-dk-val">{{ $summary['arrivals'] }}</div>
-                <div class="vy-dk-sub">across {{ $summary['properties'] }} {{ \Illuminate\Support\Str::plural('property', $summary['properties']) }}</div>
+                <div class="vy-dk-sub">{{ trans_choice('livewire/operator/portfolio.across_properties', $summary['properties'], ['count' => $summary['properties']]) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Needs attention</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/portfolio.kpi_needs_attention') }}</div>
                 <div class="vy-dk-val">{{ $summary['needs_attention'] }}</div>
-                <div class="vy-dk-sub">{{ $summary['needs_attention'] === 0 ? 'all good' : 'setup / sync' }}</div>
+                <div class="vy-dk-sub">{{ $summary['needs_attention'] === 0 ? __('livewire/operator/portfolio.attention_all_good') : __('livewire/operator/portfolio.attention_setup_sync') }}</div>
             </div>
         </div>
 
         {{-- Property cards --}}
         @if (count($cards) === 0)
-            <div class="vy-card vy-fade"><div class="vy-empty">No properties yet.@if ($canManage) Add your first property to get started.@endif</div></div>
+            <div class="vy-card vy-fade"><div class="vy-empty">{{ $canManage ? __('livewire/operator/portfolio.empty_can_add') : __('livewire/operator/portfolio.empty') }}</div></div>
         @else
             <div class="vy-portfolio-grid vy-fade">
                 @foreach ($cards as $p)
@@ -69,11 +69,11 @@
                         <div class="vy-prop-band">
                             <span class="vy-prop-mark">{{ $p['initial'] }}</span>
                             <div class="vy-prop-id">
-                                <span class="vy-prop-name">{{ $p['name'] }}@if ($p['is_current'])<span class="vy-prop-current">Working here</span>@endif</span>
-                                <span class="vy-prop-loc">{{ $p['location'] }} · {{ $p['type_label'] }} · {{ $p['units'] }} {{ \Illuminate\Support\Str::plural('unit', $p['units']) }}</span>
+                                <span class="vy-prop-name">{{ $p['name'] }}@if ($p['is_current'])<span class="vy-prop-current">{{ __('livewire/operator/portfolio.working_here') }}</span>@endif</span>
+                                <span class="vy-prop-loc">{{ __('livewire/operator/portfolio.card_meta', ['location' => $p['location'], 'type' => $p['type_label'], 'units' => trans_choice('livewire/operator/portfolio.unit_count', $p['units'], ['count' => $p['units']])]) }}</span>
                             </div>
                             @if ($p['removal']['scheduled'])
-                                <span class="vy-prop-leaving-badge">Leaving {{ \Illuminate\Support\Str::beforeLast((string) $p['removal']['leaves_on'], ' ') }}</span>
+                                <span class="vy-prop-leaving-badge">{{ __('livewire/operator/portfolio.leaving_badge', ['date' => \Illuminate\Support\Str::beforeLast((string) $p['removal']['leaves_on'], ' ')]) }}</span>
                             @endif
                         </div>
 
@@ -82,15 +82,15 @@
                                  these are THIS MONTH — a bare "Revenue" beside it reads as the same figure and they
                                  differ by an order of magnitude. Occupancy is tonight (the availability spine). --}}
                             <div class="vy-prop-stats">
-                                <div><span class="vy-ps-lab">Occupancy</span><span class="vy-ps-val">{{ $p['occupancy_display'] }}</span></div>
-                                <div><span class="vy-ps-lab">ADR · mo</span><span class="vy-ps-val">{{ $p['adr'] }}</span></div>
-                                <div><span class="vy-ps-lab">Revenue · mo</span><span class="vy-ps-val">{{ $p['revenue'] }}</span></div>
+                                <div><span class="vy-ps-lab">{{ __('livewire/operator/portfolio.stat_occupancy') }}</span><span class="vy-ps-val">{{ $p['occupancy_display'] }}</span></div>
+                                <div><span class="vy-ps-lab">{{ __('livewire/operator/portfolio.stat_adr_month') }}</span><span class="vy-ps-val">{{ $p['adr'] }}</span></div>
+                                <div><span class="vy-ps-lab">{{ __('livewire/operator/portfolio.stat_revenue_month') }}</span><span class="vy-ps-val">{{ $p['revenue'] }}</span></div>
                             </div>
 
                             {{-- The design's occupancy rail — the REAL tonight figure, nothing fabricated. --}}
                             @if ($p['rooms_total'] > 0)
                                 <div class="vy-prop-occ" role="img"
-                                     aria-label="Occupancy tonight {{ $p['occupancy_pct'] }}% — {{ $p['rooms_sold'] }} of {{ $p['rooms_total'] }} units sold">
+                                     aria-label="{{ trans_choice('livewire/operator/portfolio.occupancy_rail_label', $p['rooms_total'], ['pct' => $p['occupancy_pct'], 'sold' => $p['rooms_sold'], 'count' => $p['rooms_total']]) }}">
                                     <span style="width: {{ min(100, $p['occupancy_pct']) }}%"></span>
                                 </div>
                             @endif
@@ -103,7 +103,7 @@
                             <div class="vy-prop-sync vy-status-{{ $p['sync']['tone'] }}" style="font-size: 11.5px; display: flex; justify-content: space-between; align-items: center;">
                                 <span><span class="vy-status-dot"></span>{{ $p['sync']['label'] }}</span>
                                 @if ($p['sync']['needs_fix'])
-                                    <a href="{{ route('app.channels') }}" style="color: var(--vy-accent-text); font-weight: 600;">Fix sync →</a>
+                                    <a href="{{ route('app.channels') }}" style="color: var(--vy-accent-text); font-weight: 600;">{{ __('livewire/operator/portfolio.fix_sync') }}</a>
                                 @endif
                             </div>
 
@@ -115,10 +115,10 @@
                                  arrivals chip is a REAL count and never a link. --}}
                             <div class="vy-prop-chips">
                                 @if ($p['is_current'])
-                                    <a class="vy-prop-chip" href="{{ route('app.dashboard') }}">Dashboard</a>
-                                    <a class="vy-prop-chip" href="{{ route('app.calendar') }}">Calendar</a>
+                                    <a class="vy-prop-chip" href="{{ route('app.dashboard') }}">{{ __('livewire/operator/portfolio.chip_dashboard') }}</a>
+                                    <a class="vy-prop-chip" href="{{ route('app.calendar') }}">{{ __('livewire/operator/portfolio.chip_calendar') }}</a>
                                 @endif
-                                <span class="vy-prop-chip is-static">{{ $p['arrivals'] }} {{ \Illuminate\Support\Str::plural('arrival', $p['arrivals']) }} today</span>
+                                <span class="vy-prop-chip is-static">{{ trans_choice('livewire/operator/portfolio.arrivals_today_chip', $p['arrivals'], ['count' => $p['arrivals']]) }}</span>
                             </div>
 
                             {{-- ⚠️ 2026-09-29 — a property that is LEAVING says so, and when. The date is the service's own
@@ -128,12 +128,10 @@
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                                     <span>
                                         @if ($p['removal']['stays'] > 0 || $p['removal']['in_house'] > 0)
-                                            <strong>Leaving after the last checkout on {{ $p['removal']['leaves_on'] }}.</strong>
-                                            It stays open for its guests until then.
+                                            {!! __('livewire/operator/portfolio.leaving_after_checkout', ['date' => e($p['removal']['leaves_on'])]) !!}
                                         @else
-                                            <strong>Leaving on {{ $p['removal']['leaves_on'] }}, at the nightly removal.</strong>
+                                            {!! __('livewire/operator/portfolio.leaving_on', ['date' => e($p['removal']['leaves_on'])]) !!}
                                         @endif
-                                        Bookings, invoices and payments are kept.
                                     </span>
                                 </div>
                             @endif
@@ -145,26 +143,26 @@
                                         @csrf
                                         <input type="hidden" name="property_id" value="{{ $p['id'] }}">
                                         <input type="hidden" name="open" value="dashboard">
-                                        <button type="submit" class="vy-btn vy-btn--ghost">Open</button>
+                                        <button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/portfolio.open') }}</button>
                                     </form>
                                 @endif
                                 @if ($canManage)
                                     <button type="button" class="vy-btn vy-btn--ghost"
-                                        @click="editing = {{ \Illuminate\Support\Js::from(['id' => $p['id'], 'name' => $p['name'], 'type' => $p['type'], 'timezone' => $p['timezone'], 'status' => ($p['status']['label'] === 'Inactive' ? 'inactive' : 'active')]) }}; editOpen = true">Edit</button>
+                                        @click="editing = {{ \Illuminate\Support\Js::from(['id' => $p['id'], 'name' => $p['name'], 'type' => $p['type'], 'timezone' => $p['timezone'], 'status' => ($p['status']['code'] === 'inactive' ? 'inactive' : 'active')]) }}; editOpen = true">{{ __('common.edit') }}</button>
                                     @if ($p['removal']['scheduled'])
                                         @if (! $readOnly)
                                             <form method="POST" action="{{ route('app.portfolio.keep', $p['id']) }}">
                                                 @csrf
-                                                <button type="submit" class="vy-btn vy-btn--ghost">Keep this property</button>
+                                                <button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/portfolio.keep_property') }}</button>
                                             </form>
                                         @endif
                                     @elseif ($readOnly)
-                                        <button type="button" class="vy-btn vy-btn--ghost vy-prop-remove" disabled aria-disabled="true" title="Your workspace is read-only right now" aria-label="Remove {{ $p['name'] }} (unavailable while the workspace is read-only)">
+                                        <button type="button" class="vy-btn vy-btn--ghost vy-prop-remove" disabled aria-disabled="true" title="{{ __('livewire/operator/portfolio.read_only_title') }}" aria-label="{{ __('livewire/operator/portfolio.remove_unavailable_label', ['name' => $p['name']]) }}">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
                                         </button>
                                     @else
                                         <button type="button" class="vy-btn vy-btn--ghost vy-prop-remove" data-remove-property="{{ $p['id'] }}"
-                                            @click="removing = @js($p['id'])" aria-label="Remove {{ $p['name'] }}" title="Remove property">
+                                            @click="removing = @js($p['id'])" aria-label="{{ __('livewire/operator/portfolio.remove_name_label', ['name' => $p['name']]) }}" title="{{ __('livewire/operator/portfolio.remove_property') }}">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
                                         </button>
                                     @endif
@@ -181,13 +179,13 @@
         @if (count($comparison['rows']) > 0)
             <div class="vy-card vy-fade" style="margin-top: 14px;">
                 <div class="vy-card-head">
-                    <h3>This year, side by side</h3>
+                    <h3>{{ __('livewire/operator/portfolio.comparison_heading') }}</h3>
                     {{-- The design's "Full report ›". The gate was already computed by the component and simply
                          never rendered — so the control is gated, not merely hidden-if-403 (#30). --}}
                     @if ($canViewAnalytics)
-                        <a href="{{ route('app.reports') }}" style="font-size:12px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">Full report ›</a>
+                        <a href="{{ route('app.reports') }}" style="font-size:12px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">{{ __('livewire/operator/portfolio.full_report') }}</a>
                     @else
-                        <span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span>
+                        <span class="vy-card-note">{{ __('livewire/operator/portfolio.comparison_note') }}</span>
                     @endif
                 </div>
                 {{-- ⚠️⚠️ THE HOUSE SCROLL WRAPPER, AND IT IS THE FIX THE SHELL ASKED FOR BY NAME.
@@ -208,14 +206,14 @@
                      434px width and simply scrolls when the page is narrower than that. --}}
                 <div class="vy-utable-wrap">
                 <table class="vy-table">
-                    <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
+                    <thead><tr><th>{{ __('livewire/operator/portfolio.col_property') }}</th><th class="vy-num">{{ __('livewire/operator/portfolio.col_occupancy') }}</th><th class="vy-num">{{ __('livewire/operator/portfolio.col_adr') }}</th><th class="vy-num">{{ __('livewire/operator/portfolio.col_revpar') }}</th><th class="vy-num">{{ __('livewire/operator/portfolio.col_room_revenue') }}</th></tr></thead>
                     <tbody>
                         @foreach ($comparison['rows'] as $r)
                             <tr>
                                 <td>
                                     <span style="display:inline-flex;align-items:center;gap:9px">
                                         <span class="vy-prop-mark" style="width:26px;height:26px;border-radius:8px;font-size:11px" aria-hidden="true">{{ $r['initial'] }}</span>
-                                        <span>{{ $r['name'] }}<span style="display:block;font-size:11px;color:var(--vy-faint)">{{ $r['units'] }} {{ \Illuminate\Support\Str::plural('unit', $r['units']) }}</span></span>
+                                        <span>{{ $r['name'] }}<span style="display:block;font-size:11px;color:var(--vy-faint)">{{ trans_choice('livewire/operator/portfolio.unit_count', $r['units'], ['count' => $r['units']]) }}</span></span>
                                     </span>
                                 </td>
                                 <td class="vy-num">{{ $r['occupancy_pct'] }}</td>
@@ -226,7 +224,7 @@
                         @endforeach
                         @if (count($comparison['rows']) > 1)
                             <tr style="font-weight:700;border-top:1.5px solid var(--vy-glass-border)">
-                                <td>Portfolio</td>
+                                <td>{{ __('livewire/operator/portfolio.portfolio_total') }}</td>
                                 <td class="vy-num">{{ $comparison['total']['occupancy_pct'] }}</td>
                                 <td class="vy-num">{{ $comparison['total']['adr'] }}</td>
                                 <td class="vy-num">{{ $comparison['total']['revpar'] }}</td>
@@ -252,7 +250,7 @@
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
                             </span>
                             <div style="flex: 1;">
-                                <h3 class="vy-modal-title" id="vy-add-title">Add a property</h3>
+                                <h3 class="vy-modal-title" id="vy-add-title">{{ __('livewire/operator/portfolio.add_heading') }}</h3>
                                 {{-- ⚠️ DO-BILL-2 — the billing consequence is KEYED BY THE PLAN'S SHAPE (§N.16.3).
                                      This said "billed per unit" to EVERY org, which is false on a FLAT tier:
                                      adding a property to Essential/Pro changes the bill by nothing. The demo
@@ -263,47 +261,47 @@
                                      CANNOT render it — a property of the markup, not a hide we remembered to
                                      add. `$planIsPerUnit` is resolved from the org's current plan, the SAME
                                      source the Billing page reads, so the two cannot disagree (§N.8f). --}}
-                                <p class="vy-modal-sub">It joins your organization —
-                                    @if ($planIsPerUnit)
-                                        billed per unit.
-                                    @else
-                                        included in your plan.
-                                    @endif
-                                    {{-- ⚠️ P-6 · Gate 1 — A SIXTH SITE, found by sweeping for the phrase rather than trusting the
+                                {{-- ⚠️ P-6 · Gate 1 — A SIXTH SITE, found by sweeping for the phrase rather than trusting the
                          five already fixed (§N.27.1). It sits 34 lines above one of them, in the same modal
                          (§N.13.1). Channels dropped: still no creation path (decision ④). --}}
-                    You'll set up a room type, a unit and a rate plan next; all your team roles carry over.</p>
+                                <p class="vy-modal-sub">
+                                    @if ($planIsPerUnit)
+                                        {{ __('livewire/operator/portfolio.add_sub_per_unit') }}
+                                    @else
+                                        {{ __('livewire/operator/portfolio.add_sub_flat') }}
+                                    @endif
+                                </p>
                             </div>
-                            <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="Close">
+                            <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="{{ __('common.close') }}">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                             </button>
                         </div>
                         <div class="vy-modal-body">
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-add-name">Property name</label>
-                                <input type="text" id="vy-add-name" name="name" class="vy-input" required maxlength="255" placeholder="e.g. Seaside Villas" value="{{ old('name') }}">
+                                <label class="vy-field-label" for="vy-add-name">{{ __('livewire/operator/portfolio.property_name') }}</label>
+                                <input type="text" id="vy-add-name" name="name" class="vy-input" required maxlength="255" placeholder="{{ __('livewire/operator/portfolio.name_placeholder') }}" value="{{ old('name') }}">
                                 @error('name') <div class="vy-help" style="color: var(--vy-accent);">{{ $message }}</div> @enderror
                             </div>
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-add-loc">Location <span class="vy-fl-note">· optional</span></label>
-                                <input type="text" id="vy-add-loc" name="location" class="vy-input" maxlength="255" placeholder="e.g. Faro, Portugal" value="{{ old('location') }}">
+                                <label class="vy-field-label" for="vy-add-loc">{!! __('livewire/operator/portfolio.location_label') !!}</label>
+                                <input type="text" id="vy-add-loc" name="location" class="vy-input" maxlength="255" placeholder="{{ __('livewire/operator/portfolio.location_placeholder') }}" value="{{ old('location') }}">
                             </div>
                             {{-- 2026-09-29 — the type as three tiles, the time zone as a searchable list with offsets (the same
                                  posted fields as before; see the components). --}}
-                            <x-operator.choices name="type" label="Type" :options="$typeChoices" :selected="old('type', 'villa')" />
+                            <x-operator.choices name="type" :label="__('livewire/operator/portfolio.type_label')" :options="$typeChoices" :selected="old('type', 'villa')" />
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-add-tz">Time zone</label>
-                                <x-select name="timezone" id="vy-add-tz" :options="$timezones" :value="old('timezone', 'Europe/Lisbon')" search-placeholder="Search time zones" empty-text="No time zone matches — try a city or “UTC+4”" :device-timezone="true" :min-width="340" />
+                                <label class="vy-field-label" for="vy-add-tz">{{ __('livewire/operator/portfolio.timezone_label') }}</label>
+                                <x-select name="timezone" id="vy-add-tz" :options="$timezones" :value="old('timezone', 'Europe/Lisbon')" :search-placeholder="__('livewire/operator/portfolio.timezone_search_placeholder')" :empty-text="__('livewire/operator/portfolio.timezone_no_match')" :device-timezone="true" :min-width="340" />
                             </div>
                             {{-- ⚠️ P-6 · Gate 1 — channels dropped: they still have no creation path (decision ④), and naming a
                                  step the tenant cannot take is the defect this gate exists to remove. --}}
-                            <div class="vy-help">A new property starts empty — add a room type and a unit, then a rate plan with prices, and it can take bookings.</div>
+                            <div class="vy-help">{{ __('livewire/operator/portfolio.new_property_help') }}</div>
                         </div>
                         <div class="vy-modal-foot">
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="addOpen = false">Cancel</button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="addOpen = false">{{ __('common.cancel') }}</button>
                             <button type="submit" class="vy-btn vy-btn--accent">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                                Add property
+                                {{ __('livewire/operator/portfolio.add_property') }}
                             </button>
                         </div>
                     </form>
@@ -322,29 +320,29 @@
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                             </span>
                             <div style="flex: 1;">
-                                <h3 class="vy-modal-title" id="vy-edit-title">Edit property</h3>
+                                <h3 class="vy-modal-title" id="vy-edit-title">{{ __('livewire/operator/portfolio.edit_heading') }}</h3>
                                 <p class="vy-modal-sub" x-text="editing.name"></p>
                             </div>
-                            <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="Close">
+                            <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="{{ __('common.close') }}">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                             </button>
                         </div>
                         <div class="vy-modal-body">
                             <div class="vy-field">
-                                <label class="vy-field-label">Property name</label>
+                                <label class="vy-field-label">{{ __('livewire/operator/portfolio.property_name') }}</label>
                                 <input type="text" name="name" class="vy-input" required maxlength="255" x-model="editing.name">
                             </div>
-                            <x-operator.choices name="type" label="Type" :options="$typeChoices" model="editing.type" />
-                            <x-operator.choices name="status" label="Status" variant="segmented" model="editing.status"
-                                :options="[['value' => 'active', 'label' => 'Active'], ['value' => 'inactive', 'label' => 'Inactive']]" />
+                            <x-operator.choices name="type" :label="__('livewire/operator/portfolio.type_label')" :options="$typeChoices" model="editing.type" />
+                            <x-operator.choices name="status" :label="__('common.status')" variant="segmented" model="editing.status"
+                                :options="[['value' => 'active', 'label' => __('livewire/operator/portfolio.status_active')], ['value' => 'inactive', 'label' => __('livewire/operator/portfolio.status_inactive')]]" />
                             <div class="vy-field">
-                                <label class="vy-field-label" for="vy-edit-tz">Time zone</label>
-                                <x-select name="timezone" id="vy-edit-tz" :options="$timezones" x-model="editing.timezone" search-placeholder="Search time zones" empty-text="No time zone matches — try a city or “UTC+4”" :device-timezone="true" :min-width="340" />
+                                <label class="vy-field-label" for="vy-edit-tz">{{ __('livewire/operator/portfolio.timezone_label') }}</label>
+                                <x-select name="timezone" id="vy-edit-tz" :options="$timezones" x-model="editing.timezone" :search-placeholder="__('livewire/operator/portfolio.timezone_search_placeholder')" :empty-text="__('livewire/operator/portfolio.timezone_no_match')" :device-timezone="true" :min-width="340" />
                             </div>
                         </div>
                         <div class="vy-modal-foot">
-                            <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
-                            <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">{{ __('common.cancel') }}</button>
+                            <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                         </div>
                     </form>
                 </div>
@@ -364,20 +362,19 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
                                 </span>
                                 <div style="flex: 1;">
-                                    <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">{{ $p['name'] }} is your only property</h3>
+                                    <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">{{ __('livewire/operator/portfolio.only_property_heading', ['name' => $p['name']]) }}</h3>
                                     <p class="vy-modal-sub">{{ $p['location'] }} · {{ $p['type_label'] }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="removing = null" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="removing = null" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
-                                <p class="vy-rm-only">Vyrobel needs at least one property to work in, and this is the only one that isn’t leaving.
-                                    <strong>Add another property first, then you can remove this one.</strong></p>
+                                <p class="vy-rm-only">{!! __('livewire/operator/portfolio.only_property_body') !!}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">Close</button>
-                                <button type="button" class="vy-btn vy-btn--accent" @click="removing = null; addOpen = true">Add a property</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">{{ __('common.close') }}</button>
+                                <button type="button" class="vy-btn vy-btn--accent" @click="removing = null; addOpen = true">{{ __('livewire/operator/portfolio.add_a_property_button') }}</button>
                             </div>
                         @else
                             <form method="POST" action="{{ route('app.portfolio.remove', $p['id']) }}">
@@ -387,10 +384,10 @@
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
                                     </span>
                                     <div style="flex: 1; min-width: 0;">
-                                        <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">Remove {{ $p['name'] }}?</h3>
-                                        <p class="vy-modal-sub">{{ $p['location'] }} · {{ $p['units'] }} {{ \Illuminate\Support\Str::plural('unit', $p['units']) }}</p>
+                                        <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">{{ __('livewire/operator/portfolio.remove_heading', ['name' => $p['name']]) }}</h3>
+                                        <p class="vy-modal-sub">{{ __('livewire/operator/portfolio.location_units', ['location' => $p['location'], 'units' => trans_choice('livewire/operator/portfolio.unit_count', $p['units'], ['count' => $p['units']])]) }}</p>
                                     </div>
-                                    <button type="button" class="vy-modal-x" @click="removing = null" aria-label="Close">
+                                    <button type="button" class="vy-modal-x" @click="removing = null" aria-label="{{ __('common.close') }}">
                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                     </button>
                                 </div>
@@ -398,56 +395,57 @@
                                     <ol class="vy-rm-path">
                                         @if ($p['removal']['clear'])
                                             <li class="vy-rm-step is-end">
-                                                <span class="vy-rm-when">Removed as soon as you confirm</span>
-                                                <span class="vy-rm-what">Nobody is staying and nothing is booked ahead.{{ $p['units'] > 0 ? ' Owners of its units are told.' : '' }}</span>
+                                                <span class="vy-rm-when">{{ __('livewire/operator/portfolio.removed_on_confirm') }}</span>
+                                                <span class="vy-rm-what">{{ $p['units'] > 0 ? __('livewire/operator/portfolio.clear_with_owners') : __('livewire/operator/portfolio.clear_no_owners') }}</span>
                                             </li>
                                         @else
                                             <li class="vy-rm-step">
-                                                <span class="vy-rm-when">Today</span>
+                                                <span class="vy-rm-when">{{ __('common.today') }}</span>
                                                 <span class="vy-rm-what">
-                                                    @if ($p['removal']['stays'] > 0)
-                                                        {{ $p['removal']['stays'] }} current or upcoming {{ \Illuminate\Support\Str::plural('stay', $p['removal']['stays']) }}@if ($p['removal']['in_house'] > 0), {{ $p['removal']['in_house'] }} checked in @endif.
+                                                    @if ($p['removal']['stays'] > 0 && $p['removal']['in_house'] > 0)
+                                                        {{ trans_choice('livewire/operator/portfolio.today_stays_in_house', $p['removal']['stays'], ['count' => $p['removal']['stays'], 'in_house' => $p['removal']['in_house']]) }}
+                                                    @elseif ($p['removal']['stays'] > 0)
+                                                        {{ trans_choice('livewire/operator/portfolio.today_stays', $p['removal']['stays'], ['count' => $p['removal']['stays']]) }}
                                                     @else
-                                                        {{ $p['removal']['in_house'] }} {{ \Illuminate\Support\Str::plural('guest', $p['removal']['in_house']) }} still checked in, past the checkout date.
+                                                        {{ trans_choice('livewire/operator/portfolio.today_in_house', $p['removal']['in_house'], ['count' => $p['removal']['in_house']]) }}
                                                     @endif
-                                                    It stays open for them, and a new booking moves the date later.
                                                 </span>
                                             </li>
                                             <li class="vy-rm-step is-end">
                                                 <span class="vy-rm-when">
                                                     @if ($p['removal']['last_checkout'] !== null)
-                                                        Stays open until the last checkout on {{ $p['removal']['last_checkout'] }}
+                                                        {{ __('livewire/operator/portfolio.open_until_last_checkout', ['date' => $p['removal']['last_checkout']]) }}
                                                     @else
-                                                        Stays open until they check out
+                                                        {{ __('livewire/operator/portfolio.open_until_checkout') }}
                                                     @endif
                                                 </span>
-                                                <span class="vy-rm-what">Then it’s removed at the nightly run{{ $p['units'] > 0 ? ', and owners of its units are told' : '' }}. You can keep it any time before.</span>
+                                                <span class="vy-rm-what">{{ $p['units'] > 0 ? __('livewire/operator/portfolio.then_removed_with_owners') : __('livewire/operator/portfolio.then_removed') }}</span>
                                             </li>
                                         @endif
                                     </ol>
 
                                     <div class="vy-rm-ledger">
                                         <div class="vy-rm-col is-kept">
-                                            <h4>Kept</h4>
-                                            <ul><li>Bookings and guest history</li><li>Invoices, payments and statements</li></ul>
+                                            <h4>{{ __('livewire/operator/portfolio.kept') }}</h4>
+                                            <ul><li>{{ __('livewire/operator/portfolio.kept_bookings') }}</li><li>{{ __('livewire/operator/portfolio.kept_invoices') }}</li></ul>
                                         </div>
                                         <div class="vy-rm-col is-goes">
-                                            <h4>Goes</h4>
-                                            <ul><li>Its storefront page</li><li>Its channel connections</li><li>This card — it can’t be restored</li></ul>
+                                            <h4>{{ __('livewire/operator/portfolio.goes') }}</h4>
+                                            <ul><li>{{ __('livewire/operator/portfolio.goes_storefront') }}</li><li>{{ __('livewire/operator/portfolio.goes_channels') }}</li><li>{{ __('livewire/operator/portfolio.goes_card') }}</li></ul>
                                         </div>
                                     </div>
 
                                     <div class="vy-field" style="margin-bottom: 0;">
-                                        <label class="vy-field-label" for="vy-rm-name-{{ $p['id'] }}">Type “{{ $p['name'] }}” to confirm</label>
+                                        <label class="vy-field-label" for="vy-rm-name-{{ $p['id'] }}">{{ __('livewire/operator/portfolio.type_to_confirm', ['name' => $p['name']]) }}</label>
                                         <input type="text" id="vy-rm-name-{{ $p['id'] }}" name="confirm_name" class="vy-input" x-model="typed" autocomplete="off" spellcheck="false" required>
                                         <span class="vy-rm-check" :class="typed.trim() === @js($p['name']) && 'is-ok'" aria-live="polite"
-                                              x-text="typed.trim() === @js($p['name']) ? 'Name matches' : (typed.trim() === '' ? '' : 'It must match exactly')"></span>
+                                              x-text="typed.trim() === @js($p['name']) ? @js(__('livewire/operator/portfolio.name_matches')) : (typed.trim() === '' ? '' : @js(__('livewire/operator/portfolio.name_must_match')))"></span>
                                     </div>
                                 </div>
                                 <div class="vy-modal-foot">
-                                    <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">Cancel</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">{{ __('common.cancel') }}</button>
                                     <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="typed.trim() !== @js($p['name'])">
-                                        {{ $p['removal']['clear'] ? 'Remove property' : 'Remove after last checkout' }}
+                                        {{ $p['removal']['clear'] ? __('livewire/operator/portfolio.remove_property') : __('livewire/operator/portfolio.remove_after_last_checkout') }}
                                     </button>
                                 </div>
                             </form>

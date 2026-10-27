@@ -33,7 +33,7 @@ class OperatorSecurityController extends Controller
         $data = $request->validate([
             'ip_address' => ['required', 'string', 'max:64', function (string $attr, mixed $value, \Closure $fail): void {
                 if (! $this->isValidIpOrCidr((string) $value)) {
-                    $fail('Enter a valid IP address or CIDR block (e.g. 203.0.113.4 or 203.0.113.0/24).');
+                    $fail(__('php/http/controllers/operator/operator_security_controller.ip_invalid'));
                 }
             }],
             'label' => ['nullable', 'string', 'max:80'],
@@ -45,7 +45,7 @@ class OperatorSecurityController extends Controller
         // Re-adding the same address would hit the unique(organization_id, ip_address) index and 500. Treat a
         // duplicate as a no-op with a friendly notice (the rule is already enforcing).
         if (IpAllowRule::query()->where('ip_address', $ip)->exists()) {
-            return $this->back('notice', $ip.' is already on the allowlist.');
+            return $this->back('notice', __('php/http/controllers/operator/operator_security_controller.ip_already_listed', ['ip' => $ip]));
         }
 
         $rule = IpAllowRule::create(['ip_address' => $ip, 'label' => $data['label'] ?? null, 'created_by' => $request->user()?->getKey()]);
@@ -60,10 +60,10 @@ class OperatorSecurityController extends Controller
             $auto = IpAllowRule::create(['ip_address' => $current, 'label' => 'This device (auto-added)', 'created_by' => $request->user()?->getKey()]);
             $audit->record('app.ip_allow_rule.added', $auto, null, ['ip_address' => $current, 'auto' => true]);
 
-            return $this->back('notice', 'IP allowlist enabled. We also added your current address ('.$current.') so you don’t lock yourself out.');
+            return $this->back('notice', __('php/http/controllers/operator/operator_security_controller.allowlist_enabled_auto_added', ['ip' => $current]));
         }
 
-        return $this->back('notice', 'Added '.$ip.' to the allowlist.');
+        return $this->back('notice', __('php/http/controllers/operator/operator_security_controller.ip_added', ['ip' => $ip]));
     }
 
     /**
@@ -80,16 +80,15 @@ class OperatorSecurityController extends Controller
         $remaining = IpAllowRule::query()->whereKeyNot($model->getKey())->pluck('ip_address')->map(fn ($v): string => (string) $v)->all();
         $current = (string) ($request->ip() ?? '');
         if ($remaining !== [] && $current !== '' && IpUtils::checkIp($current, [$ip]) && ! IpUtils::checkIp($current, $remaining)) {
-            return $this->back('error', 'Removing '.$ip.' would lock you out — it is the only rule that lets your address ('.$current
-                .') reach the back office. Add a rule for your address first, or remove the others.');
+            return $this->back('error', __('php/http/controllers/operator/operator_security_controller.remove_would_lock_out', ['ip' => $ip, 'current' => $current]));
         }
 
         $model->delete();
         $audit->record('app.ip_allow_rule.removed', null, ['ip_address' => $ip], null);
 
         return $this->back('notice', $remaining === []
-            ? 'Removed '.$ip.' — the allowlist is off: anyone with a valid sign-in can reach the back office.'
-            : 'Removed '.$ip.' from the allowlist.');
+            ? __('php/http/controllers/operator/operator_security_controller.ip_removed_allowlist_off', ['ip' => $ip])
+            : __('php/http/controllers/operator/operator_security_controller.ip_removed', ['ip' => $ip]));
     }
 
     /**
@@ -104,12 +103,12 @@ class OperatorSecurityController extends Controller
 
         $device = ActiveSessions::signOutOne($request, $user, (string) $data['session']);
         if ($device === null) {
-            return $this->back('error', 'That session has already ended.');
+            return $this->back('error', __('php/http/controllers/operator/operator_security_controller.session_already_ended'));
         }
 
         $audit->record('user.session_signed_out', $user, null, ['device' => $device]);
 
-        return $this->back('notice', 'Signed out of '.$device.'.');
+        return $this->back('notice', __('php/http/controllers/operator/operator_security_controller.signed_out_of_device', ['device' => $device]));
     }
 
     public function revokeTrustedDevice(Request $request, TrustedDeviceService $devices, AuditEventRecorder $audit): RedirectResponse
@@ -123,7 +122,7 @@ class OperatorSecurityController extends Controller
         $wasCurrent = $devices->revoke($user, (string) $data['device_id'], $request);
         $audit->record('app.trusted_device_revoked', $user, null, ['device_id' => (string) $data['device_id']]);
 
-        $response = $this->back('notice', 'Trusted device revoked.');
+        $response = $this->back('notice', __('php/http/controllers/operator/operator_security_controller.trusted_device_revoked'));
 
         return $wasCurrent !== null ? $response->withCookie($devices->forgetCookie()) : $response;
     }
@@ -151,14 +150,17 @@ class OperatorSecurityController extends Controller
         $filename = 'my-vyrobel-data-'.CarbonImmutable::now()->format('Y-m-d').'.'.$format;
 
         if ($format === 'csv') {
-            return response()->streamDownload(function () use ($user, $roles, $activity, $rangeLabel): void {
+            // The CSV is read by a person, in their language; the JSON below stays exactly as it was (machine-read).
+            $csvRangeLabel = $this->rangeDisplayLabel((string) $request->query('range', 'all'));
+
+            return response()->streamDownload(function () use ($user, $roles, $activity, $csvRangeLabel): void {
                 $out = fopen('php://output', 'w');
-                fputcsv($out, CsvSafe::row(['Vyrobel account export', $rangeLabel]));
-                fputcsv($out, CsvSafe::row(['Name', 'Email', 'Locale', 'Roles']));
+                fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_security_controller.csv_title'), $csvRangeLabel]));
+                fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_security_controller.csv_name'), __('php/http/controllers/operator/operator_security_controller.csv_email'), __('php/http/controllers/operator/operator_security_controller.csv_locale'), __('php/http/controllers/operator/operator_security_controller.csv_roles')]));
                 fputcsv($out, CsvSafe::row([(string) $user->name, (string) $user->email, (string) ($user->locale ?? ''), implode(', ', $roles)]));
                 fputcsv($out, CsvSafe::row([]));
-                fputcsv($out, CsvSafe::row(['Activity', '']));
-                fputcsv($out, CsvSafe::row(['When', 'Action']));
+                fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_security_controller.csv_activity'), '']));
+                fputcsv($out, CsvSafe::row([__('php/http/controllers/operator/operator_security_controller.csv_when'), __('php/http/controllers/operator/operator_security_controller.csv_action')]));
                 foreach ($activity as $e) {
                     fputcsv($out, CsvSafe::row([CarbonImmutable::parse($e->created_at)->toIso8601String(), (string) $e->action]));
                 }
@@ -192,6 +194,16 @@ class OperatorSecurityController extends Controller
                 'Custom range',
             ],
             default => [null, null, 'All time'],
+        };
+    }
+
+    /** The range's name as the CSV prints it — the same three cases as {@see resolveRange()}, in the reader's language. */
+    private function rangeDisplayLabel(string $range): string
+    {
+        return match ($range) {
+            'year' => __('php/http/controllers/operator/operator_security_controller.range_this_year'),
+            'custom' => __('php/http/controllers/operator/operator_security_controller.range_custom'),
+            default => __('php/http/controllers/operator/operator_security_controller.range_all_time'),
         };
     }
 

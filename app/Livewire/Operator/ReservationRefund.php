@@ -130,8 +130,8 @@ class ReservationRefund extends Component
                 'id' => (string) $reservation->id,
                 'reference' => (string) $reservation->reference,
                 'status_label' => $this->reservationStatusMeta((string) $reservation->status)['label'],
-                'check_in' => $checkIn->format('j M Y'),
-                'check_out' => $checkOut->format('j M Y'),
+                'check_in' => $checkIn->translatedFormat('j M Y'),
+                'check_out' => $checkOut->translatedFormat('j M Y'),
                 'guest' => $name !== '' ? $name : null,
             ],
             'folio' => $folioModel !== null ? $this->folioContext($folioModel, $currency) : null,
@@ -209,11 +209,11 @@ class ReservationRefund extends Component
 
         return [
             'id' => (string) $payment->id,
-            'label' => (string) $payment->type === 'capture' ? 'Capture' : 'Payment',
+            'label' => (string) $payment->type === 'capture' ? __('php/livewire/operator/reservation_refund.kind_capture') : __('php/livewire/operator/reservation_refund.kind_payment'),
             // The REAL gateway the money moved through — `payments.gateway` is a real enum column. This is
             // what the design's fabricated "Visa ····4242" is replaced by: no card brand or last4 exists.
             'gateway' => $this->gatewayLabel((string) $payment->gateway),
-            'date' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M Y'),
+            'date' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M Y'),
             'original' => $this->money($originalMinor, $currency),
             'refunded' => $this->money($refundedMinor, $currency),
             // ⚠️ Accepted by Stripe, not yet moved. It holds headroom, so the desk is told why.
@@ -226,10 +226,10 @@ class ReservationRefund extends Component
             'refundable' => $remainingMinor > 0,
             // Total over the four real combinations; nothing is left to an unlabelled fallthrough.
             'state' => match (true) {
-                $remainingMinor > 0 && $refundedMinor > 0 => 'Partly refunded',
+                $remainingMinor > 0 && $refundedMinor > 0 => __('php/livewire/operator/reservation_refund.state_partly_refunded'),
                 $remainingMinor > 0 => null,
-                $refundedMinor > 0 => 'Fully refunded',
-                default => 'Nothing refundable',
+                $refundedMinor > 0 => __('php/livewire/operator/reservation_refund.state_fully_refunded'),
+                default => __('php/livewire/operator/reservation_refund.state_nothing_refundable'),
             },
         ];
     }
@@ -239,9 +239,9 @@ class ReservationRefund extends Component
     {
         return match ($gateway) {
             'stripe' => 'Stripe',
-            'manual' => 'Manual / offline',
-            'bank_transfer' => 'Bank transfer',
-            'ota_collect' => 'Collected by the OTA',
+            'manual' => __('php/livewire/operator/reservation_refund.gateway_manual'),
+            'bank_transfer' => __('php/livewire/operator/reservation_refund.gateway_bank_transfer'),
+            'ota_collect' => __('php/livewire/operator/reservation_refund.gateway_ota_collect'),
             'paypal' => 'PayPal',
             'square' => 'Square',
             default => ucwords(str_replace('_', ' ', $gateway)),

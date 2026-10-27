@@ -42,11 +42,11 @@ final class ShiftType
     public static function label(string $type): string
     {
         return match ($type) {
-            self::EARLY => 'Early',
-            self::DAY => 'Day',
-            self::LATE => 'Late',
-            self::OFF => 'Off',
-            default => ucfirst($type),
+            self::EARLY => __('php/support/schedule/shift_type.early'),
+            self::DAY => __('php/support/schedule/shift_type.day'),
+            self::LATE => __('php/support/schedule/shift_type.late'),
+            self::OFF => __('php/support/schedule/shift_type.off'),
+            default => ucfirst($type),   // an unknown code, shown as itself
         };
     }
 

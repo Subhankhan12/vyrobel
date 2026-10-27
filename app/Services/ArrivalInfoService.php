@@ -146,11 +146,13 @@ class ArrivalInfoService
         // there is dead under the analyser's typing, and removing it while keeping `??` would fatal in any
         // context with no authenticated user (a command, a job). An explicit check is honest in both.
         $actor = auth()->user();
+        // The fallback actor is a word the OWNER reads, so it is written in the owner's language, not the viewer's (I18N-01).
+        $recipient = $unit->owner?->user;
 
-        $unit->owner?->user?->notify(new ArrivalSecretRevealedNotification(
+        $recipient?->notify(new ArrivalSecretRevealedNotification(
             (string) ($unit->name ?? $unit->code),
             (string) $unit->property->name,
-            $actor instanceof User ? (string) $actor->name : 'A member of the team',
+            $actor instanceof User ? (string) $actor->name : (string) __('php/services/arrival_info_service.actor_fallback', [], $recipient->preferredLocale()),
             $held,
         ));
 

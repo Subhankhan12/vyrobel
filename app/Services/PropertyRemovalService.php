@@ -185,7 +185,7 @@ class PropertyRemovalService
         // ⚠️ 2026-09-29 — the organisation keeps at least one property. The guard is HERE, in the service, so every
         //    caller holds it: the Portfolio, Settings, and anything added later.
         if ($this->isLastRemaining($property)) {
-            throw new PropertyRemovalRefused('It is your only property that isn’t already leaving — add another property first, then remove this one.');
+            throw new PropertyRemovalRefused(__('php/services/property_removal_service.last_property'));
         }
 
         $effective = $this->effectiveDateFor($property);

@@ -123,7 +123,7 @@ class MaintenanceCostService
 
                 return [
                     'id' => (string) $row->getAttribute('id'),
-                    'date' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->format('j M') : '—',
+                    'date' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->translatedFormat('j M') : '—',
                     // ⚠️ The display string above cannot be a spreadsheet DATE cell ("5 Sep" sorts before
                     // "9 Aug"). The raw date travels beside it; nothing that renders `date` is affected.
                     'date_iso' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->toDateString() : null,

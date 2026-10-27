@@ -56,7 +56,7 @@ class EnterBreakGlassSession
                 $request->session()->forget(BreakGlass::SESSION_KEY);
             }
 
-            return redirect()->route('admin.break-glass.index')->with('admin_notice', 'The support session has ended.');
+            return redirect()->route('admin.break-glass.index')->with('admin_notice', __('php/http/middleware/enter_break_glass_session.session_ended'));
         }
 
         // ⚠️ THE BORROWED VIEW — this request only. Nothing is written to the web session: it is not a login.

@@ -162,7 +162,7 @@ class GuestDeletionService
             return;
         }
         try {
-            Mail::to($email)->send(new AccountDeletionScheduledMail($guest, $this->reservationsToCancel($guest)->count()));
+            Mail::to($email)->locale($guest->preferredLocale())->send(new AccountDeletionScheduledMail($guest, $this->reservationsToCancel($guest)->count()));
         } catch (Throwable $e) {
             Log::warning('Account-deletion email failed', ['error' => LogSafe::message($e)]);   // never the address (no PII)
         }

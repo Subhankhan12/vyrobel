@@ -94,8 +94,8 @@ final class MessageTemplate
             : 0;
 
         $vars = [
-            'first_name' => (string) ($guest->first_name ?: 'there'),
-            'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : 'your unit',
+            'first_name' => (string) ($guest->first_name ?: __('php/support/inbox/message_template.first_name_fallback')),   // "Hi there"
+            'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : __('php/support/inbox/message_template.unit_fallback'),
             'reference' => $reservation !== null ? (string) $reservation->reference : '',
             'nights' => (string) $nights,
             'balance' => $reservation !== null

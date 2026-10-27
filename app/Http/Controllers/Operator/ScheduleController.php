@@ -73,7 +73,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Shift updated.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.shift_updated'));
     }
 
     /**
@@ -111,7 +111,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Shift moved.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.shift_moved'));
     }
 
     // ── TIME OFF ────────────────────────────────────────────────────────────────────────────────────
@@ -133,7 +133,7 @@ class ScheduleController extends Controller
         $staff = $request->user();
         $this->leave->request($staff, (string) $validated['start_date'], (string) $validated['end_date'], $validated['reason'] ?? null);
 
-        return $this->back($request)->with('schedule_status', 'Time-off request submitted.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.time_off_requested'));
     }
 
     /** A manager grants approved leave directly to a staff member (never themselves — self-grant is refused). */
@@ -160,7 +160,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Leave added.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.leave_added'));
     }
 
     public function approveLeave(Request $request, string $leave): RedirectResponse
@@ -180,7 +180,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Time off approved.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.time_off_approved'));
     }
 
     public function denyLeave(Request $request, string $leave): RedirectResponse
@@ -200,7 +200,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Time off declined.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.time_off_declined'));
     }
 
     // ── PUBLISH WEEK (minimal-real: finalize + notify; edits stay live) ───────────────────────────────
@@ -229,7 +229,7 @@ class ScheduleController extends Controller
             User::query()->find($row['staff']['id'])?->notify(new SchedulePublishedNotification($property->name, $label));
         }
 
-        return $this->back($request)->with('schedule_status', 'Week published — the team has been notified.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.week_published'));
     }
 
     // ── OPEN SHIFTS (unassigned slots; fill = create a real Shift + delete the open row) ──────────────
@@ -256,7 +256,7 @@ class ScheduleController extends Controller
         ]);
         $audit->record('schedule.open_shift_created', $open, null, ['date' => $open->date->toDateString(), 'shift_type' => $open->shift_type]);
 
-        return $this->back($request)->with('schedule_status', 'Open shift added.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.open_shift_added'));
     }
 
     /** Assign an open shift to a staff member — creates a REAL Shift through the certified service, then removes the open slot. */
@@ -284,7 +284,7 @@ class ScheduleController extends Controller
             return $this->back($request)->with('schedule_error', $e->getMessage());
         }
 
-        return $this->back($request)->with('schedule_status', 'Open shift assigned.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.open_shift_assigned'));
     }
 
     public function removeOpenShift(Request $request, string $openShift, AuditEventRecorder $audit): RedirectResponse
@@ -298,7 +298,7 @@ class ScheduleController extends Controller
         $open->delete();
         $audit->record('schedule.open_shift_removed', null, ['open_shift_id' => $openShift], null);
 
-        return $this->back($request)->with('schedule_status', 'Open shift removed.');
+        return $this->back($request)->with('schedule_status', __('php/http/controllers/operator/schedule_controller.open_shift_removed'));
     }
 
     // ── PDF ─────────────────────────────────────────────────────────────────────────────────────────
@@ -329,9 +329,13 @@ class ScheduleController extends Controller
             ->get()
             ->map(fn (LeaveRequest $l): array => [
                 'name' => (string) ($l->user->name ?? '—'),
-                'kind' => ucfirst((string) ($l->reason ?: 'Leave')),
+                'kind' => ucfirst((string) ($l->reason ?: __('php/http/controllers/operator/schedule_controller.pdf_leave_kind'))),
                 'days' => $l->rangeLabel(),
-                'status' => ucfirst((string) $l->status),
+                'status' => match ((string) $l->status) {
+                    'approved' => __('php/http/controllers/operator/schedule_controller.pdf_status_approved'),
+                    'pending' => __('php/http/controllers/operator/schedule_controller.pdf_status_pending'),
+                    default => ucfirst((string) $l->status),
+                },
             ])->all();
 
         return $pdf->download('pdfs.operator-schedule', [
@@ -342,7 +346,7 @@ class ScheduleController extends Controller
             'timeOff' => $timeOff,
             // The REAL production time, in the PROPERTY's timezone (store UTC, show property-local) — a
             // printed rota needs to say how old it is. Presentation only; nothing derives from it.
-            'generatedAt' => CarbonImmutable::now($property->timezone ?: config('app.timezone'))->format('D j M Y · H:i'),
+            'generatedAt' => CarbonImmutable::now($property->timezone ?: config('app.timezone'))->translatedFormat('D j M Y · H:i'),
         ], 'schedule-'.$property->getKey().'-week-'.$week.'.pdf');
     }
 
@@ -374,7 +378,7 @@ class ScheduleController extends Controller
     private function guardReadOnly(Request $request): ?RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($request)->with('schedule_error', 'Your workspace is read-only right now — the roster is paused.');
+            return $this->back($request)->with('schedule_error', __('php/http/controllers/operator/schedule_controller.read_only'));
         }
 
         return null;

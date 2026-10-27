@@ -5,11 +5,11 @@
     Data (from Passport): $client (the app), $scopes (Scope[] with ->id + ->description), $authToken.
 --}}
 <!doctype html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Authorize {{ $client->name }} · Vyrobel</title>
+    <title>{{ __('oauth/consent.page_title', ['app' => $client->name]) }}</title>
     <x-favicon />
     <style>
         :root {
@@ -50,19 +50,19 @@
 <body>
     <div class="card">
         <div class="brand">Vyrobel</div>
-        <h1><span class="app">{{ $client->name }}</span> wants to access your account</h1>
-        <p class="sub">Authorizing gives this app <strong>read-only</strong> access to only the data listed below — and only your own. You can revoke it anytime from Security → Connected apps.</p>
+        <h1>{!! __('oauth/consent.heading', ['app' => e($client->name)]) !!}</h1>
+        <p class="sub">{!! __('oauth/consent.intro') !!}</p>
 
         <ul class="scopes">
             @foreach ($scopes as $scope)
                 <li class="scope">
                     <span class="scope-ic" aria-hidden="true">✓</span>
-                    <span class="scope-txt">{{ $scope->description }}<br><span class="scope-id">{{ $scope->id }}</span></span>
+                    <span class="scope-txt">{{ \App\Support\OAuth\OAuthScopes::description((string) $scope->id) ?? $scope->description }}<br><span class="scope-id">{{ $scope->id }}</span></span>
                 </li>
             @endforeach
         </ul>
 
-        <p class="note">Vyrobel never shares your guests’ contact details, door codes or Wi-Fi. This app can read only what’s listed — nothing more, and never another owner’s data.</p>
+        <p class="note">{{ __('oauth/consent.note') }}</p>
 
         <div class="actions">
             {{-- Deny → DELETE /oauth/authorize (no token issued). --}}
@@ -70,17 +70,17 @@
                 @csrf
                 @method('DELETE')
                 <input type="hidden" name="auth_token" value="{{ $authToken }}">
-                <button type="submit" class="btn btn--deny">Deny</button>
+                <button type="submit" class="btn btn--deny">{{ __('oauth/consent.deny') }}</button>
             </form>
             {{-- Authorize → POST /oauth/authorize (issues an auth code with ONLY these scopes). --}}
             <form method="post" action="{{ route('passport.authorizations.approve') }}">
                 @csrf
                 <input type="hidden" name="auth_token" value="{{ $authToken }}">
-                <button type="submit" class="btn btn--allow">Authorize</button>
+                <button type="submit" class="btn btn--allow">{{ __('oauth/consent.authorize') }}</button>
             </form>
         </div>
 
-        <div class="who">Signed in as {{ $request->user()->name ?? $request->user()->email }}</div>
+        <div class="who">{{ __('oauth/consent.signed_in_as', ['name' => $request->user()->name ?? $request->user()->email]) }}</div>
     </div>
 </body>
 </html>

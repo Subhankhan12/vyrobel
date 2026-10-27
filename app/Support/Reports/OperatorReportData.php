@@ -31,8 +31,25 @@ use Illuminate\Support\Collection;
  */
 final class OperatorReportData
 {
-    /** Expense categories the prototype shows but the product captures no data for (honestly deferred). */
-    public const UNTRACKED = ['Channel commissions', 'Cleaning', 'Supplies', 'Linen'];
+    /** Expense categories the prototype shows but the product captures no data for (honestly deferred) — codes; {@see untrackedLabels()} words them. */
+    public const UNTRACKED = ['channel_commissions', 'cleaning', 'supplies', 'linen'];
+
+    /**
+     * The untracked categories' display names, translated at call time by code (I18N-01).
+     *
+     * @return list<string>
+     */
+    public static function untrackedLabels(): array
+    {
+        $labels = [
+            'channel_commissions' => __('php/support/reports/operator_report_data.channel_commissions'),
+            'cleaning' => __('php/support/reports/operator_report_data.cleaning'),
+            'supplies' => __('php/support/reports/operator_report_data.supplies'),
+            'linen' => __('php/support/reports/operator_report_data.linen'),
+        ];
+
+        return array_map(fn (string $code): string => $labels[$code], self::UNTRACKED);
+    }
 
     /**
      * @param  list<string>  $readIds  property ids in the current context scope
@@ -93,7 +110,7 @@ final class OperatorReportData
             'tax_minor' => $revenue['tax_minor'],
             'gross_minor' => $grossMinor,
             'maintenance_minor' => $maintenanceMinor,
-            'untracked' => self::UNTRACKED,
+            'untracked' => self::untrackedLabels(),
             'net_minor' => $grossMinor - $maintenanceMinor,
             'occupancy_pct' => $occ,
             'adr_minor' => $adr,

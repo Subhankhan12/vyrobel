@@ -7,12 +7,13 @@
     // #104 GATE 2 — the wireframe's personalized greeting header. Presentation-only: a time-of-day salutation
     // + the authenticated staff member's real first name (no data/route/behaviour change).
     $vyHour = (int) now()->format('G');
-    $vyGreet = $vyHour < 12 ? 'Good morning' : ($vyHour < 18 ? 'Good afternoon' : 'Good evening');
-    $vyFirst = trim((string) \Illuminate\Support\Str::before((string) ($viewer['name'] ?? ''), ' ')) ?: 'there';
+    $vyFirst = trim((string) \Illuminate\Support\Str::before((string) ($viewer['name'] ?? ''), ' ')) ?: __('livewire/operator/dashboard.greeting_no_name');
+    // one key per greeting, so each language places the name where its grammar needs it
+    $vyGreet = __($vyHour < 12 ? 'livewire/operator/dashboard.greeting_morning' : ($vyHour < 18 ? 'livewire/operator/dashboard.greeting_afternoon' : 'livewire/operator/dashboard.greeting_evening'), ['name' => $vyFirst]);
 @endphp
 <div class="vy-dash">
-    <x-operator.shell active="dashboard" :title="$vyGreet . ', ' . $vyFirst"
-        :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
+    <x-operator.shell active="dashboard" :title="$vyGreet"
+        :subtitle="__('livewire/operator/dashboard.subtitle', ['property' => $property['name'] ?? __('livewire/operator/dashboard.no_property_yet'), 'date' => $day['label']])" :viewer="$viewer">
 
         {{-- 2026-09-29 — arriving from the Portfolio's "Open": say which property you are now working in --}}
         @if (session('property_notice'))
@@ -22,18 +23,18 @@
         {{-- REAL day navigation (GET links) --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
-                <a class="vy-icobtn" href="?date={{ $day['prev'] }}" aria-label="Previous day" title="Previous day">
+                <a class="vy-icobtn" href="?date={{ $day['prev'] }}" aria-label="{{ __('livewire/operator/dashboard.previous_day') }}" title="{{ __('livewire/operator/dashboard.previous_day') }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
                 </a>
                 <span class="vy-range">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>
                     {{ $day['label'] }}
                 </span>
-                <a class="vy-icobtn" href="?date={{ $day['next'] }}" aria-label="Next day" title="Next day">
+                <a class="vy-icobtn" href="?date={{ $day['next'] }}" aria-label="{{ __('livewire/operator/dashboard.next_day') }}" title="{{ __('livewire/operator/dashboard.next_day') }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
                 @unless ($day['is_today'])
-                    <a class="vy-pill" href="?date={{ $day['today'] }}">Today</a>
+                    <a class="vy-pill" href="?date={{ $day['today'] }}">{{ __('common.today') }}</a>
                 @endunless
             </div>
             {{-- GATE 0 — the inline search entry moved to the bespoke-chrome topbar (shared shell); the
@@ -41,39 +42,39 @@
         </div>
 
         @if ($property === null)
-            <div class="vy-card vy-fade"><div class="vy-empty">No property yet — add a property to see its dashboard.</div></div>
+            <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/operator/dashboard.no_property_empty') }}</div></div>
         @else
             {{-- KPI TILES (design's 5): Arrivals · Departures · Occupancy tonight (+Δ) · Revenue today · Open work orders --}}
             <div class="vy-dash-kpis vy-dash-kpis--5 vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Arrivals today</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/dashboard.kpi_arrivals_today') }}</div>
                     <div class="vy-dk-val">{{ $kpis['arrivals'] }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Departures today</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/dashboard.kpi_departures_today') }}</div>
                     <div class="vy-dk-val">{{ $kpis['departures'] }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Occupancy tonight</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/dashboard.kpi_occupancy_tonight') }}</div>
                     <div class="vy-dk-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span>@if (! is_null($kpis['occupancy_delta']))<span class="vy-dk-delta {{ $kpis['occupancy_delta'] < 0 ? 'is-down' : '' }}">{{ $kpis['occupancy_delta'] >= 0 ? '+' : '' }}{{ $kpis['occupancy_delta'] }}%</span>@endif</div>
                     {{-- Kept in the design's note slot: this numerator/denominator is the TRUE org-scoped
                          room count, and OperatorDashboardViewTest probes it to prove another org's rooms
                          never enter this occupancy (#38). Dropping it would delete a real figure AND
                          disarm an isolation assertion. --}}
-                    <div class="vy-dk-sub">{{ $kpis['rooms_sold'] }} of {{ $kpis['rooms_total'] }} rooms sold</div>
+                    <div class="vy-dk-sub">{{ trans_choice('livewire/operator/dashboard.rooms_sold_of', $kpis['rooms_total'], ['sold' => $kpis['rooms_sold'], 'count' => $kpis['rooms_total']]) }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Revenue today</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/dashboard.kpi_revenue_today') }}</div>
                     <div class="vy-dk-val">{{ $kpis['payments'] }}</div>
                     {{-- The prototype keeps a note slot under this figure. "collected" is retained on purpose:
                          the figure is payments taken today, not revenue booked, and dropping the qualifier
                          would leave the label ambiguous (the honesty rule the sweep spent WAVE 2 on). --}}
-                    <div class="vy-dk-sub">collected</div>
+                    <div class="vy-dk-sub">{{ __('livewire/operator/dashboard.revenue_collected') }}</div>
                 </div>
                 {{-- The prototype makes this tile a link through to Maintenance. --}}
                 <a class="vy-dash-kpi" href="{{ route('app.maintenance') }}" style="text-decoration:none; color:inherit; display:block;">
-                    <div class="vy-dk-label">Open work orders</div>
-                    <div class="vy-dk-val">{{ $kpis['work_orders'] }}@if ($kpis['work_orders_urgent'] > 0)<span class="vy-dk-urgent">{{ $kpis['work_orders_urgent'] }} urgent</span>@endif</div>
+                    <div class="vy-dk-label">{{ __('livewire/operator/dashboard.kpi_open_work_orders') }}</div>
+                    <div class="vy-dk-val">{{ $kpis['work_orders'] }}@if ($kpis['work_orders_urgent'] > 0)<span class="vy-dk-urgent">{{ trans_choice('livewire/operator/dashboard.urgent_count', $kpis['work_orders_urgent'], ['count' => $kpis['work_orders_urgent']]) }}</span>@endif</div>
                 </a>
             </div>
 
@@ -87,20 +88,20 @@
                             // D1-2 — the same rows, grouped by whichever dimension this person chose. Nothing
                             // is filtered or dropped: the SET of rows is identical either way, only the
                             // headings differ.
-                            $vyPriOrder = ['urgent' => 'Urgent', 'high' => 'High', 'normal' => 'Normal'];
+                            $vyPriOrder = ['urgent' => __('livewire/operator/dashboard.priority_urgent'), 'high' => __('livewire/operator/dashboard.priority_high'), 'normal' => __('livewire/operator/dashboard.priority_normal')];
                             $vyByCategory = ($tasks['grouping'] ?? 'priority') === 'category';
                             $vyTaskSecs = $vyByCategory
-                                ? collect($tasks['items'])->groupBy('category_label')->sortKeys()
+                                ? collect($tasks['items'])->groupBy('category')->sortBy(fn ($rows, $key) => \App\Models\OperatorTaskState::categorySortIndex((string) $key))
                                 : collect($tasks['items'])
                                     ->groupBy('priority')
                                     ->sortBy(fn ($rows, $key) => array_search($key, array_keys($vyPriOrder), true));
                         @endphp
                         <div class="vy-detail-head" style="margin-bottom: 4px;">
-                            <h2 class="vy-card-title">Today’s tasks</h2>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/dashboard.tasks_title') }}</h2>
                             @if ($vyTaskSecs->isEmpty())
                                 <span class="vy-task-clear">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
-                                    All caught up
+                                    {{ __('livewire/operator/dashboard.all_caught_up') }}
                                 </span>
                             @endif
                         </div>
@@ -109,13 +110,13 @@
                         @if ($tasks['total_count'] > 0)
                             <form method="POST" action="{{ $tasks['grouping_url'] }}" class="vy-task-group-sw" data-guard-submit>
                                 @csrf
-                                <span class="vy-task-group-lbl">Group by</span>
+                                <span class="vy-task-group-lbl">{{ __('livewire/operator/dashboard.group_by') }}</span>
                                 <button type="submit" name="task_grouping" value="priority"
                                         class="vy-task-group-opt {{ $vyByCategory ? '' : 'is-on' }}"
-                                        aria-pressed="{{ $vyByCategory ? 'false' : 'true' }}">Priority</button>
+                                        aria-pressed="{{ $vyByCategory ? 'false' : 'true' }}">{{ __('livewire/operator/dashboard.group_by_priority') }}</button>
                                 <button type="submit" name="task_grouping" value="category"
                                         class="vy-task-group-opt {{ $vyByCategory ? 'is-on' : '' }}"
-                                        aria-pressed="{{ $vyByCategory ? 'true' : 'false' }}">Category</button>
+                                        aria-pressed="{{ $vyByCategory ? 'true' : 'false' }}">{{ __('livewire/operator/dashboard.group_by_category') }}</button>
                             </form>
                         @endif
                         {{-- D1-1 — YOUR OWN progress through the list. ⚠️ "Ticked", never "done": every row
@@ -130,9 +131,9 @@
                                 </div>
                                 <span class="vy-task-prog-label">
                                     @if ($tasks['ticked_count'] === $tasks['total_count'])
-                                        You’ve ticked off all {{ $tasks['total_count'] }} — the work itself is still open below
+                                        {{ trans_choice('livewire/operator/dashboard.ticked_all', $tasks['total_count'], ['count' => $tasks['total_count']]) }}
                                     @else
-                                        {{ $tasks['ticked_count'] }} of {{ $tasks['total_count'] }} ticked off
+                                        {{ trans_choice('livewire/operator/dashboard.ticked_of', $tasks['total_count'], ['ticked' => $tasks['ticked_count'], 'count' => $tasks['total_count']]) }}
                                     @endif
                                 </span>
                             </div>
@@ -152,10 +153,10 @@
                             <div class="vy-task-sec">
                                 <div class="vy-task-sec-head">
                                     <span class="vy-task-sec-dot vy-task-pri is-{{ $vySecPri }}"></span>
-                                    <span class="vy-task-sec-label vy-task-pri-ink is-{{ $vySecPri }}">{{ $vyByCategory ? $vyPri : ($vyPriOrder[$vyPri] ?? $vyPri) }}</span>
+                                    <span class="vy-task-sec-label vy-task-pri-ink is-{{ $vySecPri }}">{{ $vyByCategory ? $vyRows->first()['category_label'] : ($vyPriOrder[$vyPri] ?? $vyPri) }}</span>
                                     <span class="vy-task-sec-count">{{ $vyRows->count() }}</span>
                                     @if ($vySecUrgent > 0)
-                                        <span class="vy-task-sec-urgent">{{ $vySecUrgent }} urgent</span>
+                                        <span class="vy-task-sec-urgent">{{ trans_choice('livewire/operator/dashboard.urgent_count', $vySecUrgent, ['count' => $vySecUrgent]) }}</span>
                                     @endif
                                 </div>
                                 @foreach ($vyRows as $t)
@@ -168,7 +169,7 @@
                                             <input type="hidden" name="task_date" value="{{ $day['date'] ?? '' }}">
                                             <input type="hidden" name="ticked" value="{{ $t['ticked'] ? '0' : '1' }}">
                                             <button type="submit" class="vy-task-tick" role="checkbox" aria-checked="{{ $t['ticked'] ? 'true' : 'false' }}"
-                                                    aria-label="{{ $t['ticked'] ? 'Un-tick' : 'Tick off' }} “{{ $t['label'] }}” on your own list">
+                                                    aria-label="{{ __($t['ticked'] ? 'livewire/operator/dashboard.untick_aria' : 'livewire/operator/dashboard.tick_aria', ['task' => $t['label']]) }}">
                                                 @if ($t['ticked'])
                                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                                 @endif
@@ -181,7 +182,7 @@
                                             @if ($vyByCategory)
                                                 <span class="vy-task-pri vy-task-row-dot is-{{ $t['priority'] }}"
                                                       title="{{ $vyPriOrder[$t['priority']] ?? $t['priority'] }}"></span>
-                                                <span class="vy-sr-only">{{ $vyPriOrder[$t['priority']] ?? $t['priority'] }} priority</span>
+                                                <span class="vy-sr-only">{{ __('livewire/operator/dashboard.priority_sr', ['priority' => $vyPriOrder[$t['priority']] ?? $t['priority']]) }}</span>
                                             @endif
                                             <span class="vy-task-label">{{ $t['label'] }}</span>
                                             <span class="vy-task-meta">{{ $t['meta'] }}</span>
@@ -191,15 +192,15 @@
                                 @endforeach
                             </div>
                         @empty
-                            <div class="vy-empty" style="padding: 20px 12px;">All caught up — nothing needs attention right now.</div>
+                            <div class="vy-empty" style="padding: 20px 12px;">{{ __('livewire/operator/dashboard.all_caught_up_empty') }}</div>
                         @endforelse
                     </div>
 
                     {{-- Today's arrivals — REAL (operator sees full guest data; names shown, contact not) --}}
                     <div class="vy-card">
                         <div class="vy-detail-head" style="margin-bottom: 6px;">
-                            <h2 class="vy-card-title">Arrivals · today</h2>
-                            <a class="vy-arr-link" href="{{ route('app.front-desk') }}?date={{ $day['date'] }}">View all →</a>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/dashboard.arrivals_title') }}</h2>
+                            <a class="vy-arr-link" href="{{ route('app.front-desk') }}?date={{ $day['date'] }}">{{ __('livewire/operator/dashboard.view_all') }}</a>
                         </div>
                         @forelse ($arrivals as $a)
                             <div class="vy-arr-row">
@@ -210,7 +211,7 @@
                                     <div style="min-width:0;">
                                         <div class="vy-arr-name">{{ $a['guest'] }}</div>
                                         {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}
-                                        <div class="vy-arr-ref">{{ $a['reference'] }} · {{ $a['nights'] }} {{ \Illuminate\Support\Str::plural('night', $a['nights']) }}@if ($a['unit']) · {{ $a['unit'] }}@else · Unassigned @endif</div>
+                                        <div class="vy-arr-ref">{{ trans_choice('livewire/operator/dashboard.arrival_detail', $a['nights'], ['reference' => $a['reference'], 'count' => $a['nights'], 'unit' => $a['unit'] ?: __('livewire/operator/dashboard.unassigned')]) }}</div>
                                         {{-- D1-3 — the guest's own estimated arrival, matching FRONT DESK's rendering
                                              character-for-character: the same "Arrival · " label, and the same @if that
                                              OMITS the line entirely when none was given.
@@ -221,25 +222,25 @@
                                              ⚠️ NULL OMITS THE LINE rather than printing a placeholder - a "—" sitting
                                              where a time belongs reads as a time that was given and then lost. --}}
                                         @if ($a['expected_arrival'])
-                                            <div class="vy-arr-ref">Arrival · {{ $a['expected_arrival'] }}</div>
+                                            <div class="vy-arr-ref">{{ __('livewire/operator/dashboard.expected_arrival', ['time' => $a['expected_arrival']]) }}</div>
                                         @endif
                                     </div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <span class="vy-tag tone-{{ $a['tone'] }}"><span class="vy-dot"></span>{{ $a['status_label'] }}</span>
-                                    <a class="vy-arr-link" href="{{ route('app.reservations.show', $a['id']) }}">Open →</a>
+                                    <a class="vy-arr-link" href="{{ route('app.reservations.show', $a['id']) }}">{{ __('livewire/operator/dashboard.open_link') }}</a>
                                 </div>
                             </div>
                         @empty
-                            <div class="vy-empty">No arrivals for this day.</div>
+                            <div class="vy-empty">{{ __('livewire/operator/dashboard.no_arrivals') }}</div>
                         @endforelse
                     </div>
 
                     {{-- Occupancy · next 7 days — REAL per-night % (certified spine) --}}
                     <div class="vy-card">
                         <div class="vy-detail-head" style="margin-bottom: 10px;">
-                            <h2 class="vy-card-title">Occupancy · next 7 days</h2>
-                            <span class="vy-week-chip">This week</span>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/dashboard.occupancy_week_title') }}</h2>
+                            <span class="vy-week-chip">{{ __('livewire/operator/dashboard.this_week') }}</span>
                         </div>
                         <div class="vy-occ7">
                             @foreach ($occupancyWeek as $d)
@@ -259,14 +260,14 @@
                     <div class="vy-tonight-wrap">
                         <div class="vy-tonight-glow" aria-hidden="true"></div>
                         <div class="vy-tonight">
-                            <span class="vy-eyebrow">Tonight</span>
+                            <span class="vy-eyebrow">{{ __('livewire/operator/dashboard.tonight') }}</span>
                             <div class="vy-tonight-head">
                                 <div class="vy-tonight-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
-                                <div class="vy-tonight-sub">occupancy</div>
+                                <div class="vy-tonight-sub">{{ __('livewire/operator/dashboard.occupancy') }}</div>
                             </div>
                             <div class="vy-tonight-row">
-                                <div class="vy-tonight-cell"><div class="vy-tc-k">Rooms sold</div><div class="vy-tc-v">{{ $kpis['rooms_sold'] }}/{{ $kpis['rooms_total'] }}</div></div>
-                                <div class="vy-tonight-cell"><div class="vy-tc-k">ADR</div><div class="vy-tc-v">{{ $kpis['adr'] ?? '—' }}</div></div>
+                                <div class="vy-tonight-cell"><div class="vy-tc-k">{{ __('livewire/operator/dashboard.rooms_sold') }}</div><div class="vy-tc-v">{{ $kpis['rooms_sold'] }}/{{ $kpis['rooms_total'] }}</div></div>
+                                <div class="vy-tonight-cell"><div class="vy-tc-k">{{ __('livewire/operator/dashboard.adr') }}</div><div class="vy-tc-v">{{ $kpis['adr'] ?? '—' }}</div></div>
                             </div>
                         </div>
                     </div>
@@ -278,32 +279,32 @@
                             $hkDone = $housekeeping['clean'] + $housekeeping['inspected'];
                             $hkPct = $hkTotal > 0 ? (int) round($hkDone / $hkTotal * 100) : 0;
                         @endphp
-                        <div class="vy-rail-head"><span class="vy-eyebrow">Housekeeping</span></div>
+                        <div class="vy-rail-head"><span class="vy-eyebrow">{{ __('livewire/operator/dashboard.housekeeping') }}</span></div>
                         {{-- Per-status rail rows — the REAL housekeeping_tasks.status counts. The design lists
                              the statuses first and closes the card with the progress bar. --}}
                         <div class="vy-stat-list">
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Dirty</span><span class="vy-stat-v">{{ $housekeeping['pending'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E0921E;"></span><span class="vy-stat-k">In progress</span><span class="vy-stat-v">{{ $housekeeping['in_progress'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Clean</span><span class="vy-stat-v">{{ $housekeeping['clean'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#43A06B;"></span><span class="vy-stat-k">Inspected</span><span class="vy-stat-v">{{ $housekeeping['inspected'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.hk_dirty') }}</span><span class="vy-stat-v">{{ $housekeeping['pending'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E0921E;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.hk_in_progress') }}</span><span class="vy-stat-v">{{ $housekeeping['in_progress'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.hk_clean') }}</span><span class="vy-stat-v">{{ $housekeeping['clean'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#43A06B;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.hk_inspected') }}</span><span class="vy-stat-v">{{ $housekeeping['inspected'] }}</span></div>
                         </div>
-                        <div class="vy-hk-progress-label" style="margin-top: 14px;"><span>{{ $housekeeping['to_clean'] }} to clean</span><span>{{ $hkDone }}/{{ $hkTotal }} done</span></div>
+                        <div class="vy-hk-progress-label" style="margin-top: 14px;"><span>{{ trans_choice('livewire/operator/dashboard.to_clean', $housekeeping['to_clean'], ['count' => $housekeeping['to_clean']]) }}</span><span>{{ trans_choice('livewire/operator/dashboard.done_of', $hkTotal, ['done' => $hkDone, 'count' => $hkTotal]) }}</span></div>
                         <div class="vy-hk-progress" style="margin-top: 5px;"><span style="width: {{ $hkPct }}%"></span></div>
-                        <a class="vy-arr-link" href="{{ route('app.housekeeping') }}" style="display:inline-block; margin-top:12px;">Open board →</a>
+                        <a class="vy-arr-link" href="{{ route('app.housekeeping') }}" style="display:inline-block; margin-top:12px;">{{ __('livewire/operator/dashboard.open_board') }}</a>
                     </div>
 
                     {{-- Maintenance — REAL out-of-order units + on-hold nightly rate (honest omit if no rate) --}}
                     <div class="vy-card">
                         <div class="vy-rail-head">
-                            <span class="vy-eyebrow">Maintenance</span>
-                            <a class="vy-arr-link" href="{{ route('app.maintenance') }}">View all →</a>
+                            <span class="vy-eyebrow">{{ __('livewire/operator/dashboard.maintenance') }}</span>
+                            <a class="vy-arr-link" href="{{ route('app.maintenance') }}">{{ __('livewire/operator/dashboard.view_all') }}</a>
                         </div>
                         {{-- Per-status rail cards — REAL active-ticket counts (open/urgent/awaiting-parts/out-of-order). --}}
                         <div class="vy-stat-list">
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#8A8079;"></span><span class="vy-stat-k">Open</span><span class="vy-stat-v">{{ $kpis['work_orders'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E8703A;"></span><span class="vy-stat-k">Urgent</span><span class="vy-stat-v">{{ $kpis['work_orders_urgent'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Awaiting parts</span><span class="vy-stat-v">{{ $maintenance['awaiting_parts'] }}</span></div>
-                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Out of order</span><span class="vy-stat-v">{{ $maintenance['out_of_order'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#8A8079;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.mt_open') }}</span><span class="vy-stat-v">{{ $kpis['work_orders'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E8703A;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.mt_urgent') }}</span><span class="vy-stat-v">{{ $kpis['work_orders_urgent'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.mt_awaiting_parts') }}</span><span class="vy-stat-v">{{ $maintenance['awaiting_parts'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">{{ __('livewire/operator/dashboard.mt_out_of_order') }}</span><span class="vy-stat-v">{{ $maintenance['out_of_order'] }}</span></div>
                         </div>
                         {{-- The design closes this card with a highlighted callout through to Maintenance.
                              Both figures are REAL (out-of-order unit count + the nightly rate genuinely on
@@ -314,8 +315,8 @@
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
                                 </span>
                                 <span style="min-width:0; flex:1;">
-                                    <span class="vy-oo-t">{{ $maintenance['out_of_order'] }} {{ \Illuminate\Support\Str::plural('unit', $maintenance['out_of_order']) }} out of order</span>
-                                    <span class="vy-oo-s">{{ $maintenance['on_hold'] }} / night on hold</span>
+                                    <span class="vy-oo-t">{{ trans_choice('livewire/operator/dashboard.units_out_of_order', $maintenance['out_of_order'], ['count' => $maintenance['out_of_order']]) }}</span>
+                                    <span class="vy-oo-s">{{ __('livewire/operator/dashboard.on_hold_per_night', ['amount' => $maintenance['on_hold']]) }}</span>
                                 </span>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color: var(--vy-muted);"><path d="M9 6l6 6-6 6"/></svg>
                             </a>
@@ -326,18 +327,18 @@
                          when the org's plan grants channels (the page itself is Pro-gated); null → omitted. --}}
                     @if (! empty($channels))
                     <div class="vy-card">
-                        <div class="vy-rail-head"><span class="vy-eyebrow">Channels</span></div>
+                        <div class="vy-rail-head"><span class="vy-eyebrow">{{ __('livewire/operator/dashboard.channels') }}</span></div>
                         @foreach ($channels as $c)
                             <div class="vy-mini-row">
                                 <span class="vy-mini-k">{{ $c['name'] }}</span>
                                 @if ($c['connected'])
-                                    <span class="vy-chan-status is-synced"><span class="vy-dot"></span>Synced{{ $c['last_sync'] ? ' · '.$c['last_sync'] : '' }}</span>
+                                    <span class="vy-chan-status is-synced"><span class="vy-dot"></span>{{ $c['last_sync'] ? __('livewire/operator/dashboard.synced_ago', ['when' => $c['last_sync']]) : __('livewire/operator/dashboard.synced') }}</span>
                                 @else
-                                    <span class="vy-chan-status is-off"><span class="vy-dot"></span>Not connected</span>
+                                    <span class="vy-chan-status is-off"><span class="vy-dot"></span>{{ __('livewire/operator/dashboard.not_connected') }}</span>
                                 @endif
                             </div>
                         @endforeach
-                        <div class="vy-line-sub" style="margin-top:8px;font-size:11.5px;color:var(--vy-muted)">Channel sync activates with your OTA connection.</div>
+                        <div class="vy-line-sub" style="margin-top:8px;font-size:11.5px;color:var(--vy-muted)">{{ __('livewire/operator/dashboard.channel_sync_note') }}</div>
                     </div>
                     @endif
                 </div>

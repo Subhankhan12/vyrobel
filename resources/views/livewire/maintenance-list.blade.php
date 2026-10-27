@@ -20,7 +20,7 @@
 
      RAW-BLADE RULE: never write `word@directive` — every `@` below follows a space, newline, tag, quote or bracket. --}}
 <div class="vy-mnt">
-    <x-operator.shell active="maintenance" title="Maintenance" subtitle="Work orders across your units" :viewer="$viewer">
+    <x-operator.shell active="maintenance" :title="__('livewire/maintenance-list.title')" :subtitle="__('livewire/maintenance-list.subtitle')" :viewer="$viewer">
 
         @if (session('mt_notice'))
             <div class="vy-flash is-ok vy-fade">{{ session('mt_notice') }}</div>
@@ -41,29 +41,29 @@
             {{-- ── The figures — real counts over the whole board, whatever is filtered below ──────────────── --}}
             <div class="vy-dash-kpis vy-dash-kpis--5 vy-fade">
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Active</div>
+                    <div class="vy-dk-label">{{ __('livewire/maintenance-list.kpi_active') }}</div>
                     <div class="vy-dk-val">{{ $kpis['open'] }}</div>
-                    <div class="vy-dk-sub">not started or in progress</div>
+                    <div class="vy-dk-sub">{{ __('livewire/maintenance-list.kpi_active_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Urgent</div>
+                    <div class="vy-dk-label">{{ __('livewire/maintenance-list.kpi_urgent') }}</div>
                     <div class="vy-dk-val">{{ $kpis['urgent'] }}</div>
-                    <div class="vy-dk-sub">still open</div>
+                    <div class="vy-dk-sub">{{ __('livewire/maintenance-list.kpi_urgent_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Awaiting parts</div>
+                    <div class="vy-dk-label">{{ __('livewire/maintenance-list.awaiting_parts') }}</div>
                     <div class="vy-dk-val">{{ $kpis['parts'] }}</div>
-                    <div class="vy-dk-sub">waiting on a part</div>
+                    <div class="vy-dk-sub">{{ __('livewire/maintenance-list.kpi_parts_sub') }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Out of order</div>
+                    <div class="vy-dk-label">{{ __('livewire/maintenance-list.out_of_order') }}</div>
                     <div class="vy-dk-val">{{ $kpis['ooo'] }}</div>
-                    <div class="vy-dk-sub">{{ \Illuminate\Support\Str::plural('unit', $kpis['ooo']) }} off sale</div>
+                    <div class="vy-dk-sub">{{ trans_choice('livewire/maintenance-list.kpi_ooo_sub', $kpis['ooo']) }}</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Resolved</div>
+                    <div class="vy-dk-label">{{ __('livewire/maintenance-list.resolved') }}</div>
                     <div class="vy-dk-val">{{ $kpis['done'] }}</div>
-                    <div class="vy-dk-sub">in the last 7 days</div>
+                    <div class="vy-dk-sub">{{ __('livewire/maintenance-list.kpi_done_sub') }}</div>
                 </div>
             </div>
 
@@ -77,10 +77,10 @@
                     @endforeach
                     <svg class="vy-gl-search-ico" x-show="! loading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <span class="vy-gl-spinner" x-show="loading" x-cloak aria-hidden="true"></span>
-                    <label class="vy-sr-only" for="vy-mt-q">Search work orders</label>
+                    <label class="vy-sr-only" for="vy-mt-q">{{ __('livewire/maintenance-list.search_label') }}</label>
                     <input id="vy-mt-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" x-model="q"
-                           @input.debounce.300ms="search()" placeholder="Search issue, unit, category or technician" maxlength="80" autocomplete="off" spellcheck="false">
-                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="Clear search">
+                           @input.debounce.300ms="search()" placeholder="{{ __('livewire/maintenance-list.search_placeholder') }}" maxlength="80" autocomplete="off" spellcheck="false">
+                    <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="{{ __('livewire/maintenance-list.clear_search') }}">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </form>
@@ -88,22 +88,22 @@
                 <div class="vy-gl-tools">
                     {{-- WAVE 2 · #18 — both pages are gated maintenance.manage, so the links are too ("never invite a 403"). --}}
                     @if ($canManage)
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}">Costs report</a>
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}">Settings</a>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}">{{ __('livewire/maintenance-list.costs_report') }}</a>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}">{{ __('livewire/maintenance-list.settings') }}</a>
                         <button type="button" class="vy-btn vy-btn--ghost vy-gl-select" :class="selectMode && 'is-on'" :aria-pressed="selectMode ? 'true' : 'false'" @click="toggleMode()">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
-                            <span x-text="selectMode ? 'Done' : 'Select'">Select</span>
+                            <span x-text="selectMode ? @js(__('common.done')) : @js(__('livewire/maintenance-list.select'))">{{ __('livewire/maintenance-list.select') }}</span>
                         </button>
                     @endif
                     @if ($canWrite)
                         <button type="button" class="vy-btn vy-btn--accent" @click="nwoOpen = true">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                            New work order
+                            {{ __('livewire/maintenance-list.new_work_order') }}
                         </button>
                     @endif
                 </div>
 
-                <div class="vy-gl-chips vy-mt-chips" data-gl-region="chips" role="group" aria-label="Show">
+                <div class="vy-gl-chips vy-mt-chips" data-gl-region="chips" role="group" aria-label="{{ __('livewire/maintenance-list.chips_label') }}">
                     @foreach ($chips as $chip)
                         <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
                     @endforeach
@@ -121,10 +121,10 @@
                             <span class="vy-gl-empty-ico" aria-hidden="true">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5a2.1 2.1 0 0 0 3 3l5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
                             </span>
-                            <h2 class="vy-gl-empty-title">No work orders</h2>
-                            <p class="vy-gl-empty-text">Nothing is open, and nothing was resolved in the last 7 days.</p>
+                            <h2 class="vy-gl-empty-title">{{ __('livewire/maintenance-list.empty_title') }}</h2>
+                            <p class="vy-gl-empty-text">{{ __('livewire/maintenance-list.empty_text') }}</p>
                             @if ($canWrite)
-                                <button type="button" class="vy-btn vy-btn--accent" @click="nwoOpen = true">New work order</button>
+                                <button type="button" class="vy-btn vy-btn--accent" @click="nwoOpen = true">{{ __('livewire/maintenance-list.new_work_order') }}</button>
                             @endif
                         </div>
                     @elseif ($rows->total() === 0)
@@ -133,41 +133,41 @@
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                             </span>
                             <h2 class="vy-gl-empty-title">
-                                @if ($query !== '') No work orders match “{{ $query }}” @else No work orders in this view @endif
+                                @if ($query !== '') {{ __('livewire/maintenance-list.no_match', ['query' => $query]) }} @else {{ __('livewire/maintenance-list.empty_view') }} @endif
                             </h2>
-                            <p class="vy-gl-empty-text">Search looks at the issue, the unit, the category and the technician. {{ $windowTotal }} {{ \Illuminate\Support\Str::plural('work order', $windowTotal) }} on the board in all.</p>
-                            <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance') }}" data-gl-key="clear-all">Clear search and filters</a>
+                            <p class="vy-gl-empty-text">{{ trans_choice('livewire/maintenance-list.no_match_text', $windowTotal) }}</p>
+                            <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance') }}" data-gl-key="clear-all">{{ __('livewire/maintenance-list.clear_all') }}</a>
                         </div>
                     @else
                         <div class="vy-card vy-gl-card vy-fade">
                             <div class="vy-gl-progress" aria-hidden="true"></div>
                             <div class="vy-gl-scroll">
                                 <table class="vy-gl-table vy-mt-table">
-                                    <caption class="vy-sr-only">Work orders, {{ $sortedBy }}</caption>
+                                    <caption class="vy-sr-only">{{ __('livewire/maintenance-list.caption', ['sorted' => $sortedBy]) }}</caption>
                                     <thead>
                                         <tr>
                                             @if ($canManage)
                                                 <th class="vy-gl-check" x-show="selectMode" x-cloak>
-                                                    <input type="checkbox" aria-label="Select every work order on this page"
+                                                    <input type="checkbox" aria-label="{{ __('livewire/maintenance-list.select_page') }}"
                                                            :checked="allOnPage()" x-effect="$el.indeterminate = someOnPage()" @change="selectPage($event.target.checked)">
                                                 </th>
                                             @endif
-                                            <th>Work order</th>
+                                            <th>{{ __('livewire/maintenance-list.col_work_order') }}</th>
                                             <th aria-sort="{{ $sorts['unit']['aria'] }}">
-                                                <a class="vy-gl-sort {{ $sorts['unit']['active'] ? 'is-on is-'.$sorts['unit']['dir'] : '' }}" href="{{ $sorts['unit']['href'] }}" data-gl-key="sort-unit">Unit<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                <a class="vy-gl-sort {{ $sorts['unit']['active'] ? 'is-on is-'.$sorts['unit']['dir'] : '' }}" href="{{ $sorts['unit']['href'] }}" data-gl-key="sort-unit">{{ __('livewire/maintenance-list.unit') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
                                             <th aria-sort="{{ $sorts['priority']['aria'] }}">
-                                                <a class="vy-gl-sort {{ $sorts['priority']['active'] ? 'is-on is-'.$sorts['priority']['dir'] : '' }}" href="{{ $sorts['priority']['href'] }}" data-gl-key="sort-priority">Priority<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                <a class="vy-gl-sort {{ $sorts['priority']['active'] ? 'is-on is-'.$sorts['priority']['dir'] : '' }}" href="{{ $sorts['priority']['href'] }}" data-gl-key="sort-priority">{{ __('livewire/maintenance-list.priority') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
-                                            <th>Status</th>
-                                            <th class="vy-mt-c-who">Assigned to</th>
+                                            <th>{{ __('common.status') }}</th>
+                                            <th class="vy-mt-c-who">{{ __('livewire/maintenance-list.assigned_to') }}</th>
                                             <th aria-sort="{{ $sorts['due']['aria'] }}">
-                                                <a class="vy-gl-sort {{ $sorts['due']['active'] ? 'is-on is-'.$sorts['due']['dir'] : '' }}" href="{{ $sorts['due']['href'] }}" data-gl-key="sort-due">Time to target<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                <a class="vy-gl-sort {{ $sorts['due']['active'] ? 'is-on is-'.$sorts['due']['dir'] : '' }}" href="{{ $sorts['due']['href'] }}" data-gl-key="sort-due">{{ __('livewire/maintenance-list.time_to_target') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
                                             <th aria-sort="{{ $sorts['reported']['aria'] }}">
-                                                <a class="vy-gl-sort {{ $sorts['reported']['active'] ? 'is-on is-'.$sorts['reported']['dir'] : '' }}" href="{{ $sorts['reported']['href'] }}" data-gl-key="sort-reported">Reported<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                                <a class="vy-gl-sort {{ $sorts['reported']['active'] ? 'is-on is-'.$sorts['reported']['dir'] : '' }}" href="{{ $sorts['reported']['href'] }}" data-gl-key="sort-reported">{{ __('livewire/maintenance-list.reported') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
-                                            <th class="vy-gl-actcol"><span class="vy-sr-only">Actions</span></th>
+                                            <th class="vy-gl-actcol"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -175,30 +175,30 @@
                                             <tr data-gl-id="{{ $row['id'] }}" data-mt-actions="{{ implode(' ', $row['actions']) }}" :class="sel['{{ $row['id'] }}'] && 'is-selected'">
                                                 @if ($canManage)
                                                     <td class="vy-gl-check" x-show="selectMode" x-cloak>
-                                                        <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="Select {{ $row['title'] }}">
+                                                        <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="{{ __('livewire/maintenance-list.select_row', ['title' => $row['title']]) }}">
                                                     </td>
                                                 @endif
                                                 <td class="vy-mt-ordercell">
                                                     <div class="vy-gl-nameline">
                                                         <button type="button" class="vy-gl-name vy-rowopen" @click="openDetail('{{ $row['id'] }}')">{{ $row['title'] }}</button>
-                                                        @if ($row['oos']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>Out of order</span> @endif
-                                                        @if ($row['awaiting_parts']) <span class="vy-tag tone-tag"><span class="vy-dot"></span>Awaiting parts</span> @endif
+                                                        @if ($row['oos']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>{{ __('livewire/maintenance-list.out_of_order') }}</span> @endif
+                                                        @if ($row['awaiting_parts']) <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ __('livewire/maintenance-list.awaiting_parts') }}</span> @endif
                                                     </div>
                                                     <div class="vy-gl-contact">{{ $row['category'] }}</div>
                                                 </td>
-                                                <td class="vy-mt-c-unit" data-label="Unit"><span class="vy-mt-unit">{{ $row['unit'] }}</span></td>
-                                                <td class="vy-mt-c-prio" data-label="Priority"><span class="vy-mt-prio is-{{ $row['priority'] }}">{{ $row['priority_label'] }}</span></td>
-                                                <td class="vy-mt-c-status" data-label="Status"><span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span></td>
-                                                <td class="vy-mt-c-who" data-label="Assigned to">
+                                                <td class="vy-mt-c-unit" data-label="{{ __('livewire/maintenance-list.unit') }}"><span class="vy-mt-unit">{{ $row['unit'] }}</span></td>
+                                                <td class="vy-mt-c-prio" data-label="{{ __('livewire/maintenance-list.priority') }}"><span class="vy-mt-prio is-{{ $row['priority'] }}">{{ $row['priority_label'] }}</span></td>
+                                                <td class="vy-mt-c-status" data-label="{{ __('common.status') }}"><span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span></td>
+                                                <td class="vy-mt-c-who" data-label="{{ __('livewire/maintenance-list.assigned_to') }}">
                                                     @if ($row['assignee'] !== null)
                                                         <span class="vy-mt-tech"><span class="vy-gl-avatar tone-{{ strlen($row['assignee']) % 4 + 1 }}" aria-hidden="true">{{ $row['assignee_initials'] }}</span>{{ $row['assignee'] }}</span>
                                                     @else
-                                                        <span class="vy-gl-none">Unassigned</span>
+                                                        <span class="vy-gl-none">{{ __('livewire/maintenance-list.unassigned') }}</span>
                                                     @endif
                                                 </td>
-                                                <td class="vy-mt-c-due" data-label="Time to target">
+                                                <td class="vy-mt-c-due" data-label="{{ __('livewire/maintenance-list.time_to_target') }}">
                                                     @if ($row['status'] === 'resolved')
-                                                        <span class="vy-gl-none">Resolved {{ $row['resolved'] }}</span>
+                                                        <span class="vy-gl-none">{{ __('livewire/maintenance-list.resolved_on', ['date' => $row['resolved']]) }}</span>
                                                     @elseif ($row['sla']['label'] !== '')
                                                         {{-- AXIS 3 (DataConditionalContrastTest): both warning colours are the AA text tokens. --}}
                                                         <span class="vy-mt-due" style="color: {{ $row['sla']['breached'] ? 'var(--vy-accent-text)' : ($row['sla']['due_soon'] ? 'var(--vy-amber-text)' : 'var(--vy-ink)') }};">{{ $row['sla']['label'] }}</span>
@@ -206,9 +206,9 @@
                                                         <span class="vy-gl-none">—</span>
                                                     @endif
                                                 </td>
-                                                <td class="vy-mt-c-when" data-label="Reported"><span class="vy-gl-when">{{ $row['reported_ago'] }}</span></td>
+                                                <td class="vy-mt-c-when" data-label="{{ __('livewire/maintenance-list.reported') }}"><span class="vy-gl-when">{{ $row['reported_ago'] }}</span></td>
                                                 <td class="vy-gl-actcol">
-                                                    <button type="button" class="vy-gl-more" aria-label="Actions for {{ $row['title'] }}" aria-controls="vy-mt-menu"
+                                                    <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/maintenance-list.row_actions', ['title' => $row['title']]) }}" aria-controls="vy-mt-menu"
                                                             :aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" @click="openMenu($event, row('{{ $row['id'] }}'))">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
                                                     </button>
@@ -222,26 +222,26 @@
                             {{-- The footer — where you are, how many per page, the way to the next page, and what the board holds.
                                  OUTSIDE the table. The old line said "from the last 7 days" while listing open work of any age. --}}
                             <div class="vy-gl-foot" data-gl-foot>
-                                <p class="vy-gl-summary" data-gl-summary tabindex="-1"><strong>{{ $rows->firstItem() }}–{{ $rows->lastItem() }}</strong> of <strong>{{ $rows->total() }}</strong> {{ \Illuminate\Support\Str::plural('work order', $rows->total()) }}<span class="vy-gl-sorted"> · {{ $sortedBy }}</span></p>
+                                <p class="vy-gl-summary" data-gl-summary tabindex="-1">{!! trans_choice('livewire/maintenance-list.summary', $rows->total(), ['first' => e($rows->firstItem()), 'last' => e($rows->lastItem()), 'count' => e($rows->total()), 'sorted' => e($sortedBy)]) !!}</p>
                                 <div class="vy-gl-paging">
-                                    <span class="vy-gl-rows-label" id="vy-mt-rows">Rows</span>
+                                    <span class="vy-gl-rows-label" id="vy-mt-rows">{{ __('livewire/maintenance-list.rows') }}</span>
                                     <div class="vy-gl-sizes" role="group" aria-labelledby="vy-mt-rows">
                                         @foreach ($sizes as $size)
                                             <a class="vy-gl-size {{ $size['active'] ? 'is-on' : '' }}" href="{{ $size['href'] }}" data-gl-key="per-{{ $size['size'] }}" @if ($size['active']) aria-current="true" @endif>{{ $size['size'] }}</a>
                                         @endforeach
                                     </div>
                                     @if ($rows->lastPage() > 1)
-                                        <nav class="vy-gl-pages" aria-label="Pages">
+                                        <nav class="vy-gl-pages" aria-label="{{ __('livewire/maintenance-list.pages_label') }}">
                                             @if ($pages['prev'] !== null)
-                                                <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="Previous page">
+                                                <a class="vy-gl-page" href="{{ $pages['prev'] }}" data-gl-key="page-prev" rel="prev" aria-label="{{ __('livewire/maintenance-list.prev_page') }}">
                                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
                                                 </a>
                                             @else
                                                 <span class="vy-gl-page is-off" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>
                                             @endif
-                                            <span class="vy-gl-pagepos">Page {{ $rows->currentPage() }} of {{ $rows->lastPage() }}</span>
+                                            <span class="vy-gl-pagepos">{{ __('livewire/maintenance-list.page_of', ['current' => $rows->currentPage(), 'last' => $rows->lastPage()]) }}</span>
                                             @if ($pages['next'] !== null)
-                                                <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="Next page">
+                                                <a class="vy-gl-page" href="{{ $pages['next'] }}" data-gl-key="page-next" rel="next" aria-label="{{ __('livewire/maintenance-list.next_page') }}">
                                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                                 </a>
                                             @else
@@ -250,7 +250,7 @@
                                         </nav>
                                     @endif
                                 </div>
-                                <p class="vy-mt-window">The board shows work orders that are open, and resolved in the last 7 days.@if ($canManage) Costs from older work are in the <a class="vy-gl-link" href="{{ route('app.maintenance.costs') }}">costs report</a>.@endif</p>
+                                <p class="vy-mt-window">{{ __('livewire/maintenance-list.window_note') }}@if ($canManage) {!! __('livewire/maintenance-list.window_costs', ['url' => e(route('app.maintenance.costs'))]) !!}@endif</p>
                             </div>
                         </div>
                         {{-- Each row on this page, once — what the row menu and the drawer open with. JSON, never run. --}}
@@ -259,46 +259,46 @@
                 </div>
 
                 {{-- ── The rail — the out-of-order hero, technicians and parts (the whole board, not the filter) ─── --}}
-                <aside class="vy-mt-rail" aria-label="Out of order, technicians and parts">
+                <aside class="vy-mt-rail" aria-label="{{ __('livewire/maintenance-list.rail_label') }}">
                     <div class="vy-tonight vy-mt-oos vy-fade">
-                        <div class="vy-dk-label vy-mt-oos-label">Out of order</div>
-                        <p class="vy-mt-oos-count"><span class="vy-mt-oos-n">{{ $oosHero['count'] }}</span> {{ \Illuminate\Support\Str::plural('unit', $oosHero['count']) }} blocked</p>
-                        <p class="vy-mt-oos-units">{{ $oosHero['units'] !== '' ? $oosHero['units'] : 'No units blocked — all clear' }}</p>
+                        <div class="vy-dk-label vy-mt-oos-label">{{ __('livewire/maintenance-list.out_of_order') }}</div>
+                        <p class="vy-mt-oos-count">{!! trans_choice('livewire/maintenance-list.oos_blocked', $oosHero['count'], ['count' => e($oosHero['count'])]) !!}</p>
+                        <p class="vy-mt-oos-units">{{ $oosHero['units'] !== '' ? $oosHero['units'] : __('livewire/maintenance-list.oos_none') }}</p>
                         @if ($oosHero['on_hold'] !== null)
                             <div class="vy-mt-oos-hold">
-                                <strong>{{ $oosHero['on_hold'] }} / night</strong>
+                                <strong>{{ __('livewire/maintenance-list.per_night', ['amount' => $oosHero['on_hold']]) }}</strong>
                                 {{-- tonight's standard rate for each blocked unit — what they are not selling tonight, not a "revenue" figure (2026-10-05) --}}
-                                <span>tonight’s rate for the units blocked</span>
+                                <span>{{ __('livewire/maintenance-list.tonight_rate') }}</span>
                             </div>
                         @endif
                     </div>
 
                     <div class="vy-card vy-mt-panel vy-fade">
-                        <h2 class="vy-card-title">Technicians</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/maintenance-list.technicians') }}</h2>
                         @forelse ($technicians as $tech)
                             <div class="vy-mt-panel-row">
                                 <span class="vy-mt-tech"><span class="vy-gl-avatar tone-{{ strlen($tech['name']) % 4 + 1 }}" aria-hidden="true">{{ $tech['initials'] }}</span><span>
                                     <span class="vy-mt-panel-name">{{ $tech['name'] }}</span>
-                                    <span class="vy-mt-panel-sub">{{ $tech['load'] }} open @if ($tech['urgent'] > 0) · {{ $tech['urgent'] }} urgent @endif</span>
+                                    <span class="vy-mt-panel-sub">@if ($tech['urgent'] > 0) {{ __('livewire/maintenance-list.tech_open_urgent', ['open' => $tech['load'], 'urgent' => $tech['urgent']]) }} @else {{ __('livewire/maintenance-list.tech_open', ['open' => $tech['load']]) }} @endif</span>
                                 </span></span>
                             </div>
                         @empty
-                            <p class="vy-mt-panel-empty">No technicians have open work right now.</p>
+                            <p class="vy-mt-panel-empty">{{ __('livewire/maintenance-list.tech_empty') }}</p>
                         @endforelse
                     </div>
 
                     <div class="vy-card vy-mt-panel vy-fade">
-                        <h2 class="vy-card-title">Parts on order</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/maintenance-list.parts_on_order') }}</h2>
                         @forelse ($partsOnOrder as $part)
                             <div class="vy-mt-panel-row">
                                 <span>
-                                    <span class="vy-mt-panel-name">{{ $part['part_name'] ?? 'Part' }}</span>
-                                    <span class="vy-mt-panel-sub">{{ $part['unit'] }}@if ($part['part_eta']) · arrives {{ $part['part_eta'] }} @endif</span>
+                                    <span class="vy-mt-panel-name">{{ $part['part_name'] ?? __('livewire/maintenance-list.part_fallback') }}</span>
+                                    <span class="vy-mt-panel-sub">@if ($part['part_eta']) {{ __('livewire/maintenance-list.part_arrives', ['unit' => $part['unit'], 'date' => $part['part_eta']]) }} @else {{ $part['unit'] }} @endif</span>
                                 </span>
-                                <span class="vy-tag tone-tag"><span class="vy-dot"></span>On order</span>
+                                <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ __('livewire/maintenance-list.on_order') }}</span>
                             </div>
                         @empty
-                            <p class="vy-mt-panel-empty">Nothing on order.</p>
+                            <p class="vy-mt-panel-empty">{{ __('livewire/maintenance-list.nothing_on_order') }}</p>
                         @endforelse
                     </div>
                 </aside>
@@ -312,21 +312,21 @@
                  @click.outside="closeMenu(false)" @keydown.escape.prevent.stop="closeMenu(true)" @focusout="leaveMenu($event)">
                 <button type="button" class="vy-gl-menu-item" @click="menuAct('details')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M15 4v16"/></svg>
-                    Open details
+                    {{ __('livewire/maintenance-list.open_details') }}
                 </button>
                 <a class="vy-gl-menu-item" :href="menu.row ? link(urls.show, menu.row.id) : '#'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
-                    Open full record
+                    {{ __('livewire/maintenance-list.open_full_record') }}
                 </a>
                 @if ($canWrite)
                     <span class="vy-gl-menu-sep" x-show="can('edit')" aria-hidden="true"></span>
                     <button type="button" class="vy-gl-menu-item" x-show="can('edit')" @click="menuAct('edit')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-                        Edit details
+                        {{ __('livewire/maintenance-list.edit_details') }}
                     </button>
                     <button type="button" class="vy-gl-menu-item" x-show="can('assign')" @click="menuAct('assign')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c0-3.6 2.9-6.5 6.5-6.5 1.4 0 2.7.4 3.7 1.2M16 17l2 2 4-4"/></svg>
-                        <span x-text="menu.row && menu.row.assignee ? 'Change technician' : 'Assign technician'">Assign technician</span>
+                        <span x-text="menu.row && menu.row.assignee ? @js(__('livewire/maintenance-list.change_technician')) : @js(__('livewire/maintenance-list.assign_technician'))">{{ __('livewire/maintenance-list.assign_technician') }}</span>
                     </button>
                     <form method="POST" x-show="can('start')" :action="menu.row ? link(urls.start, menu.row.id) : '#'" data-guard-submit @submit="stamp($event.target)">
                         @csrf
@@ -334,35 +334,35 @@
                         <input type="hidden" name="return_query" value="">
                         <button type="submit" class="vy-gl-menu-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>
-                            Start work
+                            {{ __('livewire/maintenance-list.start_work') }}
                         </button>
                     </form>
                     <button type="button" class="vy-gl-menu-item" x-show="can('resolve')" @click="menuAct('resolve')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-10"/></svg>
-                        Mark resolved
+                        {{ __('livewire/maintenance-list.mark_resolved') }}
                     </button>
                     <button type="button" class="vy-gl-menu-item is-danger" x-show="can('cancel')" @click="menuAct('cancel')">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
-                        Cancel work order
+                        {{ __('livewire/maintenance-list.cancel_work_order') }}
                     </button>
                 @endif
             </div>
 
             {{-- ── The bulk bar — select mode, one or more selected (maintenance.manage, like every bulk route) ───── --}}
             @if ($canManage)
-                <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="Selected work orders">
-                    <span class="vy-gl-bulk-count"><strong x-text="count()"></strong> selected</span>
-                    <button type="button" class="vy-gl-bulk-clear" @click="clear()">Clear</button>
+                <div class="vy-gl-bulk" x-show="selectMode && count()" x-cloak x-transition role="region" aria-label="{{ __('livewire/maintenance-list.bulk_label') }}">
+                    <span class="vy-gl-bulk-count">{!! __('livewire/maintenance-list.bulk_selected') !!}</span>
+                    <button type="button" class="vy-gl-bulk-clear" @click="clear()">{{ __('common.clear') }}</button>
                     <span class="vy-gl-bulk-sep" aria-hidden="true"></span>
                     {{-- Export — a CSV of exactly the selected work orders (no guest data on a work order) --}}
                     <form method="POST" action="{{ route('app.maintenance.bulk.export') }}">
                         @csrf
                         <template x-for="id in ids()" :key="id"><input type="hidden" name="ticket_ids[]" :value="id"></template>
-                        <button type="submit" class="vy-gl-bulk-act">Export</button>
+                        <button type="submit" class="vy-gl-bulk-act">{{ __('common.export') }}</button>
                     </form>
                     @if ($canWrite)
-                        <button type="button" class="vy-gl-bulk-act" @click="bulkAssign()">Assign</button>
-                        <button type="button" class="vy-gl-bulk-act" @click="bulkResolve()">Resolve</button>
+                        <button type="button" class="vy-gl-bulk-act" @click="bulkAssign()">{{ __('livewire/maintenance-list.assign') }}</button>
+                        <button type="button" class="vy-gl-bulk-act" @click="bulkResolve()">{{ __('livewire/maintenance-list.bulk_resolve') }}</button>
                     @endif
                 </div>
             @endif
@@ -380,44 +380,44 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5a2.1 2.1 0 0 0 3 3l5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-mt-new-t">New work order</h3>
-                                    <p class="vy-modal-sub">Logged now — assign a technician from the board once it’s created.</p>
+                                    <h3 class="vy-modal-title" id="vy-mt-new-t">{{ __('livewire/maintenance-list.new_work_order') }}</h3>
+                                    <p class="vy-modal-sub">{{ __('livewire/maintenance-list.new_sub') }}</p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="nwoOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="nwoOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-mt-n-title">Issue</label>
-                                    <input class="vy-input" id="vy-mt-n-title" type="text" name="title" maxlength="160" required placeholder="e.g. AC not cooling" autocomplete="off" autofocus>
+                                    <label class="vy-field-label" for="vy-mt-n-title">{{ __('livewire/maintenance-list.issue') }}</label>
+                                    <input class="vy-input" id="vy-mt-n-title" type="text" name="title" maxlength="160" required placeholder="{{ __('livewire/maintenance-list.issue_placeholder') }}" autocomplete="off" autofocus>
                                 </div>
                                 @if ($unitOptions === [])
-                                    <p class="vy-gl-errors">There are no units here yet — add one before raising a work order.</p>
+                                    <p class="vy-gl-errors">{{ __('livewire/maintenance-list.no_units') }}</p>
                                 @else
                                     <div class="vy-field">
-                                        <label class="vy-field-label" for="vy-mt-n-unit">Unit</label>
-                                        <x-select name="unit_id" id="vy-mt-n-unit" :options="$unitOptions" :value="$unitOptions[0]['value']" search-placeholder="Search units" empty-text="No unit matches" />
+                                        <label class="vy-field-label" for="vy-mt-n-unit">{{ __('livewire/maintenance-list.unit') }}</label>
+                                        <x-select name="unit_id" id="vy-mt-n-unit" :options="$unitOptions" :value="$unitOptions[0]['value']" :search-placeholder="__('livewire/maintenance-list.search_units')" :empty-text="__('livewire/maintenance-list.no_unit_match')" />
                                     </div>
                                 @endif
                                 <div class="vy-mt-cats">
-                                    <x-operator.choices name="category" label="Category" :options="$categoryChoices" selected="plumbing" />
+                                    <x-operator.choices name="category" :label="__('livewire/maintenance-list.category')" :options="$categoryChoices" selected="plumbing" />
                                 </div>
-                                <x-operator.choices name="priority" label="Priority" :options="$priorityChoices" selected="normal" variant="segmented" />
+                                <x-operator.choices name="priority" :label="__('livewire/maintenance-list.priority')" :options="$priorityChoices" selected="normal" variant="segmented" />
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-mt-n-desc">Description <span class="vy-fl-note">· optional</span></label>
-                                    <textarea class="vy-input vy-gl-textarea" id="vy-mt-n-desc" name="description" rows="3" maxlength="2000" placeholder="What’s wrong, where exactly, anything the technician should know"></textarea>
+                                    <label class="vy-field-label" for="vy-mt-n-desc">{!! __('livewire/maintenance-list.description_optional') !!}</label>
+                                    <textarea class="vy-input vy-gl-textarea" id="vy-mt-n-desc" name="description" rows="3" maxlength="2000" placeholder="{{ __('livewire/maintenance-list.description_placeholder') }}"></textarea>
                                 </div>
                                 <label class="vy-gl-switch">
                                     <input type="checkbox" name="takes_out_of_service" value="1" x-model="nwoOoo">
-                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Take the room out of order</strong><span>It can’t be sold until this work order is resolved or cancelled.</span></span>
+                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/maintenance-list.ooo_switch') }}</strong><span>{{ __('livewire/maintenance-list.ooo_switch_hint') }}</span></span>
                                 </label>
-                                <p class="vy-mt-warn" x-show="nwoOoo" x-cloak>Nights already booked on this unit will need moving — check the rack first.</p>
-                                <p class="vy-gl-note">Photos can be added from the work order once it’s created.</p>
+                                <p class="vy-mt-warn" x-show="nwoOoo" x-cloak>{{ __('livewire/maintenance-list.ooo_warn') }}</p>
+                                <p class="vy-gl-note">{{ __('livewire/maintenance-list.photos_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="nwoOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" @if ($unitOptions === []) disabled @endif><span x-text="nwoOoo ? 'Create & block room' : 'Create work order'">Create work order</span></button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="nwoOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" @if ($unitOptions === []) disabled @endif><span x-text="nwoOoo ? @js(__('livewire/maintenance-list.create_and_block')) : @js(__('livewire/maintenance-list.create_work_order'))">{{ __('livewire/maintenance-list.create_work_order') }}</span></button>
                             </div>
                         </form>
                     </div>
@@ -437,10 +437,10 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-mt-edit-t">Edit work order</h3>
+                                    <h3 class="vy-modal-title" id="vy-mt-edit-t">{{ __('livewire/maintenance-list.edit_title') }}</h3>
                                     <p class="vy-modal-sub" x-text="edit.ref"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -455,22 +455,22 @@
                                     </div>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-mt-e-title">Issue</label>
+                                    <label class="vy-field-label" for="vy-mt-e-title">{{ __('livewire/maintenance-list.issue') }}</label>
                                     <input class="vy-input" id="vy-mt-e-title" type="text" name="title" maxlength="160" required x-model="edit.title" autocomplete="off">
                                 </div>
                                 <div class="vy-mt-cats">
-                                    <x-operator.choices name="category" label="Category" :options="$categoryChoices" model="edit.category" />
+                                    <x-operator.choices name="category" :label="__('livewire/maintenance-list.category')" :options="$categoryChoices" model="edit.category" />
                                 </div>
-                                <x-operator.choices name="priority" label="Priority" :options="$priorityChoices" model="edit.priority" variant="segmented" />
+                                <x-operator.choices name="priority" :label="__('livewire/maintenance-list.priority')" :options="$priorityChoices" model="edit.priority" variant="segmented" />
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-mt-e-desc">Description <span class="vy-fl-note">· optional</span></label>
+                                    <label class="vy-field-label" for="vy-mt-e-desc">{!! __('livewire/maintenance-list.description_optional') !!}</label>
                                     <textarea class="vy-input vy-gl-textarea" id="vy-mt-e-desc" name="description" rows="3" maxlength="2000" x-model="edit.description"></textarea>
                                 </div>
-                                <p class="vy-gl-note">A new priority moves the target time with it. To change the unit, cancel this work order and raise a new one.</p>
+                                <p class="vy-gl-note">{{ __('livewire/maintenance-list.edit_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                             </div>
                         </form>
                     </div>
@@ -491,16 +491,16 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c0-3.6 2.9-6.5 6.5-6.5 1.4 0 2.7.4 3.7 1.2M16 17l2 2 4-4"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-mt-assign-t">Assign technician</h3>
-                                    <p class="vy-modal-sub" x-text="assign.bulk ? count() + ' ' + (count() === 1 ? 'work order' : 'work orders') + ' selected' : assign.title"></p>
+                                    <h3 class="vy-modal-title" id="vy-mt-assign-t">{{ __('livewire/maintenance-list.assign_technician') }}</h3>
+                                    <p class="vy-modal-sub" x-text="assign.bulk ? counts.assign_selected[count()] : assign.title"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="assignOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="assignOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <fieldset class="vy-gl-fieldset">
-                                    <legend class="vy-field-label">Technician</legend>
+                                    <legend class="vy-field-label">{{ __('livewire/maintenance-list.technician') }}</legend>
                                     <div class="vy-mt-people">
                                     @foreach ($staff as $member)
                                         <label class="vy-mt-person">
@@ -508,7 +508,7 @@
                                             <span class="vy-mt-person-face">
                                                 <span class="vy-gl-avatar tone-{{ strlen($member['name']) % 4 + 1 }}" aria-hidden="true">{{ $member['initials'] }}</span>
                                                 <span class="vy-mt-person-name">{{ $member['name'] }}</span>
-                                                <span class="vy-mt-person-now" x-show="! assign.bulk && assign.current === '{{ $member['id'] }}'" x-cloak>Current</span>
+                                                <span class="vy-mt-person-now" x-show="! assign.bulk && assign.current === '{{ $member['id'] }}'" x-cloak>{{ __('livewire/maintenance-list.current') }}</span>
                                             </span>
                                         </label>
                                     @endforeach
@@ -516,16 +516,16 @@
                                         <input type="radio" name="user_id" value="" x-model="pick">
                                         <span class="vy-mt-person-face">
                                             <span class="vy-gl-avatar tone-erased" aria-hidden="true">–</span>
-                                            <span class="vy-mt-person-name">No one — leave unassigned</span>
+                                            <span class="vy-mt-person-name">{{ __('livewire/maintenance-list.no_one') }}</span>
                                         </span>
                                     </label>
                                     </div>
                                 </fieldset>
-                                <p class="vy-gl-note">It shows under their name on this board. Nothing is sent to their phone.</p>
+                                <p class="vy-gl-note">{{ __('livewire/maintenance-list.assign_note') }}</p>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" :disabled="pick === null || (! assign.bulk && pick === assign.current)">Assign</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" :disabled="pick === null || (! assign.bulk && pick === assign.current)">{{ __('livewire/maintenance-list.assign') }}</button>
                             </div>
                         </form>
                     </div>
@@ -546,41 +546,41 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-10"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-mt-resolve-t" x-text="resolve.bulk ? 'Resolve ' + count() + ' ' + (count() === 1 ? 'work order' : 'work orders') : 'Mark resolved'">Mark resolved</h3>
-                                    <p class="vy-modal-sub" x-text="resolve.bulk ? 'No cost is recorded for these.' : resolve.title"></p>
+                                    <h3 class="vy-modal-title" id="vy-mt-resolve-t" x-text="resolve.bulk ? counts.resolve_n_title[count()] : @js(__('livewire/maintenance-list.mark_resolved'))">{{ __('livewire/maintenance-list.mark_resolved') }}</h3>
+                                    <p class="vy-modal-sub" x-text="resolve.bulk ? @js(__('livewire/maintenance-list.resolve_bulk_sub')) : resolve.title"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="resolveOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="resolveOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <template x-if="resolve.bulk">
-                                    <p class="vy-gl-note vy-mt-first">Each one is marked resolved, and its unit goes back on sale unless another open work order still holds it out of order. Nobody is notified. To record a cost or tell whoever reported it, resolve a work order on its own.</p>
+                                    <p class="vy-gl-note vy-mt-first">{{ __('livewire/maintenance-list.resolve_bulk_note') }}</p>
                                 </template>
                                 <template x-if="! resolve.bulk">
                                     <div>
                                         <div class="vy-field">
-                                            <label class="vy-field-label" for="vy-mt-r-notes">What was done <span class="vy-fl-note">· optional</span></label>
-                                            <textarea class="vy-input vy-gl-textarea" id="vy-mt-r-notes" name="resolution" rows="3" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak."></textarea>
+                                            <label class="vy-field-label" for="vy-mt-r-notes">{!! __('livewire/maintenance-list.what_was_done') !!}</label>
+                                            <textarea class="vy-input vy-gl-textarea" id="vy-mt-r-notes" name="resolution" rows="3" maxlength="2000" placeholder="{{ __('livewire/maintenance-list.what_was_done_placeholder') }}"></textarea>
                                         </div>
                                         <div class="vy-gl-fields">
                                             <div class="vy-field">
-                                                <label class="vy-field-label" for="vy-mt-r-labor">Labour cost <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
+                                                <label class="vy-field-label" for="vy-mt-r-labor">{{ __('livewire/maintenance-list.labour_cost') }} <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
                                                 <input class="vy-input" id="vy-mt-r-labor" type="number" inputmode="decimal" step="0.01" min="0" name="labor" placeholder="0.00">
                                             </div>
                                             <div class="vy-field">
-                                                <label class="vy-field-label" for="vy-mt-r-parts">Parts cost <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
+                                                <label class="vy-field-label" for="vy-mt-r-parts">{{ __('livewire/maintenance-list.parts_cost') }} <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
                                                 <input class="vy-input" id="vy-mt-r-parts" type="number" inputmode="decimal" step="0.01" min="0" name="parts" placeholder="0.00">
                                             </div>
                                         </div>
-                                        <p class="vy-gl-note vy-mt-first">On an owner’s unit, a cost entered here is charged to the owner as a maintenance expense.</p>
+                                        <p class="vy-gl-note vy-mt-first">{{ __('livewire/maintenance-list.owner_charge_note') }}</p>
                                         {{-- Tell whoever reported it — the same switch as the work order page, on unless turned off. The board's
                                              form used to send nothing here, which the server reads as "do not notify". --}}
                                         <template x-if="resolve.reporter">
                                             <div class="vy-mt-sale">
                                                 <label class="vy-gl-switch">
                                                     <input type="checkbox" name="notify" value="1" x-model="notify">
-                                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Notify the front desk</strong><span x-text="'Lets ' + resolve.reporter + ' know it’s fixed and back online'"></span></span>
+                                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>{{ __('livewire/maintenance-list.notify_front_desk') }}</strong><span x-text="@js(__('livewire/maintenance-list.notify_hint')).replace(':name', () => resolve.reporter)"></span></span>
                                                 </label>
                                             </div>
                                         </template>
@@ -589,7 +589,7 @@
                                                 <input type="hidden" name="return_to_sale" :value="ret ? '1' : '0'">
                                                 <label class="vy-gl-switch">
                                                     <input type="checkbox" x-model="ret">
-                                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong x-text="'Put ' + resolve.unit + ' back on sale'"></strong><span x-text="ret ? 'It goes back on sale now, unless another open work order still holds it.' : 'It stays out of order — lift the block later from the rack.'"></span></span>
+                                                    <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong x-text="@js(__('livewire/maintenance-list.back_on_sale')).replace(':unit', () => resolve.unit)"></strong><span x-text="ret ? @js(__('livewire/maintenance-list.back_on_sale_yes')) : @js(__('livewire/maintenance-list.back_on_sale_no'))"></span></span>
                                                 </label>
                                             </div>
                                         </template>
@@ -597,8 +597,8 @@
                                 </template>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="resolveOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent" x-text="resolve.bulk ? 'Resolve ' + count() : 'Mark resolved'">Mark resolved</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="resolveOpen = false">{{ __('common.cancel') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--accent" x-text="resolve.bulk ? @js(__('livewire/maintenance-list.resolve_count')).replace(':n', count()) : @js(__('livewire/maintenance-list.mark_resolved'))">{{ __('livewire/maintenance-list.mark_resolved') }}</button>
                             </div>
                         </form>
                     </div>
@@ -616,23 +616,23 @@
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
                                 </span>
                                 <div class="vy-gl-head-text">
-                                    <h3 class="vy-modal-title" id="vy-mt-cancel-t">Cancel this work order?</h3>
+                                    <h3 class="vy-modal-title" id="vy-mt-cancel-t">{{ __('livewire/maintenance-list.cancel_title') }}</h3>
                                     <p class="vy-modal-sub" x-text="cancel.title"></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="cancelOpen = false" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="cancelOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vy-mt-facts-list">
-                                    <li>It comes off this board and is kept as cancelled, with its history — nothing is deleted.</li>
-                                    <li>No cost is recorded and nothing is charged to an owner.</li>
-                                    <li x-show="cancel.oos" x-text="cancel.unit + ' goes back on sale, unless another open work order still holds it out of order.'"></li>
+                                    <li>{{ __('livewire/maintenance-list.cancel_fact_kept') }}</li>
+                                    <li>{{ __('livewire/maintenance-list.cancel_fact_no_cost') }}</li>
+                                    <li x-show="cancel.oos" x-text="@js(__('livewire/maintenance-list.cancel_fact_sale')).replace(':unit', () => cancel.unit)"></li>
                                 </ul>
                             </div>
                             <div class="vy-modal-foot">
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="cancelOpen = false">Keep it</button>
-                                <button type="submit" class="vy-btn vy-btn--danger">Cancel work order</button>
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="cancelOpen = false">{{ __('livewire/maintenance-list.keep_it') }}</button>
+                                <button type="submit" class="vy-btn vy-btn--danger">{{ __('livewire/maintenance-list.cancel_work_order') }}</button>
                             </div>
                         </form>
                     </div>
@@ -651,52 +651,52 @@
                                     <h3 class="vy-modal-title" id="vy-mt-detail-t" x-text="detail.title"></h3>
                                     <p class="vy-modal-sub"><span x-text="detail.unit"></span> · <span x-text="detail.category"></span></p>
                                 </div>
-                                <button type="button" class="vy-modal-x" @click="closeDetail()" aria-label="Close">
+                                <button type="button" class="vy-modal-x" @click="closeDetail()" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                             </div>
                             <div class="vy-modal-body">
-                                <ol class="vy-mt-steps" aria-label="Progress">
-                                    <template x-for="step in steps(detail)" :key="step.label">
-                                        <li class="vy-mt-step" :class="step.done && 'is-done'"><span class="vy-mt-step-bar" aria-hidden="true"></span><span x-text="step.label"></span><span class="vy-sr-only" x-text="step.done ? ', done' : ', not yet'"></span></li>
+                                <ol class="vy-mt-steps" aria-label="{{ __('livewire/maintenance-list.progress_label') }}">
+                                    <template x-for="step in steps(detail)" :key="step.code">
+                                        <li class="vy-mt-step" :class="step.done && 'is-done'"><span class="vy-mt-step-bar" aria-hidden="true"></span><span x-text="step.label"></span><span class="vy-sr-only" x-text="step.done ? @js(__('livewire/maintenance-list.step_done')) : @js(__('livewire/maintenance-list.step_not_yet'))"></span></li>
                                     </template>
                                 </ol>
                                 <div class="vy-mt-tags">
-                                    <span class="vy-mt-prio" :class="'is-' + detail.priority" x-text="detail.priority_label + ' priority'"></span>
+                                    <span class="vy-mt-prio" :class="'is-' + detail.priority" x-text="@js(__('livewire/maintenance-list.priority_tag')).replace(':priority', () => detail.priority_label)"></span>
                                     <span class="vy-tag" :class="'tone-' + detail.status_meta.tone"><span class="vy-dot"></span><span x-text="detail.status_meta.label"></span></span>
-                                    <template x-if="detail.oos"><span class="vy-tag tone-risk"><span class="vy-dot"></span>Out of order</span></template>
+                                    <template x-if="detail.oos"><span class="vy-tag tone-risk"><span class="vy-dot"></span>{{ __('livewire/maintenance-list.out_of_order') }}</span></template>
                                 </div>
                                 <dl class="vy-mt-facts">
-                                    <div><dt>Technician</dt><dd x-text="detail.assignee || 'Unassigned'"></dd></div>
-                                    <div><dt>Reported</dt><dd x-text="detail.reported_ago"></dd></div>
+                                    <div><dt>{{ __('livewire/maintenance-list.technician') }}</dt><dd x-text="detail.assignee || @js(__('livewire/maintenance-list.unassigned'))"></dd></div>
+                                    <div><dt>{{ __('livewire/maintenance-list.reported') }}</dt><dd x-text="detail.reported_ago"></dd></div>
                                     <template x-if="detail.sla.label && detail.status !== 'resolved'">
-                                        <div><dt>Time to target</dt><dd :class="detail.sla.breached ? 'is-breached' : (detail.sla.due_soon ? 'is-soon' : '')" x-text="detail.sla.label"></dd></div>
+                                        <div><dt>{{ __('livewire/maintenance-list.time_to_target') }}</dt><dd :class="detail.sla.breached ? 'is-breached' : (detail.sla.due_soon ? 'is-soon' : '')" x-text="detail.sla.label"></dd></div>
                                     </template>
                                     <template x-if="detail.resolved">
-                                        <div><dt>Resolved</dt><dd x-text="detail.resolved"></dd></div>
+                                        <div><dt>{{ __('livewire/maintenance-list.resolved') }}</dt><dd x-text="detail.resolved"></dd></div>
                                     </template>
                                     <template x-if="detail.cost">
-                                        <div><dt>Cost</dt><dd><span x-text="detail.cost"></span> <span class="vy-mt-muted" x-text="detail.labor ? '(' + detail.labor + ' labour · ' + (detail.parts_cost || '0') + ' parts)' : ''"></span></dd></div>
+                                        <div><dt>{{ __('livewire/maintenance-list.cost') }}</dt><dd><span x-text="detail.cost"></span> <span class="vy-mt-muted" x-text="detail.labor ? @js(__('livewire/maintenance-list.cost_breakdown')).replace(':parts', () => (detail.parts_cost || '0')).replace(':labor', () => detail.labor) : ''"></span></dd></div>
                                     </template>
                                 </dl>
                                 <template x-if="detail.description">
                                     <p class="vy-mt-desc" x-text="detail.description"></p>
                                 </template>
                                 <template x-if="detail.awaiting_parts">
-                                    <p class="vy-mt-part"><span x-text="'Waiting on ' + (detail.part_name || 'a part')"></span><span x-text="detail.part_eta ? ' · arrives ' + detail.part_eta : ''"></span></p>
+                                    <p class="vy-mt-part"><span x-text="(detail.part_eta ? @js(__('livewire/maintenance-list.waiting_on_arrives')).replace(':date', () => detail.part_eta) : @js(__('livewire/maintenance-list.waiting_on'))).replace(':part', () => (detail.part_name || @js(__('livewire/maintenance-list.a_part'))))"></span></p>
                                 </template>
 
-                                <h4 class="vy-mt-h">Photos</h4>
+                                <h4 class="vy-mt-h">{{ __('livewire/maintenance-list.photos') }}</h4>
                                 <div class="vy-mt-photos">
                                     <template x-for="photo in detail.photos" :key="photo.id">
-                                        <img :src="photo.url" alt="Photo of the issue" class="vy-mt-photo" loading="lazy">
+                                        <img :src="photo.url" alt="{{ __('livewire/maintenance-list.photo_alt') }}" class="vy-mt-photo" loading="lazy">
                                     </template>
-                                    <template x-if="detail.photos.length === 0"><span class="vy-mt-muted">No photos yet.</span></template>
+                                    <template x-if="detail.photos.length === 0"><span class="vy-mt-muted">{{ __('livewire/maintenance-list.no_photos') }}</span></template>
                                 </div>
 
                                 <template x-if="detail.activity && detail.activity.length">
                                     <div>
-                                        <h4 class="vy-mt-h">Activity</h4>
+                                        <h4 class="vy-mt-h">{{ __('livewire/maintenance-list.activity') }}</h4>
                                         <ol class="vy-mt-activity">
                                             <template x-for="a in detail.activity" :key="a.label + a.when">
                                                 <li><span x-text="a.label"></span> <span class="vy-mt-muted" x-text="'· ' + a.when"></span></li>
@@ -714,16 +714,16 @@
                                                     @csrf
                                                     <input type="hidden" name="return" value="list">
                                                     <input type="hidden" name="return_query" value="">
-                                                    <button type="submit" class="vy-btn vy-btn--accent vy-mt-wide">Start work</button>
+                                                    <button type="submit" class="vy-btn vy-btn--accent vy-mt-wide">{{ __('livewire/maintenance-list.start_work') }}</button>
                                                 </form>
                                             </template>
                                             <template x-if="detail.actions.includes('resolve')">
                                                 {{-- the main button is the next step: Start work while it has not started, Mark resolved once it has --}}
-                                                <button type="button" class="vy-btn vy-mt-wide" :class="detail.actions.includes('start') ? 'vy-btn--ghost' : 'vy-btn--accent'" @click="fromDrawer('resolve')">Mark resolved</button>
+                                                <button type="button" class="vy-btn vy-mt-wide" :class="detail.actions.includes('start') ? 'vy-btn--ghost' : 'vy-btn--accent'" @click="fromDrawer('resolve')">{{ __('livewire/maintenance-list.mark_resolved') }}</button>
                                             </template>
-                                            <button type="button" class="vy-btn vy-btn--ghost" @click="fromDrawer('edit')">Edit details</button>
-                                            <button type="button" class="vy-btn vy-btn--ghost" @click="fromDrawer('assign')" x-text="detail.assignee ? 'Change technician' : 'Assign technician'">Assign technician</button>
-                                            <button type="button" class="vy-btn vy-btn--ghost vy-mt-danger vy-mt-wide" @click="fromDrawer('cancel')">Cancel work order</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost" @click="fromDrawer('edit')">{{ __('livewire/maintenance-list.edit_details') }}</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost" @click="fromDrawer('assign')" x-text="detail.assignee ? @js(__('livewire/maintenance-list.change_technician')) : @js(__('livewire/maintenance-list.assign_technician'))">{{ __('livewire/maintenance-list.assign_technician') }}</button>
+                                            <button type="button" class="vy-btn vy-btn--ghost vy-mt-danger vy-mt-wide" @click="fromDrawer('cancel')">{{ __('livewire/maintenance-list.cancel_work_order') }}</button>
                                         </div>
                                     </template>
                                     <form method="POST" :action="link(urls.photo, detail.id)" enctype="multipart/form-data" class="vy-mt-photo-form">
@@ -732,12 +732,12 @@
                                         <input type="hidden" name="return" value="list">
                                         <input type="hidden" name="return_query" value="">
                                         <label class="vy-btn vy-btn--ghost vy-mt-photo-btn">
-                                            Add photo
+                                            {{ __('livewire/maintenance-list.add_photo') }}
                                             <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-mt-file" @change="stamp($el.form); $el.form.submit()">
                                         </label>
                                     </form>
                                 @endif
-                                <a class="vy-btn vy-btn--ghost" :href="link(urls.show, detail.id)">Open full record</a>
+                                <a class="vy-btn vy-btn--ghost" :href="link(urls.show, detail.id)">{{ __('livewire/maintenance-list.open_full_record') }}</a>
                             </div>
                         </div>
                     </template>
@@ -748,10 +748,21 @@
 
     {{-- The page's controller — the shared list behaviour (selection, the row menu, search and the smooth links, in
          partials/operator-list-script) plus this page's own dialogs and drawer. Every link and form works without it. --}}
+    @php
+        // The bulk dialogs' sentences, translated here with their real plural for every count the script can show (rule 12): a
+        // selection is of the rows on one page (the list script clears it on every page change), so 0 … the largest page size.
+        $vyCountTexts = ['assign_selected' => [], 'resolve_n_title' => []];
+        foreach (range(0, max(\App\Support\Maintenance\MaintenanceListParams::PER_PAGE_OPTIONS)) as $n) {
+            $vyCountTexts['assign_selected'][$n] = trans_choice('livewire/maintenance-list.assign_selected', $n, ['count' => $n]);
+            $vyCountTexts['resolve_n_title'][$n] = trans_choice('livewire/maintenance-list.resolve_n_title', $n, ['count' => $n]);
+        }
+    @endphp
     @include('partials.operator-list-script')
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('vyMaint', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: 'No work orders in this view' }), {
+            Alpine.data('vyMaint', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/maintenance-list.empty_view')) }), {
+                // the bulk dialogs' sentences, one per count (a selection is of the rows on one page, so 0 … the largest page size)
+                counts: @js($vyCountTexts),
                 nwoOpen: false, nwoOoo: false,
                 editOpen: false, edit: {},
                 assignOpen: false, assign: { bulk: false, id: '', title: '', current: '' }, pick: null,
@@ -789,10 +800,10 @@
                 },
                 steps(d) {
                     return [
-                        { label: 'Logged', done: true },
-                        { label: 'Assigned', done: !! d.assignee_id },
-                        { label: 'In progress', done: d.status === 'in_progress' || d.status === 'resolved' },
-                        { label: 'Resolved', done: d.status === 'resolved' },
+                        { code: 'logged', label: @js(__('livewire/maintenance-list.step_logged')), done: true },
+                        { code: 'assigned', label: @js(__('livewire/maintenance-list.step_assigned')), done: !! d.assignee_id },
+                        { code: 'in_progress', label: @js(__('livewire/maintenance-list.step_in_progress')), done: d.status === 'in_progress' || d.status === 'resolved' },
+                        { code: 'resolved', label: @js(__('livewire/maintenance-list.resolved')), done: d.status === 'resolved' },
                     ];
                 },
 

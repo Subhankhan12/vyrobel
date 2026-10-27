@@ -45,7 +45,7 @@ class PropertyController extends Controller
     public function store(Request $request): RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', 'Workspace paused — adding a property is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.');
+            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.paused_adding', ['resume' => app(OperatorWorkspace::class)->resumeLabel()]));
         }
 
         $data = $request->validate([
@@ -86,13 +86,13 @@ class PropertyController extends Controller
             // types and rate plans had no creation path at all, and units only behind an owner's request. The
             // first two are real now; ⚠️ CHANNELS ARE STILL NOT, so they are no longer instructed. A signposted
             // step a tenant cannot take is worse than no signpost — they conclude they are failing.
-            ->with('portfolio_notice', $property->name.' added to your portfolio. Next: add a room type and a unit, then a rate plan with prices — then it can take bookings.');
+            ->with('portfolio_notice', __('php/http/controllers/operator/property_controller.property_added', ['name' => $property->name]));
     }
 
     public function update(Request $request): RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', 'Workspace paused — editing a property is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.');
+            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.paused_editing', ['resume' => app(OperatorWorkspace::class)->resumeLabel()]));
         }
 
         $data = $request->validate([
@@ -112,7 +112,7 @@ class PropertyController extends Controller
             'status' => $data['status'],
         ]);
 
-        return redirect()->to(route('app.portfolio'))->with('portfolio_notice', $property->name.' updated.');
+        return redirect()->to(route('app.portfolio'))->with('portfolio_notice', __('php/http/controllers/operator/property_controller.property_updated', ['name' => $property->name]));
     }
 
     /**
@@ -133,22 +133,24 @@ class PropertyController extends Controller
         $request->validate(['confirm_name' => ['required', 'string']]);
         $name = (string) $target->name;
         if (trim((string) $request->input('confirm_name')) !== trim($name)) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', 'The name you typed didn’t match “'.$name.'” — nothing was removed.');
+            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.name_mismatch', ['name' => $name]));
         }
 
         try {
             $removals->schedule($target, (string) auth()->id());
         } catch (PropertyRemovalRefused $e) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', $name.' was not removed. '.$e->getMessage());
+            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.not_removed', ['name' => $name, 'reason' => $e->getMessage()]));
         }
 
         $target->refresh();
         if ($removals->removeIfClear($target, $channels)) {
-            return redirect()->route('app.portfolio')->with('portfolio_notice', $name.' was removed. Its bookings, invoices and payments are kept.');
+            return redirect()->route('app.portfolio')->with('portfolio_notice', __('php/http/controllers/operator/property_controller.removed', ['name' => $name]));
         }
 
-        return redirect()->route('app.portfolio')->with('portfolio_notice', $name.' will be removed after the last checkout on '
-            .$target->removal_effective_at?->format('j M Y').'. It stays open until then — you can keep it any time before.');
+        return redirect()->route('app.portfolio')->with('portfolio_notice', __('php/http/controllers/operator/property_controller.removal_scheduled', [
+            'name' => $name,
+            'date' => (string) $target->removal_effective_at?->translatedFormat('j M Y'),
+        ]));
     }
 
     /** KEEP a property whose removal is scheduled — cancels the schedule; nothing else changes. Same gates as {@see remove()}. */
@@ -161,7 +163,7 @@ class PropertyController extends Controller
 
         $removals->cancel($target);
 
-        return redirect()->route('app.portfolio')->with('portfolio_notice', $target->name.' stays — its removal is cancelled.');
+        return redirect()->route('app.portfolio')->with('portfolio_notice', __('php/http/controllers/operator/property_controller.removal_cancelled', ['name' => $target->name]));
     }
 
     /** A property this person can reach — the PropertyContext allow-list (pivot-or-all), then the tenant scope. 404 otherwise. */
@@ -175,7 +177,7 @@ class PropertyController extends Controller
     private function refusedWhileReadOnly(): ?RedirectResponse
     {
         return app(OperatorWorkspace::class)->isReadOnly()
-            ? redirect()->route('app.portfolio')->with('portfolio_error', 'Your workspace is read-only right now — nothing was changed.')
+            ? redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.read_only'))
             : null;
     }
 

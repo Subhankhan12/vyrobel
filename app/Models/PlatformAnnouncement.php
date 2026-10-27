@@ -28,6 +28,16 @@ class PlatformAnnouncement extends Model
 
     public const LEVELS = ['info' => 'Information', 'warning' => 'Warning'];
 
+    /** A level CODE ({@see LEVELS}' key) → its label in the reader's language, translated at call time (I18N-01). */
+    public static function levelLabel(string $level): string
+    {
+        return match ($level) {
+            'info' => (string) __('php/models/platform_announcement.level_info'),
+            'warning' => (string) __('php/models/platform_announcement.level_warning'),
+            default => $level,
+        };
+    }
+
     protected $fillable = ['title', 'body', 'level', 'audience', 'organization_ids', 'starts_at', 'ends_at', 'withdrawn_at', 'created_by'];
 
     protected function casts(): array

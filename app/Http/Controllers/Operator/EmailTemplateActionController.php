@@ -49,7 +49,7 @@ class EmailTemplateActionController extends Controller
             'blocks' => $this->normalizeBlocks($key, $request),
         ], $request->user());
 
-        return redirect()->to(route('app.email-templates.edit', $key))->with('email_template_notice', 'Template saved — your guest emails now use it.');
+        return redirect()->to(route('app.email-templates.edit', $key))->with('email_template_notice', __('php/http/controllers/operator/email_template_action_controller.template_saved'));
     }
 
     /** Enable/disable an email — OFF genuinely stops the send (checked by the real triggers). */
@@ -64,7 +64,7 @@ class EmailTemplateActionController extends Controller
         $label = EmailTemplateCatalog::get($key)['label'] ?? $key;
 
         return redirect()->to(route('app.email-templates'))
-            ->with('email_template_notice', $enabled ? "{$label} is now active." : "{$label} is now off — it won’t send.");
+            ->with('email_template_notice', $enabled ? __('php/http/controllers/operator/email_template_action_controller.template_active', ['label' => $label]) : __('php/http/controllers/operator/email_template_action_controller.template_off', ['label' => $label]));
     }
 
     /**
@@ -77,15 +77,15 @@ class EmailTemplateActionController extends Controller
         abort_if(EmailTemplateCatalog::get($key) === null, 404);
 
         $mailable = EmailPreviewSample::mailable($key);
-        abort_if($mailable === null, 404, 'No sample reservation exists yet — create a booking first.');
+        abort_if($mailable === null, 404, __('php/http/controllers/operator/email_template_action_controller.no_sample_reservation'));
 
         $email = (string) $request->user()->email;
-        abort_if($email === '', 422, 'Your account has no email address to send a test to.');
+        abort_if($email === '', 422, __('php/http/controllers/operator/email_template_action_controller.no_email_address'));
 
-        Mail::to($email)->send($mailable);
+        Mail::to($email)->locale($request->user()->preferredLocale())->send($mailable);
 
         return redirect()->to(route('app.email-templates.edit', $key))
-            ->with('email_template_notice', "Test email sent to {$email}.");
+            ->with('email_template_notice', __('php/http/controllers/operator/email_template_action_controller.test_sent', ['email' => $email]));
     }
 
     /**

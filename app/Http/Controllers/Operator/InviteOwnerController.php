@@ -40,7 +40,7 @@ class InviteOwnerController extends Controller
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
             return $this->back($request)->withInput($request->except('current_password'))
-                ->with('owners_error', 'Workspace paused — inviting people is read-only for now.');
+                ->with('owners_error', __('php/http/controllers/operator/invite_owner_controller.workspace_paused'));
         }
 
         // ⚠️ RE-AUTH (2026-08-30): this mints a NEW principal — `manager`/`accountant` map to real back-office
@@ -49,8 +49,8 @@ class InviteOwnerController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [
-                'current_password.required' => 'Enter your password to send the invite.',
-                'current_password.current_password' => 'That password isn’t right — enter the one you sign in with.',
+                'current_password.required' => __('php/http/controllers/operator/invite_owner_controller.password_required'),
+                'current_password.current_password' => __('php/http/controllers/operator/invite_owner_controller.password_wrong'),
             ],
         );
 
@@ -62,12 +62,12 @@ class InviteOwnerController extends Controller
             'unit_ids' => ['sometimes', 'array'],
             'unit_ids.*' => ['string'],
         ], [
-            'name.required' => 'Enter the person’s or company’s name.',
-            'email.required' => 'Enter the email address the invite goes to.',
-            'email.email' => 'That doesn’t look like an email address.',
-            'commission_pct.numeric' => 'The commission must be a number between 0 and 100.',
-            'commission_pct.min' => 'The commission must be a number between 0 and 100.',
-            'commission_pct.max' => 'The commission must be a number between 0 and 100.',
+            'name.required' => __('php/http/controllers/operator/invite_owner_controller.name_required'),
+            'email.required' => __('php/http/controllers/operator/invite_owner_controller.email_required'),
+            'email.email' => __('php/http/controllers/operator/invite_owner_controller.email_invalid'),
+            'commission_pct.numeric' => __('php/http/controllers/operator/invite_owner_controller.commission_range'),
+            'commission_pct.min' => __('php/http/controllers/operator/invite_owner_controller.commission_range'),
+            'commission_pct.max' => __('php/http/controllers/operator/invite_owner_controller.commission_range'),
         ]);
 
         $isOwner = $validated['role'] === 'owner';
@@ -84,11 +84,13 @@ class InviteOwnerController extends Controller
             $owned = $units->filter(fn (Unit $u): bool => $u->owner_id !== null);
             if ($owned->isNotEmpty()) {
                 $names = Owner::query()->whereIn('id', $owned->pluck('owner_id'))->pluck('name', 'id');
-                $which = $owned->map(fn (Unit $u): string => ($u->name ?: $u->code).' (owned by '.($names[$u->owner_id] ?? 'another owner').')')->implode(', ');
+                $which = $owned->map(fn (Unit $u): string => __('php/http/controllers/operator/invite_owner_controller.unit_owned_by', [
+                    'unit' => $u->name ?: $u->code,
+                    'owner' => $names[$u->owner_id] ?? __('php/http/controllers/operator/invite_owner_controller.another_owner'),
+                ]))->implode(', ');
 
-                return $this->back($request)->withInput($request->except('current_password'))->withErrors(['unit_ids' => $which
-                    .' already '.($owned->count() === 1 ? 'has an owner' : 'have owners')
-                    .'. A unit’s owner decides who is paid for it, so an invite can only give units that have none.']);
+                return $this->back($request)->withInput($request->except('current_password'))->withErrors(['unit_ids' => trans_choice(
+                    'php/http/controllers/operator/invite_owner_controller.units_already_owned', $owned->count(), ['units' => $which])]);
             }
             $unitIds = $units->pluck('id')->map(fn ($id): string => (string) $id)->all();
         }
@@ -99,15 +101,15 @@ class InviteOwnerController extends Controller
         } catch (RuntimeException) {
             // e.g. the email already belongs to an active account, or an unmappable role — graceful, not a crash.
             return $this->back($request)->withInput($request->except('current_password'))
-                ->with('owners_error', 'That email can’t be invited — it may already have a Vyrobel account.');
+                ->with('owners_error', __('php/http/controllers/operator/invite_owner_controller.email_cannot_be_invited'));
         }
 
         // Feed the "Invite sent" confirmation view (rendered on this PRG): the real invited email + the real 7-day expiry.
         return (OwnerListParams::redirect($request) ?? redirect()->route('app.owners'))
-            ->with('owners_notice', 'Invite sent to '.$validated['email'].'.')
+            ->with('owners_notice', __('php/http/controllers/operator/invite_owner_controller.invite_sent', ['email' => $validated['email']]))
             ->with('owner_invite_sent', [
                 'email' => $validated['email'],
-                'expires' => $result['invite']->expires_at?->format('j M Y'),
+                'expires' => $result['invite']->expires_at?->translatedFormat('j M Y'),
             ]);
     }
 

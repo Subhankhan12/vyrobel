@@ -4,7 +4,7 @@
      RULE: every `@` follows a space, newline or tag. --}}
 @php use App\Support\DateFormat; @endphp
 <div x-data="{ signOutOpen: false }">
-    <x-operator.shell active="profile" title="Your profile" :subtitle="'Your account'" :viewer="$viewer">
+    <x-operator.shell active="profile" :title="__('livewire/operator/operator-profile.page_title')" :subtitle="__('livewire/operator/operator-profile.page_subtitle')" :viewer="$viewer">
 
         @if (session('profile_notice')) <div class="vy-flash is-ok vy-fade">{{ session('profile_notice') }}</div> @endif
         @if ($errors->any()) <div class="vy-flash is-err vy-fade">{{ $errors->first() }}</div> @endif
@@ -20,12 +20,12 @@
                     <span class="vyp-name">{{ $user->name }}</span>
                     @if ($roles !== '')<span class="vyp-role">{{ $roles }}</span>@endif
                     {{-- Status carries its WORD, never colour alone (1.4.1). --}}
-                    <span class="vyp-status"><span class="vyp-dot" aria-hidden="true"></span>{{ ucfirst((string) $user->status) }}</span>
+                    <span class="vyp-status"><span class="vyp-dot" aria-hidden="true"></span>{{ $statusLabel }}</span>
                 </div>
-                @if ($personal['preferred_name'])<div class="vyp-called">Goes by “{{ $personal['preferred_name'] }}”</div>@endif
+                @if ($personal['preferred_name'])<div class="vyp-called">{{ __('livewire/operator/operator-profile.goes_by', ['name' => $personal['preferred_name']]) }}</div>@endif
                 <div class="vyp-meta">
                     @if ($propertyLabel)<span class="vyp-since">{{ $propertyLabel }}</span>@endif
-                    @if ($memberSince)<span class="vyp-since">Member since {{ $memberSince }}</span>@endif
+                    @if ($memberSince)<span class="vyp-since">{{ __('livewire/operator/operator-profile.member_since', ['date' => $memberSince]) }}</span>@endif
                 </div>
             </div>
         </div>
@@ -35,38 +35,38 @@
                 {{-- ── Personal details (real, editable, audited) ─────────────────────────────────── --}}
                 <form method="POST" action="{{ route('app.profile.update') }}" class="vy-card">
                     @csrf
-                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Personal details</h2>
-                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Only your own profile — you can’t change anyone else’s here.</p>
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;">{{ __('livewire/operator/operator-profile.personal_heading') }}</h2>
+                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">{{ __('livewire/operator/operator-profile.personal_intro') }}</p>
                     <div class="vyp-grid2">
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="name">Full name</label><input id="name" type="text" name="name" class="vy-input" value="{{ old('name', $personal['name']) }}" required></div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="pn">Preferred name</label><input id="pn" type="text" name="preferred_name" class="vy-input" value="{{ old('preferred_name', $personal['preferred_name']) }}"></div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="email">Work email</label><input id="email" type="email" name="email" class="vy-input" value="{{ old('email', $personal['email']) }}" required></div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="phone">Phone</label><input id="phone" type="text" name="phone" class="vy-input" value="{{ old('phone', $personal['phone']) }}"></div>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="name">{{ __('livewire/operator/operator-profile.full_name') }}</label><input id="name" type="text" name="name" class="vy-input" value="{{ old('name', $personal['name']) }}" required></div>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="pn">{{ __('livewire/operator/operator-profile.preferred_name') }}</label><input id="pn" type="text" name="preferred_name" class="vy-input" value="{{ old('preferred_name', $personal['preferred_name']) }}"></div>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="email">{{ __('livewire/operator/operator-profile.work_email') }}</label><input id="email" type="email" name="email" class="vy-input" value="{{ old('email', $personal['email']) }}" required></div>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="phone">{{ __('common.phone') }}</label><input id="phone" type="text" name="phone" class="vy-input" value="{{ old('phone', $personal['phone']) }}"></div>
                         {{-- The new select (2026-10-09, his request — this page first, the rest of the app after his approval). --}}
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="locale-label" for="locale">Language</label>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="locale-label" for="locale">{{ __('livewire/operator/operator-profile.language') }}</label>
                             <x-select name="locale" id="locale" labelledby="locale-label" :options="$languageOptions" :value="old('locale', $personal['locale'])" />
                         </div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="tz-label" for="tz">Timezone</label>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="tz-label" for="tz">{{ __('livewire/operator/operator-profile.timezone') }}</label>
                             <x-select name="timezone" id="tz" labelledby="tz-label" :options="$timezoneOptions" :value="old('timezone', $personal['timezone'])"
-                                      search-placeholder="Search a city, region or offset" empty-text="No timezone matches that — try a city or an offset like +4."
+                                      :search-placeholder="__('livewire/operator/operator-profile.timezone_search_placeholder')" :empty-text="__('livewire/operator/operator-profile.timezone_empty')"
                                       :device-timezone="true" :min-width="340" />
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.profile') }}">Cancel</a>
-                        <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.profile') }}">{{ __('common.cancel') }}</a>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('common.save_changes') }}</button>
                     </div>
                 </form>
 
                 {{-- ── Preferences (real, stored + applied) ───────────────────────────────────────── --}}
                 <form method="POST" action="{{ route('app.profile.preferences') }}" class="vy-card">
                     @csrf
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Preferences</h2>
-                    <label class="vyp-pref"><span><strong>Compact density</strong><br><span class="vy-muted">Tighter spacing to fit more on screen.</span></span><input type="checkbox" class="vyp-switch" name="compact_density" value="1" @checked($prefs['compact_density'])></label>
-                    <label class="vyp-pref"><span><strong>Show onboarding tips</strong><br><span class="vy-muted">Contextual hints on new features.</span></span><input type="checkbox" class="vyp-switch" name="onboarding_tips" value="1" @checked($prefs['onboarding_tips'])></label>
-                    <label class="vyp-pref"><span><strong>Reduce motion</strong><br><span class="vy-muted">Turn off the ambient background animation and transitions.</span></span><input type="checkbox" class="vyp-switch" name="reduce_motion" value="1" @checked($prefs['reduce_motion'])></label>
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;">{{ __('livewire/operator/operator-profile.preferences_heading') }}</h2>
+                    <label class="vyp-pref"><span><strong>{{ __('livewire/operator/operator-profile.compact_density') }}</strong><br><span class="vy-muted">{{ __('livewire/operator/operator-profile.compact_density_hint') }}</span></span><input type="checkbox" class="vyp-switch" name="compact_density" value="1" @checked($prefs['compact_density'])></label>
+                    <label class="vyp-pref"><span><strong>{{ __('livewire/operator/operator-profile.onboarding_tips') }}</strong><br><span class="vy-muted">{{ __('livewire/operator/operator-profile.onboarding_tips_hint') }}</span></span><input type="checkbox" class="vyp-switch" name="onboarding_tips" value="1" @checked($prefs['onboarding_tips'])></label>
+                    <label class="vyp-pref"><span><strong>{{ __('livewire/operator/operator-profile.reduce_motion') }}</strong><br><span class="vy-muted">{{ __('livewire/operator/operator-profile.reduce_motion_hint') }}</span></span><input type="checkbox" class="vyp-switch" name="reduce_motion" value="1" @checked($prefs['reduce_motion'])></label>
                     <div class="vyp-pref" style="border-bottom: none;">
-                        <span><strong>Date format</strong><br><span class="vy-muted">How dates appear across the workspace.</span></span>
+                        <span><strong>{{ __('livewire/operator/operator-profile.date_format') }}</strong><br><span class="vy-muted">{{ __('livewire/operator/operator-profile.date_format_hint') }}</span></span>
                         <span class="vyp-seg">
                             @foreach (['DD/MM/YYYY', 'MM/DD/YYYY'] as $fmt)
                                 <label class="vyp-seg-opt">
@@ -76,44 +76,44 @@
                             @endforeach
                         </span>
                     </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 14px;"><button type="submit" class="vy-btn vy-btn--ghost">Save preferences</button></div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 14px;"><button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/operator-profile.save_preferences') }}</button></div>
                 </form>
             </div>
 
             <div class="vy-stack">
                 {{-- ── Role & access — REAL caps, read-only ───────────────────────────────────────── --}}
                 <div class="vy-card">
-                    <div class="vy-detail-head" style="margin-bottom: 4px;"><h2 class="vy-card-title">Role &amp; access</h2>@if ($roles !== '')<span class="vy-tag tone-confirmed">{{ $roles }}</span>@endif</div>
-                    <div class="vy-nr-sub" style="margin: 10px 0 6px;">Key permissions</div>
+                    <div class="vy-detail-head" style="margin-bottom: 4px;"><h2 class="vy-card-title">{{ __('livewire/operator/operator-profile.role_access_heading') }}</h2>@if ($roles !== '')<span class="vy-tag tone-confirmed">{{ $roles }}</span>@endif</div>
+                    <div class="vy-nr-sub" style="margin: 10px 0 6px;">{{ __('livewire/operator/operator-profile.key_permissions') }}</div>
                     @foreach ($keyCaps as $cap)
                         <div class="vyp-cap {{ $cap['granted'] ? 'is-on' : 'is-off' }}">
                             <span>{{ $cap['granted'] ? '✓' : '—' }}</span> {{ $cap['label'] }}
                         </div>
                     @endforeach
-                    <p style="font-size: 11.5px; color: var(--vy-faint); margin: 12px 0 0;">Access is managed by your workspace admin.</p>
+                    <p style="font-size: 11.5px; color: var(--vy-faint); margin: 12px 0 0;">{{ __('livewire/operator/operator-profile.access_managed') }}</p>
                     <details style="margin-top: 8px;">
-                        <summary style="font-size: 12.5px; color: var(--vy-accent); cursor: pointer;">View full permissions</summary>
+                        <summary style="font-size: 12.5px; color: var(--vy-accent); cursor: pointer;">{{ __('livewire/operator/operator-profile.view_full_permissions') }}</summary>
                         <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;">
-                            @forelse ($allPermissions as $perm)<span class="vy-pill" style="font-size: 10.5px;">{{ $perm }}</span>@empty<span class="vy-muted" style="font-size: 12px;">Full access (workspace owner).</span>@endforelse
+                            @forelse ($allPermissions as $perm)<span class="vy-pill" style="font-size: 10.5px;">{{ $perm }}</span>@empty<span class="vy-muted" style="font-size: 12px;">{{ __('livewire/operator/operator-profile.full_access') }}</span>@endforelse
                         </div>
                     </details>
                 </div>
 
                 {{-- ── Sign-in & security — REUSE #66 (password/2FA) + REAL sessions ──────────────── --}}
                 <div class="vy-card">
-                    <h2 class="vy-card-title" style="margin-bottom: 10px;">Sign-in &amp; security</h2>
-                    <div class="vyp-sec"><div><strong>Password</strong><br><span class="vy-muted">Change it on the Security page.</span></div><a class="vy-btn vy-btn--ghost" href="{{ route('app.security') }}">Change</a></div>
-                    <div class="vyp-sec"><div><strong>Two-factor auth</strong><br><span class="vy-muted">{{ $twoFactorEnabled ? 'On · Authenticator app' : 'Off — add an extra layer' }}</span></div><a class="vy-btn vy-btn--ghost" href="{{ route('app.security') }}">Manage</a></div>
-                    <div class="vyp-sec"><div><strong>Last sign-in</strong><br><span class="vy-muted">{{ $lastLogin ? DateFormat::forUser($user, $lastLogin).' · '.\Carbon\CarbonImmutable::parse($lastLogin)->format('H:i') : 'This session' }}</span></div></div>
+                    <h2 class="vy-card-title" style="margin-bottom: 10px;">{{ __('livewire/operator/operator-profile.security_heading') }}</h2>
+                    <div class="vyp-sec"><div><strong>{{ __('livewire/operator/operator-profile.password') }}</strong><br><span class="vy-muted">{{ __('livewire/operator/operator-profile.password_hint') }}</span></div><a class="vy-btn vy-btn--ghost" href="{{ route('app.security') }}">{{ __('livewire/operator/operator-profile.change_button') }}</a></div>
+                    <div class="vyp-sec"><div><strong>{{ __('livewire/operator/operator-profile.two_factor') }}</strong><br><span class="vy-muted">{{ $twoFactorEnabled ? __('livewire/operator/operator-profile.two_factor_on') : __('livewire/operator/operator-profile.two_factor_off') }}</span></div><a class="vy-btn vy-btn--ghost" href="{{ route('app.security') }}">{{ __('livewire/operator/operator-profile.manage_button') }}</a></div>
+                    <div class="vyp-sec"><div><strong>{{ __('livewire/operator/operator-profile.last_sign_in') }}</strong><br><span class="vy-muted">{{ $lastLogin ? DateFormat::forUser($user, $lastLogin).' · '.\Carbon\CarbonImmutable::parse($lastLogin)->format('H:i') : __('livewire/operator/operator-profile.last_sign_in_this_session') }}</span></div></div>
 
-                    <div class="vy-nr-sub" style="margin: 12px 0 4px;">Active sessions</div>
+                    <div class="vy-nr-sub" style="margin: 12px 0 4px;">{{ __('livewire/operator/operator-profile.active_sessions') }}</div>
                     @foreach ($sessions as $sess)
                         <div class="vyp-sec">
-                            <div><strong>{{ $sess['device'] }}</strong>@if ($sess['current']) <span class="vy-tag tone-confirmed" style="font-size: 10px;">This device</span>@endif<br><span class="vy-muted">{{ $sess['ip'] }} · {{ $sess['last_active']->diffForHumans() }}</span></div>
+                            <div><strong>{{ $sess['device'] }}</strong>@if ($sess['current']) <span class="vy-tag tone-confirmed" style="font-size: 10px;">{{ __('livewire/operator/operator-profile.this_device') }}</span>@endif<br><span class="vy-muted">{{ $sess['ip'] }} · {{ $sess['last_active']->diffForHumans() }}</span></div>
                         </div>
                     @endforeach
 
-                    <button type="button" class="vy-btn vy-btn--ghost" style="margin-top: 12px; width: 100%;" x-on:click="signOutOpen = true">Sign out of all other devices</button>
+                    <button type="button" class="vy-btn vy-btn--ghost" style="margin-top: 12px; width: 100%;" x-on:click="signOutOpen = true">{{ __('livewire/operator/operator-profile.sign_out_others_heading') }}</button>
                 </div>
             </div>
         </div>
@@ -121,15 +121,15 @@
         {{-- Sign-out-others confirm (current password — a real session revocation) --}}
         <div x-show="signOutOpen" x-cloak class="vyp-scrim" @click.self="signOutOpen = false" x-on:keydown.escape.window="signOutOpen = false">
             <div class="vyp-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="signOutOpen" aria-labelledby="vy-dlg-operator-profile-signoutopen-1">
-                <h2 class="vy-card-title" id="vy-dlg-operator-profile-signoutopen-1">Sign out of all other devices</h2>
-                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">This ends every session except this one. Confirm your password.</p>
+                <h2 class="vy-card-title" id="vy-dlg-operator-profile-signoutopen-1">{{ __('livewire/operator/operator-profile.sign_out_others_heading') }}</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">{{ __('livewire/operator/operator-profile.sign_out_others_intro') }}</p>
                 <form method="POST" action="{{ route('app.profile.sign-out-others') }}">
                     @csrf
-                    <label class="vy-sr-only" for="vy-lbl-operator-profile-current-password">Current password</label>
-                    <input id="vy-lbl-operator-profile-current-password" type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required>
+                    <label class="vy-sr-only" for="vy-lbl-operator-profile-current-password">{{ __('livewire/operator/operator-profile.current_password') }}</label>
+                    <input id="vy-lbl-operator-profile-current-password" type="password" name="current_password" class="vy-input" placeholder="{{ __('livewire/operator/operator-profile.current_password') }}" autocomplete="current-password" required>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
-                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="signOutOpen = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">Sign out others</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="signOutOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/operator-profile.sign_out_others_button') }}</button>
                     </div>
                 </form>
             </div>

@@ -43,6 +43,33 @@ class Review extends Model
         'rating_value' => 'Value',
     ];
 
+    /** A rating-category CODE ({@see CATEGORIES}' key) → its label in the reader's language, translated at call time (I18N-01). */
+    public static function categoryLabel(string $key): string
+    {
+        return match ($key) {
+            'rating_cleanliness' => (string) __('php/models/review.category_cleanliness'),
+            'rating_communication' => (string) __('php/models/review.category_communication'),
+            'rating_location' => (string) __('php/models/review.category_location'),
+            'rating_value' => (string) __('php/models/review.category_value'),
+            default => self::CATEGORIES[$key] ?? $key,
+        };
+    }
+
+    /**
+     * Every rating category, CODE → translated label, in {@see CATEGORIES} order (keyed by the code, never a label).
+     *
+     * @return array<string, string>
+     */
+    public static function categoryLabels(): array
+    {
+        $labels = [];
+        foreach (array_keys(self::CATEGORIES) as $key) {
+            $labels[$key] = self::categoryLabel($key);
+        }
+
+        return $labels;
+    }
+
     protected $fillable = [
         'organization_id',
         'guest_id',

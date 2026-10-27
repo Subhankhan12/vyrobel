@@ -1,0 +1,47 @@
+<?php
+
+// app/Http/Controllers/Operator/RateActionController.php — the Rates page's writes (set a range, bulk adjust).
+
+return [
+    'invalid_dates' => 'Choose valid start and end dates.',
+    'end_before_start' => 'The end date can’t be before the start date.',
+    'range_too_long' => 'That date range is too long — please apply at most a year at a time.',
+    'nothing_to_set' => 'Choose at least one thing to set — a nightly rate, a stay rule, or open/closed.',
+    'invalid_rate' => 'Enter a valid nightly rate, e.g. 175 or 175.50.',
+    'invalid_min_stay' => 'A minimum stay must be a whole number of nights (1–365), or blank for none.',
+    'invalid_max_stay' => 'A maximum stay must be a whole number of nights (1–365), or blank for none.',
+    'max_below_min' => 'A maximum stay cannot be shorter than the minimum stay.',
+    'choose_room_type' => 'Choose a room type to update.',
+    'one_room_type_for_plan' => 'Choose one room type to price a particular plan.',
+    'plan_other_room_type' => 'That plan belongs to another room type.',
+    'derived_plan_follows_base' => 'A derived plan follows its base plan’s price — set the base plan instead.',
+    'no_rate_plan_yet' => ':room_type has no rate plan yet, so a price has nowhere to go. Add one on the Rates page first.',
+    'price_set_one_night' => 'Price set — :price for the night of :date.',
+    // only used for two or more nights (one night has its own sentence above)
+    'price_set_nights' => '[0,*] Price set — :price a night for these :count nights.',
+    'pick_unit_to_continue' => 'Pick a unit to continue.',
+    // the pieces of "Updated the nightly price and the minimum stay for 1 room type across 3 nights."
+    'what_rate_on_plan' => 'the nightly price on :plan',
+    'what_rate' => 'the nightly price',
+    'what_min_stay' => 'the minimum stay',
+    'what_max_stay' => 'the maximum stay',
+    'what_stop_sell' => 'whether the nights are open',
+    'what_cta' => 'the arrival rule',
+    'what_ctd' => 'the departure rule',
+    'list_and' => ':items and :last',
+    'summary_updated' => 'Updated :what for :room_types across :nights.',
+    'missing_plan_skipped' => '[0,*] :count had no rate plan and were skipped for the rate — add one below.',
+    'choose_bulk_mode' => 'Choose increase %, decrease %, or set an exact amount.',
+    'invalid_exact_rate' => 'Enter a valid exact rate, e.g. 175 or 175.50.',
+    'invalid_percentage' => 'Enter a percentage between 0 and 100.',
+    'decrease_too_large' => 'A decrease must be less than 100% — a price can’t go to zero or below.',
+    'choose_room_types' => 'Choose which room types to update.',
+    'bulk_updated' => 'Updated :nights across :room_types.',
+    'nights_count' => '{1} :count night|[0,*] :count nights',
+    'room_types_count' => '{1} :count room type|[0,*] :count room types',
+    'bulk_skipped' => '{1} :count fully booked or closed night skipped.|[0,*] :count fully booked or closed nights skipped.',
+    'bulk_too_low' => '{1} :count night left as they were — the change would have made the price zero.|[0,*] :count nights left as they were — the change would have made the price zero.',
+    'bulk_too_high' => '{1} :count night left as they were — the change would have passed the 1,000,000 limit.|[0,*] :count nights left as they were — the change would have passed the 1,000,000 limit.',
+    'bulk_derived' => '[0,*] :count derived plans updated.',
+    'read_only' => 'Your workspace is read-only right now — rate changes are paused.',
+];

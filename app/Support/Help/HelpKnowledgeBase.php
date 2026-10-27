@@ -29,72 +29,115 @@ use App\Support\Guest\ArrivalPack;
 final class HelpKnowledgeBase
 {
     /**
+     * The OWNER articles in ENGLISH — the corpus {@see HelpRetriever} scores and hands to Ask Vyrobel. It stays English
+     * in every language on purpose (I18N-01): the retriever matches English words (`[a-z0-9]` tokens, English
+     * stopwords and synonyms), and what the assistant is grounded on is the founder's decision, not a translation's.
+     * What a PERSON reads comes from {@see translatedArticles()} / {@see translatedArticle()}, matched by `id`.
+     *
      * @return list<array{id: string, keywords: string, question: string, answer: string, route: string, label: string}>
      */
     public static function articles(): array
+    {
+        return self::ownerArticles('en');
+    }
+
+    /**
+     * The OWNER articles in the reader's language — the owner Help page's FAQ. Same ids, routes and keywords as
+     * {@see articles()}; only the question, answer and label are translated.
+     *
+     * @return list<array{id: string, keywords: string, question: string, answer: string, route: string, label: string}>
+     */
+    public static function translatedArticles(): array
+    {
+        return self::ownerArticles(null);
+    }
+
+    /**
+     * One OWNER article in the reader's language, by id (how the owner Help page shows Ask Vyrobel's citations), or
+     * null for an id the catalogue does not define.
+     *
+     * @return array{id: string, keywords: string, question: string, answer: string, route: string, label: string}|null
+     */
+    public static function translatedArticle(string $id): ?array
+    {
+        foreach (self::translatedArticles() as $article) {
+            if ($article['id'] === $id) {
+                return $article;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  string|null  $locale  null = the reader's language
+     * @return list<array{id: string, keywords: string, question: string, answer: string, route: string, label: string}>
+     */
+    private static function ownerArticles(?string $locale): array
     {
         return [
             [
                 'id' => 'pay',
                 'keywords' => 'payout paid payment paid bank account money earnings when receive disbursement transfer',
-                'question' => 'When and how do I get paid?',
-                'answer' => 'Payouts are created when your monthly statement is finalized and sent to your default bank account. Add or change that account on your Payout method page.',
+                'question' => __('php/support/help/help_knowledge_base.pay_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.pay_answer', [], $locale),
                 'route' => 'owner.payout-method',
-                'label' => 'Payout method',
+                'label' => __('php/support/help/help_knowledge_base.pay_label', [], $locale),
             ],
             [
                 'id' => 'statement',
                 'keywords' => 'statement gross revenue net commission fees adjustments breakdown read understand',
-                'question' => 'How do I read my statement?',
-                'answer' => 'Each statement breaks your gross revenue down to the net paid to you — room revenue, commission, fees and any adjustments. Open any statement from your archive.',
+                'question' => __('php/support/help/help_knowledge_base.statement_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.statement_answer', [], $locale),
                 'route' => 'owner.archive',
-                'label' => 'Statements',
+                'label' => __('php/support/help/help_knowledge_base.statement_label', [], $locale),
             ],
             [
                 'id' => 'fees',
                 'keywords' => 'fees commission charge management agreement terms cost rate percentage',
-                'question' => 'What does the management team charge?',
-                'answer' => 'Your commission and any fees are set in your management agreement. You can review the effective terms anytime.',
+                'question' => __('php/support/help/help_knowledge_base.fees_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.fees_answer', [], $locale),
                 'route' => 'owner.agreement',
-                'label' => 'Agreement',
+                'label' => __('php/support/help/help_knowledge_base.fees_label', [], $locale),
             ],
             [
                 'id' => 'tax',
                 'keywords' => 'tax vat obligations tax id nif annual summary accountant withholding',
-                'question' => 'What are my tax and VAT obligations?',
-                'answer' => 'Add your tax ID (payouts are held until it’s on file) and download an annual summary for your accountant in the Tax Center. Nothing here is tax advice.',
+                'question' => __('php/support/help/help_knowledge_base.tax_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.tax_answer', [], $locale),
                 'route' => 'owner.tax',
-                'label' => 'Tax center',
+                'label' => __('php/support/help/help_knowledge_base.tax_label', [], $locale),
             ],
             [
                 'id' => 'block',
                 'keywords' => 'block dates own stay personal hold calendar unavailable close reserve',
-                'question' => 'Can I block dates for my own stay?',
-                'answer' => 'Yes — hold dates on any of your units from the Block calendar. Blocked nights won’t accept guest bookings.',
+                'question' => __('php/support/help/help_knowledge_base.block_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.block_answer', [], $locale),
                 'route' => 'owner.calendar',
-                'label' => 'Block calendar',
+                'label' => __('php/support/help/help_knowledge_base.block_label', [], $locale),
             ],
             [
                 'id' => 'unit',
                 'keywords' => 'add unit new property listing request setup another',
-                'question' => 'How do I add another unit?',
-                'answer' => 'Send a request with the details and your management team will set it up — a new unit affects availability and billing, so it’s created on their side.',
+                'question' => __('php/support/help/help_knowledge_base.unit_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.unit_answer', [], $locale),
                 'route' => 'owner.add-unit',
-                'label' => 'Add a unit',
+                'label' => __('php/support/help/help_knowledge_base.unit_label', [], $locale),
             ],
             [
                 'id' => 'refund',
                 'keywords' => 'refund guest cancelled chargeback ledger balance affects deducted',
-                'question' => 'A guest was refunded — how does that affect me?',
-                'answer' => 'A refund is attributed back through your ledger, so it shows on the statement for the period it happened. Your running position reflects it on your Balance.',
+                'question' => __('php/support/help/help_knowledge_base.refund_question', [], $locale),
+                'answer' => __('php/support/help/help_knowledge_base.refund_answer', [], $locale),
                 'route' => 'owner.balance',
-                'label' => 'Balance',
+                'label' => __('php/support/help/help_knowledge_base.refund_label', [], $locale),
             ],
         ];
     }
 
     /**
-     * The GUEST knowledge set. Same contract as {@see articles()} plus a `category` for grouping.
+     * The GUEST knowledge set, in the reader's language. Same contract as {@see articles()} plus a `category` for
+     * grouping (translated) and its `category_code` (the same in every language — compare that, never the label).
      *
      * ⚠️ EVERY ANSWER WAS VERIFIED AGAINST THE CODE THAT IMPLEMENTS IT. Where the true answer is
      * per-property or per-booking, the entry POINTS at the screen that shows the real value instead of
@@ -112,106 +155,132 @@ final class HelpKnowledgeBase
      *   • anything about support hours, a phone line or a reply time — none of that exists in the product, and
      *     inventing it is the same class of false claim as `DO-EMAIL-9`.
      *
-     * @return list<array{id: string, keywords: string, question: string, answer: string, route: string, label: string, category: string}>
+     * @return list<array{id: string, keywords: string, question: string, answer: string, route: string, label: string, category_code: string, category: string}>
      */
     public static function guestArticles(): array
     {
         return [
             [
                 'id' => 'checkin',
-                'category' => 'Before you arrive',
+                'category_code' => 'before_you_arrive',
+                'category' => self::category('before_you_arrive'),
                 'keywords' => 'check in online checkin arrival details passport id documents pre check-in early',
-                'question' => 'How do I check in online?',
-                'answer' => 'Open your booking and complete Online check-in — it takes a couple of minutes and lets the property prepare for you. It records that you have checked in online; the front desk still completes the official check-in when you arrive.',
+                'question' => __('php/support/help/help_knowledge_base.guest_checkin_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_checkin_answer'),
                 'route' => 'guest.trips',
-                'label' => 'Your trips',
+                'label' => __('php/support/help/help_knowledge_base.guest_checkin_label'),
             ],
             [
                 'id' => 'door-code',
-                'category' => 'Before you arrive',
+                'category_code' => 'before_you_arrive',
+                'category' => self::category('before_you_arrive'),
                 // ⚠️ interpolated from the constant — see the docblock.
                 'keywords' => 'door code key entry wifi password access arrival info directions get in',
-                'question' => 'When do I get my door code and Wi-Fi details?',
-                'answer' => 'Your entry code and Wi-Fi details appear on the Arrival info page '.ArrivalPack::LEAD_DAYS.' days before check-in, and stay available until you check out. Before then the page tells you the date they unlock — it is not a delay you need to ask about.',
+                'question' => __('php/support/help/help_knowledge_base.guest_door_code_question'),
+                'answer' => trans_choice('php/support/help/help_knowledge_base.guest_door_code_answer', ArrivalPack::LEAD_DAYS, ['count' => ArrivalPack::LEAD_DAYS]),
                 'route' => 'guest.trips',
-                'label' => 'Your trips',
+                'label' => __('php/support/help/help_knowledge_base.guest_door_code_label'),
             ],
             [
                 'id' => 'pay-balance',
-                'category' => 'Payments',
+                'category_code' => 'payments',
+                'category' => self::category('payments'),
                 'keywords' => 'pay balance outstanding card payment stripe secure charge remaining owed',
-                'question' => 'How do I pay the balance on my booking?',
-                'answer' => 'Open Payments and pay from there. You are taken to Stripe\'s secure payment page to enter your card — Vyrobel never sees or stores your card details, so you enter them each time you pay.',
+                'question' => __('php/support/help/help_knowledge_base.guest_pay_balance_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_pay_balance_answer'),
                 'route' => 'guest.payments',
-                'label' => 'Payments',
+                'label' => __('php/support/help/help_knowledge_base.guest_pay_balance_label'),
             ],
             [
                 'id' => 'receipts',
-                'category' => 'Payments',
+                'category_code' => 'payments',
+                'category' => self::category('payments'),
                 'keywords' => 'receipt invoice vat statement pdf download document expenses proof',
-                'question' => 'Where do I find my receipt or invoice?',
-                'answer' => 'Open Payments, then choose Receipt on the booking you need. From there you can download the receipt, a VAT invoice and a statement of account as PDFs. If money was refunded on that booking, a refund receipt and credit note appear too.',
+                'question' => __('php/support/help/help_knowledge_base.guest_receipts_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_receipts_answer'),
                 'route' => 'guest.payments',
-                'label' => 'Payments',
+                'label' => __('php/support/help/help_knowledge_base.guest_receipts_label'),
             ],
             [
                 'id' => 'credit',
-                'category' => 'Payments',
+                'category_code' => 'payments',
+                'category' => self::category('payments'),
                 'keywords' => 'credit wallet promo code voucher discount balance apply redeem',
-                'question' => 'How does my credit work?',
-                'answer' => 'Credit lives in your Wallet. You can redeem a code there, and apply credit to a booking you have — you can never spend more credit than you hold. Credit that has expired stops counting towards your balance.',
+                'question' => __('php/support/help/help_knowledge_base.guest_credit_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_credit_answer'),
                 'route' => 'guest.wallet',
-                'label' => 'Wallet',
+                'label' => __('php/support/help/help_knowledge_base.guest_credit_label'),
             ],
             [
                 'id' => 'change-booking',
-                'category' => 'Your booking',
+                'category_code' => 'your_booking',
+                'category' => self::category('your_booking'),
                 // ⚠️ no refund window stated — it is per-property. See the docblock.
                 'keywords' => 'change dates cancel cancellation amend modify move booking refund policy add ons extras',
-                'question' => 'Can I change or cancel my booking?',
-                'answer' => 'Open the booking and use Manage booking to request a date change, add extras, or cancel. These are requests: the property confirms them, so nothing changes until they do. Your booking\'s own cancellation terms are shown on that page.',
+                'question' => __('php/support/help/help_knowledge_base.guest_change_booking_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_change_booking_answer'),
                 'route' => 'guest.trips',
-                'label' => 'Your trips',
+                'label' => __('php/support/help/help_knowledge_base.guest_change_booking_label'),
             ],
             [
                 'id' => 'contact',
-                'category' => 'Your booking',
+                'category_code' => 'your_booking',
+                'category' => self::category('your_booking'),
                 'keywords' => 'contact host property reach message speak talk question ask help someone',
-                'question' => 'How do I contact the property?',
-                'answer' => 'Send them a message — start a new one in Messages and the property answers you in the same place. It is the direct line to the people looking after your stay.',
+                'question' => __('php/support/help/help_knowledge_base.guest_contact_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_contact_answer'),
                 'route' => 'guest.messages',
-                'label' => 'Messages',
+                'label' => __('php/support/help/help_knowledge_base.guest_contact_label'),
             ],
             [
                 'id' => 'review',
-                'category' => 'After your stay',
+                'category_code' => 'after_your_stay',
+                'category' => self::category('after_your_stay'),
                 'keywords' => 'review rating feedback stars write rate stay comment',
-                'question' => 'How do I leave a review?',
-                'answer' => 'Once your stay is finished, a Review option appears on that trip. You can review a completed stay once.',
+                'question' => __('php/support/help/help_knowledge_base.guest_review_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_review_answer'),
                 'route' => 'guest.trips',
-                'label' => 'Your trips',
+                'label' => __('php/support/help/help_knowledge_base.guest_review_label'),
             ],
             [
                 'id' => 'account',
-                'category' => 'Your account',
+                'category_code' => 'your_account',
+                'category' => self::category('your_account'),
                 'keywords' => 'password change email profile details update account login security',
-                'question' => 'How do I change my password or details?',
-                'answer' => 'Everything about your account lives on the Account page — your details, your password and your email preferences.',
+                'question' => __('php/support/help/help_knowledge_base.guest_account_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_account_answer'),
                 'route' => 'guest.account',
-                'label' => 'Account',
+                'label' => __('php/support/help/help_knowledge_base.guest_account_label'),
             ],
             [
                 'id' => 'delete',
-                'category' => 'Your account',
+                'category_code' => 'your_account',
+                'category' => self::category('your_account'),
                 // ⚠️ states BOTH halves on purpose: it is reversible for 14 days, and financial records are
                 // kept in anonymized form. `DO-G9-2` logged that the delete screen itself does not say the
                 // second half; stating it here is accurate, and this entry must not drift from that fact.
                 'keywords' => 'delete account close remove data gdpr erase privacy undo',
-                'question' => 'What happens if I delete my account?',
-                'answer' => 'Deleting is scheduled, not instant: you have 14 days to undo it from the Account page. After that your personal details are permanently removed. Records the property must keep for accounting — what was booked and paid — remain, with your personal details stripped out.',
+                'question' => __('php/support/help/help_knowledge_base.guest_delete_question'),
+                'answer' => __('php/support/help/help_knowledge_base.guest_delete_answer'),
                 'route' => 'guest.account',
-                'label' => 'Account',
+                'label' => __('php/support/help/help_knowledge_base.guest_delete_label'),
             ],
         ];
+    }
+
+    /**
+     * A guest category's name, by its code — in the reader's language, or in $locale. The help page's `?category=` value
+     * is the ENGLISH name (what the links have always carried), so a link works in every language.
+     */
+    public static function category(string $code, ?string $locale = null): string
+    {
+        return match ($code) {
+            'before_you_arrive' => __('php/support/help/help_knowledge_base.category_before_you_arrive', [], $locale),
+            'payments' => __('php/support/help/help_knowledge_base.category_payments', [], $locale),
+            'your_booking' => __('php/support/help/help_knowledge_base.category_your_booking', [], $locale),
+            'after_your_stay' => __('php/support/help/help_knowledge_base.category_after_your_stay', [], $locale),
+            'your_account' => __('php/support/help/help_knowledge_base.category_your_account', [], $locale),
+            default => $code,
+        };
     }
 }

@@ -46,7 +46,7 @@ class OperatorReports extends Component
 
         return view('livewire.operator.reports', [
             'viewer' => $this->viewer(),
-            'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
+            'scopeLabel' => $this->viewingAllProperties ? __('php/livewire/operator/operator_reports.all_properties') : $this->currentPropertyName(),
             'ranges' => ReportPeriod::rangeOptions($range['key']),
             'months' => ReportPeriod::monthOptions($range['key']),
             'activeRange' => $range,
@@ -96,13 +96,13 @@ class OperatorReports extends Component
     private function kpiCards(array $d, string $currency): array
     {
         return [
-            ['key' => 'occupancy', 'label' => 'Occupancy', 'value' => $d['occupancy_pct'].'%', 'sub' => 'room-nights sold',
-                'delta' => $d['occupancy_delta'] !== null ? $this->signed($d['occupancy_delta']).'pp' : null, 'delta_dir' => $this->dir($d['occupancy_delta'])],
-            ['key' => 'adr', 'label' => 'ADR', 'value' => $this->money($d['adr_minor'], $currency), 'sub' => 'average daily rate',
+            ['key' => 'occupancy', 'label' => __('php/livewire/operator/operator_reports.card_occupancy'), 'value' => $d['occupancy_pct'].'%', 'sub' => __('php/livewire/operator/operator_reports.occupancy_sub'),
+                'delta' => $d['occupancy_delta'] !== null ? __('php/livewire/operator/operator_reports.occupancy_delta', ['delta' => $this->signed($d['occupancy_delta'])]) : null, 'delta_dir' => $this->dir($d['occupancy_delta'])],
+            ['key' => 'adr', 'label' => __('php/livewire/operator/operator_reports.card_adr'), 'value' => $this->money($d['adr_minor'], $currency), 'sub' => __('php/livewire/operator/operator_reports.adr_sub'),
                 'delta' => $d['adr_delta'] !== null ? $this->signedMoney($d['adr_delta'], $currency) : null, 'delta_dir' => $this->dir($d['adr_delta'])],
-            ['key' => 'revpar', 'label' => 'RevPAR', 'value' => $this->money($d['revpar_minor'], $currency), 'sub' => 'per available room',
+            ['key' => 'revpar', 'label' => __('php/livewire/operator/operator_reports.card_revpar'), 'value' => $this->money($d['revpar_minor'], $currency), 'sub' => __('php/livewire/operator/operator_reports.revpar_sub'),
                 'delta' => $d['revpar_delta'] !== null ? $this->signedMoney($d['revpar_delta'], $currency) : null, 'delta_dir' => $this->dir($d['revpar_delta'])],
-            ['key' => 'gross', 'label' => 'Gross revenue', 'value' => $this->money($d['gross_minor'], $currency), 'sub' => 'room + ancillary · folio basis',
+            ['key' => 'gross', 'label' => __('php/livewire/operator/operator_reports.card_gross'), 'value' => $this->money($d['gross_minor'], $currency), 'sub' => __('php/livewire/operator/operator_reports.gross_sub'),
                 'delta' => null, 'delta_dir' => null],
         ];
     }
@@ -141,6 +141,6 @@ class OperatorReports extends Component
     {
         $property = $this->currentProperty();
 
-        return $property !== null ? (string) $property->name : 'No property';
+        return $property !== null ? (string) $property->name : __('php/livewire/operator/operator_reports.no_property');
     }
 }

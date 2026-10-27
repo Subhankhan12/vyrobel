@@ -54,6 +54,6 @@ class EnforceIpAllowlist
             return $next($request);
         }
 
-        abort(403, 'Your IP address is not on this workspace’s allowlist.');
+        abort(403, __('php/http/middleware/enforce_ip_allowlist.ip_not_allowed'));
     }
 }

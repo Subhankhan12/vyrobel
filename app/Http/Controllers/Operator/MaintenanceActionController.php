@@ -81,7 +81,7 @@ class MaintenanceActionController extends Controller
         ]);
 
         return $this->listReturn($request, redirect()->route('app.maintenance'))
-            ->with('mt_notice', "Ticket “{$ticket->title}” opened on unit {$unit->code}.");
+            ->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.ticket_opened', ['title' => $ticket->title, 'unit' => $unit->code]));
     }
 
     /** Assign (or unassign) a ticket to an active member of the org. */
@@ -108,7 +108,7 @@ class MaintenanceActionController extends Controller
             // POSTed owner id even after the picker stopped offering it. Fixing the picker alone would have
             // been cosmetic; this is the guard that makes it real. See {@see StaffRoster::staffUserIds()}.
             if (! in_array((string) $userId, app(StaffRoster::class)->staffUserIds(), true)) {
-                abort(422, 'That user is not assignable staff in this organization.');
+                abort(422, __('php/http/controllers/operator/maintenance_action_controller.not_assignable_staff'));
             }
         } else {
             $userId = null;   // "— Unassigned —"
@@ -118,7 +118,7 @@ class MaintenanceActionController extends Controller
             $maintenance->assign($model, $userId, $validated['reason'] ?? null);
         } catch (RuntimeException) {
             // e.g. the ticket is already resolved/cancelled — guarded, surfaced cleanly, not a 500.
-            return $this->backTo($request, $model)->with('mt_error', 'That ticket can’t be reassigned — it’s already closed.');
+            return $this->backTo($request, $model)->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.cannot_reassign_closed'));
         }
 
         // "Notify both technicians" — real, preference-gated pings: the new assignee (it's now theirs) and the
@@ -134,7 +134,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return $this->backTo($request, $model)->with('mt_notice', 'Ticket assignment updated.');
+        return $this->backTo($request, $model)->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.assignment_updated'));
     }
 
     /**
@@ -164,10 +164,10 @@ class MaintenanceActionController extends Controller
         try {
             $maintenance->updateDetails($model, $validated);
         } catch (RuntimeException) {
-            return $this->listReturn($request, $default)->with('mt_error', 'That work order is closed — its details can’t be changed.');
+            return $this->listReturn($request, $default)->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.work_order_closed'));
         }
 
-        return $this->listReturn($request, $default)->with('mt_notice', 'Work order updated.');
+        return $this->listReturn($request, $default)->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.work_order_updated'));
     }
 
     /**
@@ -192,7 +192,7 @@ class MaintenanceActionController extends Controller
         if ($userId !== null) {
             // Staff-only, same reasoning as the single assign above (bulk path).
             if (! in_array((string) $userId, app(StaffRoster::class)->staffUserIds(), true)) {
-                abort(422, 'That user is not assignable staff in this organization.');
+                abort(422, __('php/http/controllers/operator/maintenance_action_controller.not_assignable_staff'));
             }
         }
 
@@ -208,7 +208,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('Assigned', $done, $skipped));
+        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('assigned', $done, $skipped));
     }
 
     /**
@@ -247,7 +247,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('Resolved', $done, $skipped));
+        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('resolved', $done, $skipped));
     }
 
     /**
@@ -264,9 +264,13 @@ class MaintenanceActionController extends Controller
         $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])
             ->with('unit.property', 'assignedTo')->orderByDesc('opened_at')->get();
 
-        return response()->streamDownload(function () use ($tickets): void {
+        // the headings are read in the viewer's language, before the download streams
+        $headings = [__('php/http/controllers/operator/maintenance_action_controller.col_title'), __('php/http/controllers/operator/maintenance_action_controller.col_unit'), __('php/http/controllers/operator/maintenance_action_controller.col_category'), __('php/http/controllers/operator/maintenance_action_controller.col_priority'),
+            __('php/http/controllers/operator/maintenance_action_controller.col_status'), __('php/http/controllers/operator/maintenance_action_controller.col_assignee'), __('php/http/controllers/operator/maintenance_action_controller.col_reported'), __('php/http/controllers/operator/maintenance_action_controller.col_cost')];
+
+        return response()->streamDownload(function () use ($tickets, $headings): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, CsvSafe::row(['Title', 'Unit', 'Category', 'Priority', 'Status', 'Assignee', 'Reported', 'Cost']));
+            fputcsv($out, CsvSafe::row($headings));
             foreach ($tickets as $t) {
                 $currency = (string) ($t->unit->property->currency ?? 'EUR');
                 fputcsv($out, CsvSafe::row([
@@ -286,12 +290,15 @@ class MaintenanceActionController extends Controller
         }, 'work-orders-'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv']);
     }
 
-    /** "Assigned 3 · 1 skipped (closed)" — an honest bulk result line. */
-    private function bulkNotice(string $verb, int $done, int $skipped): string
+    /** "Assigned 3 · 1 skipped (closed)" — an honest bulk result line. $action is 'assigned' or 'resolved'. */
+    private function bulkNotice(string $action, int $done, int $skipped): string
     {
-        $msg = $verb.' '.$done.' '.Str::plural('work order', $done);
-
-        return $skipped > 0 ? $msg.' · '.$skipped.' skipped (already closed)' : $msg.'.';
+        return match (true) {
+            $action === 'assigned' && $skipped > 0 => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_assigned_skipped', $done, ['count' => $done, 'skipped' => $skipped]),
+            $action === 'assigned' => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_assigned', $done, ['count' => $done]),
+            $skipped > 0 => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_resolved_skipped', $done, ['count' => $done, 'skipped' => $skipped]),
+            default => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_resolved', $done, ['count' => $done]),
+        };
     }
 
     /** Start work on an OPEN ticket (guarded: illegal from any other state → clean flash). */
@@ -307,11 +314,11 @@ class MaintenanceActionController extends Controller
             $maintenance->start($model);
         } catch (RuntimeException) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-                ->with('mt_error', 'That ticket can’t be started — it’s no longer open.');
+                ->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.cannot_start'));
         }
 
         return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-            ->with('mt_notice', 'Work started on this ticket.');
+            ->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.work_started'));
     }
 
     /**
@@ -352,7 +359,7 @@ class MaintenanceActionController extends Controller
             $maintenance->resolve($model, $cost, $labor, $parts, $laborHours, $validated['resolution'] ?? null, ! $returnToSale);
         } catch (RuntimeException) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-                ->with('mt_error', 'That work order can’t be resolved — it’s already closed.');   // open and in progress both resolve (2026-10-05)
+                ->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.cannot_resolve_closed'));   // open and in progress both resolve (2026-10-05)
         }
 
         // "Notify the front desk" — a real, preference-gated ping to the reporter (never a dead toggle, #39).
@@ -361,7 +368,7 @@ class MaintenanceActionController extends Controller
         }
 
         return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-            ->with('mt_notice', 'Ticket resolved.');
+            ->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.ticket_resolved'));
     }
 
     /** Cancel an ACTIVE ticket (guarded: illegal from a terminal state → clean flash). */
@@ -377,11 +384,11 @@ class MaintenanceActionController extends Controller
             $maintenance->cancel($model);
         } catch (RuntimeException) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-                ->with('mt_error', 'That ticket can’t be cancelled — it’s already closed.');
+                ->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.cannot_cancel_closed'));
         }
 
         return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-            ->with('mt_notice', 'Ticket cancelled.');
+            ->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.ticket_cancelled'));
     }
 
     /** Flag / clear the "waiting on a part" state on an ACTIVE ticket (#89 — the Parts-on-order panel). */
@@ -403,11 +410,11 @@ class MaintenanceActionController extends Controller
         try {
             $maintenance->setAwaitingParts($model, $awaiting, $validated['part_name'] ?? null, $validated['part_eta'] ?? null);
         } catch (RuntimeException) {
-            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', 'That ticket is closed — parts can’t be updated.');
+            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', __('php/http/controllers/operator/maintenance_action_controller.parts_closed'));
         }
 
         return redirect()->route('app.maintenance.show', $model->id)
-            ->with('mt_notice', $awaiting ? 'Marked as awaiting parts.' : 'Parts marked as arrived.');
+            ->with('mt_notice', $awaiting ? __('php/http/controllers/operator/maintenance_action_controller.awaiting_parts') : __('php/http/controllers/operator/maintenance_action_controller.parts_arrived'));
     }
 
     /**
@@ -439,10 +446,10 @@ class MaintenanceActionController extends Controller
         if ($kind === 'part' && $model->isActive()) {
             $maintenance->setAwaitingParts($model, true, $validated['part_name'] ?? null, $validated['part_eta'] ?? null);
 
-            return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Update posted — marked as waiting on the part.');
+            return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.update_posted_waiting_part'));
         }
 
-        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Update posted.');
+        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.update_posted'));
     }
 
     /**
@@ -479,7 +486,7 @@ class MaintenanceActionController extends Controller
         ]);
 
         // the board's drawer sends return=list: back to the board where the photo was added (2026-10-05)
-        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_notice', 'Photo added.');
+        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.photo_added'));
     }
 
     /** Remove a ticket photo — deletes the stored bytes + the row. Tenant + ticket scoped; read-only respected. */
@@ -499,7 +506,7 @@ class MaintenanceActionController extends Controller
         Storage::disk((string) $row->disk)->delete((string) $row->path);
         $row->delete();
 
-        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Photo removed.');
+        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.photo_removed'));
     }
 
     /** Where an assign returns to: the ticket detail when it came from there, else the board. */
@@ -548,6 +555,6 @@ class MaintenanceActionController extends Controller
 
     private function pausedMessage(): string
     {
-        return 'Your workspace is paused (read-only) — maintenance changes are off until you resume.';
+        return __('php/http/controllers/operator/maintenance_action_controller.workspace_paused');
     }
 }

@@ -55,10 +55,10 @@ class OwnerManageController extends Controller
         $validated = $request->validate([
             'commission_pct' => ['required', 'numeric', 'min:0', 'max:100'],
         ], [
-            'commission_pct.required' => 'Enter the commission, in percent.',
-            'commission_pct.numeric' => 'The commission must be a number between 0 and 100.',
-            'commission_pct.min' => 'The commission must be a number between 0 and 100.',
-            'commission_pct.max' => 'The commission must be a number between 0 and 100.',
+            'commission_pct.required' => __('php/http/controllers/operator/owner_manage_controller.commission_required'),
+            'commission_pct.numeric' => __('php/http/controllers/operator/owner_manage_controller.commission_range'),
+            'commission_pct.min' => __('php/http/controllers/operator/owner_manage_controller.commission_range'),
+            'commission_pct.max' => __('php/http/controllers/operator/owner_manage_controller.commission_range'),
         ]);
 
         $pct = round((float) $validated['commission_pct'], 2);
@@ -72,27 +72,24 @@ class OwnerManageController extends Controller
         $wasWaiting = $today !== null && $waiting !== null && (string) $waiting->getKey() !== (string) $today->getKey();
 
         if (! CommissionChange::apply($model, $pct)) {
-            return $this->back($owner, 'owners_notice', 'Nothing changed — '.$display.' is already '.$model->name.'’s commission from '
-                .$startsOn->format('j M Y').'.');
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_unchanged', ['rate' => $display, 'name' => $model->name, 'date' => $startsOn->translatedFormat('j M Y')]));
         }
 
         // ⚠️ A field list, never the figures — an audit row is not a second copy of the money.
         $this->audit->record('owner.updated', $model, null, ['fields' => ['commission_pct']]);
 
         if ($today === null) {
-            return $this->back($owner, 'owners_notice', $model->name.'’s commission is '.$display.' from today — they had no agreement in effect.');
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_from_today', ['name' => $model->name, 'rate' => $display]));
         }
 
         // back to today's rate while a change was waiting: the waiting change is what moved, so that is what the notice says
         if ($wasWaiting && $today->commission_pct !== null && round((float) $today->commission_pct, 2) === $pct) {
-            return $this->back($owner, 'owners_notice', $model->name.' stays on '.$display.' — the change waiting for '
-                .$startsOn->format('j M Y').' won’t happen.');
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_waiting_cancelled', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat('j M Y')]));
         }
 
         // ⚠️ "Worked out", not "booked": earnings are worked out when a booking is made — or later, for one imported without
         //    them, and again when a booking moves to another owner's unit (the review) — so that is the honest unit.
-        return $this->back($owner, 'owners_notice', $model->name.'’s commission is '.$display.' from '.$startsOn->format('j M Y')
-            .' — for bookings worked out from now on. Bookings already worked out keep their rate.');
+        return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_from_date', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat('j M Y')]));
     }
 
     /**
@@ -113,8 +110,8 @@ class OwnerManageController extends Controller
 
         return $this->back($owner, 'owners_notice', $paused
             // DEC-n (2026-10-02) — a pause stops every payout, by the automatic run or by hand on the payout run page
-            ? 'Payouts paused for '.$model->name.' — no payout goes out to them until you resume.'
-            : 'Payouts resumed for '.$model->name.'.', $request);
+            ? __('php/http/controllers/operator/owner_manage_controller.payouts_paused', ['name' => $model->name])
+            : __('php/http/controllers/operator/owner_manage_controller.payouts_resumed', ['name' => $model->name]), $request);
     }
 
     /**
@@ -153,9 +150,9 @@ class OwnerManageController extends Controller
             'period_start' => ['required', 'date'],
             'period_end' => ['required', 'date', 'after_or_equal:period_start'],
         ], [
-            'period_start.required' => 'Choose the first day of the period.',
-            'period_end.required' => 'Choose the last day of the period.',
-            'period_end.after_or_equal' => 'The period has to end on or after the day it starts.',
+            'period_start.required' => __('php/http/controllers/operator/owner_manage_controller.period_start_required'),
+            'period_end.required' => __('php/http/controllers/operator/owner_manage_controller.period_end_required'),
+            'period_end.after_or_equal' => __('php/http/controllers/operator/owner_manage_controller.period_end_after_start'),
         ]);
 
         $model = Owner::query()->findOrFail($owner);
@@ -172,8 +169,7 @@ class OwnerManageController extends Controller
         } catch (RuntimeException $e) {
             // the dates come back with the refusal, so the dialog reopens with them and says why (2026-10-03)
             return $this->back($owner, 'owners_error',
-                'That period could not be closed: '.$e->getMessage()
-                .' Pick a period that starts after the last sealed one.')->withInput($request->only('_form', 'period_start', 'period_end'));
+                __('php/http/controllers/operator/owner_manage_controller.period_not_closed', ['reason' => $e->getMessage()]))->withInput($request->only('_form', 'period_start', 'period_end'));
         }
 
         // ⚠️ Recorded as a field list, never the figures — an audit row is not a second copy of the money.
@@ -188,8 +184,7 @@ class OwnerManageController extends Controller
         $net = MoneyFormatter::display((int) $statement->net_payable_minor, (string) $statement->currency);
 
         return $this->back($owner, 'owners_notice',
-            'Period closed — statement #'.$statement->sequence_no.' finalised at '.$net.' payable. '
-            .'Revenue not yet collected from guests stays unclaimed and will appear on a later statement.');
+            __('php/http/controllers/operator/owner_manage_controller.period_closed', ['number' => $statement->sequence_no, 'amount' => $net]));
     }
 
     public function addNote(Request $request, string $owner): RedirectResponse
@@ -200,8 +195,8 @@ class OwnerManageController extends Controller
 
         $model = Owner::query()->findOrFail($owner);
         $validated = $request->validate(['body' => ['required', 'string', 'max:2000']], [
-            'body.required' => 'Write the note first.',
-            'body.max' => 'A note can be up to 2,000 characters.',
+            'body.required' => __('php/http/controllers/operator/owner_manage_controller.note_required'),
+            'body.max' => __('php/http/controllers/operator/owner_manage_controller.note_max'),
         ]);
 
         $model->noteEntries()->create([
@@ -211,7 +206,7 @@ class OwnerManageController extends Controller
         ]);
         $this->audit->record('owner.note_added', $model);
 
-        return $this->back($owner, 'owners_notice', 'Note added.');
+        return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.note_added'));
     }
 
     /**
@@ -243,14 +238,14 @@ class OwnerManageController extends Controller
             'current_password' => ['required', 'current_password'],
             'confirm_name' => ['required', 'string'],
         ], [
-            'current_password.required' => 'Enter your password to remove this owner.',
-            'current_password.current_password' => 'That password isn’t right — enter the one you sign in with.',
-            'confirm_name.required' => 'Type the owner’s name to confirm.',
+            'current_password.required' => __('php/http/controllers/operator/owner_manage_controller.remove_password_required'),
+            'current_password.current_password' => __('php/http/controllers/operator/owner_manage_controller.password_wrong'),
+            'confirm_name.required' => __('php/http/controllers/operator/owner_manage_controller.confirm_name_required'),
         ]);
 
         if (trim((string) $validated['confirm_name']) !== trim((string) $model->name)) {
             // what was typed comes back with the refusal, so the dialog reopens with it (2026-10-03)
-            return $this->back($owner, 'owners_error', 'The name you typed doesn’t match — the owner was not removed.')
+            return $this->back($owner, 'owners_error', __('php/http/controllers/operator/owner_manage_controller.confirm_name_mismatch'))
                 ->withInput($request->only('_form', 'confirm_name'));
         }
 
@@ -330,7 +325,7 @@ class OwnerManageController extends Controller
 
         $this->audit->record('owner.archived', $model, null, ['archived' => true]);
 
-        return redirect()->route('app.owners')->with('owners_notice', $model->name.' removed — units unassigned, all statements & payouts kept for accounting.');
+        return redirect()->route('app.owners')->with('owners_notice', __('php/http/controllers/operator/owner_manage_controller.owner_removed', ['name' => $model->name]));
     }
 
     private function paused(): bool
@@ -343,7 +338,9 @@ class OwnerManageController extends Controller
         // ⚠️ 2026-10-01 — with no resume date on record this ended "until ." (the same fix as the rate-plan writes)
         $until = app(OperatorWorkspace::class)->resumeLabel();
 
-        return 'Workspace paused — owner changes are read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.';
+        return $until !== null && $until !== ''
+            ? __('php/http/controllers/operator/owner_manage_controller.workspace_paused_until', ['date' => $until])
+            : __('php/http/controllers/operator/owner_manage_controller.workspace_paused_for_now');
     }
 
     /** Back to the owner — or to the Owners list as the operator had it, when the form was started there (2026-10-01). */

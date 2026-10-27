@@ -26,7 +26,7 @@
      RAW-BLADE RULE: never write `word@directive` — Blade's \B guard would ship the raw source to the page
      as ordinary text, invisible to assertSee. Every `@` below follows a space, a newline or a tag. --}}
 <div>
-    <x-operator.shell active="payout-run" title="Payout run" :subtitle="$subtitle" :viewer="$viewer">
+    <x-operator.shell active="payout-run" :title="__('livewire/operator/payout-run.payout_run')" :subtitle="$subtitle" :viewer="$viewer">
         {{-- 2026-10-03: every write below records money owed or paid, so each asks first — what it records, and that it moves
              no money (`data-confirm` on the form, the one dialog at the end). The forms still post without the script. --}}
         <div class="vyo-root vyo-pr" x-data="vyPayoutRun()">
@@ -53,13 +53,13 @@
              work-order detail rather than writing a second breadcrumb rule (anti-drift). The design's
              period tail ("· Sep 2025") is NOT reproduced: a payout run here is not scoped to a month, and
              stamping one on would state a period this page does not actually filter by (#39). --}}
-        <nav class="vyo-pr-crumbs vy-fade" aria-label="Breadcrumb">
+        <nav class="vyo-pr-crumbs vy-fade" aria-label="{{ __('livewire/operator/payout-run.breadcrumb') }}">
             <a class="vyo-pr-crumb" href="{{ route('app.owners') }}">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-                Owners
+                {{ __('livewire/operator/payout-run.owners') }}
             </a>
             <span class="vyo-pr-sep" aria-hidden="true">/</span>
-            <span class="vyo-pr-here" aria-current="page">Payout run</span>
+            <span class="vyo-pr-here" aria-current="page">{{ __('livewire/operator/payout-run.payout_run') }}</span>
         </nav>
 
         {{-- Run header + the REAL persisted run + the run action (certified PayoutRunService, test-mode) --}}
@@ -68,36 +68,36 @@
                 {{-- ⚠️ THIS organisation's figures only (2026-10-02): a run row carries no organisation, so the latest run could be
                      another's — the component reads what this organisation's own payouts record instead. --}}
                 @if ($latestRun)
-                    <span class="vy-range">Last run here <span class="vy-muted">· {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held · {{ $latestRun['when'] }}</span></span>
+                    <span class="vy-range">{!! __('livewire/operator/payout-run.last_run_line', ['created' => e($latestRun['created']), 'paid' => e($latestRun['paid']), 'held' => e($latestRun['held']), 'when' => e($latestRun['when'])]) !!}</span>
                 @else
-                    <span class="vy-range">No payout run yet here</span>
+                    <span class="vy-range">{{ __('livewire/operator/payout-run.no_run_yet_here') }}</span>
                 @endif
             </div>
             <div class="vy-right vyo-pr-actions">
                 {{-- Export SEPA — HONEST-DISABLED: no SEPA generator exists; the real disbursement is the test-mode
                      rail. Never a fabricated bank file (#39). --}}
-                <span class="vy-pill is-soon" aria-disabled="true" title="No SEPA export yet — the disbursement rail is test-mode">Export SEPA · Soon</span>
+                <span class="vy-pill is-soon" aria-disabled="true" title="{{ __('livewire/operator/payout-run.sepa_soon_title') }}">{{ __('livewire/operator/payout-run.sepa_soon') }}</span>
                 @if ($canPayout && $engineOn)
                     <form method="POST" action="{{ route('app.payouts.run-now') }}" class="vyo-inline-form" x-on:submit="ask($event)" data-guard-submit
-                          data-confirm="{{ json_encode(['title' => 'Run payouts now?', 'sub' => 'In '.$mode.' mode.', 'button' => 'Run payouts', 'facts' => array_values(array_filter([
-                              'Creates a payout for every owner here with a statement ready to pay, and pays each one by '.mb_strtolower($rail['label']).'.',
-                              $rail['name'] === 'manual' ? 'A bank transfer is recorded, not sent: each payout is marked paid — make the transfers from your own bank.' : null,
-                              'An owner with no tax details on file is held until they add them. Owners whose payouts are paused are skipped.',
-                              'Recorded as a payout run.',
+                          data-confirm="{{ json_encode(['title' => __('livewire/operator/payout-run.run_confirm_title'), 'sub' => $mode === 'live' ? __('livewire/operator/payout-run.run_confirm_sub_live') : __('livewire/operator/payout-run.run_confirm_sub_test'), 'button' => __('livewire/operator/payout-run.run_confirm_button'), 'facts' => array_values(array_filter([
+                              __('livewire/operator/payout-run.run_fact_creates', ['rail' => \App\Support\I18n\Locales::inSentence($rail['label'])]),
+                              $rail['name'] === 'manual' ? __('livewire/operator/payout-run.run_fact_manual') : null,
+                              __('livewire/operator/payout-run.run_fact_tax_hold'),
+                              __('livewire/operator/payout-run.run_fact_recorded'),
                           ]))], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                         @csrf
-                        <button type="submit" class="vy-btn vy-btn--accent">Run payouts now</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/payout-run.run_payouts_now') }}</button>
                     </form>
                 @elseif ($canPayout)
                     {{-- ⚠️ D-PAYRUN-BUTTON (2026-10-03): offered while the engine was off, the button could only be refused. --}}
-                    <button type="button" class="vy-btn vy-btn--accent" disabled aria-describedby="vyo-pr-off">Run payouts now</button>
+                    <button type="button" class="vy-btn vy-btn--accent" disabled aria-describedby="vyo-pr-off">{{ __('livewire/operator/payout-run.run_payouts_now') }}</button>
                 @endif
             </div>
         </div>
         @if ($canPayout && ! $engineOn)
             <p class="vyo-pr-off vy-fade" id="vyo-pr-off">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
-                The automatic payout engine is switched off, so payouts are not run in one go — create them and mark them paid below.
+                {{ __('livewire/operator/payout-run.engine_off') }}
             </p>
         @endif
 
@@ -111,34 +111,33 @@
             {{-- The design's three stat tiles are all LIGHT glass; its one dark surface is the run-summary
                  card in the right rail, which is where the dark treatment now lives. --}}
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Ready to pay</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/payout-run.ready_to_pay') }}</div>
                 @forelse ($kpis['ready']['lines'] as $line)
                     <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
                 <div class="vy-dk-sub">
-                    {{ $kpis['ready']['count'] }} finalized {{ \Illuminate\Support\Str::plural('statement', $kpis['ready']['count']) }} awaiting a payout
-                    {{ count($kpis['ready']['lines']) > 1 ? '· shown per currency (never summed across)' : '' }}
+                    {{ count($kpis['ready']['lines']) > 1 ? trans_choice('livewire/operator/payout-run.ready_sub_per_currency', $kpis['ready']['count'], ['count' => $kpis['ready']['count']]) : trans_choice('livewire/operator/payout-run.ready_sub', $kpis['ready']['count'], ['count' => $kpis['ready']['count']]) }}
                 </div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Pending transfers</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/payout-run.pending_transfers') }}</div>
                 @forelse ($kpis['pending']['lines'] as $line)
                     <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
-                <div class="vy-dk-sub">{{ $kpis['pending']['count'] }} {{ \Illuminate\Support\Str::plural('payout', $kpis['pending']['count']) }} created, not yet paid</div>
+                <div class="vy-dk-sub">{{ trans_choice('livewire/operator/payout-run.pending_sub', $kpis['pending']['count'], ['count' => $kpis['pending']['count']]) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Paid</div>
+                <div class="vy-dk-label">{{ __('livewire/operator/payout-run.paid_label') }}</div>
                 @forelse ($kpis['paid']['lines'] as $line)
                     <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
-                <div class="vy-dk-sub">{{ $kpis['paid']['count'] }} {{ \Illuminate\Support\Str::plural('payout', $kpis['paid']['count']) }} genuinely marked paid</div>
+                <div class="vy-dk-sub">{{ trans_choice('livewire/operator/payout-run.paid_sub', $kpis['paid']['count'], ['count' => $kpis['paid']['count']]) }}</div>
             </div>
         </div>
 
@@ -151,21 +150,21 @@
                      (the service is idempotent). Every row here can genuinely be created. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
-                        <h2 class="vy-card-title">Ready to pay</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.ready_to_pay') }}</h2>
                         @if (count($ready) > 0 && auth()->user()?->can('payouts.manage'))
                             <form method="POST" action="{{ route('app.payouts.create') }}" x-on:submit="ask($event)" data-guard-submit
-                                  data-confirm="{{ json_encode(['title' => 'Create '.count($ready).' '.\Illuminate\Support\Str::plural('payout', count($ready)).'?',
-                                      'sub' => 'One for each finalised statement ready to pay.',
-                                      'button' => 'Create '.count($ready).' '.\Illuminate\Support\Str::plural('payout', count($ready)),
+                                  data-confirm="{{ json_encode(['title' => trans_choice('livewire/operator/payout-run.create_all_confirm_title', count($ready), ['count' => count($ready)]),
+                                      'sub' => __('livewire/operator/payout-run.create_all_confirm_sub'),
+                                      'button' => trans_choice('livewire/operator/payout-run.create_all_button', count($ready), ['count' => count($ready)]),
                                       'facts' => array_values(array_filter([
-                                          'Each records what you owe that owner — it moves no money.',
-                                          $engineOn ? 'Each waits under Pending transfers until it is paid — by you, or by the next automatic run.' : 'Each waits under Pending transfers until you mark it paid.',
-                                          count($pausedReady) > 0 ? 'Owners whose payouts are paused are skipped.' : null,
-                                          'Recorded in the audit log.',
+                                          __('livewire/operator/payout-run.create_all_fact_records'),
+                                          $engineOn ? __('livewire/operator/payout-run.create_all_fact_waits_engine') : __('livewire/operator/payout-run.create_all_fact_waits'),
+                                          count($pausedReady) > 0 ? __('livewire/operator/payout-run.fact_paused_skipped') : null,
+                                          __('livewire/operator/payout-run.fact_audit_log'),
                                       ]))], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
-                                    Create {{ count($ready) }} {{ \Illuminate\Support\Str::plural('payout', count($ready)) }}
+                                    {{ trans_choice('livewire/operator/payout-run.create_all_button', count($ready), ['count' => count($ready)]) }}
                                 </button>
                             </form>
                         @else
@@ -181,10 +180,10 @@
                             <table class="vy-utable vy-utable--stick-action">
                                 <thead>
                                     <tr>
-                                        <th>Owner</th>
-                                        <th>Statement</th>
-                                        <th>Period</th>
-                                        <th>Net payable</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_owner') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_statement') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_period') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_net_payable') }}</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -202,7 +201,7 @@
                                             <td>
                                                 <div>{{ $row['period'] }}</div>
                                                 @if ($row['finalized'])
-                                                    <div class="vy-u-sub">Finalized {{ $row['finalized'] }}</div>
+                                                    <div class="vy-u-sub">{{ __('livewire/operator/payout-run.finalized_on', ['date' => $row['finalized']]) }}</div>
                                                 @endif
                                             </td>
                                             <td class="vy-u-code">{{ $row['net'] }}</td>
@@ -211,13 +210,13 @@
                                                      Owner / Group Admin / Accountant, not Hotel Manager. --}}
                                                 @can('payouts.manage')
                                                 <form method="POST" action="{{ route('app.payouts.create') }}" x-on:submit="ask($event)" data-guard-submit
-                                                      data-confirm="{{ json_encode(['title' => 'Create a payout for '.$row['owner_name'].'?',
-                                                          'sub' => ($row['sequence_no'] !== null ? 'Statement #'.$row['sequence_no'].' · ' : '').$row['period'].' · '.$row['net'],
-                                                          'button' => 'Create payout',
-                                                          'facts' => ['It records what you owe them — it moves no money.', $engineOn ? 'It waits under Pending transfers until it is paid — by you, or by the next automatic run.' : 'It waits under Pending transfers until you mark it paid.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
+                                                      data-confirm="{{ json_encode(['title' => __('livewire/operator/payout-run.create_one_confirm_title', ['owner' => $row['owner_name']]),
+                                                          'sub' => ($row['sequence_no'] !== null ? __('livewire/operator/payout-run.statement_number', ['number' => $row['sequence_no']]).' · ' : '').$row['period'].' · '.$row['net'],
+                                                          'button' => __('livewire/operator/payout-run.create_payout'),
+                                                          'facts' => [__('livewire/operator/payout-run.create_one_fact_records'), $engineOn ? __('livewire/operator/payout-run.create_one_fact_waits_engine') : __('livewire/operator/payout-run.create_one_fact_waits'), __('livewire/operator/payout-run.fact_audit_log')]], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                                     @csrf
                                                     <input type="hidden" name="statement_id" value="{{ $row['statement_id'] }}">
-                                                    <button type="submit" class="vy-act vy-act--accent">Create payout</button>
+                                                    <button type="submit" class="vy-act vy-act--accent">{{ __('livewire/operator/payout-run.create_payout') }}</button>
                                                 </form>
                                                 @endcan
                                             </td>
@@ -227,7 +226,7 @@
                             </table>
                         </div>
                     @else
-                        <div class="vy-empty">No finalized statement is waiting for a payout.</div>
+                        <div class="vy-empty">{{ __('livewire/operator/payout-run.ready_empty') }}</div>
                     @endif
                 </div>
 
@@ -236,18 +235,18 @@
                 @if (count($pausedReady) > 0)
                     <div class="vy-card vy-fade">
                         <div class="vy-detail-head">
-                            <h2 class="vy-card-title">Payouts paused</h2>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.payouts_paused') }}</h2>
                             <span class="vy-eyebrow">{{ count($pausedReady) }}</span>
                         </div>
-                        <div class="vy-deferred-note vyo-pr-note">No payout is created or sent for these owners — not by the automatic run, not by hand — until their payouts are resumed on the owner’s page.</div>
+                        <div class="vy-deferred-note vyo-pr-note">{{ __('livewire/operator/payout-run.paused_note') }}</div>
                         <div class="vy-utable-wrap">
                             <table class="vy-utable vy-utable--stick-action">
                                 <thead>
                                     <tr>
-                                        <th>Owner</th>
-                                        <th>Statement</th>
-                                        <th>Period</th>
-                                        <th>Net payable</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_owner') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_statement') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_period') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_net_payable') }}</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -266,7 +265,7 @@
                                             <td class="vy-u-code">{{ $row['net'] }}</td>
                                             <td>
                                                 @if ($row['owner_id'])
-                                                    <a class="vy-act" href="{{ route('app.owners.show', $row['owner_id']) }}">Open owner</a>
+                                                    <a class="vy-act" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ __('livewire/operator/payout-run.open_owner') }}</a>
                                                 @endif
                                             </td>
                                         </tr>
@@ -280,16 +279,16 @@
                 {{-- Pending transfers — REAL payout rows awaiting the rail. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
-                        <h2 class="vy-card-title">Pending transfers</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.pending_transfers') }}</h2>
                         @if ($pendingPayable > 0 && $rail['can_send'] && auth()->user()?->can('payouts.manage'))
                             <form method="POST" action="{{ route('app.payouts.pay') }}" x-on:submit="ask($event)" data-guard-submit
-                                  data-confirm="{{ json_encode(['title' => 'Mark '.$pendingPayable.' '.\Illuminate\Support\Str::plural('payout', $pendingPayable).' paid?',
-                                      'sub' => 'Do this once every one of these transfers has left your own bank.',
-                                      'button' => 'Mark '.$pendingPayable.' paid',
-                                      'facts' => ['Vyrobel records each payout and its statement as paid — it does not send money.', 'Owners whose payouts are paused are skipped.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
+                                  data-confirm="{{ json_encode(['title' => trans_choice('livewire/operator/payout-run.mark_all_confirm_title', $pendingPayable, ['count' => $pendingPayable]),
+                                      'sub' => __('livewire/operator/payout-run.mark_all_confirm_sub'),
+                                      'button' => trans_choice('livewire/operator/payout-run.mark_all_button', $pendingPayable, ['count' => $pendingPayable]),
+                                      'facts' => [__('livewire/operator/payout-run.mark_all_fact_records'), __('livewire/operator/payout-run.fact_paused_skipped'), __('livewire/operator/payout-run.fact_audit_log')]], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
-                                    Mark {{ $pendingPayable }} paid
+                                    {{ trans_choice('livewire/operator/payout-run.mark_all_button', $pendingPayable, ['count' => $pendingPayable]) }}
                                 </button>
                             </form>
                         @else
@@ -305,10 +304,10 @@
                             <table class="vy-utable vy-utable--stick-action">
                                 <thead>
                                     <tr>
-                                        <th>Owner</th>
-                                        <th>Statement</th>
-                                        <th>Method</th>
-                                        <th>Amount</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_owner') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_statement') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_method') }}</th>
+                                        <th>{{ __('livewire/operator/payout-run.col_amount') }}</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -342,21 +341,21 @@
                                             <td>
                                                 @if ($row['paused'])
                                                     {{-- DEC-n — the service refuses it; resuming the owner makes it payable again --}}
-                                                    <span class="vy-act is-soon" aria-disabled="true" title="Payouts to this owner are paused — resume them on the owner’s page">Paused</span>
+                                                    <span class="vy-act is-soon" aria-disabled="true" title="{{ __('livewire/operator/payout-run.paused_title') }}">{{ __('livewire/operator/payout-run.paused') }}</span>
                                                 @elseif ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
                                                     <form method="POST" action="{{ route('app.payouts.pay') }}" x-on:submit="ask($event)" data-guard-submit
-                                                          data-confirm="{{ json_encode(['title' => 'Mark '.$row['amount'].' to '.$row['owner_name'].' as paid?',
-                                                              'sub' => 'Do this once the transfer has left your own bank.',
-                                                              'button' => 'Mark paid',
-                                                              'facts' => ['Vyrobel records the payout and its statement as paid — it does not send money.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
+                                                          data-confirm="{{ json_encode(['title' => __('livewire/operator/payout-run.mark_one_confirm_title', ['amount' => $row['amount'], 'owner' => $row['owner_name']]),
+                                                              'sub' => __('livewire/operator/payout-run.mark_one_confirm_sub'),
+                                                              'button' => __('livewire/operator/payout-run.mark_paid'),
+                                                              'facts' => [__('livewire/operator/payout-run.mark_one_fact_records'), __('livewire/operator/payout-run.fact_audit_log')]], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                                         @csrf
                                                         <input type="hidden" name="payout_id" value="{{ $row['payout_id'] }}">
-                                                        <button type="submit" class="vy-act vy-act--accent">Mark paid</button>
+                                                        <button type="submit" class="vy-act vy-act--accent">{{ __('livewire/operator/payout-run.mark_paid') }}</button>
                                                     </form>
                                                 @else
                                                     {{-- The bound rail cannot disburse — offering the button would be offering a
                                                          guaranteed failure. The rail card explains why. --}}
-                                                    <span class="vy-act is-soon" aria-disabled="true">Rail not connected</span>
+                                                    <span class="vy-act is-soon" aria-disabled="true">{{ __('livewire/operator/payout-run.rail_not_connected') }}</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -365,7 +364,7 @@
                             </table>
                         </div>
                     @else
-                        <div class="vy-empty">No transfer is waiting to be paid.</div>
+                        <div class="vy-empty">{{ __('livewire/operator/payout-run.pending_empty') }}</div>
                     @endif
                 </div>
 
@@ -373,7 +372,7 @@
                      values, so a failure is never softened or hidden and always carries its real reason. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
-                        <h2 class="vy-card-title">Recent transfers</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.recent_transfers') }}</h2>
                         <span class="vy-eyebrow">{{ count($recent) }}</span>
                     </div>
                     <div class="vy-ledger">
@@ -391,15 +390,15 @@
                                     <div class="vy-ledger-sub">
                                         {{ $row['method'] }}
                                         @if ($row['sequence_no'] !== null)
-                                            <span class="vy-sep">·</span> Statement #{{ $row['sequence_no'] }}
+                                            <span class="vy-sep">·</span> {{ __('livewire/operator/payout-run.statement_number', ['number' => $row['sequence_no']]) }}
                                         @endif
                                         @if ($row['paid_at'])
-                                            <span class="vy-sep">·</span> Paid {{ $row['paid_at'] }}
+                                            <span class="vy-sep">·</span> {{ __('livewire/operator/payout-run.paid_on', ['date' => $row['paid_at']]) }}
                                         @elseif ($row['failed_at'])
-                                            <span class="vy-sep">·</span> Failed {{ $row['failed_at'] }}
+                                            <span class="vy-sep">·</span> {{ __('livewire/operator/payout-run.failed_on', ['date' => $row['failed_at']]) }}
                                         @endif
                                         @if ($row['external_ref'])
-                                            <span class="vy-sep">·</span> Ref {{ $row['external_ref'] }}
+                                            <span class="vy-sep">·</span> {{ __('livewire/operator/payout-run.ref', ['ref' => $row['external_ref']]) }}
                                         @endif
                                     </div>
                                     @if ($row['failure_reason'])
@@ -409,7 +408,7 @@
                                 <div class="vy-ledger-amt tone-{{ $row['status_meta']['tone'] === 'confirmed' ? 'paid' : 'muted' }}">{{ $row['amount'] }}</div>
                             </div>
                         @empty
-                            <div class="vy-empty">No payout has settled yet.</div>
+                            <div class="vy-empty">{{ __('livewire/operator/payout-run.recent_empty') }}</div>
                         @endforelse
                     </div>
                 </div>
@@ -430,37 +429,37 @@
                      What IS shown here is real: the persisted run's own status and counts, or an honest
                      statement that no run has happened yet. --}}
                 <div class="vy-card vy-fade vy-runsum">
-                    <div class="vy-runsum-label">Run summary</div>
+                    <div class="vy-runsum-label">{{ __('livewire/operator/payout-run.run_summary') }}</div>
 
                     @if ($latestRun)
-                        <div class="vy-runsum-head">Last run here</div>
+                        <div class="vy-runsum-head">{{ __('livewire/operator/payout-run.last_run_here') }}</div>
                         <div class="vy-runsum-sub">
-                            {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held
+                            {{ __('livewire/operator/payout-run.run_counts', ['created' => $latestRun['created'], 'paid' => $latestRun['paid'], 'held' => $latestRun['held']]) }}
                             @if ($latestRun['when'])
                                 <span class="vy-sep">·</span> {{ $latestRun['when'] }}
                             @endif
                         </div>
                         @if ($latestRun['mode'] !== 'live')
-                            <div class="vy-runsum-note">Ran in {{ $latestRun['mode'] }} mode — no real funds moved.</div>
+                            <div class="vy-runsum-note">{{ $latestRun['mode'] === 'test' ? __('livewire/operator/payout-run.ran_in_test_mode') : __('livewire/operator/payout-run.ran_in_mode', ['mode' => $latestRun['mode']]) }}</div>
                         @endif
                     @else
-                        <div class="vy-runsum-head">No run yet</div>
-                        <div class="vy-runsum-sub">Nothing has been run this period.</div>
+                        <div class="vy-runsum-head">{{ __('livewire/operator/payout-run.no_run_yet') }}</div>
+                        <div class="vy-runsum-sub">{{ __('livewire/operator/payout-run.nothing_run') }}</div>
                     @endif
 
                     {{-- The real composition of what a run would touch. Counts are real integers, so they can
                          be shown together; the AMOUNTS stay in the per-currency stat strip above. --}}
                     <div class="vy-runsum-grid">
                         <div>
-                            <div class="vy-runsum-k">Ready</div>
+                            <div class="vy-runsum-k">{{ __('livewire/operator/payout-run.summary_ready') }}</div>
                             <div class="vy-runsum-v">{{ $kpis['ready']['count'] }}</div>
                         </div>
                         <div>
-                            <div class="vy-runsum-k">Pending</div>
+                            <div class="vy-runsum-k">{{ __('livewire/operator/payout-run.summary_pending') }}</div>
                             <div class="vy-runsum-v">{{ $kpis['pending']['count'] }}</div>
                         </div>
                         <div>
-                            <div class="vy-runsum-k">Held</div>
+                            <div class="vy-runsum-k">{{ __('livewire/operator/payout-run.summary_held') }}</div>
                             <div class="vy-runsum-v">{{ count($heldRows) }}</div>
                         </div>
                     </div>
@@ -470,35 +469,32 @@
                      really use, not a config guess. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
-                        <h2 class="vy-card-title">How this run pays</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.how_this_run_pays') }}</h2>
                     </div>
                     <div class="vy-facts">
                         <div>
-                            <div class="vy-fact-label">Rail</div>
+                            <div class="vy-fact-label">{{ __('livewire/operator/payout-run.rail') }}</div>
                             <div class="vy-fact-val">{{ $rail['label'] }}</div>
                         </div>
                     </div>
 
                     @if ($rail['name'] === 'manual')
                         <div class="vy-deferred-note vyo-pr-note--top">
-                            Vyrobel does not move this money. Marking a transfer paid RECORDS a bank transfer you
-                            have already made from your own bank — it does not send one.
+                            {{ __('livewire/operator/payout-run.manual_note') }}
                         </div>
                     @else
                         <div class="vy-deferred-note vyo-pr-note--top">
-                            This rail cannot disburse, so the Mark-paid controls are disabled rather than offered
-                            as a guaranteed failure.
+                            {{ __('livewire/operator/payout-run.cannot_disburse_note') }}
                         </div>
                     @endif
 
                     {{-- DEFERRED — true whichever rail is bound: Connect has never been connected. --}}
                     <div class="vyo-pr-soon">
-                        <span class="vy-btn is-soon" aria-disabled="true">Pay via Stripe Connect</span>
-                        <span class="vy-soon-tag">Soon</span>
+                        <span class="vy-btn is-soon" aria-disabled="true">{{ __('livewire/operator/payout-run.pay_via_stripe_connect') }}</span>
+                        <span class="vy-soon-tag">{{ __('livewire/operator/payout-run.soon') }}</span>
                     </div>
                     <div class="vy-deferred-note vyo-pr-note--tight">
-                        Stripe Connect disbursement is not connected — connected-account onboarding and KYC are an
-                        unverified live checkpoint, so no money can leave Vyrobel through it.
+                        {{ __('livewire/operator/payout-run.connect_note') }}
                     </div>
                 </div>
 
@@ -508,14 +504,14 @@
                 @if (count($heldRows) > 0 || count($noMethodRows) > 0)
                     <div class="vy-card vy-fade">
                         <div class="vy-detail-head">
-                            <h2 class="vy-card-title">On hold</h2>
+                            <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.on_hold') }}</h2>
                             <span class="vy-eyebrow">{{ count($heldRows) + count($noMethodRows) }}</span>
                         </div>
                         @foreach ($heldRows as $row)
                             <div class="vy-unit-row">
                                 <div>
                                     <div class="vy-um-name">@if ($row['owner_id'])<a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>@else {{ $row['owner_name'] }} @endif</div>
-                                    <div class="vy-um-sub">{{ $row['reason'] }}@if ($row['iban']) <span class="vy-sep">·</span> IBAN {{ $row['iban'] }} @endif</div>
+                                    <div class="vy-um-sub">{{ $row['reason'] }}@if ($row['iban']) <span class="vy-sep">·</span> {{ __('livewire/operator/payout-run.iban_masked', ['iban' => $row['iban']]) }} @endif</div>
                                 </div>
                                 <div class="vy-u-code">{{ $row['amount'] }}</div>
                             </div>
@@ -524,12 +520,12 @@
                             <div class="vy-unit-row">
                                 <div>
                                     <div class="vy-um-name">@if ($row['owner_id'])<a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>@else {{ $row['owner_name'] }} @endif</div>
-                                    <div class="vy-um-sub">No payout method on file — the owner adds their IBAN in the portal, verified before the first payout.</div>
+                                    <div class="vy-um-sub">{{ __('livewire/operator/payout-run.no_method') }}</div>
                                 </div>
-                                <div class="vyo-pr-end"><div class="vy-u-code">{{ $row['amount'] }}</div><span class="vy-act is-soon" aria-disabled="true">Request IBAN</span></div>
+                                <div class="vyo-pr-end"><div class="vy-u-code">{{ $row['amount'] }}</div><span class="vy-act is-soon" aria-disabled="true">{{ __('livewire/operator/payout-run.request_iban') }}</span></div>
                             </div>
                         @endforeach
-                        <div class="vyo-pr-holdnote">Held amounts stay in the owner's ledger and carry forward until the block clears (#P2-1).</div>
+                        <div class="vyo-pr-holdnote">{{ __('livewire/operator/payout-run.hold_note') }}</div>
                     </div>
                 @endif
 
@@ -539,7 +535,7 @@
                      forward. That is the policy, stated; it is not a button. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
-                        <h2 class="vy-card-title">Not payable</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/operator/payout-run.not_payable') }}</h2>
                         <span class="vy-eyebrow">{{ count($notPayable) }}</span>
                     </div>
                     @forelse ($notPayable as $row)
@@ -558,16 +554,16 @@
                                 </div>
                                 <div class="vy-um-sub">
                                     @if ($row['negative'])
-                                        Nothing payable — a negative net carries forward to offset this owner's next statement.
+                                        {{ __('livewire/operator/payout-run.negative_net') }}
                                     @else
-                                        Nothing payable — the net for this period is zero.
+                                        {{ __('livewire/operator/payout-run.zero_net') }}
                                     @endif
                                 </div>
                             </div>
                             <div class="vy-u-code">{{ $row['net'] }}</div>
                         </div>
                     @empty
-                        <div class="vy-empty">Every finalized statement has a positive net payable.</div>
+                        <div class="vy-empty">{{ __('livewire/operator/payout-run.not_payable_empty') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -582,7 +578,7 @@
                             <h3 class="vy-modal-title" id="vyo-pr-confirm-t" x-text="sure.title"></h3>
                             <p class="vyo-dlg-sub" x-text="sure.sub"></p>
                         </div>
-                        <button type="button" class="vy-modal-x" x-on:click="confirmOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        <button type="button" class="vy-modal-x" x-on:click="confirmOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
                     <div class="vy-modal-body">
                         <ul class="vyo-factlist">
@@ -591,7 +587,7 @@
                     </div>
                     <div class="vy-modal-foot">
                         {{-- the focus lands on Cancel: an Enter pressed twice must not record money as owed or paid --}}
-                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="confirmOpen = false" autofocus>Cancel</button>
+                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="confirmOpen = false" autofocus>{{ __('common.cancel') }}</button>
                         <button type="button" class="vy-btn vy-btn--accent" x-on:click="go()" x-text="sure.button"></button>
                     </div>
                 </div>
@@ -611,7 +607,7 @@
                     if (form.dataset.vySure === '1') return;   // answered — let it post; the submit guard takes it from here
                     // ⚠️ never fails open (the review): text that cannot be read still asks, in plain words
                     let sure;
-                    try { sure = JSON.parse(form.dataset.confirm || ''); } catch (e) { sure = { title: 'Go ahead?', button: 'Go ahead', facts: [] }; }
+                    try { sure = JSON.parse(form.dataset.confirm || ''); } catch (e) { sure = { title: @js(__('livewire/operator/payout-run.go_ahead_title')), button: @js(__('livewire/operator/payout-run.go_ahead_button')), facts: [] }; }
                     event.preventDefault();
                     this.sure = Object.assign({ sub: '', facts: [] }, sure);
                     this.form = form;

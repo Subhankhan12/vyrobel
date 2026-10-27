@@ -7,6 +7,6 @@
      of this page can never describe different realms. --}}
 @include('errors.layout', [
     'code' => 403,
-    'title' => 'You don’t have access to this',
+    'title' => __('errors/403.title'),
     'message' => \App\Support\ErrorRealm::forbiddenMessage(),
 ])

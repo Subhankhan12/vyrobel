@@ -71,14 +71,14 @@ class RateActionController extends Controller
         $toParam = $this->dateString($request->input('end_date'));
 
         if ($fromParam === null || $toParam === null) {
-            return $this->refuse($request, $fromParam, 'Choose valid start and end dates.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_dates'));
         }
 
         $start = CarbonImmutable::parse($fromParam)->startOfDay();
         $endInclusive = CarbonImmutable::parse($toParam)->startOfDay();
 
         if ($endInclusive->lt($start)) {
-            return $this->refuse($request, $fromParam, 'The end date can’t be before the start date.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.end_before_start'));
         }
 
         // The service takes a half-open [start, end) range; the operator's "end" is the last night they mean
@@ -87,7 +87,7 @@ class RateActionController extends Controller
         $nights = (int) $start->diffInDays($endExclusive);
 
         if ($nights > self::MAX_SPAN_NIGHTS) {
-            return $this->refuse($request, $fromParam, 'That date range is too long — please apply at most a year at a time.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.range_too_long'));
         }
 
         $setRate = $request->boolean('set_rate');
@@ -106,7 +106,7 @@ class RateActionController extends Controller
         // ⚠️ 2026-09-30 — max stay and closed to arrival/departure were written below but could never be set ON THEIR OWN:
         //    this check ignored them, so a save of just one of those rules was refused. Each rule the grid shows can be set.
         if (! $setRate && ! $setMinStay && ! $setStopSell && ! $setMaxStay && ! $setCta && ! $setCtd) {
-            return $this->refuse($request, $fromParam, 'Choose at least one thing to set — a nightly rate, a stay rule, or open/closed.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.nothing_to_set'));
         }
 
         // Parse money BEFORE touching the gateway of the DB — an invalid price must reject cleanly, never
@@ -115,7 +115,7 @@ class RateActionController extends Controller
         if ($setRate) {
             $priceMinor = MoneyInput::toMinor((string) $request->input('rate', ''), self::MAX_PRICE_MINOR);
             if ($priceMinor === null) {
-                return $this->refuse($request, $fromParam, 'Enter a valid nightly rate, e.g. 175 or 175.50.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_rate'));
             }
         }
 
@@ -125,7 +125,7 @@ class RateActionController extends Controller
             $raw = trim((string) $request->input('min_stay', ''));
             if ($raw !== '') {
                 if (! ctype_digit($raw) || (int) $raw < 1 || (int) $raw > 365) {
-                    return $this->refuse($request, $fromParam, 'A minimum stay must be a whole number of nights (1–365), or blank for none.');
+                    return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_min_stay'));
                 }
                 $minStay = (int) $raw;
             }
@@ -138,7 +138,7 @@ class RateActionController extends Controller
             $raw = trim((string) $request->input('max_stay', ''));
             if ($raw !== '') {
                 if (! ctype_digit($raw) || (int) $raw < 1 || (int) $raw > 365) {
-                    return $this->refuse($request, $fromParam, 'A maximum stay must be a whole number of nights (1–365), or blank for none.');
+                    return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_max_stay'));
                 }
                 $maxStay = (int) $raw;
             }
@@ -147,7 +147,7 @@ class RateActionController extends Controller
         if ($setMinStay && $setMaxStay && $minStay !== null && $maxStay !== null && $maxStay < $minStay) {
             // ⚠️ A maximum below the minimum closes those nights to every possible stay. Refused here
             //    rather than written, because the calendar would look set and sell nothing.
-            return $this->refuse($request, $fromParam, 'A maximum stay cannot be shorter than the minimum stay.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.max_below_min'));
         }
 
         $stopSell = $setStopSell && $request->boolean('stop_sell');
@@ -156,7 +156,7 @@ class RateActionController extends Controller
 
         $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
         if ($roomTypes === []) {
-            return $this->refuse($request, $fromParam, 'Choose a room type to update.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.choose_room_type'));
         }
 
         // ⚠️ 2026-10-01 — A CHOSEN PLAN. The grid prices each room type's MAIN plan, so a second plan could be added and never
@@ -166,14 +166,14 @@ class RateActionController extends Controller
         $planId = $request->input('rate_plan_id');
         if (is_string($planId) && $planId !== '') {
             if (count($roomTypes) !== 1 || $request->input('room_type_id') === 'all') {
-                return $this->refuse($request, $fromParam, 'Choose one room type to price a particular plan.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.one_room_type_for_plan'));
             }
             $chosenPlan = app(RateScope::class)->ratePlan($planId);
             if ((string) $chosenPlan->room_type_id !== (string) $roomTypes[0]->getKey()) {
-                return $this->refuse($request, $fromParam, 'That plan belongs to another room type.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.plan_other_room_type'));
             }
             if ($chosenPlan->derived_from_rate_plan_id !== null) {
-                return $this->refuse($request, $fromParam, 'A derived plan follows its base plan’s price — set the base plan instead.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.derived_plan_follows_base'));
             }
         }
 
@@ -231,24 +231,27 @@ class RateActionController extends Controller
             $primary = $roomTypes[0]->primaryRatePlan();
             $plan = $chosenPlan ?? $primary;
             if ($plan === null) {
-                return $this->refuse($request, $fromParam, $roomTypes[0]->name.' has no rate plan yet, so a price has nowhere to go. Add one on the Rates page first.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.no_rate_plan_yet', ['room_type' => $roomTypes[0]->name]));
             }
             if ($primary !== null && (string) $plan->getKey() === (string) $primary->getKey()) {
                 // ⚠️ one night is "the night of 2 Sep" — never "these 1 night" (2026-10-04)
-                $set = 'Price set — '.MoneyFormatter::display($priceMinor, (string) $plan->currency)
-                    .($nights === 1 ? ' for the night of '.$start->format('j M').'.' : ' a night for these '.$nights.' nights.');
+                $price = MoneyFormatter::display($priceMinor, (string) $plan->currency);
+                $set = $nights === 1
+                    ? __('php/http/controllers/operator/rate_action_controller.price_set_one_night', ['price' => $price, 'date' => $start->translatedFormat('j M')])
+                    : trans_choice('php/http/controllers/operator/rate_action_controller.price_set_nights', $nights, ['price' => $price, 'count' => $nights]);
 
                 // the wizard says what comes next; the Calendar's dialog says it itself, from what it shows — a unit may already be
                 // picked (🔬 the walk: "Pick a unit to continue" above the unit that was picked)
-                return $this->backToBooking($request, CalendarReturn::wanted($request) ? $set : $set.' Pick a unit to continue.', refused: false);
+                return $this->backToBooking($request, CalendarReturn::wanted($request) ? $set : $set.' '.__('php/http/controllers/operator/rate_action_controller.pick_unit_to_continue'), refused: false);
             }
         }
 
+        // keyed by a code, never by the translated phrase (two phrases that translate alike would collapse)
         return $this->done($request, $fromParam, $this->summary($applied, $nights, $missingPlan, [
-            ($chosenPlan !== null ? 'the nightly price on '.$chosenPlan->name : 'the nightly price') => $setRate,
-            'the minimum stay' => $setMinStay, 'the maximum stay' => $setMaxStay,
-            'whether the nights are open' => $setStopSell, 'the arrival rule' => $setCta, 'the departure rule' => $setCtd,
-        ]));
+            'rate' => $setRate,
+            'min_stay' => $setMinStay, 'max_stay' => $setMaxStay,
+            'stop_sell' => $setStopSell, 'cta' => $setCta, 'ctd' => $setCtd,
+        ], $chosenPlan?->name));
     }
 
     /**
@@ -265,22 +268,22 @@ class RateActionController extends Controller
         $fromParam = $this->dateString($request->input('start_date'));
         $toParam = $this->dateString($request->input('end_date'));
         if ($fromParam === null || $toParam === null) {
-            return $this->refuse($request, $fromParam, 'Choose valid start and end dates.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_dates'));
         }
 
         $start = CarbonImmutable::parse($fromParam)->startOfDay();
         $endInclusive = CarbonImmutable::parse($toParam)->startOfDay();
         if ($endInclusive->lt($start)) {
-            return $this->refuse($request, $fromParam, 'The end date can’t be before the start date.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.end_before_start'));
         }
         $endExclusive = $endInclusive->addDay();
         if ((int) $start->diffInDays($endExclusive) > self::MAX_SPAN_NIGHTS) {
-            return $this->refuse($request, $fromParam, 'That date range is too long — please apply at most a year at a time.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.range_too_long'));
         }
 
         $mode = (string) $request->input('mode');
         if (! in_array($mode, RateBulkService::MODES, true)) {
-            return $this->refuse($request, $fromParam, 'Choose increase %, decrease %, or set an exact amount.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.choose_bulk_mode'));
         }
         $nights = (string) $request->input('nights', 'whole');
         if (! in_array($nights, RateBulkService::NIGHTS, true)) {
@@ -292,24 +295,24 @@ class RateActionController extends Controller
         if ($mode === 'set_exact') {
             $exactMinor = MoneyInput::toMinor((string) $request->input('amount', ''), self::MAX_PRICE_MINOR);
             if ($exactMinor === null) {
-                return $this->refuse($request, $fromParam, 'Enter a valid exact rate, e.g. 175 or 175.50.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_exact_rate'));
             }
         } else {
             $raw = trim((string) $request->input('amount', ''));
             if (! is_numeric($raw) || (float) $raw <= 0 || (float) $raw > 100) {
-                return $this->refuse($request, $fromParam, 'Enter a percentage between 0 and 100.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.invalid_percentage'));
             }
             // ⚠️⚠️ MONEY (2026-09-30) — a 100% decrease was accepted and wrote €0 nights: a room given away. The single
             //    editor has always refused a price of zero; the bulk path now refuses the percentage that makes one.
             if ($mode === 'decrease_pct' && (float) $raw >= 100) {
-                return $this->refuse($request, $fromParam, 'A decrease must be less than 100% — a price can’t go to zero or below.');
+                return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.decrease_too_large'));
             }
             $pct = (float) $raw;
         }
 
         $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
         if ($roomTypes === []) {
-            return $this->refuse($request, $fromParam, 'Choose which room types to update.');
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.choose_room_types'));
         }
 
         $result = $bulk->apply(
@@ -317,19 +320,21 @@ class RateActionController extends Controller
             $request->boolean('skip_booked', true), $request->boolean('update_derived'),
         );
 
-        $msg = 'Updated '.$result['applied'].' '.($result['applied'] === 1 ? 'night' : 'nights')
-            .' across '.$result['room_types'].' '.($result['room_types'] === 1 ? 'room type' : 'room types').'.';
+        $msg = __('php/http/controllers/operator/rate_action_controller.bulk_updated', [
+            'nights' => trans_choice('php/http/controllers/operator/rate_action_controller.nights_count', $result['applied'], ['count' => $result['applied']]),
+            'room_types' => trans_choice('php/http/controllers/operator/rate_action_controller.room_types_count', $result['room_types'], ['count' => $result['room_types']]),
+        ]);
         if ($result['skipped'] > 0) {
-            $msg .= ' '.$result['skipped'].' fully booked or closed '.($result['skipped'] === 1 ? 'night' : 'nights').' skipped.';
+            $msg .= ' '.trans_choice('php/http/controllers/operator/rate_action_controller.bulk_skipped', $result['skipped'], ['count' => $result['skipped']]);
         }
         if ($result['too_low'] > 0) {
-            $msg .= ' '.$result['too_low'].' '.($result['too_low'] === 1 ? 'night' : 'nights').' left as they were — the change would have made the price zero.';
+            $msg .= ' '.trans_choice('php/http/controllers/operator/rate_action_controller.bulk_too_low', $result['too_low'], ['count' => $result['too_low']]);
         }
         if ($result['too_high'] > 0) {
-            $msg .= ' '.$result['too_high'].' '.($result['too_high'] === 1 ? 'night' : 'nights').' left as they were — the change would have passed the 1,000,000 limit.';
+            $msg .= ' '.trans_choice('php/http/controllers/operator/rate_action_controller.bulk_too_high', $result['too_high'], ['count' => $result['too_high']]);
         }
         if ($result['derived'] > 0) {
-            $msg .= ' '.$result['derived'].' derived plans updated.';
+            $msg .= ' '.trans_choice('php/http/controllers/operator/rate_action_controller.bulk_derived', $result['derived'], ['count' => $result['derived']]);
         }
 
         return $this->done($request, $fromParam, $msg);
@@ -339,7 +344,7 @@ class RateActionController extends Controller
     private function guardReadOnly(Request $request): ?RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->refuse($request, $this->dateString($request->input('start_date')), 'Your workspace is read-only right now — rate changes are paused.');
+            return $this->refuse($request, $this->dateString($request->input('start_date')), __('php/http/controllers/operator/rate_action_controller.read_only'));
         }
 
         return null;
@@ -380,22 +385,32 @@ class RateActionController extends Controller
         return checkdate($m, $d, $y) ? $value : null;
     }
 
-    /** @param  array<string, bool>  $set  what this save set, by the name the notice uses */
-    private function summary(int $applied, int $nights, int $missingPlan, array $set): string
+    /** @param  array<string, bool>  $set  what this save set, by code (rate · min_stay · max_stay · stop_sell · cta · ctd) */
+    private function summary(int $applied, int $nights, int $missingPlan, array $set, ?string $planName = null): string
     {
-        $what = array_keys(array_filter($set));
+        $what = array_map(fn (string $code): string => match ($code) {
+            'rate' => $planName !== null
+                ? __('php/http/controllers/operator/rate_action_controller.what_rate_on_plan', ['plan' => $planName])
+                : __('php/http/controllers/operator/rate_action_controller.what_rate'),
+            'min_stay' => __('php/http/controllers/operator/rate_action_controller.what_min_stay'),
+            'max_stay' => __('php/http/controllers/operator/rate_action_controller.what_max_stay'),
+            'stop_sell' => __('php/http/controllers/operator/rate_action_controller.what_stop_sell'),
+            'cta' => __('php/http/controllers/operator/rate_action_controller.what_cta'),
+            'ctd' => __('php/http/controllers/operator/rate_action_controller.what_ctd'),
+            default => $code,
+        }, array_keys(array_filter($set)));
 
-        $roomTypes = $applied.' '.($applied === 1 ? 'room type' : 'room types');
-        $nightsLabel = $nights.' '.($nights === 1 ? 'night' : 'nights');
+        $roomTypes = trans_choice('php/http/controllers/operator/rate_action_controller.room_types_count', $applied, ['count' => $applied]);
+        $nightsLabel = trans_choice('php/http/controllers/operator/rate_action_controller.nights_count', $nights, ['count' => $nights]);
         // Plain English — "Updated the nightly price and the minimum stay …", never "rate + minimum stay" (2026-10-01).
         $last = array_pop($what);
-        $list = $what === [] ? (string) $last : implode(', ', $what).' and '.$last;
-        $message = 'Updated '.$list.' for '.$roomTypes.' across '.$nightsLabel.'.';
+        $list = $what === [] ? (string) $last : __('php/http/controllers/operator/rate_action_controller.list_and', ['items' => implode(', ', $what), 'last' => (string) $last]);
+        $message = __('php/http/controllers/operator/rate_action_controller.summary_updated', ['what' => $list, 'room_types' => $roomTypes, 'nights' => $nightsLabel]);
 
         if ($missingPlan > 0) {
             // ⚠️ P-6 · Gate 1 — this reported the state and offered no remedy, because none existed. There
             // is a rate-plan form on this page now, so the message says where to go.
-            $message .= ' '.$missingPlan.' had no rate plan and were skipped for the rate — add one below.';
+            $message .= ' '.trans_choice('php/http/controllers/operator/rate_action_controller.missing_plan_skipped', $missingPlan, ['count' => $missingPlan]);
         }
 
         return $message;

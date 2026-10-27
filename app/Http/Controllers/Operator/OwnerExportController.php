@@ -35,7 +35,9 @@ class OwnerExportController extends Controller
 
         return response()->streamDownload(function () use ($picked): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, CsvSafe::row(['Owner', 'Email', 'Status', 'Units', 'Commission', 'Statement', 'Net payable', 'Reason']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/operator/owner_export_controller.owner'), __('php/http/controllers/operator/owner_export_controller.email'), __('php/http/controllers/operator/owner_export_controller.status'), __('php/http/controllers/operator/owner_export_controller.units'), __('php/http/controllers/operator/owner_export_controller.commission'), __('php/http/controllers/operator/owner_export_controller.statement'), __('php/http/controllers/operator/owner_export_controller.net_payable'), __('php/http/controllers/operator/owner_export_controller.reason'),
+            ]));
             foreach ($picked as $r) {
                 fputcsv($out, CsvSafe::row([
                     $r['name'], $r['email'], $r['pay_label'], implode(', ', $r['unit_labels']), $r['commission'],

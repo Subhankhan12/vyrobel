@@ -37,8 +37,9 @@ class ReservationAlreadyTerminalException extends BookingException
         public readonly string $fromStatus,
         public readonly string $toStatus,
     ) {
-        parent::__construct(
-            "This reservation is already {$fromStatus} and cannot be marked {$toStatus}."
-        );
+        parent::__construct(__('php/exceptions/booking/reservation_already_terminal_exception.message', [
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+        ]));
     }
 }

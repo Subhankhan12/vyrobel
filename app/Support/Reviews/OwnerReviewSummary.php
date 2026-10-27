@@ -150,7 +150,7 @@ final class OwnerReviewSummary
 
         foreach ($reviews->groupBy(fn (Review $r): string => (string) $r->unit_id) as $unitId => $group) {
             $unit = $group->first()?->unit;
-            $name = $unit instanceof Unit ? (string) ($unit->name ?? $unit->code ?? 'Unit') : 'Unit';
+            $name = $unit instanceof Unit ? (string) ($unit->name ?? $unit->code ?? __('php/support/reviews/owner_review_summary.unit_fallback')) : __('php/support/reviews/owner_review_summary.unit_fallback');
             $rating = round((float) $group->avg('rating'), 1);
 
             // Trend: recent 90d avg vs the prior 90d avg (real; steady when either window is empty).
@@ -160,15 +160,15 @@ final class OwnerReviewSummary
                 && CarbonImmutable::parse($r->published_at)->greaterThanOrEqualTo($now->subDays(180)));
 
             $direction = 'steady';
-            $trend = '— steady';
+            $trend = __('php/support/reviews/owner_review_summary.trend_steady');
             if ($recent->isNotEmpty() && $prior->isNotEmpty()) {
                 $delta = round((float) $recent->avg('rating') - (float) $prior->avg('rating'), 1);
                 if ($delta > 0) {
                     $direction = 'up';
-                    $trend = '▲ +'.number_format($delta, 1);
+                    $trend = __('php/support/reviews/owner_review_summary.trend_up', ['delta' => number_format($delta, 1)]);
                 } elseif ($delta < 0) {
                     $direction = 'down';
-                    $trend = '▼ −'.number_format(abs($delta), 1);
+                    $trend = __('php/support/reviews/owner_review_summary.trend_down', ['delta' => number_format(abs($delta), 1)]);
                 }
             }
 

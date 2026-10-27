@@ -108,17 +108,33 @@ class NewReservation extends Component
      */
     private static function steps(bool $hasExtras): array
     {
-        return array_filter([self::STEP_STAY => 'Stay', self::STEP_GUEST => 'Guest', self::STEP_EXTRAS => $hasExtras ? 'Extras' : '',
-            self::STEP_CONFIRM => 'Confirm'], fn (string $label): bool => $label !== '');
+        // translated here, at render time (steps() is called from render()); Extras only where the property has some
+        $steps = [self::STEP_STAY => __('php/livewire/operator/new_reservation.step_stay'), self::STEP_GUEST => __('php/livewire/operator/new_reservation.step_guest')];
+        if ($hasExtras) {
+            $steps[self::STEP_EXTRAS] = __('php/livewire/operator/new_reservation.step_extras');
+        }
+        $steps[self::STEP_CONFIRM] = __('php/livewire/operator/new_reservation.step_confirm');
+
+        return $steps;
     }
 
-    /** The booking sources an operator may choose here — the controller accepts exactly these. */
-    private const SOURCES = [
-        ['value' => 'direct', 'label' => 'Direct'],
-        ['value' => 'walk_in', 'label' => 'Walk-in'],
-        ['value' => 'corporate', 'label' => 'Corporate'],
-        ['value' => 'agent', 'label' => 'Travel agent'],
-    ];
+    /** The booking sources an operator may choose here — the controller accepts exactly these (their words: {@see sources()}). */
+    private const SOURCES = ['direct', 'walk_in', 'corporate', 'agent'];
+
+    /**
+     * The booking sources with their words, translated at render time.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    private function sources(): array
+    {
+        return array_map(fn (string $value): array => ['value' => $value, 'label' => match ($value) {
+            'direct' => __('php/livewire/operator/new_reservation.source_direct'),
+            'walk_in' => __('php/livewire/operator/new_reservation.source_walk_in'),
+            'corporate' => __('php/livewire/operator/new_reservation.source_corporate'),
+            'agent' => __('php/livewire/operator/new_reservation.source_agent'),
+        }], self::SOURCES);
+    }
 
     public function render(UnitAvailabilityService $availability): View
     {
@@ -196,7 +212,7 @@ class NewReservation extends Component
             'query' => $query,
             'guestMatches' => $guestMatches,
             'canPay' => $canPay,
-            'sources' => self::SOURCES,
+            'sources' => $this->sources(),
             // #90 — REAL extras (org-owned AddOns) and REAL house-rules config.
             'extras' => $extras,
             'houseRules' => $property !== null ? $this->houseRules($property, $datesValid ? $checkIn : null) : [],
@@ -289,7 +305,7 @@ class NewReservation extends Component
 
         return [
             'ref' => (string) $reservation->reference,
-            'guest' => $guestName !== '' ? $guestName : 'the guest',   // NAME only (#28)
+            'guest' => $guestName !== '' ? $guestName : __('php/livewire/operator/new_reservation.the_guest'),   // NAME only (#28)
             'qr' => $canSignIn ? QrSvg::of(route('guest.checkin', $reservation->getKey()), 190) : null,
             'can_sign_in' => $canSignIn,
             // where an email is added — the guest's profile (contact details live only on the Guests pages, #28), for whoever may open it
@@ -371,8 +387,8 @@ class NewReservation extends Component
             'price_minor' => $rt['priced'] ? (int) $rt['price_minor'] : 0,
             'nightly' => $nightly === null ? null
                 : ($nightly[0] === $nightly[1]
-                    ? MoneyFormatter::display($nightly[0], $currency).' a night'
-                    : MoneyFormatter::display($nightly[0], $currency).'–'.MoneyFormatter::display($nightly[1], $currency).' a night'),
+                    ? __('php/livewire/operator/new_reservation.a_night', ['amount' => MoneyFormatter::display($nightly[0], $currency)])
+                    : __('php/livewire/operator/new_reservation.a_night_range', ['low' => MoneyFormatter::display($nightly[0], $currency), 'high' => MoneyFormatter::display($nightly[1], $currency)])),
             'unpriced_nights' => ! $rt['priced'] && $planId !== '' ? $this->unpricedNights($planId, $checkIn, $checkOut, $nights) : $nights,
             // ⚠️⚠️ 2026-10-04 — a SAVED season that was never applied: on production his €200 "Winter" sat on exactly this plan
             //    while the page said "No price for these nights yet" (a season writes nothing until Apply).
@@ -592,7 +608,7 @@ class NewReservation extends Component
             'applyCredit' => ! empty($old['apply_credit']),
             'arrivalWindow' => $text('arrival_window', 60),
             'rulesAgreed' => ! empty($old['rules_agreed']),
-            'source' => in_array($old['source'] ?? '', array_column(self::SOURCES, 'value'), true) ? (string) $old['source'] : 'direct',
+            'source' => in_array($old['source'] ?? '', self::SOURCES, true) ? (string) $old['source'] : 'direct',
             'teamNote' => $text('team_note', 2000),
             // ⚠️ A "0" sent while the box could not be ticked (no address yet) was not a choice — it starts ticked again once
             //    there is one (the review). A new guest's typed contact is never echoed (#28); the flag says one was typed.
@@ -607,9 +623,9 @@ class NewReservation extends Component
     {
         $in = CarbonImmutable::parse($checkIn);
         $out = CarbonImmutable::parse($checkOut);
-        $span = $in->isSameYear($out) ? $in->format('j M').' → '.$out->format('j M Y') : $in->format('j M Y').' → '.$out->format('j M Y');
+        $from = $in->isSameYear($out) ? $in->translatedFormat('j M') : $in->translatedFormat('j M Y');
 
-        return $span.' · '.$nights.' '.($nights === 1 ? 'night' : 'nights');
+        return trans_choice('php/livewire/operator/new_reservation.dates_label', $nights, ['from' => $from, 'to' => $out->translatedFormat('j M Y'), 'count' => $nights]);
     }
 
     private function resolveQuery(): string
@@ -738,16 +754,17 @@ class NewReservation extends Component
             if (! is_array($b) || ! is_string($b['date'] ?? null)) {
                 continue;
             }
-            $date = CarbonImmutable::parse($b['date'])->format('D j M');
+            $date = CarbonImmutable::parse($b['date'])->translatedFormat('D j M');
             $value = is_numeric($b['value'] ?? null) ? (int) $b['value'] : null;
-            $nightsWord = $value === 1 ? 'night' : 'nights';
+            // a missing value printed as nothing before ("at least  nights") — still so
+            $count = ['date' => $date, 'count' => $value ?? ''];
             $lines[] = match ((string) ($b['restriction'] ?? '')) {
-                'min_stay' => 'Arriving '.$date.', a stay must be at least '.$value.' '.$nightsWord,
-                'max_stay' => 'Arriving '.$date.', a stay can be at most '.$value.' '.$nightsWord,
-                'closed_to_arrival' => 'No arrivals on '.$date,
-                'closed_to_departure' => 'No departures on '.$date,
-                'stop_sell' => $date.' is closed to new bookings',
-                default => ucfirst(str_replace('_', ' ', (string) ($b['restriction'] ?? 'restriction'))).' on '.$date,
+                'min_stay' => trans_choice('php/livewire/operator/new_reservation.restrict_min_stay', $value ?? 0, $count),
+                'max_stay' => trans_choice('php/livewire/operator/new_reservation.restrict_max_stay', $value ?? 0, $count),
+                'closed_to_arrival' => __('php/livewire/operator/new_reservation.restrict_no_arrivals', ['date' => $date]),
+                'closed_to_departure' => __('php/livewire/operator/new_reservation.restrict_no_departures', ['date' => $date]),
+                'stop_sell' => __('php/livewire/operator/new_reservation.restrict_stop_sell', ['date' => $date]),
+                default => __('php/livewire/operator/new_reservation.restrict_other', ['restriction' => ucfirst(str_replace('_', ' ', (string) ($b['restriction'] ?? 'restriction'))), 'date' => $date]),
             };
         }
 
@@ -763,15 +780,13 @@ class NewReservation extends Component
      */
     private function arrivalNote(?Property $property, ?string $checkIn, bool $mailSends): string
     {
-        $yourself = ' — give the guest directions and the door code yourself.';
         $lead = ArrivalPack::LEAD_DAYS;
 
         return match (true) {
-            ! $mailSends => 'Email isn’t being sent from Vyrobel yet'.$yourself,
-            $property !== null && ! EmailTemplateResolver::enabled((string) $property->organization_id, 'pre-arrival') => 'The pre-arrival email is switched off for your properties'.$yourself,
-            $checkIn !== null && $checkIn < CarbonImmutable::today()->addDays($lead)->toDateString() => 'This stay starts too soon for the pre-arrival email, which goes '.$lead.' days before check-in'.$yourself,
-            default => 'Directions, and the door code where the unit has one, reach the guest by email '.$lead
-                .' days before check-in — when they have an email address. The door code is never shown here.',
+            ! $mailSends => __('php/livewire/operator/new_reservation.arrival_mail_off'),
+            $property !== null && ! EmailTemplateResolver::enabled((string) $property->organization_id, 'pre-arrival') => __('php/livewire/operator/new_reservation.arrival_pre_arrival_off'),
+            $checkIn !== null && $checkIn < CarbonImmutable::today()->addDays($lead)->toDateString() => trans_choice('php/livewire/operator/new_reservation.arrival_too_soon', $lead, ['count' => $lead]),
+            default => trans_choice('php/livewire/operator/new_reservation.arrival_by_email', $lead, ['count' => $lead]),
         };
     }
 
@@ -806,17 +821,17 @@ class NewReservation extends Component
             'smoking' => PropertyPolicy::ruleLabel(data_get($policy, 'smoking')),
             'cancellation' => match (true) {
                 // ⚠️ the review: "Free until 30 Sep" was shown on 4 Oct for a stay that close, and "until 0 days before"
-                $freeUntil !== null && $freeUntil->toDateString() < CarbonImmutable::now((string) ($property->timezone ?: config('app.timezone')))->toDateString() => 'Not free for this stay — it ended '.$freeUntil->format('j M'),
-                $freeDays === 0 => 'Free until check-in',
-                $freeUntil !== null => 'Free until '.$freeUntil->format('j M'),
-                $freeDays !== null => 'Free until '.$freeDays.' '.($freeDays === 1 ? 'day' : 'days').' before check-in',
+                $freeUntil !== null && $freeUntil->toDateString() < CarbonImmutable::now((string) ($property->timezone ?: config('app.timezone')))->toDateString() => __('php/livewire/operator/new_reservation.cancel_not_free', ['date' => $freeUntil->translatedFormat('j M')]),
+                $freeDays === 0 => __('php/livewire/operator/new_reservation.cancel_free_until_check_in'),
+                $freeUntil !== null => __('php/livewire/operator/new_reservation.cancel_free_until_date', ['date' => $freeUntil->translatedFormat('j M')]),
+                $freeDays !== null => trans_choice('php/livewire/operator/new_reservation.cancel_free_until_days', $freeDays, ['count' => $freeDays]),
                 is_array($cancellation) && is_string($cancellation['type'] ?? null) && $cancellation['type'] !== '' => ucfirst($cancellation['type']),
                 default => null,
             },
             'min_stay' => match (true) {
                 ! is_numeric($minStay) => null,
-                (int) $minStay <= 1 => 'No minimum',
-                default => (int) $minStay.' nights',
+                (int) $minStay <= 1 => __('php/livewire/operator/new_reservation.min_stay_none'),
+                default => trans_choice('php/livewire/operator/new_reservation.min_stay_nights', (int) $minStay, ['count' => (int) $minStay]),
             },
         ];
     }
@@ -844,10 +859,10 @@ class NewReservation extends Component
             ->get()
             ->map(function (Guest $guest): array {
                 $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name));
-                $name = $name !== '' ? $name : 'Guest';
+                $name = $name !== '' ? $name : __('php/livewire/operator/new_reservation.guest_no_name');
 
                 return ['id' => (string) $guest->getKey(), 'name' => $name, 'initials' => $this->initials($name),
-                    'history' => GuestHistory::for($guest->reservations)['stat'] ?? 'No stays yet',
+                    'history' => GuestHistory::for($guest->reservations)['stat'] ?? __('php/livewire/operator/new_reservation.no_stays_yet'),
                     // whether a confirmation can go to them — never the address (#28)
                     'has_email' => trim((string) $guest->email) !== ''];
             })

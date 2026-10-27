@@ -152,7 +152,7 @@ class GuestProfile extends Component
             'history' => $history,
             'notes' => $this->notes($guest),
             'review' => $this->latestReview($guest),
-            'prefCatalog' => Guest::PREFERENCE_CATALOG,
+            'prefCatalog' => Guest::preferenceCatalog(),
             'threadId' => $this->latestThreadId($guest),
         ]);
     }
@@ -187,8 +187,14 @@ class GuestProfile extends Component
             'stars' => str_repeat('★', $rating).str_repeat('☆', 5 - $rating),
             'body' => (string) ($review->body ?? ''),
             'unit' => $unitName,
-            'when' => $review->created_at !== null ? CarbonImmutable::parse($review->created_at)->format('F Y') : null,
+            'when' => $review->created_at !== null ? CarbonImmutable::parse($review->created_at)->translatedFormat('F Y') : null,
             'status' => (string) $review->status,
+            // The label the view prints when the review is not published — keyed by the status CODE.
+            'status_label' => match ((string) $review->status) {
+                Review::STATUS_PENDING => __('php/livewire/operator/guest_profile.review_pending'),
+                Review::STATUS_REJECTED => __('php/livewire/operator/guest_profile.review_rejected'),
+                default => ucfirst((string) $review->status),
+            },
             'response' => $review->operator_response !== null ? (string) $review->operator_response : null,
         ];
     }
@@ -233,8 +239,8 @@ class GuestProfile extends Component
         // history referencing it stays intact.
         $label = match (true) {
             $name !== '' => $name,
-            $anonymized => 'Anonymized guest',
-            default => 'Unnamed guest',
+            $anonymized => __('php/livewire/operator/guest_profile.anonymized_guest'),
+            default => __('php/livewire/operator/guest_profile.unnamed_guest'),
         };
 
         $stage = ReservationStage::mostSignificant($reservations, $today);
@@ -320,8 +326,9 @@ class GuestProfile extends Component
                 continue;
             }
 
-            $label = $this->sourceLabel((string) $reservation->source);
-            $counts[$label] = ($counts[$label] ?? 0) + 1;
+            // Counted by the source CODE, never by its label (a translated label must not be an array key).
+            $source = (string) $reservation->source;
+            $counts[$source] = ($counts[$source] ?? 0) + 1;
         }
 
         if ($counts === []) {
@@ -331,7 +338,7 @@ class GuestProfile extends Component
         arsort($counts);
 
         return implode(' · ', array_map(
-            fn (string $label, int $count): string => $count.' '.$label,
+            fn (string $source, int $count): string => __('php/livewire/operator/guest_profile.source_mix_item', ['number' => $count, 'source' => $this->sourceLabel($source)]),
             array_keys($counts),
             array_values($counts),
         ));
@@ -404,8 +411,8 @@ class GuestProfile extends Component
         return [
             'id' => (string) $reservation->getKey(),
             'reference' => (string) $reservation->reference,
-            'check_in' => $checkIn->format('j M Y'),
-            'check_out' => $checkOut->format('j M Y'),
+            'check_in' => $checkIn->translatedFormat('j M Y'),
+            'check_out' => $checkOut->translatedFormat('j M Y'),
             // Half-open [check_in, check_out) — the same arithmetic as the folio's room nights.
             'nights' => (int) $checkIn->diffInDays($checkOut),
             // `reservation_units.unit_id` is nullable by design (a fresh OTA import lands unassigned), so
@@ -458,9 +465,9 @@ class GuestProfile extends Component
                 'redacted' => $body === '',
                 // `author_id` is nullable BY DESIGN (nullOnDelete) — a note outlives the staff member who
                 // wrote it. Say so rather than inventing an author.
-                'author' => $note->author?->name !== null ? (string) $note->author->name : 'Former staff member',
+                'author' => $note->author?->name !== null ? (string) $note->author->name : __('php/livewire/operator/guest_profile.former_staff_member'),
                 'created' => $note->created_at !== null
-                    ? CarbonImmutable::parse($note->created_at)->format('j M Y')
+                    ? CarbonImmutable::parse($note->created_at)->translatedFormat('j M Y')
                     : '—',
             ];
         })->all();

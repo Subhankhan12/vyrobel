@@ -37,6 +37,8 @@ class OperatorMaintenanceSettings extends Component
             'technicians' => $settings->technicians(),
             'technicianPanel' => $settings->technicianPanel(),
             'categories' => MaintenanceSettingsService::CATEGORIES,
+            // The shared category label (same English as the old ucfirst for every category above).
+            'categoryLabel' => fn (string $c): string => $this->maintenanceCategoryLabel($c),
         ]);
     }
 }

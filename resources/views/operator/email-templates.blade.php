@@ -7,8 +7,8 @@
      trigger, and the footer says plainly why no stats appear.
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-layouts.operator title="Guest emails">
-<x-operator.shell active="email-templates" title="Guest emails" subtitle="Customize the emails your guests receive">
+<x-layouts.operator :title="__('operator/email-templates.title')">
+<x-operator.shell active="email-templates" :title="__('operator/email-templates.title')" :subtitle="__('operator/email-templates.subtitle')">
 
     @if (session('email_template_notice'))
         <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
@@ -20,22 +20,22 @@
          ⚠️ #30 — /app/settings requires `properties.manage` but THIS page carries no permission gate, so the
          crumb links only when the target would actually open (the same trap caught on Preferences at P30). --}}
     <div class="vy-et-top vy-fade">
-        <nav class="vy-et-crumb" aria-label="Breadcrumb">
+        <nav class="vy-et-crumb" aria-label="{{ __('operator/email-templates.breadcrumb_label') }}">
             @can('properties.manage')
-                <a href="{{ route('app.settings') }}">Settings</a>
+                <a href="{{ route('app.settings') }}">{{ __('operator/email-templates.settings_crumb') }}</a>
                 <span aria-hidden="true">/</span>
             @endcan
-            <span aria-current="page">Guest emails</span>
+            <span aria-current="page">{{ __('operator/email-templates.title') }}</span>
         </nav>
         {{-- The design's "Preview emails". The gallery route already exists and was never linked from here. --}}
         <a href="{{ route('app.email-previews') }}" class="vy-btn vy-btn--ghost vy-et-gallery">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-            Preview emails
+            {{ __('operator/email-templates.preview_emails') }}
         </a>
     </div>
 
     <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
-        <div style="font-size: 13px; color: var(--vy-ink);">These are the transactional emails Vyrobel sends your guests. Edit the wording, turn sections on or off, or pause an email entirely — <strong>your changes take effect on the next real send</strong>. Delivery goes through your email provider in production (account-gated); in dev it’s caught locally.</div>
+        <div style="font-size: 13px; color: var(--vy-ink);">{!! __('operator/email-templates.intro') !!}</div>
     </div>
 
     {{-- The design's card grid (it was a flat list of rows). --}}
@@ -56,29 +56,29 @@
                     <div class="vy-et-head">
                         <h2 class="vy-et-name">{{ $tpl['label'] }}</h2>
                         {{-- Status carries its WORD, never colour alone (1.4.1). --}}
-                        <span class="vy-et-status @if ($tpl['enabled']) is-on @endif">{{ $tpl['enabled'] ? 'Active' : 'Off' }}</span>
+                        <span class="vy-et-status @if ($tpl['enabled']) is-on @endif">{{ $tpl['enabled'] ? __('operator/email-templates.status_active') : __('operator/email-templates.status_off') }}</span>
                     </div>
                     <p class="vy-et-trigger">{{ $tpl['trigger'] }}</p>
 
                     <div class="vy-et-meta">
                         <span class="vy-et-chip">{{ $tpl['channel'] }}</span>
                         @if ($tpl['customized'])
-                            <span class="vy-et-chip is-accent">Customized</span>
+                            <span class="vy-et-chip is-accent">{{ __('operator/email-templates.customized') }}</span>
                         @endif
                     </div>
 
                     <div class="vy-et-actions">
-                        <a href="{{ route('app.email-previews.show', $tpl['preview']) }}" target="_blank" rel="noopener" class="vy-btn vy-btn--ghost vy-et-preview">Preview</a>
+                        <a href="{{ route('app.email-previews.show', $tpl['preview']) }}" target="_blank" rel="noopener" class="vy-btn vy-btn--ghost vy-et-preview">{{ __('operator/email-templates.preview') }}</a>
 
                         @if ($canManage)
-                            <a href="{{ route('app.email-templates.edit', $tpl['key']) }}" class="vy-btn vy-btn--accent vy-et-edit">Edit</a>
+                            <a href="{{ route('app.email-templates.edit', $tpl['key']) }}" class="vy-btn vy-btn--accent vy-et-edit">{{ __('common.edit') }}</a>
                             {{-- The design's switch. Same real POST, same gated route — restyled, not rewired. --}}
                             <form method="POST" action="{{ route('app.email-templates.toggle', $tpl['key']) }}" class="vy-et-toggle-form">
                                 @csrf
                                 <input type="hidden" name="enabled" value="{{ $tpl['enabled'] ? '0' : '1' }}">
                                 <button type="submit" class="vy-et-switch @if ($tpl['enabled']) is-on @endif"
                                     role="switch" aria-checked="{{ $tpl['enabled'] ? 'true' : 'false' }}"
-                                    aria-label="{{ $tpl['label'] }} — {{ $tpl['enabled'] ? 'turn off' : 'turn on' }}">
+                                    aria-label="{{ $tpl['enabled'] ? __('operator/email-templates.toggle_turn_off', ['template' => $tpl['label']]) : __('operator/email-templates.toggle_turn_on', ['template' => $tpl['label']]) }}">
                                     <span class="vy-et-knob" aria-hidden="true"></span>
                                 </button>
                             </form>
@@ -89,7 +89,7 @@
         @endforeach
     </div>
 
-    <p class="vy-line-sub" style="font-size: 11.5px; color: var(--vy-muted); margin-top: 14px;">Owner &amp; operator alerts email through the same preference gate — see Notification preferences. Open/click tracking isn’t collected, so no engagement stats are shown.</p>
+    <p class="vy-line-sub" style="font-size: 11.5px; color: var(--vy-muted); margin-top: 14px;">{{ __('operator/email-templates.footer') }}</p>
 
 </x-operator.shell>
 

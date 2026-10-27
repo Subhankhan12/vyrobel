@@ -75,8 +75,11 @@ final class GuestPayments
             $bookings[] = [
                 'id' => (string) $reservation->getKey(),
                 'reference' => (string) $reservation->reference,
-                'property' => (string) ($reservation->property->name ?? 'Your stay'),
-                'stay' => CarbonImmutable::parse($reservation->check_in)->format('j M').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M Y'),
+                'property' => (string) ($reservation->property->name ?? __('php/support/guest/guest_payments.your_stay')),
+                'stay' => __('php/support/guest/guest_payments.stay_range', [
+                    'from' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M'),
+                    'to' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
+                ]),
                 'balance' => MoneyFormatter::display($totals['balance_minor'], $bookingCurrency),
                 'balance_minor' => $totals['balance_minor'],
                 'balance_due' => $totals['balance_minor'] > 0,
@@ -118,10 +121,10 @@ final class GuestPayments
         $when = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at);
 
         if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
-            $label = 'Payment received';
+            $label = (string) __('php/support/guest/guest_payments.payment_received');
             $signed = false;
         } elseif ($type === 'refund' && $status === 'succeeded') {
-            $label = 'Refund issued';
+            $label = (string) __('php/support/guest/guest_payments.refund_issued');
             $signed = true;   // shown as money going back to the guest
         } else {
             return null;
@@ -131,7 +134,7 @@ final class GuestPayments
             'ts' => $when->getTimestamp(),
             'label' => $label,
             'reference' => $reference,
-            'date' => $when->format('j M Y'),
+            'date' => $when->translatedFormat('j M Y'),
             'amount' => ($signed ? '−' : '').MoneyFormatter::display((int) $payment->amount_minor, $currency),
         ];
     }

@@ -40,14 +40,16 @@ class GuestTrip
         return [
             'id' => (string) $reservation->getKey(),
             'reference' => (string) $reservation->reference,
-            'property' => (string) ($reservation->property->name ?? 'Your stay'),
+            'property' => (string) ($reservation->property->name ?? __('php/support/guest/guest_trip.your_stay')),
             'location' => self::location($reservation),
-            'check_in' => $checkIn->format('D, j M Y'),
-            'check_out' => $checkOut->format('D, j M Y'),
+            'check_in' => $checkIn->translatedFormat('D, j M Y'),
+            'check_out' => $checkOut->translatedFormat('D, j M Y'),
             'nights' => max(1, $checkIn->diffInDays($checkOut)),
             'total' => MoneyFormatter::display((int) $reservation->total_minor, $currency),
             'balance_due' => $balance > 0,
-            'balance_label' => $balance > 0 ? MoneyFormatter::display($balance, $currency).' due' : 'Paid in full',
+            'balance_label' => (string) ($balance > 0
+                ? __('php/support/guest/guest_trip.balance_due', ['amount' => MoneyFormatter::display($balance, $currency)])
+                : __('php/support/guest/guest_trip.paid_in_full')),
             'stage' => $stage,
             'stage_label' => $meta['label'],
             'stage_tone' => $meta['tone'],
@@ -81,15 +83,16 @@ class GuestTrip
     private static function countdown(string $stage, CarbonImmutable $checkIn, CarbonImmutable $checkOut, CarbonInterface $today): string
     {
         $today = CarbonImmutable::parse($today)->startOfDay();
+        $days = (int) $today->diffInDays($checkIn->startOfDay());
 
-        return match ($stage) {
-            ReservationStage::CANCELLED => 'Cancelled',
-            ReservationStage::PAST => 'Stayed '.$checkIn->format('M Y'),
+        return (string) match ($stage) {
+            ReservationStage::CANCELLED => __('php/support/guest/guest_trip.countdown_cancelled'),
+            ReservationStage::PAST => __('php/support/guest/guest_trip.countdown_stayed', ['month' => $checkIn->translatedFormat('M Y')]),
             default => match (true) {
-                $today->betweenIncluded($checkIn->startOfDay(), $checkOut->startOfDay()->subDay()) => 'In your stay',
-                $checkIn->isSameDay($today) => 'Check-in today',
-                $checkIn->startOfDay()->equalTo($today->addDay()) => 'Check-in tomorrow',
-                default => 'In '.$today->diffInDays($checkIn->startOfDay()).' days',
+                $today->betweenIncluded($checkIn->startOfDay(), $checkOut->startOfDay()->subDay()) => __('php/support/guest/guest_trip.countdown_in_stay'),
+                $checkIn->isSameDay($today) => __('php/support/guest/guest_trip.countdown_today'),
+                $checkIn->startOfDay()->equalTo($today->addDay()) => __('php/support/guest/guest_trip.countdown_tomorrow'),
+                default => trans_choice('php/support/guest/guest_trip.countdown_in_days', $days, ['count' => $days]),
             },
         };
     }
@@ -98,13 +101,13 @@ class GuestTrip
     private static function dateRange(CarbonImmutable $checkIn, CarbonImmutable $checkOut): string
     {
         if ($checkIn->isSameMonth($checkOut)) {
-            return $checkIn->format('j').'–'.$checkOut->format('j M Y');
+            return (string) __('php/support/guest/guest_trip.range_same_month', ['from' => $checkIn->translatedFormat('j'), 'to' => $checkOut->translatedFormat('j M Y')]);
         }
         if ($checkIn->isSameYear($checkOut)) {
-            return $checkIn->format('j M').' – '.$checkOut->format('j M Y');
+            return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat('j M'), 'to' => $checkOut->translatedFormat('j M Y')]);
         }
 
-        return $checkIn->format('j M Y').' – '.$checkOut->format('j M Y');
+        return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat('j M Y'), 'to' => $checkOut->translatedFormat('j M Y')]);
     }
 
     /** A short "City, Country" from the property's address (a real array) — empty when none is set. */

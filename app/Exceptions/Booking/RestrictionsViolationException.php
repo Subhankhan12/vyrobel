@@ -28,7 +28,10 @@ class RestrictionsViolationException extends RuntimeException
 
         return new self($breaches, count($lines) === 1
             ? $lines[0]
-            : 'This booking breaches '.count($lines).' restrictions: '.implode(' ', $lines));
+            : trans_choice('php/exceptions/booking/restrictions_violation_exception.breaches', count($lines), [
+                'count' => count($lines),
+                'list' => implode(' ', $lines),
+            ]));
     }
 
     /**
@@ -46,8 +49,7 @@ class RestrictionsViolationException extends RuntimeException
             $current,
         );
 
-        return new self($breaches, 'The restrictions on these dates changed while you were reviewing them — '
-            .'check the list again before overriding.');
+        return new self($breaches, __('php/exceptions/booking/restrictions_violation_exception.changed_since'));
     }
 
     /** @return list<array{restriction: string, date: string, value: int|null}> */

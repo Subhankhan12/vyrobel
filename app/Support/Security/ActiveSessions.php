@@ -145,7 +145,7 @@ final class ActiveSessions
             str_contains($ua, 'Chrome') => 'Chrome',
             str_contains($ua, 'Firefox') => 'Firefox',
             str_contains($ua, 'Safari') => 'Safari',
-            default => 'Browser',
+            default => __('php/support/security/active_sessions.browser'),
         };
         $os = match (true) {
             str_contains($ua, 'iPhone') => 'iPhone',
@@ -157,6 +157,6 @@ final class ActiveSessions
             default => '',
         };
 
-        return $ua === '' ? 'Unknown device' : trim($browser.($os !== '' ? ' · '.$os : ''));
+        return $ua === '' ? __('php/support/security/active_sessions.unknown_device') : trim($browser.($os !== '' ? ' · '.$os : ''));
     }
 }

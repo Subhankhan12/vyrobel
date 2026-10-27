@@ -76,28 +76,28 @@ class PlanIntegrity
     public static function blockedFromActivation(Plan $plan): ?string
     {
         if (! in_array((string) $plan->pricing_type, self::SHAPES, true)) {
-            return 'Its pricing shape is not one the billing engine understands.';
+            return __('php/support/billing/plan_integrity.unknown_shape');
         }
 
         if ($plan->isPerUnit() && (int) ($plan->unit_rate_minor ?? 0) <= 0) {
-            return 'A per-unit plan needs a unit rate above zero before it can be sold.';
+            return __('php/support/billing/plan_integrity.per_unit_needs_rate');
         }
 
         if (! $plan->isPerUnit() && (int) $plan->price_minor <= 0) {
-            return 'A flat plan needs a price above zero before it can be sold.';
+            return __('php/support/billing/plan_integrity.flat_needs_price');
         }
 
         $priceId = trim((string) ($plan->stripe_price_id ?? ''));
 
         if ($priceId === '') {
-            return 'It has no Stripe Price id yet — create the Price in Stripe and paste its id here first.';
+            return __('php/support/billing/plan_integrity.no_price_id');
         }
 
         // ⚠️ A placeholder is fine in dev (the fake client stands in) and catastrophic in production, which is
         // exactly the split `StripePriceWiring` already draws. Mirrored rather than re-decided (§N.8f).
         if (str_starts_with($priceId, StripePriceWiring::FAKE_PREFIX) && app()->environment('production')
             && ! (bool) config('services.stripe.fake', false)) {
-            return 'It is still wired to a placeholder Price id, which does not exist in Stripe.';
+            return __('php/support/billing/plan_integrity.placeholder_price_id');
         }
 
         return null;

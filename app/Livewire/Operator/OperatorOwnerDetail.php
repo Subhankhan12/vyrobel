@@ -210,7 +210,7 @@ class OperatorOwnerDetail extends Component
             $breakdown = OwnerLedgerAttribution::breakdown($stmtLedger);
             $netToOwner = $breakdown[0] ?? null;
             if ($netToOwner !== null) {
-                $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->format('M Y');
+                $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->translatedFormat('M Y');
                 // ⚠️ the rate of the agreement that covered THAT period — today's rate mislabels a past statement once a change
                 //    has taken effect (the review, 2026-10-03)
                 $netToOwner['commission_pct'] = OwnerCommissionRate::trim(CommissionChange::governing($ownerId, CarbonImmutable::parse($latestFinal->period_start))?->commission_pct);
@@ -245,17 +245,17 @@ class OperatorOwnerDetail extends Component
         $commission = [
             'now' => OwnerCommissionRate::display($nowRate?->commission_pct),
             'next' => $waiting !== null && OwnerCommissionRate::trim($waiting->commission_pct) !== OwnerCommissionRate::trim($nowRate?->commission_pct)
-                ? ['display' => OwnerCommissionRate::display($waiting->commission_pct) ?? 'no rate', 'from' => $waiting->effective_from->format('j M Y'),
+                ? ['display' => OwnerCommissionRate::display($waiting->commission_pct) ?? __('php/livewire/operator/operator_owner_detail.no_rate'), 'from' => $waiting->effective_from->translatedFormat('j M Y'),
                     'replaced_by_save' => $waiting->effective_from->toDateString() === $startsOn->toDateString()]
                 : null,
-            'starts_on' => $startsOn->format('j M Y'),
+            'starts_on' => $startsOn->translatedFormat('j M Y'),
             // no agreement in effect today → a change starts today, not on the 1st (CommissionChange::startsOn)
             'starts_today' => $nowRate === null,
             'prefill' => CommissionChange::rateOn($ownerId, $startsOn) ?? OwnerCommissionRate::trim($nowRate?->commission_pct) ?? '',
         ];
         $noteEntries = $record->noteEntries()->with('author')->latest()->limit(20)->get()->map(fn ($n): array => [
             'body' => (string) $n->body,
-            'author' => $n->author instanceof User ? (string) $n->author->name : 'Operator',
+            'author' => $n->author instanceof User ? (string) $n->author->name : __('php/livewire/operator/operator_owner_detail.author_fallback'),
             'when' => $n->created_at?->diffForHumans() ?? '',
         ])->all();
 
@@ -312,7 +312,7 @@ class OperatorOwnerDetail extends Component
             // exclusively, so listing all is safe.
             'roomTypes' => $units->map(fn (Unit $u): array => [
                 'id' => (string) $u->room_type_id,
-                'name' => (string) ($u->roomType->name ?? 'Room type'),
+                'name' => (string) ($u->roomType->name ?? __('php/livewire/operator/operator_owner_detail.room_type_fallback')),
             ])->unique('id')->values()->all(),
             // ⚠️ The propose-a-rate form's "Proposed nightly rate (…)" label hardcoded '€'. A rate is priced in
             // the PROPERTY's currency, which is not necessarily the owner's `payout_currency` — so this is
@@ -364,7 +364,7 @@ class OperatorOwnerDetail extends Component
             'end' => $start->copy()->endOfMonth()->toDateString(),
             'lockedThrough' => $lockedThrough,
             // ⚠️ the dialog printed the database date ("2026-09-30"); people read "30 Sep 2026" (2026-10-03)
-            'lockedThroughWords' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->format('j M Y') : null,
+            'lockedThroughWords' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->translatedFormat('j M Y') : null,
             // Bounds the picker so a sealed date cannot be chosen in the first place.
             'minStart' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->addDay()->toDateString() : null,
         ];
@@ -479,20 +479,32 @@ class OperatorOwnerDetail extends Component
 
                 return [
                     'id' => (string) $p->id,
-                    'room_type' => (string) ($p->roomType->name ?? 'Room type'),
+                    'room_type' => (string) ($p->roomType->name ?? __('php/livewire/operator/operator_owner_detail.room_type_fallback')),
                     // ⚠️ On a countered row the headline is the OWNER'S number, because that is the one a
                     //    decision would apply. The operator's original ask is kept beside it, not replaced.
-                    'summary' => $countered
-                        ? $from.' → '.$counter.' / night'
-                        : $from.' → '.$to.' / night',
+                    'summary' => __('php/livewire/operator/operator_owner_detail.proposal_summary', ['from' => $from, 'to' => $countered ? $counter : $to]),
                     'proposed' => $to,
                     'counter' => $counter,
                     'state' => (string) $p->state,
+                    'state_label' => $this->proposalStateLabel((string) $p->state),
                     'pending' => $p->isPending(),
                     'countered' => $countered,
                 ];
             })
             ->all();
+    }
+
+    /** The proposal's REAL state in words — a match keyed by the code; an unexpected value is echoed, never re-badged. */
+    private function proposalStateLabel(string $state): string
+    {
+        return match ($state) {
+            RateProposal::STATE_PENDING => __('php/livewire/operator/operator_owner_detail.proposal_pending'),
+            RateProposal::STATE_APPROVED => __('php/livewire/operator/operator_owner_detail.proposal_approved'),
+            RateProposal::STATE_DECLINED => __('php/livewire/operator/operator_owner_detail.proposal_declined'),
+            RateProposal::STATE_WITHDRAWN => __('php/livewire/operator/operator_owner_detail.proposal_withdrawn'),
+            RateProposal::STATE_COUNTERED => __('php/livewire/operator/operator_owner_detail.proposal_countered'),
+            default => ucfirst($state),
+        };
     }
 
     private function unitRows(Collection $units): array
@@ -572,7 +584,8 @@ class OperatorOwnerDetail extends Component
             'in_effect' => in_array((string) $a->id, $currentIds, true),
             'timing_note' => $this->timingNote($a, $today),
             // replaced before its first day (CommissionChange) — its dates run backwards, so the view says so in words
-            'never_applied' => $this->timingNote($a, $today) === 'Replaced before it started',
+            // ⚠️ I18N-01: decided from the dates (a code), never by comparing the translated note (CONVERSION.md rule 10)
+            'never_applied' => $this->replacedBeforeStart($a),
             'status_meta' => $this->agreementStatusMeta((string) $a->status),
         ])->values()->all();
     }
@@ -607,9 +620,9 @@ class OperatorOwnerDetail extends Component
     private function intervalLabel(mixed $value): ?string
     {
         return match ($value) {
-            'monthly' => 'Monthly',
-            'quarterly' => 'Quarterly',
-            'yearly' => 'Yearly',
+            'monthly' => __('php/livewire/operator/operator_owner_detail.interval_monthly'),
+            'quarterly' => __('php/livewire/operator/operator_owner_detail.interval_quarterly'),
+            'yearly' => __('php/livewire/operator/operator_owner_detail.interval_yearly'),
             default => null,
         };
     }
@@ -625,12 +638,12 @@ class OperatorOwnerDetail extends Component
         $onAgreement = is_string($a->payout_currency) && $a->payout_currency !== '' ? $a->payout_currency : null;
 
         if ($onAgreement !== null) {
-            return ['code' => $onAgreement, 'source' => 'Set on this agreement'];
+            return ['code' => $onAgreement, 'source' => __('php/livewire/operator/operator_owner_detail.currency_source_agreement')];
         }
 
         // owners.payout_currency is NOT NULL in the schema — only an empty value needs guarding.
         return $ownerPayoutCurrency !== ''
-            ? ['code' => $ownerPayoutCurrency, 'source' => 'From the owner profile']
+            ? ['code' => $ownerPayoutCurrency, 'source' => __('php/livewire/operator/operator_owner_detail.currency_source_profile')]
             : ['code' => null, 'source' => null];
     }
 
@@ -642,10 +655,10 @@ class OperatorOwnerDetail extends Component
     private function scopeLabel(ManagementAgreement $a, array $unitLabels): string
     {
         if ($a->unit_id === null) {
-            return 'Portfolio-wide';
+            return __('php/livewire/operator/operator_owner_detail.scope_portfolio');
         }
 
-        return $unitLabels[(string) $a->unit_id] ?? 'Unit-specific';
+        return $unitLabels[(string) $a->unit_id] ?? __('php/livewire/operator/operator_owner_detail.scope_unit_specific');
     }
 
     /**
@@ -659,19 +672,28 @@ class OperatorOwnerDetail extends Component
         $to = $this->asDate($a->effective_to);
 
         // ⚠️ A change replaced before its first day ends the day before it starts (CommissionChange) — say so in words.
-        if ($from !== null && $to !== null && $to->lt($from)) {
-            return 'Replaced before it started';
+        if ($this->replacedBeforeStart($a)) {
+            return __('php/livewire/operator/operator_owner_detail.timing_replaced');
         }
 
         if ($from !== null && $from->gt($today)) {
-            return 'Starts '.$from->format('j M Y');
+            return __('php/livewire/operator/operator_owner_detail.timing_starts', ['date' => $from->translatedFormat('j M Y')]);
         }
 
         if ($to !== null && $to->lt($today)) {
-            return 'Ran to '.$to->format('j M Y');
+            return __('php/livewire/operator/operator_owner_detail.timing_ran_to', ['date' => $to->translatedFormat('j M Y')]);
         }
 
         return null;
+    }
+
+    /** A change replaced before its first day: it ends the day before it starts (CommissionChange) — its dates run backwards. */
+    private function replacedBeforeStart(ManagementAgreement $a): bool
+    {
+        $from = $this->asDate($a->effective_from);
+        $to = $this->asDate($a->effective_to);
+
+        return $from !== null && $to !== null && $to->lt($from);
     }
 
     // ── Statements + payouts ─────────────────────────────────────────────────────────────────────
@@ -693,7 +715,7 @@ class OperatorOwnerDetail extends Component
 
             return [
                 'sequence_no' => $s->sequence_no !== null ? (int) $s->sequence_no : null,
-                'period' => $s->period_start->format('j M Y').' – '.$s->period_end->format('j M Y'),
+                'period' => __('php/livewire/operator/operator_owner_detail.period_range', ['start' => $s->period_start->translatedFormat('j M Y'), 'end' => $s->period_end->translatedFormat('j M Y')]),
                 'gross' => $this->money((int) $s->gross_minor, $source),
                 'commission' => $this->money((int) $s->commission_minor, $source),
                 'net' => $this->money((int) $s->net_payable_minor, $payout),
@@ -736,9 +758,9 @@ class OperatorOwnerDetail extends Component
     private function statementStatusMeta(string $status): array
     {
         return match ($status) {
-            'draft' => ['label' => 'Draft', 'tone' => 'departed'],
-            'finalized' => ['label' => 'Finalized', 'tone' => 'pending'],
-            'paid' => ['label' => 'Paid', 'tone' => 'confirmed'],
+            'draft' => ['label' => __('php/livewire/operator/operator_owner_detail.statement_draft'), 'tone' => 'departed'],
+            'finalized' => ['label' => __('php/livewire/operator/operator_owner_detail.statement_finalized'), 'tone' => 'pending'],
+            'paid' => ['label' => __('php/livewire/operator/operator_owner_detail.statement_paid'), 'tone' => 'confirmed'],
             default => ['label' => ucfirst($status), 'tone' => 'departed'],
         };
     }
@@ -751,8 +773,8 @@ class OperatorOwnerDetail extends Component
     private function agreementStatusMeta(string $status): array
     {
         return match ($status) {
-            'active' => ['label' => 'Active', 'tone' => 'confirmed'],
-            'ended' => ['label' => 'Ended', 'tone' => 'departed'],
+            'active' => ['label' => __('php/livewire/operator/operator_owner_detail.agreement_active'), 'tone' => 'confirmed'],
+            'ended' => ['label' => __('php/livewire/operator/operator_owner_detail.agreement_ended'), 'tone' => 'departed'],
             default => ['label' => ucfirst($status), 'tone' => 'departed'],
         };
     }
@@ -766,8 +788,8 @@ class OperatorOwnerDetail extends Component
     private function ownerStatusMeta(string $status): array
     {
         return match ($status) {
-            'active' => ['label' => 'Active', 'tone' => 'confirmed'],
-            'inactive' => ['label' => 'Inactive', 'tone' => 'departed'],
+            'active' => ['label' => __('php/livewire/operator/operator_owner_detail.owner_active'), 'tone' => 'confirmed'],
+            'inactive' => ['label' => __('php/livewire/operator/operator_owner_detail.owner_inactive'), 'tone' => 'departed'],
             default => ['label' => ucfirst($status), 'tone' => 'departed'],
         };
     }
@@ -776,8 +798,8 @@ class OperatorOwnerDetail extends Component
     private function ownerTypeLabel(string $type): string
     {
         return match ($type) {
-            'individual' => 'Individual',
-            'company' => 'Company',
+            'individual' => __('php/livewire/operator/operator_owner_detail.type_individual'),
+            'company' => __('php/livewire/operator/operator_owner_detail.type_company'),
             default => ucfirst($type),
         };
     }
@@ -802,7 +824,7 @@ class OperatorOwnerDetail extends Component
     {
         if ($invite !== null && (string) $invite->status === 'pending') {
             return [
-                'label' => 'Invite pending',
+                'label' => __('php/livewire/operator/operator_owner_detail.portal_invite_pending'),
                 'detail' => $this->inviteExpiryNote($invite),
                 'tone' => 'pending',
             ];
@@ -811,19 +833,19 @@ class OperatorOwnerDetail extends Component
         $user = $record->user;
 
         if ($record->user_id !== null && $user instanceof User && (string) $user->status === 'active') {
-            return ['label' => 'Portal access active', 'detail' => null, 'tone' => 'confirmed'];
+            return ['label' => __('php/livewire/operator/operator_owner_detail.portal_active'), 'detail' => null, 'tone' => 'confirmed'];
         }
 
         if ($invite !== null) {
             return match ((string) $invite->status) {
-                'accepted' => ['label' => 'Invite accepted', 'detail' => $invite->accepted_at?->format('j M Y'), 'tone' => 'departed'],
-                'expired' => ['label' => 'Invite expired', 'detail' => $this->inviteExpiryNote($invite), 'tone' => 'departed'],
-                'revoked' => ['label' => 'Invite revoked', 'detail' => null, 'tone' => 'cancelled'],
+                'accepted' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_accepted'), 'detail' => $invite->accepted_at?->translatedFormat('j M Y'), 'tone' => 'departed'],
+                'expired' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_expired'), 'detail' => $this->inviteExpiryNote($invite), 'tone' => 'departed'],
+                'revoked' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_revoked'), 'detail' => null, 'tone' => 'cancelled'],
                 default => ['label' => ucfirst((string) $invite->status), 'detail' => null, 'tone' => 'departed'],
             };
         }
 
-        return ['label' => 'No portal access', 'detail' => null, 'tone' => 'departed'];
+        return ['label' => __('php/livewire/operator/operator_owner_detail.portal_none'), 'detail' => null, 'tone' => 'departed'];
     }
 
     /**
@@ -839,14 +861,16 @@ class OperatorOwnerDetail extends Component
             return null;
         }
 
-        return ($expires->isFuture() ? 'Expires ' : 'Expired ').$expires->format('j M Y');
+        return $expires->isFuture()
+            ? __('php/livewire/operator/operator_owner_detail.invite_expires', ['date' => $expires->translatedFormat('j M Y')])
+            : __('php/livewire/operator/operator_owner_detail.invite_expired', ['date' => $expires->translatedFormat('j M Y')]);
     }
 
     // ── Small shared helpers ─────────────────────────────────────────────────────────────────────
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $this->asDate($value)?->format('j M Y');
+        return $this->asDate($value)?->translatedFormat('j M Y');
     }
 
     /**

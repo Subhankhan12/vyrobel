@@ -1,0 +1,46 @@
+<?php
+
+// resources/views/livewire/operator/operator-maintenance-settings.blade.php — the operator's Maintenance settings (/app/maintenance/settings).
+
+return [
+    'page_title' => 'Maintenance settings',
+    'page_subtitle' => 'Rules for new work orders',
+    'back_to_board' => '← Back to the board',
+    'sla_heading' => 'Resolution targets',
+    'sla_intro' => 'How quickly each priority should be resolved, in hours. A work order past its target shows a <strong>breach</strong> on the board.',
+    'sla_urgent_hours' => 'Urgent (hours)',
+    'sla_high_hours' => 'High (hours)',
+    'sla_normal_hours' => 'Normal (hours)',
+    'sla_low_hours' => 'Low (hours)',
+    'auto_heading' => 'Auto-assignment',
+    'auto_intro' => 'Route a new order to a technician by its category, automatically.',
+    'auto_toggle_title' => 'Turn category routing on or off',
+    'unassigned' => 'Unassigned',
+    'auto_off_note' => 'Auto-assignment is off — new orders start unassigned until you assign them from the board.',
+    'technicians_heading' => 'Technicians',
+    'manage_team_link' => 'Manage team & roles →',
+    'technicians_intro' => 'Any active team member can be assigned work. Add people or grant access from Roles & access — there\'s no separate technician invite.',
+    'assigned_work' => 'Assigned work',
+    'open_orders_title' => 'Open work orders',
+    // one form prints for every n in English (it always said "N open")
+    'tech_load' => ':count open',
+    'no_technicians' => 'No technicians configured yet — set a category assignee above, or assign a work order from the board.',
+    'ooo_heading' => 'Out-of-order policy',
+    'block_room' => '<strong>Block the room from sale</strong> when a ticket takes a unit out of service',
+    'block_room_sub' => 'Already enforced — an out-of-service unit is excluded from availability and can\'t be booked.',
+    'notify_front_desk' => '<strong>Notify front desk</strong> when a unit goes out of service',
+    'notify_front_desk_sub' => 'Preference stored; maintenance doesn\'t send this alert yet — nothing is sent.',
+    'require_photo' => 'Require a photo on resolve',
+    'require_photo_sub' => 'Preference stored. Photos on work orders are live, but resolve doesn\'t require one yet.',
+    // the small dashed badges beside a stored-but-not-yet-acted-on preference
+    'badge_not_dispatched' => 'not dispatched yet',
+    'badge_not_enforced' => 'not enforced yet',
+    'notify_heading' => 'Notify me about',
+    'notify_intro' => 'Your preferences are saved now. Maintenance doesn\'t dispatch these alerts yet — nothing is sent.',
+    'notify_new_urgent' => 'A new URGENT work order is opened',
+    'notify_out_of_service' => 'A unit is taken out of service',
+    'notify_parts_arrive' => 'Parts arrive for an order',
+    'notify_sla_breach' => 'A work order breaches its resolution target',
+    'notify_daily_digest' => 'A daily maintenance digest',
+    'discard' => 'Discard',
+];

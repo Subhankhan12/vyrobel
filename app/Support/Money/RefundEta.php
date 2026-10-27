@@ -21,12 +21,18 @@ use App\Support\Folio\FolioTotals;
  */
 final class RefundEta
 {
-    /** The window itself — the only place the figure exists. */
+    /** The window itself, in English — the only place the figure exists; {@see window()} is what a person reads. */
     public const WINDOW = '5–10 business days';
+
+    /** The window in the reader's language (the same figure as {@see WINDOW}). */
+    public static function window(): string
+    {
+        return __('php/support/money/refund_eta.window');
+    }
 
     /** A full sentence for email/UI copy, so callers never re-word the promise around it. */
     public static function sentence(): string
     {
-        return 'Refunds usually reach your account within '.self::WINDOW.', depending on your bank.';
+        return __('php/support/money/refund_eta.sentence', ['window' => self::window()]);
     }
 }
