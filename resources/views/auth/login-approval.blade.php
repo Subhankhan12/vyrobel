@@ -2,11 +2,11 @@
 {{-- Login-approval PENDING screen (Wave B · GATE 4) — shown after a correct password on an untrusted device when
      the user has login-approval on. The visitor is NOT authenticated (a plain pending session); the sign-in
      completes only after the emailed link is clicked, then "Continue". Self-contained (unauthenticated). --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Approve your sign-in · Vyrobel</title>
+    <title>{{ __('auth/login-approval.page_title') }}</title>
     <x-favicon />
     <style>
         :root { --ink:#2B2320; --muted:#5F5853; --accent:#C2410C; --hair:rgba(120,70,40,.12); }
@@ -30,8 +30,8 @@
 <body>
     <main class="card">
         <div class="brand"><span class="mark">V</span><span class="name">Vyrobel</span></div>
-        <h1>Approve this sign-in</h1>
-        <p>We’ve emailed you a link to approve signing in from this device. Open it — on this device or your phone — then come back here and continue.</p>
+        <h1>{{ __('auth/login-approval.heading') }}</h1>
+        <p>{{ __('auth/login-approval.intro') }}</p>
 
         @if (session('status'))
             <div class="status">{{ session('status') }}</div>
@@ -39,11 +39,11 @@
 
         <form method="POST" action="{{ route('login-approval.complete') }}">
             @csrf
-            <label class="row"><input type="checkbox" name="trust_device" value="1"> Trust this device for 30 days (skip this next time)</label>
-            <button type="submit" class="btn">I’ve approved — continue</button>
+            <label class="row"><input type="checkbox" name="trust_device" value="1"> {{ __('auth/login-approval.trust_device') }}</label>
+            <button type="submit" class="btn">{{ __('auth/login-approval.approved_continue') }}</button>
         </form>
 
-        <p class="hint">Didn’t get the email? Check spam, or <a href="{{ route('login') }}">start over</a>. The link expires in 30 minutes.</p>
+        <p class="hint">{!! __('auth/login-approval.no_email_hint', ['url' => e(route('login'))]) !!}</p>
     </main>
 </body>
 </html>

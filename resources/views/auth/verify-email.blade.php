@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 {{-- Verify email (GATE 01) — styled on the shared Vyrobel auth tokens, consistent with login + set-password.
      ⚠️ This page sits OUTSIDE the `verified` gate on purpose: it is the way out of it. --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Confirm your email · Vyrobel</title>
+    <title>{{ __('auth/verify-email.page_title') }}</title>
     <x-favicon />
     <link href="/fonts/fonts.css" rel="stylesheet">
     <style>
@@ -36,25 +36,24 @@
 </head>
 <body>
 <main class="card">
-    <h1>Confirm your email</h1>
+    <h1>{{ __('auth/verify-email.heading') }}</h1>
 
     @if (session('status') === 'verification-link-sent')
-        <div class="flash">A new link has been sent to your address.</div>
+        <div class="flash">{{ __('auth/verify-email.link_sent') }}</div>
     @endif
 
     <p>
-        We need to confirm <span class="addr">{{ auth()->user()?->email }}</span> before you can open your
-        workspace. Click the link we sent you, and this page will let you through.
+        {!! __('auth/verify-email.intro', ['email' => e(auth()->user()?->email)]) !!}
     </p>
 
     <form method="POST" action="{{ route('verification.send') }}">
         @csrf
-        <button type="submit" class="btn">Resend the link</button>
+        <button type="submit" class="btn">{{ __('auth/verify-email.resend_link') }}</button>
     </form>
 
     <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button type="submit" class="muted-btn">Sign out</button>
+        <button type="submit" class="muted-btn">{{ __('common.sign_out') }}</button>
     </form>
 
     {{-- ⚠️ HONEST ABOUT THE CURRENT STATE. With no mail transport configured the send SUCCEEDS and nothing
@@ -62,8 +61,7 @@
          email is on its way. This block disappears on its own the moment a real mailer is configured. --}}
     @if (in_array(config('mail.default'), ['log', 'array'], true))
         <div class="note">
-            <strong>Heads up:</strong> email delivery isn’t switched on for this environment yet, so the link
-            won’t actually arrive. Ask whoever set this up to finish the mail configuration.
+            {!! __('auth/verify-email.mail_off_note') !!}
         </div>
     @endif
 </main>

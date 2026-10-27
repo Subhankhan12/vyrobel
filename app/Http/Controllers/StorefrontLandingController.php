@@ -127,7 +127,8 @@ class StorefrontLandingController extends Controller
      */
     private function towns(Collection $properties, Collection $roomTypes): array
     {
-        $byTown = $properties->groupBy(fn (Property $p): string => $this->town($p) ?: 'Our stays');
+        // Town-less properties group under '' and are titled at display time (never key the array by a translated label).
+        $byTown = $properties->groupBy(fn (Property $p): string => $this->town($p));
 
         $cards = [];
         $i = 0;
@@ -140,7 +141,7 @@ class StorefrontLandingController extends Controller
             $currency = (string) $group->first()->currency;
 
             $cards[] = [
-                'town' => (string) $town,
+                'town' => (string) $town !== '' ? (string) $town : __('php/http/controllers/storefront_landing_controller.our_stays'),
                 'sub' => $this->typeLabel($group),
                 'count' => $this->countLabel($rooms->count(), $capacities->min(), $capacities->max()),
                 'from' => $from !== null ? $this->money($from, $currency) : null,
@@ -235,7 +236,7 @@ class StorefrontLandingController extends Controller
         foreach (array_slice($tally, 0, 4, true) as $name => $info) {
             $out[] = [
                 'label' => $name,
-                'sub' => $info['count'].' '.($info['count'] === 1 ? 'stay' : 'stays'),
+                'sub' => trans_choice('php/http/controllers/storefront_landing_controller.stays_count', $info['count'], ['count' => $info['count']]),
                 'icon' => $this->amenityIcon($info['icon']),
                 'href' => route('booking.browse', ['property' => $info['slug'], 'amenities' => [$name]]),
             ];
@@ -260,14 +261,14 @@ class StorefrontLandingController extends Controller
             ->max();
 
         $cancelSub = is_int($freeDays) && $freeDays > 0
-            ? "Full refund up to {$freeDays} ".($freeDays === 1 ? 'day' : 'days').' before arrival.'
-            : 'Full refund within the cancellation window.';
+            ? trans_choice('php/http/controllers/storefront_landing_controller.perk_free_cancel_days', $freeDays, ['count' => $freeDays])
+            : __('php/http/controllers/storefront_landing_controller.perk_free_cancel_window');
 
         return [
-            ['label' => 'No booking fees', 'sub' => 'The price you see is the price you pay.'],
-            ['label' => 'Best-rate direct', 'sub' => 'Book direct for our own best rate — no middleman.'],
-            ['label' => 'Free cancellation', 'sub' => $cancelSub],
-            ['label' => 'Direct host support', 'sub' => 'Message a real person on your booking.'],
+            ['label' => __('php/http/controllers/storefront_landing_controller.perk_no_fees'), 'sub' => __('php/http/controllers/storefront_landing_controller.perk_no_fees_sub')],
+            ['label' => __('php/http/controllers/storefront_landing_controller.perk_best_rate'), 'sub' => __('php/http/controllers/storefront_landing_controller.perk_best_rate_sub')],
+            ['label' => __('php/http/controllers/storefront_landing_controller.perk_free_cancel'), 'sub' => $cancelSub],
+            ['label' => __('php/http/controllers/storefront_landing_controller.perk_host_support'), 'sub' => __('php/http/controllers/storefront_landing_controller.perk_host_support_sub')],
         ];
     }
 
@@ -339,18 +340,19 @@ class StorefrontLandingController extends Controller
     {
         return $group->count() === 1
             ? $this->propertyType((string) $group->first()->type)
-            : $group->count().' properties';
+            : trans_choice('php/http/controllers/storefront_landing_controller.properties_count', $group->count(), ['count' => $group->count()]);
     }
 
     private function countLabel(int $roomCount, ?int $minCap, ?int $maxCap): string
     {
-        $rooms = $roomCount.' '.($roomCount === 1 ? 'stay' : 'stays');
+        $rooms = trans_choice('php/http/controllers/storefront_landing_controller.stays_count', $roomCount, ['count' => $roomCount]);
         if ($minCap === null || $maxCap === null || $maxCap === 0) {
             return $rooms;
         }
-        $sleeps = $minCap === $maxCap ? "sleeps {$maxCap}" : "sleeps {$minCap}–{$maxCap}";
 
-        return "{$rooms} · {$sleeps}";
+        return $minCap === $maxCap
+            ? __('php/http/controllers/storefront_landing_controller.stays_sleeps', ['stays' => $rooms, 'max' => $maxCap])
+            : __('php/http/controllers/storefront_landing_controller.stays_sleeps_range', ['stays' => $rooms, 'min' => $minCap, 'max' => $maxCap]);
     }
 
     private function validDate(mixed $raw): ?string
@@ -375,12 +377,31 @@ class StorefrontLandingController extends Controller
 
     private function roomKind(string $kind): string
     {
-        return ucwords(str_replace('_', ' ', $kind));
+        return match ($kind) {
+            'room' => __('php/http/controllers/storefront_landing_controller.kind_room'),
+            'apartment' => __('php/http/controllers/storefront_landing_controller.kind_apartment'),
+            'villa' => __('php/http/controllers/storefront_landing_controller.kind_villa'),
+            'dorm' => __('php/http/controllers/storefront_landing_controller.kind_dorm'),
+            default => ucwords(str_replace('_', ' ', $kind)),
+        };
     }
 
     private function propertyType(string $type): string
     {
-        return ucwords(str_replace('_', ' ', $type));
+        return match ($type) {
+            'hotel' => __('php/http/controllers/storefront_landing_controller.type_hotel'),
+            'aparthotel' => __('php/http/controllers/storefront_landing_controller.type_aparthotel'),
+            'serviced_apartment' => __('php/http/controllers/storefront_landing_controller.type_serviced_apartment'),
+            'apartment_building' => __('php/http/controllers/storefront_landing_controller.type_apartment_building'),
+            'apartment' => __('php/http/controllers/storefront_landing_controller.type_apartment'),
+            'villa' => __('php/http/controllers/storefront_landing_controller.type_villa'),
+            'hostel' => __('php/http/controllers/storefront_landing_controller.type_hostel'),
+            'guest_house' => __('php/http/controllers/storefront_landing_controller.type_guest_house'),
+            'resort' => __('php/http/controllers/storefront_landing_controller.type_resort'),
+            'mixed' => __('php/http/controllers/storefront_landing_controller.type_mixed'),
+            'portfolio' => __('php/http/controllers/storefront_landing_controller.type_portfolio'),
+            default => ucwords(str_replace('_', ' ', $type)),
+        };
     }
 
     /** Decorative peach gradients keyed by index (matching the wireframe's warm tiles). */

@@ -2,11 +2,11 @@
 {{-- Set password / accept invite (Auth Phase B) — styled from "Vyrobel Set Password" onto the shared
      Vyrobel tokens, consistent with the login screen. Real activation: the tokened URL is the credential;
      the password is hashed server-side. --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Set your password · Vyrobel</title>
+    <title>{{ __('auth/set-password.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -75,8 +75,8 @@
 <body>
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
-        <h1 class="vy-title">Set your password</h1>
-        <p class="vy-sub">Welcome, {{ $name }} — choose a password to activate your Vyrobel account.</p>
+        <h1 class="vy-title">{{ __('auth/set-password.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/set-password.welcome', ['name' => $name]) }}</p>
 
         @if ($errors->any())
             <div class="vy-error" role="alert">
@@ -90,10 +90,10 @@
         <form method="POST" action="{{ $action ?? route('invite.accept', $token) }}" novalidate>
             @csrf
             <div class="vy-field">
-                <label class="vy-label" for="password">New password</label>
+                <label class="vy-label" for="password">{{ __('auth/common.new_password') }}</label>
                 <div class="vy-input-wrap">
                     <input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" autofocus required>
-                    <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password">
+                    <button type="button" class="vy-eye" data-toggle="password" aria-label="{{ __('auth/common.show_password') }}">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
@@ -101,18 +101,18 @@
                 <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
             </div>
             <div class="vy-field">
-                <label class="vy-label" for="password_confirmation">Confirm password</label>
+                <label class="vy-label" for="password_confirmation">{{ __('auth/common.confirm_password') }}</label>
                 <div class="vy-input-wrap">
                     <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
-                    <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="Show password">
+                    <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="{{ __('auth/common.show_password') }}">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
             </div>
-            <button type="submit" class="vy-btn">Set password &amp; sign in</button>
+            <button type="submit" class="vy-btn">{{ __('auth/common.set_password_and_sign_in') }}</button>
         </form>
 
-        <div class="vy-foot">This invitation link is single-use and expires soon.</div>
+        <div class="vy-foot">{{ __('auth/set-password.single_use_note') }}</div>
     </main>
 
     <script>
@@ -125,7 +125,7 @@
         // Presentational strength hint only — a VISUAL AID, not a gate. The server enforces the real
         // minimum (Password::min(8)); this only reflects it (8 chars = the floor) + advises on strength.
         var pw = document.getElementById('password'), meter = document.getElementById('meter'), label = document.getElementById('strength');
-        var words = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        var words = ['', @js(__('auth/common.strength_weak')), @js(__('auth/common.strength_fair')), @js(__('auth/common.strength_good')), @js(__('auth/common.strength_strong'))];
         pw && pw.addEventListener('input', function () {
             var v = pw.value, s = 0;
             if (v.length >= 8) s++;

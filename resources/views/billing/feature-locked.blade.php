@@ -2,15 +2,15 @@
      does NOT grant a feature. A real, tidy page (never a broken screen). Self-contained so it renders without
      any tenant layout context. --}}
 @php
-    $labels = ['channels' => 'Channel manager', 'analytics' => 'Insights & reports', 'team' => 'Extra team members'];
+    $labels = ['channels' => __('billing/feature-locked.feature_channels'), 'analytics' => __('billing/feature-locked.feature_analytics'), 'team' => __('billing/feature-locked.feature_team')];
     $label = $labels[$feature] ?? ucfirst(str_replace('_', ' ', $feature));
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Not in your plan · Vyrobel</title>
+    <title>{{ __('billing/feature-locked.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -36,9 +36,9 @@
         <div class="badge">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <h1>{{ $label }} isn't in your plan</h1>
-        <p>Your current plan doesn't include {{ \Illuminate\Support\Str::lower($label) }}. Upgrade your plan to unlock it — your data and settings stay exactly as they are.</p>
-        <a href="{{ route('app.billing') }}" class="btn">View plans &amp; upgrade</a>
+        <h1>{{ __('billing/feature-locked.heading', ['feature' => $label]) }}</h1>
+        <p>{{ __('billing/feature-locked.body', ['feature' => \App\Support\I18n\Locales::inSentence($label)]) }}</p>
+        <a href="{{ route('app.billing') }}" class="btn">{{ __('billing/feature-locked.view_plans') }}</a>
     </main>
 </body>
 </html>

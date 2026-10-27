@@ -54,12 +54,17 @@ class GuestHelpController extends Controller
 
         $all = HelpKnowledgeBase::guestArticles();
 
-        /** @var list<string> $categories */
-        $categories = array_values(array_unique(array_column($all, 'category')));
+        // I18N-01 — the filter compares CODES; `?category=` carries the category's ENGLISH name (the value these links have
+        // always had), the chip shows the name in the reader's language.
+        /** @var array<string, array{param: string, label: string}> $categories */
+        $categories = [];
+        foreach ($all as $a) {
+            $categories[$a['category_code']] ??= ['param' => HelpKnowledgeBase::category($a['category_code'], 'en'), 'label' => $a['category']];
+        }
 
         // Filter server-side so the page works without JavaScript, like the rest of the guest realm.
-        $matches = array_values(array_filter($all, static function (array $a) use ($query, $category): bool {
-            if ($category !== '' && $a['category'] !== $category) {
+        $matches = array_values(array_filter($all, static function (array $a) use ($query, $category, $categories): bool {
+            if ($category !== '' && $categories[$a['category_code']]['param'] !== $category) {
                 return false;
             }
 
@@ -76,7 +81,7 @@ class GuestHelpController extends Controller
         // Group for rendering; a filtered-to-nothing result yields an empty group set and the honest empty state.
         $grouped = [];
         foreach ($matches as $article) {
-            $grouped[$article['category']][] = $article;
+            $grouped[$article['category_code']][] = $article;   // keyed by code, never by a translated name (rule 6)
         }
 
         return view('guest.help', [

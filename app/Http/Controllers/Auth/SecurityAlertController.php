@@ -28,6 +28,6 @@ class SecurityAlertController extends Controller
         $user->forceFill(['security_alerts_seen_at' => now()])->save();
         $audit->record('user.security_alert_dismissed', $user, null, ['refusals' => $hidden]);
 
-        return back()->with('security_notice', 'Got it — that warning is cleared. A new one shows if it happens again.');
+        return back()->with('security_notice', __('php/http/controllers/auth/security_alert_controller.warning_cleared'));
     }
 }

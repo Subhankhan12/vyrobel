@@ -10,7 +10,7 @@
 @php
     $carry = ['check_in' => $search['check_in'], 'check_out' => $search['check_out'], 'adults' => $search['adults'], 'children' => $search['children']];
 @endphp
-<x-public.shell :property="$property" title="Book your stay" :seo="$seo">
+<x-public.shell :property="$property" :title="__('booking/browse.page_title')" :seo="$seo">
     <x-slot:head>
         <style>
             main { max-width: 940px; }
@@ -86,67 +86,70 @@
     <x-slot:nav>
         <div class="vy2-nav">
             @if ($guest !== null)
-                <a href="{{ route('guest.saved') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg> Saved</a>
+                <a href="{{ route('guest.saved') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg> {{ __('booking/browse.saved') }}</a>
                 <a class="muted" href="{{ route('guest.account') }}">{{ $guest['name'] }}</a>
             @else
-                <a class="muted" href="{{ route('guest.login') }}">Sign in</a>
+                <a class="muted" href="{{ route('guest.login') }}">{{ __('booking/browse.sign_in') }}</a>
             @endif
         </div>
     </x-slot:nav>
 
     <section class="vy-fade" style="animation-delay:.02s">
-        <h1 class="vy2-hero-title">Find your stay</h1>
-        <p class="vy2-hero-sub">Book direct at {{ $property['name'] }} — best rates, no middleman fees.</p>
+        <h1 class="vy2-hero-title">{{ __('booking/browse.heading') }}</h1>
+        <p class="vy2-hero-sub">{{ __('booking/browse.subheading', ['property' => $property['name']]) }}</p>
     </section>
 
     {{-- ONE GET form: the search + every refine control submits the same real query. --}}
     <form method="GET" action="" class="vy-fade" style="animation-delay:.06s">
         <div class="vy2-search">
             <div class="vy2-field">
-                <span class="vy2-field-k">Where</span>
+                <span class="vy2-field-k">{{ __('booking/browse.where') }}</span>
                 <span class="vy2-static">{{ $property['name'] }}</span>
             </div>
             <div class="vy2-field">
-                <span class="vy2-field-k">Check-in</span>
-                <input type="date" name="check_in" value="{{ $search['check_in'] }}" aria-label="Check-in date">
+                <span class="vy2-field-k">{{ __('booking/browse.check_in') }}</span>
+                <input type="date" name="check_in" value="{{ $search['check_in'] }}" aria-label="{{ __('booking/browse.check_in_date') }}">
             </div>
             <div class="vy2-field">
-                <span class="vy2-field-k">Check-out</span>
-                <input type="date" name="check_out" value="{{ $search['check_out'] }}" aria-label="Check-out date">
+                <span class="vy2-field-k">{{ __('booking/browse.check_out') }}</span>
+                <input type="date" name="check_out" value="{{ $search['check_out'] }}" aria-label="{{ __('booking/browse.check_out_date') }}">
             </div>
             <div class="vy2-field">
-                <span class="vy2-field-k">Adults</span>
+                <span class="vy2-field-k">{{ __('booking/browse.adults') }}</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="adults" min="1" max="16" value="{{ $search['adults'] }}" readonly aria-label="Adults">
+                    <input type="number" name="adults" min="1" max="16" value="{{ $search['adults'] }}" readonly aria-label="{{ __('booking/browse.adults') }}">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>
             <div class="vy2-field">
-                <span class="vy2-field-k">Children</span>
+                <span class="vy2-field-k">{{ __('booking/browse.children') }}</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="children" min="0" max="16" value="{{ $search['children'] }}" readonly aria-label="Children">
+                    <input type="number" name="children" min="0" max="16" value="{{ $search['children'] }}" readonly aria-label="{{ __('booking/browse.children') }}">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>
-            <button type="submit" class="vy2-search-btn">Search</button>
+            <button type="submit" class="vy2-search-btn">{{ __('common.search') }}</button>
         </div>
 
         @if ($search['searched'])
             {{-- Refine: sort segmented control (submits on change) + clear --}}
             <div class="vy2-refine">
                 <span class="vy-muted" style="font-size:13px;font-weight:500;">
-                    {{ count($rooms) }} {{ Str::plural('stay', count($rooms)) }} ·
-                    {{ Carbon::parse($search['check_in'])->format('j M') }} → {{ Carbon::parse($search['check_out'])->format('j M') }} ·
-                    {{ $search['nights'] }} {{ Str::plural('night', $search['nights']) }}
+                    {{ __('booking/browse.results_summary', [
+                        'stays' => trans_choice('booking/browse.stays_count', count($rooms), ['count' => count($rooms)]),
+                        'from' => Carbon::parse($search['check_in'])->translatedFormat('j M'),
+                        'to' => Carbon::parse($search['check_out'])->translatedFormat('j M'),
+                        'nights' => trans_choice('booking/browse.nights_count', $search['nights'], ['count' => $search['nights']]),
+                    ]) }}
                 </span>
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     @if ($refine['bedrooms'] !== null || $refine['max_price'] !== null || $refine['sort'] !== 'recommended' || $refine['amenities'] !== [])
-                        <a class="vy2-clear" href="{{ route('booking.browse', $property['slug']) }}?{{ http_build_query($carry) }}">✕ Clear filters</a>
+                        <a class="vy2-clear" href="{{ route('booking.browse', $property['slug']) }}?{{ http_build_query($carry) }}">✕ {{ __('booking/browse.clear_filters') }}</a>
                     @endif
                     <span class="vy2-chips">
-                        @foreach (['recommended' => 'Recommended', 'rating' => 'Top rated', 'price_asc' => 'Price ↑', 'price_desc' => 'Price ↓'] as $k => $label)
+                        @foreach (['recommended' => __('booking/browse.sort_recommended'), 'rating' => __('booking/browse.sort_top_rated'), 'price_asc' => __('booking/browse.sort_price_asc'), 'price_desc' => __('booking/browse.sort_price_desc')] as $k => $label)
                             <label class="vy2-seg"><input type="radio" name="sort" value="{{ $k }}" @checked($refine['sort'] === $k) onchange="this.form.submit()"><span>{{ $label }}</span></label>
                         @endforeach
                     </span>
@@ -156,10 +159,10 @@
             {{-- Bedrooms (real options) --}}
             @if (count($filterOptions['bedrooms']) > 0)
                 <div class="vy2-filter-row">
-                    <span class="vy2-filter-k">Bedrooms</span>
-                    <label class="vy2-pill"><input type="radio" name="bedrooms" value="" @checked($refine['bedrooms'] === null) onchange="this.form.submit()"><span>Any</span></label>
+                    <span class="vy2-filter-k">{{ __('booking/browse.bedrooms') }}</span>
+                    <label class="vy2-pill"><input type="radio" name="bedrooms" value="" @checked($refine['bedrooms'] === null) onchange="this.form.submit()"><span>{{ __('booking/browse.any_bedrooms') }}</span></label>
                     @foreach ($filterOptions['bedrooms'] as $b)
-                        <label class="vy2-pill"><input type="radio" name="bedrooms" value="{{ $b }}" @checked($refine['bedrooms'] === $b) onchange="this.form.submit()"><span>{{ $b === 0 ? 'Studio' : $b.'+' }}</span></label>
+                        <label class="vy2-pill"><input type="radio" name="bedrooms" value="{{ $b }}" @checked($refine['bedrooms'] === $b) onchange="this.form.submit()"><span>{{ $b === 0 ? __('booking/browse.studio') : $b.'+' }}</span></label>
                     @endforeach
                 </div>
             @endif
@@ -167,7 +170,7 @@
             {{-- Amenities (real, present on this property) --}}
             @if (count($filterOptions['amenities']) > 0)
                 <div class="vy2-filter-row">
-                    <span class="vy2-filter-k">Amenities</span>
+                    <span class="vy2-filter-k">{{ __('booking/browse.amenities') }}</span>
                     @foreach ($filterOptions['amenities'] as $a)
                         <label class="vy2-pill"><input type="checkbox" name="amenities[]" value="{{ $a }}" @checked(in_array($a, $refine['amenities'], true)) onchange="this.form.submit()"><span>{{ $a }}</span></label>
                     @endforeach
@@ -178,11 +181,11 @@
             @if (count($rooms) > 0 || $refine['max_price'] !== null)
                 @php $ceiling = max($filterOptions['max_price_ceiling'], (int) ($refine['max_price'] ?? 0)); $current = $refine['max_price'] ?? $ceiling; @endphp
                 <div class="vy2-range">
-                    <span class="vy2-filter-k">Max price</span>
+                    <span class="vy2-filter-k">{{ __('booking/browse.max_price') }}</span>
                     <input type="range" name="max_price" min="0" max="{{ $ceiling }}" step="10" value="{{ $current }}"
-                           oninput="document.getElementById('vy2-mp').textContent = (this.value >= this.max ? 'Any price' : (@js($property['currency_symbol']) + this.value))"
+                           oninput="document.getElementById('vy2-mp').textContent = (this.value >= this.max ? @js(__('booking/browse.any_price')) : (@js($property['currency_symbol']) + this.value))"
                            onchange="this.form.submit()">
-                    <span class="vy2-range-val" id="vy2-mp">{{ $current >= $ceiling ? 'Any price' : $property['currency_symbol'].$current }}</span>
+                    <span class="vy2-range-val" id="vy2-mp">{{ $current >= $ceiling ? __('booking/browse.any_price') : $property['currency_symbol'].$current }}</span>
                 </div>
             @endif
         @endif
@@ -192,8 +195,8 @@
         {{-- Pre-search teaser — real room names only, NO price/availability claimed. --}}
         <div class="vy-card vy-fade" style="margin-top:18px;">
             <div class="vy-results-head" style="margin:0 0 6px;">
-                <span class="vy-results-title">Our rooms</span>
-                <span class="vy-muted" style="font-size:12.5px;">Pick dates above to see availability &amp; prices</span>
+                <span class="vy-results-title">{{ __('booking/browse.our_rooms') }}</span>
+                <span class="vy-muted" style="font-size:12.5px;">{{ __('booking/browse.pick_dates_hint') }}</span>
             </div>
             @forelse ($teaser as $room)
                 <div class="vy-teaser-row">
@@ -201,19 +204,19 @@
                         @if ($room['cover'])<img src="{{ $room['cover'] }}" alt="{{ $room['name'] }}" class="vy-thumb" loading="lazy">@endif
                         <div>
                             <div class="vy-teaser-name">{{ $room['name'] }}</div>
-                            <div class="vy-teaser-sub">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>
+                            <div class="vy-teaser-sub">{{ __('booking/browse.kind_sleeps_up_to', ['kind' => $room['kind'], 'capacity' => $room['capacity']]) }}</div>
                         </div>
                     </div>
-                    <span class="vy-soon-tag">Pick dates</span>
+                    <span class="vy-soon-tag">{{ __('booking/browse.pick_dates') }}</span>
                 </div>
             @empty
-                <div class="vy-empty">No rooms are published for this property yet.</div>
+                <div class="vy-empty">{{ __('booking/browse.no_rooms_published') }}</div>
             @endforelse
         </div>
     @elseif (count($rooms) === 0)
         <div class="vy2-empty vy-fade">
-            <div style="font-family:var(--vy-display);font-weight:500;font-size:17px;">No rooms fit these dates</div>
-            <div class="vy-muted" style="font-size:13px;margin-top:6px;line-height:1.5;">Try different dates, fewer guests, or clear your filters.</div>
+            <div style="font-family:var(--vy-display);font-weight:500;font-size:17px;">{{ __('booking/browse.no_rooms_fit') }}</div>
+            <div class="vy-muted" style="font-size:13px;margin-top:6px;line-height:1.5;">{{ __('booking/browse.no_rooms_fit_hint') }}</div>
         </div>
     @else
         <div class="vy2-rooms vy-fade">
@@ -224,7 +227,7 @@
                         <form method="POST" action="{{ route('guest.saved.wishlist.add') }}">
                             @csrf
                             <input type="hidden" name="room_type_id" value="{{ $room['room_type_id'] }}">
-                            <button class="vy2-heart" type="submit" title="Save to wishlist" aria-label="Save to wishlist">
+                            <button class="vy2-heart" type="submit" title="{{ __('booking/browse.save_to_wishlist') }}" aria-label="{{ __('booking/browse.save_to_wishlist') }}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8703A" stroke-width="1.9"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
                             </button>
                         </form>
@@ -236,20 +239,20 @@
                     <div class="vy2-body">
                         <div class="vy2-name">{{ $room['name'] }}</div>
                         @if ($room['rating']['has_reviews'] ?? false)
-                            <div class="vy2-rate"><span class="star">★</span> <strong>{{ $room['rating']['average'] }}</strong> · {{ $room['rating']['count'] }} {{ Str::plural('review', (int) $room['rating']['count']) }}</div>
+                            <div class="vy2-rate"><span class="star">★</span> <strong>{{ $room['rating']['average'] }}</strong> · {{ trans_choice('booking/browse.reviews_count', (int) $room['rating']['count'], ['count' => $room['rating']['count']]) }}</div>
                         @else
-                            <div class="vy2-rate">No reviews yet</div>
+                            <div class="vy2-rate">{{ __('booking/browse.no_reviews_yet') }}</div>
                         @endif
                         <div class="vy2-feats">
-                            <span class="vy2-feat" style="background:rgba(232,112,58,.12);color:var(--vy-accent);">{{ $room['available'] }} left</span>
+                            <span class="vy2-feat" style="background:rgba(232,112,58,.12);color:var(--vy-accent);">{{ trans_choice('booking/browse.rooms_left', $room['available'], ['count' => $room['available']]) }}</span>
                             @foreach ($room['features'] as $f)<span class="vy2-feat">{{ $f }}</span>@endforeach
                         </div>
                         <div class="vy2-foot">
                             <div>
-                                <span class="vy2-price-night">{{ $room['per_night'] }}</span> <span class="vy2-price-sub">/ night{{ ($room['nightly_note'] ?? '') !== '' ? ' · '.$room['nightly_note'] : '' }}</span>
-                                <div class="vy2-price-sub" style="margin-top:2px;">{{ $room['grand_total'] }} total{{ $room['fees_note'] !== '' ? ' · '.$room['fees_note'] : '' }}</div>
+                                <span class="vy2-price-night">{{ $room['per_night'] }}</span> <span class="vy2-price-sub">{{ ($room['nightly_note'] ?? '') !== '' ? __('booking/browse.per_night_with_note', ['note' => $room['nightly_note']]) : __('booking/browse.per_night') }}</span>
+                                <div class="vy2-price-sub" style="margin-top:2px;">{{ $room['fees_note'] !== '' ? __('booking/browse.grand_total_with_fees', ['amount' => $room['grand_total'], 'fees' => $room['fees_note']]) : __('booking/browse.grand_total', ['amount' => $room['grand_total']]) }}</div>
                             </div>
-                            <a class="vy2-reserve" href="{{ route('booking.room', [$property['slug'], $room['room_type_id']]) }}?{{ $q }}">Reserve</a>
+                            <a class="vy2-reserve" href="{{ route('booking.room', [$property['slug'], $room['room_type_id']]) }}?{{ $q }}">{{ __('booking/browse.reserve') }}</a>
                         </div>
                     </div>
                 </article>

@@ -36,9 +36,9 @@ class GuestArrivalController extends Controller
         return view('guest.arrival', [
             'reservationId' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
-            'property' => (string) ($model->property->name ?? 'Your stay'),
-            'firstName' => (string) ($this->guest()->first_name ?: 'there'),
-            'checkIn' => CarbonImmutable::parse($model->check_in)->format('D, j M Y'),
+            'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_arrival_controller.your_stay')),
+            'firstName' => (string) ($this->guest()->first_name ?: __('php/http/controllers/guest/guest_arrival_controller.greeting_fallback')),
+            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat('D, j M Y'),
             'pack' => ArrivalPack::for($model, CarbonImmutable::today()),
         ]);
     }

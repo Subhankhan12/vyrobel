@@ -48,7 +48,7 @@ class EmailVerificationController extends Controller
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('app.dashboard'))->with('status', 'Your email address is verified.');
+        return redirect()->intended(route('app.dashboard'))->with('status', __('php/http/controllers/auth/email_verification_controller.email_verified'));
     }
 
     /**

@@ -3,7 +3,7 @@
      so it === the true folio delta on confirmation (#17). WRITE MODEL (D4): "Add to booking" posts the chosen
      REAL AddOn ids to the certified add-on REQUEST path — the operator confirms and the folio posts; nothing
      settles until then. Guest-scoped. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-guest.shell active="trips" :title="'Extras · '.$reference">
+<x-guest.shell active="trips" :title="__('guest/extras.page_title', ['reference' => $reference])">
     <style>
         .ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
         .ex-item { border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); background: var(--vy-card); padding: 15px 16px; display: flex; flex-direction: column; gap: 4px; transition: border-color .15s, box-shadow .15s; }
@@ -24,11 +24,11 @@
         .ex-total b { font-family: var(--vy-display); font-size: 20px; color:var(--vy-accent-text); }
     </style>
 
-    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Back to booking</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">{{ __('guest/extras.back_to_booking') }}</a>
 
-    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-green-text)">Nothing to pay now</div>
-    <h1 class="vy-h1" style="margin-top:4px">Enhance your stay</h1>
-    <p class="vy-lead" style="margin-bottom:16px">Add a few extras to {{ $property }} — everything settles to your booking, nothing to pay at the door.</p>
+    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-green-text)">{{ __('guest/extras.nothing_to_pay_now') }}</div>
+    <h1 class="vy-h1" style="margin-top:4px">{{ __('guest/extras.heading') }}</h1>
+    <p class="vy-lead" style="margin-bottom:16px">{{ __('guest/extras.lead', ['property' => $property]) }}</p>
 
     @if (session('status'))
         <div class="vy-card" style="margin-bottom:14px;border-left:3px solid var(--vy-accent-3);font-size:13px;color:var(--vy-ink)">{{ session('status') }}</div>
@@ -37,25 +37,25 @@
     {{-- Already requested / confirmed --}}
     @if (count($pending) > 0)
         <section class="vy-card" style="margin-bottom:14px">
-            <div class="vy-eyebrow" style="margin-bottom:8px">Your extras</div>
+            <div class="vy-eyebrow" style="margin-bottom:8px">{{ __('guest/extras.your_extras') }}</div>
             @foreach ($pending as $req)
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px">
-                    <span style="color:var(--vy-ink)">{{ implode(', ', $req['names']) ?: 'Extras' }}</span>
-                    <span style="flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;{{ $req['status'] === 'confirmed' ? 'background:rgba(79,122,70,.13);color:#3F6338' : 'background:var(--vy-wash);color:var(--vy-amber-text)' }}">{{ $req['status'] === 'confirmed' ? 'Added to your booking' : 'Awaiting confirmation' }}</span>
+                    <span style="color:var(--vy-ink)">{{ implode(', ', $req['names']) ?: __('guest/extras.extras_fallback') }}</span>
+                    <span style="flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;{{ $req['status'] === 'confirmed' ? 'background:rgba(79,122,70,.13);color:#3F6338' : 'background:var(--vy-wash);color:var(--vy-amber-text)' }}">{{ $req['status'] === 'confirmed' ? __('guest/extras.added_to_booking') : __('guest/extras.awaiting_confirmation') }}</span>
                 </div>
             @endforeach
         </section>
     @endif
 
     @if (count($catalog) === 0)
-        <div class="vy-card"><div style="font-size:13px;color:var(--vy-muted);text-align:center;padding:20px">No extras are available for this stay yet.</div></div>
+        <div class="vy-card"><div style="font-size:13px;color:var(--vy-muted);text-align:center;padding:20px">{{ __('guest/extras.empty_state') }}</div></div>
     @else
         <form method="POST" action="{{ route('guest.manage.add-ons', $reservationId) }}">
             @csrf
             <section class="vy-card">
                 <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px">
-                    <div class="vy-eyebrow">Available extras</div>
-                    @if ($vatRate > 0)<div style="font-size:11.5px;color:var(--vy-faint)">Prices include VAT</div>@endif
+                    <div class="vy-eyebrow">{{ __('guest/extras.available_extras') }}</div>
+                    @if ($vatRate > 0)<div style="font-size:11.5px;color:var(--vy-faint)">{{ __('guest/extras.prices_include_vat') }}</div>@endif
                 </div>
                 <div class="ex-grid">
                     @foreach ($catalog as $item)
@@ -68,26 +68,26 @@
                                  price was already computed by the controller and simply never rendered. --}}
                             <span class="ex-basis">{{ $item['unit_price'] }} {{ $item['basis'] }}</span>
                             <span class="ex-price">{{ $item['total'] }}</span>
-                            <span class="ex-basis">total for your stay</span>
-                            <span class="ex-add">Add to stay</span>
+                            <span class="ex-basis">{{ __('guest/extras.total_for_stay') }}</span>
+                            <span class="ex-add">{{ __('guest/extras.add_to_stay') }}</span>
                         </label>
                     @endforeach
                 </div>
 
                 <div class="ex-summary">
-                    <div style="font-family:var(--vy-display);font-weight:500;font-size:15px">Your extras</div>
+                    <div style="font-family:var(--vy-display);font-weight:500;font-size:15px">{{ __('guest/extras.your_extras') }}</div>
                     <div class="ex-total">
-                        <span><span style="font-family:var(--vy-display);font-weight:500">Total</span> <span style="font-size:11px;color:var(--vy-faint)">{{ $vatRate > 0 ? 'incl. VAT' : '' }}</span></span>
+                        <span><span style="font-family:var(--vy-display);font-weight:500">{{ __('common.total') }}</span> <span style="font-size:11px;color:var(--vy-faint)">{{ $vatRate > 0 ? __('guest/extras.incl_vat') : '' }}</span></span>
                         <b id="ex-total-val">{{ \App\Support\Money\MoneyFormatter::display(0, $currency) }}</b>
                     </div>
-                    <button type="submit" class="vy-btn vy-btn--accent" id="ex-submit" style="width:100%;margin-top:14px;opacity:.5" disabled>Add to booking</button>
+                    <button type="submit" class="vy-btn vy-btn--accent" id="ex-submit" style="width:100%;margin-top:14px;opacity:.5" disabled>{{ __('guest/extras.add_to_booking_button') }}</button>
                     {{-- ⚠️ "Free to cancel up to 24h before arrival" was removed here (#39). It came verbatim from the
                          prototype, but NOTHING implements it: there is no add-on cancellation window in AddOn,
                          ReservationExtras or config, and no removal path at all — the only extras route is a GET,
                          and an add-on can only be REQUESTED. The app was promising the guest a right it cannot
                          honour. Same family as the "48h" literal fixed at G2, except that one at least matched a
                          real constant; this one had no engine behind it. --}}
-                    <div style="font-size:11px;color:var(--vy-faint);text-align:center;margin-top:10px;line-height:1.5">Settles to {{ $reference }} — nothing to pay at the door. Your host confirms, then it’s added to your booking.</div>
+                    <div style="font-size:11px;color:var(--vy-faint);text-align:center;margin-top:10px;line-height:1.5">{{ __('guest/extras.settles_to', ['reference' => $reference]) }}</div>
                 </div>
             </section>
         </form>
@@ -107,7 +107,7 @@
                 btn.disabled = !any;
                 btn.style.opacity = any ? '1' : '.5';
                 document.querySelectorAll('.ex-item .ex-add').forEach(function (a) {
-                    a.textContent = a.closest('.ex-item').querySelector('input').checked ? 'Added ✓' : 'Add to stay';
+                    a.textContent = a.closest('.ex-item').querySelector('input').checked ? @js(__('guest/extras.added')) : @js(__('guest/extras.add_to_stay'));
                 });
             }
         </script>

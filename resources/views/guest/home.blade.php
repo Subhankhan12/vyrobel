@@ -2,18 +2,18 @@
      real Guest Portal (Trips, bookings, Account) is Phase 4b/4c. RAW-BLADE RULE: every `@` follows a space,
      newline or tag. --}}
 @extends('guest.auth.layout')
-@section('title', 'Your account')
+@section('title', __('guest/home.your_account'))
 
 @section('card')
-    <h1 class="vy-title">Welcome, {{ $name }}</h1>
-    <p class="vy-sub">Your account is set up. Your trips and bookings will appear here soon.</p>
+    <h1 class="vy-title">{{ __('guest/home.welcome', ['name' => $name]) }}</h1>
+    <p class="vy-sub">{{ __('guest/home.subheading') }}</p>
 
-    <div class="vy-notice">You’re signed in to your Vyrobel guest account.</div>
+    <div class="vy-notice">{{ __('guest/home.signed_in_notice') }}</div>
 
-    <a class="vy-btn" href="{{ route('guest.account') }}" style="text-decoration:none;margin-bottom:10px">Your account</a>
+    <a class="vy-btn" href="{{ route('guest.account') }}" style="text-decoration:none;margin-bottom:10px">{{ __('guest/home.your_account') }}</a>
 
     <form method="POST" action="{{ route('guest.logout') }}">
         @csrf
-        <button type="submit" class="vy-btn" style="background:none;color:var(--vy-accent-text);border:1px solid var(--vy-hairline);box-shadow:none">Sign out</button>
+        <button type="submit" class="vy-btn" style="background:none;color:var(--vy-accent-text);border:1px solid var(--vy-hairline);box-shadow:none">{{ __('common.sign_out') }}</button>
     </form>
 @endsection

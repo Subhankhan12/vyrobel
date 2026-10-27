@@ -2,11 +2,11 @@
 {{-- Forgot password (Auth Phase B · finishing sweep) — styled on the shared Vyrobel auth tokens,
      consistent with login + set-password. Enter an email → a reset link is sent (ACTIVE users only);
      the response is ALWAYS the same generic message (no enumeration). --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reset password · Vyrobel</title>
+    <title>{{ __('auth/forgot-password.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -64,12 +64,12 @@
 <body>
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
-        <h1 class="vy-title">Reset your password</h1>
+        <h1 class="vy-title">{{ __('auth/forgot-password.heading') }}</h1>
         {{-- WAVE 3 — the link's life is REAL (config/auth.php passwords.expire) and was simply never stated,
              so a guest who came back to an expired link had no way to know why. Read from config, not
              hardcoded, so the sentence cannot drift from the setting that governs it. The login-approval
              page already states its own 30 minutes — this matches that precedent. --}}
-        <p class="vy-sub">Enter the email on your account and we’ll send you a link to choose a new password. The link is valid for {{ config('auth.passwords.users.expire', 60) }} minutes.</p>
+        <p class="vy-sub">{{ trans_choice('auth/forgot-password.intro', (int) config('auth.passwords.users.expire', 60), ['count' => config('auth.passwords.users.expire', 60)]) }}</p>
 
         @if (session('status'))
             <div class="vy-note is-ok" role="status">
@@ -87,13 +87,13 @@
         <form method="POST" action="{{ route('password.email') }}" novalidate>
             @csrf
             <div class="vy-field">
-                <label class="vy-label" for="email">Email</label>
+                <label class="vy-label" for="email">{{ __('common.email') }}</label>
                 <input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="username" autofocus required>
             </div>
-            <button type="submit" class="vy-btn">Send reset link</button>
+            <button type="submit" class="vy-btn">{{ __('auth/forgot-password.send_reset_link') }}</button>
         </form>
 
-        <div class="vy-foot"><a href="{{ route('login') }}">&larr; Back to sign in</a></div>
+        <div class="vy-foot"><a href="{{ route('login') }}">{{ __('auth/forgot-password.back_to_sign_in') }}</a></div>
     </main>
 </body>
 </html>

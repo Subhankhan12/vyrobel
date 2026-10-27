@@ -71,6 +71,6 @@ class ChangePasswordController extends Controller
         // Keep the browser doing the change; every OTHER session is terminated.
         $user->changePasswordTo((string) $request->string('password'), $request->session()->getId());
 
-        return redirect()->to($back)->with('password_status', 'Your password has been changed.');
+        return redirect()->to($back)->with('password_status', __('php/http/controllers/auth/change_password_controller.password_changed'));
     }
 }

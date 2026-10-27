@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 {{-- Generic "invalid invitation" page (Auth Phase B). The SAME response for any invalid / expired /
      already-used / unknown token — never reveals which invites exist or why exactly it failed. --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Invitation · Vyrobel</title>
+    <title>{{ __('auth/invite-invalid.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -49,9 +49,9 @@
         <div class="vy-ico">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
         </div>
-        <h1 class="vy-title">This invitation link isn’t valid</h1>
-        <p class="vy-sub">It may have expired or already been used. Please ask your operator to send a new invitation.</p>
-        <a class="vy-btn" href="{{ route('login') }}">Go to sign in</a>
+        <h1 class="vy-title">{{ __('auth/invite-invalid.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/invite-invalid.body') }}</p>
+        <a class="vy-btn" href="{{ route('login') }}">{{ __('auth/invite-invalid.go_to_sign_in') }}</a>
     </main>
 </body>
 </html>

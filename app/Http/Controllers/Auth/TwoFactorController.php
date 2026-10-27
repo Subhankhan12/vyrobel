@@ -31,7 +31,7 @@ class TwoFactorController extends Controller
         $user = $this->user($request);
 
         if ($user->hasTwoFactorEnabled()) {
-            return back()->with('two_factor_status', 'Two-factor authentication is already on.');
+            return back()->with('two_factor_status', __('php/http/controllers/auth/two_factor_controller.already_on'));
         }
 
         $this->twoFactor->startEnrollment($user);
@@ -50,12 +50,12 @@ class TwoFactorController extends Controller
         if ($codes === null) {
             // The anti-lockout guard: no confirmed code, no activation.
             throw ValidationException::withMessages([
-                'code' => 'That code isn’t right. Check your authenticator app and try again.',
+                'code' => __('php/http/controllers/auth/two_factor_controller.code_wrong'),
             ]);
         }
 
         return back()
-            ->with('two_factor_status', 'Two-factor authentication is on. Save your recovery codes below.')
+            ->with('two_factor_status', __('php/http/controllers/auth/two_factor_controller.turned_on'))
             ->with('two_factor_recovery_codes', $codes);
     }
 
@@ -71,7 +71,7 @@ class TwoFactorController extends Controller
         $codes = $this->twoFactor->regenerateRecoveryCodes($user);
 
         return back()
-            ->with('two_factor_status', 'New recovery codes generated — save them. Your old codes no longer work.')
+            ->with('two_factor_status', __('php/http/controllers/auth/two_factor_controller.codes_regenerated'))
             ->with('two_factor_recovery_codes', $codes);
     }
 
@@ -91,7 +91,7 @@ class TwoFactorController extends Controller
 
         $this->twoFactor->disable($user);
 
-        return back()->with('two_factor_status', $wasEnabled ? 'Two-factor authentication is off.' : 'Two-factor setup cancelled.');
+        return back()->with('two_factor_status', $wasEnabled ? __('php/http/controllers/auth/two_factor_controller.turned_off') : __('php/http/controllers/auth/two_factor_controller.setup_cancelled'));
     }
 
     /** SELF only — the acting user, never a request-supplied id. */

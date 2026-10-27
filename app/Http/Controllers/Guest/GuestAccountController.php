@@ -12,10 +12,12 @@ use App\Services\GuestWalletService;
 use App\Services\GuestWishlistService;
 use App\Support\Email\GuestEmailPreferences;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\Locales;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 /**
@@ -67,13 +69,13 @@ class GuestAccountController extends Controller
             ],
             'waitlist' => $waitlist->map(fn (GuestWaitlistEntry $entry): array => [
                 'id' => (string) $entry->getKey(),
-                'room' => (string) ($entry->roomType->name ?? 'Room'),
+                'room' => (string) ($entry->roomType->name ?? __('php/http/controllers/guest/guest_account_controller.room_fallback')),
                 'dates' => $this->waitlistDates($entry),
             ])->all(),
             'marketingConsent' => (bool) $guest->marketing_consent,
             'deletion' => [
                 'scheduled' => $guest->scheduled_deletion_at !== null,
-                'on' => $guest->scheduled_deletion_at?->format('j M Y'),
+                'on' => $guest->scheduled_deletion_at?->translatedFormat('j M Y'),
                 // ⚠️ The count the screen WARNS with, read from the same set the erase cancels
                 // ({@see GuestDeletionService::reservationsToCancel()}) so the two can never disagree.
                 'stays' => $deletions->reservationsToCancel($guest)->count(),
@@ -91,12 +93,12 @@ class GuestAccountController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:40'],
             'nationality' => ['nullable', 'string', 'size:2'],
-            'language' => ['nullable', 'string', 'max:10'],
+            'language' => ['nullable', 'string', Rule::in(Locales::planned())],
         ]);
 
         $guest->update($data);   // email is not in $data → untouched; the saving() hook keeps email_hash in step
 
-        return redirect()->route('guest.account')->with('status', 'Your details have been saved.');
+        return redirect()->route('guest.account')->with('status', __('php/http/controllers/guest/guest_account_controller.details_saved'));
     }
 
     /** Preferences — the REAL #87 marketing-consent gate + language. SMS is honest-gated (no provider), never set. */
@@ -107,8 +109,10 @@ class GuestAccountController extends Controller
         if ($request->has('marketing_consent')) {
             $guest->update(['marketing_consent' => $request->boolean('marketing_consent')]);
         }
-        if ($request->filled('language')) {
-            $guest->update(['language' => (string) $request->string('language')->substr(0, 10)]);
+        // I18N-01 — only a language Vyrobel plans to speak is stored (it was any 10 characters); one not finished yet is
+        //    kept and shows English until it is, like every other saved choice.
+        if ($request->filled('language') && Locales::isPlanned((string) $request->string('language'))) {
+            $guest->update(['language' => (string) $request->string('language')]);
         }
 
         // ⚠️ THE GUEST'S OWN EMAIL OPT-OUTS. Only the OPTIONAL categories are storable — the helper refuses
@@ -129,7 +133,7 @@ class GuestAccountController extends Controller
             GuestEmailPreferences::set($guest, $category, $request->boolean('receiving'));
         }
 
-        return redirect()->route('guest.account')->with('status', 'Your preferences have been saved.');
+        return redirect()->route('guest.account')->with('status', __('php/http/controllers/guest/guest_account_controller.preferences_saved'));
     }
 
     /** Change password — the CURRENT password is verified (against the guest guard) before the shared hash path. */
@@ -144,7 +148,7 @@ class GuestAccountController extends Controller
 
         $guest->changePasswordTo((string) $request->string('password'), $request->session()->getId());   // the one shared hash + rotate path; this session stays
 
-        return redirect()->route('guest.account')->with('status', 'Your password has been changed.');
+        return redirect()->route('guest.account')->with('status', __('php/http/controllers/guest/guest_account_controller.password_changed'));
     }
 
     /**
@@ -154,13 +158,13 @@ class GuestAccountController extends Controller
     public function destroy(Request $request, GuestDeletionService $deletions): RedirectResponse
     {
         $request->validate(['confirm' => ['required', 'in:DELETE']], [
-            'confirm.in' => 'Type DELETE to confirm.',
+            'confirm.in' => __('php/http/controllers/guest/guest_account_controller.type_delete_to_confirm'),
         ]);
 
         $effective = $deletions->schedule($this->guest());
 
         return redirect()->route('guest.account')->with('status',
-            'Account deletion scheduled for '.$effective->format('j M Y').'. You can undo any time before then.');
+            __('php/http/controllers/guest/guest_account_controller.deletion_scheduled', ['date' => $effective->translatedFormat('j M Y')]));
     }
 
     /** Undo a scheduled deletion — the guest keeps their account. */
@@ -168,7 +172,7 @@ class GuestAccountController extends Controller
     {
         $deletions->cancel($this->guest());
 
-        return redirect()->route('guest.account')->with('status', 'Your account deletion has been cancelled — welcome back.');
+        return redirect()->route('guest.account')->with('status', __('php/http/controllers/guest/guest_account_controller.deletion_cancelled'));
     }
 
     private function initials(string $first, string $last): string
@@ -181,9 +185,9 @@ class GuestAccountController extends Controller
     private function waitlistDates(GuestWaitlistEntry $entry): string
     {
         if ($entry->check_in !== null && $entry->check_out !== null) {
-            return $entry->check_in->format('j M').' → '.$entry->check_out->format('j M Y');
+            return __('php/http/controllers/guest/guest_account_controller.waitlist_date_range', ['from' => $entry->check_in->translatedFormat('j M'), 'to' => $entry->check_out->translatedFormat('j M Y')]);
         }
 
-        return $entry->flexible_month !== null ? 'Flexible · '.(string) $entry->flexible_month : 'Flexible dates';
+        return $entry->flexible_month !== null ? __('php/http/controllers/guest/guest_account_controller.flexible_month', ['month' => (string) $entry->flexible_month]) : __('php/http/controllers/guest/guest_account_controller.flexible_dates');
     }
 }

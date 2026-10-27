@@ -1,0 +1,35 @@
+<?php
+
+// app/Http/Controllers/StorefrontLandingController.php — the public organisation landing page (town cards, vibes, perks).
+
+return [
+    'our_stays' => 'Our stays',
+    'properties_count' => ':count properties',
+    'stays_count' => '{1} :count stay|[0,*] :count stays',
+    'stays_sleeps' => ':stays · sleeps :max',
+    'stays_sleeps_range' => ':stays · sleeps :min–:max',
+    'perk_free_cancel_days' => '{1} Full refund up to :count day before arrival.|[0,*] Full refund up to :count days before arrival.',
+    'perk_free_cancel_window' => 'Full refund within the cancellation window.',
+    'perk_no_fees' => 'No booking fees',
+    'perk_no_fees_sub' => 'The price you see is the price you pay.',
+    'perk_best_rate' => 'Best-rate direct',
+    'perk_best_rate_sub' => 'Book direct for our own best rate — no middleman.',
+    'perk_free_cancel' => 'Free cancellation',
+    'perk_host_support' => 'Direct host support',
+    'perk_host_support_sub' => 'Message a real person on your booking.',
+    'kind_room' => 'Room',
+    'kind_apartment' => 'Apartment',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dorm',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviced Apartment',
+    'type_apartment_building' => 'Apartment Building',
+    'type_apartment' => 'Apartment',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Guest House',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Mixed',
+    'type_portfolio' => 'Portfolio',
+];

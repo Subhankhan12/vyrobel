@@ -30,6 +30,8 @@ class GuestManageController extends Controller
 {
     use ResolvesGuest;
 
+    // ⚠️ I18N-01 — these English values are the stored CODES (validated with Rule::in, kept in the request's payload); the
+    //    words a guest reads come from cancelReasonLabel(), so a translated label can never fail the validation.
     private const CANCEL_REASONS = ['Change of plans', 'My dates changed', 'Found somewhere else', 'Too expensive', 'Other'];
 
     public function __construct(private readonly GuestChangeRequestService $requests) {}
@@ -51,16 +53,18 @@ class GuestManageController extends Controller
         return view('guest.manage', [
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
-            'property' => (string) ($model->property->name ?? 'Your stay'),
-            'checkIn' => CarbonImmutable::parse($model->check_in)->format('D, j M Y'),
-            'checkOut' => CarbonImmutable::parse($model->check_out)->format('D, j M Y'),
+            'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_manage_controller.your_stay')),
+            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat('D, j M Y'),
+            'checkOut' => CarbonImmutable::parse($model->check_out)->translatedFormat('D, j M Y'),
             'newCheckIn' => $newCheckIn,
             'newCheckOut' => $newCheckOut,
             'quote' => $quote,
             'cancelReasons' => self::CANCEL_REASONS,
+            // code => the label the guest reads (the select's option text; its value stays the code)
+            'cancelReasonLabels' => array_combine(self::CANCEL_REASONS, array_map(fn (string $code): string => $this->cancelReasonLabel($code), self::CANCEL_REASONS)),
             'pending' => $this->pendingFor($model),
             // Real free-cancellation deadline (null when none / it has passed) — never a "convert to credit" fabrication.
-            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->format('D, j M Y') : null,
+            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat('D, j M Y') : null,
             'canRequestChanges' => self::changesAllowed($model),
         ]);
     }
@@ -87,7 +91,7 @@ class GuestManageController extends Controller
     /** ⚠️ The refusal itself — the same sentence wherever it is needed, never re-typed per action. */
     private function refuseFinishedStay(Reservation $model): RedirectResponse
     {
-        return $this->backWith($model, 'That booking has already closed, so there is nothing left to change. Its dates and folio are still here to look at.');
+        return $this->backWith($model, __('php/http/controllers/guest/guest_manage_controller.stay_closed'));
     }
 
     public function requestDateChange(Request $request, string $reservation): RedirectResponse
@@ -106,7 +110,7 @@ class GuestManageController extends Controller
 
         $this->requests->requestDateChange($model, $this->guest(), (string) $data['new_check_in'], (string) $data['new_check_out']);
 
-        return $this->backWith($model, 'Date-change request sent — we’ll confirm the new dates and any price difference.');
+        return $this->backWith($model, __('php/http/controllers/guest/guest_manage_controller.date_change_sent'));
     }
 
     public function requestAddOns(Request $request, string $reservation): RedirectResponse
@@ -128,7 +132,7 @@ class GuestManageController extends Controller
 
         $this->requests->requestAddOns($model, $this->guest(), (array) $data['add_ons']);
 
-        return back()->with('status', 'Extras requested — the property will confirm and add them to your booking.');
+        return back()->with('status', __('php/http/controllers/guest/guest_manage_controller.extras_requested'));
     }
 
     public function requestCancellation(Request $request, string $reservation): RedirectResponse
@@ -146,7 +150,7 @@ class GuestManageController extends Controller
 
         $this->requests->requestCancellation($model, $this->guest(), (string) $data['reason']);
 
-        return $this->backWith($model, 'Cancellation request sent — we’ll be in touch to confirm.');
+        return $this->backWith($model, __('php/http/controllers/guest/guest_manage_controller.cancellation_sent'));
     }
 
     /** The authed guest's OWN reservation, or 404 (resolved through their own relation — never a request id). */
@@ -168,12 +172,12 @@ class GuestManageController extends Controller
             ->map(fn (GuestChangeRequest $r): array => [
                 'type' => (string) $r->type,
                 'label' => match ((string) $r->type) {
-                    GuestChangeRequest::TYPE_DATE_CHANGE => 'Date change requested',
-                    GuestChangeRequest::TYPE_ADD_ON => 'Add-ons requested',
-                    GuestChangeRequest::TYPE_CANCELLATION => 'Cancellation requested',
+                    GuestChangeRequest::TYPE_DATE_CHANGE => __('php/http/controllers/guest/guest_manage_controller.pending_date_change'),
+                    GuestChangeRequest::TYPE_ADD_ON => __('php/http/controllers/guest/guest_manage_controller.pending_add_ons'),
+                    GuestChangeRequest::TYPE_CANCELLATION => __('php/http/controllers/guest/guest_manage_controller.pending_cancellation'),
                 },
                 'detail' => $this->detail($r),
-                'at' => CarbonImmutable::parse($r->created_at)->format('j M Y · H:i'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y · H:i'),
             ])
             ->all();
     }
@@ -188,7 +192,7 @@ class GuestManageController extends Controller
             // reads back (:127). This read `add_ons`, which nothing ever writes, so every pending add-on row
             // rendered BLANK. Resolved to real NAMES too — the ids are ULIDs and mean nothing to a guest.
             GuestChangeRequest::TYPE_ADD_ON => $this->addOnNames((array) ($payload['add_on_ids'] ?? [])),
-            GuestChangeRequest::TYPE_CANCELLATION => (string) ($payload['reason'] ?? ''),
+            GuestChangeRequest::TYPE_CANCELLATION => $this->cancelReasonLabel((string) ($payload['reason'] ?? '')),
         };
     }
 
@@ -209,6 +213,19 @@ class GuestManageController extends Controller
             ->orderBy('name')
             ->pluck('name')
             ->implode(', ');
+    }
+
+    /** The words for a stored cancellation-reason code; anything else (an older row) is shown as it was stored. */
+    private function cancelReasonLabel(string $code): string
+    {
+        return match ($code) {
+            'Change of plans' => __('php/http/controllers/guest/guest_manage_controller.reason_change_of_plans'),
+            'My dates changed' => __('php/http/controllers/guest/guest_manage_controller.reason_dates_changed'),
+            'Found somewhere else' => __('php/http/controllers/guest/guest_manage_controller.reason_found_elsewhere'),
+            'Too expensive' => __('php/http/controllers/guest/guest_manage_controller.reason_too_expensive'),
+            'Other' => __('php/http/controllers/guest/guest_manage_controller.reason_other'),
+            default => $code,
+        };
     }
 
     private function backWith(Reservation $reservation, string $message): RedirectResponse

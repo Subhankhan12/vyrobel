@@ -3,7 +3,7 @@
      realm), and rich per-trip cards. Isolation is in the controller (the guest's own reservations only). Every
      figure is REAL (folio-reconciling balance, real completed-stay stats — never a fabricated "369 stays").
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-guest.shell active="trips" title="Your trips">
+<x-guest.shell active="trips" :title="__('guest/trips.page_title')">
     @php
         // Preserve the other query params when a control changes one (native GET, no JS state).
         $qs = fn (array $over) => http_build_query(array_merge(['tab' => $tab, 'q' => $query, 'year' => $year], $over));
@@ -12,23 +12,23 @@
     {{-- ── Travel-account hero — welcome + REAL stats (completed stays · nights away · countries) ────────── --}}
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin-bottom:20px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="flex:1 1 220px;min-width:0">
-            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">Your travel account</div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">{{ __('guest/trips.eyebrow') }}</div>
             {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
-            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:4px;margin:0">Welcome back, {{ $firstName }}</h1>
-            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Your stays with us — upcoming and past.</div>
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:4px;margin:0">{{ __('guest/trips.heading', ['name' => $firstName]) }}</h1>
+            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">{{ __('guest/trips.subheading') }}</div>
         </div>
         <div style="display:flex;gap:28px;flex-wrap:wrap">
             <div>
                 <div style="font-family:var(--vy-display);font-weight:700;font-size:26px;color:var(--vy-ink);font-variant-numeric:tabular-nums">{{ $stats['stays'] }}</div>
-                <div style="font-size:11.5px;color:var(--vy-muted)">{{ \Illuminate\Support\Str::plural('stay', $stats['stays']) }} completed</div>
+                <div style="font-size:11.5px;color:var(--vy-muted)">{{ trans_choice('guest/trips.stays_completed', $stats['stays'], ['count' => $stats['stays']]) }}</div>
             </div>
             <div>
                 <div style="font-family:var(--vy-display);font-weight:700;font-size:26px;color:var(--vy-ink);font-variant-numeric:tabular-nums">{{ $stats['nights'] }}</div>
-                <div style="font-size:11.5px;color:var(--vy-muted)">{{ \Illuminate\Support\Str::plural('night', $stats['nights']) }} away</div>
+                <div style="font-size:11.5px;color:var(--vy-muted)">{{ trans_choice('guest/trips.nights_away', $stats['nights'], ['count' => $stats['nights']]) }}</div>
             </div>
             <div>
                 <div style="font-family:var(--vy-display);font-weight:700;font-size:26px;color:var(--vy-ink);font-variant-numeric:tabular-nums">{{ $stats['countries'] }}</div>
-                <div style="font-size:11.5px;color:var(--vy-muted)">{{ \Illuminate\Support\Str::plural('country', $stats['countries']) }}</div>
+                <div style="font-size:11.5px;color:var(--vy-muted)">{{ trans_choice('guest/trips.countries', $stats['countries'], ['count' => $stats['countries']]) }}</div>
             </div>
         </div>
     </div>
@@ -36,7 +36,7 @@
     {{-- ── Toolbar: tabs + search + year (native GET; preserves the other params) ─────────────────────── --}}
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .1s both">
         <div style="display:inline-flex;gap:3px;padding:4px;border-radius:30px;background:rgba(255,252,248,.78);border:1px solid var(--vy-glass-border);box-shadow:var(--vy-shadow)">
-            @foreach (['upcoming' => 'Upcoming', 'past' => 'Past', 'cancelled' => 'Cancelled'] as $key => $label)
+            @foreach (['upcoming' => __('guest/trips.tab_upcoming'), 'past' => __('guest/trips.tab_past'), 'cancelled' => __('guest/trips.tab_cancelled')] as $key => $label)
                 @php $on = $tab === $key; @endphp
                 <a href="?{{ $qs(['tab' => $key]) }}" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:30px;text-decoration:none;font-size:13px;font-weight:500;{{ $on ? 'background:#fff;color:var(--vy-ink);box-shadow:0 4px 12px rgba(150,90,50,.14)' : 'color:var(--vy-muted)' }}">
                     {{ $label }}
@@ -50,13 +50,13 @@
         <form method="get" style="position:relative;flex:0 1 300px;min-width:190px;margin:0">
             <input type="hidden" name="tab" value="{{ $tab }}">
             @if ($year !== '')<input type="hidden" name="year" value="{{ $year }}">@endif
-            <label class="vy-sr-only" for="vy-lbl-trips-q">Search by name, place or ref…</label>
-            <input id="vy-lbl-trips-q" type="search" name="q" value="{{ $query }}" placeholder="Search by name, place or ref…" class="vy-input" style="width:100%;box-sizing:border-box;padding:11px 16px;border-radius:30px;font-size:13px">
+            <label class="vy-sr-only" for="vy-lbl-trips-q">{{ __('guest/trips.search_placeholder') }}</label>
+            <input id="vy-lbl-trips-q" type="search" name="q" value="{{ $query }}" placeholder="{{ __('guest/trips.search_placeholder') }}" class="vy-input" style="width:100%;box-sizing:border-box;padding:11px 16px;border-radius:30px;font-size:13px">
         </form>
 
         @if (count($years) > 1)
-            <select aria-label="Filter by year" onchange="window.location.href='?tab={{ $tab }}&q={{ rawurlencode($query) }}&year='+this.value" class="vy-input" style="padding:11px 14px;border-radius:30px;font-size:13px">
-                <option value="" @selected($year === '')>All years</option>
+            <select aria-label="{{ __('guest/trips.year_label') }}" onchange="window.location.href='?tab={{ $tab }}&q={{ rawurlencode($query) }}&year='+this.value" class="vy-input" style="padding:11px 14px;border-radius:30px;font-size:13px">
+                <option value="" @selected($year === '')>{{ __('guest/trips.all_years') }}</option>
                 @foreach ($years as $y)
                     <option value="{{ $y }}" @selected((string) $year === (string) $y)>{{ $y }}</option>
                 @endforeach
@@ -89,7 +89,7 @@
 
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 18px">
                     <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline);font-size:12.5px;font-weight:500;color:var(--vy-ink)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>{{ $t['date_range'] }}</span>
-                    <span style="display:inline-flex;align-items:center;padding:8px 13px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline);font-size:12.5px;font-weight:500;color:var(--vy-muted)">{{ $t['nights'] }} {{ \Illuminate\Support\Str::plural('night', $t['nights']) }} · {{ $t['total'] }}</span>
+                    <span style="display:inline-flex;align-items:center;padding:8px 13px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline);font-size:12.5px;font-weight:500;color:var(--vy-muted)">{{ trans_choice('guest/trips.nights_total', $t['nights'], ['count' => $t['nights'], 'total' => $t['total']]) }}</span>
                 </div>
 
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:auto;padding-top:16px;border-top:1px solid var(--vy-hairline)">
@@ -98,14 +98,14 @@
                     </span>
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                         @if ($t['reviewable'] ?? false)
-                            <a href="{{ route('guest.review', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap"><span aria-hidden="true">★</span> Write a review</a>
+                            <a href="{{ route('guest.review', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap"><span aria-hidden="true">★</span> {{ __('guest/trips.write_review') }}</a>
                         @elseif ($t['reviewed'] ?? false)
-                            <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap"><span aria-hidden="true">★</span> Reviewed — thank you</span>
+                            <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap"><span aria-hidden="true">★</span> {{ __('guest/trips.reviewed') }}</span>
                         @endif
                         @if ($tab !== 'cancelled')
-                            <a href="{{ route('guest.manage', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap">Manage</a>
+                            <a href="{{ route('guest.manage', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap">{{ __('guest/trips.manage') }}</a>
                         @endif
-                        <a href="{{ route('guest.reservation', $t['id']) }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:30px;background:var(--vy-accent);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap;box-shadow:var(--vy-shadow-accent)">View reservation<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+                        <a href="{{ route('guest.reservation', $t['id']) }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:30px;background:var(--vy-accent);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap;box-shadow:var(--vy-shadow-accent)">{{ __('guest/trips.view_reservation') }}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
                     </div>
                 </div>
             </div>
@@ -113,13 +113,22 @@
     @empty
         <div class="vy-card vy-empty" style="text-align:center;padding:36px 20px">
             @if ($query !== '' || $year !== '')
-                No {{ $tab }} trips match your search. <a href="?tab={{ $tab }}" style="color:var(--vy-accent-text)">Clear filters</a>.
+                {{-- one sentence per tab, so each language words "no upcoming trips" its own way --}}
+                @php
+                    $clearUrl = e('?tab='.$tab);
+                    $noMatch = match ($tab) {
+                        'past' => __('guest/trips.no_match_past', ['url' => $clearUrl]),
+                        'cancelled' => __('guest/trips.no_match_cancelled', ['url' => $clearUrl]),
+                        default => __('guest/trips.no_match_upcoming', ['url' => $clearUrl]),
+                    };
+                @endphp
+                {!! $noMatch !!}
             @elseif ($tab === 'upcoming')
-                No upcoming stays. When you book, they’ll appear here.
+                {{ __('guest/trips.empty_upcoming') }}
             @elseif ($tab === 'cancelled')
-                No cancelled bookings — all good.
+                {{ __('guest/trips.empty_cancelled') }}
             @else
-                No past stays yet.
+                {{ __('guest/trips.empty_past') }}
             @endif
         </div>
     @endforelse

@@ -66,17 +66,17 @@ class GuestCheckinController extends Controller
         return view('guest.checkin', [
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
-            'property' => (string) ($model->property->name ?? 'Your stay'),
+            'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_checkin_controller.your_stay')),
             'guestName' => GuestName::display($guest),          // SELF — the authed guest's own name
             'firstName' => (string) $guest->first_name,
             'lastName' => (string) $guest->last_name,
             'email' => (string) $guest->email,                   // read-only confirmation (managed in Account)
             'phone' => (string) $guest->phone,                   // editable (arrival contact — the guest's own)
-            'checkInLabel' => $checkIn->format('D, j M Y'),
-            'checkInShort' => $checkIn->format('j M'),
-            'checkInDay' => $checkIn->format('D'),
+            'checkInLabel' => $checkIn->translatedFormat('D, j M Y'),
+            'checkInShort' => $checkIn->translatedFormat('j M'),
+            'checkInDay' => $checkIn->translatedFormat('D'),
             'checkInTime' => $this->timeLabel($model->property?->check_in_time),
-            'checkOutLabel' => CarbonImmutable::parse($model->check_out)->format('D, j M Y'),
+            'checkOutLabel' => CarbonImmutable::parse($model->check_out)->translatedFormat('D, j M Y'),
             'nights' => (int) $checkIn->diffInDays(CarbonImmutable::parse($model->check_out)),
             'adults' => (int) $model->adults,
             'children' => (int) $model->children,
@@ -84,7 +84,7 @@ class GuestCheckinController extends Controller
             'coGuests' => max(0, $guestsTotal - 1),              // count only — NO fabricated co-guest name (#28/#39)
             'daysToArrival' => max(0, (int) $today->diffInDays($checkIn->startOfDay(), false)),
             'arrivalWindow' => (string) ($model->arrival_window ?? ''),
-            'arrivalWindows' => self::ARRIVAL_WINDOWS,
+            'arrivalWindows' => $this->arrivalWindowLabels(),
             'arrivalNote' => (string) ($model->notes_guest ?? ''),
             'idCaptured' => $idDoc !== null,
             'idType' => (string) ($idDoc->type ?? 'passport'),
@@ -110,7 +110,7 @@ class GuestCheckinController extends Controller
         // Only for a live, non-departed booking (idempotent — a second submit never re-stamps the intent).
         if (! $this->checkinable($model, CarbonImmutable::today())) {
             return redirect()->route('guest.checkin', $model->getKey())
-                ->with('status', 'This booking can no longer be checked in online.');
+                ->with('status', __('php/http/controllers/guest/guest_checkin_controller.no_longer_checkinable'));
         }
 
         // Update the guest's OWN arrival contact phone (self-service; encrypted PII, #28).
@@ -137,7 +137,7 @@ class GuestCheckinController extends Controller
         }
 
         return redirect()->route('guest.checkin', $model->getKey())
-            ->with('status', 'You’re checked in. We’ll email your arrival details before you travel.');
+            ->with('status', __('php/http/controllers/guest/guest_checkin_controller.checked_in'));
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */
@@ -154,6 +154,20 @@ class GuestCheckinController extends Controller
         }
 
         return CarbonImmutable::parse($reservation->check_out)->startOfDay()->greaterThanOrEqualTo($today->startOfDay());
+    }
+
+    /**
+     * I18N-01 — the arrival windows as the guest reads them: the constant stays the list of stored slot values (it is also
+     * the validation list), and the one worded label is translated here, at render time.
+     *
+     * @return array<string, string>
+     */
+    private function arrivalWindowLabels(): array
+    {
+        $labels = self::ARRIVAL_WINDOWS;
+        $labels['18+'] = __('php/http/controllers/guest/guest_checkin_controller.after_six_pm');
+
+        return $labels;
     }
 
     /**

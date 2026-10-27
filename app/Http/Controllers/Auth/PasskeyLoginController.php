@@ -40,7 +40,7 @@ class PasskeyLoginController extends Controller
     {
         $stashed = $request->session()->pull('passkey.request');
         if (! is_string($stashed)) {
-            return response()->json(['message' => 'Start the passkey sign-in again.'], 422);
+            return response()->json(['message' => __('php/http/controllers/auth/passkey_login_controller.start_again')], 422);
         }
 
         $options = $this->passkeys->requestOptionsFromJson($stashed);
@@ -48,12 +48,12 @@ class PasskeyLoginController extends Controller
 
         $user = $passkey?->user;
         if (! $user instanceof User || $user->status !== 'active') {
-            return response()->json(['message' => 'That passkey didn’t match an active account.'], 422);
+            return response()->json(['message' => __('php/http/controllers/auth/passkey_login_controller.no_active_account')], 422);
         }
 
         $home = $this->homeFor($user);
         if ($home === null) {
-            return response()->json(['message' => 'This account has no workspace yet.'], 422);
+            return response()->json(['message' => __('php/http/controllers/auth/passkey_login_controller.no_workspace')], 422);
         }
 
         Auth::login($user);

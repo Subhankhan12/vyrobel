@@ -2,11 +2,11 @@
 {{-- Vyrobel onboarding / self-signup (Phase 7a) — the PUBLIC pre-auth wizard. One form, stepped with tiny
      vanilla JS (no dependency; degrades to a full form if JS is off). Submitting provisions a brand-new org
      atomically via TenantProvisioningService and logs the founder in. Real signup, not a stub. --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Create your account · Vyrobel</title>
+    <title>{{ __('auth/onboarding.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -98,8 +98,8 @@
 <body class="no-js">
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
-        <h1 class="vy-title">Create your account</h1>
-        <p class="vy-sub">Set up your property business — you'll be running it in a couple of minutes.</p>
+        <h1 class="vy-title">{{ __('auth/onboarding.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/onboarding.subheading') }}</p>
 
         {{-- ⚠️ ADMIN 01 · PHASE 1 — SIGN-UPS PAUSED BY A PLATFORM SWITCH. Said plainly on a normal 200 page: no
              form is rendered, so nothing can be typed in and then silently discarded. The submit is refused
@@ -107,7 +107,8 @@
         @if ($signupsPaused ?? false)
             <div class="vy-error" role="status" style="background: rgba(224, 146, 30, 0.12);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
-                New sign-ups are paused for the moment. If you already have an account, you can still sign in.
+                {{ __('auth/onboarding.signups_paused') }}
+            <x-language-menu />
             </div>
         @else
         <div class="vy-steps" aria-hidden="true"><span class="on" data-dot="0"></span><span data-dot="1"></span><span data-dot="2"></span></div>
@@ -125,24 +126,24 @@
             {{-- STEP 1 — the business --}}
             <section data-step="0" class="on">
                 <div class="vy-field">
-                    <label class="vy-label" for="org_name">Business name</label>
-                    <input class="vy-input" id="org_name" name="org_name" value="{{ old('org_name') }}" placeholder="e.g. Seaside Group" required>
+                    <label class="vy-label" for="org_name">{{ __('auth/onboarding.business_name') }}</label>
+                    <input class="vy-input" id="org_name" name="org_name" value="{{ old('org_name') }}" placeholder="{{ __('auth/onboarding.business_name_placeholder') }}" required>
                 </div>
                 <div class="vy-field">
-                    <label class="vy-label" for="location">Location <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">· optional</span></label>
-                    <input class="vy-input" id="location" name="location" value="{{ old('location') }}" placeholder="e.g. Faro, Portugal">
+                    <label class="vy-label" for="location">{!! __('auth/onboarding.location_label') !!}</label>
+                    <input class="vy-input" id="location" name="location" value="{{ old('location') }}" placeholder="{{ __('auth/onboarding.location_placeholder') }}">
                 </div>
                 <div class="vy-two">
                     <div class="vy-field">
-                        <label class="vy-label" for="property_type">Type</label>
+                        <label class="vy-label" for="property_type">{{ __('auth/onboarding.type') }}</label>
                         <select class="vy-input" id="property_type" name="property_type">
-                            <option value="villa" @selected(old('property_type') === 'villa')>Villas &amp; apartments</option>
-                            <option value="hotel" @selected(old('property_type') === 'hotel')>Hotel</option>
-                            <option value="hostel" @selected(old('property_type') === 'hostel')>Hostel</option>
+                            <option value="villa" @selected(old('property_type') === 'villa')>{{ __('auth/onboarding.type_villa') }}</option>
+                            <option value="hotel" @selected(old('property_type') === 'hotel')>{{ __('auth/onboarding.type_hotel') }}</option>
+                            <option value="hostel" @selected(old('property_type') === 'hostel')>{{ __('auth/onboarding.type_hostel') }}</option>
                         </select>
                     </div>
                     <div class="vy-field">
-                        <label class="vy-label" for="currency">Currency</label>
+                        <label class="vy-label" for="currency">{{ __('auth/onboarding.currency') }}</label>
                         <select class="vy-input" id="currency" name="currency">
                             @foreach ($currencies as $c)
                                 <option value="{{ $c }}" @selected(old('currency', 'EUR') === $c)>{{ $c }}</option>
@@ -150,22 +151,22 @@
                         </select>
                     </div>
                 </div>
-                <div class="vy-actions" data-nav><button type="button" class="vy-btn" data-next>Continue</button></div>
+                <div class="vy-actions" data-nav><button type="button" class="vy-btn" data-next>{{ __('common.continue') }}</button></div>
             </section>
 
             {{-- STEP 2 — the founder account --}}
             <section data-step="1">
                 <div class="vy-field">
-                    <label class="vy-label" for="name">Your name</label>
-                    <input class="vy-input" id="name" name="name" value="{{ old('name', $social['name'] ?? '') }}" placeholder="e.g. Ada Okafor" autocomplete="name" required>
+                    <label class="vy-label" for="name">{{ __('auth/onboarding.your_name') }}</label>
+                    <input class="vy-input" id="name" name="name" value="{{ old('name', $social['name'] ?? '') }}" placeholder="{{ __('auth/onboarding.your_name_placeholder') }}" autocomplete="name" required>
                 </div>
                 <div class="vy-field">
-                    <label class="vy-label" for="email">Email</label>
+                    <label class="vy-label" for="email">{{ __('common.email') }}</label>
                     <input class="vy-input" type="email" id="email" name="email" value="{{ old('email', $social['email'] ?? '') }}" autocomplete="username" @if ($social ?? null) readonly @endif required>
                     @if ($social ?? null)
                         {{-- Readonly because the server ignores a posted value here anyway and uses what Google
                              asserted — an editable field would look accepted and silently not be. --}}
-                        <p style="font-size:11.5px;color:var(--vy-muted);margin-top:6px;">From your {{ \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google') }} account.</p>
+                        <p style="font-size:11.5px;color:var(--vy-muted);margin-top:6px;">{{ __('auth/onboarding.from_provider_account', ['provider' => \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google')]) }}</p>
                     @endif
                 </div>
                 @if ($social ?? null)
@@ -173,24 +174,24 @@
                          the very moment the person chose not to use one is the thing that makes "sign up with
                          Google" read as broken. One is asked for later — once, when a sensitive action first
                          needs confirming (docs/PASSWORDLESS-GATE.md). --}}
-                    <p class="vy-strength" style="margin-top:2px;"><span>You’ll sign in with {{ \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google') }}. No password needed.</span></p>
+                    <p class="vy-strength" style="margin-top:2px;"><span>{{ __('auth/onboarding.sign_in_with_provider', ['provider' => \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google')]) }}</span></p>
                 @else
                 <div class="vy-two">
                     <div class="vy-field">
-                        <label class="vy-label" for="password">Password</label>
+                        <label class="vy-label" for="password">{{ __('auth/common.password') }}</label>
                         <div class="vy-input-wrap">
                             <input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" required>
-                            <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password" aria-pressed="false">
+                            <button type="button" class="vy-eye" data-toggle="password" aria-label="{{ __('auth/common.show_password') }}" aria-pressed="false">
                                 <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                                 <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
                             </button>
                         </div>
                     </div>
                     <div class="vy-field">
-                        <label class="vy-label" for="password_confirmation">Confirm</label>
+                        <label class="vy-label" for="password_confirmation">{{ __('auth/onboarding.confirm_label') }}</label>
                         <div class="vy-input-wrap">
                             <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
-                            <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="Show password" aria-pressed="false">
+                            <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="{{ __('auth/common.show_password') }}" aria-pressed="false">
                                 <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                                 <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
                             </button>
@@ -202,29 +203,29 @@
                 <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
                 @endif
                 <div class="vy-actions" data-nav>
-                    <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
-                    <button type="button" class="vy-btn" data-next>Continue</button>
+                    <button type="button" class="vy-btn vy-btn--ghost" data-back>{{ __('common.back') }}</button>
+                    <button type="button" class="vy-btn" data-next>{{ __('common.continue') }}</button>
                 </div>
             </section>
 
             {{-- STEP 3 — the first property --}}
             <section data-step="2">
                 <div class="vy-field">
-                    <label class="vy-label" for="property_name">Your first property</label>
-                    <input class="vy-input" id="property_name" name="property_name" value="{{ old('property_name') }}" placeholder="e.g. Seaside Villas" required>
+                    <label class="vy-label" for="property_name">{{ __('auth/onboarding.first_property') }}</label>
+                    <input class="vy-input" id="property_name" name="property_name" value="{{ old('property_name') }}" placeholder="{{ __('auth/onboarding.first_property_placeholder') }}" required>
                 </div>
-                <p class="vy-note">We'll create your organization + this property and sign you in. You'll add a room type, a unit and a rate plan next — connecting channels is optional (<span class="vy-soon-tag">Soon</span>), finish without them anytime.</p>
+                <p class="vy-note">{!! __('auth/onboarding.what_happens_next') !!}</p>
                 <div class="vy-actions" data-nav>
-                    <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
-                    <button type="submit" class="vy-btn">Create my account</button>
+                    <button type="button" class="vy-btn vy-btn--ghost" data-back>{{ __('common.back') }}</button>
+                    <button type="submit" class="vy-btn">{{ __('auth/onboarding.create_my_account') }}</button>
                 </div>
                 {{-- No-JS fallback: a single submit is always available. --}}
-                <noscript><button type="submit" class="vy-btn" style="width:100%;margin-top:10px">Create my account</button></noscript>
+                <noscript><button type="submit" class="vy-btn" style="width:100%;margin-top:10px">{{ __('auth/onboarding.create_my_account') }}</button></noscript>
             </section>
         </form>
         @endif
 
-        <div class="vy-foot">Already have an account? <a href="{{ route('login') }}">Sign in</a></div>
+        <div class="vy-foot">{!! __('auth/onboarding.already_have_account', ['url' => e(route('login'))]) !!}</div>
     </main>
 
     @unless ($signupsPaused ?? false)
@@ -261,14 +262,14 @@
                     if (form.dataset.submitting) { e.preventDefault(); return; }
                     form.dataset.submitting = '1';
                     var btn = form.querySelector('button[type="submit"]');
-                    if (btn) { btn.disabled = true; btn.textContent = 'Creating your account…'; }
+                    if (btn) { btn.disabled = true; btn.textContent = @js(__('auth/onboarding.creating_account')); }
                 });
             }
 
             // Polish P3 (D14) — presentational strength meter. A VISUAL AID only: the server enforces the real
             // minimum (Password::min(8)); this reflects the floor (8 chars) + advises on strength. Never a gate.
             var pw = document.getElementById('password'), meter = document.getElementById('meter'), sLabel = document.getElementById('strength');
-            var words = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+            var words = ['', @js(__('auth/common.strength_weak')), @js(__('auth/common.strength_fair')), @js(__('auth/common.strength_good')), @js(__('auth/common.strength_strong'))];
             pw && meter && pw.addEventListener('input', function () {
                 var v = pw.value, s = 0;
                 if (v.length >= 8) s++;
@@ -287,7 +288,7 @@
                     var reveal = input.type === 'password';
                     input.type = reveal ? 'text' : 'password';
                     eye.setAttribute('aria-pressed', reveal ? 'true' : 'false');
-                    eye.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+                    eye.setAttribute('aria-label', reveal ? @js(__('auth/common.hide_password')) : @js(__('auth/common.show_password')));
                     var open = eye.querySelector('.vy-eye-show'), closed = eye.querySelector('.vy-eye-hide');
                     if (open) { open.style.display = reveal ? 'none' : ''; }
                     if (closed) { closed.style.display = reveal ? '' : 'none'; }

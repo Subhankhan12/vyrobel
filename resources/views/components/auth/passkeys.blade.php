@@ -27,13 +27,13 @@
 <div class="vy-sx-block vy-passkeys" id="sx-passkeys" x-data="vyPasskeys()">
     <div class="vy-sx-row">
         <div class="vy-sx-row-main">
-            <h3 class="vy-sx-row-title">Passkeys</h3>
+            <h3 class="vy-sx-row-title">{{ __('components/auth/passkeys.heading') }}</h3>
             {{-- ⚠️ 2026-10-05 — this said "a passkey never leaves your device": a synced one does (iCloud Keychain, Google
                  Password Manager). What is true for every passkey: no password is typed, and nothing a phishing page can reuse. --}}
-            <span class="vy-sx-row-meta">Sign in with Face ID, Touch ID or your device PIN instead of typing a password. Add one on each device you use.</span>
+            <span class="vy-sx-row-meta">{{ __('components/auth/passkeys.intro') }}</span>
         </div>
-        <button type="button" class="vy-sx-btn vy-sx-btn--line vy-sx-btn--sm" @click="register()" x-bind:disabled="busy" aria-label="Add a passkey">
-            <span x-show="!busy">+ Add</span><span x-show="busy" x-cloak>Working…</span>
+        <button type="button" class="vy-sx-btn vy-sx-btn--line vy-sx-btn--sm" @click="register()" x-bind:disabled="busy" aria-label="{{ __('components/auth/passkeys.add_aria') }}">
+            <span x-show="!busy">{{ __('components/auth/passkeys.add_button') }}</span><span x-show="busy" x-cloak>{{ __('components/auth/passkeys.working') }}</span>
         </button>
     </div>
     <p x-show="msg" x-cloak x-text="msg" class="vy-sx-note is-warn" role="status"></p>
@@ -44,14 +44,14 @@
                     <span class="vy-sx-ico"><x-security.icon name="fingerprint" /></span>
                     <div class="vy-sx-row-main">
                         <span class="vy-sx-row-title">{{ $p['label'] }}</span>
-                        <span class="vy-sx-row-meta">Last used {{ $p['last_used'] }}</span>
+                        <span class="vy-sx-row-meta">{{ __('components/auth/passkeys.last_used', ['when' => $p['last_used']]) }}</span>
                     </div>
-                    <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pkRemove = @js(['id' => $p['id'], 'label' => $p['label']])">Remove</button>
+                    <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pkRemove = @js(['id' => $p['id'], 'label' => $p['label']])">{{ __('common.remove') }}</button>
                 </li>
             @endforeach
         </ul>
     @else
-        <p class="vy-sx-empty">No passkeys yet. Add one to sign in without a password on this device.</p>
+        <p class="vy-sx-empty">{{ __('components/auth/passkeys.empty') }}</p>
     @endif
 </div>
 <script>
@@ -69,7 +69,7 @@
                 return platform ? 'Passkey on ' + platform : 'Passkey';
             },
             async register() {
-                if (!window.PublicKeyCredential) { this.msg = 'This browser doesn’t support passkeys.'; return; }
+                if (!window.PublicKeyCredential) { this.msg = @js(__('components/auth/passkeys.unsupported')); return; }
                 this.busy = true; this.msg = '';
                 try {
                     const optRes = await fetch('{{ route($optionsRoute) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': this.token, 'Accept': 'application/json' } });
@@ -81,8 +81,8 @@
                         headers: { 'X-CSRF-TOKEN': this.token, 'Content-Type': 'application/json', 'X-Passkey-Label': this.label() },
                         body: JSON.stringify(cred.toJSON()),
                     });
-                    if (res.ok) { location.reload(); } else { this.msg = 'That passkey could not be registered. Try again.'; }
-                } catch (e) { this.msg = 'Passkey registration was cancelled or failed.'; }
+                    if (res.ok) { location.reload(); } else { this.msg = @js(__('components/auth/passkeys.register_failed')); }
+                } catch (e) { this.msg = @js(__('components/auth/passkeys.register_cancelled')); }
                 this.busy = false;
             },
         };

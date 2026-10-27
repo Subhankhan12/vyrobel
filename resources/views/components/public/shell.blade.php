@@ -11,7 +11,7 @@
        property — ['name' => string, 'type' => string]
        title    — the browser <title> / page heading context --}}
 @props([
-    'property' => ['name' => 'Stay', 'type' => ''],
+    'property' => ['name' => __('components/public/shell.default_property'), 'type' => ''],
     'title' => '',
     'head' => null,
     'nav' => null,
@@ -23,7 +23,7 @@
     'seo' => null,
 ])
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +32,7 @@
     @if ($seo !== null)
     <x-public.seo :seo="$seo" />
     @else
-    <title>{{ $title !== '' ? $title.' · ' : '' }}{{ $property['name'] }}</title>
+    <title>{{ $title !== '' ? __('components/public/shell.page_title', ['title' => $title, 'property' => $property['name']]) : $property['name'] }}</title>
     @endif
 
     <x-favicon />
@@ -242,14 +242,15 @@
                 @if (($property['type'] ?? '') !== '')<span class="vy-store-type">{{ $property['type'] }}</span>@endif
             </span>
         </div>
-        @if ($nav !== null){{ $nav }}@else<span class="vy-store-note">Book direct</span>@endif
+        @if ($nav !== null){{ $nav }}@else<span class="vy-store-note">{{ __('components/public/shell.book_direct') }}</span>@endif
+        <x-language-menu />
     </header>
 
     <main>
         {{ $slot }}
     </main>
 
-    <footer class="vy-store-footer">Powered by Vyrobel</footer>
+    <footer class="vy-store-footer">{{ __('components/public/shell.powered_by') }}</footer>
     @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard (public storefront has no Alpine) --}}
 </body>
 </html>

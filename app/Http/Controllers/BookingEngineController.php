@@ -37,7 +37,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 /**
  * Public booking engine (Step 7) — JSON endpoints + one bare, UNSTYLED contract-stub landing.
@@ -138,7 +137,7 @@ class BookingEngineController extends Controller
             'filterOptions' => ['bedrooms' => $bedroomOptions, 'amenities' => $amenityOptions, 'max_price_ceiling' => $this->maxPriceCeiling($rooms)],
             'rooms' => $rooms,
             // Signed-in guest chrome (wishlist/account) is honest-gated — anonymous visitors get a sign-in affordance.
-            'guest' => Auth::guard('guest')->check() ? ['name' => (string) (Auth::guard('guest')->user()->first_name ?? 'You')] : null,
+            'guest' => Auth::guard('guest')->check() ? ['name' => (string) (Auth::guard('guest')->user()->first_name ?? __('php/http/controllers/booking_engine_controller.guest_fallback_name'))] : null,
             // Teaser (no valid search yet): real room-type names only — NO availability/price claim.
             'teaser' => $searched ? [] : $this->teaserRooms($property, $roomTypes->mapWithKeys(fn (RoomType $rt): array => [(string) $rt->getKey() => $rt->coverPhoto()?->url])->all()),
         ]);
@@ -182,9 +181,9 @@ class BookingEngineController extends Controller
             if ($i === 0 || $line['informational'] || $line['amount']->amountMinor() <= 0) {
                 continue;   // [0] is the room itself; the total is what the rest is "incl." of
             }
-            $parts[] = $this->money($line['amount']->amountMinor(), $currency).' '.$line['label'];
+            $parts[] = __('php/http/controllers/booking_engine_controller.total_part', ['amount' => $this->money($line['amount']->amountMinor(), $currency), 'name' => $line['label']]);
         }
-        $note = $parts === [] ? '' : 'incl. '.implode(' · ', $parts);
+        $note = $parts === [] ? '' : __('php/http/controllers/booking_engine_controller.total_includes', ['items' => implode(' · ', $parts)]);
 
         // ⚠️ THE NIGHTLY'S BASIS, SAID OUT LOUD (F3 — the founder's ratification, guest fix pass 2).
         //
@@ -204,7 +203,7 @@ class BookingEngineController extends Controller
         $nightlyNote = '';
         foreach ($taxes as $tax) {
             if ((string) $tax->mode === 'percentage' && StayEstimator::taxApplies($tax, $currency)) {
-                $nightlyNote = 'excl. '.(string) $tax->name;
+                $nightlyNote = __('php/http/controllers/booking_engine_controller.nightly_excludes', ['tax' => (string) $tax->name]);
                 break;
             }
         }
@@ -225,10 +224,10 @@ class BookingEngineController extends Controller
         $features = [];
         $capacity = (int) $rt->max_adults + (int) $rt->max_children;
         if ($capacity > 0) {
-            $features[] = 'Sleeps '.$capacity;
+            $features[] = trans_choice('php/http/controllers/booking_engine_controller.sleeps', $capacity, ['count' => $capacity]);
         }
         if ($rt->bedrooms !== null) {
-            $features[] = (int) $rt->bedrooms === 0 ? 'Studio' : (int) $rt->bedrooms.' '.Str::plural('bedroom', (int) $rt->bedrooms);
+            $features[] = (int) $rt->bedrooms === 0 ? __('php/http/controllers/booking_engine_controller.studio') : trans_choice('php/http/controllers/booking_engine_controller.bedrooms', (int) $rt->bedrooms, ['count' => (int) $rt->bedrooms]);
         }
         $features[] = $this->roomKind((string) $rt->kind);
 
@@ -384,7 +383,7 @@ class BookingEngineController extends Controller
         // Real free-cancellation deadline from the property's policy + the proposed check-in (honest fallback when
         // the property has no such policy — never a fabricated "14 days"); the SAME reading the booked surfaces use.
         $freeCancel = ($checkIn !== null)
-            ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn)?->format('j M')
+            ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn)?->translatedFormat('j M')
             : null;
 
         // The wallet card shows the guest's REAL spendable balance + the amount that WOULD apply (capped at what's
@@ -422,7 +421,7 @@ class BookingEngineController extends Controller
         return view('booking.checkout', [
             // ⚠️ STOREFRONT SEO (D10) — NOINDEX. The checkout is per-visitor and per-quote; before this pass
             // it carried no robots directive at all, which means indexable by default.
-            'seo' => $this->seo->forTransactionalPage('Checkout — '.$property->name, (string) $property->name),
+            'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.checkout_title', ['property' => $property->name]), (string) $property->name),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'offer' => $offer,
             'unitChoices' => $unitChoices,
@@ -635,7 +634,7 @@ class BookingEngineController extends Controller
                 'adults' => $adults,
                 'children' => $children,
             ]))
-            ->with('booking_error', 'That room was just booked by someone else — please pick another room or dates.');
+            ->with('booking_error', __('php/http/controllers/booking_engine_controller.room_just_taken'));
     }
 
     /**
@@ -661,24 +660,24 @@ class BookingEngineController extends Controller
         $payStatus = (string) $reservation->payment_status;
         $cardReturn = $request->query('paid') === '1';
         $payment = match (true) {
-            $payStatus === 'paid' => ['label' => 'Payment received', 'note' => 'Paid in full.'],
+            $payStatus === 'paid' => ['label' => __('php/http/controllers/booking_engine_controller.payment_received'), 'note' => __('php/http/controllers/booking_engine_controller.payment_received_note')],
             // ⚠️ THIS PROMISED AN EMAIL THAT IS NEVER SENT. `SendGuestTransactionalEmails::HANDLED` covers
             //    reservation.confirmed / cancelled / payment.refunded / checked_out — NOT payment
             //    settlement, and no such Mailable exists. Found by the error-string sweep; it predates the
             //    Connect passes. ⚠️ The page itself IS the place the guest can check, so it says that.
-            $cardReturn => ['label' => 'Payment processing', 'note' => 'We’re confirming your card payment. Refresh this page in a moment to see it land.'],
-            default => ['label' => 'Pay on arrival', 'note' => 'Settle at the property when you check in.'],
+            $cardReturn => ['label' => __('php/http/controllers/booking_engine_controller.payment_processing'), 'note' => __('php/http/controllers/booking_engine_controller.payment_processing_note')],
+            default => ['label' => __('php/http/controllers/booking_engine_controller.pay_on_arrival'), 'note' => __('php/http/controllers/booking_engine_controller.pay_on_arrival_note')],
         };
 
         return view('booking.reservation', [
             // ⚠️ STOREFRONT SEO (D10) — NOINDEX. A booking confirmation carries a real reference and a real
             // guest email; it must never be indexable, and it was, by default, before this pass.
-            'seo' => $this->seo->forTransactionalPage('Booking confirmed — '.$property->name, (string) $property->name),
+            'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.confirmed_title', ['property' => $property->name]), (string) $property->name),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'reservation' => [
                 'reference' => (string) $reservation->reference,
-                'check_in' => CarbonImmutable::parse($reservation->check_in)->format('l, j M Y'),
-                'check_out' => CarbonImmutable::parse($reservation->check_out)->format('l, j M Y'),
+                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('l, j M Y'),
+                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('l, j M Y'),
                 'nights' => (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out)),
                 'total' => $this->money((int) $reservation->total_minor, (string) $reservation->currency),
                 'email' => (string) $bookingQuote->email,
@@ -901,12 +900,31 @@ class BookingEngineController extends Controller
 
     private function roomKind(string $kind): string
     {
-        return ucwords(str_replace('_', ' ', $kind));
+        return match ($kind) {
+            'room' => __('php/http/controllers/booking_engine_controller.kind_room'),
+            'apartment' => __('php/http/controllers/booking_engine_controller.kind_apartment'),
+            'villa' => __('php/http/controllers/booking_engine_controller.kind_villa'),
+            'dorm' => __('php/http/controllers/booking_engine_controller.kind_dorm'),
+            default => ucwords(str_replace('_', ' ', $kind)),
+        };
     }
 
     private function propertyType(string $type): string
     {
-        return ucwords(str_replace('_', ' ', $type));
+        return match ($type) {
+            'hotel' => __('php/http/controllers/booking_engine_controller.type_hotel'),
+            'aparthotel' => __('php/http/controllers/booking_engine_controller.type_aparthotel'),
+            'serviced_apartment' => __('php/http/controllers/booking_engine_controller.type_serviced_apartment'),
+            'apartment_building' => __('php/http/controllers/booking_engine_controller.type_apartment_building'),
+            'apartment' => __('php/http/controllers/booking_engine_controller.type_apartment'),
+            'villa' => __('php/http/controllers/booking_engine_controller.type_villa'),
+            'hostel' => __('php/http/controllers/booking_engine_controller.type_hostel'),
+            'guest_house' => __('php/http/controllers/booking_engine_controller.type_guest_house'),
+            'resort' => __('php/http/controllers/booking_engine_controller.type_resort'),
+            'mixed' => __('php/http/controllers/booking_engine_controller.type_mixed'),
+            'portfolio' => __('php/http/controllers/booking_engine_controller.type_portfolio'),
+            default => ucwords(str_replace('_', ' ', $type)),
+        };
     }
 
     /**

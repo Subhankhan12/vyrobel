@@ -51,9 +51,9 @@ class GuestWalletController extends Controller
                 'description' => (string) $e->description,
                 'signed_amount' => ((string) $e->direction === GuestCreditEntry::DIRECTION_DEBIT ? '−' : '+').MoneyFormatter::display((int) $e->amount_minor, (string) $e->currency),
                 'is_debit' => (string) $e->direction === GuestCreditEntry::DIRECTION_DEBIT,
-                'date' => CarbonImmutable::parse($e->posted_at ?? $e->created_at)->format('j M Y'),
+                'date' => CarbonImmutable::parse($e->posted_at ?? $e->created_at)->translatedFormat('j M Y'),
                 'expired' => $e->expires_at !== null && $e->expires_at->lessThanOrEqualTo($now),
-                'expires' => $e->expires_at !== null ? $e->expires_at->format('j M Y') : null,
+                'expires' => $e->expires_at !== null ? $e->expires_at->translatedFormat('j M Y') : null,
             ])->all(),
             // Owed bookings the guest can apply credit to (real folio balances via the shared overview).
             'owed' => collect(GuestPayments::overview($guest, $now)['bookings'])->filter(fn (array $b): bool => $b['balance_due'])->values()->all(),
@@ -77,10 +77,10 @@ class GuestWalletController extends Controller
         try {
             $this->wallet->applyToBooking($this->guest(), $model, Money::of($amountMinor, (string) $model->currency));
         } catch (WalletOverdrawException) {
-            return redirect()->route('guest.wallet')->with('error', 'That’s more than you can apply — check your balance and the amount owed.');
+            return redirect()->route('guest.wallet')->with('error', __('php/http/controllers/guest/guest_wallet_controller.overdraw'));
         }
 
-        return redirect()->route('guest.wallet')->with('status', 'Credit applied to your booking.');
+        return redirect()->route('guest.wallet')->with('status', __('php/http/controllers/guest/guest_wallet_controller.credit_applied'));
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */
@@ -92,15 +92,15 @@ class GuestWalletController extends Controller
     private function typeLabel(GuestCreditEntry $entry): string
     {
         return match ((string) $entry->type) {
-            GuestCreditEntry::TYPE_REFUND => 'Refund credit',
-            GuestCreditEntry::TYPE_ADD_ON_CANCELLED => 'Add-on cancelled',
-            GuestCreditEntry::TYPE_REFERRAL => 'Referral bonus',
-            GuestCreditEntry::TYPE_LOYALTY => 'Loyalty reward',
-            GuestCreditEntry::TYPE_BIRTHDAY => 'Birthday credit',
-            GuestCreditEntry::TYPE_PROMO => 'Promo code',
-            GuestCreditEntry::TYPE_APPLIED => 'Applied to booking',
-            GuestCreditEntry::TYPE_REVERSAL => 'Reversed',
-            default => 'Adjustment',
+            GuestCreditEntry::TYPE_REFUND => __('php/http/controllers/guest/guest_wallet_controller.type_refund'),
+            GuestCreditEntry::TYPE_ADD_ON_CANCELLED => __('php/http/controllers/guest/guest_wallet_controller.type_add_on_cancelled'),
+            GuestCreditEntry::TYPE_REFERRAL => __('php/http/controllers/guest/guest_wallet_controller.type_referral'),
+            GuestCreditEntry::TYPE_LOYALTY => __('php/http/controllers/guest/guest_wallet_controller.type_loyalty'),
+            GuestCreditEntry::TYPE_BIRTHDAY => __('php/http/controllers/guest/guest_wallet_controller.type_birthday'),
+            GuestCreditEntry::TYPE_PROMO => __('php/http/controllers/guest/guest_wallet_controller.type_promo'),
+            GuestCreditEntry::TYPE_APPLIED => __('php/http/controllers/guest/guest_wallet_controller.type_applied'),
+            GuestCreditEntry::TYPE_REVERSAL => __('php/http/controllers/guest/guest_wallet_controller.type_reversal'),
+            default => __('php/http/controllers/guest/guest_wallet_controller.type_adjustment'),
         };
     }
 }

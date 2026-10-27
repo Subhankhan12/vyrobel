@@ -48,7 +48,7 @@ class PasskeyController extends Controller
         abort_if($user === null, 403);
 
         $stashed = $request->session()->pull('passkey.creation');
-        abort_unless(is_string($stashed), 422, 'Start the passkey registration again.');
+        abort_unless(is_string($stashed), 422, __('php/http/controllers/auth/passkey_controller.registration_restart'));
 
         $options = $this->passkeys->creationOptionsFromJson($stashed);
 
@@ -61,7 +61,7 @@ class PasskeyController extends Controller
                 is_string($request->header('X-Passkey-Label')) ? $request->header('X-Passkey-Label') : null,
             );
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'That passkey could not be verified. Please try again.'], 422);
+            return response()->json(['message' => __('php/http/controllers/auth/passkey_controller.not_verified')], 422);
         }
 
         // ⚠️ REALM-ACCURATE. Hardcoding `owner.` would have written a false realm into the audit trail the
@@ -91,7 +91,7 @@ class PasskeyController extends Controller
         // difference, not drift, so it is resolved here rather than by changing either page.
         return back()->with(
             $request->routeIs('owner.*') ? 'owner_notice' : 'security_notice',
-            $deleted > 0 ? 'Passkey removed.' : 'That passkey was not found.',
+            $deleted > 0 ? __('php/http/controllers/auth/passkey_controller.removed') : __('php/http/controllers/auth/passkey_controller.not_found'),
         );
     }
 

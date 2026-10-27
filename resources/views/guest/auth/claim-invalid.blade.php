@@ -6,11 +6,11 @@
      claimable — already claimed, the email changed so the hash no longer matches, or the booking is gone.
      ⚠️ Expiry is the COMMON case and it does not arrive here. RAW-BLADE RULE: `@` follows a space/newline/tag. --}}
 @extends('guest.auth.layout')
-@section('title', 'Link expired')
+@section('title', __('guest/auth/claim-invalid.page_title'))
 
 @section('card')
-    <h1 class="vy-title">This link isn’t valid</h1>
-    <p class="vy-sub">It may have expired or already been used. Request a fresh link to set up your account.</p>
+    <h1 class="vy-title">{{ __('guest/auth/claim-invalid.heading') }}</h1>
+    <p class="vy-sub">{{ __('guest/auth/claim-invalid.subheading') }}</p>
 
-    <a class="vy-btn" href="{{ route('guest.claim') }}" style="text-decoration:none">Request a new link</a>
+    <a class="vy-btn" href="{{ route('guest.claim') }}" style="text-decoration:none">{{ __('guest/auth/claim-invalid.request_new_link') }}</a>
 @endsection

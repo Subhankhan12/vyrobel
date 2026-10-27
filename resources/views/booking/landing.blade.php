@@ -7,7 +7,7 @@
 @php
     $heroTowns = collect($towns)->pluck('town')->filter()->take(4)->values();
 @endphp
-<x-public.shell :property="['name' => $org['name'], 'type' => 'Book direct']" title="Stays" :seo="$seo">
+<x-public.shell :property="['name' => $org['name'], 'type' => __('booking/landing.book_direct')]" :title="__('booking/landing.page_title')" :seo="$seo">
     <x-slot:head>
         <style>
             .vy-lp-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.6); border: 1px solid var(--vy-glass-border); font-size: 11.5px; font-weight: 500; color: #b4400f; margin-bottom: 18px; }
@@ -97,11 +97,11 @@
 
     <x-slot:nav>
         <nav class="vy-lp-nav">
-            <a href="#stays">Stays</a>
+            <a href="#stays">{{ __('booking/landing.nav_stays') }}</a>
             @if ($signedInGuest)
-                <a href="{{ route('guest.account') }}" class="cta">My account</a>
+                <a href="{{ route('guest.account') }}" class="cta">{{ __('booking/landing.my_account') }}</a>
             @else
-                <a href="{{ route('guest.login') }}" class="cta">Sign in</a>
+                <a href="{{ route('guest.login') }}" class="cta">{{ __('booking/landing.sign_in') }}</a>
             @endif
         </nav>
     </x-slot:nav>
@@ -112,11 +112,11 @@
             @if ($rating['has_reviews'])
                 <div class="vy-lp-badge">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>
-                    {{ number_format((float) $rating['average'], 1) }} across {{ $rating['count'] }} {{ \Illuminate\Support\Str::plural('review', $rating['count']) }}@if ($heroTowns->isNotEmpty()) · {{ $heroTowns->join(' · ') }}@endif
+                    {{ trans_choice('booking/landing.rating_across', $rating['count'], ['average' => number_format((float) $rating['average'], 1), 'count' => $rating['count']]) }}@if ($heroTowns->isNotEmpty()) · {{ $heroTowns->join(' · ') }}@endif
                 </div>
             @endif
-            <h1 class="vy-lp-h1">Book direct with<br>{{ $org['name'] }}.</h1>
-            <p class="vy-lp-sub">Hand-kept stays, booked straight with the host — no fees, our best rate, and a real person on the other end.</p>
+            <h1 class="vy-lp-h1">{!! __('booking/landing.heading', ['org' => e($org['name'])]) !!}</h1>
+            <p class="vy-lp-sub">{{ __('booking/landing.subheading') }}</p>
         </div>
 
         {{-- Floating town tiles (real town names; decorative gradients) --}}
@@ -134,7 +134,7 @@
     {{-- SEARCH — native GET → the real per-property booking.browse --}}
     <form class="vy-lp-search vy-fade" method="GET" action="{{ route('storefront.search', ['organization' => $org['slug']]) }}">
         <div class="vy-lp-field">
-            <label for="lp-where">Where</label>
+            <label for="lp-where">{{ __('booking/landing.where') }}</label>
             <select id="lp-where" name="property">
                 @foreach ($properties as $p)
                     <option value="{{ $p['slug'] }}">{{ $p['town'] !== '' ? $p['town'].' — ' : '' }}{{ $p['name'] }}</option>
@@ -142,24 +142,24 @@
             </select>
         </div>
         <div class="vy-lp-field">
-            <label for="lp-in">Check in</label>
+            <label for="lp-in">{{ __('booking/landing.check_in') }}</label>
             <input id="lp-in" type="date" name="check_in" min="{{ now()->toDateString() }}">
         </div>
         <div class="vy-lp-field">
-            <label for="lp-out">Check out</label>
+            <label for="lp-out">{{ __('booking/landing.check_out') }}</label>
             <input id="lp-out" type="date" name="check_out" min="{{ now()->addDay()->toDateString() }}">
         </div>
         <div class="vy-lp-field" style="flex: 0 1 92px; min-width: 84px;">
-            <label for="lp-ad">Adults</label>
+            <label for="lp-ad">{{ __('booking/landing.adults') }}</label>
             <select id="lp-ad" name="adults">@for ($n = 1; $n <= 12; $n++)<option value="{{ $n }}" @if ($n === 2) selected @endif>{{ $n }}</option>@endfor</select>
         </div>
         <div class="vy-lp-field" style="flex: 0 1 92px; min-width: 84px;">
-            <label for="lp-ch">Children</label>
+            <label for="lp-ch">{{ __('booking/landing.children') }}</label>
             <select id="lp-ch" name="children">@for ($n = 0; $n <= 8; $n++)<option value="{{ $n }}">{{ $n }}</option>@endfor</select>
         </div>
         <button type="submit">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-            Search
+            {{ __('common.search') }}
         </button>
     </form>
 
@@ -168,8 +168,8 @@
         <section class="vy-lp-sec" id="stays">
             <div class="vy-lp-sec-head">
                 <div>
-                    <h2 class="vy-lp-h2">Where to stay</h2>
-                    <p class="vy-lp-lede">{{ count($towns) === 1 ? 'Our home base.' : count($towns).' towns, each with its own pace.' }}</p>
+                    <h2 class="vy-lp-h2">{{ __('booking/landing.where_to_stay') }}</h2>
+                    <p class="vy-lp-lede">{{ trans_choice('booking/landing.towns_lede', count($towns), ['count' => count($towns)]) }}</p>
                 </div>
             </div>
             <div class="vy-lp-grid3">
@@ -185,7 +185,7 @@
                         <div class="vy-lp-town-foot">
                             <span class="cnt">{{ $t['count'] }}</span>
                             @if ($t['from'] !== null)
-                                <span class="from">from {{ $t['from'] }}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span>
+                                <span class="from">{{ __('booking/landing.from_price', ['price' => $t['from']]) }}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span>
                             @endif
                         </div>
                     </a>
@@ -199,8 +199,8 @@
         <section class="vy-lp-sec">
             <div class="vy-lp-sec-head">
                 <div>
-                    <h2 class="vy-lp-h2">Featured stays</h2>
-                    <p class="vy-lp-lede">Guest favourites across the collection.</p>
+                    <h2 class="vy-lp-h2">{{ __('booking/landing.featured_stays') }}</h2>
+                    <p class="vy-lp-lede">{{ __('booking/landing.featured_lede') }}</p>
                 </div>
             </div>
             <div class="vy-lp-grid3">
@@ -220,8 +220,8 @@
                             </div>
                             <div style="flex: 1;"></div>
                             <div class="vy-lp-card-foot">
-                                <div>@if ($r['from'] !== null)<span class="vy-lp-price">{{ $r['from'] }}</span><span style="font-size: 12px; color: var(--vy-faint);"> / night</span>@else<span style="font-size: 12.5px; color: var(--vy-faint);">See dates for pricing</span>@endif</div>
-                                <span class="vy-lp-view">View</span>
+                                <div>@if ($r['from'] !== null)<span class="vy-lp-price">{{ $r['from'] }}</span><span style="font-size: 12px; color: var(--vy-faint);"> {{ __('booking/landing.per_night') }}</span>@else<span style="font-size: 12.5px; color: var(--vy-faint);">{{ __('booking/landing.see_dates_for_pricing') }}</span>@endif</div>
+                                <span class="vy-lp-view">{{ __('common.view') }}</span>
                             </div>
                         </div>
                     </a>
@@ -233,7 +233,7 @@
     {{-- BROWSE BY AMENITY (only real, present amenities) --}}
     @if (count($vibes) > 0)
         <section class="vy-lp-sec">
-            <h2 class="vy-lp-h2" style="margin-bottom: 18px;">Browse by what matters</h2>
+            <h2 class="vy-lp-h2" style="margin-bottom: 18px;">{{ __('booking/landing.browse_by_what_matters') }}</h2>
             <div class="vy-lp-grid4">
                 @foreach ($vibes as $v)
                     <a class="vy-lp-vibe vy-fade" href="{{ $v['href'] }}">
@@ -249,7 +249,7 @@
     <section class="vy-lp-direct vy-fade">
         <div style="position: absolute; top: -40px; right: -20px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(232,112,58,.4), transparent 70%); filter: blur(20px); pointer-events: none;"></div>
         <div style="position: relative;">
-            <h3>Why book direct</h3>
+            <h3>{{ __('booking/landing.why_book_direct') }}</h3>
             <div class="vy-lp-perks">
                 @foreach ($perks as $p)
                     <div>
@@ -265,17 +265,17 @@
     {{-- RECENT GUESTS --}}
     <section class="vy-lp-sec">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
-            <h2 class="vy-lp-h2">Recent guests</h2>
+            <h2 class="vy-lp-h2">{{ __('booking/landing.recent_guests') }}</h2>
             @if ($rating['has_reviews'])
-                <span class="vy-lp-badge" style="margin: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>{{ number_format((float) $rating['average'], 1) }} · {{ $rating['count'] }} {{ \Illuminate\Support\Str::plural('review', $rating['count']) }}</span>
+                <span class="vy-lp-badge" style="margin: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>{{ trans_choice('booking/landing.rating_short', $rating['count'], ['average' => number_format((float) $rating['average'], 1), 'count' => $rating['count']]) }}</span>
             @endif
         </div>
         @if (count($reviews) > 0)
             <div class="vy-lp-grid3">
                 @foreach ($reviews as $rv)
                     <div class="vy-lp-rev vy-fade">
-                        <div class="vy-lp-rev-stars" role="img" aria-label="{{ $rv['rating'] }} out of 5 stars"><span aria-hidden="true">{{ $rv['stars'] }}</span></div>
-                        <p class="vy-lp-rev-q">“{{ $rv['body'] }}”</p>
+                        <div class="vy-lp-rev-stars" role="img" aria-label="{{ __('booking/landing.stars_aria', ['rating' => $rv['rating']]) }}"><span aria-hidden="true">{{ $rv['stars'] }}</span></div>
+                        <p class="vy-lp-rev-q">{{ __('booking/landing.review_quote', ['body' => $rv['body']]) }}</p>
                         <div class="vy-lp-rev-by">
                             <span class="vy-lp-rev-av">{{ $rv['initials'] }}</span>
                             <span><span style="display: block; font-size: 13px; font-weight: 500;">{{ $rv['byline'] }}</span><span style="display: block; font-size: 11.5px; color: var(--vy-faint);">{{ $rv['villa'] !== '' ? $rv['villa'].' · ' : '' }}{{ $rv['at'] }}</span></span>
@@ -284,14 +284,14 @@
                 @endforeach
             </div>
         @else
-            <div class="vy-lp-rev" style="text-align: center; color: var(--vy-muted); font-size: 13.5px;">No reviews yet — be the first to stay and share your experience.</div>
+            <div class="vy-lp-rev" style="text-align: center; color: var(--vy-muted); font-size: 13.5px;">{{ __('booking/landing.no_reviews_yet') }}</div>
         @endif
     </section>
 
     {{-- CTA --}}
     <section class="vy-lp-cta">
-        <h2>Find your place</h2>
-        <p>Real dates, live prices, instant confirmation.</p>
-        <a href="#stays">Browse all stays<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+        <h2>{{ __('booking/landing.cta_heading') }}</h2>
+        <p>{{ __('booking/landing.cta_sub') }}</p>
+        <a href="#stays">{{ __('booking/landing.browse_all_stays') }}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a>
     </section>
 </x-public.shell>

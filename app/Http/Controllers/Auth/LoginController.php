@@ -62,7 +62,7 @@ class LoginController extends Controller
         // there is nothing to tear down; just the generic message (never a 500 into a context-less /app).
         if ($home === null) {
             throw ValidationException::withMessages([
-                'email' => 'This account does not have access to any workspace yet.',
+                'email' => __('php/http/controllers/auth/login_controller.no_workspace'),
             ]);
         }
 

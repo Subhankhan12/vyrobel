@@ -4,7 +4,7 @@
      "Marco Silva" persona, NO "Online now"/typing presence, NO "replies in ~10 min" SLA, NO "urgent? Call +351…"
      phone). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="messages" :title="$subject">
-    <a class="vy-link" href="{{ route('guest.messages') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Messages</a>
+    <a class="vy-link" href="{{ route('guest.messages') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">{{ __('guest/message-thread.back_to_messages') }}</a>
 
     {{-- Chat header (name-only, no presence/SLA/phone) --}}
     <div style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:18px;box-shadow:var(--vy-shadow);padding:16px 20px;margin:12px 0 16px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
@@ -14,7 +14,7 @@
         <div style="min-width:0">
             {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
             <h1 style="font-family:var(--vy-display);font-weight:600;font-size:17px;color:var(--vy-ink);letter-spacing:-.01em;margin:0">{{ $subject }}</h1>
-            <div style="font-size:12px;color:var(--vy-muted);margin-top:1px">With the property team</div>
+            <div style="font-size:12px;color:var(--vy-muted);margin-top:1px">{{ __('guest/message-thread.with_property_team') }}</div>
         </div>
     </div>
 
@@ -32,7 +32,7 @@
                         @if ($file['kind'] === 'image')
                             <a class="vy-gm-photo" href="{{ $file['url'] }}" target="_blank" rel="noopener"><img src="{{ $file['url'] }}" alt="{{ $file['name'] }}" loading="lazy"></a>
                         @elseif ($file['kind'] === 'voice')
-                            <audio controls preload="none" src="{{ $file['url'] }}" class="vy-gm-voice" aria-label="Voice message"></audio>
+                            <audio controls preload="none" src="{{ $file['url'] }}" class="vy-gm-voice" aria-label="{{ __('guest/message-thread.voice_message') }}"></audio>
                         @else
                             <a class="vy-gm-file" href="{{ $file['url'] }}" download>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg><span class="vy-gm-file-name">{{ $file['name'] }}</span><span class="vy-gm-file-size">{{ $file['size'] }}</span>
@@ -42,7 +42,7 @@
                 </div>
             </div>
         @empty
-            <div style="font-size:13px;color:var(--vy-muted)">No messages yet — say hello below.</div>
+            <div style="font-size:13px;color:var(--vy-muted)">{{ __('guest/message-thread.empty_state') }}</div>
         @endforelse
     </section>
 
@@ -50,9 +50,9 @@
     <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
         <form method="POST" action="{{ route('guest.messages.send', $thread) }}" style="display:flex;flex-direction:column;gap:10px">
             @csrf
-            <label class="vy-sr-only" for="vy-lbl-message-thread-body">Write a reply…</label>
-            <textarea id="vy-lbl-message-thread-body" class="vy-input" name="body" rows="3" placeholder="Write a reply…" maxlength="5000" required style="resize:vertical"></textarea>
-            <div><button type="submit" class="vy-btn">Send</button></div>
+            <label class="vy-sr-only" for="vy-lbl-message-thread-body">{{ __('guest/message-thread.reply_placeholder') }}</label>
+            <textarea id="vy-lbl-message-thread-body" class="vy-input" name="body" rows="3" placeholder="{{ __('guest/message-thread.reply_placeholder') }}" maxlength="5000" required style="resize:vertical"></textarea>
+            <div><button type="submit" class="vy-btn">{{ __('guest/message-thread.send') }}</button></div>
         </form>
     </section>
     <style>

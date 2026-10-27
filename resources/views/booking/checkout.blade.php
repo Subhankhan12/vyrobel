@@ -12,10 +12,10 @@
     ]));
     // The wired rail (founder decision D1): 'stripe' → test-mode hosted Checkout; else pay-on-arrival.
     $payByCard = (string) config('services.payments.gateway') === 'stripe';
-    $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->format('D j M') : '';
+    $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat('D j M') : '';
     $guests = (int) $search['adults'] + (int) $search['children'];
 @endphp
-<x-public.shell :property="$property" title="Checkout" :seo="$seo">
+<x-public.shell :property="$property" :title="__('booking/checkout.page_title')" :seo="$seo">
     <x-slot:head>
         <style>
             .vy-co-h1 { margin: 0 0 22px; font-family: var(--vy-display); font-weight: 600; font-size: 30px; letter-spacing: -0.02em; }
@@ -89,13 +89,13 @@
     <x-slot:nav>
         <span class="vy-co-secure">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-            Secure checkout
+            {{ __('booking/checkout.secure_checkout') }}
         </span>
     </x-slot:nav>
 
     <a class="vy-back vy-fade" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-        Back to rooms
+        {{ __('booking/checkout.back_to_rooms') }}
     </a>
 
     @if (session('booking_error'))
@@ -113,12 +113,12 @@
                      stale link or an expired quote — had no heading element at all. On the page that takes
                      money from a stranger. ⚠️ PROMOTED, not invented: this sentence already IS what the page
                      says. `font:inherit;margin:0` keeps it rendering exactly as the text node did. --}}
-                <h1 style="font:inherit;margin:0">That room isn’t available for these dates.</h1>
-                <div style="margin-top:14px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">Choose another room</a></div>
+                <h1 style="font:inherit;margin:0">{{ __('booking/checkout.unavailable_heading') }}</h1>
+                <div style="margin-top:14px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">{{ __('booking/checkout.choose_another_room') }}</a></div>
             </div>
         </div>
     @else
-        <h1 class="vy-co-h1 vy-fade">Complete your booking</h1>
+        <h1 class="vy-co-h1 vy-fade">{{ __('booking/checkout.heading') }}</h1>
 
         {{-- ONE form spans both columns so the summary's Confirm button + the wallet toggle submit together. --}}
         <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" data-guard-submit>
@@ -130,9 +130,9 @@
                  it on "Any" books exactly as this page always did. --}}
             @if (count($unitChoices ?? []) > 1)
                 <label class="vy-field" style="display:block;margin:0 0 12px;">
-                    <span class="vy-field-label">Choose your {{ $property['type'] === 'hotel' ? 'room' : 'unit' }}</span>
+                    <span class="vy-field-label">{{ $property['type'] === 'hotel' ? __('booking/checkout.choose_your_room') : __('booking/checkout.choose_your_unit') }}</span>
                     <select name="unit_id" class="vy-input">
-                        <option value="">Any available — {{ $offer['total'] }}</option>
+                        <option value="">{{ __('booking/checkout.any_available', ['total' => $offer['total']]) }}</option>
                         @foreach ($unitChoices as $vyUnit)
                             <option value="{{ $vyUnit['id'] }}">{{ $vyUnit['label'] }}@if ($vyUnit['price']) — {{ $vyUnit['price'] }}@endif</option>
                         @endforeach
@@ -148,7 +148,7 @@
                 {{-- LEFT — your details + payment --}}
                 <div class="vy-co-col">
                     <div class="vy-co-card">
-                        <h2 class="vy-co-h2">Your details</h2>
+                        <h2 class="vy-co-h2">{{ __('booking/checkout.your_details') }}</h2>
                         <div style="display:flex; flex-direction:column; gap:12px;">
                             {{-- ⚠️⚠️ D3 — THE ONLY UNNAMED CONTROLS ON THE PAGE THAT TAKES MONEY FROM STRANGERS.
                                  The label TEXT was always here and always visible; it was carried by a `<div>`,
@@ -162,14 +162,14 @@
                                  added, and an `id` is not submitted. --}}
                             <div class="vy-co-2">
                                 <div>
-                                    <label class="vy-co-fl" for="vy-co-first">First name</label>
+                                    <label class="vy-co-fl" for="vy-co-first">{{ __('booking/checkout.first_name') }}</label>
                                     <input class="vy-co-in" type="text" name="first_name" id="vy-co-first"
                                            value="{{ old('first_name') }}" required autocomplete="given-name"
                                            @error('first_name') aria-invalid="true" aria-describedby="vy-co-first-err" @enderror>
                                     @error('first_name')<p class="vy-co-err" id="vy-co-first-err">{{ $message }}</p>@enderror
                                 </div>
                                 <div>
-                                    <label class="vy-co-fl" for="vy-co-last">Last name</label>
+                                    <label class="vy-co-fl" for="vy-co-last">{{ __('booking/checkout.last_name') }}</label>
                                     <input class="vy-co-in" type="text" name="last_name" id="vy-co-last"
                                            value="{{ old('last_name') }}" required autocomplete="family-name"
                                            @error('last_name') aria-invalid="true" aria-describedby="vy-co-last-err" @enderror>
@@ -184,7 +184,7 @@
                                  ⚠️ `aria-describedby` ties the message to its own field, so the answer to
                                  "what failed?" is not left to reading order. --}}
                             <div>
-                                <label class="vy-co-fl" for="vy-co-email">Email</label>
+                                <label class="vy-co-fl" for="vy-co-email">{{ __('common.email') }}</label>
                                 <input class="vy-co-in" type="email" name="email" id="vy-co-email"
                                        value="{{ old('email') }}" required autocomplete="email"
                                        @error('email') aria-invalid="true" aria-describedby="vy-co-email-err" @enderror>
@@ -195,7 +195,7 @@
 
                     <div class="vy-co-card">
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                            <h2 class="vy-co-h2" style="margin:0;">Payment</h2>
+                            <h2 class="vy-co-h2" style="margin:0;">{{ __('booking/checkout.payment') }}</h2>
                             <span class="vy-co-pay-brands"><span style="background: linear-gradient(140deg, #F0A57A, #D9662E);"></span><span style="background: rgba(120,70,40,.15);"></span></span>
                         </div>
                         {{-- D4 — honest payment (F-GUEST-1): the guest's choice is a REAL submitted field
@@ -204,28 +204,28 @@
                              when the certified TEST-MODE hosted Stripe rail is wired (no PAN on us, SAQ A; fulfils
                              on the webhook) — when it isn't, pay-on-arrival is the sole honest option. --}}
                         @if ($payByCard)
-                            <div class="vy-co-pm" role="radiogroup" aria-label="How would you like to pay?">
+                            <div class="vy-co-pm" role="radiogroup" aria-label="{{ __('booking/checkout.how_to_pay') }}">
                                 <label class="vy-co-pm-opt on">
                                     <input type="radio" name="payment_option" value="card" checked onchange="vyPayOpt(this)">
-                                    <span class="vy-co-pm-t"><b>Pay now</b><span>Secure card &amp; Apple&nbsp;Pay — we never see your card number. <strong>Test mode:</strong> no real charge until go-live.</span></span>
+                                    <span class="vy-co-pm-t"><b>{{ __('booking/checkout.pay_now') }}</b><span>{!! __('booking/checkout.pay_now_detail') !!}</span></span>
                                     <span class="vy-co-pm-dot"></span>
                                 </label>
                                 <label class="vy-co-pm-opt">
                                     <input type="radio" name="payment_option" value="on_arrival" onchange="vyPayOpt(this)">
-                                    <span class="vy-co-pm-t"><b>Pay on arrival</b><span>Reserve now and settle at the property — no card is collected here.</span></span>
+                                    <span class="vy-co-pm-t"><b>{{ __('booking/checkout.pay_on_arrival') }}</b><span>{{ __('booking/checkout.pay_on_arrival_detail') }}</span></span>
                                     <span class="vy-co-pm-dot"></span>
                                 </label>
                             </div>
                         @else
                             <input type="hidden" name="payment_option" value="on_arrival">
                             <div class="vy-pay-note">
-                                <span class="vy-soon-tag">Pay on arrival</span>
-                                <span>Reserve now and settle at the property — no card is collected here.</span>
+                                <span class="vy-soon-tag">{{ __('booking/checkout.pay_on_arrival') }}</span>
+                                <span>{{ __('booking/checkout.pay_on_arrival_detail') }}</span>
                             </div>
                         @endif
                         <div class="vy-co-note">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-                            Encrypted connection · your room is only reserved once you confirm — availability is re-checked at that moment.
+                            {{ __('booking/checkout.secure_note') }}
                         </div>
                     </div>
                 </div>
@@ -241,9 +241,9 @@
                     </div>
 
                     <div class="vy-co-rows">
-                        <div class="vy-co-row"><span class="k">Check-in</span><span class="v">{{ $fmtDate($search['check_in']) }}</span></div>
-                        <div class="vy-co-row"><span class="k">Check-out</span><span class="v">{{ $fmtDate($search['check_out']) }}</span></div>
-                        <div class="vy-co-row"><span class="k">Guests</span><span class="v">{{ $guests }} {{ \Illuminate\Support\Str::plural('guest', $guests) }}</span></div>
+                        <div class="vy-co-row"><span class="k">{{ __('booking/checkout.check_in') }}</span><span class="v">{{ $fmtDate($search['check_in']) }}</span></div>
+                        <div class="vy-co-row"><span class="k">{{ __('booking/checkout.check_out') }}</span><span class="v">{{ $fmtDate($search['check_out']) }}</span></div>
+                        <div class="vy-co-row"><span class="k">{{ __('booking/checkout.guests') }}</span><span class="v">{{ trans_choice('booking/checkout.guests_count', $guests, ['count' => $guests]) }}</span></div>
                     </div>
 
                     {{-- RECONCILING breakdown (room + real cleaning fee + charged taxes) via StayEstimator (#17). --}}
@@ -251,7 +251,7 @@
                         @foreach ($offer['breakdown'] as $line)
                             <div class="vy-co-line">
                                 <span class="k">{{ $line['label'] }}{{ $line['detail'] !== '' ? ' · '.$line['detail'] : '' }}</span>
-                                <span class="v">{{ $line['informational'] ? 'included' : $line['amount'] }}</span>
+                                <span class="v">{{ $line['informational'] ? __('booking/checkout.included') : $line['amount'] }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -263,28 +263,28 @@
                         <label class="vy-co-credit" id="vy-credit-toggle">
                             <input type="checkbox" name="apply_credit" value="1" onchange="vyToggleCredit(this)">
                             <span class="vy-co-credit-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"></rect><path d="M2 10.5h20"></path><path d="M6 15h3"></path></svg></span>
-                            <span class="vy-co-credit-t"><b>Apply wallet credit</b><span>{{ $wallet['display'] }} available in your wallet</span></span>
+                            <span class="vy-co-credit-t"><b>{{ __('booking/checkout.apply_wallet_credit') }}</b><span>{{ __('booking/checkout.wallet_available', ['amount' => $wallet['display']]) }}</span></span>
                             <span class="vy-co-switch"></span>
                         </label>
                         <div class="vy-co-credit-line">
-                            <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>Wallet credit</span>
+                            <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>{{ __('booking/checkout.wallet_credit') }}</span>
                             <span class="amt">−{{ $wallet['apply_display'] }}</span>
                         </div>
                     @endisset
 
                     <div class="vy-co-total">
-                        <span class="lbl">Total</span>
+                        <span class="lbl">{{ __('common.total') }}</span>
                         <span class="val" id="vy-total" @isset($wallet) data-full="{{ $offer['grand_total'] }}" data-net="{{ $wallet['net_display'] }}" @endisset>{{ $offer['grand_total'] }}</span>
                     </div>
 
-                    <x-busy-btn class="vy-co-confirm" busy-label="{{ $payByCard ? 'Redirecting…' : 'Reserving…' }}"><span id="vy-confirm-label">{{ $payByCard ? 'Confirm & pay '.$offer['grand_total'] : 'Confirm reservation' }}</span></x-busy-btn>
+                    <x-busy-btn class="vy-co-confirm" busy-label="{{ $payByCard ? __('booking/checkout.redirecting') : __('booking/checkout.reserving') }}"><span id="vy-confirm-label">{{ $payByCard ? __('booking/checkout.confirm_and_pay', ['amount' => $offer['grand_total']]) : __('booking/checkout.confirm_reservation') }}</span></x-busy-btn>
 
                     @isset($wallet)
-                        <div class="vy-co-saved" id="vy-saved"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>You saved {{ $wallet['apply_display'] }} with wallet credit</div>
+                        <div class="vy-co-saved" id="vy-saved"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>{{ __('booking/checkout.you_saved', ['amount' => $wallet['apply_display']]) }}</div>
                     @endisset
 
                     @if ($freeCancel !== null)
-                        <div class="vy-co-freecancel">Free cancellation until {{ $freeCancel }} · no fees</div>
+                        <div class="vy-co-freecancel">{{ __('booking/checkout.free_cancellation', ['date' => $freeCancel]) }}</div>
                     @endif
                 </div>
             </div>
@@ -299,7 +299,7 @@
                     var label = document.getElementById('vy-confirm-label');
                     var total = document.getElementById('vy-total');
                     var shown = total ? total.textContent : '';
-                    if (label) label.textContent = radio.value === 'card' ? ('Confirm & pay ' + shown) : 'Confirm reservation';
+                    if (label) label.textContent = radio.value === 'card' ? @js(__('booking/checkout.confirm_and_pay', ['amount' => ':amount'])).replace(':amount', function () { return shown; }) : @js(__('booking/checkout.confirm_reservation'));
                 }
             </script>
         @endif
@@ -318,9 +318,10 @@
                     if (toggle) toggle.classList.toggle('on', on);
                     if (total) total.textContent = on ? (total.dataset.net || total.textContent) : (total.dataset.full || total.textContent);
                     if (saved) saved.style.display = on ? 'flex' : 'none';
-                    // Only the card path shows a price in the button ("Confirm & pay …"); keep it in sync.
-                    if (label && label.textContent.indexOf('pay') !== -1) {
-                        label.textContent = 'Confirm & pay ' + (on ? total.dataset.net : total.dataset.full);
+                    // Only the card path shows a price in the button ("Confirm & pay …"); keep it in sync. Asked of the SERVER's
+                    // own flag, not of the button's English text — a search for 'pay' fails in every other language (I18N-01).
+                    if (label && @js((bool) $payByCard)) {
+                        label.textContent = @js(__('booking/checkout.confirm_and_pay', ['amount' => ':amount'])).replace(':amount', function () { return on ? total.dataset.net : total.dataset.full; });
                     }
                 }
             </script>

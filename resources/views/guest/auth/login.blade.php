@@ -1,7 +1,7 @@
 {{-- Guest login (Phase 4a · SG3) — authenticates on the GUEST guard. Static claim/forgot links (no enumeration).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('guest.auth.layout')
-@section('title', 'Sign in')
+@section('title', __('guest/auth/login.page_title'))
 
 @section('card')
     {{-- ⚠️ F-27 — FIRST CONTACT. The booking-confirmation email carries five deep links into the guest
@@ -25,13 +25,13 @@
     @endphp
 
     @if ($vyFromBooking)
-        <h1 class="vy-title">Access your booking</h1>
-        <p class="vy-sub">Sign in below. If you booked without creating an account, set up access first — you’ll need the email address you booked with.</p>
+        <h1 class="vy-title">{{ __('guest/auth/login.booking_heading') }}</h1>
+        <p class="vy-sub">{{ __('guest/auth/login.booking_subheading') }}</p>
 
-        <a class="vy-btn" href="{{ route('guest.claim') }}" style="margin-bottom:18px;text-decoration:none">Set up access to your booking</a>
+        <a class="vy-btn" href="{{ route('guest.claim') }}" style="margin-bottom:18px;text-decoration:none">{{ __('guest/auth/login.booking_claim_button') }}</a>
     @else
-        <h1 class="vy-title">Welcome back</h1>
-        <p class="vy-sub">Sign in to manage your stays.</p>
+        <h1 class="vy-title">{{ __('guest/auth/login.heading') }}</h1>
+        <p class="vy-sub">{{ __('guest/auth/login.subheading') }}</p>
     @endif
 
     @if (session('status'))
@@ -44,23 +44,23 @@
     <form method="POST" action="{{ route('guest.login') }}" novalidate>
         @csrf
         <div class="vy-field">
-            <label class="vy-label" for="email">Email</label>
+            <label class="vy-label" for="email">{{ __('common.email') }}</label>
             <input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="email" autofocus required>
         </div>
         <div class="vy-field">
             <div style="display:flex;justify-content:space-between;align-items:center">
-                <label class="vy-label" for="password" style="margin-bottom:0">Password</label>
-                <a class="vy-link" href="{{ route('guest.password.request') }}">Forgot password?</a>
+                <label class="vy-label" for="password" style="margin-bottom:0">{{ __('auth/common.password') }}</label>
+                <a class="vy-link" href="{{ route('guest.password.request') }}">{{ __('guest/auth/login.forgot_password') }}</a>
             </div>
             <div style="position:relative">
                 <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required style="margin-top:7px;padding-right:62px">
-                <button type="button" aria-label="Show password"
-                        onclick="var p=document.getElementById('password');var s=p.type==='password';p.type=s?'text':'password';this.textContent=s?'Hide':'Show'"
-                        style="position:absolute;right:10px;top:15px;background:none;border:none;color:var(--vy-accent-text);font-size:12px;font-weight:600;cursor:pointer">Show</button>
+                <button type="button" aria-label="{{ __('auth/common.show_password') }}"
+                        onclick="var p=document.getElementById('password');var s=p.type==='password';p.type=s?'text':'password';this.textContent=s?@js(__('guest/auth/login.hide')):@js(__('guest/auth/login.show'))"
+                        style="position:absolute;right:10px;top:15px;background:none;border:none;color:var(--vy-accent-text);font-size:12px;font-weight:600;cursor:pointer">{{ __('guest/auth/login.show') }}</button>
             </div>
         </div>
-        <button type="submit" class="vy-btn">Sign in</button>
+        <button type="submit" class="vy-btn">{{ __('guest/auth/login.sign_in') }}</button>
     </form>
 
-    <div class="vy-foot">New here? <a class="vy-link" href="{{ route('guest.claim') }}">Access your bookings</a></div>
+    <div class="vy-foot">{!! __('guest/auth/login.new_here', ['url' => e(route('guest.claim'))]) !!}</div>
 @endsection

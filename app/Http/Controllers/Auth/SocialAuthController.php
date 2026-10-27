@@ -69,7 +69,7 @@ final class SocialAuthController extends Controller
         if ($intent === 'login'
             && ! PlatformSwitches::signinAllowed($provider->key())
             && ! PlatformSwitches::signupAllowed($provider->key())) {
-            return $this->refuse('login', SocialProviders::label($provider->key()).' sign-in is paused right now. Sign in with your password instead.');
+            return $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.provider_paused', ['provider' => SocialProviders::label($provider->key())]));
         }
 
         // ⚠️ Generated per attempt, never reused. This is the CSRF defence of the whole flow: without it, an
@@ -97,12 +97,12 @@ final class SocialAuthController extends Controller
         $intent = is_array($stored) ? (string) ($stored['intent'] ?? 'login') : 'login';
 
         if (! $this->stateIsValid($stored, (string) $request->query('state', ''))) {
-            return $this->refuse($intent, 'That sign-in link has expired or did not come from us. Please try again.');
+            return $this->refuse($intent, __('php/http/controllers/auth/social_auth_controller.state_invalid'));
         }
 
         // The user pressed Cancel, or Google refused. Not an error to shout about — just nothing happened.
         if ($request->query('error') !== null || (string) $request->query('code', '') === '') {
-            return $this->refuse($intent, 'Sign-in with Google was cancelled.');
+            return $this->refuse($intent, __('php/http/controllers/auth/social_auth_controller.cancelled'));
         }
 
         try {
@@ -110,7 +110,7 @@ final class SocialAuthController extends Controller
         } catch (RuntimeException) {
             // ⚠️ A failed exchange yields NO identity. Never a partial one, and never a guess from the query
             //    string — the whole point of the server-side exchange is that the browser cannot supply this.
-            return $this->refuse($intent, 'We could not complete sign-in with Google. Please try again.');
+            return $this->refuse($intent, __('php/http/controllers/auth/social_auth_controller.exchange_failed'));
         }
 
         return $intent === 'link'
@@ -129,27 +129,27 @@ final class SocialAuthController extends Controller
         //    separate switches because they fail differently: pausing sign-in locks out passwordless accounts
         //    (the console counts them first); pausing sign-up only stops new organisations being created.
         if ($outcome === SocialLinkOutcome::SignIn && ! PlatformSwitches::signinAllowed($identity->provider)) {
-            return $this->refuse('login', "Sign-in with {$label} is paused right now. Sign in with your password instead, or try again later.");
+            return $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.signin_paused', ['provider' => $label]));
         }
 
         if ($outcome === SocialLinkOutcome::SignUp && ! PlatformSwitches::signupAllowed($identity->provider)) {
-            return $this->refuse('login', "New sign-ups with {$label} are paused right now. Please try again later.");
+            return $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.signup_paused', ['provider' => $label]));
         }
 
         return match ($outcome) {
             SocialLinkOutcome::SignIn => $this->signIn($request, $user, $identity),
 
             SocialLinkOutcome::RefuseUnverified => $this->refuse('login',
-                "{$label} has not verified that email address, so we cannot use it to sign in."),
+                __('php/http/controllers/auth/social_auth_controller.unverified_sign_in', ['provider' => $label])),
 
             // ⚠️⚠️ THE TAKEOVER REFUSAL. Deliberately says what to do instead, because the user is very
             //    probably the right person — they just have not proved it yet, and an address is not proof.
             SocialLinkOutcome::RefuseEmailTaken => $this->refuse('login',
-                "An account already uses that email address. Sign in with your password, then connect {$label} from your security page."),
+                __('php/http/controllers/auth/social_auth_controller.email_taken', ['provider' => $label])),
 
             SocialLinkOutcome::SignUp => $this->beginSignUp($request, $identity),
 
-            default => $this->refuse('login', "We could not complete sign-in with {$label}."),
+            default => $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.sign_in_failed', ['provider' => $label])),
         };
     }
 
@@ -182,7 +182,7 @@ final class SocialAuthController extends Controller
     {
         if ($user === null || $user->status !== User::SIGN_IN_STATUS) {
             // A link pointing at a suspended account is not a way around the suspension.
-            return $this->refuse('login', 'That account cannot sign in at the moment.');
+            return $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.account_inactive'));
         }
 
         UserIdentity::query()
@@ -193,7 +193,7 @@ final class SocialAuthController extends Controller
         // ⚠️ THE SHARED POST-CREDENTIAL PATH — so a 2FA-enabled account is still challenged. Signing in with
         //    Google must never be a way to skip a factor the user turned on.
         return $this->completeSignInOrNull($request, $user)
-            ?? $this->refuse('login', 'This account does not have access to any workspace yet.');
+            ?? $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.no_workspace'));
     }
 
     /** ⚠️ The authenticated outcomes. Linking is only ever reached from inside a session. */
@@ -204,24 +204,24 @@ final class SocialAuthController extends Controller
         $label = SocialProviders::label($identity->provider);
 
         if (! $actor instanceof User) {
-            return $this->refuse('login', "Please sign in before connecting a {$label} account.");
+            return $this->refuse('login', __('php/http/controllers/auth/social_auth_controller.sign_in_first', ['provider' => $label]));
         }
 
         return match (SocialLinking::forLink($actor, $identity)) {
             SocialLinkOutcome::Link => $this->createLink($actor, $identity),
 
             SocialLinkOutcome::AlreadyLinked => redirect()->route('app.security')
-                ->with('connections_status', "That {$label} account is already connected."),
+                ->with('connections_status', __('php/http/controllers/auth/social_auth_controller.already_connected', ['provider' => $label])),
 
             SocialLinkOutcome::RefuseUnverified => $this->refuse('link',
-                "{$label} has not verified that email address, so we cannot connect it."),
+                __('php/http/controllers/auth/social_auth_controller.unverified_link', ['provider' => $label])),
 
             // ⚠️ Never move a link. One provider account signs in as one Vyrobel user, and re-pointing it here
             //    would let whoever holds it take over a second account.
             SocialLinkOutcome::RefuseIdentityTaken => $this->refuse('link',
-                "That {$label} account is already connected to a different Vyrobel account."),
+                __('php/http/controllers/auth/social_auth_controller.identity_taken', ['provider' => $label])),
 
-            default => $this->refuse('link', "We could not connect that {$label} account."),
+            default => $this->refuse('link', __('php/http/controllers/auth/social_auth_controller.link_failed', ['provider' => $label])),
         };
     }
 
@@ -236,7 +236,7 @@ final class SocialAuthController extends Controller
         ]);
 
         return redirect()->route('app.security')
-            ->with('connections_status', SocialProviders::label($identity->provider).' connected. You can now sign in with it.');
+            ->with('connections_status', __('php/http/controllers/auth/social_auth_controller.connected', ['provider' => SocialProviders::label($identity->provider)]));
     }
 
     /**
@@ -257,7 +257,7 @@ final class SocialAuthController extends Controller
 
         if ($row === null) {
             return redirect()->route('app.security')
-                ->with('connections_error', 'That connection no longer exists.');
+                ->with('connections_error', __('php/http/controllers/auth/social_auth_controller.connection_gone'));
         }
 
         if (! SignInCredentials::mayUnlink($actor, (string) $row->getKey())) {
@@ -269,7 +269,7 @@ final class SocialAuthController extends Controller
 
         // ⚠️ 2026-10-05 — this said "Google disconnected." for X too
         return redirect()->route('app.security')
-            ->with('connections_status', SocialProviders::label((string) $row->provider).' disconnected.');
+            ->with('connections_status', __('php/http/controllers/auth/social_auth_controller.disconnected', ['provider' => SocialProviders::label((string) $row->provider)]));
     }
 
     /**

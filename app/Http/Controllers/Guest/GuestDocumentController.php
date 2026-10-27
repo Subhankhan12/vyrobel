@@ -10,6 +10,7 @@ use App\Models\Folio;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\PdfService;
+use App\Support\I18n\Locales;
 use App\Support\Pdf\FolioDocument;
 use App\Support\Pdf\GuestInvoiceDocument;
 use App\Support\Pdf\GuestReversalDocument;
@@ -48,7 +49,8 @@ class GuestDocumentController extends Controller
     {
         $model = $this->owned($reservation);
 
-        return $this->pdf->download('pdfs.guest-vat-invoice', GuestInvoiceDocument::data($model), $this->filename('invoice', $model));
+        // I18N-01 (PLAN 5.5) — a tax document is issued in the ORGANISATION's language, not the reader's, until the lawyer rules.
+        return $this->pdf->download('pdfs.guest-vat-invoice', GuestInvoiceDocument::data($model), $this->filename('invoice', $model), null, Locales::organizationDefault((string) $model->organization_id));
     }
 
     public function refundReceipt(string $reservation): Response
@@ -62,7 +64,8 @@ class GuestDocumentController extends Controller
     {
         $model = $this->ownedWithRefund($reservation);
 
-        return $this->pdf->download('pdfs.guest-credit-note', GuestReversalDocument::data($model), $this->filename('credit-note', $model));
+        // I18N-01 (PLAN 5.5) — a tax document is issued in the ORGANISATION's language, as the invoice it corrects.
+        return $this->pdf->download('pdfs.guest-credit-note', GuestReversalDocument::data($model), $this->filename('credit-note', $model), null, Locales::organizationDefault((string) $model->organization_id));
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */

@@ -40,15 +40,15 @@ class AccountSecurityController extends Controller
 
         $enabled = $request->boolean('enabled');
         if ($enabled && ! SecurityOverview::loginApproval($user, true)['available']) {
-            return back()->with('security_error', 'Login approval can’t be turned on yet: email isn’t being sent from Vyrobel, so the approval link would never reach you and a new device couldn’t sign in.');
+            return back()->with('security_error', __('php/http/controllers/auth/account_security_controller.login_approval_unavailable'));
         }
 
         $user->forceFill(['require_login_approval' => $enabled])->save();
         $audit->record($this->realm($request).'.login_approval_changed', $user, null, ['enabled' => $enabled]);
 
         return back()->with($this->noticeKey($request), $enabled
-            ? 'Login approval is on — a new device waits until you approve it.'
-            : 'Login approval is off.');
+            ? __('php/http/controllers/auth/account_security_controller.login_approval_on')
+            : __('php/http/controllers/auth/account_security_controller.login_approval_off'));
     }
 
     /**
@@ -66,7 +66,7 @@ class AccountSecurityController extends Controller
 
         $approval = $approvals->pending($user, (string) $data['approval']);
         if ($approval === null || $approval->approved_at !== null) {
-            return back()->with('security_error', 'That sign-in is no longer waiting — it was already decided, or it expired.');
+            return back()->with('security_error', __('php/http/controllers/auth/account_security_controller.approval_no_longer_waiting'));
         }
 
         $approve = $data['decision'] === 'approve';
@@ -74,8 +74,8 @@ class AccountSecurityController extends Controller
         $audit->record($this->realm($request).'.login_approval_'.($approve ? 'approved' : 'denied'), $user, null, ['approval' => (string) $approval->getKey()]);
 
         return back()->with($this->noticeKey($request), $approve
-            ? 'Approved — that device can finish signing in now.'
-            : 'Denied — that sign-in can’t continue. If it wasn’t you, change your password.');
+            ? __('php/http/controllers/auth/account_security_controller.approval_approved')
+            : __('php/http/controllers/auth/account_security_controller.approval_denied'));
     }
 
     /** Staff login alerts on / off — the SAME stored setting as Notification preferences' "Login from a new device". */
@@ -89,8 +89,8 @@ class AccountSecurityController extends Controller
         $audit->record($this->realm($request).'.login_alerts_changed', $user, null, ['enabled' => $enabled]);
 
         return back()->with($this->noticeKey($request), $enabled
-            ? 'Login alerts are on — a sign-in from a new device appears in your bell.'
-            : 'Login alerts are off.');
+            ? __('php/http/controllers/auth/account_security_controller.login_alerts_on')
+            : __('php/http/controllers/auth/account_security_controller.login_alerts_off'));
     }
 
     /** The session timeout: off (the store's own lifetime) or 15 / 30 / 60 minutes without activity. */
@@ -106,8 +106,8 @@ class AccountSecurityController extends Controller
         $audit->record($this->realm($request).'.session_timeout_changed', $user, null, ['minutes' => $minutes]);
 
         return back()->with($this->noticeKey($request), $minutes === null
-            ? 'Session timeout is off — you stay signed in for '.SessionTimeout::defaultLabel().' without activity, as before.'
-            : 'You’ll be signed out after '.SessionTimeout::label($minutes).' without activity.');
+            ? __('php/http/controllers/auth/account_security_controller.session_timeout_off', ['duration' => SessionTimeout::defaultLabel()])
+            : __('php/http/controllers/auth/account_security_controller.session_timeout_on', ['duration' => SessionTimeout::label($minutes)]));
     }
 
     private function user(Request $request): User

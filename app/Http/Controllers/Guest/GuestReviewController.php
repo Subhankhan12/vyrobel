@@ -32,6 +32,8 @@ class GuestReviewController extends Controller
     use ResolvesGuest;
 
     /** The design's tag chips. */
+    // ⚠️ I18N-01 — these English values are the stored CODES (validated with Rule::in, saved on the review); the words a
+    //    guest reads come from tagLabel(), so a translated label can never fail the validation.
     private const POSITIVE_TAGS = ['Spotless villa', 'Easy check-in', 'Great location', 'Fast replies', 'Comfy beds'];
 
     private const NEGATIVE_TAGS = ['Cleanliness', 'Check-in hassle', 'Noise', 'Slow replies'];
@@ -53,12 +55,14 @@ class GuestReviewController extends Controller
         return view('guest.review', [
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
-            'property' => (string) ($model->property->name ?? 'Your stay'),
+            'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_review_controller.your_stay')),
             // #98 — the property's guest-facing brand accent flows to the review page (fail-open to Vyrobel).
             'brandAccent' => PropertyBrand::for($model->property)->accent,
-            'stay' => CarbonImmutable::parse($model->check_in)->format('j M').' – '.CarbonImmutable::parse($model->check_out)->format('j M Y'),
+            'stay' => __('php/http/controllers/guest/guest_review_controller.stay_dates', ['from' => CarbonImmutable::parse($model->check_in)->translatedFormat('j M'), 'to' => CarbonImmutable::parse($model->check_out)->translatedFormat('j M Y')]),
             'positiveTags' => self::POSITIVE_TAGS,
             'negativeTags' => self::NEGATIVE_TAGS,
+            // code => the label the guest reads (the chip's text; its value stays the code)
+            'tagLabels' => array_combine([...self::POSITIVE_TAGS, ...self::NEGATIVE_TAGS], array_map(fn (string $code): string => $this->tagLabel($code), [...self::POSITIVE_TAGS, ...self::NEGATIVE_TAGS])),
             'prefillRating' => $prefillRating,
             'existing' => $existing === null ? null : [
                 'rating' => (int) $existing->rating,
@@ -104,7 +108,24 @@ class GuestReviewController extends Controller
             return redirect()->route('guest.review', $model->getKey())->with('error', $e->getMessage());
         }
 
-        return redirect()->route('guest.trips')->with('status', 'Thanks for your review — we appreciate it.');
+        return redirect()->route('guest.trips')->with('status', __('php/http/controllers/guest/guest_review_controller.thanks'));
+    }
+
+    /** The words for a review-tag code. */
+    private function tagLabel(string $code): string
+    {
+        return match ($code) {
+            'Spotless villa' => __('php/http/controllers/guest/guest_review_controller.tag_spotless_villa'),
+            'Easy check-in' => __('php/http/controllers/guest/guest_review_controller.tag_easy_check_in'),
+            'Great location' => __('php/http/controllers/guest/guest_review_controller.tag_great_location'),
+            'Fast replies' => __('php/http/controllers/guest/guest_review_controller.tag_fast_replies'),
+            'Comfy beds' => __('php/http/controllers/guest/guest_review_controller.tag_comfy_beds'),
+            'Cleanliness' => __('php/http/controllers/guest/guest_review_controller.tag_cleanliness'),
+            'Check-in hassle' => __('php/http/controllers/guest/guest_review_controller.tag_check_in_hassle'),
+            'Noise' => __('php/http/controllers/guest/guest_review_controller.tag_noise'),
+            'Slow replies' => __('php/http/controllers/guest/guest_review_controller.tag_slow_replies'),
+            default => $code,
+        };
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */

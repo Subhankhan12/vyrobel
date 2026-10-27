@@ -30,8 +30,6 @@ class PasswordResetController extends Controller
 {
     use RedirectsByRole;
 
-    private const GENERIC_STATUS = 'If an account exists for that email, we’ve sent a link to reset your password.';
-
     /** The "enter your email" screen. */
     public function showForgot(): View
     {
@@ -51,7 +49,7 @@ class PasswordResetController extends Controller
             'status' => User::SIGN_IN_STATUS,
         ]);
 
-        return back()->with('status', self::GENERIC_STATUS);
+        return back()->with('status', __('php/http/controllers/auth/password_reset_controller.link_sent'));
     }
 
     /** The "choose a new password" screen (token in the path, email in the query). */
@@ -93,7 +91,7 @@ class PasswordResetController extends Controller
         if ($status !== Password::PASSWORD_RESET) {
             // Invalid / expired / already-used token — generic error, no enumeration.
             return back()->withInput($request->only('email'))->withErrors([
-                'email' => 'This password reset link is invalid or has expired. Please request a new one.',
+                'email' => __('php/http/controllers/auth/password_reset_controller.link_invalid'),
             ]);
         }
 

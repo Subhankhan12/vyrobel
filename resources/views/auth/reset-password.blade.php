@@ -3,11 +3,11 @@
      shared Vyrobel auth tokens, consistent with login + set-password. The broker's tokened link is the
      credential; the password is hashed server-side and other sessions are signed out. The strength meter
      is presentational only — the server enforces the real minimum. --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Choose a new password · Vyrobel</title>
+    <title>{{ __('auth/reset-password.page_title') }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -78,8 +78,8 @@
 <body>
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
-        <h1 class="vy-title">Choose a new password</h1>
-        <p class="vy-sub">Pick a strong password — you’ll use it to sign in from now on.</p>
+        <h1 class="vy-title">{{ __('auth/reset-password.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/reset-password.subheading') }}</p>
 
         @if ($email !== '')
             @php
@@ -88,7 +88,7 @@
             @endphp
             <div class="vy-idpill">
                 <span class="vy-ava">{{ $initials }}</span>
-                <span><span class="vy-id-k">Setting a new password for</span><br><span class="vy-id-v">{{ $email }}</span></span>
+                <span><span class="vy-id-k">{{ __('auth/reset-password.setting_for') }}</span><br><span class="vy-id-v">{{ $email }}</span></span>
             </div>
         @endif
 
@@ -105,10 +105,10 @@
             <input type="hidden" name="email" value="{{ $email }}">
 
             <div class="vy-field">
-                <label class="vy-label" for="password">New password</label>
+                <label class="vy-label" for="password">{{ __('auth/common.new_password') }}</label>
                 <div class="vy-input-wrap">
                     <input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" autofocus required>
-                    <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password">
+                    <button type="button" class="vy-eye" data-toggle="password" aria-label="{{ __('auth/common.show_password') }}">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
@@ -117,19 +117,19 @@
             </div>
 
             <div class="vy-field">
-                <label class="vy-label" for="password_confirmation">Confirm password</label>
+                <label class="vy-label" for="password_confirmation">{{ __('auth/common.confirm_password') }}</label>
                 <div class="vy-input-wrap">
                     <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
-                    <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="Show password">
+                    <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="{{ __('auth/common.show_password') }}">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
             </div>
 
-            <button type="submit" class="vy-btn">Set password &amp; sign in</button>
+            <button type="submit" class="vy-btn">{{ __('auth/common.set_password_and_sign_in') }}</button>
         </form>
 
-        <div class="vy-foot">Signs you out of other devices for safety.</div>
+        <div class="vy-foot">{{ __('auth/reset-password.signs_out_other_devices') }}</div>
     </main>
 
     <script>
@@ -141,7 +141,7 @@
         });
         // Presentational strength hint only — the server enforces the real minimum.
         var pw = document.getElementById('password'), meter = document.getElementById('meter'), label = document.getElementById('strength');
-        var words = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        var words = ['', @js(__('auth/common.strength_weak')), @js(__('auth/common.strength_fair')), @js(__('auth/common.strength_good')), @js(__('auth/common.strength_strong'))];
         pw && pw.addEventListener('input', function () {
             var v = pw.value, s = 0;
             if (v.length >= 8) s++;

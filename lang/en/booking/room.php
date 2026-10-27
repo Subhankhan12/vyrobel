@@ -1,0 +1,38 @@
+<?php
+
+// resources/views/booking/room.blade.php — the public room detail page and its booking panel.
+
+return [
+    'all_rooms' => 'All rooms',
+    'kind_sleeps_up_to' => ':kind · sleeps up to :capacity',
+    'reviews_count' => '{1} :count review|[0,*] :count reviews',
+    'no_reviews_yet' => 'No reviews yet',
+    'save_to_wishlist' => 'Save to wishlist',
+    'sleeps' => 'Sleeps',
+    'adults' => 'Adults',
+    'children' => 'Children',
+    'bedrooms' => 'Bedrooms',
+    'standard_occupancy' => 'Standard occupancy',
+    'amenities' => 'Amenities',
+    'not_yet_listed' => 'Not yet listed',
+    'amenities_not_published' => 'Amenities for this room aren’t published yet.',
+    'guest_reviews' => 'Guest reviews',
+    'stars_aria' => ':rating out of 5 stars',
+    'response_label' => 'Response:',
+    'no_reviews_be_first' => 'No reviews yet — be the first to stay and share your experience.',
+    'coming_soon' => 'Coming soon',
+    'description_soon' => 'A full description & location map are on the way — the specs, availability, price and reviews above are real.',
+    'per_night' => '/ night',
+    'per_night_with_note' => '/ night · :note',
+    'total_nights' => '{1} :amount total · :count night|[0,*] :amount total · :count nights',
+    'left_for_your_dates' => ':count left for your dates',
+    'book_this_room' => 'Book this room',
+    'nothing_reserved' => 'Nothing is reserved until you confirm at checkout.',
+    'your_dates' => 'Your dates',
+    'not_available' => 'Not available for these dates — try different dates.',
+    'check_in' => 'Check-in',
+    'check_out' => 'Check-out',
+    'check_dates' => 'Check dates',
+    'check_availability' => 'Check availability & price',
+    'see_price' => 'See price',
+];

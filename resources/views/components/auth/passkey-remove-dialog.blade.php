@@ -13,23 +13,24 @@
             <div class="vy-sx-dialog-head">
                 <span class="vy-sx-ico is-danger"><x-security.icon name="fingerprint" :size="18" /></span>
                 <div class="vy-sx-dialog-text">
-                    <h3 class="vy-sx-dialog-title" id="vy-sx-pk-t">Remove <span x-text="pkRemove ? pkRemove.label : ''"></span>?</h3>
-                    <p class="vy-sx-dialog-sub">That device will need your password to sign in again. Confirm with your password.</p>
+                    @php($vyPkLabelHtml = '<span x-text="pkRemove ? pkRemove.label : \'\'"></span>')
+                    <h3 class="vy-sx-dialog-title" id="vy-sx-pk-t">{!! __('components/auth/passkey-remove-dialog.title', ['label' => $vyPkLabelHtml]) !!}</h3>
+                    <p class="vy-sx-dialog-sub">{{ __('components/auth/passkey-remove-dialog.sub') }}</p>
                 </div>
-                <button type="button" class="vy-sx-x" @click="pkRemove = null" aria-label="Close"><x-security.icon name="x" /></button>
+                <button type="button" class="vy-sx-x" @click="pkRemove = null" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
             </div>
             <div class="vy-sx-dialog-body">
                 @if (old('_form') === 'passkey-remove')
                     @error('current_password') <div class="vy-sx-errors" role="alert">{{ $message }}</div> @enderror
                 @endif
                 <div class="vy-sx-field">
-                    <label class="vy-sx-label" for="vy-sx-pk-pw">Your password</label>
-                    <x-password-field name="current_password" id="vy-sx-pk-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                    <label class="vy-sx-label" for="vy-sx-pk-pw">{{ __('components/auth/passkey-remove-dialog.your_password') }}</label>
+                    <x-password-field name="current_password" id="vy-sx-pk-pw" autocomplete="current-password" :required="true" autofocus />
                 </div>
             </div>
             <div class="vy-sx-dialog-foot">
-                <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="pkRemove = null">Cancel</button>
-                <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Remove</button>
+                <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="pkRemove = null">{{ __('common.cancel') }}</button>
+                <button type="submit" class="vy-sx-btn vy-sx-btn--danger">{{ __('common.remove') }}</button>
             </div>
         </form>
     </div>

@@ -3,7 +3,7 @@
      motion. ⚠️ HONEST (#39/#28): NO fabricated "Online now" / typing indicator (no websockets/presence), NO "reply
      within ~10 min" SLA, NO named-host persona ("Marco Silva"), NO "urgent? Call +351…" phone — the property side
      is name-only (real sender label or "Property"). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-guest.shell active="messages" title="Messages">
+<x-guest.shell active="messages" :title="__('guest/messages.title')">
     {{-- Hero --}}
     <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin-bottom:18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:linear-gradient(140deg,#E8703A,#C2410C);display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
@@ -11,14 +11,14 @@
         </div>
         <div style="min-width:0">
             {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
-            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">Messages</h1>
-            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Questions about your stay — parking, breakfast, wifi, late checkout. The property replies right here.</div>
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">{{ __('guest/messages.title') }}</h1>
+            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">{{ __('guest/messages.subheading') }}</div>
         </div>
     </div>
 
     {{-- Conversations --}}
     <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both">
-        <div class="vy-eyebrow" style="margin-bottom:10px">Your conversations</div>
+        <div class="vy-eyebrow" style="margin-bottom:10px">{{ __('guest/messages.your_conversations') }}</div>
         @forelse ($threads as $thread)
             <a href="{{ route('guest.messages.show', $thread['id']) }}" class="vy-row--tappable" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 10px;margin:0 -10px;border-bottom:1px solid var(--vy-hairline);text-decoration:none">
                 <div style="display:flex;align-items:center;gap:9px;min-width:0">
@@ -28,20 +28,20 @@
                 <span style="font-size:11.5px;color:var(--vy-faint);flex-shrink:0">{{ $thread['at'] }}</span>
             </a>
         @empty
-            <div style="font-size:13px;color:var(--vy-muted)">No messages yet — start a conversation below.</div>
+            <div style="font-size:13px;color:var(--vy-muted)">{{ __('guest/messages.empty_state') }}</div>
         @endforelse
     </section>
 
     {{-- Start a new message --}}
     <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
-        <div class="vy-eyebrow" style="margin-bottom:10px">New message</div>
+        <div class="vy-eyebrow" style="margin-bottom:10px">{{ __('guest/messages.new_message') }}</div>
         <form method="POST" action="{{ route('guest.messages.start') }}" style="display:flex;flex-direction:column;gap:10px">
             @csrf
-            <label class="vy-sr-only" for="vy-lbl-messages-subject">Subject (e.g. Parking)</label>
-            <input id="vy-lbl-messages-subject" class="vy-input" type="text" name="subject" placeholder="Subject (e.g. Parking)" maxlength="120" required>
-            <label class="vy-sr-only" for="vy-lbl-messages-body">Your message</label>
-            <textarea id="vy-lbl-messages-body" class="vy-input" name="body" rows="3" placeholder="Your message" maxlength="5000" required style="resize:vertical"></textarea>
-            <div><button type="submit" class="vy-btn">Send</button></div>
+            <label class="vy-sr-only" for="vy-lbl-messages-subject">{{ __('guest/messages.subject_placeholder') }}</label>
+            <input id="vy-lbl-messages-subject" class="vy-input" type="text" name="subject" placeholder="{{ __('guest/messages.subject_placeholder') }}" maxlength="120" required>
+            <label class="vy-sr-only" for="vy-lbl-messages-body">{{ __('guest/messages.body_placeholder') }}</label>
+            <textarea id="vy-lbl-messages-body" class="vy-input" name="body" rows="3" placeholder="{{ __('guest/messages.body_placeholder') }}" maxlength="5000" required style="resize:vertical"></textarea>
+            <div><button type="submit" class="vy-btn">{{ __('guest/messages.send') }}</button></div>
         </form>
     </section>
 </x-guest.shell>

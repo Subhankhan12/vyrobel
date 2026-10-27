@@ -101,7 +101,7 @@ class OnboardingController extends Controller
                 ? ['required', 'confirmed', Password::defaults()]
                 : ['prohibited'],
         ], [
-            'email.unique' => 'We couldn’t create your account with these details. If you already have one, sign in.',
+            'email.unique' => __('php/http/controllers/auth/onboarding_controller.email_unavailable'),
         ]);
 
         $result = $provisioner->provision(
@@ -140,7 +140,7 @@ class OnboardingController extends Controller
         return redirect()->to('/app/portfolio')->with('portfolio_notice',
             // ⚠️ P-6 · Gate 1 — the very first sentence a new tenant reads. It used to name three steps, none of
             // which was possible. Now it names the two that are, in the order the storefront needs them.
-            'Welcome to Vyrobel! '.$result['property']->name.' is ready — add a room type and a unit, then a rate plan with prices, and you can take bookings.');
+            __('php/http/controllers/auth/onboarding_controller.welcome', ['property' => $result['property']->name]));
     }
 
     /**

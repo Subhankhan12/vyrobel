@@ -19,21 +19,21 @@
     $viewer = \Illuminate\Support\Facades\Auth::guard('guest')->user();
     $viewerName = \App\Support\Guest\GuestName::display($viewer);
     $nav = [
-        ['trips', 'Trips', route('guest.trips')],
-        ['payments', 'Payments', route('guest.payments')],
-        ['wallet', 'Wallet', route('guest.wallet')],
-        ['messages', 'Messages', route('guest.messages')],
-        ['saved', 'Saved', route('guest.saved')],
-        ['account', 'Account', route('guest.account')],
-        ['help', 'Help', route('guest.help')],
+        ['trips', __('components/guest/shell.nav_trips'), route('guest.trips')],
+        ['payments', __('components/guest/shell.nav_payments'), route('guest.payments')],
+        ['wallet', __('components/guest/shell.nav_wallet'), route('guest.wallet')],
+        ['messages', __('components/guest/shell.nav_messages'), route('guest.messages')],
+        ['saved', __('components/guest/shell.nav_saved'), route('guest.saved')],
+        ['account', __('components/guest/shell.nav_account'), route('guest.account')],
+        ['help', __('components/guest/shell.nav_help'), route('guest.help')],
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title !== '' ? $title.' · ' : '' }}Vyrobel</title>
+    <title>{{ $title !== '' ? __('components/guest/shell.page_title', ['title' => $title]) : 'Vyrobel' }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -238,7 +238,7 @@
                 @endforeach
                 <form method="POST" action="{{ route('guest.logout') }}" style="margin:0">
                     @csrf
-                    <button type="submit" class="vy-signout">Sign out</button>
+                    <button type="submit" class="vy-signout">{{ __('common.sign_out') }}</button>
                 </form>
             </nav>
 

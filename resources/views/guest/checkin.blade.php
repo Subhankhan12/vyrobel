@@ -6,7 +6,7 @@
 @php
     $windowLabel = $arrivalWindows[$arrivalWindow] ?? null;
 @endphp
-<x-guest.shell active="trips" :title="'Check in · '.$reference">
+<x-guest.shell active="trips" :title="__('guest/checkin.page_title', ['reference' => $reference])">
     <x-slot:head>
         <style>
             .ci-hero { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; background: linear-gradient(135deg, rgba(255,252,248,.72), rgba(255,246,238,.5)); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 22px; margin-bottom: 18px; }
@@ -91,7 +91,7 @@
         </style>
     </x-slot:head>
 
-    <a class="vy-link" href="{{ route('guest.reservation', $reservation) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Back to my stay</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservation) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">{{ __('guest/checkin.back_to_my_stay_link') }}</a>
 
     @if (session('status'))
         <div class="vy-notice" style="margin:12px 0 16px">{{ session('status') }}</div>
@@ -103,24 +103,24 @@
             <div class="ci-hero-mark"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="9" r="4.2"></circle><path d="M11.4 11.6 20 20.2"></path><path d="M16.5 17.2l1.9-1.9"></path></svg></div>
             <div style="min-width:0">
                 @if ($submitted)
-                    <span class="ci-pill done"><span class="dot"></span>Checked in</span>
+                    <span class="ci-pill done"><span class="dot"></span>{{ __('guest/checkin.pill_checked_in') }}</span>
                 @else
-                    <span class="ci-pill pending"><span class="dot"></span>Not checked in yet</span>
+                    <span class="ci-pill pending"><span class="dot"></span>{{ __('guest/checkin.pill_not_checked_in') }}</span>
                 @endif
-                <h1 class="ci-title">Online check-in</h1>
-                <p class="ci-sub">Two minutes now — we’ll email your arrival details and door code before you travel, so you can head straight to {{ $property }}.</p>
+                <h1 class="ci-title">{{ __('guest/checkin.heading') }}</h1>
+                <p class="ci-sub">{{ __('guest/checkin.subheading', ['property' => $property]) }}</p>
             </div>
         </div>
         <div class="ci-stats">
-            <div class="ci-stat"><div class="n">{{ $submitted ? 'Done' : '3 steps' }}</div><div class="l">Check-in</div></div>
-            <div class="ci-stat"><div class="n">{{ $checkInShort }}</div><div class="l">Arrival · {{ $checkInDay }}</div></div>
-            <div class="ci-stat"><div class="n">{{ $guestsTotal }}</div><div class="l">{{ \Illuminate\Support\Str::plural('Guest', $guestsTotal) }}{{ $daysToArrival > 0 ? ' · in '.$daysToArrival.'d' : '' }}</div></div>
-            <div class="ci-stat"><div class="n">By email</div><div class="l">Door code · pre-arrival</div></div>
+            <div class="ci-stat"><div class="n">{{ $submitted ? __('guest/checkin.stat_done') : __('guest/checkin.stat_three_steps') }}</div><div class="l">{{ __('guest/checkin.stat_check_in') }}</div></div>
+            <div class="ci-stat"><div class="n">{{ $checkInShort }}</div><div class="l">{{ __('guest/checkin.stat_arrival', ['day' => $checkInDay]) }}</div></div>
+            <div class="ci-stat"><div class="n">{{ $guestsTotal }}</div><div class="l">{{ $daysToArrival > 0 ? trans_choice('guest/checkin.stat_guests_in_days', $guestsTotal, ['days' => $daysToArrival]) : trans_choice('guest/checkin.stat_guests', $guestsTotal) }}</div></div>
+            <div class="ci-stat"><div class="n">{{ __('guest/checkin.stat_by_email') }}</div><div class="l">{{ __('guest/checkin.stat_door_code') }}</div></div>
         </div>
     </div>
 
     @if (! $checkinable)
-        <div class="vy-card"><div class="vy-empty">This booking can no longer be checked in online. Message the property if you need anything for your stay.</div></div>
+        <div class="vy-card"><div class="vy-empty">{{ __('guest/checkin.not_checkinable') }}</div></div>
     @else
         <div class="ci-bento">
             <div class="ci-main">
@@ -129,33 +129,33 @@
                     <div class="vy-card" style="padding:26px">
                         <div style="text-align:center;padding:6px 0 14px">
                             <div class="ci-done-ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg></div>
-                            <div style="font-family:var(--vy-display);font-weight:600;font-size:23px;letter-spacing:-.02em">You’re checked in{{ $firstName !== '' ? ', '.$firstName : '' }}</div>
-                            <div style="font-size:12.5px;color:var(--vy-muted);margin-top:6px">Guest register {{ $idCaptured ? 'captured' : 'noted' }} · nothing to sign at the desk</div>
+                            <div style="font-family:var(--vy-display);font-weight:600;font-size:23px;letter-spacing:-.02em">{{ $firstName !== '' ? __('guest/checkin.done_heading_named', ['name' => $firstName]) : __('guest/checkin.done_heading') }}</div>
+                            <div style="font-size:12.5px;color:var(--vy-muted);margin-top:6px">{{ $idCaptured ? __('guest/checkin.register_captured') : __('guest/checkin.register_noted') }}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(217,102,46,.10);border:1px solid rgba(232,112,58,.35);margin-bottom:10px">
                             <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.16);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
-                            <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500;color:var(--vy-accent-text)">Door code arrives by email</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">Before your arrival — no key pickup</span></span>
+                            <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500;color:var(--vy-accent-text)">{{ __('guest/checkin.door_code_arrives') }}</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">{{ __('guest/checkin.before_arrival_no_pickup') }}</span></span>
                         </div>
                         @if ($windowLabel !== null)
                             <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:18px">
                                 <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span>
-                                <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500">Arrival window noted</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">{{ $windowLabel }} · we’ll prep the room</span></span>
+                                <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500">{{ __('guest/checkin.arrival_window_noted') }}</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">{{ __('guest/checkin.window_prep', ['window' => $windowLabel]) }}</span></span>
                             </div>
                         @endif
-                        <a class="ci-btn" style="display:block;text-align:center;text-decoration:none" href="{{ route('guest.reservation', $reservation) }}">Back to my stay</a>
+                        <a class="ci-btn" style="display:block;text-align:center;text-decoration:none" href="{{ route('guest.reservation', $reservation) }}">{{ __('guest/checkin.back_to_my_stay') }}</a>
                     </div>
                 @else
                     {{-- WIZARD --}}
                     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px">
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:16px">Complete your check-in</div>
-                        <div id="ci-stepof" style="font-size:11.5px;color:var(--vy-faint)">Step 1 of 3</div>
+                        <div style="font-family:var(--vy-display);font-weight:600;font-size:16px">{{ __('guest/checkin.complete_your_checkin') }}</div>
+                        <div id="ci-stepof" style="font-size:11.5px;color:var(--vy-faint)">{{ __('guest/checkin.step_of', ['step' => 1]) }}</div>
                     </div>
                     <div class="ci-rail">
-                        <div class="seg"><span class="circ active" data-circ="1">1</span><span class="lbl">Details</span></div>
+                        <div class="seg"><span class="circ active" data-circ="1">1</span><span class="lbl">{{ __('guest/checkin.rail_details') }}</span></div>
                         <div class="bar"></div>
-                        <div class="seg mid"><span class="circ" data-circ="2">2</span><span class="lbl">ID</span></div>
+                        <div class="seg mid"><span class="circ" data-circ="2">2</span><span class="lbl">{{ __('guest/checkin.rail_id') }}</span></div>
                         <div class="bar"></div>
-                        <div class="seg end"><span class="circ" data-circ="3">3</span><span class="lbl">Arrival</span></div>
+                        <div class="seg end"><span class="circ" data-circ="3">3</span><span class="lbl">{{ __('guest/checkin.rail_arrival') }}</span></div>
                     </div>
 
                     <form id="ci-form" class="vy-card" method="POST" action="{{ route('guest.checkin.submit', $reservation) }}" enctype="multipart/form-data" data-guard-submit style="padding:24px">
@@ -163,33 +163,33 @@
 
                         {{-- STEP 1 — details --}}
                         <div data-step="1">
-                            <div class="ci-step-h">Let’s check you in{{ $firstName !== '' ? ', '.$firstName : '' }}</div>
-                            <div class="ci-step-sub">Two minutes now — keys straight away on arrival. We prefilled what we know.</div>
+                            <div class="ci-step-h">{{ $firstName !== '' ? __('guest/checkin.step1_heading_named', ['name' => $firstName]) : __('guest/checkin.step1_heading') }}</div>
+                            <div class="ci-step-sub">{{ __('guest/checkin.step1_sub') }}</div>
                             <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                                    <div><div class="ci-fl">First name</div><div class="ci-readonly">{{ $firstName !== '' ? $firstName : '—' }}</div></div>
-                                    <div><div class="ci-fl">Last name</div><div class="ci-readonly">{{ $lastName !== '' ? $lastName : '—' }}</div></div>
+                                    <div><div class="ci-fl">{{ __('guest/checkin.first_name') }}</div><div class="ci-readonly">{{ $firstName !== '' ? $firstName : '—' }}</div></div>
+                                    <div><div class="ci-fl">{{ __('guest/checkin.last_name') }}</div><div class="ci-readonly">{{ $lastName !== '' ? $lastName : '—' }}</div></div>
                                 </div>
-                                <div><div class="ci-fl">Email</div><div class="ci-readonly">{{ $email !== '' ? $email : '—' }}</div></div>
-                                <div><div class="ci-fl">Phone · for your arrival details</div><input id="vy-lbl-checkin-phone" class="ci-in" type="tel" name="phone" value="{{ old('phone', $phone) }}" placeholder="+351 …"></div>
+                                <div><div class="ci-fl">{{ __('common.email') }}</div><div class="ci-readonly">{{ $email !== '' ? $email : '—' }}</div></div>
+                                <div><div class="ci-fl">{{ __('guest/checkin.phone_label') }}</div><input id="vy-lbl-checkin-phone" class="ci-in" type="tel" name="phone" value="{{ old('phone', $phone) }}" placeholder="+351 …"></div>
                             </div>
                             @if ($coGuests > 0)
                                 <div class="ci-note-box" style="margin-bottom:18px">
                                     <span style="width:30px;height:30px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"></path></svg></span>
-                                    <span>Travelling with {{ $coGuests }} more {{ \Illuminate\Support\Str::plural('guest', $coGuests) }} on the booking. Only the lead guest checks in online.</span>
+                                    <span>{{ trans_choice('guest/checkin.travelling_with', $coGuests, ['count' => $coGuests]) }}</span>
                                 </div>
                             @endif
-                            <button type="button" class="ci-btn" onclick="vyCiStep(2)">Continue to ID</button>
+                            <button type="button" class="ci-btn" onclick="vyCiStep(2)">{{ __('guest/checkin.continue_to_id') }}</button>
                         </div>
 
                         {{-- STEP 2 — ID (real encrypted capture; captured, not verified) --}}
                         <div data-step="2" hidden>
-                            <div class="ci-step-h">Add your ID</div>
-                            <div class="ci-step-sub">Local law asks us to register guests. A quick photo does it — no queue at the desk.</div>
+                            <div class="ci-step-h">{{ __('guest/checkin.step2_heading') }}</div>
+                            <div class="ci-step-sub">{{ __('guest/checkin.step2_sub') }}</div>
                             <input type="hidden" name="id_type" id="ci-idtype" value="{{ $idType }}">
                             <div class="ci-idtypes">
-                                <button type="button" class="ci-idtype {{ $idType === 'passport' ? 'on' : '' }}" data-idtype="passport" onclick="vyCiIdType('passport')">Passport</button>
-                                <button type="button" class="ci-idtype {{ $idType === 'id_card' ? 'on' : '' }}" data-idtype="id_card" onclick="vyCiIdType('id_card')">EU ID card</button>
+                                <button type="button" class="ci-idtype {{ $idType === 'passport' ? 'on' : '' }}" data-idtype="passport" onclick="vyCiIdType('passport')">{{ __('guest/checkin.id_passport') }}</button>
+                                <button type="button" class="ci-idtype {{ $idType === 'id_card' ? 'on' : '' }}" data-idtype="id_card" onclick="vyCiIdType('id_card')">{{ __('guest/checkin.id_card') }}</button>
                             </div>
                             <label class="ci-idzone {{ $idCaptured ? 'has' : '' }}" id="ci-idzone">
                                 <input type="file" name="id_photo" accept="image/*" capture="environment" class="ci-file" onchange="vyCiIdFile(this)">
@@ -200,54 +200,54 @@
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v12H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg>
                                     @endif
                                 </span>
-                                <span class="t" id="ci-idzone-t">{{ $idCaptured ? 'ID on file — retake to replace' : 'Photograph your ID' }}</span>
-                                <span class="s" id="ci-idzone-s">{{ $idCaptured ? 'Captured for the guest register' : 'Tap to open the camera · photo page only' }}</span>
+                                <span class="t" id="ci-idzone-t">{{ $idCaptured ? __('guest/checkin.id_on_file') : __('guest/checkin.id_photograph') }}</span>
+                                <span class="s" id="ci-idzone-s">{{ $idCaptured ? __('guest/checkin.id_captured_register') : __('guest/checkin.id_tap_camera') }}</span>
                             </label>
                             <div class="ci-privacy">
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10V6z"></path><path d="M9 12l2 2 4-4.5"></path></svg>
-                                <span>Encrypted · used only for the guest register · deleted 30 days after checkout</span>
+                                <span>{{ __('guest/checkin.id_privacy') }}</span>
                             </div>
-                            <button type="button" class="ci-btn" onclick="vyCiStep(3)">Continue to arrival</button>
-                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(1)">Back</button>
+                            <button type="button" class="ci-btn" onclick="vyCiStep(3)">{{ __('guest/checkin.continue_to_arrival') }}</button>
+                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(1)">{{ __('common.back') }}</button>
                         </div>
 
                         {{-- STEP 3 — arrival --}}
                         <div data-step="3" hidden>
-                            <div class="ci-step-h">When do you arrive?</div>
-                            <div class="ci-step-sub">Housekeeping plans around this — and an early-arrival request is noted for the team.</div>
-                            <div class="ci-fl">Arrival window · {{ $checkInLabel }}</div>
+                            <div class="ci-step-h">{{ __('guest/checkin.step3_heading') }}</div>
+                            <div class="ci-step-sub">{{ __('guest/checkin.step3_sub') }}</div>
+                            <div class="ci-fl">{{ __('guest/checkin.arrival_window_label', ['date' => $checkInLabel]) }}</div>
                             <input type="hidden" name="arrival_window" id="ci-window" value="{{ $arrivalWindow }}">
                             <div class="ci-slots">
                                 @foreach ($arrivalWindows as $slot => $label)
                                     <button type="button" class="ci-slot {{ $arrivalWindow === $slot ? 'on' : '' }}" data-slot="{{ $slot }}" onclick="vyCiSlot('{{ $slot }}')">{{ $label }}</button>
                                 @endforeach
                             </div>
-                            <div class="ci-fl">Anything we should prepare? · optional</div>
-                            <label class="vy-sr-only" for="vy-lbl-checkin-arrival-note">Allergies, a cot, parking for a larger car…</label>
-                            <textarea id="vy-lbl-checkin-arrival-note" class="ci-in" name="arrival_note" rows="2" placeholder="Allergies, a cot, parking for a larger car…" style="resize:vertical;margin-bottom:18px">{{ old('arrival_note', $arrivalNote) }}</textarea>
-                            <button type="submit" class="ci-btn">Complete check-in</button>
-                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(2)">Back</button>
+                            <div class="ci-fl">{{ __('guest/checkin.prepare_label') }}</div>
+                            <label class="vy-sr-only" for="vy-lbl-checkin-arrival-note">{{ __('guest/checkin.prepare_placeholder') }}</label>
+                            <textarea id="vy-lbl-checkin-arrival-note" class="ci-in" name="arrival_note" rows="2" placeholder="{{ __('guest/checkin.prepare_placeholder') }}" style="resize:vertical;margin-bottom:18px">{{ old('arrival_note', $arrivalNote) }}</textarea>
+                            <button type="submit" class="ci-btn">{{ __('guest/checkin.complete_checkin') }}</button>
+                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(2)">{{ __('common.back') }}</button>
                         </div>
                     </form>
                 @endif
 
-                <div style="text-align:center;font-size:11px;color:var(--vy-faint);margin-top:14px;line-height:1.5">Reservation {{ $reference }} · questions? <a href="{{ route('guest.messages') }}" style="color:var(--vy-accent-text);font-weight:500;text-decoration:none">Message the property</a></div>
+                <div style="text-align:center;font-size:11px;color:var(--vy-faint);margin-top:14px;line-height:1.5">{!! __('guest/checkin.reservation_questions', ['reference' => e($reference), 'url' => e(route('guest.messages'))]) !!}</div>
             </div>
 
             {{-- SIDEBAR --}}
             <div class="ci-side">
                 <div class="ci-side-card">
-                    <div class="ci-side-h"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 5l8 6.5"></path><path d="M6 10.5V20h12v-9.5"></path></svg></span><span class="t">Your stay</span></div>
-                    <div class="ci-kv"><span class="k">Property</span><span class="v">{{ $property }}</span></div>
-                    <div class="ci-kv"><span class="k">Dates</span><span class="v">{{ $checkInShort }} · {{ $nights }} {{ \Illuminate\Support\Str::plural('night', $nights) }}</span></div>
-                    <div class="ci-kv"><span class="k">Guests</span><span class="v">{{ $adults }} {{ \Illuminate\Support\Str::plural('adult', $adults) }}@if ($children > 0), {{ $children }} {{ \Illuminate\Support\Str::plural('child', $children) }}@endif</span></div>
-                    <div class="ci-kv"><span class="k">Reservation</span><span class="v">{{ $reference }}</span></div>
+                    <div class="ci-side-h"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 5l8 6.5"></path><path d="M6 10.5V20h12v-9.5"></path></svg></span><span class="t">{{ __('guest/checkin.your_stay') }}</span></div>
+                    <div class="ci-kv"><span class="k">{{ __('guest/checkin.property') }}</span><span class="v">{{ $property }}</span></div>
+                    <div class="ci-kv"><span class="k">{{ __('guest/checkin.dates') }}</span><span class="v">{{ trans_choice('guest/checkin.dates_value', $nights, ['date' => $checkInShort, 'count' => $nights]) }}</span></div>
+                    <div class="ci-kv"><span class="k">{{ __('guest/checkin.guests') }}</span><span class="v">{{ $children > 0 ? __('guest/checkin.adults_and_children', ['adults' => trans_choice('guest/checkin.adults', $adults, ['count' => $adults]), 'children' => trans_choice('guest/checkin.children', $children, ['count' => $children])]) : trans_choice('guest/checkin.adults', $adults, ['count' => $adults]) }}</span></div>
+                    <div class="ci-kv"><span class="k">{{ __('guest/checkin.reservation') }}</span><span class="v">{{ $reference }}</span></div>
                 </div>
                 <div class="ci-side-card">
-                    <div class="ci-side-h"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 4.6L19 8.2l-3.5 3.4.9 4.9L12 14.2 7.6 16.5l.9-4.9L5 8.2l4.9-.6z"></path></svg></span><span class="t">What this unlocks</span></div>
-                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span><span><span class="t">Door code by email</span><span class="s">Sent before arrival — no key pickup</span></span></div>
-                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5z"></path></svg></span><span><span class="t">Skip the front desk</span><span class="s">Walk straight to your room on arrival</span></span></div>
-                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span><span><span class="t">Arrival window noted</span><span class="s">We’ll prep the room as soon as we can</span></span></div>
+                    <div class="ci-side-h"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 4.6L19 8.2l-3.5 3.4.9 4.9L12 14.2 7.6 16.5l.9-4.9L5 8.2l4.9-.6z"></path></svg></span><span class="t">{{ __('guest/checkin.what_this_unlocks') }}</span></div>
+                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span><span><span class="t">{{ __('guest/checkin.door_code_by_email') }}</span><span class="s">{{ __('guest/checkin.sent_before_arrival') }}</span></span></div>
+                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5z"></path></svg></span><span><span class="t">{{ __('guest/checkin.skip_front_desk') }}</span><span class="s">{{ __('guest/checkin.walk_straight') }}</span></span></div>
+                    <div class="ci-unlock"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span><span><span class="t">{{ __('guest/checkin.arrival_window_noted') }}</span><span class="s">{{ __('guest/checkin.prep_room_asap') }}</span></span></div>
                 </div>
             </div>
         </div>
@@ -265,7 +265,7 @@
                         c.classList.toggle('on', i < n);
                     });
                     var so = document.getElementById('ci-stepof');
-                    if (so) so.textContent = 'Step ' + n + ' of 3';
+                    if (so) so.textContent = @js(__('guest/checkin.step_of', ['step' => ':step'])).replace(':step', n);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
                 function vyCiIdType(t) {
@@ -278,8 +278,8 @@
                     var s = document.getElementById('ci-idzone-s');
                     if (input.files && input.files.length) {
                         zone.classList.add('has');
-                        if (t) { t.textContent = 'Photo ready to submit'; }
-                        if (s) { s.textContent = 'Captured for the guest register · not shared with the owner'; }
+                        if (t) { t.textContent = @js(__('guest/checkin.photo_ready')); }
+                        if (s) { s.textContent = @js(__('guest/checkin.id_captured_not_shared')); }
                     }
                 }
                 function vyCiSlot(v) {

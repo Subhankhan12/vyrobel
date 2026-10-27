@@ -17,7 +17,7 @@
      enhancement), which is why the bell links here rather than opening a popover.
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-guest.shell active="notifications" title="Notifications">
+<x-guest.shell active="notifications" :title="__('guest/notifications.title')">
 
     {{-- Hero — the guest-realm idiom (the Messages/Payments pages open the same way). --}}
     <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin-bottom:18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
@@ -26,12 +26,12 @@
         </div>
         <div style="min-width:0">
             {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
-            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">Notifications</h1>
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">{{ __('guest/notifications.title') }}</h1>
             <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">
                 @if ($feed['unread'] > 0)
-                    {{ $feed['unread'] }} unread · updates about your bookings, messages and account.
+                    {{ trans_choice('guest/notifications.unread_summary', $feed['unread'], ['count' => $feed['unread']]) }}
                 @else
-                    Updates about your bookings, messages and account.
+                    {{ __('guest/notifications.summary') }}
                 @endif
             </div>
         </div>
@@ -41,15 +41,15 @@
     @if ($feed['items'] !== [] || $feed['categories'] !== [])
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <a href="{{ route('guest.notifications') }}" class="{{ $filter === 'all' ? 'vy-btn' : 'vy-btn vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">All</a>
+                <a href="{{ route('guest.notifications') }}" class="{{ $filter === 'all' ? 'vy-btn' : 'vy-btn vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">{{ __('common.all') }}</a>
                 @foreach ($feed['categories'] as $cat)
-                    <a href="{{ route('guest.notifications', ['filter' => $cat]) }}" class="{{ $filter === $cat ? 'vy-btn' : 'vy-btn vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">{{ ucwords(str_replace('_', ' ', $cat)) }}</a>
+                    <a href="{{ route('guest.notifications', ['filter' => $cat]) }}" class="{{ $filter === $cat ? 'vy-btn' : 'vy-btn vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">{{ \App\Support\Notifications\NotificationFeed::categoryLabel($cat) }}</a>
                 @endforeach
             </div>
             @if ($feed['unread'] > 0)
                 <form method="POST" action="{{ route('guest.notifications.read-all') }}" style="margin:0">
                     @csrf
-                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px">Mark all read</button>
+                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px">{{ __('guest/notifications.mark_all_read') }}</button>
                 </form>
             @endif
         </div>
@@ -63,11 +63,11 @@
                     <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">
                         <span style="font-size:13.5px;font-weight:{{ $item['read'] ? '500' : '700' }};color:var(--vy-ink)">{{ $item['title'] }}</span>
                         <span style="display:flex;align-items:center;gap:8px;flex:none">
-                            <span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
+                            <span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ \App\Support\Notifications\NotificationFeed::categoryLabel($item['category']) }}</span>
                             {{-- 1.4.1 — the dot is the design, but "unread" must not ride on colour alone. --}}
                             @unless ($item['read'])
                                 <span aria-hidden="true" style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent)"></span>
-                                <span class="vy-sr-only">Unread</span>
+                                <span class="vy-sr-only">{{ __('guest/notifications.unread') }}</span>
                             @endunless
                         </span>
                     </div>
@@ -77,23 +77,23 @@
                 @unless ($item['read'])
                     <form method="POST" action="{{ route('guest.notifications.read', $item['id']) }}" style="margin:0;flex:none">
                         @csrf
-                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Mark read" aria-label="Mark &ldquo;{{ $item['title'] }}&rdquo; as read">&check;</button>
+                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="{{ __('guest/notifications.mark_read') }}" aria-label="{{ __('guest/notifications.mark_read_label', ['title' => $item['title']]) }}">&check;</button>
                     </form>
                 @endunless
                 {{-- Dismiss sits OUTSIDE the unless, exactly as in the other two feeds: an already-read
                      notification can still be taken off the list (§N.8f). --}}
                 <form method="POST" action="{{ route('guest.notifications.dismiss', $item['id']) }}" style="margin:0;flex:none">
                     @csrf
-                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Dismiss" aria-label="Dismiss &ldquo;{{ $item['title'] }}&rdquo;">&times;</button>
+                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="{{ __('guest/notifications.dismiss') }}" aria-label="{{ __('guest/notifications.dismiss_label', ['title' => $item['title']]) }}">&times;</button>
                 </form>
             </div>
         @empty
             {{-- ⚠️ THE SEEDED REALITY. The demo persists zero guest notifications, so this is the state a fresh
                  guest actually sees — an honest empty state, not a placeholder list. --}}
             <div style="padding:34px 16px;text-align:center">
-                <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">All caught up</div>
+                <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">{{ __('guest/notifications.empty_heading') }}</div>
                 <div style="font-size:12.5px;color:var(--vy-muted);margin-top:5px">
-                    You have no notifications yet. Updates about your bookings, messages and account will appear here.
+                    {{ __('guest/notifications.empty_body') }}
                 </div>
             </div>
         @endforelse

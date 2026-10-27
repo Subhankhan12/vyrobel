@@ -2,11 +2,11 @@
 {{-- Vyrobel login (Auth Phase A) — the shared operator/owner front door. Styled from the approved
      "Vyrobel Login" design onto the shared Vyrobel tokens (warm glass, terracotta, Sora/Inter, drifting
      blob). Real, CSRF-protected, rate-limited login — not a stub. Self-contained (unauthenticated). --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in · Vyrobel</title>
+    <title>{{ __('auth/login.page_title') }}</title>
     <x-favicon />
 
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
@@ -100,10 +100,11 @@
         <div class="vy-brand">
             <span class="vy-brand-mark">V</span>
             <span class="vy-brand-name">Vyrobel</span>
+            <x-language-menu />
         </div>
 
-        <h1 class="vy-title">Welcome back</h1>
-        <p class="vy-sub">Sign in to your Vyrobel account.</p>
+        <h1 class="vy-title">{{ __('auth/login.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/login.subheading') }}</p>
 
         {{-- ⚠️ F-4 — THE OUTCOME OF AN EMAIL CHANGE LANDS HERE AND WAS RENDERED BY NOBODY. OwnerAccountController
              and the reset/approval paths all redirect to this page with `status`, and this view never read it:
@@ -126,24 +127,24 @@
         <form method="POST" action="{{ route('login') }}" novalidate>
             @csrf
             <div class="vy-field">
-                <label class="vy-label" for="email">Email</label>
+                <label class="vy-label" for="email">{{ __('common.email') }}</label>
                 <input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="username" autofocus required>
             </div>
             <div class="vy-field">
                 <div class="vy-row">
-                    <label class="vy-label" for="password" style="margin-bottom:0;">Password</label>
-                    <a class="vy-forgot" href="{{ route('password.request') }}">Forgot password?</a>
+                    <label class="vy-label" for="password" style="margin-bottom:0;">{{ __('auth/common.password') }}</label>
+                    <a class="vy-forgot" href="{{ route('password.request') }}">{{ __('auth/login.forgot_password') }}</a>
                 </div>
                 <div class="vy-input-wrap" style="margin-top:7px;">
                     <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required>
-                    <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password" aria-pressed="false">
+                    <button type="button" class="vy-eye" data-toggle="password" aria-label="{{ __('auth/common.show_password') }}" aria-pressed="false">
                         <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                         <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
                     </button>
                 </div>
             </div>
 
-            <button type="submit" class="vy-btn">Sign in</button>
+            <button type="submit" class="vy-btn">{{ __('auth/login.sign_in') }}</button>
         </form>
 
         {{-- ⚠️ CONTINUE WITH GOOGLE — rendered ONLY when the founder has configured the console credentials.
@@ -155,7 +156,7 @@
             && (\App\Support\Platform\PlatformSwitches::signinAllowed('google') || \App\Support\Platform\PlatformSwitches::signupAllowed('google')))
             <a href="{{ route('social.google.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
                 <svg width="16" height="16" viewBox="0 0 48 48" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.3 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.3c-.4-1.3-.7-2.7-.7-4.3s.3-3 .7-4.3v-5.7H4.5C2.9 17.2 2 20.5 2 24s.9 6.8 2.5 10l7.3-5.7z"/><path fill="#EA4335" d="M24 10.7c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.1 29.9 2 24 2 15.5 2 8.1 6.7 4.5 13.7l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>
-                Continue with Google
+                {{ __('auth/login.continue_with_google') }}
             </a>
         @endif
 
@@ -170,18 +171,18 @@
             && (\App\Support\Platform\PlatformSwitches::signinAllowed('twitter') || \App\Support\Platform\PlatformSwitches::signupAllowed('twitter')))
             <a href="{{ route('social.twitter.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                Continue with X
+                {{ __('auth/login.continue_with_x') }}
             </a>
         @endif
 
         {{-- Passkey sign-in (Wave B · GATE 4) — passwordless WebAuthn; only shown where the browser supports it --}}
         <button type="button" id="vy-passkey-btn" class="vy-btn" style="display:none;margin-top:10px;background:transparent;color:var(--vy-accent);border:1px solid var(--vy-accent);">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Sign in with a passkey
+            {{ __('auth/login.sign_in_with_passkey') }}
         </button>
         <p id="vy-passkey-msg" style="display:none;font-size:12px;color:var(--vy-muted);margin-top:8px;text-align:center;"></p>
 
-        <div class="vy-foot">New to Vyrobel? <a class="vy-forgot" href="{{ route('signup') }}">Create an account</a></div>
+        <div class="vy-foot">{!! __('auth/login.new_to_vyrobel', ['url' => e(route('signup'))]) !!}</div>
     </main>
     <script>
         (function () {
@@ -200,9 +201,9 @@
                     var res = await fetch('{{ route('passkeys.login') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'Content-Type': 'application/json' }, body: JSON.stringify(assertion.toJSON()) });
                     var data = await res.json();
                     if (data.ok && data.redirect) { location.href = data.redirect; return; }
-                    msg.textContent = data.message || 'Passkey sign-in failed.'; msg.style.display = '';
+                    msg.textContent = data.message || @js(__('auth/login.passkey_failed')); msg.style.display = '';
                 } catch (e) {
-                    msg.textContent = 'Passkey sign-in was cancelled or not available.'; msg.style.display = '';
+                    msg.textContent = @js(__('auth/login.passkey_cancelled')); msg.style.display = '';
                 }
                 btn.disabled = false;
             });
@@ -217,7 +218,7 @@
                     var show = input.type === 'password';
                     input.type = show ? 'text' : 'password';
                     eye.setAttribute('aria-pressed', show ? 'true' : 'false');
-                    eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                    eye.setAttribute('aria-label', show ? @js(__('auth/common.hide_password')) : @js(__('auth/common.show_password')));
                     var open = eye.querySelector('.vy-eye-show'), closed = eye.querySelector('.vy-eye-hide');
                     if (open) { open.style.display = show ? 'none' : ''; }
                     if (closed) { closed.style.display = show ? '' : 'none'; }

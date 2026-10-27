@@ -103,12 +103,15 @@ trait CompletesSignIn
             'token' => $token,
         ]);
 
-        Mail::to((string) $user->email)->queue(new LoginApprovalMail(
+        // I18N-01 — the device and time are written in the RECIPIENT's language, the same one the mail is sent in.
+        $locale = $user->preferredLocale();
+
+        Mail::to((string) $user->email)->locale($locale)->queue(new LoginApprovalMail(
             userName: (string) $user->name,
             approveUrl: $approveUrl,
-            device: $this->deviceLabel($request),
+            device: $this->deviceLabel($request, $locale),
             ip: (string) $request->ip(),
-            when: now()->format('j M Y, H:i'),
+            when: now()->locale($locale)->translatedFormat('j M Y, H:i'),
         ));
 
         $request->session()->put('login.approval.user_id', (string) $user->getKey());
@@ -119,7 +122,7 @@ trait CompletesSignIn
     }
 
     /** A short human device label from the user-agent — for the approval email (not fingerprinting). */
-    protected function deviceLabel(Request $request): string
+    protected function deviceLabel(Request $request, ?string $locale = null): string
     {
         $ua = (string) $request->userAgent();
         $browser = match (true) {
@@ -127,7 +130,7 @@ trait CompletesSignIn
             str_contains($ua, 'Chrome') => 'Chrome',
             str_contains($ua, 'Firefox') => 'Firefox',
             str_contains($ua, 'Safari') => 'Safari',
-            default => 'a browser',
+            default => __('php/http/controllers/auth/concerns/completes_sign_in.unknown_browser', [], $locale),
         };
         $os = match (true) {
             str_contains($ua, 'Windows') => 'Windows',
@@ -135,9 +138,9 @@ trait CompletesSignIn
             str_contains($ua, 'iPhone') || str_contains($ua, 'iPad') => 'iOS',
             str_contains($ua, 'Android') => 'Android',
             str_contains($ua, 'Linux') => 'Linux',
-            default => 'an unknown device',
+            default => __('php/http/controllers/auth/concerns/completes_sign_in.unknown_device', [], $locale),
         };
 
-        return $browser.' on '.$os;
+        return __('php/http/controllers/auth/concerns/completes_sign_in.browser_on_os', ['browser' => $browser, 'os' => $os], $locale);
     }
 }

@@ -1,0 +1,40 @@
+<?php
+
+// resources/views/booking/checkout.blade.php — the public checkout: review the stay, the guest's details and payment.
+
+return [
+    'page_title' => 'Checkout',
+    'secure_checkout' => 'Secure checkout',
+    'back_to_rooms' => 'Back to rooms',
+    'unavailable_heading' => 'That room isn’t available for these dates.',
+    'choose_another_room' => 'Choose another room',
+    'heading' => 'Complete your booking',
+    'choose_your_room' => 'Choose your room',
+    'choose_your_unit' => 'Choose your unit',
+    'any_available' => 'Any available — :total',
+    'your_details' => 'Your details',
+    'first_name' => 'First name',
+    'last_name' => 'Last name',
+    'payment' => 'Payment',
+    'how_to_pay' => 'How would you like to pay?',
+    'pay_now' => 'Pay now',
+    // printed raw (it carries <strong>); the space in "Apple Pay" is a no-break space, as before
+    'pay_now_detail' => "Secure card & Apple\u{00A0}Pay — we never see your card number. <strong>Test mode:</strong> no real charge until go-live.",
+    'pay_on_arrival' => 'Pay on arrival',
+    'pay_on_arrival_detail' => 'Reserve now and settle at the property — no card is collected here.',
+    'secure_note' => 'Encrypted connection · your room is only reserved once you confirm — availability is re-checked at that moment.',
+    'check_in' => 'Check-in',
+    'check_out' => 'Check-out',
+    'guests' => 'Guests',
+    'guests_count' => '{1} :count guest|[0,*] :count guests',
+    'included' => 'included',
+    'apply_wallet_credit' => 'Apply wallet credit',
+    'wallet_available' => ':amount available in your wallet',
+    'wallet_credit' => 'Wallet credit',
+    'redirecting' => 'Redirecting…',
+    'reserving' => 'Reserving…',
+    'confirm_and_pay' => 'Confirm & pay :amount',
+    'confirm_reservation' => 'Confirm reservation',
+    'you_saved' => 'You saved :amount with wallet credit',
+    'free_cancellation' => 'Free cancellation until :date · no fees',
+];

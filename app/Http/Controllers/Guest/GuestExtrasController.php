@@ -64,7 +64,7 @@ class GuestExtrasController extends Controller
         return view('guest.extras', [
             'reservationId' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
-            'property' => (string) ($model->property->name ?? 'Your stay'),
+            'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_extras_controller.your_stay')),
             'currency' => $currency,
             'vatRate' => $vatRate,
             'catalog' => $catalog,
@@ -103,7 +103,7 @@ class GuestExtrasController extends Controller
             ->map(fn (GuestChangeRequest $request): array => [
                 'status' => (string) $request->status,
                 'names' => $this->addOnNames($reservation, $request),
-                'at' => $request->created_at?->format('j M'),
+                'at' => $request->created_at?->translatedFormat('j M'),
             ])
             ->all();
     }

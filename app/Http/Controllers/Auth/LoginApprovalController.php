@@ -73,7 +73,7 @@ class LoginApprovalController extends Controller
         $approval = $this->approvals->pending($user, $approvalId);
         if ($approval === null || ! $approval->isApproved()) {
             // Not approved yet — stay on the pending screen with an honest nudge.
-            return redirect()->route('login-approval.show')->with('status', 'Not approved yet — open the link in the email we sent, then continue.');
+            return redirect()->route('login-approval.show')->with('status', __('php/http/controllers/auth/login_approval_controller.not_approved_yet'));
         }
 
         $this->approvals->consume($approval);

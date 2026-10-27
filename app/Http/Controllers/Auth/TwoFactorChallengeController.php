@@ -56,7 +56,7 @@ class TwoFactorChallengeController extends Controller
             RateLimiter::hit($this->throttleKey($request, (string) $user->getKey()));
 
             throw ValidationException::withMessages([
-                'code' => 'That code is invalid or has expired. Try again, or use a recovery code.',
+                'code' => __('php/http/controllers/auth/two_factor_challenge_controller.code_invalid'),
             ]);
         }
 

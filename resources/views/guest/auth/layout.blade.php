@@ -2,7 +2,7 @@
      brand tokens as the operator/owner login. Each page fills @section('card'). RAW-BLADE RULE: every `@` follows
      a space, newline or tag. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -77,6 +77,7 @@
         <div class="vy-brand">
             <span class="vy-brand-mark">V</span>
             <span class="vy-brand-name">Vyrobel</span>
+            <x-language-menu />
         </div>
         @yield('card')
     </main>

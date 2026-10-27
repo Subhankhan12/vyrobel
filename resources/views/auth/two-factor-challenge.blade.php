@@ -2,11 +2,11 @@
 {{-- 2FA login challenge (Auth · Step 2) — shown after a correct password when the account has two-factor.
      The visitor is in the PENDING state (not authenticated); only a valid TOTP or recovery code completes
      login. Same shared Vyrobel auth styling as the login screen. Self-contained (unauthenticated). --}}
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Two-step verification · Vyrobel</title>
+    <title>{{ __('auth/two-factor-challenge.page_title') }}</title>
     <x-favicon />
 
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
@@ -94,8 +94,8 @@
             <span class="vy-brand-name">Vyrobel</span>
         </div>
 
-        <h1 class="vy-title">Two-step verification</h1>
-        <p class="vy-sub">Enter the 6-digit code from your authenticator app to finish signing in.</p>
+        <h1 class="vy-title">{{ __('auth/two-factor-challenge.heading') }}</h1>
+        <p class="vy-sub">{{ __('auth/two-factor-challenge.subheading') }}</p>
 
         @if ($errors->any())
             <div class="vy-error" role="alert">
@@ -107,21 +107,21 @@
         <form method="POST" action="{{ route('two-factor.login') }}" novalidate>
             @csrf
             <div class="vy-field">
-                <label class="vy-label" for="code">Authentication code</label>
+                <label class="vy-label" for="code">{{ __('auth/two-factor-challenge.code_label') }}</label>
                 <input class="vy-input" type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" autofocus required>
             </div>
 
             {{-- Trusted device (Wave B · GATE 4) — skip 2FA on THIS browser next time; bounded (30 days) + revocable --}}
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#4A4038;margin:4px 0 14px;cursor:pointer">
-                <input type="checkbox" name="trust_device" value="1"> Trust this device for 30 days (skip codes here)
+                <input type="checkbox" name="trust_device" value="1"> {{ __('auth/two-factor-challenge.trust_device') }}
             </label>
 
-            <button type="submit" class="vy-btn">Verify</button>
+            <button type="submit" class="vy-btn">{{ __('auth/two-factor-challenge.verify') }}</button>
         </form>
 
-        <p class="vy-hint">Lost your device? Enter one of your <strong>recovery codes</strong> above instead. Or <a href="{{ route('login') }}">start over</a>.</p>
+        <p class="vy-hint">{!! __('auth/two-factor-challenge.lost_device', ['url' => e(route('login'))]) !!}</p>
 
-        <div class="vy-foot">Vyrobel · secure sign-in</div>
+        <div class="vy-foot">{{ __('auth/two-factor-challenge.footer') }}</div>
     </main>
 </body>
 </html>

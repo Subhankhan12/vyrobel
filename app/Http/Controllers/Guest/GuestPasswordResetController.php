@@ -23,8 +23,6 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
  */
 class GuestPasswordResetController extends Controller
 {
-    private const GENERIC_STATUS = 'If an account exists for that email, we’ve sent a link to reset your password.';
-
     public function showForgot(): View
     {
         return view('guest.auth.forgot-password');
@@ -39,7 +37,7 @@ class GuestPasswordResetController extends Controller
             'email' => trim((string) $request->string('email')),
         ]);
 
-        return back()->with('status', self::GENERIC_STATUS);
+        return back()->with('status', __('php/http/controllers/guest/guest_password_reset_controller.link_sent'));
     }
 
     /** The "choose a new password" screen — token in the path; the guest re-enters their email (never in the URL). */
@@ -72,10 +70,10 @@ class GuestPasswordResetController extends Controller
 
         if ($status !== Password::PASSWORD_RESET) {
             return back()->withInput($request->only('email'))->withErrors([
-                'email' => 'This password reset link is invalid or has expired. Please request a new one.',
+                'email' => __('php/http/controllers/guest/guest_password_reset_controller.link_invalid'),
             ]);
         }
 
-        return redirect()->route('guest.login')->with('status', 'Your password has been reset — you can now sign in.');
+        return redirect()->route('guest.login')->with('status', __('php/http/controllers/guest/guest_password_reset_controller.password_reset'));
     }
 }

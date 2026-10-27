@@ -44,7 +44,7 @@ class GuestFolioPaymentController extends Controller
         $balanceMinor = (int) $totals['balance_minor'];
 
         if ($folio === null || $balanceMinor <= 0) {
-            return redirect()->to(route('guest.payments'))->with('pay_notice', 'That booking has nothing due.');
+            return redirect()->to(route('guest.payments'))->with('pay_notice', __('php/http/controllers/guest/guest_folio_payment_controller.nothing_due'));
         }
 
         $amount = Money::of($balanceMinor, (string) $booking->currency);
@@ -88,7 +88,7 @@ class GuestFolioPaymentController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->to(route('guest.payments'))->with('pay_error', 'We couldn’t start the payment — please try again.');
+            return redirect()->to(route('guest.payments'))->with('pay_error', __('php/http/controllers/guest/guest_folio_payment_controller.start_failed'));
         }
 
         // UX only — the folio is settled on the webhook. Off-site to Stripe's hosted, PCI-scoped card page.
