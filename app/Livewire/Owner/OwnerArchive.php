@@ -91,7 +91,7 @@ class OwnerArchive extends Component
         return [
             'count' => $statements->count(),
             'years' => $years,
-            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->format('F Y') : null,
+            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat('F Y') : null,
         ];
     }
 
@@ -128,7 +128,7 @@ class OwnerArchive extends Component
         return $group->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
             // The REAL statement number (per-owner, gap-free, stamped at finalize). Null → omitted.
-            'number_label' => $s->sequence_no === null ? null : 'No. '.$s->sequence_no,
+            'number_label' => $s->sequence_no === null ? null : $this->numberLabel((int) $s->sequence_no),
             'period_label' => $this->periodLabel($s),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'status_meta' => $this->statusMeta((string) $s->status),
@@ -218,8 +218,8 @@ class OwnerArchive extends Component
             return '';
         }
 
-        $from = $earliest->period_start->format('M');
-        $to = $latest->period_end->format('M');
+        $from = $earliest->period_start->translatedFormat('M');
+        $to = $latest->period_end->translatedFormat('M');
 
         return $from === $to ? $from : $from.' – '.$to;
     }
@@ -238,11 +238,11 @@ class OwnerArchive extends Component
             $wholeMonth = $start->day === 1 && $end->day === $end->daysInMonth;
 
             return $wholeMonth
-                ? $start->format('F Y')
-                : $start->format('j').'–'.$end->format('j F Y');
+                ? $start->translatedFormat('F Y')
+                : $start->format('j').'–'.$end->translatedFormat('j F Y');
         }
 
-        return $start->format('j M').' – '.$end->format('j M Y');
+        return $start->translatedFormat('j M').' – '.$end->translatedFormat('j M Y');
     }
 
     /**
@@ -258,9 +258,15 @@ class OwnerArchive extends Component
         ];
 
         if ($s->sequence_no !== null) {
-            $parts[] = 'no. '.$s->sequence_no;
+            $parts[] = $this->numberLabel((int) $s->sequence_no);
         }
 
         return mb_strtolower(implode(' ', $parts));
+    }
+
+    /** The statement number as the owner reads it ("No. 7") — the same words the row shows and the search matches. */
+    private function numberLabel(int $sequenceNo): string
+    {
+        return __('php/livewire/owner/owner_archive.number_label', ['number' => $sequenceNo]);
     }
 }

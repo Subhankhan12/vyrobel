@@ -28,13 +28,16 @@ final class RailLabel
      * them, so a silent "Sepa Direct" guess would be a fabricated payment method (invariant #19). A new
      * rail must be labelled here deliberately.
      *
+     * I18N-01: translated here, at call time, in the reader's language — keep the label's own capital when it sits
+     * inside a sentence (never lower-case it: other languages' rail names do not survive that).
+     *
      * @throws \InvalidArgumentException
      */
     public static function for(string $rail): string
     {
         return match ($rail) {
-            'manual' => 'Bank transfer',
-            'stripe_connect' => 'Stripe Connect',
+            'manual' => __('php/support/payouts/rail_label.manual'),
+            'stripe_connect' => 'Stripe Connect',   // a product name — the same in every language
             default => throw new \InvalidArgumentException("Unlabelled payout rail [{$rail}] — add it to ".self::class.' rather than rendering a guess.'),
         };
     }

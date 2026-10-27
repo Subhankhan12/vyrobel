@@ -49,7 +49,7 @@ class OwnerGuardrailController extends Controller
 
         // A floor above the ceiling is nonsense — reject cleanly rather than storing a band nothing fits in.
         if ($floor !== null && $ceiling !== null && $floor > $ceiling) {
-            return back()->with('owner_error', 'The floor can’t be higher than the ceiling.');
+            return back()->with('owner_error', __('php/http/controllers/owner/owner_guardrail_controller.floor_above_ceiling'));
         }
 
         RateGuardrail::query()->updateOrCreate(
@@ -63,7 +63,7 @@ class OwnerGuardrailController extends Controller
             ],
         );
 
-        return back()->with('owner_notice', 'Guardrails saved — your manager prices within these limits.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_guardrail_controller.saved'));
     }
 
     /**
@@ -84,7 +84,11 @@ class OwnerGuardrailController extends Controller
 
         if ($minor === null) {
             throw ValidationException::withMessages([
-                $field => 'Enter a '.$field.' above zero, e.g. 120 or 120.50 — or leave it blank for no limit.',
+                $field => match ($field) {
+                    'floor' => __('php/http/controllers/owner/owner_guardrail_controller.invalid_floor'),
+                    'ceiling' => __('php/http/controllers/owner/owner_guardrail_controller.invalid_ceiling'),
+                    default => __('php/http/controllers/owner/owner_guardrail_controller.invalid_bound'),
+                },
             ]);
         }
 

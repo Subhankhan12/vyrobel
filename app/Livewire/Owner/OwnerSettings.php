@@ -14,6 +14,7 @@ use App\Models\OwnerUser;
 use App\Models\PayoutMethod;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\Locales;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -80,12 +81,7 @@ class OwnerSettings extends Component
                 'initials' => $this->viewer()['initials'],
                 'two_factor' => $user->two_factor_secret !== null,
             ],
-            'localeOptions' => [
-                'en' => 'English',
-                'pt' => 'Português',
-                'es' => 'Español',
-                'fr' => 'Français',
-            ],
+            'localeOptions' => Locales::offeredOptions(),
             'ownerParty' => $ownerParty !== null ? [
                 'name' => (string) $ownerParty->name,
                 'email' => (string) ($ownerParty->email ?? ''),
@@ -122,16 +118,16 @@ class OwnerSettings extends Component
             'notif' => [
                 // The REAL notification channels are in-app + email; SMS + Push are NOT built (no provider) →
                 // labelled honest-pending, never a fake toggle that notifies via an unwired channel (#39).
-                'real' => ['In-app', 'Email'],
-                'pending' => ['SMS', 'Push'],
+                'real' => [__('php/livewire/owner/owner_settings.notif_in_app'), __('php/livewire/owner/owner_settings.notif_email')],
+                'pending' => [__('php/livewire/owner/owner_settings.notif_sms'), __('php/livewire/owner/owner_settings.notif_push')],
             ],
             'channels' => [
                 // Direct is the ONE real, always-on channel. OTA sync is ACCOUNT-GATED (Channex stub) → the
                 // rows are honest-labelled "pending", NEVER a fake "Connected" that syncs nothing (#37/#39).
-                ['name' => 'Direct · Vyrobel', 'desc' => 'Your Vyrobel booking page & widget', 'status' => 'live'],
-                ['name' => 'Airbnb', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
-                ['name' => 'Booking.com', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
-                ['name' => 'Vrbo', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
+                ['name' => __('php/livewire/owner/owner_settings.channel_direct'), 'desc' => __('php/livewire/owner/owner_settings.channel_direct_desc'), 'status' => 'live'],
+                ['name' => 'Airbnb', 'desc' => __('php/livewire/owner/owner_settings.channel_ota_desc'), 'status' => 'pending'],
+                ['name' => 'Booking.com', 'desc' => __('php/livewire/owner/owner_settings.channel_ota_desc'), 'status' => 'pending'],
+                ['name' => 'Vrbo', 'desc' => __('php/livewire/owner/owner_settings.channel_ota_desc'), 'status' => 'pending'],
             ],
             'team' => [
                 'count' => $this->teamCount($ownerCtx),
@@ -139,9 +135,9 @@ class OwnerSettings extends Component
                 'can_manage' => $isPrimaryOwner,
             ],
             'exports' => $canPayout || $ownerCtx->can(OwnerTeamRole::CAP_EXPORTS) ? [
-                ['label' => 'Bookings (CSV)', 'href' => route('owner.bookings.export')],
-                ['label' => 'Statement history (CSV)', 'href' => route('owner.statements.history.csv')],
-                ['label' => 'Full account data (JSON)', 'href' => route('owner.security.export')],
+                ['label' => __('php/livewire/owner/owner_settings.export_bookings'), 'href' => route('owner.bookings.export')],
+                ['label' => __('php/livewire/owner/owner_settings.export_statement_history'), 'href' => route('owner.statements.history.csv')],
+                ['label' => __('php/livewire/owner/owner_settings.export_full_account'), 'href' => route('owner.security.export')],
             ] : [],
         ]);
     }
@@ -164,8 +160,8 @@ class OwnerSettings extends Component
         $property = $unit?->property;
 
         return [
-            ['label' => 'Currency', 'value' => $property !== null ? (string) $property->currency : 'EUR', 'editable' => false],
-            ['label' => 'Timezone', 'value' => $property !== null ? (string) $property->timezone : 'Europe/Lisbon', 'editable' => false],
+            ['label' => __('php/livewire/owner/owner_settings.region_currency'), 'value' => $property !== null ? (string) $property->currency : 'EUR', 'editable' => false],
+            ['label' => __('php/livewire/owner/owner_settings.region_timezone'), 'value' => $property !== null ? (string) $property->timezone : 'Europe/Lisbon', 'editable' => false],
         ];
     }
 
@@ -184,7 +180,7 @@ class OwnerSettings extends Component
         $out = [[
             'initials' => $this->viewer()['initials'],
             'name' => (string) $user->name,
-            'role' => 'Account owner',
+            'role' => __('php/livewire/owner/owner_settings.role_account_owner'),
             'you' => true,
         ]];
 
@@ -215,17 +211,17 @@ class OwnerSettings extends Component
     private function completeness(mixed $user, ?Owner $ownerParty, bool $hasTaxId, bool $hasPayoutMethod): array
     {
         $items = [
-            ['label' => 'Add a profile photo', 'done' => $user->avatarUrl() !== null, 'href' => null],
-            ['label' => 'Confirm your login email', 'done' => (string) ($user->pending_email ?? '') === '', 'href' => null],
+            ['label' => __('php/livewire/owner/owner_settings.check_profile_photo'), 'done' => $user->avatarUrl() !== null, 'href' => null],
+            ['label' => __('php/livewire/owner/owner_settings.check_login_email'), 'done' => (string) ($user->pending_email ?? '') === '', 'href' => null],
         ];
 
         // Business/tax + payout are the primary owner's to complete; a sub-user can't, so they aren't scored on them.
         if ($ownerParty instanceof Owner) {
-            $items[] = ['label' => 'Add your tax details', 'done' => $hasTaxId, 'href' => route('owner.tax')];
-            $items[] = ['label' => 'Add a payout account', 'done' => $hasPayoutMethod, 'href' => route('owner.payout-method')];
+            $items[] = ['label' => __('php/livewire/owner/owner_settings.check_tax_details'), 'done' => $hasTaxId, 'href' => route('owner.tax')];
+            $items[] = ['label' => __('php/livewire/owner/owner_settings.check_payout_account'), 'done' => $hasPayoutMethod, 'href' => route('owner.payout-method')];
         }
 
-        $items[] = ['label' => 'Turn on two-factor sign-in', 'done' => $user->two_factor_secret !== null, 'href' => route('owner.security')];
+        $items[] = ['label' => __('php/livewire/owner/owner_settings.check_two_factor'), 'done' => $user->two_factor_secret !== null, 'href' => route('owner.security')];
 
         $done = count(array_filter($items, fn (array $i): bool => $i['done']));
         $total = count($items);   // always ≥ 3 (the base items), so no division guard is needed

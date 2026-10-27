@@ -61,9 +61,9 @@ final class PayoutRecovery
         if (! is_string($account) || $account === '') {
             $blockers[] = [
                 'key' => 'no_connected_account',
-                'title' => 'Connect your payout account',
-                'detail' => 'We have no connected account to send this payout to, so another attempt would fail the same way.',
-                'cta_label' => 'Set up your payout account',
+                'title' => __('php/support/owner/payout_recovery.no_account_title'),
+                'detail' => __('php/support/owner/payout_recovery.no_account_detail'),
+                'cta_label' => __('php/support/owner/payout_recovery.no_account_cta'),
                 'cta_route' => route('owner.payout-method'),
             ];
 
@@ -73,9 +73,9 @@ final class PayoutRecovery
         if (! $owner->stripe_connect_payouts_enabled) {
             $blockers[] = [
                 'key' => 'payouts_not_enabled',
-                'title' => 'Your payout account is not ready yet',
-                'detail' => 'Your account is connected, but payouts have not been enabled on it yet. Finish the remaining details and we can try again.',
-                'cta_label' => 'Review your payout account',
+                'title' => __('php/support/owner/payout_recovery.not_enabled_title'),
+                'detail' => __('php/support/owner/payout_recovery.not_enabled_detail'),
+                'cta_label' => __('php/support/owner/payout_recovery.not_enabled_cta'),
                 'cta_route' => route('owner.payout-method'),
             ];
         }

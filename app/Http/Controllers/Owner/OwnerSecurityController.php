@@ -14,7 +14,6 @@ use App\Support\Security\ActiveSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -41,8 +40,8 @@ class OwnerSecurityController extends Controller
         $audit->record('owner.other_sessions_signed_out', $user, null, ['count' => $deleted]);
 
         return back()->with('owner_notice', $deleted > 0
-            ? 'Signed out of '.$deleted.' other '.Str::plural('session', $deleted).'.'
-            : 'You have no other active sessions.');
+            ? trans_choice('php/http/controllers/owner/owner_security_controller.signed_out_others', $deleted, ['count' => $deleted])
+            : __('php/http/controllers/owner/owner_security_controller.no_other_sessions'));
     }
 
     /**
@@ -66,7 +65,7 @@ class OwnerSecurityController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Your account is paused — you’re signed out and won’t be able to sign in until it’s reactivated. Your statements and payout history are kept. Contact your management team to reactivate.');
+        return redirect()->route('login')->with('status', __('php/http/controllers/owner/owner_security_controller.account_paused'));
     }
 
     /**
@@ -87,7 +86,7 @@ class OwnerSecurityController extends Controller
         $wasCurrent = $devices->revoke($user, (string) $data['device_id'], $request);
         $audit->record('owner.trusted_device_revoked', $user, null, ['device_id' => (string) $data['device_id']]);
 
-        $response = back()->with('owner_notice', 'That device was removed — it’ll need a 2FA code next time.');
+        $response = back()->with('owner_notice', __('php/http/controllers/owner/owner_security_controller.device_removed'));
 
         return $wasCurrent !== null ? $response->withCookie($devices->forgetCookie()) : $response;
     }

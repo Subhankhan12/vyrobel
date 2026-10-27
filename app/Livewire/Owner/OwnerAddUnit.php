@@ -47,16 +47,16 @@ class OwnerAddUnit extends Component
             return view('livewire.owner.add-unit', [
                 'viewer' => $this->viewer(),
                 'linked' => false,
-                'kinds' => OwnerUnitRequestService::KINDS,
+                'kinds' => OwnerUnitRequestService::kindLabels(),
                 'amenities' => [],
-                'operatorName' => 'your management team',
+                'operatorName' => __('php/livewire/owner/owner_add_unit.your_management_team'),
                 'commissionPct' => null,
                 // ⚠️ THE NOT-LINKED BRANCH HAS NO TENANT. There is deliberately no owner record here, so
                 // there is no tenant currency to resolve and naming one would be an assertion, not a fact.
                 // The platform default is the honest stand-in and it is READ, never typed.
                 'currency' => $platformCurrency = (string) config('billing.default_currency', 'EUR'),
                 'currencySymbol' => $this->currencySymbol($platformCurrency),
-                'firstName' => 'there',
+                'firstName' => __('php/livewire/owner/owner_add_unit.there'),
                 'requests' => [],
                 'done' => null,
                 'draft' => null,
@@ -65,11 +65,12 @@ class OwnerAddUnit extends Component
         }
 
         $currency = (string) ($owner->payout_currency ?: config('billing.default_currency', 'EUR'));
+        $kinds = OwnerUnitRequestService::kindLabels();
 
         return view('livewire.owner.add-unit', [
             'viewer' => $this->viewer(),
             'linked' => true,
-            'kinds' => OwnerUnitRequestService::KINDS,
+            'kinds' => $kinds,
             'amenities' => $service->amenityCatalog()->map(fn (Amenity $a): array => [
                 'id' => (string) $a->id,
                 'name' => (string) $a->name,
@@ -83,10 +84,10 @@ class OwnerAddUnit extends Component
             'requests' => $service->requests()->map(fn (UnitRequest $r): array => [
                 // A draft may genuinely have no name yet — that is the state, not a missing value, so it is
                 // labelled rather than rendered as an empty row.
-                'name' => filled($r->requested_name) ? (string) $r->requested_name : 'Untitled draft',
-                'kind' => OwnerUnitRequestService::KINDS[$r->requested_kind],
+                'name' => filled($r->requested_name) ? (string) $r->requested_name : __('php/livewire/owner/owner_add_unit.untitled_draft'),
+                'kind' => $kinds[$r->requested_kind],
                 'status_meta' => $this->requestStatusMeta((string) $r->status),
-                'when' => $r->created_at?->format('j M Y'),
+                'when' => $r->created_at?->translatedFormat('j M Y'),
                 // DO9-2 — only a DRAFT is resumable; a filed request has no continue link.
                 'resume_url' => $r->isDraft() ? route('owner.add-unit', ['draft' => $r->id]) : null,
                 // DO9-3 — only a PENDING request can be retracted. ⚠️ This drives the CONTROL only; the
@@ -105,7 +106,7 @@ class OwnerAddUnit extends Component
     {
         $name = Organization::query()->whereKey($owner->organization_id)->value('name');
 
-        return is_string($name) && $name !== '' ? $name : 'your management team';
+        return is_string($name) && $name !== '' ? $name : __('php/livewire/owner/owner_add_unit.your_management_team');
     }
 
     /**
@@ -129,7 +130,7 @@ class OwnerAddUnit extends Component
     {
         $first = strtok(trim($this->viewer()['name']), ' ');
 
-        return $first === false ? 'there' : $first;
+        return $first === false ? __('php/livewire/owner/owner_add_unit.there') : $first;
     }
 
     /**
@@ -217,7 +218,7 @@ class OwnerAddUnit extends Component
             'notes' => (string) ($draft->notes ?? ''),
             'amenities' => $draft->amenities()->pluck('amenities.id')->map(fn ($id): string => (string) $id)->all(),
             'photo_count' => $draft->photos()->count(),
-            'saved_at' => $draft->updated_at?->format('j M Y, H:i'),
+            'saved_at' => $draft->updated_at?->translatedFormat('j M Y, H:i'),
         ];
     }
 
@@ -233,16 +234,16 @@ class OwnerAddUnit extends Component
     private function requestStatusMeta(string $status): array
     {
         return match ($status) {
-            'approved' => ['label' => 'Approved', 'tone' => 'paid'],
-            'declined' => ['label' => 'Declined', 'tone' => 'draft'],
+            'approved' => ['label' => __('php/livewire/owner/owner_add_unit.status_approved'), 'tone' => 'paid'],
+            'declined' => ['label' => __('php/livewire/owner/owner_add_unit.status_declined'), 'tone' => 'draft'],
             // ⚠️ DO9-2 — a draft MUST be named here. The `default` arm below reads "Pending review", so without
             // this case a saved draft would tell the owner it was already with the operator — the exact
             // opposite of the truth, and on the one screen where that distinction is the whole feature.
-            'draft' => ['label' => 'Draft — not sent', 'tone' => 'draft'],
+            'draft' => ['label' => __('php/livewire/owner/owner_add_unit.status_draft'), 'tone' => 'draft'],
             // ⚠️ DO9-3 — the same trap, one state later: without this arm a request the owner just retracted
             // would fall through to "Pending review" and read as still live with the operator.
-            'withdrawn' => ['label' => 'Withdrawn', 'tone' => 'draft'],
-            default => ['label' => 'Pending review', 'tone' => 'pending'],
+            'withdrawn' => ['label' => __('php/livewire/owner/owner_add_unit.status_withdrawn'), 'tone' => 'draft'],
+            default => ['label' => __('php/livewire/owner/owner_add_unit.status_pending'), 'tone' => 'pending'],
         };
     }
 }

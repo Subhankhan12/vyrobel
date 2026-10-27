@@ -175,7 +175,7 @@ class OwnerUnitDetail extends Component
             'unit' => $this->unitFacts($unit),
             'occupancy' => $occupancy,
             'month' => [
-                'label' => $month->format('F Y'),
+                'label' => $month->translatedFormat('F Y'),
                 'first_weekday' => $month->copy()->startOfMonth()->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $month->copy()->subMonthNoOverflow()->format('Y-m'),
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
@@ -198,6 +198,8 @@ class OwnerUnitDetail extends Component
             'reviews' => $this->reviews($unit),                                  // ReviewRating + ReviewList
             'cleanings' => $this->cleanings($unit),                              // Wave-B real HousekeepingTask (read-only)
             'blockReasons' => OwnerBlockService::REASONS,
+            'blockReasonLabels' => OwnerBlockService::reasonLabels(),   // the ONE definition, keyed by the stored code
+            'weekdays' => $this->weekdayHeads(),
         ]);
     }
 
@@ -277,7 +279,7 @@ class OwnerUnitDetail extends Component
      * use), reference, dates and the owner NET on this unit; a blocked day carries its reason. Open/past days
      * have no detail. Owner-scoped: reached only through this owner-scoped unit; NO guest email/phone ever (#28).
      *
-     * @return array<string, array{type: string, guest?: string, reference?: ?string, stay?: string, nights?: int, net?: list<string>, reason?: string}>
+     * @return array<string, array{type: string, guest?: string, reference?: ?string, stay?: string, nights?: int, nights_label?: string, net?: list<string>, reason?: string}>
      */
     private function dayDetails(Unit $unit, Carbon $monthStart, Carbon $monthEnd, string $currency): array
     {
@@ -301,10 +303,11 @@ class OwnerUnitDetail extends Component
             $checkOut = Carbon::parse($line->check_out);
             $detail = [
                 'type' => 'booked',
-                'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : 'Guest',
+                'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : __('php/livewire/owner/owner_unit_detail.guest_fallback'),
                 'reference' => $reservation instanceof Reservation ? (string) $reservation->reference : null,
-                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat('j M'), 'end' => $checkOut->translatedFormat('j M Y')]),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
+                'nights_label' => trans_choice('php/livewire/owner/owner_unit_detail.nights', (int) $checkIn->diffInDays($checkOut), ['count' => (int) $checkIn->diffInDays($checkOut)]),
                 'net' => $nets[(string) $line->reservation_id] ?? [],
             ];
 
@@ -335,10 +338,36 @@ class OwnerUnitDetail extends Component
         return $out;
     }
 
-    /** A human label for an InventoryBlock reason (the real OwnerBlockService reasons + a plain fallback). */
+    /**
+     * A human label for an InventoryBlock reason (the real OwnerBlockService reasons + a plain fallback). ⚠️ REASONS is a
+     * numbered list, so the old `REASONS[$reason]` lookup never matched a code — it now asks the service by code.
+     */
     private function blockReasonLabel(string $reason): string
     {
-        return OwnerBlockService::REASONS[$reason] ?? ($reason === '' ? 'Blocked' : ucfirst(str_replace('_', ' ', $reason)));
+        if (in_array($reason, OwnerBlockService::REASONS, true)) {
+            return OwnerBlockService::reasonLabel($reason);
+        }
+
+        return match ($reason) {
+            '' => __('php/livewire/owner/owner_unit_detail.block_reason_none'),
+            'maintenance' => __('php/livewire/owner/owner_unit_detail.block_reason_maintenance'),
+            'owner' => __('php/livewire/owner/owner_unit_detail.block_reason_owner'),
+            'manual' => __('php/livewire/owner/owner_unit_detail.block_reason_manual'),
+            'overbooking_protection' => __('php/livewire/owner/owner_unit_detail.block_reason_overbooking_protection'),
+            default => ucfirst(str_replace('_', ' ', $reason)),
+        };
+    }
+
+    /**
+     * The calendar's weekday heads, Monday first, in the reader's language and upper case ("MON" … "SUN" in English).
+     *
+     * @return list<string>
+     */
+    private function weekdayHeads(): array
+    {
+        $monday = Carbon::parse('2024-01-01');   // a Monday
+
+        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat('D')), range(0, 6));
     }
 
     /**
@@ -362,7 +391,7 @@ class OwnerUnitDetail extends Component
             ->get(['date', 'type', 'status']);
 
         $rows = $tasks->map(fn (HousekeepingTask $t): array => [
-            'date' => Carbon::parse($t->date)->format('j M Y'),
+            'date' => Carbon::parse($t->date)->translatedFormat('j M Y'),
             'type' => $this->cleaningTypeLabel((string) $t->type),
             'status' => $this->cleaningStatusMeta((string) $t->status)['label'],
             'tone' => $this->cleaningStatusMeta((string) $t->status)['tone'],
@@ -376,10 +405,10 @@ class OwnerUnitDetail extends Component
     private function cleaningTypeLabel(string $type): string
     {
         return match ($type) {
-            'departure' => 'Departure clean',
-            'stayover' => 'Stayover service',
-            'deep' => 'Deep clean',
-            'arrival_prep' => 'Arrival prep',
+            'departure' => __('php/livewire/owner/owner_unit_detail.cleaning_departure'),
+            'stayover' => __('php/livewire/owner/owner_unit_detail.cleaning_stayover'),
+            'deep' => __('php/livewire/owner/owner_unit_detail.cleaning_deep'),
+            'arrival_prep' => __('php/livewire/owner/owner_unit_detail.cleaning_arrival_prep'),
             default => ucfirst(str_replace('_', ' ', $type)),
         };
     }
@@ -392,10 +421,10 @@ class OwnerUnitDetail extends Component
     private function cleaningStatusMeta(string $status): array
     {
         return match ($status) {
-            'pending' => ['label' => 'Scheduled', 'tone' => 'pending'],
-            'in_progress' => ['label' => 'In progress', 'tone' => 'pending'],
-            'clean' => ['label' => 'Cleaned', 'tone' => 'paid'],
-            'inspected' => ['label' => 'Inspected', 'tone' => 'paid'],
+            'pending' => ['label' => __('php/livewire/owner/owner_unit_detail.cleaning_status_pending'), 'tone' => 'pending'],
+            'in_progress' => ['label' => __('php/livewire/owner/owner_unit_detail.cleaning_status_in_progress'), 'tone' => 'pending'],
+            'clean' => ['label' => __('php/livewire/owner/owner_unit_detail.cleaning_status_clean'), 'tone' => 'paid'],
+            'inspected' => ['label' => __('php/livewire/owner/owner_unit_detail.cleaning_status_inspected'), 'tone' => 'paid'],
             default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'draft'],
         };
     }
@@ -507,7 +536,7 @@ class OwnerUnitDetail extends Component
 
             $net = OwnerLedgerAttribution::netPerCurrency($entries)[$currency] ?? 0;
             $maxPositive = max($maxPositive, $net);
-            $rows[] = ['label' => $mStart->format('M'), 'net' => $net];
+            $rows[] = ['label' => $mStart->translatedFormat('M'), 'net' => $net];
         }
 
         $bars = array_map(fn (array $r): array => [
@@ -540,9 +569,9 @@ class OwnerUnitDetail extends Component
             $sum += $pct;
             if ($pct > $peakPct) {
                 $peakPct = $pct;
-                $peakLabel = $mStart->format('M');
+                $peakLabel = $mStart->translatedFormat('M');
             }
-            $bars[] = ['label' => $mStart->format('M'), 'display' => $pct.'%', 'pct' => $pct];
+            $bars[] = ['label' => $mStart->translatedFormat('M'), 'display' => $pct.'%', 'pct' => $pct];
         }
 
         return [
@@ -606,7 +635,7 @@ class OwnerUnitDetail extends Component
             return null;
         }
 
-        return ['count' => $units->count(), 'month' => $month->format('F Y')];
+        return ['count' => $units->count(), 'month' => $month->translatedFormat('F Y')];
     }
 
     /**
@@ -676,10 +705,10 @@ class OwnerUnitDetail extends Component
     private function kindLabel(string $kind): string
     {
         return match ($kind) {
-            'room' => 'Room',
-            'apartment' => 'Apartment',
-            'villa' => 'Villa',
-            'dorm_bed' => 'Dorm bed',
+            'room' => __('php/livewire/owner/owner_unit_detail.kind_room'),
+            'apartment' => __('php/livewire/owner/owner_unit_detail.kind_apartment'),
+            'villa' => __('php/livewire/owner/owner_unit_detail.kind_villa'),
+            'dorm_bed' => __('php/livewire/owner/owner_unit_detail.kind_dorm_bed'),
             default => ucfirst(str_replace('_', ' ', $kind)),
         };
     }
@@ -696,8 +725,8 @@ class OwnerUnitDetail extends Component
     private function conditionNotice(string $condition): ?array
     {
         return match ($condition) {
-            'out_of_order' => ['label' => 'Out of order'],
-            'out_of_service' => ['label' => 'Out of service'],
+            'out_of_order' => ['label' => __('php/livewire/owner/owner_unit_detail.condition_out_of_order')],
+            'out_of_service' => ['label' => __('php/livewire/owner/owner_unit_detail.condition_out_of_service')],
             default => null,
         };
     }
@@ -737,7 +766,7 @@ class OwnerUnitDetail extends Component
 
             return [
                 'reference' => $real ? (string) $reservation->reference : null,
-                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat('j M'), 'end' => $checkOut->translatedFormat('j M Y')]),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'source_label' => $real ? $this->sourceLabel((string) $reservation->source) : null,
                 'status_meta' => $real ? $this->reservationStatusMeta((string) $reservation->status) : null,
@@ -782,13 +811,13 @@ class OwnerUnitDetail extends Component
     private function reservationStatusMeta(string $status): array
     {
         return match ($status) {
-            'enquiry' => ['label' => 'Enquiry', 'tone' => 'draft'],
-            'tentative' => ['label' => 'Tentative', 'tone' => 'pending'],
-            'confirmed' => ['label' => 'Confirmed', 'tone' => 'paid'],
-            'checked_in' => ['label' => 'Checked in', 'tone' => 'paid'],
-            'checked_out' => ['label' => 'Checked out', 'tone' => 'draft'],
-            'cancelled' => ['label' => 'Cancelled', 'tone' => 'draft'],
-            'no_show' => ['label' => 'No-show', 'tone' => 'draft'],
+            'enquiry' => ['label' => __('php/livewire/owner/owner_unit_detail.status_enquiry'), 'tone' => 'draft'],
+            'tentative' => ['label' => __('php/livewire/owner/owner_unit_detail.status_tentative'), 'tone' => 'pending'],
+            'confirmed' => ['label' => __('php/livewire/owner/owner_unit_detail.status_confirmed'), 'tone' => 'paid'],
+            'checked_in' => ['label' => __('php/livewire/owner/owner_unit_detail.status_checked_in'), 'tone' => 'paid'],
+            'checked_out' => ['label' => __('php/livewire/owner/owner_unit_detail.status_checked_out'), 'tone' => 'draft'],
+            'cancelled' => ['label' => __('php/livewire/owner/owner_unit_detail.status_cancelled'), 'tone' => 'draft'],
+            'no_show' => ['label' => __('php/livewire/owner/owner_unit_detail.status_no_show'), 'tone' => 'draft'],
             default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'draft'],
         };
     }
@@ -842,7 +871,7 @@ class OwnerUnitDetail extends Component
             // so casting it straight to a string printed "15.00%" here while the Agreement page printed
             // "15%" for the same rate. Null → null → the view says "Not set", NEVER "0%".
             'display' => OwnerCommissionRate::display($pct),
-            'scope_label' => $agreement->unit_id === null ? 'Portfolio-wide terms' : 'Terms for this unit',
+            'scope_label' => $agreement->unit_id === null ? __('php/livewire/owner/owner_unit_detail.terms_portfolio') : __('php/livewire/owner/owner_unit_detail.terms_unit'),
         ];
     }
 
@@ -873,7 +902,7 @@ class OwnerUnitDetail extends Component
             ->get()
             ->map(fn (OwnerStatement $statement): array => [
                 'id' => (string) $statement->id,
-                'period' => $statement->period_start->format('j M').' – '.$statement->period_end->format('j M Y'),
+                'period' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $statement->period_start->translatedFormat('j M'), 'end' => $statement->period_end->translatedFormat('j M Y')]),
                 'status_meta' => $this->statusMeta((string) $statement->status),
             ])
             ->values()

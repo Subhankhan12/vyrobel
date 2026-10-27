@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OwnerEmailChangeMail;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\Locales;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -46,14 +47,14 @@ class OwnerAccountController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'locale' => ['required', 'string', Rule::in(config('app.available_locales', ['en']))],
+            'locale' => ['required', 'string', Rule::in(Locales::offered())],
         ]);
 
         $user->forceFill($data)->save();
 
         $audit->record('owner.account_updated', $user, null, ['fields' => array_keys($data)]);
 
-        return back()->with('owner_notice', 'Your profile is saved.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_account_controller.profile_saved'));
     }
 
     /** Avatar upload — content-validated image, ULID filename, public disk (mirrors RoomTypePhotoController). */
@@ -80,7 +81,7 @@ class OwnerAccountController extends Controller
 
         $audit->record('owner.avatar_updated', $user, null, ['fields' => ['avatar_path']]);
 
-        return back()->with('owner_notice', 'Your photo is updated.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_account_controller.photo_updated'));
     }
 
     public function removeAvatar(Request $request, AuditEventRecorder $audit): RedirectResponse
@@ -96,7 +97,7 @@ class OwnerAccountController extends Controller
 
         $audit->record('owner.avatar_removed', $user, null, ['fields' => ['avatar_path']]);
 
-        return back()->with('owner_notice', 'Your photo is removed.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_account_controller.photo_removed'));
     }
 
     /** Step 1 of an email change: park the new address + mail a signed verify link TO IT. No switch yet. */
@@ -127,7 +128,7 @@ class OwnerAccountController extends Controller
                 Rule::unique('users', 'email')->ignore($user->getKey()),
                 Rule::notIn([(string) $user->email]),
             ],
-        ], [], ['email' => 'email address', 'current_password' => 'current password']);
+        ], [], ['email' => __('php/http/controllers/owner/owner_account_controller.attr_email'), 'current_password' => __('php/http/controllers/owner/owner_account_controller.attr_current_password')]);
 
         $newEmail = (string) $data['email'];
         $user->forceFill(['pending_email' => $newEmail])->save();
@@ -136,11 +137,11 @@ class OwnerAccountController extends Controller
             'user' => $user->getKey(),
             'hash' => sha1($newEmail),
         ]);
-        Mail::to($newEmail)->send(new OwnerEmailChangeMail((string) $user->name, $newEmail, $url));
+        Mail::to($newEmail)->locale($user->preferredLocale())->send(new OwnerEmailChangeMail((string) $user->name, $newEmail, $url));
 
         $audit->record('owner.email_change_requested', $user, null, ['fields' => ['email']]);
 
-        return back()->with('owner_notice', 'Check your new inbox — we emailed a link to confirm the change. Your email stays the same until you click it.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_account_controller.email_change_sent'));
     }
 
     /** Cancel a pending email change (clears the parked address; any outstanding link then no longer matches). */
@@ -151,7 +152,7 @@ class OwnerAccountController extends Controller
 
         $user->forceFill(['pending_email' => null])->save();
 
-        return back()->with('owner_notice', 'The email change was cancelled.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_account_controller.email_change_cancelled'));
     }
 
     /** Step 2: the signed link is opened from the NEW inbox — verify and switch. Signed, no auth required. */
@@ -161,14 +162,14 @@ class OwnerAccountController extends Controller
 
         // The link binds to the parked address; a null/changed pending email no longer matches.
         if ($pending === '' || ! hash_equals(sha1($pending), $hash)) {
-            return redirect()->route('login')->with('status', 'That email-change link is no longer valid. Please request a new one.');
+            return redirect()->route('login')->with('status', __('php/http/controllers/owner/owner_account_controller.email_link_invalid'));
         }
 
         // Someone else may have taken the address since it was requested — fail closed, keep the old email.
         if (User::query()->where('email', $pending)->whereKeyNot($user->getKey())->exists()) {
             $user->forceFill(['pending_email' => null])->save();
 
-            return redirect()->route('login')->with('status', 'That email address is already in use. Your email was not changed.');
+            return redirect()->route('login')->with('status', __('php/http/controllers/owner/owner_account_controller.email_in_use'));
         }
 
         $user->forceFill([
@@ -179,6 +180,6 @@ class OwnerAccountController extends Controller
 
         $audit->record('owner.email_changed', $user, null, ['fields' => ['email']]);
 
-        return redirect()->route('login')->with('status', 'Your email address has been updated. Please sign in with your new address.');
+        return redirect()->route('login')->with('status', __('php/http/controllers/owner/owner_account_controller.email_updated'));
     }
 }

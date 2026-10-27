@@ -13,7 +13,6 @@ use App\Models\PayoutMethod;
 use App\Models\RateProposal;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * The ONE owner-scoped "Needs your attention" feed — REAL account-state alerts only, shared by the owner
@@ -83,7 +82,7 @@ final class OwnerAttention
                 'key' => $s['key'],
                 'title' => $s['title'],
                 'body' => $s['body'],
-                'until' => $state->snoozed_until->isToday() ? 'today' : $state->snoozed_until->diffForHumans(),
+                'until' => $state->snoozed_until->isToday() ? __('php/support/owner/owner_attention.until_today') : $state->snoozed_until->diffForHumans(),
                 'cta' => $s['cta'],
             ];
         }
@@ -145,9 +144,9 @@ final class OwnerAttention
             if ($hasFinalized && ! $owner->hasTaxDetails()) {
                 $items[] = [
                     'owner_id' => $ownerId, 'key' => 'tax_hold', 'tone' => 'warn',
-                    'title' => 'Add tax details to release payout',
-                    'body' => 'Your payout is on hold until your tax details are on file.',
-                    'cta' => ['label' => 'Add tax details', 'route' => route('owner.tax')],
+                    'title' => __('php/support/owner/owner_attention.tax_hold_title'),
+                    'body' => __('php/support/owner/owner_attention.tax_hold_body'),
+                    'cta' => ['label' => __('php/support/owner/owner_attention.tax_hold_cta'), 'route' => route('owner.tax')],
                 ];
             }
 
@@ -155,9 +154,9 @@ final class OwnerAttention
             if (! PayoutMethod::query()->where('owner_id', $ownerId)->exists()) {
                 $items[] = [
                     'owner_id' => $ownerId, 'key' => 'payout_method', 'tone' => 'warn',
-                    'title' => 'Confirm your payout bank account',
-                    'body' => 'Add a payout method so we can send your earnings.',
-                    'cta' => ['label' => 'Payout method', 'route' => route('owner.payout-method')],
+                    'title' => __('php/support/owner/owner_attention.payout_method_title'),
+                    'body' => __('php/support/owner/owner_attention.payout_method_body'),
+                    'cta' => ['label' => __('php/support/owner/owner_attention.payout_method_cta'), 'route' => route('owner.payout-method')],
                 ];
             }
 
@@ -173,9 +172,9 @@ final class OwnerAttention
                 $days = (int) $today->diffInDays($agreement->effective_to);
                 $items[] = [
                     'owner_id' => $ownerId, 'key' => 'agreement_renewal:'.$agreement->id, 'tone' => 'info',
-                    'title' => 'Management agreement renews soon',
-                    'body' => 'Your agreement ends in '.$days.' '.Str::plural('day', $days).' — review the terms.',
-                    'cta' => ['label' => 'Review agreement', 'route' => route('owner.agreement')],
+                    'title' => __('php/support/owner/owner_attention.renewal_title'),
+                    'body' => trans_choice('php/support/owner/owner_attention.renewal_body', $days, ['count' => $days]),
+                    'cta' => ['label' => __('php/support/owner/owner_attention.renewal_cta'), 'route' => route('owner.agreement')],
                 ];
             }
 
@@ -190,12 +189,12 @@ final class OwnerAttention
                 ->get() as $proposal) {
                 $items[] = [
                     'owner_id' => $ownerId, 'key' => 'rate_proposal:'.$proposal->id, 'tone' => 'info',
-                    'title' => 'Rate change to approve',
+                    'title' => __('php/support/owner/owner_attention.proposal_title'),
                     'body' => self::proposalSummary($proposal),
-                    'cta' => ['label' => 'Open Rates', 'route' => route('owner.rates')],
+                    'cta' => ['label' => __('php/support/owner/owner_attention.proposal_cta'), 'route' => route('owner.rates')],
                     'actions' => [
-                        ['label' => 'Approve', 'route' => route('owner.rate-proposals.approve', $proposal->id), 'primary' => true],
-                        ['label' => 'Decline', 'route' => route('owner.rate-proposals.decline', $proposal->id), 'primary' => false],
+                        ['label' => __('php/support/owner/owner_attention.approve_rate'), 'route' => route('owner.rate-proposals.approve', $proposal->id), 'primary' => true],
+                        ['label' => __('php/support/owner/owner_attention.decline'), 'route' => route('owner.rate-proposals.decline', $proposal->id), 'primary' => false],
                     ],
                 ];
             }
@@ -211,12 +210,12 @@ final class OwnerAttention
                 $amount = MoneyFormatter::display((int) $expense->amount_minor, (string) $expense->currency);
                 $items[] = [
                     'owner_id' => $ownerId, 'key' => 'expense_approval:'.$expense->id, 'tone' => 'warn',
-                    'title' => 'Expense awaiting your approval',
-                    'body' => $expense->description.' — '.$amount.' (charged to your payout once approved)',
-                    'cta' => ['label' => 'Open Expenses', 'route' => route('owner.expenses')],
+                    'title' => __('php/support/owner/owner_attention.expense_title'),
+                    'body' => __('php/support/owner/owner_attention.expense_body', ['description' => (string) $expense->description, 'amount' => $amount]),
+                    'cta' => ['label' => __('php/support/owner/owner_attention.expense_cta'), 'route' => route('owner.expenses')],
                     'actions' => [
-                        ['label' => 'Approve', 'route' => route('owner.expenses.approve', $expense->id), 'primary' => true],
-                        ['label' => 'Query', 'route' => route('owner.expenses.query', $expense->id), 'primary' => false],
+                        ['label' => __('php/support/owner/owner_attention.approve_expense'), 'route' => route('owner.expenses.approve', $expense->id), 'primary' => true],
+                        ['label' => __('php/support/owner/owner_attention.query'), 'route' => route('owner.expenses.query', $expense->id), 'primary' => false],
                     ],
                 ];
             }
@@ -229,21 +228,25 @@ final class OwnerAttention
     private static function proposalSummary(RateProposal $proposal): string
     {
         $currency = (string) $proposal->currency;
-        $roomType = (string) ($proposal->roomType->name ?? 'Room type');
+        $roomType = (string) ($proposal->roomType->name ?? __('php/support/owner/owner_attention.room_type_fallback'));
         $from = $proposal->current_rate_minor !== null
             ? MoneyFormatter::display((int) $proposal->current_rate_minor, $currency)
-            : 'no rate set';
+            : __('php/support/owner/owner_attention.no_rate_set');
         $to = MoneyFormatter::display((int) $proposal->proposed_rate_minor, $currency);
 
         $extra = [];
         if ($proposal->proposed_weekend_pct !== null && (float) $proposal->proposed_weekend_pct > 0) {
-            $extra[] = '+'.rtrim(rtrim(number_format((float) $proposal->proposed_weekend_pct, 2), '0'), '.').'% weekends';
+            $extra[] = __('php/support/owner/owner_attention.extra_weekends', ['pct' => rtrim(rtrim(number_format((float) $proposal->proposed_weekend_pct, 2), '0'), '.')]);
         }
         if ($proposal->proposed_min_stay !== null) {
-            $extra[] = 'min stay '.(int) $proposal->proposed_min_stay.'n';
+            $extra[] = __('php/support/owner/owner_attention.extra_min_stay', ['nights' => (int) $proposal->proposed_min_stay]);
         }
 
-        return $roomType.': '.$from.' → '.$to.' / night'.($extra !== [] ? ' ('.implode(' · ', $extra).')' : '');
+        $parts = ['room_type' => $roomType, 'from' => $from, 'to' => $to];
+
+        return $extra !== []
+            ? __('php/support/owner/owner_attention.proposal_summary_extra', $parts + ['extra' => implode(' · ', $extra)])
+            : __('php/support/owner/owner_attention.proposal_summary', $parts);
     }
 
     /**

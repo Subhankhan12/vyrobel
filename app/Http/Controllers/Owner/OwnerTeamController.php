@@ -61,7 +61,7 @@ class OwnerTeamController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [],
-            ['current_password' => 'current password'],
+            ['current_password' => __('php/http/controllers/owner/owner_team_controller.attr_current_password')],
         );
     }
 
@@ -86,7 +86,7 @@ class OwnerTeamController extends Controller
             ->whereHas('user', fn ($q) => $q->where('email', $email))
             ->exists();
         if ($alreadyMember) {
-            return back()->with('team_error', 'That person is already on your team.');
+            return back()->with('team_error', __('php/http/controllers/owner/owner_team_controller.already_on_team'));
         }
 
         try {
@@ -95,7 +95,7 @@ class OwnerTeamController extends Controller
             return back()->with('team_error', $e->getMessage());
         }
 
-        return back()->with('team_status', "Invite sent to {$email}.");
+        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.invite_sent', ['email' => $email]));
     }
 
     /** Change a member's owner-team role. */
@@ -112,7 +112,7 @@ class OwnerTeamController extends Controller
 
         $ownerUser->update(['role' => (string) $validated['role']]);
 
-        return back()->with('team_status', 'Role updated.');
+        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.role_updated'));
     }
 
     /** Remove a member — revokes access cleanly (and disables an orphaned login so it can't log in). */
@@ -130,7 +130,7 @@ class OwnerTeamController extends Controller
             $this->disableIfOrphaned($userId);
         });
 
-        return back()->with('team_status', 'Member removed.');
+        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.member_removed'));
     }
 
     /** Revoke a pending invite (its token can never be redeemed). */
@@ -141,7 +141,7 @@ class OwnerTeamController extends Controller
         $row = OwnerTeamInvite::query()->whereKey($invite)->whereIn('owner_id', $ownerIds)->firstOrFail();
         $this->invites->revoke($row);
 
-        return back()->with('team_status', 'Invite revoked.');
+        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.invite_revoked'));
     }
 
     /** Re-send a pending invite — a fresh token + extended expiry, emailed again (owner-scoped, pending only). */
@@ -152,7 +152,7 @@ class OwnerTeamController extends Controller
         $row = OwnerTeamInvite::query()->whereKey($invite)->whereIn('owner_id', $ownerIds)->where('status', 'pending')->firstOrFail();
         $this->invites->resend($row);
 
-        return back()->with('team_status', 'Invite re-sent to '.$row->email.'.');
+        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.invite_resent', ['email' => (string) $row->email]));
     }
 
     /**

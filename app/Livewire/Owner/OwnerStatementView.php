@@ -18,7 +18,6 @@ use App\Support\Pdf\OwnerStatementHistoryDocument;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -110,8 +109,10 @@ class OwnerStatementView extends Component
         $nights = (int) ($byUnit['total_nights'] ?? 0);
         $units = (int) ($byUnit['unit_count'] ?? 0);
 
-        return $nights.' '.Str::plural('night', $nights)
-            .' · '.$units.' '.Str::plural('unit', $units);
+        return __('php/livewire/owner/owner_statement_view.nights_units', [
+            'nights' => trans_choice('php/livewire/owner/owner_statement_view.nights', $nights, ['count' => $nights]),
+            'units' => trans_choice('php/livewire/owner/owner_statement_view.units', $units, ['count' => $units]),
+        ]);
     }
 
     /**
@@ -125,10 +126,19 @@ class OwnerStatementView extends Component
     {
         return $statements->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'label' => $s->period_start->format('F Y'),
+            'label' => $s->period_start->translatedFormat('F Y'),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'is_current' => $s->id === $currentId,
         ])->values()->all();
+    }
+
+    /** The statement's date span as people read it, e.g. "1 Sep – 30 Sep 2026". */
+    private function dateRange(OwnerStatement $s): string
+    {
+        return __('php/livewire/owner/owner_statement_view.date_range', [
+            'start' => $s->period_start->translatedFormat('j M'),
+            'end' => $s->period_end->translatedFormat('j M Y'),
+        ]);
     }
 
     /**
@@ -141,8 +151,8 @@ class OwnerStatementView extends Component
             'sequence_no' => $s->sequence_no,
             'period_start' => $s->period_start->toDateString(),
             'period_end' => $s->period_end->toDateString(),
-            'period_label' => $s->period_start->format('F Y'),
-            'period_range' => $s->period_start->format('j M').' – '.$s->period_end->format('j M Y'),
+            'period_label' => $s->period_start->translatedFormat('F Y'),
+            'period_range' => $this->dateRange($s),
             'status' => $s->status,
             'status_meta' => $this->statusMeta((string) $s->status),
             'currency' => $s->currency,
@@ -207,9 +217,10 @@ class OwnerStatementView extends Component
         }
 
         $pct = (int) round(abs($amount) / $gross * 100);
-        $of = $lineType === 'commission' ? 'gross room revenue' : 'gross revenue';
 
-        return "{$pct}% of {$of}";
+        return $lineType === 'commission'
+            ? __('php/livewire/owner/owner_statement_view.pct_of_gross_room_revenue', ['pct' => $pct])
+            : __('php/livewire/owner/owner_statement_view.pct_of_gross_revenue', ['pct' => $pct]);
     }
 
     /**
@@ -220,8 +231,8 @@ class OwnerStatementView extends Component
     {
         return $statements->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'month_label' => $s->period_start->format('M Y'),
-            'period_range' => $s->period_start->format('j M').' – '.$s->period_end->format('j M Y'),
+            'month_label' => $s->period_start->translatedFormat('M Y'),
+            'period_range' => $this->dateRange($s),
             'year' => (int) $s->period_start->format('Y'),
             'gross_display' => $this->money((int) $s->gross_minor, (string) $s->source_currency),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
@@ -303,7 +314,7 @@ class OwnerStatementView extends Component
             $s = $chrono->get($i);
 
             return $s instanceof OwnerStatement
-                ? ['id' => $s->id, 'label' => $s->period_start->format('F Y')]
+                ? ['id' => $s->id, 'label' => $s->period_start->translatedFormat('F Y')]
                 : null;
         };
 
@@ -334,8 +345,8 @@ class OwnerStatementView extends Component
                 'id' => $payout->id,
                 'amount_display' => $this->money((int) $payout->amount_minor, (string) $payout->currency),
                 'status_meta' => $this->payoutStatusMeta((string) $payout->status),
-                'rail' => $payout->rail === 'manual' ? 'Bank transfer' : (string) $payout->rail,
-                'paid_at' => $paidAt !== null ? Carbon::parse($paidAt)->format('j M Y') : null,
+                'rail' => $payout->rail === 'manual' ? __('php/livewire/owner/owner_statement_view.bank_transfer') : (string) $payout->rail,
+                'paid_at' => $paidAt !== null ? Carbon::parse($paidAt)->translatedFormat('j M Y') : null,
             ];
         }
 
@@ -344,8 +355,8 @@ class OwnerStatementView extends Component
             'id' => null,   // no matched payout ⇒ no remittance advice to download yet
             'amount_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'status_meta' => $s->status === 'draft'
-                ? ['label' => 'Not yet finalized', 'tone' => 'draft']
-                : ['label' => 'Awaiting payout', 'tone' => 'pending'],
+                ? ['label' => __('php/livewire/owner/owner_statement_view.not_yet_finalized'), 'tone' => 'draft']
+                : ['label' => __('php/livewire/owner/owner_statement_view.awaiting_payout'), 'tone' => 'pending'],
             'rail' => null,
             'paid_at' => null,
         ];

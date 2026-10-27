@@ -5,7 +5,6 @@
      pagination ride GET so the owner scope middleware re-runs (a wire-action would bypass it — invariant #20);
      the two writes (Export, set Target) are CONTROLLER routes. RAW-BLADE RULE: every `@` follows space/newline/tag. --}}
 @php
-    use Illuminate\Support\Str;
     use App\Support\Money\MoneyFormatter;
     use App\Support\Owner\OwnerTeamRole;
 
@@ -31,9 +30,9 @@
         || ($filters['from'] ?? null) !== null || ($filters['to'] ?? null) !== null || ($filters['range'] ?? null) !== null;
 
     // Date-range control label.
-    $dateLabel = 'Any dates';
+    $dateLabel = __('livewire/owner/bookings.any_dates');
     if (($filters['range'] ?? null) !== null) {
-        $dateLabel = $ranges[$filters['range']] ?? 'Any dates';
+        $dateLabel = $ranges[$filters['range']] ?? __('livewire/owner/bookings.any_dates');
     } elseif (($filters['from'] ?? null) !== null || ($filters['to'] ?? null) !== null) {
         $dateLabel = ($filters['from'] ?? '…').' → '.($filters['to'] ?? '…');
     }
@@ -53,9 +52,9 @@
     $goalDisplay = $chart['goal_minor'] !== null ? MoneyFormatter::compact($chart['goal_minor'], $chart['currency']) : null;
 @endphp
 
-<x-owner.shell active="bookings" title="Bookings"
-    :breadcrumb="[['label' => 'Overview', 'url' => route('owner.dashboard')], ['label' => 'Bookings', 'url' => null]]"
-    :subtitle="$reservationsCount.' '.Str::plural('reservation', $reservationsCount).' · '.$unitsCount.' '.Str::plural('unit', $unitsCount)"
+<x-owner.shell active="bookings" :title="__('livewire/owner/bookings.page_title')"
+    :breadcrumb="[['label' => __('livewire/owner/bookings.breadcrumb_overview'), 'url' => route('owner.dashboard')], ['label' => __('livewire/owner/bookings.page_title'), 'url' => null]]"
+    :subtitle="__('livewire/owner/bookings.subtitle', ['reservations' => trans_choice('livewire/owner/bookings.reservations_count', $reservationsCount, ['count' => $reservationsCount]), 'units' => trans_choice('livewire/owner/bookings.units_count', $unitsCount, ['count' => $unitsCount])])"
     :viewer="$viewer">
 
     {{-- PAGE-SCOPED styles — kept here (not in the shared owner layout) so these class names/comments never
@@ -152,26 +151,26 @@
     {{-- ── Stat cards ─────────────────────────────────────────────────────────────────────────── --}}
     <div class="vy-kpi-grid vy-kpi-grid--4 vy-fade" style="margin-bottom:18px">
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Upcoming</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/bookings.kpi_upcoming') }}</div>
             <div class="vy-kpi-val">{{ $summary['upcoming'] }}</div>
         </div>
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Guests</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/bookings.kpi_guests') }}</div>
             <div class="vy-kpi-val">{{ $summary['guests'] }}</div>
         </div>
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Nights</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/bookings.kpi_nights') }}</div>
             <div class="vy-kpi-val">{{ $summary['nights'] }}</div>
         </div>
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Net to you</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/bookings.net_to_you') }}</div>
             @forelse ($summary['net'] as $net)
                 <div class="vy-kpi-val vy-mono">{{ $net['display'] }}</div>
             @empty
                 <div class="vy-kpi-val" style="color:var(--vy-faint)">—</div>
             @endforelse
             @if (count($summary['net']) > 1)
-                <div class="vy-kpi-sub">per payout currency</div>
+                <div class="vy-kpi-sub">{{ __('livewire/owner/bookings.per_payout_currency') }}</div>
             @endif
         </div>
     </div>
@@ -180,20 +179,20 @@
     <div class="vy-bk-cols vy-fade" style="animation-delay:.03s">
         {{-- Bookings over time --}}
         <section class="vy-card">
-            <div class="vy-card-title">Bookings over time</div>
-            <div class="vy-line-sub" style="margin-top:2px">Reservations by check-in month, with net revenue</div>
+            <div class="vy-card-title">{{ __('livewire/owner/bookings.chart_title') }}</div>
+            <div class="vy-line-sub" style="margin-top:2px">{{ __('livewire/owner/bookings.chart_sub') }}</div>
 
             <div class="vy-bk-legend">
-                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--confirmed"></span>Confirmed <b>{{ $chart['legend']['confirmed'] }}</b></span>
-                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--pending"></span>Pending <b>{{ $chart['legend']['pending'] }}</b></span>
+                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--confirmed"></span>{{ __('livewire/owner/bookings.legend_confirmed') }} <b>{{ $chart['legend']['confirmed'] }}</b></span>
+                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--pending"></span>{{ __('livewire/owner/bookings.legend_pending') }} <b>{{ $chart['legend']['pending'] }}</b></span>
                 @if ($chart['legend']['other'] > 0)
-                    <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--other"></span>Other <b>{{ $chart['legend']['other'] }}</b></span>
+                    <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--other"></span>{{ __('livewire/owner/bookings.legend_other') }} <b>{{ $chart['legend']['other'] }}</b></span>
                 @endif
-                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--net"></span>Net revenue</span>
+                <span class="vy-bk-leg"><span class="vy-bk-key vy-bk-key--net"></span>{{ __('livewire/owner/bookings.legend_net_revenue') }}</span>
             </div>
 
             @if ($cN === 0)
-                <div class="vy-empty">No bookings to chart yet.</div>
+                <div class="vy-empty">{{ __('livewire/owner/bookings.chart_empty') }}</div>
             @else
                 <div class="vy-bk-plot">
                     <div class="vy-bk-bars">
@@ -230,7 +229,7 @@
                     </svg>
 
                     @if ($goalY !== null && $goalDisplay !== null)
-                        <span class="vy-bk-goal-label" style="top:{{ $goalY }}%">{{ $goalDisplay }} /mo goal</span>
+                        <span class="vy-bk-goal-label" style="top:{{ $goalY }}%">{{ __('livewire/owner/bookings.goal_line_label', ['amount' => $goalDisplay]) }}</span>
                     @endif
                 </div>
 
@@ -244,30 +243,30 @@
 
         {{-- Monthly goal --}}
         <section class="vy-card vy-goal-card">
-            <div class="vy-card-title" style="align-self:flex-start">Monthly goal</div>
+            <div class="vy-card-title" style="align-self:flex-start">{{ __('livewire/owner/bookings.monthly_goal') }}</div>
 
             @if ($goal['has_target'])
                 <div class="vy-goal-ring" style="--p:{{ min(100, max(0, $goal['pct'])) }}">
                     <div class="vy-goal-ring-inner">
                         <div class="vy-goal-ring-val">{{ $goal['pct'] }}%</div>
-                        <div class="vy-goal-ring-cap">of goal</div>
+                        <div class="vy-goal-ring-cap">{{ __('livewire/owner/bookings.of_goal') }}</div>
                     </div>
                 </div>
-                <div class="vy-goal-net-lg">{{ $goal['month_label'] }} net</div>
-                <div class="vy-goal-of">{{ $goal['month_net_display'] }} of {{ $goal['target_display'] }}</div>
+                <div class="vy-goal-net-lg">{{ __('livewire/owner/bookings.month_net', ['month' => $goal['month_label']]) }}</div>
+                <div class="vy-goal-of">{{ __('livewire/owner/bookings.net_of_target', ['net' => $goal['month_net_display'], 'target' => $goal['target_display']]) }}</div>
                 <div @class(['vy-goal-delta', 'vy-goal-delta--over' => $goal['over'], 'vy-goal-delta--under' => ! $goal['over']])>
-                    {{ $goal['over'] ? '+' : '' }}{{ $goal['delta_display'] }} {{ $goal['over'] ? 'over' : 'to go' }}
+                    {{ $goal['over'] ? __('livewire/owner/bookings.delta_over', ['amount' => $goal['delta_display']]) : __('livewire/owner/bookings.delta_to_go', ['amount' => $goal['delta_display']]) }}
                 </div>
             @else
                 <div class="vy-goal-ring is-empty">
                     <div class="vy-goal-ring-inner">
                         <div class="vy-goal-ring-val" style="font-size:22px;color:var(--vy-faint)">—</div>
-                        <div class="vy-goal-ring-cap">no target</div>
+                        <div class="vy-goal-ring-cap">{{ __('livewire/owner/bookings.no_target') }}</div>
                     </div>
                 </div>
-                <div class="vy-goal-net-lg">{{ $goal['month_label'] }} net</div>
-                <div class="vy-goal-of">{{ $goal['month_net_display'] }} so far</div>
-                <div class="vy-line-sub" style="margin-top:9px">Set a monthly target to track progress.</div>
+                <div class="vy-goal-net-lg">{{ __('livewire/owner/bookings.month_net', ['month' => $goal['month_label']]) }}</div>
+                <div class="vy-goal-of">{{ __('livewire/owner/bookings.net_so_far', ['amount' => $goal['month_net_display']]) }}</div>
+                <div class="vy-line-sub" style="margin-top:9px">{{ __('livewire/owner/bookings.set_target_prompt') }}</div>
             @endif
 
             <div class="vy-goal-sep"></div>
@@ -276,11 +275,11 @@
                 <div class="vy-goal-target" x-data="{ edit: {{ $errors->has('target') ? 'true' : 'false' }} }">
                     <div class="vy-goal-target-view" x-show="!edit">
                         @if ($goal['has_target'])
-                            <span>Target <b>{{ $goal['target_display'] }}</b> /mo</span>
+                            <span>{!! __('livewire/owner/bookings.target_per_month', ['amount' => e($goal['target_display'])]) !!}</span>
                         @else
-                            <span class="vy-muted">Set a monthly target</span>
+                            <span class="vy-muted">{{ __('livewire/owner/bookings.set_target') }}</span>
                         @endif
-                        <button type="button" class="vy-goal-icobtn" x-on:click="edit = true" aria-label="Edit monthly target">
+                        <button type="button" class="vy-goal-icobtn" x-on:click="edit = true" aria-label="{{ __('livewire/owner/bookings.edit_target') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-3-3L5 17z"/></svg>
                         </button>
                     </div>
@@ -289,9 +288,9 @@
                     <form method="POST" action="{{ route('owner.bookings.target') }}" class="vy-goal-target-edit" x-show="edit" x-cloak>
                         @csrf
                         <span class="vy-muted" style="font-size:13px">{{ MoneyFormatter::symbol($goal['currency']) }}</span>
-                        <input type="text" name="target" value="{{ old('target', $goal['target_input']) }}" inputmode="decimal" placeholder="6000" class="vy-input" aria-label="Monthly target amount">
-                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:8px 14px">Save</button>
-                        <button type="button" class="vy-goal-icobtn" x-on:click="edit = false" aria-label="Cancel">
+                        <input type="text" name="target" value="{{ old('target', $goal['target_input']) }}" inputmode="decimal" placeholder="6000" class="vy-input" aria-label="{{ __('livewire/owner/bookings.target_amount') }}">
+                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:8px 14px">{{ __('common.save') }}</button>
+                        <button type="button" class="vy-goal-icobtn" x-on:click="edit = false" aria-label="{{ __('common.cancel') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px"><path d="M6 6l12 12M18 6L6 18"/></svg>
                         </button>
                     </form>
@@ -302,9 +301,9 @@
             @else
                 <div class="vy-goal-target-view">
                     @if ($goal['has_target'])
-                        <span>Target <b>{{ $goal['target_display'] }}</b> /mo</span>
+                        <span>{!! __('livewire/owner/bookings.target_per_month', ['amount' => e($goal['target_display'])]) !!}</span>
                     @else
-                        <span class="vy-muted">No monthly target set</span>
+                        <span class="vy-muted">{{ __('livewire/owner/bookings.no_target_set') }}</span>
                     @endif
                 </div>
             @endownercan
@@ -314,7 +313,7 @@
     {{-- ── Filters ────────────────────────────────────────────────────────────────────────────── --}}
     <div class="vy-card vy-fade" style="animation-delay:.06s;margin-bottom:16px">
         <div class="vy-bk-filters">
-            @foreach (['upcoming' => 'Upcoming', 'past' => 'Past', 'all' => 'All'] as $value => $label)
+            @foreach (['upcoming' => __('livewire/owner/bookings.tab_upcoming'), 'past' => __('livewire/owner/bookings.tab_past'), 'all' => __('common.all')] as $value => $label)
                 <a href="{{ $qs(['tab' => $value]) }}" class="vy-btn {{ $filters['tab'] === $value ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:7px 15px">{{ $label }}</a>
             @endforeach
 
@@ -329,25 +328,25 @@
 
                 <span style="position:relative;display:inline-flex;align-items:center">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="position:absolute;left:11px;width:15px;height:15px;color:var(--vy-faint);pointer-events:none"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                    <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Search guest, unit or confirmation" aria-label="Search bookings" class="vy-input" style="width:250px;flex:none;padding-left:34px">
+                    <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="{{ __('livewire/owner/bookings.search_placeholder') }}" aria-label="{{ __('livewire/owner/bookings.search_label') }}" class="vy-input" style="width:250px;flex:none;padding-left:34px">
                 </span>
 
-                <select name="source" onchange="this.form.submit()" aria-label="Filter by source" class="vy-input vy-bk-select">
-                    <option value="">All sources</option>
+                <select name="source" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_source') }}" class="vy-input vy-bk-select">
+                    <option value="">{{ __('livewire/owner/bookings.all_sources') }}</option>
                     @foreach ($sourceOptions as $opt)
                         <option value="{{ $opt['value'] }}" @selected($filters['source'] === $opt['value'])>{{ $opt['label'] }} ({{ $opt['count'] }})</option>
                     @endforeach
                 </select>
 
-                <select name="status" onchange="this.form.submit()" aria-label="Filter by status" class="vy-input vy-bk-select">
-                    <option value="">All statuses</option>
+                <select name="status" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_status') }}" class="vy-input vy-bk-select">
+                    <option value="">{{ __('livewire/owner/bookings.all_statuses') }}</option>
                     @foreach ($statusOptions as $opt)
                         <option value="{{ $opt['value'] }}" @selected($filters['status'] === $opt['value'])>{{ $opt['label'] }} ({{ $opt['count'] }})</option>
                     @endforeach
                 </select>
 
-                <select name="unit" onchange="this.form.submit()" aria-label="Filter by unit" class="vy-input vy-bk-select">
-                    <option value="">All units</option>
+                <select name="unit" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_unit') }}" class="vy-input vy-bk-select">
+                    <option value="">{{ __('livewire/owner/bookings.all_units') }}</option>
                     @foreach ($unitOptions as $opt)
                         <option value="{{ $opt['id'] }}" @selected($filters['unit'] === $opt['id'])>{{ $opt['label'] }}</option>
                     @endforeach
@@ -373,14 +372,14 @@
                                 <input type="hidden" name="{{ $key }}" value="{{ $val }}">
                             @endif
                         @endforeach
-                        <label for="bk-from">From</label>
+                        <label for="bk-from">{{ __('livewire/owner/bookings.date_from') }}</label>
                         <input id="bk-from" type="date" name="from" value="{{ $filters['from'] }}" class="vy-input">
-                        <label for="bk-to">To</label>
+                        <label for="bk-to">{{ __('livewire/owner/bookings.date_to') }}</label>
                         <input id="bk-to" type="date" name="to" value="{{ $filters['to'] }}" class="vy-input">
-                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:8px 14px;margin-top:4px;justify-content:center">Apply dates</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:8px 14px;margin-top:4px;justify-content:center">{{ __('livewire/owner/bookings.apply_dates') }}</button>
                     </form>
                     @if (($filters['from'] ?? null) !== null || ($filters['to'] ?? null) !== null || ($filters['range'] ?? null) !== null)
-                        <a href="{{ $qs(['range' => null, 'from' => null, 'to' => null]) }}" class="vy-bk-clear">Clear dates</a>
+                        <a href="{{ $qs(['range' => null, 'from' => null, 'to' => null]) }}" class="vy-bk-clear">{{ __('livewire/owner/bookings.clear_dates') }}</a>
                     @endif
                 </div>
             </div>
@@ -388,12 +387,12 @@
             @ownercan(OwnerTeamRole::CAP_EXPORTS)
                 <a href="{{ route('owner.bookings.export') }}" class="vy-btn vy-btn--ghost" style="padding:8px 14px">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
-                    Export
+                    {{ __('common.export') }}
                 </a>
             @endownercan
 
             @if ($anyFilter)
-                <a href="{{ route('owner.bookings', ['tab' => $filters['tab']]) }}" class="vy-btn vy-btn--ghost" style="padding:8px 14px">Clear all</a>
+                <a href="{{ route('owner.bookings', ['tab' => $filters['tab']]) }}" class="vy-btn vy-btn--ghost" style="padding:8px 14px">{{ __('livewire/owner/bookings.clear_all') }}</a>
             @endif
         </div>
     </div>
@@ -403,10 +402,10 @@
         @if ($rows === [])
             <div class="vy-empty">
                 @if ($unitsCount === 0)
-                    No units are linked to your account yet, so there are no bookings to show.
+                    {{ __('livewire/owner/bookings.empty_no_units') }}
                 @else
-                    No bookings match this view.
-                    <div class="vy-line-sub" style="margin-top:6px">Try “All”, or clear the filters above.</div>
+                    {{ __('livewire/owner/bookings.empty_no_match') }}
+                    <div class="vy-line-sub" style="margin-top:6px">{{ __('livewire/owner/bookings.empty_no_match_hint') }}</div>
                 @endif
             </div>
         @else
@@ -421,13 +420,13 @@
                 <table class="vy-table">
                     <thead>
                         <tr>
-                            <th>{!! $th($sortHead('guest'), 'Booking') !!}</th>
-                            <th>Unit</th>
-                            <th>{!! $th($sortHead('dates'), 'Dates') !!}</th>
-                            <th class="vy-num">Nts</th>
-                            <th>Source</th>
-                            <th>Status</th>
-                            <th class="vy-num">{!! $th($sortHead('net'), 'Net to you') !!}</th>
+                            <th>{!! $th($sortHead('guest'), __('livewire/owner/bookings.col_booking')) !!}</th>
+                            <th>{{ __('livewire/owner/bookings.col_unit') }}</th>
+                            <th>{!! $th($sortHead('dates'), __('livewire/owner/bookings.col_dates')) !!}</th>
+                            <th class="vy-num">{{ __('livewire/owner/bookings.col_nights') }}</th>
+                            <th>{{ __('livewire/owner/bookings.col_source') }}</th>
+                            <th>{{ __('common.status') }}</th>
+                            <th class="vy-num">{!! $th($sortHead('net'), __('livewire/owner/bookings.net_to_you')) !!}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -435,7 +434,7 @@
                             <tr class="vy-row-clickable" onclick="window.location='{{ route('owner.bookings.show', $row['id']) }}'">
                                 <td>
                                     <a class="vy-row-link" href="{{ route('owner.bookings.show', $row['id']) }}">
-                                        <div class="vy-row-month">{{ $row['guest'] ?? 'Guest' }}</div>
+                                        <div class="vy-row-month">{{ $row['guest'] ?? __('livewire/owner/bookings.guest_fallback') }}</div>
                                         <div class="vy-row-sub">{{ $row['reference'] }}</div>
                                     </a>
                                 </td>
@@ -450,7 +449,7 @@
                                     @forelse ($row['net_displays'] as $display)
                                         <div>{{ $display }}</div>
                                     @empty
-                                        <span class="vy-line-sub" title="No ledger entries for this booking yet">Not yet attributed</span>
+                                        <span class="vy-line-sub" title="{{ __('livewire/owner/bookings.no_ledger_entries') }}">{{ __('livewire/owner/bookings.not_yet_attributed') }}</span>
                                     @endforelse
                                 </td>
                             </tr>
@@ -461,25 +460,29 @@
 
             <div class="vy-bk-foot">
                 <div class="vy-line-sub">
-                    Showing {{ $page['from'] }}–{{ $page['to'] }} of {{ $page['total'] }} {{ Str::plural('booking', $page['total']) }}{{ $filters['tab'] === 'upcoming' ? ' · upcoming' : ($filters['tab'] === 'past' ? ' · past' : '') }}.
+                    {{ match ($filters['tab']) {
+                        'upcoming' => trans_choice('livewire/owner/bookings.showing_upcoming', $page['total'], ['from' => $page['from'], 'to' => $page['to'], 'count' => $page['total']]),
+                        'past' => trans_choice('livewire/owner/bookings.showing_past', $page['total'], ['from' => $page['from'], 'to' => $page['to'], 'count' => $page['total']]),
+                        default => trans_choice('livewire/owner/bookings.showing_all', $page['total'], ['from' => $page['from'], 'to' => $page['to'], 'count' => $page['total']]),
+                    } }}
                 </div>
                 <div style="display:flex;align-items:center;gap:14px">
                     @if ($page['pages'] > 1)
                         <div class="vy-pager">
                             @if ($page['has_prev'])
-                                <a class="vy-pager-btn" href="{{ $qs(['page' => $page['page'] - 1]) }}" aria-label="Previous page">‹</a>
+                                <a class="vy-pager-btn" href="{{ $qs(['page' => $page['page'] - 1]) }}" aria-label="{{ __('livewire/owner/bookings.previous_page') }}">‹</a>
                             @else
                                 <span class="vy-pager-btn" aria-disabled="true">‹</span>
                             @endif
-                            <span class="vy-line-sub">Page {{ $page['page'] }} of {{ $page['pages'] }}</span>
+                            <span class="vy-line-sub">{{ __('livewire/owner/bookings.page_of', ['page' => $page['page'], 'pages' => $page['pages']]) }}</span>
                             @if ($page['has_next'])
-                                <a class="vy-pager-btn" href="{{ $qs(['page' => $page['page'] + 1]) }}" aria-label="Next page">›</a>
+                                <a class="vy-pager-btn" href="{{ $qs(['page' => $page['page'] + 1]) }}" aria-label="{{ __('livewire/owner/bookings.next_page') }}">›</a>
                             @else
                                 <span class="vy-pager-btn" aria-disabled="true">›</span>
                             @endif
                         </div>
                     @endif
-                    <a href="{{ route('owner.dashboard') }}" style="color:var(--vy-accent-text);font-weight:600;font-size:13px">Back to overview</a>
+                    <a href="{{ route('owner.dashboard') }}" style="color:var(--vy-accent-text);font-weight:600;font-size:13px">{{ __('livewire/owner/bookings.back_to_overview') }}</a>
                 </div>
             </div>
         @endif

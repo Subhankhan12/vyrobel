@@ -57,7 +57,7 @@ class OwnerUnitRequestController extends Controller
         if ($rateMinor === false || $cleaningMinor === false) {
             // withInput() keeps everything they typed, so a bad rate costs them the click, never the draft.
             return back()->withInput()->withErrors([
-                'nightly_rate' => 'Enter the rate as a plain amount, e.g. 180 or 180.00.',
+                'nightly_rate' => __('php/http/controllers/owner/owner_unit_request_controller.invalid_rate'),
             ]);
         }
 
@@ -74,7 +74,7 @@ class OwnerUnitRequestController extends Controller
         $this->storePhotos($draft, $request->file('photos', []));
 
         return redirect()->to(route('owner.add-unit', ['draft' => $draft->id]))
-            ->with('unit_request_draft_saved', 'Draft saved. You can finish this whenever you like.');
+            ->with('unit_request_draft_saved', __('php/http/controllers/owner/owner_unit_request_controller.draft_saved'));
     }
 
     /**
@@ -103,7 +103,7 @@ class OwnerUnitRequestController extends Controller
             return back()->with('unit_request_withdraw_error', $e->getMessage());
         }
 
-        return back()->with('unit_request_withdrawn', 'Request withdrawn. Your manager won’t action it.');
+        return back()->with('unit_request_withdrawn', __('php/http/controllers/owner/owner_unit_request_controller.request_withdrawn'));
     }
 
     public function store(Request $request, OwnerUnitRequestService $units): RedirectResponse
@@ -118,7 +118,7 @@ class OwnerUnitRequestController extends Controller
         $cleaningMinor = $this->money($validated['cleaning_fee'] ?? null);
         if ($rateMinor === false || $cleaningMinor === false) {
             return back()->withInput()->withErrors([
-                'nightly_rate' => 'Enter the rate as a plain amount, e.g. 180 or 180.00.',
+                'nightly_rate' => __('php/http/controllers/owner/owner_unit_request_controller.invalid_rate'),
             ]);
         }
 

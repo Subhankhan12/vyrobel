@@ -69,6 +69,6 @@ class OwnerProfileController extends Controller
 
         $audit->record('owner.profile_updated', $owner, null, ['fields' => array_keys($update)]);
 
-        return redirect()->to(route('owner.settings'))->with('owner_notice', 'Your details are saved.');
+        return redirect()->to(route('owner.settings'))->with('owner_notice', __('php/http/controllers/owner/owner_profile_controller.details_saved'));
     }
 }

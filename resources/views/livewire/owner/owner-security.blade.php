@@ -16,15 +16,17 @@
      RAW-BLADE RULE: every `@` follows a space, newline, tag, quote or bracket. --}}
 @php
     $tiles = [
-        ['icon' => 'shield', 'n' => $score['on'].'/'.$score['total'], 'label' => 'Protections on', 'href' => '#sx-boost'],
-        ['icon' => 'plus', 'n' => $score['available'], 'label' => 'Points available', 'href' => '#sx-boost'],
-        ['icon' => 'device', 'n' => count($trusted), 'label' => 'Trusted devices', 'href' => '#sx-approval'],
-        ['icon' => 'apps', 'n' => count($connectedApps), 'label' => 'Connected apps', 'href' => '#sx-apps'],
+        ['icon' => 'shield', 'n' => $score['on'].'/'.$score['total'], 'label' => __('livewire/owner/owner-security.tile_protections_on'), 'href' => '#sx-boost'],
+        ['icon' => 'plus', 'n' => $score['available'], 'label' => __('livewire/owner/owner-security.tile_points_available'), 'href' => '#sx-boost'],
+        ['icon' => 'device', 'n' => count($trusted), 'label' => __('livewire/owner/owner-security.trusted_devices'), 'href' => '#sx-approval'],
+        ['icon' => 'apps', 'n' => count($connectedApps), 'label' => __('livewire/owner/owner-security.connected_apps'), 'href' => '#sx-apps'],
     ];
     $pwFirst = ! $hasPassword && session()->has('password_status');
+    // the revoke dialog's app name, filled in by Alpine
+    $revokeAppNameHtml = '<span x-text="appRevoke ? appRevoke.name : \'\'"></span>';
 @endphp
 <div class="vy-sx" x-data="{ pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice), appRevoke: @js($erroredApp), approvalOpen: @js($errored === 'approval'), deactivateOpen: @js($errored === 'deactivate') }">
-    <x-owner.shell active="security" title="Security" :viewer="$viewer">
+    <x-owner.shell active="security" :title="__('livewire/owner/owner-security.page_title')" :viewer="$viewer">
         <x-security.styles />
 
         @foreach (['owner_notice', 'password_status', 'security_notice'] as $flash)
@@ -47,18 +49,18 @@
                 <x-security.problems :problems="$problems" seen-route="owner.security.alerts.seen" secure="pwOpen = true" />
 
                 <section class="vy-sx-card vy-sx-in" id="sx-signin" aria-labelledby="vy-sx-signin-t">
-                    <h2 class="vy-sx-card-title" id="vy-sx-signin-t">Signing in</h2>
-                    <p class="vy-sx-card-sub">How you prove it’s you. @if ($lastLogin) Last sign-in {{ $lastLogin->diffForHumans() }}. @endif</p>
+                    <h2 class="vy-sx-card-title" id="vy-sx-signin-t">{{ __('livewire/owner/owner-security.signing_in_heading') }}</h2>
+                    <p class="vy-sx-card-sub">@if ($lastLogin) {{ __('livewire/owner/owner-security.signing_in_sub_last', ['when' => $lastLogin->diffForHumans()]) }} @else {{ __('livewire/owner/owner-security.signing_in_sub') }} @endif</p>
 
                     {{-- ⚠️⚠️ THE SET-A-PASSWORD PATH IS THIS SAME ROW: with no password there is nothing to confirm with, so the
                          dialog omits the current-password field only then, and the controller enforces the same split. --}}
                     <div class="vy-sx-block" id="sx-password">
                         <div class="vy-sx-row">
                             <div class="vy-sx-row-main">
-                                <h3 class="vy-sx-row-title">Password</h3>
-                                <span class="vy-sx-row-meta">@if (! $hasPassword) No password yet — set one to sign in with your email address. @elseif ($passwordChanged) Changed {{ $passwordChanged }}. @else Not recorded yet — it was set before Vyrobel kept the date. @endif</span>
+                                <h3 class="vy-sx-row-title">{{ __('livewire/owner/owner-security.password_heading') }}</h3>
+                                <span class="vy-sx-row-meta">@if (! $hasPassword) {{ __('livewire/owner/owner-security.password_none') }} @elseif ($passwordChanged) {{ __('livewire/owner/owner-security.password_changed', ['when' => $passwordChanged]) }} @else {{ __('livewire/owner/owner-security.password_not_recorded') }} @endif</span>
                             </div>
-                            <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pwOpen = true">{{ $hasPassword ? 'Change' : 'Set password' }}</button>
+                            <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pwOpen = true">{{ $hasPassword ? __('livewire/owner/owner-security.change_button') : __('livewire/owner/owner-security.set_password_button') }}</button>
                         </div>
                     </div>
 
@@ -78,20 +80,20 @@
 
                 {{-- YOUR DATA — a REAL owner-scoped export (#28) --}}
                 <section class="vy-sx-card vy-sx-in" id="sx-data" aria-labelledby="vy-sx-data-t">
-                    <h2 class="vy-sx-card-title" id="vy-sx-data-t">Data &amp; privacy</h2>
-                    <p class="vy-sx-card-sub">Download a copy of your data — your profile plus the statements, payouts and units your account covers.</p>
+                    <h2 class="vy-sx-card-title" id="vy-sx-data-t">{{ __('livewire/owner/owner-security.data_heading') }}</h2>
+                    <p class="vy-sx-card-sub">{{ __('livewire/owner/owner-security.data_sub') }}</p>
                     <div class="vy-sx-alert-acts">
-                        <a href="{{ route('owner.security.export') }}" class="vy-sx-btn vy-sx-btn--soft"><x-security.icon name="download" /> Request my data</a>
+                        <a href="{{ route('owner.security.export') }}" class="vy-sx-btn vy-sx-btn--soft"><x-security.icon name="download" /> {{ __('livewire/owner/owner-security.request_my_data') }}</a>
                     </div>
                 </section>
 
                 {{-- DEACTIVATE — PRIMARY-OWNER-ONLY, reversible and non-destructive --}}
                 @if ($isPrimaryOwner)
                     <section class="vy-sx-card vy-sx-in" id="sx-deactivate" aria-labelledby="vy-sx-deact-t">
-                        <h2 class="vy-sx-card-title" id="vy-sx-deact-t">Deactivate account</h2>
-                        <p class="vy-sx-card-sub">Pause your portal access. Your statements and payout history are <strong>kept</strong> — nothing is deleted. To reactivate, contact your management team.</p>
+                        <h2 class="vy-sx-card-title" id="vy-sx-deact-t">{{ __('livewire/owner/owner-security.deactivate_heading') }}</h2>
+                        <p class="vy-sx-card-sub">{!! __('livewire/owner/owner-security.deactivate_sub') !!}</p>
                         <div class="vy-sx-alert-acts">
-                            <button type="button" class="vy-sx-btn vy-sx-btn--line" @click="deactivateOpen = true"><x-security.icon name="pause" /> Deactivate</button>
+                            <button type="button" class="vy-sx-btn vy-sx-btn--line" @click="deactivateOpen = true"><x-security.icon name="pause" /> {{ __('livewire/owner/owner-security.deactivate_button') }}</button>
                         </div>
                     </section>
                 @endif
@@ -100,26 +102,26 @@
             {{-- ══ RIGHT — sign-in protection, sessions, apps ═══════════════════════════════════════════════════════ --}}
             <div class="vy-sx-col">
                 <section class="vy-sx-card vy-sx-in" id="sx-approval" aria-labelledby="vy-sx-prot-t">
-                    <h2 class="vy-sx-card-title" id="vy-sx-prot-t">Sign-in protection</h2>
+                    <h2 class="vy-sx-card-title" id="vy-sx-prot-t">{{ __('livewire/owner/owner-security.protection_heading') }}</h2>
 
                     {{-- LOGIN APPROVAL — a REAL hold on new devices; switching it re-asks for the password --}}
                     <div class="vy-sx-row">
                         <div class="vy-sx-row-main">
-                            <h3 class="vy-sx-row-title">Login approval requests</h3>
-                            <span class="vy-sx-row-meta">A new device waits until you approve it — from the link we email you, or here from a device you’re signed in on. A trusted device skips this.</span>
+                            <h3 class="vy-sx-row-title">{{ __('livewire/owner/owner-security.login_approval') }}</h3>
+                            <span class="vy-sx-row-meta">{{ __('livewire/owner/owner-security.login_approval_meta') }}</span>
                         </div>
                         @if (! $approval['on'] && ! $approval['available'])
-                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="false" aria-label="Login approval requests" aria-disabled="true" aria-describedby="vy-sx-approval-why"></button>
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="false" aria-label="{{ __('livewire/owner/owner-security.login_approval') }}" aria-disabled="true" aria-describedby="vy-sx-approval-why"></button>
                         @else
-                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="{{ $approval['on'] ? 'true' : 'false' }}" aria-label="Login approval requests" @click="approvalOpen = true"></button>
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="{{ $approval['on'] ? 'true' : 'false' }}" aria-label="{{ __('livewire/owner/owner-security.login_approval') }}" @click="approvalOpen = true"></button>
                         @endif
                     </div>
                     @if (! $approval['available'])
                         <p class="vy-sx-note is-warn" id="vy-sx-approval-why">
                             @if ($approval['on'])
-                                Email isn’t being sent from Vyrobel yet, so a new device can only be approved from here, while you’re signed in somewhere. Turn this off if that could lock you out.
+                                {{ __('livewire/owner/owner-security.approval_no_email_on') }}
                             @else
-                                Email isn’t being sent from Vyrobel yet, so an approval link couldn’t reach you. This stays off until it is.
+                                {{ __('livewire/owner/owner-security.approval_no_email_off') }}
                             @endif
                         </p>
                     @endif
@@ -129,8 +131,8 @@
                     {{-- TRUSTED DEVICES — REAL skip-2FA devices; remove re-asks for the password --}}
                     <div class="vy-sx-row">
                         <div class="vy-sx-row-main">
-                            <h3 class="vy-sx-row-title">Trusted devices</h3>
-                            <span class="vy-sx-row-meta">Skip the two-factor code at sign-in. Tick “Trust this device” at the code screen to add the one you’re on.</span>
+                            <h3 class="vy-sx-row-title">{{ __('livewire/owner/owner-security.trusted_devices') }}</h3>
+                            <span class="vy-sx-row-meta">{{ __('livewire/owner/owner-security.trusted_devices_meta') }}</span>
                         </div>
                     </div>
                     <ul class="vy-sx-sub-rows">
@@ -138,15 +140,15 @@
                             <li class="vy-sx-item">
                                 <span class="vy-sx-ico"><x-security.icon name="device" /></span>
                                 <div class="vy-sx-row-main">
-                                    <span class="vy-sx-row-title">{{ $d['label'] }}@if ($d['current']) <span class="vy-sx-chip is-ok">This device</span>@endif</span>
-                                    <span class="vy-sx-row-meta">{{ $d['ip'] !== '' ? $d['ip'].' · ' : '' }}last used {{ $d['last_used'] ?? '—' }} · trust expires {{ $d['expires'] ?? '—' }}</span>
+                                    <span class="vy-sx-row-title">{{ $d['label'] }}@if ($d['current']) <span class="vy-sx-chip is-ok">{{ __('livewire/owner/owner-security.this_device') }}</span>@endif</span>
+                                    <span class="vy-sx-row-meta">{{ $d['ip'] !== '' ? __('livewire/owner/owner-security.trusted_meta_ip', ['ip' => $d['ip'], 'last_used' => $d['last_used'] ?? '—', 'expires' => $d['expires'] ?? '—']) : __('livewire/owner/owner-security.trusted_meta', ['last_used' => $d['last_used'] ?? '—', 'expires' => $d['expires'] ?? '—']) }}</span>
                                 </div>
-                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="revokeId = '{{ $d['id'] }}'">Remove</button>
+                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="revokeId = '{{ $d['id'] }}'">{{ __('common.remove') }}</button>
                             </li>
                         @empty
                             <li class="vy-sx-empty">
-                                <strong>No trusted devices</strong>
-                                {{ $twoFactorOn ? 'Every sign-in asks for your code.' : 'Two-factor is off, so no device skips it.' }}
+                                <strong>{{ __('livewire/owner/owner-security.no_trusted_devices') }}</strong>
+                                {{ $twoFactorOn ? __('livewire/owner/owner-security.no_trusted_2fa_on') : __('livewire/owner/owner-security.no_trusted_2fa_off') }}
                             </li>
                         @endforelse
                     </ul>
@@ -154,30 +156,30 @@
 
                 {{-- ACTIVE SESSIONS — the REAL sessions table; "sign out others" re-asks for the password --}}
                 <section class="vy-sx-card vy-sx-in" id="sx-sessions" aria-labelledby="vy-sx-sess-t">
-                    <h2 class="vy-sx-card-title" id="vy-sx-sess-t">Active sessions</h2>
-                    <p class="vy-sx-card-sub">Where you’re signed in right now.</p>
+                    <h2 class="vy-sx-card-title" id="vy-sx-sess-t">{{ __('livewire/owner/owner-security.sessions_heading') }}</h2>
+                    <p class="vy-sx-card-sub">{{ __('livewire/owner/owner-security.sessions_sub') }}</p>
                     <ul class="vy-sx-rows">
                         @forelse ($sessions as $s)
                             <li class="vy-sx-row">
                                 <span class="vy-sx-ico"><x-security.icon name="monitor" /></span>
                                 <div class="vy-sx-row-main">
-                                    <span class="vy-sx-row-title">{{ $s['device'] }}@if ($s['current']) <span class="vy-sx-chip is-ok">This device</span>@endif</span>
-                                    <span class="vy-sx-row-meta"><span class="vy-sx-mono">{{ $s['ip'] }}</span> · active {{ $s['last_active']->diffForHumans() }}</span>
+                                    <span class="vy-sx-row-title">{{ $s['device'] }}@if ($s['current']) <span class="vy-sx-chip is-ok">{{ __('livewire/owner/owner-security.this_device') }}</span>@endif</span>
+                                    <span class="vy-sx-row-meta">{!! __('livewire/owner/owner-security.session_meta', ['ip' => e($s['ip']), 'when' => e($s['last_active']->diffForHumans())]) !!}</span>
                                 </div>
                             </li>
                         @empty
-                            <li class="vy-sx-empty"><strong>No active sessions recorded</strong></li>
+                            <li class="vy-sx-empty"><strong>{{ __('livewire/owner/owner-security.no_sessions') }}</strong></li>
                         @endforelse
                     </ul>
                     <div class="vy-sx-alert-acts">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="signOutOpen = true">Sign out all other sessions</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="signOutOpen = true">{{ __('livewire/owner/owner-security.sign_out_others_all') }}</button>
                     </div>
                 </section>
 
                 {{-- CONNECTED APPS — REAL (OAuth #72): third-party apps you authorized, their scopes, a re-authed revoke --}}
                 <section class="vy-sx-card vy-sx-in" id="sx-apps" aria-labelledby="vy-sx-apps-t">
-                    <h2 class="vy-sx-card-title" id="vy-sx-apps-t">Connected apps</h2>
-                    <p class="vy-sx-card-sub">Apps you’ve given read-only access — never your guests’ contact details, door codes or Wi-Fi, and only your own data.</p>
+                    <h2 class="vy-sx-card-title" id="vy-sx-apps-t">{{ __('livewire/owner/owner-security.connected_apps') }}</h2>
+                    <p class="vy-sx-card-sub">{{ __('livewire/owner/owner-security.apps_sub') }}</p>
                     <ul class="vy-sx-rows">
                         @forelse ($connectedApps as $app)
                             <li class="vy-sx-row">
@@ -186,13 +188,13 @@
                                     <span class="vy-sx-row-title">{{ $app['name'] }}</span>
                                     <span class="vy-sx-row-meta">
                                         @foreach ($app['scopes'] as $i => $scopeId)<span class="vy-sx-chip" title="{{ $app['scope_labels'][$i] ?? '' }}">{{ $scopeId }}</span> @endforeach
-                                        @if ($app['authorized_at']) · authorized {{ $app['authorized_at'] }}@endif
+                                        @if ($app['authorized_at']) {{ __('livewire/owner/owner-security.authorized_at', ['when' => $app['authorized_at']]) }}@endif
                                     </span>
                                 </div>
-                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="appRevoke = @js(['id' => $app['client_id'], 'name' => $app['name']])">Revoke</button>
+                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="appRevoke = @js(['id' => $app['client_id'], 'name' => $app['name']])">{{ __('livewire/owner/owner-security.revoke') }}</button>
                             </li>
                         @empty
-                            <li class="vy-sx-empty"><strong>No connected apps</strong> Third-party apps you authorize will appear here.</li>
+                            <li class="vy-sx-empty"><strong>{{ __('livewire/owner/owner-security.no_connected_apps') }}</strong> {{ __('livewire/owner/owner-security.no_connected_apps_hint') }}</li>
                         @endforelse
                     </ul>
                 </section>
@@ -207,10 +209,10 @@
                 <div class="vy-sx-dialog-head">
                     <span class="vy-sx-ico"><x-security.icon name="key" :size="18" /></span>
                     <div class="vy-sx-dialog-text">
-                        <h3 class="vy-sx-dialog-title" id="vy-sx-pw-t">@if ($hasPassword) Change password @else Set a password @endif</h3>
-                        <p class="vy-sx-dialog-sub">{{ $hasPassword ? 'Other devices with “remember me” are signed out.' : 'You’ll be asked for it when confirming sensitive changes.' }}</p>
+                        <h3 class="vy-sx-dialog-title" id="vy-sx-pw-t">@if ($hasPassword) {{ __('livewire/owner/owner-security.change_password_title') }} @else {{ __('livewire/owner/owner-security.set_password_title') }} @endif</h3>
+                        <p class="vy-sx-dialog-sub">{{ $hasPassword ? __('livewire/owner/owner-security.change_password_sub') : __('livewire/owner/owner-security.set_password_sub') }}</p>
                     </div>
-                    <button type="button" class="vy-sx-x" @click="pwOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                    <button type="button" class="vy-sx-x" @click="pwOpen = false" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                 </div>
                 <form method="POST" action="{{ route('owner.security.password') }}">
                     @csrf
@@ -226,25 +228,25 @@
                         @endif
                         @if ($hasPassword)
                             <div class="vy-sx-field">
-                                <label class="vy-sx-label" for="vy-sx-cur">Current password</label>
-                                <x-password-field name="current_password" id="vy-sx-cur" autocomplete="current-password" :required="true" label="current password" autofocus />
+                                <label class="vy-sx-label" for="vy-sx-cur">{{ __('livewire/owner/owner-security.current_password') }}</label>
+                                <x-password-field name="current_password" id="vy-sx-cur" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_current_password')" autofocus />
                             </div>
                         @endif
                         <div class="vy-sx-pair">
                             <div class="vy-sx-field">
-                                <label class="vy-sx-label" for="vy-sx-new">New password</label>
-                                <x-password-field name="password" id="vy-sx-new" autocomplete="new-password" :required="true" label="new password" :autofocus="! $hasPassword" />
+                                <label class="vy-sx-label" for="vy-sx-new">{{ __('livewire/owner/owner-security.new_password') }}</label>
+                                <x-password-field name="password" id="vy-sx-new" autocomplete="new-password" :required="true" :label="__('livewire/owner/owner-security.field_new_password')" :autofocus="! $hasPassword" />
                             </div>
                             <div class="vy-sx-field">
-                                <label class="vy-sx-label" for="vy-sx-conf">Confirm new password</label>
-                                <x-password-field name="password_confirmation" id="vy-sx-conf" autocomplete="new-password" :required="true" label="password confirmation" />
+                                <label class="vy-sx-label" for="vy-sx-conf">{{ __('livewire/owner/owner-security.confirm_new_password') }}</label>
+                                <x-password-field name="password_confirmation" id="vy-sx-conf" autocomplete="new-password" :required="true" :label="__('livewire/owner/owner-security.field_password_confirmation')" />
                             </div>
                         </div>
                         <p class="vy-sx-hint">{{ \App\Support\Auth\PasswordPolicy::hint() }}</p>
                     </div>
                     <div class="vy-sx-dialog-foot">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="pwOpen = false">Cancel</button>
-                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">@if ($hasPassword) Update password @else Set password @endif</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="pwOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">@if ($hasPassword) {{ __('livewire/owner/owner-security.update_password') }} @else {{ __('livewire/owner/owner-security.set_password_button') }} @endif</button>
                     </div>
                 </form>
             </div>
@@ -264,23 +266,23 @@
                     <div class="vy-sx-dialog-head">
                         <span class="vy-sx-ico"><x-security.icon name="user-check" :size="18" /></span>
                         <div class="vy-sx-dialog-text">
-                            <h3 class="vy-sx-dialog-title" id="vy-sx-appr-t">{{ $approval['on'] ? 'Turn off login approval' : 'Turn on login approval' }}</h3>
-                            <p class="vy-sx-dialog-sub">{{ $approval['on'] ? 'New devices will sign in without waiting for your approval.' : 'A new device will wait until you approve it from the link we email you.' }}</p>
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-appr-t">{{ $approval['on'] ? __('livewire/owner/owner-security.approval_off_title') : __('livewire/owner/owner-security.approval_on_title') }}</h3>
+                            <p class="vy-sx-dialog-sub">{{ $approval['on'] ? __('livewire/owner/owner-security.approval_off_sub') : __('livewire/owner/owner-security.approval_on_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-sx-x" @click="approvalOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                        <button type="button" class="vy-sx-x" @click="approvalOpen = false" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                     </div>
                     <div class="vy-sx-dialog-body">
                         @if ($errored === 'approval' && $errors->any())
                             <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
                         @endif
                         <div class="vy-sx-field">
-                            <label class="vy-sx-label" for="vy-sx-appr-pw">Your password</label>
-                            <x-password-field name="current_password" id="vy-sx-appr-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                            <label class="vy-sx-label" for="vy-sx-appr-pw">{{ __('livewire/owner/owner-security.your_password') }}</label>
+                            <x-password-field name="current_password" id="vy-sx-appr-pw" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_password')" autofocus />
                         </div>
                     </div>
                     <div class="vy-sx-dialog-foot">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="approvalOpen = false">Cancel</button>
-                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">{{ $approval['on'] ? 'Turn off' : 'Turn on' }}</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="approvalOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">{{ $approval['on'] ? __('livewire/owner/owner-security.turn_off') : __('livewire/owner/owner-security.turn_on') }}</button>
                     </div>
                 </form>
             </div>
@@ -296,23 +298,23 @@
                     <div class="vy-sx-dialog-head">
                         <span class="vy-sx-ico is-danger"><x-security.icon name="logout" :size="18" /></span>
                         <div class="vy-sx-dialog-text">
-                            <h3 class="vy-sx-dialog-title" id="vy-sx-so-t">Sign out all other sessions</h3>
-                            <p class="vy-sx-dialog-sub">Every session but this one ends now. Confirm with your password.</p>
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-so-t">{{ __('livewire/owner/owner-security.sign_out_others_all') }}</h3>
+                            <p class="vy-sx-dialog-sub">{{ __('livewire/owner/owner-security.sign_out_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-sx-x" @click="signOutOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                        <button type="button" class="vy-sx-x" @click="signOutOpen = false" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                     </div>
                     <div class="vy-sx-dialog-body">
                         @if ($errored === 'signout' && $errors->any())
                             <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
                         @endif
                         <div class="vy-sx-field">
-                            <label class="vy-sx-label" for="vy-sx-so-pw">Your password</label>
-                            <x-password-field name="current_password" id="vy-sx-so-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                            <label class="vy-sx-label" for="vy-sx-so-pw">{{ __('livewire/owner/owner-security.your_password') }}</label>
+                            <x-password-field name="current_password" id="vy-sx-so-pw" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_password')" autofocus />
                         </div>
                     </div>
                     <div class="vy-sx-dialog-foot">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="signOutOpen = false">Cancel</button>
-                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Sign out others</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="signOutOpen = false">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">{{ __('livewire/owner/owner-security.sign_out_others') }}</button>
                     </div>
                 </form>
             </div>
@@ -329,23 +331,23 @@
                     <div class="vy-sx-dialog-head">
                         <span class="vy-sx-ico is-danger"><x-security.icon name="device" :size="18" /></span>
                         <div class="vy-sx-dialog-text">
-                            <h3 class="vy-sx-dialog-title" id="vy-sx-rv-t">Remove trusted device</h3>
-                            <p class="vy-sx-dialog-sub">It will be asked for a two-factor code next time. Confirm with your password.</p>
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-rv-t">{{ __('livewire/owner/owner-security.remove_device_title') }}</h3>
+                            <p class="vy-sx-dialog-sub">{{ __('livewire/owner/owner-security.remove_device_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-sx-x" @click="revokeId = null" aria-label="Close"><x-security.icon name="x" /></button>
+                        <button type="button" class="vy-sx-x" @click="revokeId = null" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                     </div>
                     <div class="vy-sx-dialog-body">
                         @if ($errored === 'revoke' && $errors->any())
                             <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
                         @endif
                         <div class="vy-sx-field">
-                            <label class="vy-sx-label" for="vy-sx-rv-pw">Your password</label>
-                            <x-password-field name="current_password" id="vy-sx-rv-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                            <label class="vy-sx-label" for="vy-sx-rv-pw">{{ __('livewire/owner/owner-security.your_password') }}</label>
+                            <x-password-field name="current_password" id="vy-sx-rv-pw" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_password')" autofocus />
                         </div>
                     </div>
                     <div class="vy-sx-dialog-foot">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="revokeId = null">Cancel</button>
-                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Remove</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="revokeId = null">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">{{ __('common.remove') }}</button>
                     </div>
                 </form>
             </div>
@@ -362,23 +364,23 @@
                     <div class="vy-sx-dialog-head">
                         <span class="vy-sx-ico is-danger"><x-security.icon name="apps" :size="18" /></span>
                         <div class="vy-sx-dialog-text">
-                            <h3 class="vy-sx-dialog-title" id="vy-sx-app-t">Revoke <span x-text="appRevoke ? appRevoke.name : ''"></span>?</h3>
-                            <p class="vy-sx-dialog-sub">Its access stops immediately. Confirm with your password.</p>
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-app-t">{!! __('livewire/owner/owner-security.revoke_app_title', ['app' => $revokeAppNameHtml]) !!}</h3>
+                            <p class="vy-sx-dialog-sub">{{ __('livewire/owner/owner-security.revoke_app_sub') }}</p>
                         </div>
-                        <button type="button" class="vy-sx-x" @click="appRevoke = null" aria-label="Close"><x-security.icon name="x" /></button>
+                        <button type="button" class="vy-sx-x" @click="appRevoke = null" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                     </div>
                     <div class="vy-sx-dialog-body">
                         @if ($errored === 'app-revoke' && $errors->any())
                             <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
                         @endif
                         <div class="vy-sx-field">
-                            <label class="vy-sx-label" for="vy-sx-app-pw">Your password</label>
-                            <x-password-field name="current_password" id="vy-sx-app-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                            <label class="vy-sx-label" for="vy-sx-app-pw">{{ __('livewire/owner/owner-security.your_password') }}</label>
+                            <x-password-field name="current_password" id="vy-sx-app-pw" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_password')" autofocus />
                         </div>
                     </div>
                     <div class="vy-sx-dialog-foot">
-                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="appRevoke = null">Cancel</button>
-                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Revoke</button>
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="appRevoke = null">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">{{ __('livewire/owner/owner-security.revoke') }}</button>
                     </div>
                 </form>
             </div>
@@ -395,23 +397,23 @@
                         <div class="vy-sx-dialog-head">
                             <span class="vy-sx-ico is-danger"><x-security.icon name="pause" :size="18" /></span>
                             <div class="vy-sx-dialog-text">
-                                <h3 class="vy-sx-dialog-title" id="vy-sx-de-t">Deactivate your account?</h3>
-                                <p class="vy-sx-dialog-sub">You’ll be signed out and can’t sign in until it’s reactivated. Your statements and payout history are kept.</p>
+                                <h3 class="vy-sx-dialog-title" id="vy-sx-de-t">{{ __('livewire/owner/owner-security.deactivate_title') }}</h3>
+                                <p class="vy-sx-dialog-sub">{{ __('livewire/owner/owner-security.deactivate_dialog_sub') }}</p>
                             </div>
-                            <button type="button" class="vy-sx-x" @click="deactivateOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                            <button type="button" class="vy-sx-x" @click="deactivateOpen = false" aria-label="{{ __('common.close') }}"><x-security.icon name="x" /></button>
                         </div>
                         <div class="vy-sx-dialog-body">
                             @if ($errored === 'deactivate' && $errors->any())
                                 <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
                             @endif
                             <div class="vy-sx-field">
-                                <label class="vy-sx-label" for="vy-sx-de-pw">Your password</label>
-                                <x-password-field name="current_password" id="vy-sx-de-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                                <label class="vy-sx-label" for="vy-sx-de-pw">{{ __('livewire/owner/owner-security.your_password') }}</label>
+                                <x-password-field name="current_password" id="vy-sx-de-pw" autocomplete="current-password" :required="true" :label="__('livewire/owner/owner-security.field_password')" autofocus />
                             </div>
                         </div>
                         <div class="vy-sx-dialog-foot">
-                            <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="deactivateOpen = false">Keep my account</button>
-                            <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Deactivate</button>
+                            <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="deactivateOpen = false">{{ __('livewire/owner/owner-security.keep_my_account') }}</button>
+                            <button type="submit" class="vy-sx-btn vy-sx-btn--danger">{{ __('livewire/owner/owner-security.deactivate_button') }}</button>
                         </div>
                     </form>
                 </div>

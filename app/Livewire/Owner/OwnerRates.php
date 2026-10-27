@@ -136,9 +136,12 @@ class OwnerRates extends Component
 
         return [
             'id' => (string) $p->getKey(),
-            'villa' => (string) ($p->roomType->name ?? 'Room type'),
-            'window' => Carbon::parse($p->from_date)->format('j M').' – '.Carbon::parse($p->to_date)->format('j M'),
-            'effective' => Carbon::parse($p->from_date)->format('j M'),
+            'villa' => (string) ($p->roomType->name ?? __('php/livewire/owner/owner_rates.room_type_fallback')),
+            'window' => __('php/livewire/owner/owner_rates.date_window', [
+                'start' => Carbon::parse($p->from_date)->translatedFormat('j M'),
+                'end' => Carbon::parse($p->to_date)->translatedFormat('j M'),
+            ]),
+            'effective' => Carbon::parse($p->from_date)->translatedFormat('j M'),
             'rationale' => (string) ($p->note ?? ''),
             'from_str' => $current !== null ? $this->money($current, $currency) : '—',
             'to_str' => $this->money($proposed, $currency),

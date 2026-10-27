@@ -44,12 +44,18 @@ class OwnerStatementHistoryExportController extends Controller
         return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Month', 'Period', 'Gross', 'Net payable', 'Status']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_statement_history_export_controller.col_month'),
+                __('php/http/controllers/owner/owner_statement_history_export_controller.col_period'),
+                __('php/http/controllers/owner/owner_statement_history_export_controller.col_gross'),
+                __('php/http/controllers/owner/owner_statement_history_export_controller.col_net_payable'),
+                __('php/http/controllers/owner/owner_statement_history_export_controller.col_status'),
+            ]));
 
             foreach ($rows as $s) {
                 fputcsv($out, CsvSafe::row([
-                    $s->period_start->format('F Y'),
-                    $s->period_start->format('j M Y').' – '.$s->period_end->format('j M Y'),
+                    $s->period_start->translatedFormat('F Y'),
+                    __('php/http/controllers/owner/owner_statement_history_export_controller.period_range', ['start' => $s->period_start->translatedFormat('j M Y'), 'end' => $s->period_end->translatedFormat('j M Y')]),
                     MoneyFormatter::display((int) $s->gross_minor, (string) $s->source_currency),
                     MoneyFormatter::display((int) $s->net_payable_minor, (string) $s->currency),
                     $this->statusMeta((string) $s->status)['label'],

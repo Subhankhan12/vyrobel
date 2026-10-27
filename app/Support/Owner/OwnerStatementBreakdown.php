@@ -56,7 +56,7 @@ final class OwnerStatementBreakdown
                 'currency' => $currency,
                 'currency_symbol' => $symbol,
                 'unit_count' => 0,
-                'period_label' => $s->period_start->format('F Y'),
+                'period_label' => $s->period_start->translatedFormat('F Y'),
                 'units' => [],
                 'unattributed' => null,
                 'total_net_minor' => 0,
@@ -113,7 +113,7 @@ final class OwnerStatementBreakdown
 
             $units[] = [
                 'unit_id' => (string) $unitId,
-                'name' => (string) ($unit->name ?? $unit->code ?? 'Unit'),
+                'name' => (string) ($unit->name ?? $unit->code ?? __('php/support/owner/owner_statement_breakdown.unit_fallback')),
                 'kind' => $unit->roomType?->name,
                 'nights' => $metrics->roomNightsSold,
                 'occupancy_pct' => $metrics->occupancyPct(),
@@ -141,7 +141,7 @@ final class OwnerStatementBreakdown
             'currency' => $currency,
             'currency_symbol' => $symbol,
             'unit_count' => count($units),
-            'period_label' => $s->period_start->format('F Y'),
+            'period_label' => $s->period_start->translatedFormat('F Y'),
             'units' => $units,
             'unattributed' => $unattributed,
             'total_net_minor' => $totalNet,

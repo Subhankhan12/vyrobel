@@ -17,7 +17,7 @@
         "not registered"), never a fabricated figure or a "Mark filed" toggle (#39). "PDF pack" stays honest-"Soon".
     RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click/@keydown pass through to Alpine).
 --}}
-<x-owner.shell active="reports" title="Reports" :subtitle="'Your real performance — earnings, occupancy and where it comes from.'" :viewer="$viewer">
+<x-owner.shell active="reports" :title="__('livewire/owner/reports.title')" :subtitle="__('livewire/owner/reports.subtitle')" :viewer="$viewer">
     <style>
         .vy-rep-top { display:flex; align-items:center; justify-content:space-between; gap:14px 16px; flex-wrap:wrap; margin-bottom:20px; }
         .vy-rep-selectors { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -166,7 +166,7 @@
     @endif
 
     @if ($unitsCount === 0)
-        <div class="vy-card vy-fade"><div class="vy-empty">No units linked to your account yet.</div></div>
+        <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/owner/reports.no_units') }}</div></div>
     @else
     {{-- ── Top control row: reporting-year dropdown + custom date range + Export (bell/account are in the shell) ── --}}
     <div class="vy-rep-top">
@@ -179,7 +179,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
                 <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu">
-                    <div class="vy-rep-menu-head">Reporting year</div>
+                    <div class="vy-rep-menu-head">{{ __('livewire/owner/reports.reporting_year') }}</div>
                     @foreach ($yearOptions as $y)
                         <a href="{{ $y['href'] }}" class="vy-rep-menu-item {{ $y['active'] ? 'is-active' : '' }}"><span>{{ $y['label'] }}</span><span class="sub">{{ $y['sub'] }}</span></a>
                     @endforeach
@@ -187,21 +187,21 @@
                     @foreach ($rangeOptions as $r)
                         <a href="{{ $r['href'] }}" class="vy-rep-menu-item {{ $r['active'] ? 'is-active' : '' }}"><span>{{ $r['label'] }}</span></a>
                     @endforeach
-                    <div class="vy-rep-menu-foot">Earlier years live in Documents · archived PDFs</div>
+                    <div class="vy-rep-menu-foot">{{ __('livewire/owner/reports.earlier_years') }}</div>
                 </div>
             </div>
 
             {{-- Custom date range — a real GET over the owner ledger (Apply builds the ?from=&to= URL) --}}
             <div class="vy-rep-pop" x-data="{ open: false, from: @js($activeRange['from']), to: @js($activeRange['to']) }" @keydown.escape.window="open = false">
                 <button type="button" class="vy-rep-selbtn" @click="open = !open" :aria-expanded="open ? 'true' : 'false'">
-                    <span>{{ $activeRange['custom'] ? 'Custom range' : 'Custom range' }}</span>
+                    <span>{{ __('livewire/owner/reports.custom_range') }}</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
                 <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu vy-rep-menu--range">
-                    <div class="vy-rep-menu-head">Custom date range</div>
+                    <div class="vy-rep-menu-head">{{ __('livewire/owner/reports.custom_date_range') }}</div>
                     <div class="vy-rep-range-grid">
                         <div>
-                            <div class="lbl">From</div>
+                            <div class="lbl">{{ __('livewire/owner/reports.range_from') }}</div>
                             <div class="vy-rep-monthlist">
                                 @foreach ($monthOptions as $mo)
                                     <button type="button" class="vy-rep-month" :class="from === @js($mo['value']) ? 'is-sel' : ''" @click="from = @js($mo['value'])">{{ $mo['label'] }}</button>
@@ -209,7 +209,7 @@
                             </div>
                         </div>
                         <div>
-                            <div class="lbl">To</div>
+                            <div class="lbl">{{ __('livewire/owner/reports.range_to') }}</div>
                             <div class="vy-rep-monthlist">
                                 @foreach ($monthOptions as $mo)
                                     <button type="button" class="vy-rep-month" :class="to === @js($mo['value']) ? 'is-sel' : ''" @click="to = @js($mo['value'])">{{ $mo['label'] }}</button>
@@ -218,8 +218,8 @@
                         </div>
                     </div>
                     <div class="vy-rep-range-foot">
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('owner.reports') }}" style="padding:6px 13px;font-size:12.5px">Clear</a>
-                        <button type="button" class="vy-btn vy-btn--accent" style="padding:6px 15px;font-size:12.5px" :style="(!from || !to) ? 'opacity:.5;cursor:not-allowed' : ''" @click="if (from && to) window.location = @js(route('owner.reports')) + '?from=' + from + '&to=' + to">Apply</button>
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('owner.reports') }}" style="padding:6px 13px;font-size:12.5px">{{ __('common.clear') }}</a>
+                        <button type="button" class="vy-btn vy-btn--accent" style="padding:6px 15px;font-size:12.5px" :style="(!from || !to) ? 'opacity:.5;cursor:not-allowed' : ''" @click="if (from && to) window.location = @js(route('owner.reports')) + '?from=' + from + '&to=' + to">{{ __('common.apply') }}</button>
                     </div>
                 </div>
             </div>
@@ -229,11 +229,11 @@
             <div class="vy-rep-pop" x-data="{ open: false }" @keydown.escape.window="open = false">
                 <button type="button" class="vy-btn vy-btn--accent" @click="open = !open" style="gap:7px" :aria-expanded="open ? 'true' : 'false'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
-                    Export
+                    {{ __('livewire/owner/reports.export_button') }}
                     <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
                 <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu vy-rep-menu--right">
-                    <div class="vy-rep-menu-head">Export · {{ $activeRange['label'] }} earnings</div>
+                    <div class="vy-rep-menu-head">{{ __('livewire/owner/reports.export_heading', ['period' => $activeRange['label']]) }}</div>
                     @foreach ($exportItems as $ex)
                         @if (($ex['post'] ?? null))
                             {{-- REAL "Email to me" — a POST that queues the owner's latest statement PDF (GATE 4) --}}
@@ -252,7 +252,7 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
                                 </span>
                                 <span style="flex:1;min-width:0"><span class="vy-rep-exttl">{{ $ex['title'] }}</span><span class="vy-rep-exsub">{{ $ex['sub'] }}</span></span>
-                                <span class="vy-soon-tag">Soon</span>
+                                <span class="vy-soon-tag">{{ __('livewire/owner/reports.soon') }}</span>
                             </span>
                         @else
                             <a href="{{ $ex['href'] }}" class="vy-rep-exitem">
@@ -271,7 +271,7 @@
     {{-- ── KPIs — REAL (net reconciles to statements; occupancy + nights from the metric layer; Δ honest-omitted) ── --}}
     <div class="vy-rep-kpis vy-fade" style="animation-delay:.02s">
         <div class="vy-card" style="padding:18px 20px">
-            <div class="vy-kpi-label">Net earned · {{ $kpis['net_period'] }}</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/reports.kpi_net_earned', ['period' => $kpis['net_period']]) }}</div>
             <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                 <span class="vy-rep-kpi-val">{{ $kpis['net'] }}</span>
                 @if ($kpis['net_delta'])<span class="vy-rep-kpi-delta">{{ $kpis['net_delta'] }}</span>@endif
@@ -279,20 +279,20 @@
             {{-- WAVE 2 · #20 — this figure is Σ statements PLUS ledger not yet statemented, so "reconciles to
                  your statements" was a narrower claim than the number. Tax Center prints the statement-only
                  figure for the same year, and the two differed. --}}
-            <div class="vy-kpi-sub">Your statements plus earnings not yet statemented</div>
+            <div class="vy-kpi-sub">{{ __('livewire/owner/reports.kpi_net_sub') }}</div>
         </div>
         <div class="vy-card" style="padding:18px 20px">
-            <div class="vy-kpi-label">Avg occupancy</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/reports.kpi_avg_occupancy') }}</div>
             <div class="vy-rep-kpi-val" style="margin-top:8px">{{ $kpis['occupancy'] }}</div>
-            <div class="vy-kpi-sub">Across {{ $unitsCount }} {{ \Illuminate\Support\Str::plural('unit', $unitsCount) }}</div>
+            <div class="vy-kpi-sub">{{ trans_choice('livewire/owner/reports.kpi_across_units', $unitsCount, ['count' => $unitsCount]) }}</div>
         </div>
         <div class="vy-card" style="padding:18px 20px">
-            <div class="vy-kpi-label">Nights sold</div>
+            <div class="vy-kpi-label">{{ __('livewire/owner/reports.kpi_nights_sold') }}</div>
             <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                 <span class="vy-rep-kpi-val">{{ $kpis['nights'] }}</span>
-                <span class="vy-rep-kpi-note">room-nights</span>
+                <span class="vy-rep-kpi-note">{{ __('livewire/owner/reports.kpi_room_nights') }}</span>
             </div>
-            <div class="vy-kpi-sub">In the period</div>
+            <div class="vy-kpi-sub">{{ __('livewire/owner/reports.kpi_in_period') }}</div>
         </div>
     </div>
 
@@ -302,11 +302,11 @@
             {{-- Net earnings by month --}}
             <section class="vy-card vy-fade" style="animation-delay:.05s">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
-                    <h2 class="vy-card-title">Net earnings by month</h2>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/reports.net_by_month') }}</h2>
                     <div style="display:flex;align-items:center;gap:14px">
                         @if ($netByMonth['has_prior'])
                             <div class="vy-rep-legend">
-                                <span style="display:inline-flex;align-items:center;gap:5px"><span class="sw" style="background:var(--vy-grad)"></span>This year</span>
+                                <span style="display:inline-flex;align-items:center;gap:5px"><span class="sw" style="background:var(--vy-grad)"></span>{{ __('livewire/owner/reports.legend_this_year') }}</span>
                                 <span style="display:inline-flex;align-items:center;gap:5px"><span class="sw" style="border:1px dashed rgba(120,70,40,.5);background:rgba(120,70,40,.07)"></span>{{ $netByMonth['prior_year_label'] }}</span>
                             </div>
                         @endif
@@ -339,21 +339,21 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="vy-empty" style="margin-top:14px">No earnings in this period yet.</div>
+                    <div class="vy-empty" style="margin-top:14px">{{ __('livewire/owner/reports.no_earnings') }}</div>
                 @endif
             </section>
 
             {{-- Performance by unit --}}
             <section class="vy-card vy-fade" style="animation-delay:.08s">
                 <div class="vy-rep-perf-head">
-                    <h2 class="vy-card-title">Performance by unit</h2>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/reports.performance_by_unit') }}</h2>
                     <div class="vy-rep-perf-stats">
-                        <div class="vy-rep-perf-stat" title="Average daily rate · revenue ÷ nights sold"><div class="k">ADR</div><div class="v">{{ $perfHeader['adr'] }}</div></div>
-                        <div class="vy-rep-perf-stat" title="Revenue per available night · ADR × occupancy"><div class="k">RevPAR</div><div class="v">{{ $perfHeader['revpar'] }}</div></div>
+                        <div class="vy-rep-perf-stat" title="{{ __('livewire/owner/reports.adr_title') }}"><div class="k">{{ __('livewire/owner/reports.adr') }}</div><div class="v">{{ $perfHeader['adr'] }}</div></div>
+                        <div class="vy-rep-perf-stat" title="{{ __('livewire/owner/reports.revpar_title') }}"><div class="k">{{ __('livewire/owner/reports.revpar') }}</div><div class="v">{{ $perfHeader['revpar'] }}</div></div>
                     </div>
                 </div>
                 <div class="vy-rep-urow head">
-                    <span>Unit</span><span class="rt">Nights</span><span class="rt">Occupancy</span><span class="rt">Net earned</span><span>Share</span>
+                    <span>{{ __('livewire/owner/reports.col_unit') }}</span><span class="rt">{{ __('livewire/owner/reports.col_nights') }}</span><span class="rt">{{ __('livewire/owner/reports.col_occupancy') }}</span><span class="rt">{{ __('livewire/owner/reports.col_net_earned') }}</span><span>{{ __('livewire/owner/reports.col_share') }}</span>
                 </div>
                 @forelse ($perUnit as $u)
                     <div class="vy-rep-urow">
@@ -364,17 +364,17 @@
                         <span class="vy-rep-share"><span class="vy-rep-share-bar"><span style="width:{{ $u['share_pct'] }}%"></span></span><span class="p">{{ $u['share_pct'] }}%</span></span>
                     </div>
                 @empty
-                    <div class="vy-empty">No units yet.</div>
+                    <div class="vy-empty">{{ __('livewire/owner/reports.no_units_yet') }}</div>
                 @endforelse
-                <div class="vy-rep-uall"><span class="k">All units</span><span class="v">{{ $allUnitsNet }}</span></div>
-                <div class="vy-fx-note">ADR = revenue per night sold · RevPAR = revenue per available night · Share = of your net.</div>
+                <div class="vy-rep-uall"><span class="k">{{ __('livewire/owner/reports.all_units') }}</span><span class="v">{{ $allUnitsNet }}</span></div>
+                <div class="vy-fx-note">{{ __('livewire/owner/reports.perf_note') }}</div>
             </section>
 
             {{-- Booking sources — NET by channel (real; Σ channels == period net) --}}
             <section class="vy-card vy-fade" style="animation-delay:.11s">
                 <div class="vy-rep-perf-head">
-                    <h2 class="vy-card-title">Booking sources</h2>
-                    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--vy-faint)">net by channel · {{ $activeRange['label'] }}</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/reports.booking_sources') }}</h2>
+                    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--vy-faint)">{{ __('livewire/owner/reports.net_by_channel', ['period' => $activeRange['label']]) }}</div>
                 </div>
                 @if ($byChannel['has_data'])
                     <div class="vy-rep-chan-bar" style="background:{{ $byChannel['gradient'] }};margin-top:6px"></div>
@@ -389,7 +389,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="vy-empty" style="margin-top:12px">No bookings in this period yet.</div>
+                    <div class="vy-empty" style="margin-top:12px">{{ __('livewire/owner/reports.no_bookings') }}</div>
                 @endif
             </section>
         </div>
@@ -402,46 +402,46 @@
                 <div class="vy-rep-hero-card">
                     <div class="vy-rep-hero-eyebrow">{{ $hero['eyebrow'] }}</div>
                     <div class="vy-rep-hero-fig">{{ $hero['net'] }}</div>
-                    <div class="vy-rep-hero-sub">Net earned · your statements plus earnings not yet statemented</div>
+                    <div class="vy-rep-hero-sub">{{ __('livewire/owner/reports.hero_sub') }}</div>
                     @if ($hero['sub'] !== '')<div class="vy-rep-hero-badge">{{ $hero['sub'] }}</div>@endif
                 </div>
             </div>
 
             {{-- Gross to net — reconciles (#17), REAL commission rate --}}
             <section class="vy-card vy-fade" style="animation-delay:.08s;padding:20px">
-                <div class="vy-eyebrow" style="margin-bottom:12px">Gross to net</div>
+                <div class="vy-eyebrow" style="margin-bottom:12px">{{ __('livewire/owner/reports.gross_to_net') }}</div>
                 <div style="display:flex;flex-direction:column;gap:10px">
-                    <div class="vy-rep-gtn-row"><span>Gross revenue</span><span class="amt" style="color:var(--vy-ink);font-weight:500">{{ $grossToNet['gross'] }}</span></div>
+                    <div class="vy-rep-gtn-row"><span>{{ __('livewire/owner/reports.gross_revenue') }}</span><span class="amt" style="color:var(--vy-ink);font-weight:500">{{ $grossToNet['gross'] }}</span></div>
                     <div class="vy-rep-gtn-row"><span>{{ $commissionLabel }}</span><span class="amt">{{ $grossToNet['commission'] }}</span></div>
-                    <div class="vy-rep-gtn-row"><span>Fees &amp; OTA</span><span class="amt">{{ $grossToNet['fees'] }}</span></div>
+                    <div class="vy-rep-gtn-row"><span>{{ __('livewire/owner/reports.fees_ota') }}</span><span class="amt">{{ $grossToNet['fees'] }}</span></div>
                     @if ($grossToNet['has_adjustments'])
-                        <div class="vy-rep-gtn-row"><span>Costs &amp; adjustments</span><span class="amt">{{ $grossToNet['adjustments'] }}</span></div>
+                        <div class="vy-rep-gtn-row"><span>{{ __('livewire/owner/reports.costs_adjustments') }}</span><span class="amt">{{ $grossToNet['adjustments'] }}</span></div>
                     @endif
                     {{-- Tax withheld (#73 · P2-2): a REAL withholding deduction, shown only when configured/non-zero
                          (matches your Tax Center + annual summary). €0 → hidden, never a fabricated line (#39). --}}
                     @if ($grossToNet['has_withholding'])
-                        <div class="vy-rep-gtn-row"><span>Tax withheld</span><span class="amt">{{ $grossToNet['withholding'] }}</span></div>
+                        <div class="vy-rep-gtn-row"><span>{{ __('livewire/owner/reports.tax_withheld') }}</span><span class="amt">{{ $grossToNet['withholding'] }}</span></div>
                     @endif
-                    <div class="vy-rep-gtn-row vy-rep-gtn-net"><span class="lbl">Net to you</span><span class="amt">{{ $grossToNet['net'] }}</span></div>
+                    <div class="vy-rep-gtn-row vy-rep-gtn-net"><span class="lbl">{{ __('livewire/owner/reports.net_to_you') }}</span><span class="amt">{{ $grossToNet['net'] }}</span></div>
                 </div>
                 @unless ($grossToNet['reconciles'])
                     {{-- Safety net: the buckets now cover every entry type, so this never shows — but if a figure
                          ever failed to reconcile we say so honestly rather than print a total that doesn't add up. --}}
-                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px;color:var(--vy-amber-ink,#92400e)">Some figures don’t fully reconcile here — please check with your management team.</p>
+                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px;color:var(--vy-amber-ink,#92400e)">{{ __('livewire/owner/reports.not_reconciled') }}</p>
                 @endunless
             </section>
 
             {{-- Next payout / latest payout --}}
             <a href="{{ route('owner.payouts') }}" class="vy-card vy-card--tappable vy-fade" style="animation-delay:.11s;padding:20px;display:block;text-decoration:none;color:inherit">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-                    <span class="vy-eyebrow">Latest payout</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/reports.latest_payout') }}</span>
                     @if ($payout['status'])
                         <span class="vy-status vy-status--{{ $payout['status_key'] }}"><span class="vy-dot"></span>{{ $payout['status'] }}</span>
                     @endif
                 </div>
                 @if ($payout['amount'])
                     <div style="font-family:var(--vy-display);font-weight:600;font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ $payout['amount'] }}</div>
-                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $payout['paid_year'] }} paid this year</div>
+                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ __('livewire/owner/reports.paid_this_year', ['amount' => $payout['paid_year']]) }}</div>
                     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--vy-hairline)">
                         @if ($payout['date'])
                             <div class="vy-rep-payout-line"><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>{{ $payout['date'] }}</div>
@@ -451,15 +451,15 @@
                         @endif
                     </div>
                 @else
-                    <div class="vy-empty" style="padding:20px 0">No payouts yet.</div>
+                    <div class="vy-empty" style="padding:20px 0">{{ __('livewire/owner/reports.no_payouts') }}</div>
                 @endif
             </a>
 
             {{-- Documents (real PDFs) --}}
             <section class="vy-card vy-fade" style="animation-delay:.14s;padding:20px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <span class="vy-eyebrow">Documents</span>
-                    <a href="{{ route('owner.documents') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">All →</a>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/reports.documents') }}</span>
+                    <a href="{{ route('owner.documents') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">{{ __('livewire/owner/reports.documents_all') }}</a>
                 </div>
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                     @forelse ($documents as $d)
@@ -468,10 +468,10 @@
                             <span style="flex:1;min-width:0"><span style="display:block;font-size:12.5px;font-weight:500">{{ $d['name'] }}</span><span style="display:block;font-size:10.5px;color:var(--vy-faint);margin-top:1px">{{ $d['sub'] }}</span></span>
                         </a>
                     @empty
-                        <div class="vy-empty" style="padding:20px 0">No documents yet.</div>
+                        <div class="vy-empty" style="padding:20px 0">{{ __('livewire/owner/reports.no_documents') }}</div>
                     @endforelse
                 @else
-                    <div class="vy-line-sub">Your co-owner or accountant can download statement PDFs here.</div>
+                    <div class="vy-line-sub">{{ __('livewire/owner/reports.documents_no_access') }}</div>
                 @endownercan
             </section>
         </div>
@@ -486,32 +486,32 @@
             <div style="display:flex;align-items:center;gap:9px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                 <div>
-                    <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
-                    <div class="vy-line-sub">{{ ($vat['available'] ? 'Output − input = net VAT, per quarter' : 'Your earnings figures for your accountant').($taxCountry ? ' · '.$taxCountry : '') }}</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/reports.vat_heading') }}</h2>
+                    <div class="vy-line-sub">{{ $taxCountry ? __($vat['available'] ? 'livewire/owner/reports.vat_sub_available_country' : 'livewire/owner/reports.vat_sub_unavailable_country', ['country' => $taxCountry]) : __($vat['available'] ? 'livewire/owner/reports.vat_sub_available' : 'livewire/owner/reports.vat_sub_unavailable') }}</div>
                 </div>
             </div>
             @if ($vat['available'] && $vat['is_example'])
-                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(194,110,20,.14);color:var(--vy-amber-text);border-color:rgba(194,110,20,.3)">Example rates</span>
+                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(194,110,20,.14);color:var(--vy-amber-text);border-color:rgba(194,110,20,.3)">{{ __('livewire/owner/reports.vat_tag_example') }}</span>
             @elseif ($vat['available'])
-                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(34,120,60,.12);color:#227a3c;border-color:rgba(34,120,60,.25)">Computed</span>
+                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(34,120,60,.12);color:#227a3c;border-color:rgba(34,120,60,.25)">{{ __('livewire/owner/reports.vat_tag_computed') }}</span>
             @else
-                <span class="vy-soon-tag" style="flex-shrink:0">Not yet available</span>
+                <span class="vy-soon-tag" style="flex-shrink:0">{{ __('livewire/owner/reports.vat_tag_unavailable') }}</span>
             @endif
         </div>
 
         @if ($vat['available'])
             @if ($vat['is_example'])
                 <div style="margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(194,110,20,.1);border:1px solid rgba(194,110,20,.28);font-size:12px;color:#8a4c0e;line-height:1.55">
-                    <strong>Based on EXAMPLE rates.</strong> Real VAT rates for {{ $taxCountry }} haven’t been configured yet — these figures are illustrative only, <strong>not for filing</strong>.
+                    {!! __('livewire/owner/reports.vat_example_warning', ['country' => e((string) $taxCountry)]) !!}
                 </div>
             @endif
             <div style="overflow-x:auto;margin-top:14px">
                 <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:460px">
                     <thead><tr style="color:var(--vy-muted);text-align:right">
-                        <th style="text-align:left;padding:6px 8px;font-weight:600">Quarter</th>
-                        <th style="padding:6px 8px;font-weight:600">Output VAT</th>
-                        <th style="padding:6px 8px;font-weight:600">Input VAT</th>
-                        <th style="padding:6px 8px;font-weight:600">Net VAT</th>
+                        <th style="text-align:left;padding:6px 8px;font-weight:600">{{ __('livewire/owner/reports.vat_col_quarter') }}</th>
+                        <th style="padding:6px 8px;font-weight:600">{{ __('livewire/owner/reports.vat_col_output') }}</th>
+                        <th style="padding:6px 8px;font-weight:600">{{ __('livewire/owner/reports.vat_col_input') }}</th>
+                        <th style="padding:6px 8px;font-weight:600">{{ __('livewire/owner/reports.vat_col_net') }}</th>
                     </tr></thead>
                     <tbody>
                         @foreach ($vat['quarters'] as $q)
@@ -523,7 +523,7 @@
                             </tr>
                         @endforeach
                         <tr style="border-top:2px solid var(--vy-hairline);text-align:right;font-weight:700">
-                            <td style="text-align:left;padding:8px;color:var(--vy-ink)">{{ $vat['year'] }} total</td>
+                            <td style="text-align:left;padding:8px;color:var(--vy-ink)">{{ __('livewire/owner/reports.vat_year_total', ['year' => $vat['year']]) }}</td>
                             <td style="padding:8px;font-variant-numeric:tabular-nums">{{ $vat['annual']['output_display'] }}</td>
                             <td style="padding:8px;font-variant-numeric:tabular-nums">−{{ $vat['annual']['input_display'] }}</td>
                             <td style="padding:8px;font-variant-numeric:tabular-nums">{{ $vat['annual']['net_display'] }}</td>
@@ -532,26 +532,32 @@
                 </table>
             </div>
             <div style="margin-top:12px;font-size:11.5px;color:var(--vy-muted);line-height:1.6;max-width:720px">
-                Computed from the {{ $vat['is_example'] ? 'EXAMPLE' : 'configured' }} VAT rates for {{ $taxCountry }} ({{ rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.') }}% on rental income{{ $vat['service_rate'] !== null ? ', '.rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.').'% on the management fee' : '' }}) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>
+                @php
+                    $vatAccommodationRate = rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.');
+                    $vatRates = $vat['service_rate'] !== null
+                        ? __('livewire/owner/reports.vat_rates_both', ['accommodation_rate' => $vatAccommodationRate, 'service_rate' => rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.')])
+                        : __('livewire/owner/reports.vat_rates_accommodation', ['accommodation_rate' => $vatAccommodationRate]);
+                @endphp
+                {!! __($vat['is_example'] ? 'livewire/owner/reports.vat_computed_example' : 'livewire/owner/reports.vat_computed_configured', ['country' => e((string) $taxCountry), 'rates' => e($vatRates)]) !!}
             </div>
         @else
             <div style="margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:720px">
                 @if ($vat['status'] === 'not_registered')
-                    You’re not marked VAT-registered, so no Output, Input or Net VAT is computed. Turn on VAT registration in the <strong style="color:var(--vy-ink)">Tax center</strong> if you charge VAT on your rental income.
+                    {!! __('livewire/owner/reports.vat_not_registered') !!}
                 @else
-                    VAT rates aren’t configured for your jurisdiction{{ $taxCountry ? ' ('.$taxCountry.')' : '' }} yet, so no VAT figure is shown here — never a fabricated number. Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings figures; VAT is filed by you or your accountant.
+                    {!! $taxCountry ? __('livewire/owner/reports.vat_not_configured_country', ['country' => e($taxCountry)]) : __('livewire/owner/reports.vat_not_configured') !!}
                 @endif
             </div>
         @endif
 
         <div style="display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap">
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                <a href="{{ route('owner.tax.annual', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">Annual tax summary · PDF</a>
+                <a href="{{ route('owner.tax.annual', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">{{ __('livewire/owner/reports.annual_tax_pdf') }}</a>
                 @if ($vat['available'])
-                    <a href="{{ route('owner.tax.vat-return', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">VAT return · CSV</a>
+                    <a href="{{ route('owner.tax.vat-return', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">{{ __('livewire/owner/reports.vat_return_csv') }}</a>
                 @endif
             @endownercan
-            <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Tax center →</a>
+            <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">{{ __('livewire/owner/reports.tax_center_link') }}</a>
         </div>
     </section>
     @endif

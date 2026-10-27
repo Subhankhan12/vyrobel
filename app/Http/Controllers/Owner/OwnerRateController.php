@@ -48,26 +48,26 @@ class OwnerRateController extends Controller
         };
 
         if ($from === null || $to === null) {
-            return redirect()->to($back)->with('rate_error', 'Choose valid start and end dates.');
+            return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.invalid_dates'));
         }
 
         $start = CarbonImmutable::parse($from)->startOfDay();
         $endInclusive = CarbonImmutable::parse($to)->startOfDay();
 
         if ($endInclusive->lt($start)) {
-            return redirect()->to($back)->with('rate_error', 'The end date can’t be before the start date.');
+            return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.end_before_start'));
         }
 
         // Certified service takes half-open [start, end); the owner's "end" is the last night to include.
         $endExclusive = $endInclusive->addDay();
         if ((int) $start->diffInDays($endExclusive) > self::MAX_SPAN_NIGHTS) {
-            return redirect()->to($back)->with('rate_error', 'Please apply at most a year at a time.');
+            return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.span_too_long'));
         }
 
         // Integer money — string arithmetic, before any DB touch (an invalid rate must not half-apply).
         $priceMinor = MoneyInput::toMinor((string) $request->input('rate', ''), self::MAX_PRICE_MINOR);
         if ($priceMinor === null) {
-            return redirect()->to($back)->with('rate_error', 'Enter a valid nightly rate, e.g. 175 or 175.50.');
+            return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.invalid_rate'));
         }
 
         // Optional minimum stay: a whole number ≥ 1, or blank for none.
@@ -75,7 +75,7 @@ class OwnerRateController extends Controller
         $rawMinStay = trim((string) $request->input('min_stay', ''));
         if ($rawMinStay !== '') {
             if (! ctype_digit($rawMinStay) || (int) $rawMinStay < 1 || (int) $rawMinStay > 365) {
-                return redirect()->to($back)->with('rate_error', 'A minimum stay must be a whole number of nights (1–365), or blank.');
+                return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.invalid_min_stay'));
             }
             $minStay = (int) $rawMinStay;
         }
@@ -86,7 +86,7 @@ class OwnerRateController extends Controller
         $rawUplift = trim((string) $request->input('weekend_uplift', ''));
         if ($rawUplift !== '') {
             if (! is_numeric($rawUplift) || (float) $rawUplift < 0 || (float) $rawUplift > 200) {
-                return redirect()->to($back)->with('rate_error', 'A weekend uplift must be a percentage between 0 and 200, or blank.');
+                return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.invalid_weekend_uplift'));
             }
             $weekendUplift = round((float) $rawUplift, 2);
         }
@@ -99,8 +99,8 @@ class OwnerRateController extends Controller
 
         $nights = (int) $start->diffInDays($endExclusive);
         $notice = $stored
-            ? 'Rate updated across '.$nights.' '.($nights === 1 ? 'night' : 'nights').'. It’s live now.'
-            : 'That room type has no rate plan, so the rate could not be stored.';
+            ? trans_choice('php/http/controllers/owner/owner_rate_controller.rate_updated', $nights, ['count' => $nights])
+            : __('php/http/controllers/owner/owner_rate_controller.no_rate_plan');
 
         return redirect()->to($back)->with('rate_notice', $notice);
     }

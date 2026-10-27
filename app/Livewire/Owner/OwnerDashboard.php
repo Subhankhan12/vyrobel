@@ -81,16 +81,22 @@ class OwnerDashboard extends Component
     private function greeting(): string
     {
         $hour = (int) now()->format('G');
-        $part = match (true) {
-            $hour < 12 => 'Good morning',
-            $hour < 18 => 'Good afternoon',
-            default => 'Good evening',
-        };
-
         $name = trim($this->viewer()['name']);
         $first = $name === '' ? '' : (string) preg_split('/\s+/', $name)[0];
 
-        return $first === '' || $first === 'Owner' ? $part : $part.', '.$first;
+        if ($first === '' || ! $this->viewerHasName()) {
+            return match (true) {
+                $hour < 12 => __('php/livewire/owner/owner_dashboard.good_morning'),
+                $hour < 18 => __('php/livewire/owner/owner_dashboard.good_afternoon'),
+                default => __('php/livewire/owner/owner_dashboard.good_evening'),
+            };
+        }
+
+        return match (true) {
+            $hour < 12 => __('php/livewire/owner/owner_dashboard.good_morning_name', ['name' => $first]),
+            $hour < 18 => __('php/livewire/owner/owner_dashboard.good_afternoon_name', ['name' => $first]),
+            default => __('php/livewire/owner/owner_dashboard.good_evening_name', ['name' => $first]),
+        };
     }
 
     /**
@@ -156,8 +162,8 @@ class OwnerDashboard extends Component
     {
         return $statements->take(6)->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'month_label' => $s->period_start->format('F Y'),
-            'period_range' => $s->period_start->format('j M').' – '.$s->period_end->format('j M Y'),
+            'month_label' => $s->period_start->translatedFormat('F Y'),
+            'period_range' => $s->period_start->translatedFormat('j M').' – '.$s->period_end->translatedFormat('j M Y'),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'status_meta' => $this->statusMeta((string) $s->status),
         ])->values()->all();
@@ -183,7 +189,10 @@ class OwnerDashboard extends Component
             if ($prevNet !== 0) {
                 $pct = (int) round(($thisMonthMinor - $prevNet) / abs($prevNet) * 100);
                 $delta = [
-                    'label' => ($pct >= 0 ? '+' : '−').abs($pct).'% vs '.$prev->period_start->format('F'),
+                    'label' => __('php/livewire/owner/owner_dashboard.delta_vs_month', [
+                        'delta' => ($pct >= 0 ? '+' : '−').abs($pct).'%',
+                        'month' => $prev->period_start->translatedFormat('F'),
+                    ]),
                     'positive' => $pct >= 0,
                 ];
             }
@@ -198,7 +207,7 @@ class OwnerDashboard extends Component
 
         return [
             'has_data' => $latest instanceof OwnerStatement,
-            'month_label' => $latest instanceof OwnerStatement ? strtoupper($latest->period_start->format('F Y')) : '',
+            'month_label' => $latest instanceof OwnerStatement ? mb_strtoupper($latest->period_start->translatedFormat('F Y')) : '',
             'this_month_minor' => $thisMonthMinor,
             'this_month_display' => $this->money($thisMonthMinor, $currency),
             'currency_symbol' => $this->currencySymbol($currency),
@@ -269,7 +278,7 @@ class OwnerDashboard extends Component
         $goalAboveRange = $goalMinor > $maxNet;
 
         $bars = $chrono->map(fn (OwnerStatement $s): array => [
-            'label' => $s->period_start->format('M'),
+            'label' => $s->period_start->translatedFormat('M'),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'pct' => (int) round(max(0, (int) $s->net_payable_minor) / $scale * 100),
         ])->values()->all();

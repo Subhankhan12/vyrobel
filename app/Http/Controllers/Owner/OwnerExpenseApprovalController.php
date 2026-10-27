@@ -35,12 +35,12 @@ class OwnerExpenseApprovalController extends Controller
         try {
             $this->expenses->approve($model, (string) $request->user()?->getKey());
         } catch (\RuntimeException) {
-            return back()->with('owner_notice', 'That expense was already decided.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_expense_approval_controller.already_decided'));
         }
 
         $this->audit->record('owner.expense_approved', $model, null, ['amount_minor' => (int) $model->amount_minor]);
 
-        return back()->with('owner_notice', 'Expense approved — it’ll be deducted from your payout.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_expense_approval_controller.approved'));
     }
 
     public function query(Request $request, InboxService $inbox, string $expense): RedirectResponse
@@ -52,7 +52,7 @@ class OwnerExpenseApprovalController extends Controller
         try {
             $this->expenses->query($model, $data['note'] ?? null, (string) $request->user()?->getKey());
         } catch (\RuntimeException) {
-            return back()->with('owner_notice', 'That expense was already decided.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_expense_approval_controller.already_decided'));
         }
 
         $this->audit->record('owner.expense_queried', $model, null, []);
@@ -72,6 +72,6 @@ class OwnerExpenseApprovalController extends Controller
             $inbox->postOwnerMessage($thread, $body, $author instanceof User ? $author : null);
         }
 
-        return back()->with('owner_notice', 'Query sent to your management team — the expense won’t be charged until it’s resolved.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_expense_approval_controller.query_sent'));
     }
 }

@@ -168,9 +168,14 @@ class OwnerInsights extends Component
             if ($top !== null && (int) $top['pct'] > 0) {
                 $out[] = [
                     'icon' => '📈',
-                    'title' => $top['label'].' runs hottest',
-                    'body' => $top['label'].' averages '.$top['pct'].'% occupancy while '.$low['label'].' trails at '.$low['pct'].'% — worth weighing a stronger '.$top['label'].' rate against a midweek nudge.',
-                    'cta' => 'Review your rates',
+                    'title' => __('php/livewire/owner/owner_insights.look_hottest_title', ['day' => $top['label']]),
+                    'body' => __('php/livewire/owner/owner_insights.look_hottest_body', [
+                        'top_day' => $top['label'],
+                        'top_pct' => $top['pct'],
+                        'low_day' => $low['label'],
+                        'low_pct' => $low['pct'],
+                    ]),
+                    'cta' => __('php/livewire/owner/owner_insights.look_review_rates'),
                     'href' => route('owner.rates'),
                 ];
             }
@@ -181,9 +186,9 @@ class OwnerInsights extends Component
             $days = $leadTime['median_days'];
             $out[] = [
                 'icon' => '🗓️',
-                'title' => 'Guests book about '.$days.' '.($days === 1 ? 'day' : 'days').' ahead',
-                'body' => 'Your median booking window is '.$days.' '.($days === 1 ? 'day' : 'days').'. Rate changes land best before that window opens for the dates you want to move.',
-                'cta' => 'Open your calendar',
+                'title' => trans_choice('php/livewire/owner/owner_insights.look_window_title', $days, ['count' => $days]),
+                'body' => trans_choice('php/livewire/owner/owner_insights.look_window_body', $days, ['count' => $days]),
+                'cta' => __('php/livewire/owner/owner_insights.look_open_calendar'),
                 'href' => route('owner.calendar'),
             ];
         }
@@ -192,9 +197,9 @@ class OwnerInsights extends Component
         if ($onTheBooks > 0) {
             $out[] = [
                 'icon' => '💶',
-                'title' => $this->money($onTheBooks, $currency).' already on the books',
-                'body' => 'Room revenue booked for the next 90 days. Open dates in that window are where a rate tweak still has time to work.',
-                'cta' => 'Review your rates',
+                'title' => __('php/livewire/owner/owner_insights.look_on_books_title', ['amount' => $this->money($onTheBooks, $currency)]),
+                'body' => __('php/livewire/owner/owner_insights.look_on_books_body'),
+                'cta' => __('php/livewire/owner/owner_insights.look_review_rates'),
                 'href' => route('owner.rates'),
             ];
         }
@@ -209,11 +214,17 @@ class OwnerInsights extends Component
     private function cards(MetricSet $m, string $currency, array $leadTime, int $onTheBooks): array
     {
         return [
-            ['label' => 'Occupancy', 'value' => $m->occupancyPct().'%', 'sub' => $m->roomNightsSold.' of '.$m->availableRoomNights.' unit-nights'],
-            ['label' => 'Avg nightly rate', 'value' => $this->money($m->adrMinor(), $currency), 'sub' => 'per night sold'],
+            ['label' => __('php/livewire/owner/owner_insights.card_occupancy'), 'value' => $m->occupancyPct().'%', 'sub' => __('php/livewire/owner/owner_insights.card_occupancy_sub', ['sold' => $m->roomNightsSold, 'available' => $m->availableRoomNights])],
+            ['label' => __('php/livewire/owner/owner_insights.card_avg_rate'), 'value' => $this->money($m->adrMinor(), $currency), 'sub' => __('php/livewire/owner/owner_insights.card_avg_rate_sub')],
             // Batch B — REAL: room revenue already booked for the next 90 days + the real median lead time.
-            ['label' => 'Next 90 days', 'value' => $this->money($onTheBooks, $currency), 'sub' => 'already on the books'],
-            ['label' => 'Median lead time', 'value' => $leadTime['median_days'] !== null ? $leadTime['median_days'].' days' : '—', 'sub' => $leadTime['has_data'] ? 'booking to check-in' : 'needs booking history'],
+            ['label' => __('php/livewire/owner/owner_insights.card_next_90'), 'value' => $this->money($onTheBooks, $currency), 'sub' => __('php/livewire/owner/owner_insights.card_next_90_sub')],
+            [
+                'label' => __('php/livewire/owner/owner_insights.card_median_lead'),
+                'value' => $leadTime['median_days'] !== null
+                    ? trans_choice('php/livewire/owner/owner_insights.card_median_lead_value', $leadTime['median_days'], ['count' => $leadTime['median_days']])
+                    : '—',
+                'sub' => $leadTime['has_data'] ? __('php/livewire/owner/owner_insights.card_median_lead_sub') : __('php/livewire/owner/owner_insights.card_median_lead_empty'),
+            ],
         ];
     }
 
@@ -286,9 +297,10 @@ class OwnerInsights extends Component
             return null;
         }
 
-        $names = [0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        // The weekday's name in the reader's language: 1 Jan 2023 was a Sunday (dayOfWeek 0), so + $topDay days.
+        $dayName = CarbonImmutable::create(2023, 1, 1)->addDays($topDay)->translatedFormat('l');
 
-        return 'Your busiest night of the week is '.$names[$topDay].'.';
+        return __('php/livewire/owner/owner_insights.busiest_night', ['day' => $dayName]);
     }
 
     /**
@@ -300,8 +312,8 @@ class OwnerInsights extends Component
         $key = (string) request()->query('range', 'this-year');
 
         return match ($key) {
-            'ytd' => ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay()],
-            '6m' => ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
+            'ytd' => ['key' => 'ytd', 'label' => __('php/livewire/owner/owner_insights.range_ytd'), 'start' => $today->startOfYear(), 'end' => $today->addDay()],
+            '6m' => ['key' => '6m', 'label' => __('php/livewire/owner/owner_insights.range_6m'), 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
             default => ['key' => 'this-year', 'label' => $today->format('Y'), 'start' => $today->startOfYear(), 'end' => $today->startOfYear()->addYear()],
         };
     }
@@ -315,8 +327,8 @@ class OwnerInsights extends Component
 
         return [
             ['key' => 'this-year', 'label' => $year, 'active' => $active === 'this-year'],
-            ['key' => 'ytd', 'label' => 'Year to date', 'active' => $active === 'ytd'],
-            ['key' => '6m', 'label' => 'Last 6 months', 'active' => $active === '6m'],
+            ['key' => 'ytd', 'label' => __('php/livewire/owner/owner_insights.range_ytd'), 'active' => $active === 'ytd'],
+            ['key' => '6m', 'label' => __('php/livewire/owner/owner_insights.range_6m'), 'active' => $active === '6m'],
         ];
     }
 

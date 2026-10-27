@@ -377,7 +377,7 @@ class OwnerBookings extends Component
 
             $months[] = [
                 'month' => (string) $month,
-                'label' => Carbon::parse($month.'-01')->format('M ’y'),
+                'label' => Carbon::parse($month.'-01')->translatedFormat('M ’y'),
                 'confirmed' => $confirmed,
                 'pending' => $pending,
                 'other' => $total - $confirmed - $pending,
@@ -446,7 +446,7 @@ class OwnerBookings extends Component
 
         return [
             'currency' => $currency,
-            'month_label' => $today->format('M ’y'),
+            'month_label' => $today->translatedFormat('M ’y'),
             'month_net_minor' => $monthNet,
             'month_net_display' => MoneyFormatter::compact($monthNet, $currency),
             'has_target' => $hasTarget,
@@ -504,10 +504,10 @@ class OwnerBookings extends Component
     private function rangeLabels(): array
     {
         return [
-            'this_month' => 'This month',
-            'last_month' => 'Last month',
-            'next_30' => 'Next 30 days',
-            'this_year' => 'This year',
+            'this_month' => __('php/livewire/owner/owner_bookings.range_this_month'),
+            'last_month' => __('php/livewire/owner/owner_bookings.range_last_month'),
+            'next_30' => __('php/livewire/owner/owner_bookings.range_next_30'),
+            'this_year' => __('php/livewire/owner/owner_bookings.range_this_year'),
         ];
     }
 

@@ -24,7 +24,6 @@ use App\Support\Owner\OwnerNextPayout;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -107,9 +106,12 @@ class OwnerReports extends Component
             'grossToNet' => $this->grossToNet($rangeEntries, $currency),
             'commissionLabel' => $this->commissionLabel(),
             'hero' => [
-                'eyebrow' => $range['label'].' so far',
+                'eyebrow' => __('php/livewire/owner/owner_reports.hero_eyebrow', ['period' => $range['label']]),
                 'net' => $totalNet === [] ? $this->money(0, $currency) : implode(' · ', $totalNet),
-                'sub' => trim($metrics->roomNightsSold.' '.Str::plural('night', $metrics->roomNightsSold).' · '.$units->count().' '.Str::plural('unit', $units->count())),
+                'sub' => trim(__('php/livewire/owner/owner_reports.hero_nights_units', [
+                    'nights' => trans_choice('php/livewire/owner/owner_reports.hero_nights', $metrics->roomNightsSold, ['count' => $metrics->roomNightsSold]),
+                    'units' => trans_choice('php/livewire/owner/owner_reports.hero_units', $units->count(), ['count' => $units->count()]),
+                ])),
             ],
             'payout' => $this->payoutSummary($currency),
             'documents' => $this->recentDocuments(),
@@ -227,7 +229,7 @@ class OwnerReports extends Component
             }
             $priorNet = $priorVals[$idx] ?? 0;
             $months[] = [
-                'label' => CarbonImmutable::parse($key.'-01')->format('M'),
+                'label' => CarbonImmutable::parse($key.'-01')->translatedFormat('M'),
                 'net_display' => $this->money($net, $currency),
                 'pct' => $maxAbs > 0 ? (int) round(abs($net) / $maxAbs * 100) : 0,
                 'prior_pct' => $hasPrior && $maxAbs > 0 ? (int) round(abs($priorNet) / $maxAbs * 100) : 0,
@@ -303,12 +305,14 @@ class OwnerReports extends Component
         $reservationIds = $inCurrency->pluck('reservation_id')->filter()->unique()->values()->all();
         $sourceById = Reservation::query()->whereIn('id', $reservationIds)->pluck('source', 'id');
 
-        /** @var array<string, int> $buckets  label → net minor */
+        // Bucketed by the source CODE (never by a displayed label, which differs per language); a row with no
+        // reservation goes to the code-less "Other" bucket. The label is resolved per row below.
+        /** @var array<string, int> $buckets  source code (or '' for Other) → net minor */
         $buckets = [];
         foreach ($inCurrency as $entry) {
             $source = $entry->reservation_id !== null ? $sourceById->get((string) $entry->reservation_id) : null;
-            $label = $source !== null ? $this->sourceLabel((string) $source) : 'Other';
-            $buckets[$label] = ($buckets[$label] ?? 0) + $entry->signedMinor();
+            $code = $source !== null ? (string) $source : '';
+            $buckets[$code] = ($buckets[$code] ?? 0) + $entry->signedMinor();
         }
         arsort($buckets);
 
@@ -317,7 +321,8 @@ class OwnerReports extends Component
         $stops = [];
         $cursor = 0;
         $i = 0;
-        foreach ($buckets as $label => $net) {
+        foreach ($buckets as $code => $net) {
+            $label = (string) $code === '' ? __('php/livewire/owner/owner_reports.channel_other') : $this->sourceLabel((string) $code);
             $pct = $positiveSum > 0 ? (int) round(max(0, $net) / $positiveSum * 100) : 0;
             $color = self::CHANNEL_COLORS[$i % count(self::CHANNEL_COLORS)];
             $rows[] = ['label' => $label, 'amount' => $this->money($net, $currency), 'pct' => $pct, 'color' => $color];
@@ -386,7 +391,9 @@ class OwnerReports extends Component
     {
         $percent = OwnerCommissionRate::percent(app(OwnerContext::class));
 
-        return $percent === null ? 'Commission' : 'Commission · '.$percent.'%';
+        return $percent === null
+            ? __('php/livewire/owner/owner_reports.commission')
+            : __('php/livewire/owner/owner_reports.commission_rate', ['percent' => $percent]);
     }
 
     /**
@@ -416,12 +423,12 @@ class OwnerReports extends Component
         $date = null;
         if ($latest instanceof Payout) {
             $stamp = $latest->paid_at ?? $latest->created_at;
-            $date = $stamp?->format('j M Y');
+            $date = $stamp?->translatedFormat('j M Y');
         }
 
         return [
             'amount' => $latest instanceof Payout ? MoneyFormatter::display((int) $latest->amount_minor, (string) $latest->currency) : null,
-            'status' => $status !== null ? ucfirst($status) : null,
+            'status' => $status !== null ? $this->payoutStatusLabel($status) : null,
             'status_key' => $status === 'paid' ? 'paid' : 'pending',
             'paid_year' => MoneyFormatter::display($paidYear, $currency),
             'method_masked' => OwnerNextPayout::rail(app(OwnerContext::class))['iban_masked'],
@@ -443,8 +450,8 @@ class OwnerReports extends Component
             ->limit(3)
             ->get()
             ->map(fn (OwnerStatement $s): array => [
-                'name' => $s->period_start->format('F Y').' statement',
-                'sub' => 'PDF · net & payout',
+                'name' => __('php/livewire/owner/owner_reports.doc_statement', ['month' => $s->period_start->translatedFormat('F Y')]),
+                'sub' => __('php/livewire/owner/owner_reports.doc_statement_sub'),
                 'href' => route('owner.statements.pdf', $s->id),
             ])
             ->all();
@@ -462,14 +469,14 @@ class OwnerReports extends Component
         $year = (int) $range['start']->year;
 
         return [
-            ['key' => 'pdf', 'title' => 'PDF report', 'sub' => 'Formatted earnings summary', 'href' => route('owner.statements.history.pdf'), 'soon' => false],
-            ['key' => 'csv', 'title' => 'CSV', 'sub' => 'Monthly & per-unit rows', 'href' => route('owner.statements.history.csv'), 'soon' => false],
-            ['key' => 'xls', 'title' => 'Spreadsheet', 'sub' => 'Opens the CSV in Excel/Sheets', 'href' => route('owner.statements.history.csv'), 'soon' => false],
-            ['key' => 'tax', 'title' => 'Annual tax summary', 'sub' => $year.' · for your accountant', 'href' => route('owner.tax.annual', $year), 'soon' => false],
-            ['key' => 'all', 'title' => 'All statements', 'sub' => 'Open your Documents', 'href' => route('owner.documents'), 'soon' => false],
-            ['key' => 'pack', 'title' => 'PDF pack', 'sub' => 'Bundled statements', 'href' => null, 'soon' => true],
+            ['key' => 'pdf', 'title' => __('php/livewire/owner/owner_reports.export_pdf'), 'sub' => __('php/livewire/owner/owner_reports.export_pdf_sub'), 'href' => route('owner.statements.history.pdf'), 'soon' => false],
+            ['key' => 'csv', 'title' => __('php/livewire/owner/owner_reports.export_csv'), 'sub' => __('php/livewire/owner/owner_reports.export_csv_sub'), 'href' => route('owner.statements.history.csv'), 'soon' => false],
+            ['key' => 'xls', 'title' => __('php/livewire/owner/owner_reports.export_xls'), 'sub' => __('php/livewire/owner/owner_reports.export_xls_sub'), 'href' => route('owner.statements.history.csv'), 'soon' => false],
+            ['key' => 'tax', 'title' => __('php/livewire/owner/owner_reports.export_tax'), 'sub' => __('php/livewire/owner/owner_reports.export_tax_sub', ['year' => $year]), 'href' => route('owner.tax.annual', $year), 'soon' => false],
+            ['key' => 'all', 'title' => __('php/livewire/owner/owner_reports.export_all'), 'sub' => __('php/livewire/owner/owner_reports.export_all_sub'), 'href' => route('owner.documents'), 'soon' => false],
+            ['key' => 'pack', 'title' => __('php/livewire/owner/owner_reports.export_pack'), 'sub' => __('php/livewire/owner/owner_reports.export_pack_sub'), 'href' => null, 'soon' => true],
             // "Email to me" is REAL now (GATE 4) — a POST that queues the owner's latest statement PDF to their inbox.
-            ['key' => 'email', 'title' => 'Email to me', 'sub' => 'Send my latest statement to my inbox', 'href' => null, 'post' => route('owner.reports.email'), 'soon' => false],
+            ['key' => 'email', 'title' => __('php/livewire/owner/owner_reports.export_email'), 'sub' => __('php/livewire/owner/owner_reports.export_email_sub'), 'href' => null, 'post' => route('owner.reports.email'), 'soon' => false],
         ];
     }
 
@@ -493,15 +500,15 @@ class OwnerReports extends Component
                 $end = $start->addMonth();
             }
 
-            return ['key' => 'custom', 'label' => $start->format('M Y').' – '.$to->startOfMonth()->format('M Y'), 'start' => $start, 'end' => $end, 'custom' => true, 'from' => $start->format('Y-m'), 'to' => $to->startOfMonth()->format('Y-m')];
+            return ['key' => 'custom', 'label' => $start->translatedFormat('M Y').' – '.$to->startOfMonth()->translatedFormat('M Y'), 'start' => $start, 'end' => $end, 'custom' => true, 'from' => $start->format('Y-m'), 'to' => $to->startOfMonth()->format('Y-m')];
         }
 
         $range = (string) request()->query('range', '');
         if ($range === 'ytd') {
-            return ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay(), 'custom' => false, 'from' => null, 'to' => null];
+            return ['key' => 'ytd', 'label' => __('php/livewire/owner/owner_reports.range_ytd'), 'start' => $today->startOfYear(), 'end' => $today->addDay(), 'custom' => false, 'from' => null, 'to' => null];
         }
         if ($range === '6m') {
-            return ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay(), 'custom' => false, 'from' => null, 'to' => null];
+            return ['key' => '6m', 'label' => __('php/livewire/owner/owner_reports.range_6m'), 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay(), 'custom' => false, 'from' => null, 'to' => null];
         }
 
         $year = (int) request()->query('year', (string) $today->year);
@@ -547,7 +554,9 @@ class OwnerReports extends Component
 
         return $years->map(function (int $year) use ($range, $counts, $thisYear): array {
             $n = (int) ($counts[$year] ?? 0);
-            $sub = $n === 0 ? 'No statements yet' : $n.' '.Str::plural('statement', $n).($year === $thisYear ? ' YTD' : '');
+            $sub = $n === 0
+                ? __('php/livewire/owner/owner_reports.year_no_statements')
+                : trans_choice($year === $thisYear ? 'php/livewire/owner/owner_reports.year_statements_ytd' : 'php/livewire/owner/owner_reports.year_statements', $n, ['count' => $n]);
 
             return [
                 'key' => 'year:'.$year,
@@ -567,8 +576,8 @@ class OwnerReports extends Component
     private function rangeOptions(array $range): array
     {
         return [
-            ['key' => 'ytd', 'label' => 'Year to date', 'active' => $range['key'] === 'ytd', 'href' => route('owner.reports', ['range' => 'ytd'])],
-            ['key' => '6m', 'label' => 'Last 6 months', 'active' => $range['key'] === '6m', 'href' => route('owner.reports', ['range' => '6m'])],
+            ['key' => 'ytd', 'label' => __('php/livewire/owner/owner_reports.range_ytd'), 'active' => $range['key'] === 'ytd', 'href' => route('owner.reports', ['range' => 'ytd'])],
+            ['key' => '6m', 'label' => __('php/livewire/owner/owner_reports.range_6m'), 'active' => $range['key'] === '6m', 'href' => route('owner.reports', ['range' => '6m'])],
         ];
     }
 
@@ -582,11 +591,25 @@ class OwnerReports extends Component
         $cursor = CarbonImmutable::today()->startOfMonth();
         $out = [];
         for ($i = 0; $i < 24; $i++) {
-            $out[] = ['value' => $cursor->format('Y-m'), 'label' => $cursor->format('M Y')];
+            $out[] = ['value' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat('M Y')];
             $cursor = $cursor->subMonth();
         }
 
         return $out;
+    }
+
+    /** A payout status code → the label the owner reads (an unknown code keeps its old capitalised form). */
+    private function payoutStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('php/livewire/owner/owner_reports.payout_pending'),
+            'processing' => __('php/livewire/owner/owner_reports.payout_processing'),
+            'held' => __('php/livewire/owner/owner_reports.payout_held'),
+            'paid' => __('php/livewire/owner/owner_reports.payout_paid'),
+            'failed' => __('php/livewire/owner/owner_reports.payout_failed'),
+            'reversed' => __('php/livewire/owner/owner_reports.payout_reversed'),
+            default => ucfirst($status),
+        };
     }
 
     /**

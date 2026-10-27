@@ -83,7 +83,7 @@ final class OwnerLedgerAttribution
      * consume verbatim.
      *
      * @param  iterable<OwnerLedgerEntry>  $entries
-     * @return list<array{currency: string, net_minor: int, net_display: string, credited_display: string, deducted_display: string, credits: list<array{label: string, display: string}>, deductions: list<array{label: string, display: string}>}>
+     * @return list<array{currency: string, net_minor: int, net_display: string, credited_display: string, deducted_display: string, credits: list<array{type: string, label: string, display: string}>, deductions: list<array{type: string, label: string, display: string}>}>
      */
     public static function breakdown(iterable $entries): array
     {
@@ -109,6 +109,9 @@ final class OwnerLedgerAttribution
             foreach (self::orderedTypes($byType) as $type) {
                 $minor = $byType[$type];
                 $row = [
+                    // the entry_type CODE beside its label — a view that needs to know WHICH line it is (the
+                    // commission rate after "Commission") compares this, never the translated label (I18N rule 10)
+                    'type' => $type,
                     'label' => self::entryTypeLabel($type),
                     'display' => MoneyFormatter::display($minor, $currency, true),
                 ];
@@ -142,14 +145,14 @@ final class OwnerLedgerAttribution
     public static function entryTypeLabel(string $type): string
     {
         return match ($type) {
-            'room_revenue' => 'Room revenue',
-            'commission' => 'Commission',
-            'management_fee' => 'Management fee',
-            'ota_cost' => 'OTA cost',
-            'cleaning' => 'Cleaning',
-            'addon' => 'Add-on',
-            'expense' => 'Expense',
-            'adjustment' => 'Adjustment',
+            'room_revenue' => __('php/support/owner/owner_ledger_attribution.type_room_revenue'),
+            'commission' => __('php/support/owner/owner_ledger_attribution.type_commission'),
+            'management_fee' => __('php/support/owner/owner_ledger_attribution.type_management_fee'),
+            'ota_cost' => __('php/support/owner/owner_ledger_attribution.type_ota_cost'),
+            'cleaning' => __('php/support/owner/owner_ledger_attribution.type_cleaning'),
+            'addon' => __('php/support/owner/owner_ledger_attribution.type_addon'),
+            'expense' => __('php/support/owner/owner_ledger_attribution.type_expense'),
+            'adjustment' => __('php/support/owner/owner_ledger_attribution.type_adjustment'),
             default => ucfirst(str_replace('_', ' ', $type)),
         };
     }

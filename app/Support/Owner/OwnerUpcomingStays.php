@@ -123,16 +123,16 @@ final class OwnerUpcomingStays
                 'id' => $resId,
                 'href' => route('owner.bookings.show', $resId),
                 'guest' => self::guestName($r->leadGuest),
-                'value_display' => $netDisplays === [] ? 'Not yet attributed' : (string) $netDisplays[0],
+                'value_display' => $netDisplays === [] ? __('php/support/owner/owner_upcoming_stays.not_yet_attributed') : (string) $netDisplays[0],
                 'attributed' => $netDisplays !== [],
-                'detail' => ($unitLabelByReservation[$resId] ?? '—').' · '.$nights.' '.($nights === 1 ? 'night' : 'nights'),
+                'detail' => trans_choice('php/support/owner/owner_upcoming_stays.detail_unit_nights', $nights, ['unit' => $unitLabelByReservation[$resId] ?? '—', 'count' => $nights]),
                 'source_key' => $source,
                 'source_label' => self::sourceLabel($source),
                 'source_dot' => self::SOURCE_DOTS[$source] ?? '#A69A92',
                 'status_key' => $statusKey,
                 'status_label' => self::statusLabel($statusKey),
                 'status_tone' => $statusKey === 'confirmed' ? 'confirmed' : 'pending',
-                'date' => $checkIn->format('j M'),
+                'date' => $checkIn->translatedFormat('j M'),
                 'sort' => $checkIn->toDateString(),
             ];
         }
@@ -204,18 +204,18 @@ final class OwnerUpcomingStays
 
     private static function statusLabel(string $key): string
     {
-        return $key === 'confirmed' ? 'Confirmed' : 'Pending';
+        return $key === 'confirmed' ? __('php/support/owner/owner_upcoming_stays.status_confirmed') : __('php/support/owner/owner_upcoming_stays.status_pending');
     }
 
     /** The REAL source enum → a warm label (no OTA brand — an OTA stay is "OTA"), mirroring FormatsOwnerData. */
     private static function sourceLabel(string $source): string
     {
         return match ($source) {
-            'direct' => 'Direct',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA',
+            'direct' => __('php/support/owner/owner_upcoming_stays.source_direct'),
+            'corporate' => __('php/support/owner/owner_upcoming_stays.source_corporate'),
+            'group' => __('php/support/owner/owner_upcoming_stays.source_group'),
+            'walk_in' => __('php/support/owner/owner_upcoming_stays.source_walk_in'),
+            'ota' => __('php/support/owner/owner_upcoming_stays.source_ota'),
             default => ucfirst(str_replace('_', ' ', $source)),
         };
     }

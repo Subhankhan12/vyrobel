@@ -12,6 +12,7 @@ use App\Services\PdfService;
 use App\Support\Countries;
 use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
+use App\Support\I18n\Locales;
 use App\Support\Pdf\OwnerAnnualTaxDocument;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
@@ -70,7 +71,7 @@ class OwnerTaxController extends Controller
             abort(404);
         }
 
-        return redirect()->to(route('owner.tax'))->with('tax_notice', 'Tax details saved — any held payouts will be released.');
+        return redirect()->to(route('owner.tax'))->with('tax_notice', __('php/http/controllers/owner/owner_tax_controller.tax_saved'));
     }
 
     public function downloadAnnual(Request $request, string $year, OwnerTaxService $tax, PdfService $pdf): Response
@@ -93,7 +94,7 @@ class OwnerTaxController extends Controller
         // Wave B · GATE 5 — record + watermark the download (who / when), the SAME identity on the file + the log.
         $watermark = app(ExportAudit::class)->stamp($request, 'annual_tax_pdf', 'Annual tax summary '.$year);
 
-        return $pdf->download('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary), 'vyrobel-annual-tax-'.$year.'.pdf', $watermark);
+        return $pdf->download('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary), 'vyrobel-annual-tax-'.$year.'.pdf', $watermark, Locales::SOURCE);   // I18N-01 — LEGAL, English
     }
 
     /**

@@ -7,7 +7,7 @@
         (OwnerCommissionRate, 18%), NEVER the wireframe's hardcoded 15%. #39 — no fabricated timeline/rate-plan.
      Shell + --vy-* tokens (warm glass, Sora/Inter, vyFadeUp). RAW-BLADE RULE: every `@` follows a space/newline/tag. --}}
 <x-owner.shell active="bookings"
-               :breadcrumb="[['label' => 'Overview', 'url' => route('owner.dashboard')], ['label' => 'Bookings', 'url' => route('owner.bookings')], ['label' => $guest['name'] ?? $reservation['reference']]]"
+               :breadcrumb="[['label' => __('livewire/owner/booking-detail.breadcrumb_overview'), 'url' => route('owner.dashboard')], ['label' => __('livewire/owner/booking-detail.breadcrumb_bookings'), 'url' => route('owner.bookings')], ['label' => $guest['name'] ?? $reservation['reference']]]"
                :title="''"
                :viewer="$viewer">
     <style>
@@ -34,7 +34,7 @@
         <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(140deg,#F0A57A,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--vy-display);font-weight:600;font-size:17px;letter-spacing:.02em;flex-shrink:0;box-shadow:0 6px 16px rgba(150,90,50,.22)">{{ $guest['initials'] }}</div>
         <div style="min-width:0">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <h1 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:27px;letter-spacing:-.02em">{{ $guest['name'] ?? 'Guest' }}</h1>
+                <h1 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:27px;letter-spacing:-.02em">{{ $guest['name'] ?? __('livewire/owner/booking-detail.guest_fallback') }}</h1>
                 <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:30px;background:{{ $reservation['stage']['bg'] }};color:{{ $reservation['stage']['co'] }};font-size:11.5px;font-weight:500"><span style="width:6px;height:6px;border-radius:50%;background:{{ $reservation['stage']['dot'] }}"></span>{{ $reservation['stage']['label'] }}</span>
             </div>
             <div style="font-size:12.5px;color:var(--vy-on-grad-soft);margin-top:3px">{{ $reservation['head_sub'] }}</div>
@@ -49,13 +49,13 @@
             {{-- Reservation --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.06s">
                 <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px">
-                    <h2 class="vy-bd-h2">Reservation</h2>
+                    <h2 class="vy-bd-h2">{{ __('livewire/owner/booking-detail.reservation') }}</h2>
                     <span class="vy-mono" style="font-size:11.5px;color:var(--vy-on-grad-soft)">{{ $reservation['reference'] }}</span>
                 </div>
 
                 <div style="display:flex;align-items:center;gap:8px">
                     <div style="flex:1;text-align:center">
-                        <div class="vy-bd-eyebrow" style="margin-bottom:6px">Check-in</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:6px">{{ __('livewire/owner/booking-detail.check_in') }}</div>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1">{{ $reservation['ci_day'] }}</div>
                         <div style="font-size:12.5px;color:var(--vy-on-grad-soft);margin-top:5px">{{ $reservation['ci_sub'] }}</div>
                         @if ($reservation['ci_time'])<div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:2px">{{ $reservation['ci_time'] }}</div>@endif
@@ -64,11 +64,11 @@
                         <div style="position:absolute;left:4px;right:4px;top:50%;height:0;border-top:2px dashed rgba(120,70,40,.22)"></div>
                         <div style="position:relative;background:#fff;border:1px solid rgba(255,255,255,.9);box-shadow:0 4px 12px rgba(150,90,50,.16);border-radius:30px;padding:5px 13px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--vy-accent-text);white-space:nowrap">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-                            {{ $reservation['nights'] }} {{ \Illuminate\Support\Str::plural('night', $reservation['nights']) }}
+                            {{ trans_choice('livewire/owner/booking-detail.nights_count', $reservation['nights'], ['count' => $reservation['nights']]) }}
                         </div>
                     </div>
                     <div style="flex:1;text-align:center">
-                        <div class="vy-bd-eyebrow" style="margin-bottom:6px">Check-out</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:6px">{{ __('livewire/owner/booking-detail.check_out') }}</div>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1">{{ $reservation['co_day'] }}</div>
                         <div style="font-size:12.5px;color:var(--vy-on-grad-soft);margin-top:5px">{{ $reservation['co_sub'] }}</div>
                         @if ($reservation['co_time'])<div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:2px">{{ $reservation['co_time'] }}</div>@endif
@@ -77,21 +77,21 @@
 
                 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px;padding-top:18px;border-top:1px solid rgba(120,70,40,.10)">
                     <div>
-                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">Unit</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">{{ __('livewire/owner/booking-detail.unit') }}</div>
                         @foreach ($reservation['units'] as $unit)
                             <a href="{{ route('owner.units.show', $unit['id']) }}" style="font-size:13.5px;font-weight:500;color:var(--vy-accent-text);text-decoration:none">{{ $unit['label'] }}</a>@if (! $loop->last), @endif
                         @endforeach
                     </div>
                     <div>
-                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">Guests</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">{{ __('livewire/owner/booking-detail.guests') }}</div>
                         <div style="font-size:13.5px;font-weight:500">{{ $reservation['guests_label'] ?? '—' }}</div>
                     </div>
                     <div>
-                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">Nights</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">{{ __('livewire/owner/booking-detail.nights') }}</div>
                         <div class="vy-mono" style="font-size:13.5px;font-weight:500">{{ $reservation['nights'] }}</div>
                     </div>
                     <div>
-                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">Nightly rate</div>
+                        <div class="vy-bd-eyebrow" style="margin-bottom:4px">{{ __('livewire/owner/booking-detail.nightly_rate') }}</div>
                         <div class="vy-mono" style="font-size:13.5px;font-weight:500">{{ $reservation['nightly_rate'] ?? '—' }}</div>
                     </div>
                 </div>
@@ -100,8 +100,8 @@
             {{-- Your earnings — the REAL gross→net via the shared rule; Commission shows the REAL rate --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.12s">
                 <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px">
-                    <h2 class="vy-bd-h2">Your earnings</h2>
-                    <span style="font-size:11.5px;color:var(--vy-on-grad-soft)">gross → net</span>
+                    <h2 class="vy-bd-h2">{{ __('livewire/owner/booking-detail.your_earnings') }}</h2>
+                    <span style="font-size:11.5px;color:var(--vy-on-grad-soft)">{{ __('livewire/owner/booking-detail.gross_to_net') }}</span>
                 </div>
 
                 @php $isZero = fn ($d) => (int) preg_replace('/\D/', '', (string) $d) === 0; @endphp
@@ -119,19 +119,19 @@
                             @endunless
                         @endforeach
                         <div class="vy-bd-row vy-bd-hair" style="margin-top:2px">
-                            <span style="font-size:13px;font-weight:500;color:#2B2320">Gross booking value</span>
+                            <span style="font-size:13px;font-weight:500;color:#2B2320">{{ __('livewire/owner/booking-detail.gross_booking_value') }}</span>
                             <span class="vy-mono" style="font-size:13.5px;font-weight:600;font-family:var(--vy-display)">{{ $block['credited_display'] }}</span>
                         </div>
                         @foreach ($block['deductions'] as $line)
                             @unless ($isZero($line['display']))
                                 <div class="vy-bd-row">
-                                    <span style="font-size:13px;color:#6E635C">{{ $line['label'] }}@if ($line['label'] === 'Commission' && $commissionRate) · {{ $commissionRate }}%@endif</span>
+                                    <span style="font-size:13px;color:#6E635C">{{ $line['label'] }}@if ($line['type'] === 'commission' && $commissionRate) · {{ $commissionRate }}%@endif</span>
                                     <span class="vy-mono" style="font-size:13px;color:var(--vy-on-grad-soft)">{{ $line['display'] }}</span>
                                 </div>
                             @endunless
                         @endforeach
                         <div class="vy-bd-row" style="padding:13px 0 4px;margin-top:4px;border-top:1.5px solid rgba(120,70,40,.16)">
-                            <span style="font-size:14px;font-weight:600;font-family:var(--vy-display)">Net to you</span>
+                            <span style="font-size:14px;font-weight:600;font-family:var(--vy-display)">{{ __('livewire/owner/booking-detail.net_to_you') }}</span>
                             <span class="vy-mono" style="font-size:18px;font-weight:600;color:var(--vy-accent-text);font-family:var(--vy-display)">{{ $block['net_display'] }}</span>
                         </div>
 
@@ -146,7 +146,7 @@
                              honest empty state, and a zero row would read as a deduction that was weighed. --}}
                         @if ($absorbedRefunds !== [] && $loop->first)
                             <div style="margin-top:12px;padding:11px 13px;border-radius:11px;background:rgba(120,70,40,.05)">
-                                <div style="font-size:12px;font-weight:600;color:#2B2320;margin-bottom:5px">Refunds we covered</div>
+                                <div style="font-size:12px;font-weight:600;color:#2B2320;margin-bottom:5px">{{ __('livewire/owner/booking-detail.refunds_we_covered') }}</div>
                                 @foreach ($absorbedRefunds as $r)
                                     <div class="vy-bd-row" style="padding:2px 0">
                                         <span style="font-size:12.5px;color:#6E635C">{{ $r['date'] }}</span>
@@ -154,43 +154,43 @@
                                     </div>
                                 @endforeach
                                 <div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:6px;line-height:1.5">
-                                    Refunded to the guest and charged to us, not to you. Your earnings above are unchanged.
+                                    {{ __('livewire/owner/booking-detail.refunds_we_covered_note') }}
                                 </div>
                             </div>
                         @endif
                     </div>
                 @empty
                     <div style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(120,70,40,.04);font-size:13px;color:var(--vy-on-grad-soft)">
-                        Not yet attributed.
-                        <div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:6px">Your earnings appear here once this booking is attributed to your ledger — usually after check-out.</div>
+                        {{ __('livewire/owner/booking-detail.not_yet_attributed') }}
+                        <div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:6px">{{ __('livewire/owner/booking-detail.not_yet_attributed_note') }}</div>
                     </div>
                 @endforelse
             </section>
 
             {{-- Guest — NAME + tag ONLY (#28); "Message" → the OPERATOR relay --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.18s">
-                <h2 class="vy-bd-h2" style="margin-bottom:16px">Guest</h2>
+                <h2 class="vy-bd-h2" style="margin-bottom:16px">{{ __('livewire/owner/booking-detail.guest_heading') }}</h2>
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
                     <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(140deg,#F0A57A,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--vy-display);font-weight:600;font-size:14px;flex-shrink:0">{{ $guest['initials'] }}</div>
                     <div style="min-width:0">
-                        <div style="font-size:14px;font-weight:500">{{ $guest['name'] ?? 'Guest' }}</div>
+                        <div style="font-size:14px;font-weight:500">{{ $guest['name'] ?? __('livewire/owner/booking-detail.guest_fallback') }}</div>
                         @if ($guest['tag'])<div style="font-size:12px;color:var(--vy-on-grad-soft);margin-top:1px">{{ $guest['tag'] }}</div>@endif
                     </div>
                 </div>
                 {{-- ⚠️ #28 — no email / phone / country. An owner seeing guest contact is a privacy breach + a
                      platform-bypass risk. Contact stays with the operator; the owner sees the booking + earnings. --}}
                 <div style="padding:11px 13px;border-radius:11px;background:rgba(120,70,40,.05);font-size:12px;color:var(--vy-on-grad-soft);line-height:1.5">
-                    Guest contact details are handled by your management team — you see the booking and your earnings.
+                    {{ __('livewire/owner/booking-detail.guest_contact_note') }}
                 </div>
                 <a href="{{ route('owner.messages') }}" class="vy-bd-msg">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.2-.6L3 21l1.7-5.1a8.4 8.4 0 1 1 16.3-4.4z"/></svg>
-                    Message your team
+                    {{ __('livewire/owner/booking-detail.message_your_team') }}
                 </a>
             </section>
 
             {{-- Timeline — REAL events from real timestamps (fabricated pre-arrival email omitted, #39) --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.24s">
-                <h2 class="vy-bd-h2" style="margin-bottom:18px">Timeline</h2>
+                <h2 class="vy-bd-h2" style="margin-bottom:18px">{{ __('livewire/owner/booking-detail.timeline') }}</h2>
                 @foreach ($timeline as $ev)
                     @php
                         $done = $ev['state'] === 'done'; $now = $ev['state'] === 'now'; $cancel = $ev['state'] === 'cancel';
@@ -218,7 +218,7 @@
             <div style="position:relative;animation-delay:.06s" class="vy-fade">
                 <div style="position:absolute;inset:-16px -10px;background:radial-gradient(circle,rgba(232,112,58,.42),transparent 70%);filter:blur(28px);pointer-events:none"></div>
                 <div style="position:relative;background:linear-gradient(160deg,#3A2E27 0%,#251C17 100%);border-radius:20px;box-shadow:0 10px 30px rgba(60,30,10,.28);padding:20px 22px">
-                    <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#B9ABA0;margin-bottom:10px">Net to you</div>
+                    <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#B9ABA0;margin-bottom:10px">{{ __('livewire/owner/booking-detail.net_to_you') }}</div>
                     @if ($net !== null)
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;letter-spacing:-.02em;color:#fff"
                              class="vy-mono"
@@ -233,7 +233,7 @@
                             <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;color:rgba(255,255,255,.4)">—</div>
                         @endif
                     @endif
-                    <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px">for this {{ $reservation['nights'] }}-night stay</div>
+                    <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px">{{ __('livewire/owner/booking-detail.for_night_stay', ['nights' => $reservation['nights']]) }}</div>
                     <div style="height:1px;background:rgba(255,255,255,.10);margin:14px 0 12px"></div>
                     <div style="display:flex;align-items:center;gap:8px">
                         <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:30px;background:rgba(232,112,58,.18);color:#F0A57A;font-size:10.5px;font-weight:500"><span style="width:5px;height:5px;border-radius:50%;background:#F0A57A"></span>{{ $payout['label'] }}</span>
@@ -244,22 +244,22 @@
 
             {{-- Booking details --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.12s;padding:18px 20px">
-                <div class="vy-bd-eyebrow" style="letter-spacing:.08em;margin-bottom:12px">Booking details</div>
+                <div class="vy-bd-eyebrow" style="letter-spacing:.08em;margin-bottom:12px">{{ __('livewire/owner/booking-detail.booking_details') }}</div>
                 <div class="vy-bd-row vy-bd-hair" style="padding:9px 0">
-                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">Confirmation</span>
+                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">{{ __('livewire/owner/booking-detail.confirmation') }}</span>
                     <span class="vy-mono" style="font-size:12.5px;font-weight:500">{{ $reservation['reference'] }}</span>
                 </div>
                 <div class="vy-bd-row vy-bd-hair" style="padding:9px 0">
-                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">Source</span>
+                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">{{ __('livewire/owner/booking-detail.source') }}</span>
                     <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:{{ $reservation['source_dot'] }}"></span>{{ $reservation['source_label'] }}</span>
                 </div>
                 <div class="vy-bd-row vy-bd-hair" style="padding:9px 0">
-                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">Channel</span>
+                    <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">{{ __('livewire/owner/booking-detail.channel') }}</span>
                     <span style="font-size:12.5px;font-weight:500">{{ $reservation['channel'] }}</span>
                 </div>
                 @if ($reservation['booked_on'])
                     <div class="vy-bd-row vy-bd-hair" style="padding:9px 0">
-                        <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">Booked on</span>
+                        <span style="font-size:12.5px;color:var(--vy-on-grad-soft)">{{ __('livewire/owner/booking-detail.booked_on') }}</span>
                         <span style="font-size:12.5px;font-weight:500">{{ $reservation['booked_on'] }}</span>
                     </div>
                 @endif
@@ -267,22 +267,22 @@
 
             {{-- Actions --}}
             <section class="vy-bd-card vy-fade" style="animation-delay:.18s;padding:18px 20px">
-                <div class="vy-bd-eyebrow" style="letter-spacing:.08em;margin-bottom:12px">Actions</div>
+                <div class="vy-bd-eyebrow" style="letter-spacing:.08em;margin-bottom:12px">{{ __('common.actions') }}</div>
                 @if ($canDownload)
                     <a href="{{ $pdfHref }}" class="vy-bd-act vy-bd-act--primary">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                        Download confirmation
+                        {{ __('livewire/owner/booking-detail.download_confirmation') }}
                     </a>
                 @else
-                    <span class="vy-bd-act vy-bd-act--primary vy-bd-act--muted" title="Available to co-owners and accountants">
+                    <span class="vy-bd-act vy-bd-act--primary vy-bd-act--muted" title="{{ __('livewire/owner/booking-detail.download_unavailable') }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                        Download confirmation
+                        {{ __('livewire/owner/booking-detail.download_confirmation') }}
                     </span>
                 @endif
                 @foreach ($reservation['units'] as $unit)
                     <a href="{{ route('owner.units.show', $unit['id']) }}" class="vy-bd-act vy-bd-act--ghost">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
-                        View {{ $unit['label'] }}
+                        {{ __('livewire/owner/booking-detail.view_unit', ['unit' => $unit['label']]) }}
                     </a>
                 @endforeach
             </section>

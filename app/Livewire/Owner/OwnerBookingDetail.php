@@ -25,7 +25,6 @@ use App\Support\StayTime;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -118,13 +117,13 @@ class OwnerBookingDetail extends Component
                 'stage' => $this->statusPill($stage),
                 'head_sub' => $this->headSub($ownedUnits, $nights, (string) $reservation->source),
                 'ci_day' => $checkIn->format('j'),
-                'ci_sub' => $checkIn->format('M Y · D'),
+                'ci_sub' => $checkIn->translatedFormat('M Y · D'),
                 // The property's REAL check-in/out times (was a hardcoded "from 3:00 PM"); null ⇒ the
                 // view renders no time line at all rather than inventing an hour.
-                'ci_time' => StayTime::labelled($reservation->property?->check_in_time),
-                'co_time' => StayTime::labelled($reservation->property?->check_out_time, 'by '),
+                'ci_time' => $this->stayTime($reservation->property?->check_in_time, false),
+                'co_time' => $this->stayTime($reservation->property?->check_out_time, true),
                 'co_day' => $checkOut->format('j'),
-                'co_sub' => $checkOut->format('M Y · D'),
+                'co_sub' => $checkOut->translatedFormat('M Y · D'),
                 'nights' => $nights,
                 'units' => $ownedUnits,
                 'guests_label' => $this->guestsLabel($reservation),
@@ -132,7 +131,7 @@ class OwnerBookingDetail extends Component
                 'source_label' => $this->sourceLabel((string) $reservation->source),
                 'source_dot' => $this->sourceDot((string) $reservation->source),
                 'channel' => $this->channelLabel((string) $reservation->source),
-                'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->format('j M Y'),
+                'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->translatedFormat('j M Y'),
             ],
             'earnings' => $earnings,
             'absorbedRefunds' => $absorbedRefunds,
@@ -144,6 +143,22 @@ class OwnerBookingDetail extends Component
             'canDownload' => app(OwnerContext::class)->can(OwnerTeamRole::CAP_EXPORTS),
             'pdfHref' => route('owner.bookings.confirmation', $reservation->id),
         ]);
+    }
+
+    /**
+     * A property check-in/out time, prefixed ("from 3:00 PM" / "by 11:00 AM") — or NULL, so an unset time
+     * renders nothing at all (the same output as StayTime::labelled(), with the prefix translated).
+     */
+    private function stayTime(mixed $time, bool $checkOut): ?string
+    {
+        $display = StayTime::display($time);
+        if ($display === null) {
+            return null;
+        }
+
+        return $checkOut
+            ? __('php/livewire/owner/owner_booking_detail.by_time', ['time' => $display])
+            : __('php/livewire/owner/owner_booking_detail.from_time', ['time' => $display]);
     }
 
     /**
@@ -217,7 +232,9 @@ class OwnerBookingDetail extends Component
             ->whereHas('reservationUnits', fn ($q) => $q->whereIn('unit_id', $ownerUnitIds)->where('status', 'active'))
             ->count();
 
-        return $stays > 1 ? 'Repeat guest · '.$stays.' stays' : 'New guest';
+        return $stays > 1
+            ? trans_choice('php/livewire/owner/owner_booking_detail.repeat_guest', $stays, ['count' => $stays])
+            : __('php/livewire/owner/owner_booking_detail.new_guest');
     }
 
     /** "N guests" (adults + children), or null when unknown. */
@@ -225,7 +242,7 @@ class OwnerBookingDetail extends Component
     {
         $count = max(0, (int) $reservation->adults + (int) $reservation->children);
 
-        return $count > 0 ? $count.' '.Str::plural('guest', $count) : null;
+        return $count > 0 ? trans_choice('php/livewire/owner/owner_booking_detail.guests_count', $count, ['count' => $count]) : null;
     }
 
     /** "{unit(s)} · N nights · {source}" — the header sub-line. */
@@ -233,7 +250,7 @@ class OwnerBookingDetail extends Component
     {
         $unitLabel = collect($units)->pluck('label')->implode(', ');
 
-        return trim($unitLabel.' · '.$nights.' '.Str::plural('night', $nights).' · '.$this->sourceLabel($source), ' ·');
+        return trim($unitLabel.' · '.trans_choice('php/livewire/owner/owner_booking_detail.nights_count', $nights, ['count' => $nights]).' · '.$this->sourceLabel($source), ' ·');
     }
 
     /**
@@ -296,7 +313,7 @@ class OwnerBookingDetail extends Component
             ->map(fn (Payment $r): array => [
                 // abs(): the refund row stores its amount positive; the note states an amount refunded.
                 'amount_display' => MoneyFormatter::display(abs((int) $r->amount_minor), (string) ($r->currency ?? $currency)),
-                'date' => $r->processed_at !== null ? Carbon::parse($r->processed_at)->format('j M Y') : '',
+                'date' => $r->processed_at !== null ? Carbon::parse($r->processed_at)->translatedFormat('j M Y') : '',
             ])
             ->values()
             ->all();
@@ -359,9 +376,9 @@ class OwnerBookingDetail extends Component
     private function channelLabel(string $source): string
     {
         return match ($source) {
-            'direct' => 'Vyrobel direct',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA channel',
+            'direct' => __('php/livewire/owner/owner_booking_detail.channel_direct'),
+            'walk_in' => __('php/livewire/owner/owner_booking_detail.channel_walk_in'),
+            'ota' => __('php/livewire/owner/owner_booking_detail.channel_ota'),
             default => $this->sourceLabel($source),
         };
     }
@@ -377,13 +394,13 @@ class OwnerBookingDetail extends Component
     private function timeline(Reservation $reservation, string $stage, Carbon $checkIn, Carbon $checkOut, array $payout): array
     {
         $booked = $reservation->booked_at ?? $reservation->created_at;
-        $events = [['label' => 'Booking received', 'when' => $booked?->format('j M Y') ?? '—', 'state' => 'done']];
+        $events = [['label' => __('php/livewire/owner/owner_booking_detail.event_booking_received'), 'when' => $booked?->translatedFormat('j M Y') ?? '—', 'state' => 'done']];
 
         // Cancelled bookings have a short, honest timeline — no payment/stay/payout followed.
         if (in_array((string) $reservation->status, ReservationStage::CANCELLED_STATUSES, true)) {
             $events[] = [
-                'label' => 'Cancelled',
-                'when' => ($reservation->cancelled_at ?? $booked)?->format('j M Y') ?? '—',
+                'label' => __('php/livewire/owner/owner_booking_detail.event_cancelled'),
+                'when' => ($reservation->cancelled_at ?? $booked)?->translatedFormat('j M Y') ?? '—',
                 'state' => 'cancel',
             ];
 
@@ -391,13 +408,13 @@ class OwnerBookingDetail extends Component
         }
 
         $events[] = match ((string) $reservation->payment_status) {
-            'paid' => ['label' => 'Payment received', 'when' => 'Paid in full', 'state' => 'done'],
-            'partial' => ['label' => 'Part-payment received', 'when' => 'Balance due', 'state' => 'now'],
-            default => ['label' => 'Payment', 'when' => 'Not yet received', 'state' => 'next'],
+            'paid' => ['label' => __('php/livewire/owner/owner_booking_detail.event_payment_received'), 'when' => __('php/livewire/owner/owner_booking_detail.when_paid_in_full'), 'state' => 'done'],
+            'partial' => ['label' => __('php/livewire/owner/owner_booking_detail.event_part_payment_received'), 'when' => __('php/livewire/owner/owner_booking_detail.when_balance_due'), 'state' => 'now'],
+            default => ['label' => __('php/livewire/owner/owner_booking_detail.event_payment'), 'when' => __('php/livewire/owner/owner_booking_detail.when_not_yet_received'), 'state' => 'next'],
         };
 
         if ($reservation->guest_checked_in_at !== null) {
-            $events[] = ['label' => 'Checked in', 'when' => Carbon::parse($reservation->guest_checked_in_at)->format('j M · g:i A'), 'state' => 'done'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_in'), 'when' => Carbon::parse($reservation->guest_checked_in_at)->translatedFormat('j M · g:i A'), 'state' => 'done'];
             // ⚠️ TERMINAL STATUS IS CONSULTED (wireframe-parity WAVE 3). This branch used to fire on any
             // future-dated check-in, so a booking already cancelled / no-show / checked out rendered
             // "Check-in — upcoming" directly ABOVE its own completed "Checked out" row. One demo reservation is
@@ -409,18 +426,18 @@ class OwnerBookingDetail extends Component
             // the property stores a real check_in_time. Both are fixed by passing a real time through a
             // real format; an unset time simply omits the hour rather than inventing one (#39).
             $ciTime = StayTime::display($reservation->property?->check_in_time);
-            $events[] = ['label' => 'Check-in', 'when' => $checkIn->format('D j M').($ciTime !== null ? ' · '.$ciTime : ''), 'state' => 'next'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_check_in'), 'when' => $checkIn->translatedFormat('D j M').($ciTime !== null ? ' · '.$ciTime : ''), 'state' => 'next'];
         }
 
         if ((string) $reservation->status === 'checked_out') {
-            $events[] = ['label' => 'Checked out', 'when' => $checkOut->format('D j M Y'), 'state' => 'done'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_out'), 'when' => $checkOut->translatedFormat('D j M Y'), 'state' => 'done'];
         }
 
         // Payout — REAL, from the statement the ledger rows landed on (via payoutStatus()).
         if ($payout['paid_on'] !== null) {
-            $events[] = ['label' => 'Payout released', 'when' => $payout['paid_on'], 'state' => 'done'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_payout_released'), 'when' => $payout['paid_on'], 'state' => 'done'];
         } elseif ($payout['tone'] === 'pending') {
-            $events[] = ['label' => 'Payout', 'when' => 'With your next payout', 'state' => 'next'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_payout'), 'when' => __('php/livewire/owner/owner_booking_detail.when_next_payout'), 'state' => 'next'];
         }
 
         return $events;
@@ -437,7 +454,7 @@ class OwnerBookingDetail extends Component
     private function payoutStatus(Collection $entries): array
     {
         if ($entries->isEmpty()) {
-            return ['label' => 'Not yet attributed', 'tone' => 'draft', 'note' => 'This booking has not been attributed to your ledger yet.', 'paid_on' => null];
+            return ['label' => __('php/livewire/owner/owner_booking_detail.payout_not_attributed'), 'tone' => 'draft', 'note' => __('php/livewire/owner/owner_booking_detail.payout_not_attributed_note'), 'paid_on' => null];
         }
 
         $statementIds = $entries
@@ -447,13 +464,13 @@ class OwnerBookingDetail extends Component
             ->values();
 
         if ($statementIds->isEmpty() || $entries->contains(fn (OwnerLedgerEntry $e): bool => $e->statement_id === null)) {
-            return ['label' => 'Scheduled', 'tone' => 'pending', 'note' => 'Included in your next statement, then released with that payout.', 'paid_on' => null];
+            return ['label' => __('php/livewire/owner/owner_booking_detail.payout_scheduled'), 'tone' => 'pending', 'note' => __('php/livewire/owner/owner_booking_detail.payout_scheduled_note'), 'paid_on' => null];
         }
 
         $statuses = OwnerStatement::query()->whereIn('id', $statementIds->all())->pluck('status')->map(fn ($s): string => (string) $s);
 
         if ($statuses->contains(fn (string $s): bool => $s !== 'paid')) {
-            return ['label' => 'Payout pending', 'tone' => 'pending', 'note' => 'On a finalized statement — releases with that payout.', 'paid_on' => null];
+            return ['label' => __('php/livewire/owner/owner_booking_detail.payout_pending'), 'tone' => 'pending', 'note' => __('php/livewire/owner/owner_booking_detail.payout_pending_note'), 'paid_on' => null];
         }
 
         // The REAL payout date — from the Payout(s) linked to these statements (owner-scoped), not the statement.
@@ -464,6 +481,6 @@ class OwnerBookingDetail extends Component
             ->map(fn (Payout $p): Carbon => Carbon::parse($p->paid_at))
             ->max();
 
-        return ['label' => 'Paid', 'tone' => 'paid', 'note' => 'Released with a completed payout.', 'paid_on' => $paidOn?->format('j M Y')];
+        return ['label' => __('php/livewire/owner/owner_booking_detail.payout_paid'), 'tone' => 'paid', 'note' => __('php/livewire/owner/owner_booking_detail.payout_paid_note'), 'paid_on' => $paidOn?->translatedFormat('j M Y')];
     }
 }

@@ -63,7 +63,7 @@ class OwnerPayoutMethod extends Component
             'linked' => true,
             'methods' => $service->methods()->map(fn (PayoutMethod $m): array => [
                 'id' => (string) $m->id,
-                'label' => ((string) $m->label) !== '' ? (string) $m->label : 'Bank account',
+                'label' => ((string) $m->label) !== '' ? (string) $m->label : __('php/livewire/owner/owner_payout_method.bank_account_fallback'),
                 'holder' => (string) $m->account_holder,
                 'masked' => Iban::masked((string) $m->iban_last4),
                 'country' => Iban::nameForCode((string) $m->iban_country),

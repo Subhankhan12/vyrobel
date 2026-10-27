@@ -40,7 +40,17 @@ class OwnerBookingsExportController extends Controller
         return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Guest', 'Reference', 'Unit', 'Check-in', 'Check-out', 'Nights', 'Source', 'Status', 'Net to you']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_guest'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_reference'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_unit'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_check_in'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_check_out'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_nights'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_source'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_status'),
+                __('php/http/controllers/owner/owner_bookings_export_controller.col_net_to_you'),
+            ]));
 
             foreach ($rows as $row) {
                 fputcsv($out, CsvSafe::row([
@@ -53,7 +63,7 @@ class OwnerBookingsExportController extends Controller
                     $row['source_label'],                         // real source enum, never an OTA brand
                     $row['status_badge']['label'],
                     // Per-currency net displays joined; empty ⇒ honestly "Not yet attributed", never €0.
-                    $row['net_displays'] === [] ? 'Not yet attributed' : implode(' / ', $row['net_displays']),
+                    $row['net_displays'] === [] ? __('php/http/controllers/owner/owner_bookings_export_controller.not_yet_attributed') : implode(' / ', $row['net_displays']),
                 ]));
             }
 

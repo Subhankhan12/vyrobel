@@ -5,7 +5,7 @@
      lack #39). PLUS the app's real DIRECT-EDIT editor (a shipped capability the wireframe's proposals model
      omits — kept, documented). Every write is a controller POST, CAP_ACTIONS, audited (#20).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-owner.shell active="rates" :title="'Rates & pricing'" :subtitle="'Review the pricing your manager proposes and set the limits they work within.'" :viewer="$viewer">
+<x-owner.shell active="rates" :title="__('livewire/owner/rates.title')" :subtitle="__('livewire/owner/rates.subtitle')" :viewer="$viewer">
     <style>
         /* ⚠️ This page was written with the prototype's RAW pre-AA greys (#A69A92, #8A8079) rather than the
            tokens — 21 measured AA failures, the worst of the owner realm so far, on the copy that explains
@@ -64,10 +64,10 @@
 
     <section class="vy-rt-card vy-fade" style="margin-bottom:18px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
-            <h2 class="vy-rt-h2">Proposed rate changes</h2>
-            @if (count($proposals) > 0)<span class="vy-rt-eyebrow" style="color:var(--vy-accent)">{{ count($proposals) }} to review</span>@endif
+            <h2 class="vy-rt-h2">{{ __('livewire/owner/rates.proposed_title') }}</h2>
+            @if (count($proposals) > 0)<span class="vy-rt-eyebrow" style="color:var(--vy-accent)">{{ trans_choice('livewire/owner/rates.to_review', count($proposals), ['count' => count($proposals)]) }}</span>@endif
         </div>
-        <p style="font-size:12.5px;color:var(--vy-muted);margin:6px 0 0">Your manager suggests these based on demand. Approve, decline, or send a counter.</p>
+        <p style="font-size:12.5px;color:var(--vy-muted);margin:6px 0 0">{{ __('livewire/owner/rates.proposed_intro') }}</p>
 
         @forelse ($proposals as $p)
             <div class="vy-rt-prop" style="margin-top:14px" x-data="{ counter: false }">
@@ -78,14 +78,14 @@
                             <span class="vy-rt-eyebrow" style="letter-spacing:.02em;text-transform:none;color:var(--vy-muted)">{{ $p['window'] }}</span>
                         </div>
                         @if ($p['rationale'] !== '')<div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px;line-height:1.5">{{ $p['rationale'] }}</div>@endif
-                        <div style="font-size:11.5px;color:var(--vy-muted);margin-top:6px">Effective {{ $p['effective'] }}</div>
+                        <div style="font-size:11.5px;color:var(--vy-muted);margin-top:6px">{{ __('livewire/owner/rates.effective', ['date' => $p['effective']]) }}</div>
                     </div>
                     <div style="text-align:right;flex-shrink:0">
                         <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
                             <span class="vy-mono" style="font-size:12.5px;color:var(--vy-muted);text-decoration:line-through">{{ $p['from_str'] }}</span>
                             <span class="vy-mono" style="font-size:16px;font-weight:600;color:var(--vy-ink)">{{ $p['to_str'] }}</span>
                         </div>
-                        <div style="font-size:10.5px;color:var(--vy-muted);margin-top:1px">per night</div>
+                        <div style="font-size:10.5px;color:var(--vy-muted);margin-top:1px">{{ __('livewire/owner/rates.per_night') }}</div>
                         <div style="margin-top:6px"><span class="vy-rt-delta" style="background:{{ $p['up'] ? 'rgba(79,122,70,.14)' : 'rgba(224,146,30,.14)' }};color:{{ $p['up'] ? '#3F6A38' : '#93610C' }}">{{ $p['delta_str'] }}</span></div>
                     </div>
                 </div>
@@ -93,51 +93,51 @@
                 @if ($p['countered'])
                     {{-- The owner has countered — the ball is with the operator. Honest, no action buttons. --}}
                     <div style="margin-top:14px;padding:10px 13px;border-radius:11px;background:rgba(217,102,46,.08);border:1px solid rgba(217,102,46,.2);font-size:12.5px;color:#8A5A2C">
-                        You countered with <strong class="vy-mono" style="color:var(--vy-accent)">{{ $p['counter_str'] }}</strong> — awaiting your manager’s response.
+                        {!! __('livewire/owner/rates.countered', ['amount' => e($p['counter_str'])]) !!}
                     </div>
                 @else
                     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-                        <form method="POST" action="{{ route('owner.rate-proposals.approve', $p['id']) }}">@csrf<button type="submit" class="vy-rt-btn vy-rt-approve"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button></form>
-                        <form method="POST" action="{{ route('owner.rate-proposals.decline', $p['id']) }}">@csrf<button type="submit" class="vy-rt-btn vy-rt-decline">Decline</button></form>
-                        <button type="button" class="vy-rt-btn vy-rt-counter" @click="counter = ! counter">Counter…</button>
+                        <form method="POST" action="{{ route('owner.rate-proposals.approve', $p['id']) }}">@csrf<button type="submit" class="vy-rt-btn vy-rt-approve"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{{ __('livewire/owner/rates.approve') }}</button></form>
+                        <form method="POST" action="{{ route('owner.rate-proposals.decline', $p['id']) }}">@csrf<button type="submit" class="vy-rt-btn vy-rt-decline">{{ __('livewire/owner/rates.decline') }}</button></form>
+                        <button type="button" class="vy-rt-btn vy-rt-counter" @click="counter = ! counter">{{ __('livewire/owner/rates.counter_button') }}</button>
                     </div>
                     {{-- Counter form (BUILT #81) — the owner proposes a different nightly rate back to the operator. --}}
                     <form method="POST" action="{{ route('owner.rate-proposals.counter', $p['id']) }}" x-show="counter" x-cloak style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
                         @csrf
                         <div style="flex:1;min-width:150px">
-                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Your counter · {{ $currencySymbol }} / night</div>
-                            <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><input id="vy-lbl-rates-counter-rate" type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
+                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">{{ __('livewire/owner/rates.your_counter', ['symbol' => $currencySymbol]) }}</div>
+                            <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><input id="vy-lbl-rates-counter-rate" type="text" inputmode="decimal" name="counter_rate" required placeholder="{{ __('livewire/owner/rates.counter_placeholder') }}" maxlength="12"></div>
                         </div>
                         <div style="flex:2;min-width:180px">
-                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">· optional</span></div>
-                            <div class="vy-rt-in"><label class="vy-sr-only" for="vy-lbl-rates-counter-note">Why this rate</label>
-<input id="vy-lbl-rates-counter-note" type="text" name="counter_note" placeholder="Why this rate" maxlength="500"></div>
+                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">{!! __('livewire/owner/rates.note_optional') !!}</div>
+                            <div class="vy-rt-in"><label class="vy-sr-only" for="vy-lbl-rates-counter-note">{{ __('livewire/owner/rates.why_this_rate') }}</label>
+<input id="vy-lbl-rates-counter-note" type="text" name="counter_note" placeholder="{{ __('livewire/owner/rates.why_this_rate') }}" maxlength="500"></div>
                         </div>
-                        <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#E8703A,#C2410C)">Send counter</button>
+                        <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#E8703A,#C2410C)">{{ __('livewire/owner/rates.send_counter') }}</button>
                     </form>
                 @endif
             </div>
         @empty
-            <div style="margin-top:14px;padding:18px;border-radius:14px;background:rgba(120,70,40,.04);font-size:13px;color:var(--vy-muted);text-align:center">No proposed changes right now — you’re all caught up.</div>
+            <div style="margin-top:14px;padding:18px;border-radius:14px;background:rgba(120,70,40,.04);font-size:13px;color:var(--vy-muted);text-align:center">{{ __('livewire/owner/rates.proposed_empty') }}</div>
         @endforelse
     </section>
 
         {{-- ══ 2 · CURRENT RATES (real Base/Weekend/Occ — Peak omitted) ══ --}}
         <section class="vy-rt-card vy-fade" style="animation-delay:.04s">
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-                <h2 class="vy-rt-h2">Current rates</h2>
-                <span style="font-size:12px;color:var(--vy-muted)">Live nightly rates across your units</span>
+                <h2 class="vy-rt-h2">{{ __('livewire/owner/rates.current_title') }}</h2>
+                <span style="font-size:12px;color:var(--vy-muted)">{{ __('livewire/owner/rates.current_sub') }}</span>
             </div>
             @if ($cards === [])
-                <div class="vy-empty" style="margin-top:12px">You don’t have any room types to price here.<div class="vy-line-sub" style="margin-top:6px">Rates are set per room type; where your unit shares a room type with another party, your management team sets the rate.</div></div>
+                <div class="vy-empty" style="margin-top:12px">{{ __('livewire/owner/rates.no_room_types') }}<div class="vy-line-sub" style="margin-top:6px">{{ __('livewire/owner/rates.no_room_types_hint') }}</div></div>
             @else
                 <div style="overflow-x:auto;margin-top:12px">
                     <table class="vy-table">
-                        <thead><tr><th>Villa</th><th class="vy-num">Base</th><th class="vy-num">Weekend</th><th class="vy-num">Peak</th><th class="vy-num">Occ.</th></tr></thead>
+                        <thead><tr><th>{{ __('livewire/owner/rates.col_villa') }}</th><th class="vy-num">{{ __('livewire/owner/rates.col_base') }}</th><th class="vy-num">{{ __('livewire/owner/rates.col_weekend') }}</th><th class="vy-num">{{ __('livewire/owner/rates.col_peak') }}</th><th class="vy-num">{{ __('livewire/owner/rates.col_occ') }}</th></tr></thead>
                         <tbody>
                             @foreach ($cards as $card)
                                 <tr>
-                                    <td><div class="vy-row-month">{{ $card['name'] }}</div>@unless ($card['has_plan'])<div class="vy-row-sub" style="color:var(--vy-faint)">No rate plan</div>@endunless</td>
+                                    <td><div class="vy-row-month">{{ $card['name'] }}</div>@unless ($card['has_plan'])<div class="vy-row-sub" style="color:var(--vy-faint)">{{ __('livewire/owner/rates.no_rate_plan') }}</div>@endunless</td>
                                     <td class="vy-num vy-mono">{{ $card['rate_display'] ?? '—' }}</td>
                                     <td class="vy-num vy-mono">{{ $card['weekend_display'] ?? '—' }}</td>
                                     {{-- ⚠️ PEAK reads `rate_seasons` — the covering season or an em-dash. Never a
@@ -146,7 +146,7 @@
                                     <td class="vy-num vy-mono">
                                         @if ($card['season'])
                                             {{ $card['season']['display'] }}
-                                            <div class="vy-row-sub" style="font-weight:500">{{ $card['season']['name'] }}@unless ($card['season']['applied']) · not applied yet @endunless</div>
+                                            <div class="vy-row-sub" style="font-weight:500">@if ($card['season']['applied']){{ $card['season']['name'] }}@else{{ __('livewire/owner/rates.season_not_applied', ['name' => $card['season']['name']]) }}@endif</div>
                                         @else
                                             —
                                         @endif
@@ -167,25 +167,25 @@
         {{-- ══ 3 · PRICING GUARDRAILS (BUILT, enforcing) ══ --}}
         <section class="vy-rt-card vy-fade" style="animation-delay:.08s"
                  x-data="{ mode: @js($guardrail['mode']), auto: {{ $guardrail['auto_pct'] }} }">
-            <h2 class="vy-rt-h2">Pricing guardrails</h2>
-            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">The limits your manager prices within.</p>
+            <h2 class="vy-rt-h2">{{ __('livewire/owner/rates.guardrails_title') }}</h2>
+            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">{{ __('livewire/owner/rates.guardrails_intro') }}</p>
             <form method="POST" action="{{ route('owner.rates.guardrails') }}">
                 @csrf
                 <input type="hidden" name="pricing_mode" :value="mode">
 
-                <div class="vy-rt-eyebrow" style="margin-bottom:7px">Pricing mode</div>
+                <div class="vy-rt-eyebrow" style="margin-bottom:7px">{{ __('livewire/owner/rates.pricing_mode') }}</div>
                 <div class="vy-rt-seg" style="margin-bottom:16px">
-                    <button type="button" class="vy-rt-segopt" :class="{ on: mode === 'dynamic' }" @click="mode = 'dynamic'">Dynamic</button>
-                    <button type="button" class="vy-rt-segopt" :class="{ on: mode === 'fixed' }" @click="mode = 'fixed'">Fixed</button>
+                    <button type="button" class="vy-rt-segopt" :class="{ on: mode === 'dynamic' }" @click="mode = 'dynamic'">{{ __('livewire/owner/rates.mode_dynamic') }}</button>
+                    <button type="button" class="vy-rt-segopt" :class="{ on: mode === 'fixed' }" @click="mode = 'fixed'">{{ __('livewire/owner/rates.mode_fixed') }}</button>
                 </div>
 
-                <div class="vy-rt-eyebrow" style="margin-bottom:7px">Auto-approve changes within <span class="vy-mono" style="color:var(--vy-accent)">±<span x-text="auto"></span>%</span></div>
+                <div class="vy-rt-eyebrow" style="margin-bottom:7px">{!! __('livewire/owner/rates.auto_approve_within') !!}</div>
                 {{-- ⚠️ The visible heading above is a <div>, not a <label for>, so this slider had NO
                      accessible name — the control that sets how much of the owner's pricing authority is
                      delegated. aria-label + aria-valuetext so the value is announced as a tolerance. --}}
                 <input type="range" name="auto_approve_pct" min="0" max="25" step="1" x-model="auto"
-                       aria-label="Auto-approve rate changes within this percentage"
-                       :aria-valuetext="'plus or minus ' + auto + ' percent'"
+                       aria-label="{{ __('livewire/owner/rates.auto_approve_label') }}"
+                       :aria-valuetext="@js(__('livewire/owner/rates.auto_approve_valuetext', ['pct' => ':pct'])).replace(':pct', auto)"
                        style="width:100%;accent-color:var(--vy-accent);margin-bottom:6px">
                 {{-- WAVE 2 · #6 — scoped to what is ACTUALLY enforced. This said "Every change needs your
                      sign-off before it goes live", which is not true of every change: RateProposalService
@@ -194,40 +194,40 @@
                      The copy now promises exactly the proposal path. Binding the operator's direct changes to
                      an owner's floor/ceiling is a real shift of control between operator and owner and is a
                      PRODUCT DECISION, deliberately not made here — see DECISIONS.md. --}}
-                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 6px" x-text="Number(auto) === 0 ? 'Every rate your operator proposes needs your sign-off before it goes live.' : ('Proposed changes within ±' + auto + '% go live automatically; anything larger waits for your approval.')"></p>
-                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 16px">These limits apply to rates your operator <strong>proposes</strong>. Your operator can still set a rate directly — you’ll see it here and on your calendar.</p>
+                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 6px" x-text="Number(auto) === 0 ? @js(__('livewire/owner/rates.auto_approve_none')) : @js(__('livewire/owner/rates.auto_approve_some', ['pct' => ':pct'])).replace(':pct', auto)"></p>
+                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 16px">{!! __('livewire/owner/rates.limits_scope') !!}</p>
 
                 {{-- ⚠️ minmax(0,1fr), not 1fr: a grid track's default min-width is `auto`, so these two
                      inputs refused to shrink below their content and pushed the whole page into
                      horizontal overflow the moment the guardrail card moved into the narrower rail. --}}
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px">
                     <div>
-                        <div class="vy-rt-eyebrow" style="margin-bottom:7px">Floor / night</div>
-                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-floor">min</label>
-<input id="vy-lbl-rates-floor" type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="min" maxlength="12"></div>
+                        <div class="vy-rt-eyebrow" style="margin-bottom:7px">{{ __('livewire/owner/rates.floor_per_night') }}</div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-floor">{{ __('livewire/owner/rates.floor_min') }}</label>
+<input id="vy-lbl-rates-floor" type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="{{ __('livewire/owner/rates.floor_min') }}" maxlength="12"></div>
                     </div>
                     <div>
-                        <div class="vy-rt-eyebrow" style="margin-bottom:7px">Ceiling / night</div>
-                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-ceiling">max</label>
-<input id="vy-lbl-rates-ceiling" type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="max" maxlength="12"></div>
+                        <div class="vy-rt-eyebrow" style="margin-bottom:7px">{{ __('livewire/owner/rates.ceiling_per_night') }}</div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-ceiling">{{ __('livewire/owner/rates.ceiling_max') }}</label>
+<input id="vy-lbl-rates-ceiling" type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="{{ __('livewire/owner/rates.ceiling_max') }}" maxlength="12"></div>
                     </div>
                 </div>
 
-                <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Save guardrails</button>
+                <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">{{ __('livewire/owner/rates.save_guardrails') }}</button>
             </form>
         </section>
 
         {{-- ══ 4 · WHERE YOU SIT (real average; comp-set/market honestly omitted) ══ --}}
         <section class="vy-rt-card vy-fade" style="animation-delay:.12s">
-            <h2 class="vy-rt-h2">Where you sit</h2>
+            <h2 class="vy-rt-h2">{{ __('livewire/owner/rates.where_you_sit') }}</h2>
             <div style="margin-top:14px">
-                <div class="vy-rt-eyebrow">Your average rate</div>
+                <div class="vy-rt-eyebrow">{{ __('livewire/owner/rates.average_rate') }}</div>
                 <div class="vy-mono" style="font-family:var(--vy-display),'Sora',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin-top:4px">{{ $avgDisplay ?? '—' }}</div>
                 {{-- ⚠️ The wireframe puts a comp-set average and a "priced 5% below market" bar here. There is
                      no market-rate source, so there is no comparison to draw — and a market bar is exactly the
                      kind of authoritative-looking figure that must not be invented (#39). The sentence stays. --}}
                 <p style="font-size:12px;color:var(--vy-muted);line-height:1.55;margin:12px 0 0;padding-top:12px;border-top:1px solid rgba(120,70,40,.12)">
-                    Market benchmarking — how your rates compare to similar local properties — is coming once we connect a market-rate source. We won’t show a comparison until it’s real.
+                    {{ __('livewire/owner/rates.market_benchmarking') }}
                 </p>
             </div>
         </section>
@@ -244,29 +244,34 @@
         <section class="vy-rt-card vy-fade" style="animation-delay:.16s;margin-top:18px"
                  x-data="{ map: @js($rateMap), rate: '{{ old('rate', $sel['rate']) }}', weekend: {{ old('weekend_uplift', $sel['weekend']) }}, min: '{{ old('min_stay', $sel['min']) }}',
                            prefill(id) { const m = this.map[id]; if (m) { this.rate = m.rate; this.weekend = m.weekend; this.min = m.min; } } }">
-            <h2 class="vy-rt-h2">Adjust a rate directly</h2>
-            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">You can also set your own rate directly — it goes live immediately (no sign-off), for every unit in the room type.</p>
+            <h2 class="vy-rt-h2">{{ __('livewire/owner/rates.direct_title') }}</h2>
+            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">{{ __('livewire/owner/rates.direct_intro') }}</p>
             <form method="POST" action="{{ route('owner.rates.apply') }}">
                 @csrf
                 <div class="vy-rt-fieldrow">
                     <div class="vy-field" style="margin:0">
-                        <label class="vy-field-label" for="room_type_id">Room type</label>
+                        <label class="vy-field-label" for="room_type_id">{{ __('livewire/owner/rates.room_type') }}</label>
                         <select id="room_type_id" name="room_type_id" class="vy-input" required @change="prefill($event.target.value)">
                             @foreach ($cards as $card)<option value="{{ $card['id'] }}" @selected($selectedId === $card['id'])>{{ $card['name'] }}</option>@endforeach
                         </select>
                     </div>
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="start_date">From</label><input id="start_date" type="date" name="start_date" value="{{ old('start_date', $from) }}" class="vy-input" required></div>
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="end_date">To</label><input id="end_date" type="date" name="end_date" value="{{ old('end_date', $to) }}" class="vy-input" required></div>
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="start_date">{{ __('livewire/owner/rates.from') }}</label><input id="start_date" type="date" name="start_date" value="{{ old('start_date', $from) }}" class="vy-input" required></div>
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="end_date">{{ __('livewire/owner/rates.to') }}</label><input id="end_date" type="date" name="end_date" value="{{ old('end_date', $to) }}" class="vy-input" required></div>
                 </div>
                 <div class="vy-rt-fieldrow">
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="rate">Nightly rate ({{ $currencySymbol }})</label><input id="rate" type="text" inputmode="decimal" name="rate" x-model="rate" placeholder="e.g. 175" class="vy-input" required></div>
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="weekend_uplift">Weekend uplift (%)</label><input id="weekend_uplift" type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" placeholder="0" class="vy-input"></div>
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="min_stay">Min stay (nights)</label><input id="min_stay" type="text" inputmode="numeric" name="min_stay" x-model="min" placeholder="blank" class="vy-input"></div>
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="rate">{{ __('livewire/owner/rates.nightly_rate', ['symbol' => $currencySymbol]) }}</label><input id="rate" type="text" inputmode="decimal" name="rate" x-model="rate" placeholder="{{ __('livewire/owner/rates.rate_placeholder') }}" class="vy-input" required></div>
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="weekend_uplift">{{ __('livewire/owner/rates.weekend_uplift') }}</label><input id="weekend_uplift" type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" placeholder="0" class="vy-input"></div>
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="min_stay">{{ __('livewire/owner/rates.min_stay') }}</label><input id="min_stay" type="text" inputmode="numeric" name="min_stay" x-model="min" placeholder="{{ __('livewire/owner/rates.min_stay_placeholder') }}" class="vy-input"></div>
                 </div>
                 <div x-show="weekend > 0 && Number(rate) > 0" x-cloak class="vy-line-sub" style="font-size:12px;margin:0 0 12px;color:var(--vy-ink)">
-                    Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="@js($currencySymbol) + Math.round(Number(rate) * (1 + Number(weekend)/100))"></strong> / night; weekdays stay <span x-text="@js($currencySymbol) + rate"></span>.
+                    @php
+                        // I18N-01 — the two live figures stay Alpine elements; the sentence around them is one key.
+                        $vyWeekendHtml = '<strong style="color:var(--vy-accent)" x-text="'.\Illuminate\Support\Js::from($currencySymbol)->toHtml().' + Math.round(Number(rate) * (1 + Number(weekend)/100))"></strong>';
+                        $vyWeekdayHtml = '<span x-text="'.\Illuminate\Support\Js::from($currencySymbol)->toHtml().' + rate"></span>';
+                    @endphp
+                    {!! __('livewire/owner/rates.weekend_preview', ['weekend' => $vyWeekendHtml, 'weekday' => $vyWeekdayHtml]) !!}
                 </div>
-                <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Update rate</button>
+                <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">{{ __('livewire/owner/rates.update_rate') }}</button>
             </form>
         </section>
     @endif

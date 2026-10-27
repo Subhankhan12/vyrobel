@@ -135,7 +135,7 @@ final class OwnerBookingsReader
             'unit_label' => $owned['label'],
             'check_in_sort' => $checkIn->toDateString(),
             'check_out_sort' => $checkOut->toDateString(),
-            'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+            'stay' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
             'nights' => (int) $checkIn->diffInDays($checkOut),
             'month' => $checkIn->format('Y-m'),
             'source' => (string) $r->source,
@@ -227,13 +227,13 @@ final class OwnerBookingsReader
     public static function sourceLabel(string $source): string
     {
         return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'manual' => 'Manual',
+            'direct' => __('php/support/owner/owner_bookings_reader.source_direct'),
+            'walk_in' => __('php/support/owner/owner_bookings_reader.source_walk_in'),
+            'ota' => __('php/support/owner/owner_bookings_reader.source_ota'),
+            'corporate' => __('php/support/owner/owner_bookings_reader.source_corporate'),
+            'group' => __('php/support/owner/owner_bookings_reader.source_group'),
+            'agent' => __('php/support/owner/owner_bookings_reader.source_agent'),
+            'manual' => __('php/support/owner/owner_bookings_reader.source_manual'),
             default => ucfirst(str_replace('_', ' ', $source)),
         };
     }
@@ -247,13 +247,13 @@ final class OwnerBookingsReader
     public static function statusBadge(string $status): array
     {
         return match ($status) {
-            'confirmed' => ['label' => 'Confirmed', 'tone' => 'confirmed'],
-            'tentative' => ['label' => 'Pending', 'tone' => 'pending'],
-            'enquiry' => ['label' => 'Enquiry', 'tone' => 'pending'],
-            'checked_in' => ['label' => 'In-house', 'tone' => 'paid'],
-            'checked_out' => ['label' => 'Completed', 'tone' => 'draft'],
-            'cancelled' => ['label' => 'Cancelled', 'tone' => 'draft'],
-            'no_show' => ['label' => 'No-show', 'tone' => 'draft'],
+            'confirmed' => ['label' => __('php/support/owner/owner_bookings_reader.status_confirmed'), 'tone' => 'confirmed'],
+            'tentative' => ['label' => __('php/support/owner/owner_bookings_reader.status_tentative'), 'tone' => 'pending'],
+            'enquiry' => ['label' => __('php/support/owner/owner_bookings_reader.status_enquiry'), 'tone' => 'pending'],
+            'checked_in' => ['label' => __('php/support/owner/owner_bookings_reader.status_checked_in'), 'tone' => 'paid'],
+            'checked_out' => ['label' => __('php/support/owner/owner_bookings_reader.status_checked_out'), 'tone' => 'draft'],
+            'cancelled' => ['label' => __('php/support/owner/owner_bookings_reader.status_cancelled'), 'tone' => 'draft'],
+            'no_show' => ['label' => __('php/support/owner/owner_bookings_reader.status_no_show'), 'tone' => 'draft'],
             default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'draft'],
         };
     }

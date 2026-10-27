@@ -46,7 +46,7 @@ class OwnerPayoutMethodController extends Controller
         $request->validate(
             ['current_password' => ['required', 'current_password']],
             [],
-            ['current_password' => 'current password'],
+            ['current_password' => __('php/http/controllers/owner/owner_payout_method_controller.attr_current_password')],
         );
     }
 
@@ -59,7 +59,7 @@ class OwnerPayoutMethodController extends Controller
             'account_holder' => ['required', 'string', 'max:255'],
             'iban' => ['required', 'string', 'max:42', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! Iban::isValid((string) $value)) {
-                    $fail('Enter a valid IBAN.');
+                    $fail(__('php/http/controllers/owner/owner_payout_method_controller.invalid_iban'));
                 }
             }],
             'bic' => ['nullable', 'string', 'max:20'],
@@ -72,7 +72,7 @@ class OwnerPayoutMethodController extends Controller
             abort(404);   // non-linked user
         }
 
-        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', 'Bank account saved.');
+        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', __('php/http/controllers/owner/owner_payout_method_controller.account_saved'));
     }
 
     public function setDefault(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
@@ -89,7 +89,7 @@ class OwnerPayoutMethodController extends Controller
             abort(404);
         }
 
-        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', 'Default account updated.');
+        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', __('php/http/controllers/owner/owner_payout_method_controller.default_updated'));
     }
 
     public function destroy(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
@@ -103,7 +103,7 @@ class OwnerPayoutMethodController extends Controller
             abort(404);
         }
 
-        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', 'Bank account removed.');
+        return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', __('php/http/controllers/owner/owner_payout_method_controller.account_removed'));
     }
 
     /**

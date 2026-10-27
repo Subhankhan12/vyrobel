@@ -145,7 +145,7 @@ class OwnerMessages extends Component
             'starred' => $starred,
             'reactionPalette' => InboxService::REACTIONS,
             'composeStaff' => $composeStaff,
-            'quickReplies' => ['When is my next payout?', 'Can I block dates for personal use?', 'Send me the tax summary'],
+            'quickReplies' => [__('php/livewire/owner/owner_messages.quick_reply_payout'), __('php/livewire/owner/owner_messages.quick_reply_block_dates'), __('php/livewire/owner/owner_messages.quick_reply_tax_summary')],
         ]);
     }
 
@@ -206,7 +206,7 @@ class OwnerMessages extends Component
      * The transcript, MIRRORED for the owner (inbound = the owner's own message) with day separators + the
      * honest failed state, plus the GATE 2 rich data per message: the quoted reply-to, attachments, grouped
      * reactions (with the viewer's own tap flagged), the viewer's star, whether it is the pinned message, and
-     * the REAL read receipt on the owner's own messages (see {@see receiptLabel()}).
+     * the REAL read receipt on the owner's own messages (see {@see receiptCode()}).
      *
      * @param  Collection<int, Message>  $messages
      * @return list<array<string, mixed>>
@@ -221,16 +221,20 @@ class OwnerMessages extends Component
             $at = $message->created_at !== null ? CarbonImmutable::parse($message->created_at) : null;
             $day = $at?->toDateString();
             $mine = $message->direction === 'inbound';   // MIRRORED: inbound = into the org = the OWNER
+            $receiptCode = $mine && $message->delivery_status !== 'failed' ? $this->receiptCode($message, $thread) : null;
 
             $rows[] = [
                 'id' => (string) $message->getKey(),
                 'mine' => $mine,
                 'body' => (string) $message->body,
                 'author' => $mine
-                    ? 'You'
-                    : ($message->author instanceof User ? (string) $message->author->name : ((string) $message->sender_label ?: 'Your management team')),
+                    ? __('php/livewire/owner/owner_messages.you')
+                    : ($message->author instanceof User ? (string) $message->author->name : ((string) $message->sender_label ?: __('php/livewire/owner/owner_messages.management_team'))),
                 'time' => $at?->format('H:i') ?? '',
-                'meta' => ($mine ? 'You' : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : 'Team')).' · '.($at?->format('j M, H:i') ?? ''),
+                'meta' => __('php/livewire/owner/owner_messages.meta', [
+                    'author' => $mine ? __('php/livewire/owner/owner_messages.you') : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : __('php/livewire/owner/owner_messages.team_author')),
+                    'time' => $at?->translatedFormat('j M, H:i') ?? '',
+                ]),
                 'day_label' => $day !== $lastDay && $at !== null ? $this->dayLabel($at) : null,
                 'failed' => $mine && $message->delivery_status === 'failed',
                 'reply_to' => $this->quoted($message),
@@ -239,7 +243,13 @@ class OwnerMessages extends Component
                 'starred' => $message->stars->contains(fn ($s): bool => (string) $s->user_id === $viewerId),
                 'pinned' => (string) $message->getKey() === $pinnedId,
                 // The REAL receipt (never a fabricated ✓✓) — only on the owner's OWN, non-failed messages.
-                'receipt' => $mine && $message->delivery_status !== 'failed' ? $this->receiptLabel($message, $thread) : null,
+                // `receipt_code` ('read' | 'delivered') is what the view compares; `receipt` is only the words shown.
+                'receipt_code' => $receiptCode,
+                'receipt' => match ($receiptCode) {
+                    'read' => __('php/livewire/owner/owner_messages.receipt_read'),
+                    'delivered' => __('php/livewire/owner/owner_messages.receipt_delivered'),
+                    default => null,
+                },
             ];
 
             if ($at !== null) {
@@ -264,8 +274,8 @@ class OwnerMessages extends Component
         }
 
         $author = $parent->direction === 'inbound'
-            ? 'You'
-            : ($parent->author instanceof User ? explode(' ', (string) $parent->author->name)[0] : 'Team');
+            ? __('php/livewire/owner/owner_messages.you')
+            : ($parent->author instanceof User ? explode(' ', (string) $parent->author->name)[0] : __('php/livewire/owner/owner_messages.team_author'));
 
         return ['author' => $author, 'snippet' => Str::limit((string) $parent->body, 100)];
     }
@@ -308,16 +318,16 @@ class OwnerMessages extends Component
      * own read position). No `read` delivery_status is faked: the message is "Read" once the operator's read
      * position is at/after it, else "Delivered" (it is recorded the instant it is posted).
      */
-    private function receiptLabel(Message $message, MessageThread $thread): string
+    private function receiptCode(Message $message, MessageThread $thread): string
     {
         $readAt = $thread->operator_last_read_at;
         $sentAt = $message->created_at;
 
         if ($readAt !== null && $sentAt !== null && $readAt->greaterThanOrEqualTo($sentAt)) {
-            return 'Read';
+            return 'read';
         }
 
-        return 'Delivered';
+        return 'delivered';
     }
 
     /**
@@ -340,8 +350,8 @@ class OwnerMessages extends Component
         }
 
         $author = $pinned->direction === 'inbound'
-            ? 'You'
-            : ($pinned->author instanceof User ? explode(' ', (string) $pinned->author->name)[0] : 'Team');
+            ? __('php/livewire/owner/owner_messages.you')
+            : ($pinned->author instanceof User ? explode(' ', (string) $pinned->author->name)[0] : __('php/livewire/owner/owner_messages.team_author'));
 
         return ['id' => $pinnedId, 'author' => $author, 'snippet' => Str::limit((string) $pinned->body, 140)];
     }
@@ -359,14 +369,14 @@ class OwnerMessages extends Component
             ->map(function (Message $m): array {
                 $at = $m->created_at !== null ? CarbonImmutable::parse($m->created_at) : null;
                 $author = $m->direction === 'inbound'
-                    ? 'You'
-                    : ($m->author instanceof User ? explode(' ', (string) $m->author->name)[0] : 'Team');
+                    ? __('php/livewire/owner/owner_messages.you')
+                    : ($m->author instanceof User ? explode(' ', (string) $m->author->name)[0] : __('php/livewire/owner/owner_messages.team_author'));
 
                 return [
                     'id' => (string) $m->getKey(),
                     'author' => $author,
                     'snippet' => Str::limit((string) $m->body, 90),
-                    'time' => $at?->format('j M') ?? '',
+                    'time' => $at?->translatedFormat('j M') ?? '',
                 ];
             })
             ->values()
@@ -378,13 +388,13 @@ class OwnerMessages extends Component
     {
         $today = CarbonImmutable::today();
         if ($at->isSameDay($today)) {
-            return 'Today';
+            return __('php/livewire/owner/owner_messages.today');
         }
         if ($at->isSameDay($today->subDay())) {
-            return 'Yesterday';
+            return __('php/livewire/owner/owner_messages.yesterday');
         }
 
-        return $at->format('j F').($at->year !== $today->year ? ' '.$at->year : '');
+        return $at->translatedFormat('j F').($at->year !== $today->year ? ' '.$at->year : '');
     }
 
     // ── Request state ────────────────────────────────────────────────────────────────────────────
@@ -475,7 +485,9 @@ class OwnerMessages extends Component
             'initials' => $this->initials($correspondent['name']),
             // "You: " when the owner spoke last. `inbound` IS the owner on an owner thread (see the docblock).
             'preview' => $last !== null
-                ? ($last->direction === 'inbound' ? 'You: ' : '').mb_substr((string) $last->body, 0, 120)
+                ? ($last->direction === 'inbound'
+                    ? __('php/livewire/owner/owner_messages.preview_mine', ['text' => mb_substr((string) $last->body, 0, 120)])
+                    : mb_substr((string) $last->body, 0, 120))
                 : null,
             'time' => $thread->last_message_at !== null ? $this->shortTime($thread->last_message_at) : '',
             'unread' => $unread,
@@ -517,18 +529,18 @@ class OwnerMessages extends Component
             if ($assignee !== null) {
                 return [
                     'name' => (string) $assignee->name,
-                    'role' => $this->staffRole($assignee) ?? 'Awaiting a reply',
+                    'role' => $this->staffRole($assignee) ?? __('php/livewire/owner/owner_messages.awaiting_reply'),
                 ];
             }
 
-            return ['name' => 'Your management team', 'role' => 'No one has replied yet'];
+            return ['name' => __('php/livewire/owner/owner_messages.management_team'), 'role' => __('php/livewire/owner/owner_messages.no_reply_yet')];
         }
 
         return [
             'name' => (string) $author->name,
             // The REAL back-office role from the catalog — not "Property manager · Seaside Villas", which the
             // design invented as free text (there is no staff↔property assignment behind it).
-            'role' => $this->staffRole($author) ?? 'Your management team',
+            'role' => $this->staffRole($author) ?? __('php/livewire/owner/owner_messages.management_team_role'),
         ];
     }
 
@@ -587,7 +599,7 @@ class OwnerMessages extends Component
         return $users->map(fn (User $user): array => [
             'id' => (string) $user->getKey(),
             'name' => (string) $user->name,
-            'role' => $this->staffRole($user) ?? 'Team',
+            'role' => $this->staffRole($user) ?? __('php/livewire/owner/owner_messages.team_role'),
             'initials' => $this->initials((string) $user->name),
         ])->all();
     }
@@ -629,9 +641,9 @@ class OwnerMessages extends Component
 
     private function subtitle(int $total, int $unread): string
     {
-        $line = $total.' '.($total === 1 ? 'conversation' : 'conversations');
+        $line = trans_choice('php/livewire/owner/owner_messages.subtitle_conversations', $total, ['count' => $total]);
 
-        return $unread > 0 ? $line.' · '.$unread.' unread' : $line;
+        return $unread > 0 ? __('php/livewire/owner/owner_messages.subtitle_with_unread', ['conversations' => $line, 'number' => $unread]) : $line;
     }
 
     /** "10:18" today, "Yesterday", else "28 Sep" — the rail's compact stamp. */
@@ -645,9 +657,9 @@ class OwnerMessages extends Component
         }
 
         if ($at->isSameDay($today->subDay())) {
-            return 'Yesterday';
+            return __('php/livewire/owner/owner_messages.yesterday');
         }
 
-        return $at->format('j M');
+        return $at->translatedFormat('j M');
     }
 }

@@ -57,13 +57,13 @@ class OwnerSecurity extends Component
                 'client_id' => $c['client_id'],
                 'name' => $c['name'],
                 'scopes' => $c['scopes'],
-                'scope_labels' => array_map(fn (string $s): string => OAuthScopes::catalog()[$s] ?? $s, $c['scopes']),
+                'scope_labels' => array_map(fn (string $s): string => OAuthScopes::description($s) ?? $s, $c['scopes']),
                 'authorized_at' => $c['authorized_at'],
             ], app(OAuthConnectionService::class)->connectionsFor($user)),
             // the dialog a refused form came from, opened again with its error inside it (`_form`, set by each form)
             'errored' => is_string($errored) ? $errored : null,
             'erroredDevice' => $errored === 'revoke' && is_string(old('device_id')) ? (string) old('device_id') : null,
-            'erroredApp' => $errored === 'app-revoke' && is_string(old('client_id')) ? ['id' => (string) old('client_id'), 'name' => 'this app'] : null,
+            'erroredApp' => $errored === 'app-revoke' && is_string(old('client_id')) ? ['id' => (string) old('client_id'), 'name' => __('php/livewire/owner/owner_security.this_app')] : null,
             'pkErrored' => SecurityOverview::erroredPasskey($errored, $overview['passkeys']),
         ]);
     }

@@ -65,7 +65,7 @@ class OwnerTeam extends Component
                 'id' => (string) $i->getKey(),
                 'email' => (string) $i->email,
                 'role_label' => OwnerTeamRole::label((string) $i->role),
-                'expires' => $i->expires_at?->isFuture() ? 'Expires '.$i->expires_at->diffForHumans() : 'Expired',
+                'expires' => $i->expires_at?->isFuture() ? __('php/livewire/owner/owner_team.expires', ['when' => $i->expires_at->diffForHumans()]) : __('php/livewire/owner/owner_team.expired'),
             ])
             ->all();
 
@@ -74,7 +74,7 @@ class OwnerTeam extends Component
         return view('livewire.owner.team', [
             'viewer' => $this->viewer(),
             'you' => [
-                'name' => (string) ($viewerUser->name ?? 'You'),
+                'name' => (string) ($viewerUser->name ?? __('php/livewire/owner/owner_team.you')),
                 'email' => (string) ($viewerUser->email ?? ''),
             ],
             'members' => $members,
@@ -115,7 +115,7 @@ class OwnerTeam extends Component
             ->limit(15)
             ->get()
             ->map(fn (ExportDownload $d): array => [
-                'who' => (string) ($d->downloader_name ?? 'Unknown user'),
+                'who' => (string) ($d->downloader_name ?? __('php/livewire/owner/owner_team.unknown_user')),
                 'what' => (string) $d->label,
                 'when' => $d->created_at instanceof Carbon ? $d->created_at->diffForHumans() : '—',
             ])
@@ -131,12 +131,12 @@ class OwnerTeam extends Component
     private function matrix(): array
     {
         $rows = [
-            ['Earnings & statements', OwnerTeamRole::CAP_FINANCIALS],
-            ['Approvals (rates, expenses)', OwnerTeamRole::CAP_ACTIONS],
-            ['Documents & tax', OwnerTeamRole::CAP_DOCUMENTS],
-            ['Calendar & bookings', OwnerTeamRole::CAP_CALENDAR],
-            ['Exports (download PDFs)', OwnerTeamRole::CAP_EXPORTS],
-            ['Payout account & settings', OwnerTeamRole::CAP_PAYOUT],
+            [__('php/livewire/owner/owner_team.area_financials'), OwnerTeamRole::CAP_FINANCIALS],
+            [__('php/livewire/owner/owner_team.area_actions'), OwnerTeamRole::CAP_ACTIONS],
+            [__('php/livewire/owner/owner_team.area_documents'), OwnerTeamRole::CAP_DOCUMENTS],
+            [__('php/livewire/owner/owner_team.area_calendar'), OwnerTeamRole::CAP_CALENDAR],
+            [__('php/livewire/owner/owner_team.area_exports'), OwnerTeamRole::CAP_EXPORTS],
+            [__('php/livewire/owner/owner_team.area_payout'), OwnerTeamRole::CAP_PAYOUT],
         ];
 
         return array_map(fn (array $r): array => [
@@ -168,7 +168,7 @@ class OwnerTeam extends Component
         foreach ($logins as $m) {
             $login = $m->user->last_login_at;
             if ($login !== null) {
-                $events[] = ['who' => (string) $m->user->name, 'what' => 'signed in', 'when' => $login->diffForHumans(), 'ts' => $login];
+                $events[] = ['who' => (string) $m->user->name, 'what' => __('php/livewire/owner/owner_team.signed_in'), 'when' => $login->diffForHumans(), 'ts' => $login];
             }
         }
 
@@ -180,8 +180,8 @@ class OwnerTeam extends Component
             ->get();
         foreach ($sent as $i) {
             $events[] = [
-                'who' => 'You',
-                'what' => 'invited '.$i->email.' as '.OwnerTeamRole::label((string) $i->role),
+                'who' => __('php/livewire/owner/owner_team.you'),
+                'what' => __('php/livewire/owner/owner_team.invited_as', ['email' => $i->email, 'role' => OwnerTeamRole::label((string) $i->role)]),
                 'when' => $i->created_at?->diffForHumans() ?? '',
                 'ts' => $i->created_at ?? now(),
             ];
@@ -201,15 +201,17 @@ class OwnerTeam extends Component
     private function lastActive(?Carbon $lastLogin, string $status): string
     {
         if ($status === 'invited') {
-            return 'Invite pending';
+            return __('php/livewire/owner/owner_team.invite_pending');
         }
         if ($status === 'disabled') {
-            return 'Access removed';
+            return __('php/livewire/owner/owner_team.access_removed');
         }
         if ($lastLogin === null) {
-            return 'Hasn’t signed in yet';
+            return __('php/livewire/owner/owner_team.never_signed_in');
         }
 
-        return $lastLogin->isToday() ? 'Active today' : 'Last active '.$lastLogin->diffForHumans();
+        return $lastLogin->isToday()
+            ? __('php/livewire/owner/owner_team.active_today')
+            : __('php/livewire/owner/owner_team.last_active', ['when' => $lastLogin->diffForHumans()]);
     }
 }

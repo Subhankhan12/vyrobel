@@ -156,17 +156,17 @@ class OwnerBalance extends Component
     private function rowState(OwnerLedgerEntry $entry, bool $paused, array $payoutStatusByStatement): array
     {
         if ($entry->statement_id === null) {
-            return ['label' => 'Available', 'tone' => 'paid'];
+            return ['label' => __('php/livewire/owner/owner_balance.state_available'), 'tone' => 'paid'];
         }
 
         $status = $payoutStatusByStatement[(string) $entry->statement_id] ?? null;
 
         return match ($status) {
-            'paid' => ['label' => 'Paid out', 'tone' => 'paid'],
-            'processing' => ['label' => 'In transit', 'tone' => 'pending'],   // a Connect transfer awaiting the webhook
-            'held' => ['label' => 'On hold', 'tone' => 'pending'],            // the engine's persisted tax-hold
-            'pending' => $paused ? ['label' => 'On hold', 'tone' => 'pending'] : ['label' => 'In transit', 'tone' => 'pending'],
-            default => ['label' => 'Cleared', 'tone' => 'draft'],
+            'paid' => ['label' => __('php/livewire/owner/owner_balance.state_paid_out'), 'tone' => 'paid'],
+            'processing' => ['label' => __('php/livewire/owner/owner_balance.state_in_transit'), 'tone' => 'pending'],   // a Connect transfer awaiting the webhook
+            'held' => ['label' => __('php/livewire/owner/owner_balance.state_on_hold'), 'tone' => 'pending'],            // the engine's persisted tax-hold
+            'pending' => $paused ? ['label' => __('php/livewire/owner/owner_balance.state_on_hold'), 'tone' => 'pending'] : ['label' => __('php/livewire/owner/owner_balance.state_in_transit'), 'tone' => 'pending'],
+            default => ['label' => __('php/livewire/owner/owner_balance.state_cleared'), 'tone' => 'draft'],
         };
     }
 
@@ -287,13 +287,13 @@ class OwnerBalance extends Component
 
             $rows[] = [
                 'id' => (string) $entry->id,
-                'date' => $entry->service_date->format('j M Y'),
+                'date' => $entry->service_date->translatedFormat('j M Y'),
                 // ⚠️ CARRIED, NOT RECOMPUTED. `$signed` is the exact value the running balance above just
                 // consumed and `amount_display` just formatted; the rollup sums these same integers. Nothing
                 // downstream re-derives a figure from the ledger, so a group cannot drift from its lines.
                 'signed_minor' => $signed,
                 'month_key' => $currency.'|'.$entry->service_date->format('Y-m'),
-                'month_label' => $entry->service_date->format('F Y'),
+                'month_label' => $entry->service_date->translatedFormat('F Y'),
                 'description' => (string) $entry->description,
                 'type_label' => $this->entryTypeLabel((string) $entry->entry_type),
                 'amount_display' => $this->money($signed, $currency, signed: true),
@@ -363,12 +363,11 @@ class OwnerBalance extends Component
         return array_values(array_map(function (array $group): array {
             $count = count($group['lines']);
             $group['count'] = $count;
-            $group['count_label'] = $count.' '.($count === 1 ? 'movement' : 'movements');
             $group['net_display'] = $this->money((int) $group['net_minor'], (string) $group['currency'], signed: true);
             $group['is_negative'] = (int) $group['net_minor'] < 0;
             // The span reads oldest → newest, the direction a person reads a period.
             $group['span'] = $count > 1
-                ? (string) $group['lines'][$count - 1]['date'].' – '.(string) $group['lines'][0]['date']
+                ? __('php/livewire/owner/owner_balance.date_range', ['start' => (string) $group['lines'][$count - 1]['date'], 'end' => (string) $group['lines'][0]['date']])
                 : (string) $group['lines'][0]['date'];
 
             return $group;
@@ -417,8 +416,8 @@ class OwnerBalance extends Component
     private function scheduleLabel(string $schedule): string
     {
         return match ($schedule) {
-            'monthly' => 'Monthly',
-            'quarterly' => 'Quarterly',
+            'monthly' => __('php/livewire/owner/owner_balance.schedule_monthly'),
+            'quarterly' => __('php/livewire/owner/owner_balance.schedule_quarterly'),
             default => ucfirst($schedule),
         };
     }
@@ -427,14 +426,14 @@ class OwnerBalance extends Component
     private function entryTypeLabel(string $type): string
     {
         return match ($type) {
-            'room_revenue' => 'Room revenue',
-            'commission' => 'Commission',
-            'management_fee' => 'Management fee',
-            'ota_cost' => 'OTA cost',
-            'cleaning' => 'Cleaning',
-            'addon' => 'Add-on',
-            'expense' => 'Expense',
-            'adjustment' => 'Adjustment',
+            'room_revenue' => __('php/livewire/owner/owner_balance.type_room_revenue'),
+            'commission' => __('php/livewire/owner/owner_balance.type_commission'),
+            'management_fee' => __('php/livewire/owner/owner_balance.type_management_fee'),
+            'ota_cost' => __('php/livewire/owner/owner_balance.type_ota_cost'),
+            'cleaning' => __('php/livewire/owner/owner_balance.type_cleaning'),
+            'addon' => __('php/livewire/owner/owner_balance.type_addon'),
+            'expense' => __('php/livewire/owner/owner_balance.type_expense'),
+            'adjustment' => __('php/livewire/owner/owner_balance.type_adjustment'),
             default => ucfirst(str_replace('_', ' ', $type)),
         };
     }

@@ -1,0 +1,95 @@
+<?php
+
+// resources/views/livewire/owner/reports.blade.php — the owner Reports page (KPIs, charts, gross to net, payout, Tax & VAT summary).
+
+return [
+    'title' => 'Reports',
+    'subtitle' => 'Your real performance — earnings, occupancy and where it comes from.',
+    'no_units' => 'No units linked to your account yet.',
+    // top control row
+    'reporting_year' => 'Reporting year',
+    'earlier_years' => 'Earlier years live in Documents · archived PDFs',
+    'custom_range' => 'Custom range',
+    'custom_date_range' => 'Custom date range',
+    'range_from' => 'From',
+    'range_to' => 'To',
+    'export_button' => 'Export',
+    'export_heading' => 'Export · :period earnings',
+    'soon' => 'Soon',
+    // KPIs
+    'kpi_net_earned' => 'Net earned · :period',
+    'kpi_net_sub' => 'Your statements plus earnings not yet statemented',
+    'kpi_avg_occupancy' => 'Avg occupancy',
+    'kpi_across_units' => '{1} Across :count unit|[0,*] Across :count units',
+    'kpi_nights_sold' => 'Nights sold',
+    'kpi_room_nights' => 'room-nights',
+    'kpi_in_period' => 'In the period',
+    // net earnings by month
+    'net_by_month' => 'Net earnings by month',
+    'legend_this_year' => 'This year',
+    'no_earnings' => 'No earnings in this period yet.',
+    // performance by unit
+    'performance_by_unit' => 'Performance by unit',
+    'adr_title' => 'Average daily rate · revenue ÷ nights sold',
+    'adr' => 'ADR',
+    'revpar_title' => 'Revenue per available night · ADR × occupancy',
+    'revpar' => 'RevPAR',
+    'col_unit' => 'Unit',
+    'col_nights' => 'Nights',
+    'col_occupancy' => 'Occupancy',
+    'col_net_earned' => 'Net earned',
+    'col_share' => 'Share',
+    'no_units_yet' => 'No units yet.',
+    'all_units' => 'All units',
+    'perf_note' => 'ADR = revenue per night sold · RevPAR = revenue per available night · Share = of your net.',
+    // booking sources
+    'booking_sources' => 'Booking sources',
+    'net_by_channel' => 'net by channel · :period',
+    'no_bookings' => 'No bookings in this period yet.',
+    // dark hero
+    'hero_sub' => 'Net earned · your statements plus earnings not yet statemented',
+    // gross to net
+    'gross_to_net' => 'Gross to net',
+    'gross_revenue' => 'Gross revenue',
+    'fees_ota' => 'Fees & OTA',
+    'costs_adjustments' => 'Costs & adjustments',
+    'tax_withheld' => 'Tax withheld',
+    'net_to_you' => 'Net to you',
+    'not_reconciled' => 'Some figures don’t fully reconcile here — please check with your management team.',
+    // latest payout
+    'latest_payout' => 'Latest payout',
+    'paid_this_year' => ':amount paid this year',
+    'no_payouts' => 'No payouts yet.',
+    // documents
+    'documents' => 'Documents',
+    'documents_all' => 'All →',
+    'no_documents' => 'No documents yet.',
+    'documents_no_access' => 'Your co-owner or accountant can download statement PDFs here.',
+    // Tax & VAT summary
+    'vat_heading' => 'Tax & VAT summary',
+    'vat_sub_available' => 'Output − input = net VAT, per quarter',
+    'vat_sub_available_country' => 'Output − input = net VAT, per quarter · :country',
+    'vat_sub_unavailable' => 'Your earnings figures for your accountant',
+    'vat_sub_unavailable_country' => 'Your earnings figures for your accountant · :country',
+    'vat_tag_example' => 'Example rates',
+    'vat_tag_computed' => 'Computed',
+    'vat_tag_unavailable' => 'Not yet available',
+    'vat_example_warning' => '<strong>Based on EXAMPLE rates.</strong> Real VAT rates for :country haven’t been configured yet — these figures are illustrative only, <strong>not for filing</strong>.',
+    'vat_col_quarter' => 'Quarter',
+    'vat_col_output' => 'Output VAT',
+    'vat_col_input' => 'Input VAT',
+    'vat_col_net' => 'Net VAT',
+    'vat_year_total' => ':year total',
+    // the rates inside the "Computed from …" sentence below
+    'vat_rates_accommodation' => ':accommodation_rate% on rental income',
+    'vat_rates_both' => ':accommodation_rate% on rental income, :service_rate% on the management fee',
+    // the disclaimer is product copy: translate it faithfully, never soften it
+    'vat_computed_example' => 'Computed from the EXAMPLE VAT rates for :country (:rates) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>',
+    'vat_computed_configured' => 'Computed from the configured VAT rates for :country (:rates) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>',
+    'vat_not_registered' => 'You’re not marked VAT-registered, so no Output, Input or Net VAT is computed. Turn on VAT registration in the <strong style="color:var(--vy-ink)">Tax center</strong> if you charge VAT on your rental income.',
+    'vat_not_configured' => 'VAT rates aren’t configured for your jurisdiction yet, so no VAT figure is shown here — never a fabricated number. Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings figures; VAT is filed by you or your accountant.',
+    'vat_not_configured_country' => 'VAT rates aren’t configured for your jurisdiction (:country) yet, so no VAT figure is shown here — never a fabricated number. Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings figures; VAT is filed by you or your accountant.',
+    'annual_tax_pdf' => 'Annual tax summary · PDF',
+    'vat_return_csv' => 'VAT return · CSV',
+    'tax_center_link' => 'Tax center →',
+];

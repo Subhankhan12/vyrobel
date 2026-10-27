@@ -11,7 +11,7 @@
      never a rate — the same rule as the annual PDF.
      The "VAT registered" toggle stores a REGISTRATION FLAG (vat_registered) — NOT a VAT computation.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click/@js pass through to Alpine). --}}
-<x-owner.shell active="tax" title="Tax center" :subtitle="'Your tax details, withholding and year-end summaries — all in one place.'" :viewer="$viewer">
+<x-owner.shell active="tax" :title="__('livewire/owner/tax-center.title')" :subtitle="__('livewire/owner/tax-center.subtitle')" :viewer="$viewer">
     <style>
         .vy-tax-banner { display:flex; align-items:flex-start; gap:14px; padding:16px 18px; border-radius:18px; margin-bottom:20px; box-shadow:0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.55); }
         .vy-tax-banner--warn { background:rgba(194,65,12,.10); border:1px solid rgba(194,65,12,.28); }
@@ -71,9 +71,9 @@
         {{-- 🔒 SELF-ONLY — the tax profile belongs to the account owner (resolved by user_id). A sub-user has no
              owner row of their own → tell them honestly, never a bare "not linked" and never another owner's data. --}}
         @ownersubuser
-            <div class="vy-card vy-fade"><div class="vy-empty">The tax profile belongs to the account owner and is managed by them — it isn’t part of your team role.</div></div>
+            <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/owner/tax-center.subuser_notice') }}</div></div>
         @else
-            <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+            <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/owner/tax-center.not_linked') }}</div></div>
         @endownersubuser
     @else
         {{-- ── Status banner — REAL two states ── --}}
@@ -81,21 +81,20 @@
             <div class="vy-tax-banner vy-tax-banner--ok vy-fade">
                 <span class="vy-tax-banner-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg></span>
                 <div>
-                    <div class="vy-tax-banner-t">Tax details complete</div>
-                    <div class="vy-tax-banner-s">Your payouts are flowing normally. Update anytime below.</div>
+                    <div class="vy-tax-banner-t">{{ __('livewire/owner/tax-center.complete_heading') }}</div>
+                    <div class="vy-tax-banner-s">{{ __('livewire/owner/tax-center.complete_body') }}</div>
                 </div>
             </div>
         @else
             <div class="vy-tax-banner vy-tax-banner--warn vy-fade">
                 <span class="vy-tax-banner-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0z"/></svg></span>
                 <div style="flex:1;min-width:0">
-                    <div class="vy-tax-banner-t">Add your tax details to release held payouts</div>
+                    <div class="vy-tax-banner-t">{{ __('livewire/owner/tax-center.held_heading') }}</div>
                     <div class="vy-tax-banner-s">
                         @if ($held !== [])
-                            @foreach ($held as $h){{ $h['display'] }}@if (! $loop->last) · @endif @endforeach
-                            is on hold until we have a valid tax ID on file. It takes about a minute — just complete the form below.
+                            {{ __('livewire/owner/tax-center.held_body', ['amounts' => implode(' · ', array_column($held, 'display'))]) }}
                         @else
-                            Complete the form below so your payouts can be released the moment your first statement is due — it takes about a minute.
+                            {{ __('livewire/owner/tax-center.nothing_held_body') }}
                         @endif
                     </div>
                 </div>
@@ -107,8 +106,8 @@
             <div class="vy-tax-left">
                 {{-- Tax profile form — REUSE owner.tax.save (encrypted #28, audited, $capActions #20) --}}
                 <section class="vy-card vy-fade" style="animation-delay:.04s">
-                    <h2 class="vy-card-title" style="font-size:17px;margin-bottom:4px">Tax profile</h2>
-                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 20px">Used on your annual summary and any invoices we issue on your behalf.</p>
+                    <h2 class="vy-card-title" style="font-size:17px;margin-bottom:4px">{{ __('livewire/owner/tax-center.tax_profile') }}</h2>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 20px">{{ __('livewire/owner/tax-center.tax_profile_sub') }}</p>
 
                     <form method="POST" action="{{ route('owner.tax.save') }}" x-data="{ type: @js($profile['type'] ?: 'individual'), vatReg: @js($profile['vat_registered']) }">
                         @csrf
@@ -117,12 +116,12 @@
 
                         <div class="vy-tax-grid">
                             <div class="full">
-                                <label class="vy-tax-lbl" for="legal_name">Legal name</label>
-                                <input id="legal_name" type="text" name="legal_name" value="{{ old('legal_name', $profile['legal_name']) }}" placeholder="Full legal name" class="vy-input" style="width:100%" autocomplete="name">
+                                <label class="vy-tax-lbl" for="legal_name">{{ __('livewire/owner/tax-center.legal_name') }}</label>
+                                <input id="legal_name" type="text" name="legal_name" value="{{ old('legal_name', $profile['legal_name']) }}" placeholder="{{ __('livewire/owner/tax-center.legal_name_placeholder') }}" class="vy-input" style="width:100%" autocomplete="name">
                             </div>
 
                             <div>
-                                <label class="vy-tax-lbl" for="tax_country">Tax residency</label>
+                                <label class="vy-tax-lbl" for="tax_country">{{ __('livewire/owner/tax-center.tax_residency') }}</label>
                                 {{-- ⚠️ THE OPTION VALUE IS THE ISO CODE, THE LABEL IS THE NAME (audit 2026-08-07).
                                      This select used to emit `value="Portugal"`, but `owners.tax_country` is an ISO
                                      code by contract — it is the key WithholdingService and OwnerVatService look a
@@ -143,7 +142,7 @@
                                          values THROUGH — so "Other" would be stored as a junk code matching no
                                          configured rate, behaving exactly like blank while LOOKING like a
                                          recorded residency. Blank is the honest representation of "not listed". --}}
-                                    <option value="">Not listed — leave blank</option>
+                                    <option value="">{{ __('livewire/owner/tax-center.not_listed') }}</option>
                                     @foreach (\App\Support\Countries::options() as $code => $name)
                                         <option value="{{ $code }}" @selected($selectedCountry === $code)>{{ $name }}</option>
                                     @endforeach
@@ -156,37 +155,37 @@
                             </div>
 
                             <div>
-                                <label class="vy-tax-lbl" for="tax_id">Tax ID / NIF <span style="color:var(--vy-ink)">*</span></label>
-                                <input id="tax_id" type="text" name="tax_id" value="{{ old('tax_id', $profile['tax_id']) }}" placeholder="e.g. 501234567" class="vy-input" style="width:100%" required>
+                                <label class="vy-tax-lbl" for="tax_id">{{ __('livewire/owner/tax-center.tax_id') }} <span style="color:var(--vy-ink)">*</span></label>
+                                <input id="tax_id" type="text" name="tax_id" value="{{ old('tax_id', $profile['tax_id']) }}" placeholder="{{ __('livewire/owner/tax-center.tax_id_placeholder') }}" class="vy-input" style="width:100%" required>
                             </div>
 
                             <div class="full">
-                                <label class="vy-tax-lbl">Registered as</label>
-                                <div class="vy-seg" role="group" aria-label="Registered as">
-                                    <button type="button" :class="type === 'individual' ? 'is-on' : ''" @click="type = 'individual'">Individual</button>
-                                    <button type="button" :class="type === 'company' ? 'is-on' : ''" @click="type = 'company'">Company</button>
+                                <label class="vy-tax-lbl">{{ __('livewire/owner/tax-center.registered_as') }}</label>
+                                <div class="vy-seg" role="group" aria-label="{{ __('livewire/owner/tax-center.registered_as') }}">
+                                    <button type="button" :class="type === 'individual' ? 'is-on' : ''" @click="type = 'individual'">{{ __('livewire/owner/tax-center.individual') }}</button>
+                                    <button type="button" :class="type === 'company' ? 'is-on' : ''" @click="type = 'company'">{{ __('livewire/owner/tax-center.company') }}</button>
                                 </div>
                             </div>
 
                             <div class="full vy-tax-vatcard">
                                 <div>
-                                    <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink)">VAT registered</div>
-                                    <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">Turn on if you charge VAT on your rental income.</div>
+                                    <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink)">{{ __('livewire/owner/tax-center.vat_registered') }}</div>
+                                    <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">{{ __('livewire/owner/tax-center.vat_registered_hint') }}</div>
                                 </div>
-                                <button type="button" class="vy-toggle" :class="vatReg ? 'is-on' : ''" @click="vatReg = ! vatReg" :aria-pressed="vatReg ? 'true' : 'false'" aria-label="VAT registered"><span class="knob"></span></button>
+                                <button type="button" class="vy-toggle" :class="vatReg ? 'is-on' : ''" @click="vatReg = ! vatReg" :aria-pressed="vatReg ? 'true' : 'false'" aria-label="{{ __('livewire/owner/tax-center.vat_registered') }}"><span class="knob"></span></button>
                             </div>
 
                             <div class="full" x-show="vatReg" x-cloak>
-                                <label class="vy-tax-lbl" for="vat_number">VAT number</label>
-                                <input id="vat_number" type="text" name="vat_number" value="{{ old('vat_number', $profile['vat_number']) }}" placeholder="e.g. PT501234567" class="vy-input" style="width:100%">
+                                <label class="vy-tax-lbl" for="vat_number">{{ __('livewire/owner/tax-center.vat_number') }}</label>
+                                <input id="vat_number" type="text" name="vat_number" value="{{ old('vat_number', $profile['vat_number']) }}" placeholder="{{ __('livewire/owner/tax-center.vat_number_placeholder') }}" class="vy-input" style="width:100%">
                             </div>
                         </div>
 
                         {{-- ⚠️ RE-AUTH: this changes the payee name on your remittance document and the residency your withholding is computed from. --}}
                         <div class="vy-field" style="margin:14px 0 0">
-                            <label class="vy-field-label" for="taxcenter_tax_pw">Confirm with your password</label>
+                            <label class="vy-field-label" for="taxcenter_tax_pw">{{ __('livewire/owner/tax-center.confirm_password') }}</label>
                             <input id="taxcenter_tax_pw" type="password" name="current_password" class="vy-input"
-                                   autocomplete="current-password" required aria-label="Current password">
+                                   autocomplete="current-password" required aria-label="{{ __('livewire/owner/tax-center.current_password') }}">
                             @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                         </div>
                         {{-- 🔒 an accountant may READ tax & documents but SAVING is co-owner-only ($capActions);
@@ -195,14 +194,14 @@
                             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                                 <button type="submit" class="vy-btn vy-btn--accent" style="padding:11px 22px">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
-                                    Save tax details
+                                    {{ __('livewire/owner/tax-center.save_tax_details') }}
                                 </button>
                             @else
-                                <p class="vy-line-sub" style="font-size:12px;margin:0">Read-only — a co-owner can update these tax details.</p>
+                                <p class="vy-line-sub" style="font-size:12px;margin:0">{{ __('livewire/owner/tax-center.read_only') }}</p>
                             @endownercan
                         </div>
                     </form>
-                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">Your tax ID and VAT number are encrypted at rest. Saving them releases any held payouts.</p>
+                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">{{ __('livewire/owner/tax-center.encrypted_note') }}</p>
                 </section>
 
                 {{-- Withholding — REAL (Wave D): the withheld total from configured rates, or an honest "None" when
@@ -210,16 +209,16 @@
                 <section class="vy-card vy-fade" style="animation-delay:.08s">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
                         <div style="flex:1;min-width:220px">
-                            <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Withholding tax</h2>
+                            <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">{{ __('livewire/owner/tax-center.withholding_tax') }}</h2>
                             @if ($withholding['has'])
-                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">Tax withheld from your payouts at the rate configured for your residency and remitted on your behalf. <strong>Verify with your accountant — this is not tax advice.</strong></p>
+                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">{!! __('livewire/owner/tax-center.withholding_body') !!}</p>
                             @else
-                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">No withholding is configured for your residency — you receive your full net earnings and declare your rental income in your own tax return.</p>
+                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">{{ __('livewire/owner/tax-center.no_withholding_body') }}</p>
                             @endif
                         </div>
                         <div style="text-align:right">
-                            <div class="vy-tax-with-fig">{{ $withholding['has'] ? $withholding['display'] : 'None' }}</div>
-                            <div style="font-size:11px;color:var(--vy-faint);margin-top:4px">withheld from payouts</div>
+                            <div class="vy-tax-with-fig">{{ $withholding['has'] ? $withholding['display'] : __('livewire/owner/tax-center.withholding_none') }}</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:4px">{{ __('livewire/owner/tax-center.withheld_from_payouts') }}</div>
                         </div>
                     </div>
                 </section>
@@ -229,8 +228,8 @@
             <div class="vy-tax-right">
                 {{-- Annual summaries — REAL per-year gross/net + the real annual PDF (reconciles #17, $capExports #42) --}}
                 <section class="vy-card vy-fade" style="animation-delay:.06s">
-                    <h2 class="vy-card-title" style="font-size:16px;margin-bottom:2px">Annual summaries</h2>
-                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 16px">Rental income and fees, ready for your accountant.</p>
+                    <h2 class="vy-card-title" style="font-size:16px;margin-bottom:2px">{{ __('livewire/owner/tax-center.annual_summaries') }}</h2>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 16px">{{ __('livewire/owner/tax-center.annual_summaries_sub') }}</p>
                     <div style="display:flex;flex-direction:column;gap:10px">
                         @forelse ($summaries as $summary)
                             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
@@ -238,10 +237,10 @@
                                     <span class="vy-tax-sum-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 17h4"/></svg></span>
                                     <div style="flex:1;min-width:0">
                                         <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $summary['year'] }}</div>
-                                        <div class="vy-line-sub" style="font-size:11.5px;margin-top:2px">Net {{ $summary['net_display'] }} · gross {{ $summary['gross_display'] }}</div>
+                                        <div class="vy-line-sub" style="font-size:11.5px;margin-top:2px">{{ __('livewire/owner/tax-center.summary_net_gross', ['net' => $summary['net_display'], 'gross' => $summary['gross_display']]) }}</div>
                                     </div>
                                     @if ($summary['in_progress'])
-                                        <span class="vy-tax-sum-tag" style="color:var(--vy-muted)">Year to date</span>
+                                        <span class="vy-tax-sum-tag" style="color:var(--vy-muted)">{{ __('livewire/owner/tax-center.year_to_date') }}</span>
                                     @else
                                         <span class="vy-tax-sum-tag" style="color:#3F6A38">PDF<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
                                     @endif
@@ -251,12 +250,12 @@
                                     <span class="vy-tax-sum-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 17h4"/></svg></span>
                                     <div style="flex:1;min-width:0">
                                         <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $summary['year'] }}</div>
-                                        <div class="vy-line-sub" style="font-size:11.5px;margin-top:2px">Net {{ $summary['net_display'] }} · gross {{ $summary['gross_display'] }}</div>
+                                        <div class="vy-line-sub" style="font-size:11.5px;margin-top:2px">{{ __('livewire/owner/tax-center.summary_net_gross', ['net' => $summary['net_display'], 'gross' => $summary['gross_display']]) }}</div>
                                     </div>
                                 </div>
                             @endownercan
                         @empty
-                            <div class="vy-empty">No annual summaries yet — they appear once you have a finalized statement.</div>
+                            <div class="vy-empty">{{ __('livewire/owner/tax-center.no_summaries') }}</div>
                         @endforelse
                     </div>
                 </section>
@@ -265,8 +264,8 @@
                 <a href="{{ route('owner.documents') }}" class="vy-tax-docs vy-fade" style="animation-delay:.09s">
                     <span class="vy-tax-docs-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2"/><path d="M4 7h16a1 1 0 0 1 1 1.2l-1.6 9A2 2 0 0 1 17.4 19H6.6a2 2 0 0 1-2-1.8L3 8.2A1 1 0 0 1 4 7z"/></svg></span>
                     <div style="flex:1;min-width:0">
-                        <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">VAT invoices &amp; documents</div>
-                        <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">All statements and tax files</div>
+                        <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">{{ __('livewire/owner/tax-center.vat_documents') }}</div>
+                        <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">{{ __('livewire/owner/tax-center.vat_documents_sub') }}</div>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8A99D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
                 </a>
@@ -276,8 +275,8 @@
                     <span aria-hidden="true" style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;margin-bottom:13px">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg>
                     </span>
-                    <h2 class="vy-card-title" style="font-size:15px">About your tax</h2>
-                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin-top:8px;line-height:1.6">Vyrobel keeps records of your rental income and fees, but we don’t file taxes for you. Share your annual summary with a qualified accountant. Nothing here is tax advice.</p>
+                    <h2 class="vy-card-title" style="font-size:15px">{{ __('livewire/owner/tax-center.about_heading') }}</h2>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin-top:8px;line-height:1.6">{{ __('livewire/owner/tax-center.about_body') }}</p>
                 </section>
             </div>
         </div>

@@ -33,7 +33,7 @@ class OwnerPayoutsExportController extends Controller
         $months = OwnerStatement::query()
             ->whereIn('id', $payouts->pluck('owner_statement_id')->filter()->unique()->all())
             ->get()
-            ->mapWithKeys(fn (OwnerStatement $s): array => [(string) $s->id => $s->period_start->format('M Y')]);
+            ->mapWithKeys(fn (OwnerStatement $s): array => [(string) $s->id => $s->period_start->translatedFormat('M Y')]);
 
         $filename = 'payout-history-'.Carbon::now()->format('Y-m-d').'.csv';
 
@@ -43,7 +43,13 @@ class OwnerPayoutsExportController extends Controller
         return response()->streamDownload(function () use ($payouts, $months, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Month', 'Rail', 'Date', 'Status', 'Amount']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_payouts_export_controller.col_month'),
+                __('php/http/controllers/owner/owner_payouts_export_controller.col_rail'),
+                __('php/http/controllers/owner/owner_payouts_export_controller.col_date'),
+                __('php/http/controllers/owner/owner_payouts_export_controller.col_status'),
+                __('php/http/controllers/owner/owner_payouts_export_controller.col_amount'),
+            ]));
 
             foreach ($payouts as $p) {
                 $when = $p->paid_at ?? $p->failed_at ?? ($p->status === 'pending' ? null : $p->created_at);
@@ -51,8 +57,16 @@ class OwnerPayoutsExportController extends Controller
                 fputcsv($out, CsvSafe::row([
                     $months[(string) $p->owner_statement_id] ?? '—',
                     RailLabel::for((string) $p->rail),
-                    $when !== null ? Carbon::parse($when)->format('j M Y') : 'Pending',
-                    ucfirst((string) $p->status),
+                    $when !== null ? Carbon::parse($when)->translatedFormat('j M Y') : __('php/http/controllers/owner/owner_payouts_export_controller.date_pending'),
+                    match ((string) $p->status) {
+                        'pending' => __('php/http/controllers/owner/owner_payouts_export_controller.status_pending'),
+                        'processing' => __('php/http/controllers/owner/owner_payouts_export_controller.status_processing'),
+                        'paid' => __('php/http/controllers/owner/owner_payouts_export_controller.status_paid'),
+                        'failed' => __('php/http/controllers/owner/owner_payouts_export_controller.status_failed'),
+                        'reversed' => __('php/http/controllers/owner/owner_payouts_export_controller.status_reversed'),
+                        'held' => __('php/http/controllers/owner/owner_payouts_export_controller.status_held'),
+                        default => ucfirst((string) $p->status),
+                    },
                     MoneyFormatter::display((int) $p->amount_minor, (string) $p->currency),
                 ]));
             }

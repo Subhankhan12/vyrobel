@@ -18,7 +18,7 @@
                     neither).
     RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
-<x-owner.shell active="documents" title="Documents" :subtitle="'Statements, remittances & tax summaries'" :viewer="$viewer">
+<x-owner.shell active="documents" :title="__('livewire/owner/documents.title')" :subtitle="__('livewire/owner/documents.subtitle')" :viewer="$viewer">
     <style>
         .vy-doc-month { margin-top:18px; }
         .vy-doc-mhead { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
@@ -31,19 +31,19 @@
         {{-- Sub-header — REAL count + REAL span + the archive link (the design's "3 years · 34 documents" refused) --}}
         <div class="vy-line-sub" style="font-size:13px;margin:-6px 0 20px;color:var(--vy-on-grad-soft)">
             @if ($summary['count'] > 0)
-                {{ $summary['count'] }} {{ \Illuminate\Support\Str::plural('document', $summary['count']) }}
-                @if ($summary['since']) · since {{ $summary['since'] }} @endif
+                {{ trans_choice('livewire/owner/documents.document_count', $summary['count'], ['count' => $summary['count']]) }}
+                @if ($summary['since']) · {{ __('livewire/owner/documents.since', ['date' => $summary['since']]) }} @endif
                 ·
-                <a href="{{ route('owner.archive') }}" style="color:var(--vy-on-grad);font-weight:600;text-decoration:underline">full archive ›</a>
+                <a href="{{ route('owner.archive') }}" style="color:var(--vy-on-grad);font-weight:600;text-decoration:underline">{{ __('livewire/owner/documents.full_archive') }}</a>
             @else
-                Every document your statements and payouts produce is collected here.
+                {{ __('livewire/owner/documents.empty_intro') }}
             @endif
         </div>
 
         {{-- Year filter — DERIVED from the REAL years present; narrows the REAL cards client-side --}}
         @if (count($filters) > 1)
             <div class="vy-quick" style="margin-bottom:6px">
-                <button type="button" class="vy-pill" :class="year === 'all' ? 'is-active' : ''" @click="year = 'all'">All years</button>
+                <button type="button" class="vy-pill" :class="year === 'all' ? 'is-active' : ''" @click="year = 'all'">{{ __('livewire/owner/documents.all_years') }}</button>
                 @foreach ($filters as $y)
                     <button type="button" class="vy-pill" :class="year === {{ $y }} ? 'is-active' : ''" @click="year = {{ $y }}">{{ $y }}</button>
                 @endforeach
@@ -61,7 +61,7 @@
                                 <span class="vy-line-sub" style="margin-left:8px;font-weight:400">{{ $period['number_label'] }}</span>
                             @endif
                         </div>
-                        <div class="vy-line-sub">Net <span class="vy-mono" style="color:var(--vy-accent-text);font-weight:600">{{ $period['net_display'] }}</span></div>
+                        <div class="vy-line-sub">{{ __('livewire/owner/documents.net') }} <span class="vy-mono" style="color:var(--vy-accent-text);font-weight:600">{{ $period['net_display'] }}</span></div>
                     </div>
 
                     @foreach ($period['docs'] as $doc)
@@ -75,7 +75,7 @@
                                         @if ($doc['ref_label']) {{ $doc['ref_label'] }} · @endif
                                         @if ($doc['date_label']) {{ $doc['date_label'] }} · @endif
                                         @if ($doc['rail_label']) {{ $doc['rail_label'] }} · @endif
-                                        {{ $doc['amount_note'] }} {{ $doc['amount_display'] }}
+                                        {{ $doc['amount_line'] }}
                                     </div>
                                 </div>
                             </div>
@@ -85,7 +85,7 @@
                                 @endif
                                 <a href="{{ $doc['href'] }}" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:12px" title="{{ $doc['title'] }}">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                                    PDF
+                                    {{ __('livewire/owner/documents.pdf') }}
                                 </a>
                             </div>
                         </div>
@@ -95,8 +95,8 @@
         @empty
             <section class="vy-card vy-fade" style="margin-top:18px;animation-delay:.04s">
                 <div class="vy-empty">
-                    No documents yet.
-                    <div class="vy-line-sub" style="margin-top:6px">Your statement, booking summary and remittance advice appear here as soon as a statement is finalized.</div>
+                    {{ __('livewire/owner/documents.no_documents') }}
+                    <div class="vy-line-sub" style="margin-top:6px">{{ __('livewire/owner/documents.no_documents_body') }}</div>
                 </div>
             </section>
         @endforelse
@@ -108,14 +108,14 @@
                 <div style="display:flex;align-items:center;gap:12px">
                     <span style="flex:none;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.14);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--vy-peach)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
                     <div>
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px;color:#fff">{{ $yearGroup['year'] }} annual tax summary</div>
-                        <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:2px">{{ $yearGroup['statement_count'] }} {{ \Illuminate\Support\Str::plural('month', $yearGroup['statement_count']) }} ({{ $yearGroup['span_label'] }}) · net {{ $yearGroup['tax_net_display'] }} · one PDF for your accountant</div>
+                        <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px;color:#fff">{{ __('livewire/owner/documents.annual_tax_heading', ['year' => $yearGroup['year']]) }}</div>
+                        <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:2px">{{ trans_choice('livewire/owner/documents.annual_tax_sub', $yearGroup['statement_count'], ['count' => $yearGroup['statement_count'], 'span' => $yearGroup['span_label'], 'net' => $yearGroup['tax_net_display']]) }}</div>
                     </div>
                 </div>
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                    <a href="{{ route('owner.tax.annual', $yearGroup['year']) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px" title="Download the {{ $yearGroup['year'] }} annual tax summary as a PDF">
+                    <a href="{{ route('owner.tax.annual', $yearGroup['year']) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px" title="{{ __('livewire/owner/documents.annual_tax_download', ['year' => $yearGroup['year']]) }}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                        PDF
+                        {{ __('livewire/owner/documents.pdf') }}
                     </a>
                 @endownercan
             </section>

@@ -33,10 +33,10 @@ class OwnerRateProposalController extends Controller
         try {
             $this->proposals->approve($model, $request->user());
         } catch (\RuntimeException) {
-            return back()->with('owner_notice', 'That proposal was already decided.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.already_decided'));
         }
 
-        return back()->with('owner_notice', 'Rate change approved — it’s live now.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.approved'));
     }
 
     public function decline(Request $request, string $proposal): RedirectResponse
@@ -47,10 +47,10 @@ class OwnerRateProposalController extends Controller
         try {
             $this->proposals->decline($model, $request->user());
         } catch (\RuntimeException) {
-            return back()->with('owner_notice', 'That proposal was already decided.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.already_decided'));
         }
 
-        return back()->with('owner_notice', 'Proposal declined — your rate is unchanged.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.declined'));
     }
 
     /**
@@ -70,15 +70,15 @@ class OwnerRateProposalController extends Controller
 
         $minor = MoneyInput::toMinor($validated['counter_rate']);
         if ($minor === null) {
-            return back()->with('owner_error', 'Enter a valid nightly rate for your counter.');
+            return back()->with('owner_error', __('php/http/controllers/owner/owner_rate_proposal_controller.invalid_counter_rate'));
         }
 
         try {
             $this->proposals->counter($model, $request->user(), $minor, $validated['counter_note'] ?? null);
         } catch (\RuntimeException) {
-            return back()->with('owner_notice', 'That proposal was already decided.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.already_decided'));
         }
 
-        return back()->with('owner_notice', 'Counter sent — your manager will review it.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_rate_proposal_controller.counter_sent'));
     }
 }

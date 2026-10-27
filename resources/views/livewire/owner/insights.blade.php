@@ -14,7 +14,7 @@
         count of pending RateProposal rows (owner-scoped) linking to the attention items where they're decided.
     RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
-<x-owner.shell active="insights" title="Occupancy & pricing insights" :subtitle="'How your villas are filling, what your rates are earning, and where the headroom is.'" :viewer="$viewer">
+<x-owner.shell active="insights" :title="__('livewire/owner/insights.title')" :subtitle="__('livewire/owner/insights.subtitle')" :viewer="$viewer">
     <style>
         .vy-ins-occ { display:grid; grid-template-columns:repeat({{ max(1, count($occupancyByMonth['months'])) }},1fr); gap:5px; align-items:end; height:150px; margin-top:14px; }
         .vy-ins-occ .bar { width:100%; max-width:22px; margin:0 auto; border-radius:5px 5px 0 0; }
@@ -35,7 +35,7 @@
     </div>
 
     @if ($unitsCount === 0)
-        <div class="vy-card vy-fade"><div class="vy-empty">No units linked to your account yet.</div></div>
+        <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/owner/insights.no_units_linked') }}</div></div>
     @else
         <div class="vy-cols">
             {{-- ── LEFT ── --}}
@@ -55,23 +55,31 @@
                 <section class="vy-card vy-fade" style="animation-delay:.05s">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
                         <div>
-                            <h2 class="vy-card-title">Occupancy by month</h2>
-                            <div class="vy-line-sub">{{ $activeRange['label'] }} · achieved and on the books</div>
+                            <h2 class="vy-card-title">{{ __('livewire/owner/insights.occupancy_heading') }}</h2>
+                            <div class="vy-line-sub">{{ __('livewire/owner/insights.occupancy_sub', ['range' => $activeRange['label']]) }}</div>
                         </div>
                         <div class="vy-ins-legend">
-                            <span><span class="vy-ins-swatch" style="background:var(--vy-accent)"></span>Achieved</span>
-                            <span><span class="vy-ins-swatch" style="background:rgba(232,112,58,.35)"></span>On the books</span>
+                            <span><span class="vy-ins-swatch" style="background:var(--vy-accent)"></span>{{ __('livewire/owner/insights.legend_achieved') }}</span>
+                            <span><span class="vy-ins-swatch" style="background:rgba(232,112,58,.35)"></span>{{ __('livewire/owner/insights.legend_on_the_books') }}</span>
                         </div>
                     </div>
                     @if ($occupancyByMonth['has_data'])
                         <div class="vy-ins-occ">
                             @foreach ($occupancyByMonth['months'] as $m)
-                                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['occ_pct'] }}%{{ $m['forward'] ? ' (on the books)' : '' }}{{ $m['ly_pct'] !== null ? ' · last year '.$m['ly_pct'].'%' : '' }}">
+                                @php
+                                    $barTitleKey = match (true) {   // every key written out (rule 11)
+                                        $m['forward'] && $m['ly_pct'] !== null => 'livewire/owner/insights.bar_title_forward_ly',
+                                        $m['forward'] => 'livewire/owner/insights.bar_title_forward',
+                                        $m['ly_pct'] !== null => 'livewire/owner/insights.bar_title_ly',
+                                        default => 'livewire/owner/insights.bar_title',
+                                    };
+                                @endphp
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ __($barTitleKey, ['month' => $m['label'], 'pct' => $m['occ_pct'], 'ly_pct' => $m['ly_pct']]) }}">
                                     {{-- REAL "vs last year" delta (GATE 4) — only where prior-year data exists, never fabricated (#39) --}}
                                     @if ($m['delta_pts'] !== null)
                                         {{-- The arrow is a glyph, not colour — but a screen reader announces it as a
                                              symbol name or skips it, so the DIRECTION also travels as a word. --}}
-                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? 'var(--vy-green-text)' : 'var(--vy-accent-tint-text)' }}"><span aria-hidden="true">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}</span><span class="vy-sr-only">{{ $m['delta_pts'] >= 0 ? 'up ' : 'down ' }}</span>{{ abs($m['delta_pts']) }} pts</span>
+                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? 'var(--vy-green-text)' : 'var(--vy-accent-tint-text)' }}">{!! $m['delta_pts'] >= 0 ? __('livewire/owner/insights.delta_up', ['pts' => e(abs($m['delta_pts']))]) : __('livewire/owner/insights.delta_down', ['pts' => e(abs($m['delta_pts']))]) !!}</span>
                                     @endif
                                     {{-- ⚠️ A genuinely 0% month draws NOTHING. `max(2, …)` put a visible bar under
                                          Jan/Feb/Mar/Nov — 4 of 12 — and Nov's own tooltip reads "0% (on the books)"
@@ -83,10 +91,10 @@
                             @endforeach
                         </div>
                     @else
-                        <div class="vy-empty" style="margin-top:12px">No occupancy in this period yet.</div>
+                        <div class="vy-empty" style="margin-top:12px">{{ __('livewire/owner/insights.no_occupancy') }}</div>
                     @endif
                     @if ($occupancyByMonth['has_ly'])
-                        <div class="vy-line-sub" style="margin-top:10px;font-size:11px">▲/▼ shows the change in points versus the same month last year — real, from your own history.</div>
+                        <div class="vy-line-sub" style="margin-top:10px;font-size:11px">{{ __('livewire/owner/insights.ly_explainer') }}</div>
                     @endif
                 </section>
 
@@ -94,13 +102,13 @@
                 @php $pace = array_slice(array_values(array_filter($occupancyByMonth['months'], fn ($m) => $m['forward'])), 0, 3); @endphp
                 @if ($pace !== [])
                     <section class="vy-card vy-fade" style="animation-delay:.08s">
-                        <h2 class="vy-card-title">Booking pace · next months</h2>
-                        <div class="vy-line-sub" style="margin-bottom:6px">Occupancy already on the books ahead.</div>
+                        <h2 class="vy-card-title">{{ __('livewire/owner/insights.pace_heading') }}</h2>
+                        <div class="vy-line-sub" style="margin-bottom:6px">{{ __('livewire/owner/insights.pace_sub') }}</div>
                         @foreach ($pace as $m)
                             <div style="margin-top:10px">
                                 <div style="display:flex;justify-content:space-between;font-size:13px">
                                     <span style="font-weight:500">{{ $m['label'] }}</span>
-                                    <span class="vy-muted">{{ $m['occ_pct'] }}% on the books</span>
+                                    <span class="vy-muted">{{ __('livewire/owner/insights.pace_on_the_books', ['pct' => $m['occ_pct']]) }}</span>
                                 </div>
                                 {{-- Same zero rule: a month with nothing on the books draws no fill. --}}
                                 <div class="vy-track" style="margin-top:6px"><span style="width:{{ $m['occ_pct'] }}%{{ $m['occ_pct'] > 0 ? ';min-width:2px' : '' }}"></span></div>
@@ -112,8 +120,8 @@
                 {{-- Worth a look — REAL DERIVED observations (decisions stay yours), never fabricated advice --}}
                 @if ($insights !== [])
                     <section class="vy-card vy-fade" style="animation-delay:.11s">
-                        <h2 class="vy-card-title">Worth a look</h2>
-                        <div class="vy-line-sub">What the numbers suggest — decisions stay yours.</div>
+                        <h2 class="vy-card-title">{{ __('livewire/owner/insights.look_heading') }}</h2>
+                        <div class="vy-line-sub">{{ __('livewire/owner/insights.look_sub') }}</div>
                         @foreach ($insights as $i)
                             <div class="vy-ins-look">
                                 <span style="flex:none;font-size:18px;line-height:1.4">{{ $i['icon'] }}</span>
@@ -132,28 +140,28 @@
             <div class="vy-stack">
                 {{-- Rate performance — REAL occupancy + ADR per unit (no fabricated vs-LY delta) --}}
                 <section class="vy-card vy-fade" style="animation-delay:.05s">
-                    <h2 class="vy-card-title">Rate performance</h2>
-                    <div class="vy-line-sub" style="margin-bottom:4px">Achieved nightly rate, before fees.</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/insights.rate_heading') }}</h2>
+                    <div class="vy-line-sub" style="margin-bottom:4px">{{ __('livewire/owner/insights.rate_sub') }}</div>
                     @forelse ($ratePerformance as $r)
                         <div class="vy-ins-rate">
                             <div>
                                 <div style="font-size:13.5px;font-weight:600">{{ $r['name'] }}</div>
-                                <div class="vy-line-sub">occupancy {{ $r['occ_pct'] }}%</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/insights.rate_occupancy', ['pct' => $r['occ_pct']]) }}</div>
                             </div>
                             <div style="text-align:right">
                                 <div class="vy-mono" style="font-weight:600">{{ $r['adr'] }}</div>
-                                <div class="vy-line-sub">ADR</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/insights.adr') }}</div>
                             </div>
                         </div>
                     @empty
-                        <div class="vy-empty" style="margin-top:10px">No units yet.</div>
+                        <div class="vy-empty" style="margin-top:10px">{{ __('livewire/owner/insights.no_units') }}</div>
                     @endforelse
                 </section>
 
                 {{-- When guests book — REAL lead-time distribution --}}
                 <section class="vy-card vy-fade" style="animation-delay:.08s">
-                    <h2 class="vy-card-title">When guests book</h2>
-                    <div class="vy-line-sub" style="margin-bottom:6px">Share of bookings by lead time, all units.</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/insights.lead_heading') }}</h2>
+                    <div class="vy-line-sub" style="margin-bottom:6px">{{ __('livewire/owner/insights.lead_sub') }}</div>
                     @if ($leadTime['has_data'])
                         <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
                             @foreach ($leadTime['buckets'] as $b)
@@ -167,21 +175,21 @@
                             @endforeach
                         </div>
                     @else
-                        <div class="vy-empty">Not enough booking history yet.</div>
+                        <div class="vy-empty">{{ __('livewire/owner/insights.lead_empty') }}</div>
                     @endif
                 </section>
 
                 {{-- Nights that fill first — REAL day-of-week occupancy + a REAL derived caption --}}
                 <section class="vy-card vy-fade" style="animation-delay:.11s">
-                    <h2 class="vy-card-title">Nights that fill first</h2>
-                    <div class="vy-line-sub" style="margin-bottom:6px">Average occupancy by night of the week.</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/insights.weekday_heading') }}</h2>
+                    <div class="vy-line-sub" style="margin-bottom:6px">{{ __('livewire/owner/insights.weekday_sub') }}</div>
                     @if ($weekday['has_data'])
                         <x-charts.bars :bars="$weekday['weekdays']" height="120px" :accentLast="false" />
                         @if ($observation)
                             <div class="vy-fx-note">{{ $observation }}</div>
                         @endif
                     @else
-                        <div class="vy-empty">No bookings in this range yet.</div>
+                        <div class="vy-empty">{{ __('livewire/owner/insights.weekday_empty') }}</div>
                     @endif
                 </section>
 
@@ -189,14 +197,14 @@
                 <section class="vy-card vy-ins-cta vy-fade" style="animation-delay:.14s">
                     <div style="display:flex;align-items:center;gap:8px">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-peach)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a1.8 1.8 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>
-                        <h2 class="vy-card-title" style="color:#fff">Turn insight into rate</h2>
+                        <h2 class="vy-card-title" style="color:#fff">{{ __('livewire/owner/insights.cta_heading') }}</h2>
                     </div>
-                    <div style="margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.6">Your rates are yours to set. When a pattern here is worth acting on, open your Rates page and adjust — the change flows straight to your live availability.</div>
+                    <div style="margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.6">{{ __('livewire/owner/insights.cta_body') }}</div>
                     {{-- Wave C — REAL pending rate proposals awaiting your approval (never a fabricated count) --}}
                     @if ($pendingProposals > 0)
-                        <a href="{{ route('owner.units') }}" class="vy-btn vy-btn--accent" style="margin-top:12px;display:inline-flex">{{ $pendingProposals }} rate {{ \Illuminate\Support\Str::plural('proposal', $pendingProposals) }} awaiting your approval →</a>
+                        <a href="{{ route('owner.units') }}" class="vy-btn vy-btn--accent" style="margin-top:12px;display:inline-flex">{{ trans_choice('livewire/owner/insights.proposals_awaiting', $pendingProposals, ['count' => $pendingProposals]) }}</a>
                     @endif
-                    <a href="{{ route('owner.rates') }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff">Open your Rates</a>
+                    <a href="{{ route('owner.rates') }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff">{{ __('livewire/owner/insights.open_rates') }}</a>
                 </section>
             </div>
         </div>

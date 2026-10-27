@@ -1,0 +1,52 @@
+<?php
+
+// resources/views/livewire/owner/tax-center.blade.php — the owner's Tax center (tax profile, withholding, annual summaries).
+
+return [
+    'title' => 'Tax center',
+    'subtitle' => 'Your tax details, withholding and year-end summaries — all in one place.',
+    'subuser_notice' => 'The tax profile belongs to the account owner and is managed by them — it isn’t part of your team role.',
+    'not_linked' => 'No owner account is linked to your login yet.',
+    'complete_heading' => 'Tax details complete',
+    'complete_body' => 'Your payouts are flowing normally. Update anytime below.',
+    'held_heading' => 'Add your tax details to release held payouts',
+    // :amounts is the held money, already formatted, one figure per currency joined by " · "
+    'held_body' => ':amounts is on hold until we have a valid tax ID on file. It takes about a minute — just complete the form below.',
+    'nothing_held_body' => 'Complete the form below so your payouts can be released the moment your first statement is due — it takes about a minute.',
+    'tax_profile' => 'Tax profile',
+    'tax_profile_sub' => 'Used on your annual summary and any invoices we issue on your behalf.',
+    'legal_name' => 'Legal name',
+    'legal_name_placeholder' => 'Full legal name',
+    'tax_residency' => 'Tax residency',
+    'not_listed' => 'Not listed — leave blank',
+    'tax_id' => 'Tax ID / NIF',
+    'tax_id_placeholder' => 'e.g. 501234567',
+    'registered_as' => 'Registered as',
+    'individual' => 'Individual',
+    'company' => 'Company',
+    'vat_registered' => 'VAT registered',
+    'vat_registered_hint' => 'Turn on if you charge VAT on your rental income.',
+    'vat_number' => 'VAT number',
+    'vat_number_placeholder' => 'e.g. PT501234567',
+    'confirm_password' => 'Confirm with your password',
+    'current_password' => 'Current password',
+    'save_tax_details' => 'Save tax details',
+    'read_only' => 'Read-only — a co-owner can update these tax details.',
+    'encrypted_note' => 'Your tax ID and VAT number are encrypted at rest. Saving them releases any held payouts.',
+    'withholding_tax' => 'Withholding tax',
+    'withholding_body' => 'Tax withheld from your payouts at the rate configured for your residency and remitted on your behalf. <strong>Verify with your accountant — this is not tax advice.</strong>',
+    'no_withholding_body' => 'No withholding is configured for your residency — you receive your full net earnings and declare your rental income in your own tax return.',
+    // shown in place of an amount when nothing has been withheld
+    'withholding_none' => 'None',
+    'withheld_from_payouts' => 'withheld from payouts',
+    'annual_summaries' => 'Annual summaries',
+    'annual_summaries_sub' => 'Rental income and fees, ready for your accountant.',
+    // :net and :gross are the year's figures, already formatted
+    'summary_net_gross' => 'Net :net · gross :gross',
+    'year_to_date' => 'Year to date',
+    'no_summaries' => 'No annual summaries yet — they appear once you have a finalized statement.',
+    'vat_documents' => 'VAT invoices & documents',
+    'vat_documents_sub' => 'All statements and tax files',
+    'about_heading' => 'About your tax',
+    'about_body' => 'Vyrobel keeps records of your rental income and fees, but we don’t file taxes for you. Share your annual summary with a qualified accountant. Nothing here is tax advice.',
+];

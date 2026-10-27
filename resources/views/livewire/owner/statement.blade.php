@@ -18,7 +18,7 @@
     Page-scoped CSS (.vy-st-*) lives in THIS file, NOT the shared owner layout — its class names/comments must not
     leak into every owner page's <style>, where owner-isolation tests assert the ABSENCE of certain words.
 --}}
-<x-owner.shell active="statements" title="Statement" :viewer="$viewer">
+<x-owner.shell active="statements" :title="__('livewire/owner/statement.title')" :viewer="$viewer">
     <style>
         /* Month "jump to" popover (the header switcher). */
         .vy-st-mwrap { position: relative; }
@@ -87,7 +87,7 @@
     {{-- Period selector — prev/next by period + a "jump to month" popover over the owner's real statements. --}}
     <div class="vy-period" style="margin-bottom:22px">
         @if ($nav['prev'])
-            <a class="vy-period-btn" href="{{ route('owner.statements.show', $nav['prev']['id']) }}" title="{{ $nav['prev']['label'] }}" aria-label="Previous period, {{ $nav['prev']['label'] }}">
+            <a class="vy-period-btn" href="{{ route('owner.statements.show', $nav['prev']['id']) }}" title="{{ $nav['prev']['label'] }}" aria-label="{{ __('livewire/owner/statement.previous_period', ['period' => $nav['prev']['label']]) }}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
             </a>
         @else
@@ -95,13 +95,13 @@
         @endif
 
         <div class="vy-st-mwrap" x-data="{ mopen: false }" @keydown.escape.window="mopen = false">
-            <button type="button" class="vy-period-cur vy-st-mbtn" @click="mopen = !mopen" :aria-expanded="mopen ? 'true' : 'false'" aria-haspopup="true" aria-label="Jump to another month">
+            <button type="button" class="vy-period-cur vy-st-mbtn" @click="mopen = !mopen" :aria-expanded="mopen ? 'true' : 'false'" aria-haspopup="true" aria-label="{{ __('livewire/owner/statement.jump_to_another_month') }}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>
                 {{ $statement['period_label'] }}
                 <svg class="vy-st-mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
-            <div x-cloak x-show="mopen" x-transition.opacity.duration.150ms @click.outside="mopen = false" class="vy-st-menu" role="menu" aria-label="Jump to month">
-                <div class="vy-st-menu-h">Jump to month</div>
+            <div x-cloak x-show="mopen" x-transition.opacity.duration.150ms @click.outside="mopen = false" class="vy-st-menu" role="menu" aria-label="{{ __('livewire/owner/statement.jump_to_month') }}">
+                <div class="vy-st-menu-h">{{ __('livewire/owner/statement.jump_to_month') }}</div>
                 @foreach ($monthOptions as $opt)
                     <a class="vy-st-menu-item {{ $opt['is_current'] ? 'is-current' : '' }}" href="{{ route('owner.statements.show', $opt['id']) }}" role="menuitem">
                         <span class="vy-st-menu-m">{{ $opt['label'] }}</span>
@@ -112,7 +112,7 @@
         </div>
 
         @if ($nav['next'])
-            <a class="vy-period-btn" href="{{ route('owner.statements.show', $nav['next']['id']) }}" title="{{ $nav['next']['label'] }}" aria-label="Next period, {{ $nav['next']['label'] }}">
+            <a class="vy-period-btn" href="{{ route('owner.statements.show', $nav['next']['id']) }}" title="{{ $nav['next']['label'] }}" aria-label="{{ __('livewire/owner/statement.next_period', ['period' => $nav['next']['label']]) }}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
             </a>
         @else
@@ -131,32 +131,36 @@
                      backend log. Never a guessed portfolio name.) --}}
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
                     <div>
-                        <span class="vy-eyebrow">{{ strtoupper($statement['period_label']) }}</span>
-                        <div class="vy-st-hero-sub">{{ $unitsCount }} {{ \Illuminate\Support\Str::plural('unit', $unitsCount) }}</div>
+                        <span class="vy-eyebrow">{{ mb_strtoupper($statement['period_label']) }}</span>
+                        <div class="vy-st-hero-sub">{{ trans_choice('livewire/owner/statement.units', $unitsCount, ['count' => $unitsCount]) }}</div>
                     </div>
                     <span class="vy-status vy-status--{{ $statement['status_meta']['tone'] }}">
                         <span class="vy-dot"></span>{{ $statement['status_meta']['label'] }}
                     </span>
                 </div>
-                <div class="vy-hero-sub" style="margin-top:14px">Net payable</div>
+                <div class="vy-hero-sub" style="margin-top:14px">{{ __('livewire/owner/statement.net_payable') }}</div>
                 <div class="vy-hero-figure" data-countup="{{ $statement['net_payable_minor'] }}" data-symbol="{{ $statement['currency_symbol'] }}">{{ $statement['net_payable_display'] }}</div>
                 @if ($statement['fx_rate'] !== null)
-                    <div class="vy-fx-note">Converted from {{ $statement['source_currency'] }} at {{ rtrim(rtrim($statement['fx_rate'], '0'), '.') }} @if ($statement['fx_source'])· {{ $statement['fx_source'] }}@endif</div>
+                    @if ($statement['fx_source'])
+                        <div class="vy-fx-note">{{ __('livewire/owner/statement.converted_from_source', ['currency' => $statement['source_currency'], 'rate' => rtrim(rtrim($statement['fx_rate'], '0'), '.'), 'source' => $statement['fx_source']]) }}</div>
+                    @else
+                        <div class="vy-fx-note">{{ __('livewire/owner/statement.converted_from', ['currency' => $statement['source_currency'], 'rate' => rtrim(rtrim($statement['fx_rate'], '0'), '.')]) }}</div>
+                    @endif
                 @endif
                 @if ($statement['has_unverified'])
-                    <div class="vy-fx-note"><span class="vy-provisional">Provisional</span> Some lines are pending channel reconciliation.</div>
+                    <div class="vy-fx-note"><span class="vy-provisional">{{ __('livewire/owner/statement.provisional') }}</span> {{ __('livewire/owner/statement.pending_reconciliation') }}</div>
                 @endif
             </section>
 
             {{-- Breakdown — the REAL statement lines (sum to the cent); gross carries a real "N nights · M units" sub --}}
             <section class="vy-card vy-fade" style="animation-delay:.08s">
-                <h2 class="vy-card-title" style="margin-bottom:6px">Breakdown</h2>
+                <h2 class="vy-card-title" style="margin-bottom:6px">{{ __('livewire/owner/statement.breakdown') }}</h2>
                 @foreach ($lines as $line)
                     <div class="vy-line {{ $line['is_net'] ? 'vy-line--net' : '' }}">
                         <div>
                             <div class="vy-line-label">
                                 {{ $line['description'] }}
-                                @if ($line['unverified'])<span class="vy-provisional" style="margin-left:6px">Provisional</span>@endif
+                                @if ($line['unverified'])<span class="vy-provisional" style="margin-left:6px">{{ __('livewire/owner/statement.provisional') }}</span>@endif
                             </div>
                             @if ($line['sublabel'])<div class="vy-line-sub">{{ $line['sublabel'] }}</div>@endif
                         </div>
@@ -170,7 +174,7 @@
         <div class="vy-stack">
             {{-- Next payout (real amount + status + masked IBAN [CAP_PAYOUT only]; no estimated date — not backed) --}}
             <section class="vy-card vy-card--dark vy-fade" style="animation-delay:.05s">
-                <span class="vy-eyebrow">Next payout</span>
+                <span class="vy-eyebrow">{{ __('livewire/owner/statement.next_payout') }}</span>
                 <div class="vy-dark-figure">{{ $payout['amount_display'] }}</div>
                 <span class="vy-status vy-status--{{ $payout['status_meta']['tone'] }}" style="margin-top:6px">
                     <span class="vy-dot"></span>{{ $payout['status_meta']['label'] }}
@@ -185,20 +189,24 @@
                 @endif
                 <div style="margin-top:14px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">
                     @if ($payout['paid_at'])
-                        Paid {{ $payout['paid_at'] }}@if ($payout['rail']) · {{ $payout['rail'] }}@endif
+                        @if ($payout['rail'])
+                            {{ __('livewire/owner/statement.paid_on_via', ['date' => $payout['paid_at'], 'rail' => $payout['rail']]) }}
+                        @else
+                            {{ __('livewire/owner/statement.paid_on', ['date' => $payout['paid_at']]) }}
+                        @endif
                     @elseif ($rail['paused'])
-                        Held until your tax details are on file.
+                        {{ __('livewire/owner/statement.held_for_tax') }}
                     @elseif ($payout['rail'])
                         {{ $payout['rail'] }}
                     @else
-                        Bank transfer
+                        {{ __('livewire/owner/statement.bank_transfer') }}
                     @endif
                 </div>
             </section>
 
             {{-- Occupancy — REAL owner-scoped %, MoM delta + a mini bar chart (shared OwnerOccupancyTrend) --}}
             <section class="vy-card vy-fade" style="animation-delay:.1s">
-                <span class="vy-eyebrow">Occupancy</span>
+                <span class="vy-eyebrow">{{ __('livewire/owner/statement.occupancy') }}</span>
                 <div class="vy-st-occ-top">
                     <span class="vy-st-occ-pct">{{ $occupancy['pct_display'] }}</span>
                     @if ($occupancy['delta'])
@@ -216,7 +224,7 @@
                     $occSummary = collect($occupancy['months'])
                         ->map(fn (array $m): string => $m['label'].' '.$m['pct'].'%')->implode(', ');
                 @endphp
-                <div class="vy-st-occ-bars" role="img" aria-label="Monthly occupancy: {{ $occSummary }}">
+                <div class="vy-st-occ-bars" role="img" aria-label="{{ __('livewire/owner/statement.monthly_occupancy', ['summary' => $occSummary]) }}">
                     @foreach ($occupancy['months'] as $i => $m)
                         <span class="vy-st-occ-bar {{ $loop->last ? 'is-last' : '' }} {{ $m['pct'] > 0 ? '' : 'is-zero' }}"
                               style="height:{{ $m['pct'] > 0 ? max(6, $m['pct']) : 0 }}%" title="{{ $m['label'] }} · {{ $m['pct'] }}%"></span>
@@ -232,24 +240,24 @@
                  view-only sub-user is "no exports": the whole block is hidden AND every route is export-gated. --}}
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                 {{-- Download statement — the statement PDF itself, standalone (the wireframe's rail button). --}}
-                <a href="{{ route('owner.statements.pdf', $statement['id']) }}" class="vy-ov-dl vy-fade" style="animation-delay:.13s" title="Download this statement as a PDF">
+                <a href="{{ route('owner.statements.pdf', $statement['id']) }}" class="vy-ov-dl vy-fade" style="animation-delay:.13s" title="{{ __('livewire/owner/statement.download_statement_title') }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                    Download statement
+                    {{ __('livewire/owner/statement.download_statement') }}
                 </a>
 
                 {{-- More documents — Remittance advice (once a payout is matched) + Booking summary. --}}
                 {{-- The wireframe's document list: a peach icon tile, title + tabular sub, and the WHOLE
                      row is the download link (it was a text block with a small "PDF" button beside it). --}}
                 <section class="vy-card vy-st-docs vy-fade" style="animation-delay:.16s">
-                    <span class="vy-eyebrow">More documents</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/statement.more_documents') }}</span>
                     @if ($payout['id'])
-                        <a class="vy-st-doc" href="{{ route('owner.payouts.remittance', $payout['id']) }}" title="Download the remittance advice for this payout as a PDF">
+                        <a class="vy-st-doc" href="{{ route('owner.payouts.remittance', $payout['id']) }}" title="{{ __('livewire/owner/statement.remittance_title') }}">
                             <span class="vy-st-doc-ic">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/></svg>
                             </span>
                             <span class="vy-st-doc-main">
-                                <span class="vy-st-doc-t">Remittance advice</span>
-                                <span class="vy-st-doc-s">RA · {{ $statement['period_label'] }} · PDF</span>
+                                <span class="vy-st-doc-t">{{ __('livewire/owner/statement.remittance_advice') }}</span>
+                                <span class="vy-st-doc-s">{{ __('livewire/owner/statement.remittance_sub', ['period' => $statement['period_label']]) }}</span>
                             </span>
                             <svg class="vy-st-doc-dl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                         </a>
@@ -260,19 +268,19 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/></svg>
                             </span>
                             <span class="vy-st-doc-main">
-                                <span class="vy-st-doc-t">Remittance advice</span>
-                                <span class="vy-st-doc-s">Available once your payout is issued</span>
+                                <span class="vy-st-doc-t">{{ __('livewire/owner/statement.remittance_advice') }}</span>
+                                <span class="vy-st-doc-s">{{ __('livewire/owner/statement.remittance_pending') }}</span>
                             </span>
                         </div>
                     @endif
                     <div class="vy-st-doc-sep"></div>
-                    <a class="vy-st-doc" href="{{ route('owner.statements.bookings', $statement['id']) }}" title="Download the bookings behind this statement as a PDF">
+                    <a class="vy-st-doc" href="{{ route('owner.statements.bookings', $statement['id']) }}" title="{{ __('livewire/owner/statement.booking_summary_title') }}">
                         <span class="vy-st-doc-ic">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
                         </span>
                         <span class="vy-st-doc-main">
-                            <span class="vy-st-doc-t">Booking summary</span>
-                            <span class="vy-st-doc-s">The bookings behind this statement · PDF</span>
+                            <span class="vy-st-doc-t">{{ __('livewire/owner/statement.booking_summary') }}</span>
+                            <span class="vy-st-doc-s">{{ __('livewire/owner/statement.booking_summary_sub') }}</span>
                         </span>
                         <svg class="vy-st-doc-dl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                     </a>
@@ -285,11 +293,11 @@
     <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.12s" x-data="{ year: 'all' }">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:6px">
             <div>
-                <h2 class="vy-card-title">Statement history</h2>
-                <div class="vy-line-sub" style="margin-top:4px">{{ $totals['count'] }} {{ \Illuminate\Support\Str::plural('statement', $totals['count']) }} · {{ $totals['net_total_display'] }} net total</div>
+                <h2 class="vy-card-title">{{ __('livewire/owner/statement.statement_history') }}</h2>
+                <div class="vy-line-sub" style="margin-top:4px">{{ trans_choice('livewire/owner/statement.history_summary', $totals['count'], ['count' => $totals['count'], 'total' => $totals['net_total_display']]) }}</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <button type="button" class="vy-pill" :class="{ 'is-active': year === 'all' }" @click="year = 'all'">All</button>
+                <button type="button" class="vy-pill" :class="{ 'is-active': year === 'all' }" @click="year = 'all'">{{ __('common.all') }}</button>
                 @foreach ($years as $y)
                     <button type="button" class="vy-pill" :class="{ 'is-active': year === {{ $y }} }" @click="year = {{ $y }}">{{ $y }}</button>
                 @endforeach
@@ -297,18 +305,18 @@
                     {{-- REAL exports: all history, or the selected year (the same client-side filter drives ?year=). --}}
                     {{-- The wireframe separates the pair: CSV is the quiet ghost pill, PDF is the accent one. --}}
                     <span class="vy-st-hist-sep" aria-hidden="true"></span>
-                    <a class="vy-btn vy-btn--ghost vy-st-exp" :href="'{{ route('owner.statements.history.csv') }}' + (year === 'all' ? '' : '?year=' + year)" title="Export the statement history as CSV">
+                    <a class="vy-btn vy-btn--ghost vy-st-exp" :href="'{{ route('owner.statements.history.csv') }}' + (year === 'all' ? '' : '?year=' + year)" title="{{ __('livewire/owner/statement.export_csv_title') }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                        Export CSV
+                        {{ __('livewire/owner/statement.export_csv') }}
                     </a>
                     {{-- ⚠️ The wireframe makes this the ACCENT pill. Kept as a ghost pill deliberately:
                          white-on-the-accent-gradient measures 4.00 (the realm-wide gap surfaced at
                          Owner-1, awaiting its own a11y gate), so promoting this button would ADD a fifth
                          instance of a known AA failure to close a styling gap. It gets the accent
                          treatment in the same change that makes the gradient accessible — not before. --}}
-                    <a class="vy-btn vy-btn--ghost vy-st-exp" :href="'{{ route('owner.statements.history.pdf') }}' + (year === 'all' ? '' : '?year=' + year)" title="Export the statement history as PDF">
+                    <a class="vy-btn vy-btn--ghost vy-st-exp" :href="'{{ route('owner.statements.history.pdf') }}' + (year === 'all' ? '' : '?year=' + year)" title="{{ __('livewire/owner/statement.export_pdf_title') }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/></svg>
-                        Export PDF
+                        {{ __('livewire/owner/statement.export_pdf') }}
                     </a>
                 @endownercan
             </div>
@@ -318,11 +326,11 @@
             <table class="vy-table vy-st-hist">
                 <thead>
                     <tr>
-                        <th>Month</th>
-                        <th class="vy-num">Gross</th>
-                        <th class="vy-num">Net payable</th>
-                        <th>Status</th>
-                        <th class="vy-num" aria-label="Download"></th>
+                        <th>{{ __('livewire/owner/statement.col_month') }}</th>
+                        <th class="vy-num">{{ __('livewire/owner/statement.col_gross') }}</th>
+                        <th class="vy-num">{{ __('livewire/owner/statement.net_payable') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th class="vy-num" aria-label="{{ __('common.download') }}"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -343,7 +351,7 @@
                             </td>
                             <td class="vy-num">
                                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                                    <a class="vy-icobtn" href="{{ route('owner.statements.pdf', $h['id']) }}" title="Download this statement as a PDF" aria-label="Download {{ $h['month_label'] }} statement" style="display:inline-grid">
+                                    <a class="vy-icobtn" href="{{ route('owner.statements.pdf', $h['id']) }}" title="{{ __('livewire/owner/statement.download_statement_title') }}" aria-label="{{ __('livewire/owner/statement.download_month_statement', ['month' => $h['month_label']]) }}" style="display:inline-grid">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                                     </a>
                                 @endownercan
@@ -360,9 +368,9 @@
          finalized". Each unit name links to its Unit Detail. ── --}}
     <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.16s">
         <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-            <h2 class="vy-card-title">By unit</h2>
+            <h2 class="vy-card-title">{{ __('livewire/owner/statement.by_unit') }}</h2>
             @if ($byUnit['available'])
-                <span class="vy-line-sub">{{ $byUnit['period_label'] }} · {{ $byUnit['unit_count'] }} {{ \Illuminate\Support\Str::plural('unit', $byUnit['unit_count']) }}</span>
+                <span class="vy-line-sub">{{ trans_choice('livewire/owner/statement.by_unit_sub', $byUnit['unit_count'], ['period' => $byUnit['period_label'], 'count' => $byUnit['unit_count']]) }}</span>
             @endif
         </div>
 
@@ -383,11 +391,11 @@
                                 @else
                                     <div class="vy-line-label" style="font-weight:600">{{ $u['name'] }}</div>
                                 @endownercan
-                                <div class="vy-line-sub">{{ $u['nights'] }} {{ \Illuminate\Support\Str::plural('night', $u['nights']) }} · {{ $u['occupancy_pct'] }}% occupancy</div>
+                                <div class="vy-line-sub">{{ trans_choice('livewire/owner/statement.unit_nights_occupancy', $u['nights'], ['count' => $u['nights'], 'pct' => $u['occupancy_pct']]) }}</div>
                             </div>
                             <div style="text-align:right">
                                 <div class="vy-line-amt vy-net" style="font-weight:600">{{ $u['net_display'] }}</div>
-                                <div class="vy-line-sub">{{ $u['gross_display'] }} gross · {{ $u['pct_of_net'] }}% of net</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/statement.unit_gross_share', ['gross' => $u['gross_display'], 'pct' => $u['pct_of_net']]) }}</div>
                             </div>
                         </div>
                         <div class="vy-track" style="margin-top:8px"><span style="width:{{ $u['bar_width'] }}%"></span></div>
@@ -400,12 +408,12 @@
                     <div>
                         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
                             <div>
-                                <div class="vy-line-label" style="font-weight:600">Whole portfolio</div>
-                                <div class="vy-line-sub">Not attributed to a single unit</div>
+                                <div class="vy-line-label" style="font-weight:600">{{ __('livewire/owner/statement.whole_portfolio') }}</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/statement.not_attributed') }}</div>
                             </div>
                             <div style="text-align:right">
                                 <div class="vy-line-amt vy-net" style="font-weight:600">{{ $byUnit['unattributed']['net_display'] }}</div>
-                                <div class="vy-line-sub">{{ $byUnit['unattributed']['pct'] }}% of net</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/statement.pct_of_net', ['pct' => $byUnit['unattributed']['pct']]) }}</div>
                             </div>
                         </div>
                     </div>
@@ -413,14 +421,13 @@
             </div>
 
             <div class="vy-line vy-line--net" style="margin-top:16px">
-                <div class="vy-line-label" style="font-weight:600">Total net earnings</div>
+                <div class="vy-line-label" style="font-weight:600">{{ __('livewire/owner/statement.total_net_earnings') }}</div>
                 <div class="vy-line-amt vy-net" style="font-weight:700">{{ $byUnit['total_net_display'] }}</div>
             </div>
         @else
             <div class="vy-deferred">
-                <span class="vy-eyebrow">Available once finalized</span>
-                A per-unit split of this statement (net · gross · occupancy) appears here once the statement is
-                finalized — it is derived from the exact ledger lines the statement claims.
+                <span class="vy-eyebrow">{{ __('livewire/owner/statement.available_once_finalized') }}</span>
+                {{ __('livewire/owner/statement.by_unit_deferred') }}
             </div>
         @endif
     </section>

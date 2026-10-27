@@ -57,7 +57,7 @@ class OwnerArchiveZipController extends Controller
 
         if ($statements->isEmpty()) {
             // An empty ZIP would be a file that says nothing. Say it in words instead.
-            return back()->with('archive_zip_notice', 'There are no finalized statements to archive yet.');
+            return back()->with('archive_zip_notice', __('php/http/controllers/owner/owner_archive_zip_controller.nothing_to_archive'));
         }
 
         // One stamp for the bundle; its watermark is applied to every document inside.

@@ -14,7 +14,7 @@
     Page-scoped CSS (.vy-po-*) lives here, NOT the shared owner layout (class names must not leak into every
     owner page's <style>, where isolation tests assert the ABSENCE of certain words).
 --}}
-<x-owner.shell active="payouts" title="Payouts" :viewer="$viewer">
+<x-owner.shell active="payouts" :title="__('livewire/owner/payouts.title')" :viewer="$viewer">
     <style>
         /* Held-payout banner (the real tax-hold). */
         .vy-po-hold { display: flex; align-items: flex-start; gap: 15px; background: rgba(255, 252, 248, .62); border: 1px solid var(--vy-accent-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px; margin-bottom: 20px; }
@@ -84,7 +84,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
             </span>
             <div class="vy-po-hold-body">
-                <div class="vy-po-hold-title">Your {{ $hold['amount_display'] }} payout is on hold</div>
+                <div class="vy-po-hold-title">{{ __('livewire/owner/payouts.hold_title', ['amount' => $hold['amount_display']]) }}</div>
                 <div class="vy-po-hold-sub">{{ $hold['reason'] }}</div>
                 <a class="vy-po-hold-cta" href="{{ $hold['cta_route'] }}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -110,21 +110,25 @@
             </span>
             <div class="vy-po-hold-body">
                 <div class="vy-po-hold-title">
-                    Your {{ $recovery['amount_display'] }}@if ($recovery['period_label']) {{ $recovery['period_label'] }}@endif payout couldn’t be sent
+                    @if ($recovery['period_label'])
+                        {{ __('livewire/owner/payouts.failed_title_period', ['amount' => $recovery['amount_display'], 'period' => $recovery['period_label']]) }}
+                    @else
+                        {{ __('livewire/owner/payouts.failed_title', ['amount' => $recovery['amount_display']]) }}
+                    @endif
                 </div>
                 <div class="vy-po-hold-sub">
                     @if ($recovery['reason'])
                         {{ $recovery['reason'] }}
                     @else
-                        The transfer didn’t go through. Nothing was taken from your balance — the amount is still yours.
+                        {{ __('livewire/owner/payouts.failed_default_reason') }}
                     @endif
-                    @if ($recovery['failed_on']) <span style="white-space:nowrap">(attempted {{ $recovery['failed_on'] }})</span>@endif
+                    @if ($recovery['failed_on']) <span style="white-space:nowrap">{{ __('livewire/owner/payouts.attempted_on', ['date' => $recovery['failed_on']]) }}</span>@endif
                 </div>
 
                 @if ($recovery['already_queued'])
                     {{-- A live payout already claims this statement — a further retry would be a second payment. --}}
                     <div class="vy-po-hold-sub" style="margin-top:8px">
-                        A replacement payout for this statement is already on its way, so there’s nothing for you to do.
+                        {{ __('livewire/owner/payouts.already_queued') }}
                     </div>
                 @elseif ($recovery['blockers'])
                     {{-- FIX-then-retry: re-sending now would fail for the same reason. --}}
@@ -140,11 +144,11 @@
                 @elseif ($recovery['paused'])
                     {{-- DEC-n (2026-10-02) — a pause stops every payout, a retry included: say so, and how to undo it --}}
                     <div class="vy-po-hold-sub" style="margin-top:8px">
-                        Your payouts are paused in your payout preferences below — resume them to try this payout again.
+                        {{ __('livewire/owner/payouts.retry_paused') }}
                     </div>
                 @elseif ($recovery['can_act'] && $recovery['can_retry'])
                     <div class="vy-po-hold-sub" style="margin-top:8px">
-                        Retrying queues a new payout for this statement — your manager sends it on the next payout run.
+                        {{ __('livewire/owner/payouts.retry_explainer') }}
                     </div>
                     {{-- data-guard-submit disables the button on submit: defence in depth ON TOP of the
                          server-side row-lock + one-live-payout-per-statement guard, never instead of it. --}}
@@ -152,7 +156,7 @@
                         @csrf
                         <button type="submit" class="vy-po-hold-cta" style="border:none;cursor:pointer">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
-                            Retry payout
+                            {{ __('livewire/owner/payouts.retry_button') }}
                         </button>
                     </form>
                 @endif
@@ -166,27 +170,27 @@
             {{-- KPIs — all REAL --}}
             <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Paid this year</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/payouts.kpi_paid_this_year') }}</div>
                     <div class="vy-kpi-val">{{ $metrics['paid_this_year_display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $metrics['paid_count'] }} {{ \Illuminate\Support\Str::plural('payout', $metrics['paid_count']) }}@if ($metrics['paid_year']) · {{ $metrics['paid_year'] }}@endif</div>
+                    <div class="vy-kpi-sub">{{ trans_choice('livewire/owner/payouts.payout_count', $metrics['paid_count'], ['count' => $metrics['paid_count']]) }}@if ($metrics['paid_year']) · {{ $metrics['paid_year'] }}@endif</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Next payout</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/payouts.next_payout') }}</div>
                     <div class="vy-kpi-val">{{ $metrics['next_payout_display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $metrics['pending_count'] > 0 ? 'Awaiting disbursement' : 'Nothing pending' }}</div>
+                    <div class="vy-kpi-sub">{{ $metrics['pending_count'] > 0 ? __('livewire/owner/payouts.awaiting_disbursement') : __('livewire/owner/payouts.nothing_pending') }}</div>
                 </div>
                 <div class="vy-kpi">
                     {{-- The wireframe puts a state pill beside this label. It shows the REAL hold only —
                          the same $hold the banner is driven by — so it can never claim a state the row
                          is not actually in, and it is absent when nothing is held. --}}
                     <div class="vy-kpi-label" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                        <span>Pending</span>
+                        <span>{{ __('livewire/owner/payouts.kpi_pending') }}</span>
                         @if ($hold)
-                            <span class="vy-status vy-status--pending" style="text-transform:none;letter-spacing:0"><span class="vy-dot"></span>On hold</span>
+                            <span class="vy-status vy-status--pending" style="text-transform:none;letter-spacing:0"><span class="vy-dot"></span>{{ __('livewire/owner/payouts.on_hold') }}</span>
                         @endif
                     </div>
                     <div class="vy-kpi-val">{{ $metrics['pending_total_display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $metrics['pending_count'] }} {{ \Illuminate\Support\Str::plural('payout', $metrics['pending_count']) }}</div>
+                    <div class="vy-kpi-sub">{{ trans_choice('livewire/owner/payouts.payout_count', $metrics['pending_count'], ['count' => $metrics['pending_count']]) }}</div>
                 </div>
             </div>
 
@@ -194,14 +198,18 @@
             <section class="vy-card vy-fade" style="animation-delay:.06s" x-data="{ q: '', status: 'all' }">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:10px">
                     <div>
-                        <h2 class="vy-card-title">Payout history</h2>
+                        <h2 class="vy-card-title">{{ __('livewire/owner/payouts.history_title') }}</h2>
                         {{-- The wireframe's summary line under the title. ⚠️ It REUSES the figures the KPI tiles
                              already show ($metrics) — it does NOT re-sum the rows, which would be a second money
                              computation of the same total (the anti-drift rule). Omitted entirely when there is
                              nothing paid and nothing pending, rather than printing a pair of zeros. --}}
                         @if ($metrics['paid_count'] > 0 || $metrics['pending_count'] > 0)
                             <div class="vy-line-sub" style="margin-top:4px">
-                                {{ $metrics['paid_this_year_display'] }} paid across {{ $metrics['paid_count'] }} {{ \Illuminate\Support\Str::plural('payout', $metrics['paid_count']) }}@if ($metrics['pending_count'] > 0) · {{ $metrics['pending_total_display'] }} pending @endif
+                                @if ($metrics['pending_count'] > 0)
+                                    {{ trans_choice('livewire/owner/payouts.history_summary_pending', $metrics['paid_count'], ['count' => $metrics['paid_count'], 'paid' => $metrics['paid_this_year_display'], 'pending' => $metrics['pending_total_display']]) }}
+                                @else
+                                    {{ trans_choice('livewire/owner/payouts.history_summary', $metrics['paid_count'], ['count' => $metrics['paid_count'], 'paid' => $metrics['paid_this_year_display']]) }}
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -213,28 +221,28 @@
                         @if (count($years) > 1)
                             <span style="display:inline-flex;gap:4px">
                                 <a href="{{ route('owner.payouts') }}"
-                                   style="font-size:12px;padding:5px 11px;border-radius:999px;text-decoration:none;{{ $activeYear === null ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-glass-border)' }}">All</a>
+                                   style="font-size:12px;padding:5px 11px;border-radius:999px;text-decoration:none;{{ $activeYear === null ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-glass-border)' }}">{{ __('common.all') }}</a>
                                 @foreach ($years as $y)
                                     <a href="{{ route('owner.payouts', ['year' => $y]) }}"
                                        style="font-size:12px;padding:5px 11px;border-radius:999px;text-decoration:none;{{ $activeYear === $y ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-glass-border)' }}">{{ $y }}</a>
                                 @endforeach
                             </span>
                         @endif
-                        <input type="search" x-model="q" placeholder="Search month or status" aria-label="Search payouts"
+                        <input type="search" x-model="q" placeholder="{{ __('livewire/owner/payouts.search_placeholder') }}" aria-label="{{ __('livewire/owner/payouts.search_label') }}"
                                style="padding:8px 12px;border-radius:var(--vy-r-sm);border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.6);font-size:13px;font-family:var(--vy-sans)">
                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                            <a class="vy-btn vy-btn--ghost" href="{{ route('owner.payouts.export') }}" title="Export your payout history as CSV">
+                            <a class="vy-btn vy-btn--ghost" href="{{ route('owner.payouts.export') }}" title="{{ __('livewire/owner/payouts.export_title') }}">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                                Export
+                                {{ __('common.export') }}
                             </a>
                         @endownercan
                     </div>
                 </div>
 
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-                    <button type="button" class="vy-pill" :class="{ 'is-active': status === 'all' }" @click="status = 'all'">All</button>
+                    <button type="button" class="vy-pill" :class="{ 'is-active': status === 'all' }" @click="status = 'all'">{{ __('common.all') }}</button>
                     @foreach ($statuses as $st)
-                        <button type="button" class="vy-pill" :class="{ 'is-active': status === '{{ $st }}' }" @click="status = '{{ $st }}'">{{ ucfirst($st) }}</button>
+                        <button type="button" class="vy-pill" :class="{ 'is-active': status === '{{ $st }}' }" @click="status = '{{ $st }}'">{{ $statusLabels[$st] ?? ucfirst($st) }}</button>
                     @endforeach
                 </div>
 
@@ -242,12 +250,12 @@
                     <table class="vy-table">
                         <thead>
                             <tr>
-                                <th>Month</th>
-                                <th>Rail</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th class="vy-num">Amount</th>
-                                <th aria-label="Links"></th>
+                                <th>{{ __('livewire/owner/payouts.col_month') }}</th>
+                                <th>{{ __('livewire/owner/payouts.col_rail') }}</th>
+                                <th>{{ __('common.date') }}</th>
+                                <th>{{ __('common.status') }}</th>
+                                <th class="vy-num">{{ __('livewire/owner/payouts.col_amount') }}</th>
+                                <th aria-label="{{ __('livewire/owner/payouts.col_links') }}"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -260,15 +268,15 @@
                                     <td class="vy-num vy-mono">{{ $p['amount_display'] }}</td>
                                     <td class="vy-num" style="white-space:nowrap">
                                         @if ($p['statement_id'])
-                                            <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Statement</a>
+                                            <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">{{ __('livewire/owner/payouts.statement_link') }}</a>
                                         @endif
                                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                                            <a href="{{ route('owner.payouts.remittance', $p['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:8px;padding:5px 10px;font-size:12px" title="Download the remittance advice for this payout as a PDF">Remittance</a>
+                                            <a href="{{ route('owner.payouts.remittance', $p['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:8px;padding:5px 10px;font-size:12px" title="{{ __('livewire/owner/payouts.remittance_title') }}">{{ __('livewire/owner/payouts.remittance_link') }}</a>
                                         @endownercan
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6"><div class="vy-empty">No payouts yet.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">{{ __('livewire/owner/payouts.history_empty') }}</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -281,14 +289,14 @@
             {{-- Next payout — REAL amount + status + masked IBAN (CAP_PAYOUT) + lifecycle (real states) + breakdown --}}
             @if ($nextPayout)
                 <section class="vy-card vy-card--dark vy-fade" style="animation-delay:.05s">
-                    <span class="vy-eyebrow">Next payout @if ($nextPayout['period_label'])· {{ $nextPayout['period_label'] }}@endif</span>
+                    <span class="vy-eyebrow">@if ($nextPayout['period_label']){{ __('livewire/owner/payouts.next_payout_period', ['period' => $nextPayout['period_label']]) }}@else{{ __('livewire/owner/payouts.next_payout') }}@endif</span>
                     <div class="vy-dark-figure" data-countup="{{ $nextPayout['amount_minor'] }}" data-symbol="{{ $nextPayout['currency_symbol'] }}">{{ $nextPayout['amount_display'] }}</div>
                     <span class="vy-status vy-status--{{ $nextPayout['status_meta']['tone'] }}" style="margin-top:6px"><span class="vy-dot"></span>{{ $nextPayout['status_meta']['label'] }} · {{ $nextPayout['rail_label'] }}</span>
                     @if ($payoutAccount['iban_masked'])
                         <div style="margin-top:12px">
                             <span class="vy-ov-iban">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3 3 7v3h18V7zM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
-                                IBAN {{ $payoutAccount['iban_masked'] }}
+                                {{ __('livewire/owner/payouts.iban_masked', ['iban' => $payoutAccount['iban_masked']]) }}
                             </span>
                         </div>
                     @endif
@@ -315,22 +323,22 @@
                     @endif
 
                     @if ($nextPayout['statement_id'])
-                        <a href="{{ route('owner.statements.show', $nextPayout['statement_id']) }}" style="display:inline-block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--vy-peach)">View statement →</a>
+                        <a href="{{ route('owner.statements.show', $nextPayout['statement_id']) }}" style="display:inline-block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--vy-peach)">{{ __('livewire/owner/payouts.view_statement') }}</a>
                     @endif
                 </section>
             @else
                 <section class="vy-card vy-card--dark vy-fade" style="animation-delay:.05s">
-                    <span class="vy-eyebrow">Next payout</span>
-                    <div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,.7)">No payouts yet. Your first payout appears once a statement is finalized.</div>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/payouts.next_payout') }}</span>
+                    <div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,.7)">{{ __('livewire/owner/payouts.next_payout_empty') }}</div>
                 </section>
             @endif
 
             {{-- Payout account — REAL default bank account (masked IBAN #28, CAP_PAYOUT only). Honest empty otherwise. --}}
             <section class="vy-card vy-fade" style="animation-delay:.09s">
                 <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span class="vy-eyebrow">Payout account</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/payouts.payout_account') }}</span>
                     @if ($payoutAccount['can_manage'])
-                        <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent-text)">Manage</a>
+                        <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent-text)">{{ __('livewire/owner/payouts.manage') }}</a>
                     @endif
                 </div>
                 @if ($payoutAccount['has_method'])
@@ -338,35 +346,35 @@
                         <span class="vy-po-acct-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3 3 7v3h18V7zM6 10v8M10 10v8M14 10v8M18 10v8"/></svg></span>
                         <div>
                             <div class="vy-po-acct-name">{{ $payoutAccount['label'] }}</div>
-                            <div class="vy-po-acct-sub">@if ($payoutAccount['iban_masked'])IBAN {{ $payoutAccount['iban_masked'] }}@endif@if ($payoutAccount['country']) · {{ $payoutAccount['country'] }}@endif</div>
+                            <div class="vy-po-acct-sub">@if ($payoutAccount['iban_masked']){{ __('livewire/owner/payouts.iban_masked', ['iban' => $payoutAccount['iban_masked']]) }}@endif@if ($payoutAccount['country']) · {{ $payoutAccount['country'] }}@endif</div>
                         </div>
                     </div>
                 @elseif ($payoutAccount['can_manage'])
-                    <div class="vy-line-sub" style="margin-top:8px">No bank account yet. <a href="{{ route('owner.payout-method') }}" style="color:var(--vy-accent-text);font-weight:600">Add one →</a></div>
+                    <div class="vy-line-sub" style="margin-top:8px">{!! __('livewire/owner/payouts.no_bank_account', ['url' => e(route('owner.payout-method'))]) !!}</div>
                 @else
-                    <div style="font-size:13.5px;font-weight:500;margin-top:8px">Bank transfer</div>
-                    <div class="vy-line-sub">Managed by the account owner.</div>
+                    <div style="font-size:13.5px;font-weight:500;margin-top:8px">{{ __('livewire/owner/payouts.bank_transfer') }}</div>
+                    <div class="vy-line-sub">{{ __('livewire/owner/payouts.managed_by_owner') }}</div>
                 @endif
             </section>
 
             {{-- Upcoming schedule — REAL: the automated engine's next run date for THIS owner, from their own
                  preferences via the shared PayoutSchedule (never a fabricated date, #39). TEST-MODE-labelled. --}}
             <section class="vy-card vy-fade" style="animation-delay:.12s">
-                <span class="vy-eyebrow">Next scheduled payout</span>
+                <span class="vy-eyebrow">{{ __('livewire/owner/payouts.next_scheduled') }}</span>
                 <div style="margin-top:10px">
                     @if ($schedule['paused'])
                         <div class="vy-deferred">
-                            <span class="vy-eyebrow">Paused</span>
-                            Automated payouts are paused in your preferences below. Resume them to schedule your next payout.
+                            <span class="vy-eyebrow">{{ __('livewire/owner/payouts.paused') }}</span>
+                            {{ __('livewire/owner/payouts.schedule_paused') }}
                         </div>
                     @else
                         <div style="font-size:22px;font-weight:700;color:var(--vy-ink);letter-spacing:-.01em">{{ $schedule['next_date'] }}</div>
                         <div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px">
-                            {{ $schedule['frequency_label'] }} · runs automatically on the next payout day.
+                            {{ __('livewire/owner/payouts.schedule_runs', ['frequency' => $schedule['frequency_label']]) }}
                         </div>
                         @unless ($schedule['engine_enabled'])
                             <div style="font-size:11.5px;color:var(--vy-muted);margin-top:8px">
-                                The automated engine is not yet switched on — this is the date it will use once enabled.
+                                {{ __('livewire/owner/payouts.engine_off') }}
                             </div>
                         @endunless
                     @endif
@@ -379,15 +387,15 @@
                 {{-- The wireframe carries a state pill beside this heading. It reflects the owner's REAL
                      stored pause preference — nothing else. --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                    <span class="vy-eyebrow">Payout preferences</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/payouts.preferences_title') }}</span>
                     <span class="vy-status vy-status--{{ $preferences['paused'] ? 'pending' : 'paid' }}" style="text-transform:none;letter-spacing:0">
-                        <span class="vy-dot"></span>{{ $preferences['paused'] ? 'Paused' : 'Active' }}
+                        <span class="vy-dot"></span>{{ $preferences['paused'] ? __('livewire/owner/payouts.paused') : __('livewire/owner/payouts.active') }}
                     </span>
                 </div>
                 @if ($preferences['can_manage'])
                     <form method="POST" action="{{ route('owner.payouts.preferences') }}" style="margin-top:6px">
                         @csrf
-                        <div class="vy-po-pref-label">Frequency</div>
+                        <div class="vy-po-pref-label">{{ __('livewire/owner/payouts.frequency') }}</div>
                         <div class="vy-po-seg">
                             {{-- WAVE 2 · #3 — ONE canonical list. These two pickers hardcoded their own arrays and had drifted:
                                  this one said "Every 2 weeks" (26 runs/yr) where the other said "Twice monthly", while
@@ -397,55 +405,55 @@
                             @endforeach
                         </div>
 
-                        <div class="vy-po-pref-label">Payout day <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">(business day of month)</span></div>
+                        <div class="vy-po-pref-label">{!! __('livewire/owner/payouts.payout_day_hint') !!}</div>
                         <div class="vy-po-seg">
-                            @foreach ([1 => '1st', 2 => '2nd', 3 => '3rd', 4 => '4th', 5 => '5th'] as $val => $label)
+                            @foreach ([1 => __('livewire/owner/payouts.day_1st'), 2 => __('livewire/owner/payouts.day_2nd'), 3 => __('livewire/owner/payouts.day_3rd'), 4 => __('livewire/owner/payouts.day_4th'), 5 => __('livewire/owner/payouts.day_5th')] as $val => $label)
                                 <label class="vy-po-seg-opt"><input type="radio" name="payout_day" value="{{ $val }}" @checked($preferences['payout_day'] === $val)><span>{{ $label }}</span></label>
                             @endforeach
                         </div>
 
-                        <div class="vy-po-pref-label">Minimum payout</div>
+                        <div class="vy-po-pref-label">{{ __('livewire/owner/payouts.minimum_payout') }}</div>
                         <div class="vy-po-seg">
-                            @foreach (['0' => 'None', '500' => $currencySymbol.'500', '1000' => $currencySymbol.'1k', '2500' => $currencySymbol.'2.5k'] as $val => $label)
+                            @foreach (['0' => __('livewire/owner/payouts.minimum_none'), '500' => $currencySymbol.'500', '1000' => $currencySymbol.'1k', '2500' => $currencySymbol.'2.5k'] as $val => $label)
                                 <label class="vy-po-seg-opt"><input type="radio" name="minimum" value="{{ $val }}" @checked($preferences['minimum_minor'] === (int) $val * 100)><span>{{ $label }}</span></label>
                             @endforeach
                         </div>
 
-                        <div class="vy-po-pref-label">Payout currency</div>
-                        <div class="vy-po-pref-ro" style="border:none;padding-top:0"><span style="color:var(--vy-muted)">Set by your settlement region</span><span class="v vy-mono">{{ $currency }}</span></div>
+                        <div class="vy-po-pref-label">{{ __('livewire/owner/payouts.payout_currency') }}</div>
+                        <div class="vy-po-pref-ro" style="border:none;padding-top:0"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.currency_set_by_region') }}</span><span class="v vy-mono">{{ $currency }}</span></div>
 
                         <div class="vy-po-toggle-row">
                             <div>
-                                <div style="font-size:13px;font-weight:500">Pause payouts</div>
-                                <div class="vy-line-sub">Hold funds in your Vyrobel balance</div>
+                                <div style="font-size:13px;font-weight:500">{{ __('livewire/owner/payouts.pause_payouts') }}</div>
+                                <div class="vy-line-sub">{{ __('livewire/owner/payouts.pause_payouts_hint') }}</div>
                             </div>
                             <label class="vy-po-switch"><input type="checkbox" name="paused" value="1" @checked($preferences['paused'])><span></span></label>
                         </div>
 
                         <div class="vy-po-pref-note">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-                            <span>Your stated preference. The actual payout date + release are confirmed with your operator and the payout rail.</span>
+                            <span>{{ __('livewire/owner/payouts.preference_note') }}</span>
                         </div>
 
                         {{-- ⚠️ RE-AUTH: pausing stops your payouts entirely, and a high minimum is a pause by another name. --}}
                         <div class="vy-field" style="margin:14px 0 0">
-                            <label class="vy-field-label" for="payouts_prefs_pw">Confirm with your password</label>
+                            <label class="vy-field-label" for="payouts_prefs_pw">{{ __('livewire/owner/payouts.confirm_password') }}</label>
                             <input id="payouts_prefs_pw" type="password" name="current_password" class="vy-input"
-                                   autocomplete="current-password" required aria-label="Current password">
+                                   autocomplete="current-password" required aria-label="{{ __('livewire/owner/payouts.current_password') }}">
                             @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                         </div>
-                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:14px">Save preferences</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:14px">{{ __('livewire/owner/payouts.save_preferences') }}</button>
                     </form>
                 @else
                     {{-- Read-only for a non-payout role (accountant / view-only): the values, not the editor. --}}
                     <div style="margin-top:8px">
-                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">Frequency</span><span class="v">{{ $preferences['frequency_label'] }}</span></div>
-                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">Payout day</span><span class="v">{{ $preferences['payout_day'] }} business day</span></div>
-                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">Minimum payout</span><span class="v">{{ $preferences['minimum_display'] }}</span></div>
-                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">Payout currency</span><span class="v vy-mono">{{ $currency }}</span></div>
-                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">Payouts</span><span class="v">{{ $preferences['paused'] ? 'Paused' : 'Active' }}</span></div>
+                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.frequency') }}</span><span class="v">{{ $preferences['frequency_label'] }}</span></div>
+                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.payout_day') }}</span><span class="v">{{ __('livewire/owner/payouts.payout_day_value', ['day' => $preferences['payout_day']]) }}</span></div>
+                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.minimum_payout') }}</span><span class="v">{{ $preferences['minimum_display'] }}</span></div>
+                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.payout_currency') }}</span><span class="v vy-mono">{{ $currency }}</span></div>
+                        <div class="vy-po-pref-ro"><span style="color:var(--vy-muted)">{{ __('livewire/owner/payouts.payouts_state') }}</span><span class="v">{{ $preferences['paused'] ? __('livewire/owner/payouts.paused') : __('livewire/owner/payouts.active') }}</span></div>
                     </div>
-                    <div class="vy-po-pref-note">Managed by the account owner.</div>
+                    <div class="vy-po-pref-note">{{ __('livewire/owner/payouts.managed_by_owner') }}</div>
                 @endif
             </section>
         </div>

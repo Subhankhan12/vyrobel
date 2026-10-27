@@ -93,9 +93,18 @@ trait FormatsOwnerData
     protected function viewer(): array
     {
         $user = auth()->user();
-        $name = $user instanceof User ? (string) $user->name : 'Owner';
+        $name = $user instanceof User ? (string) $user->name : (string) __('php/livewire/owner/concerns/formats_owner_data.viewer_fallback');
 
         return ['name' => $name, 'initials' => $this->initials($name)];
+    }
+
+    /**
+     * Whether {@see viewer()}'s name is a real person's name rather than the "Owner" fallback (no signed-in user).
+     * A greeting asks this instead of comparing the name to the fallback word, which is translated (I18N-01).
+     */
+    protected function viewerHasName(): bool
+    {
+        return auth()->user() instanceof User;
     }
 
     protected function initials(string $name): string
@@ -120,9 +129,9 @@ trait FormatsOwnerData
     protected function statusMeta(string $status): array
     {
         return match ($status) {
-            'paid' => ['label' => 'Paid', 'tone' => 'paid'],
-            'finalized' => ['label' => 'Payout pending', 'tone' => 'pending'],
-            default => ['label' => 'Draft', 'tone' => 'draft'],
+            'paid' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.statement_paid'), 'tone' => 'paid'],
+            'finalized' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.statement_finalized'), 'tone' => 'pending'],
+            default => ['label' => __('php/livewire/owner/concerns/formats_owner_data.statement_draft'), 'tone' => 'draft'],
         };
     }
 
@@ -151,12 +160,12 @@ trait FormatsOwnerData
     protected function payoutStatusMeta(string $status): array
     {
         return match ($status) {
-            'paid' => ['label' => 'Paid', 'tone' => 'paid'],
-            'processing' => ['label' => 'In transit', 'tone' => 'pending'],
-            'held' => ['label' => 'On hold', 'tone' => 'pending'],
-            'failed' => ['label' => 'Payout failed', 'tone' => 'pending'],
-            'reversed' => ['label' => 'Reversed', 'tone' => 'draft'],
-            default => ['label' => 'Payout pending', 'tone' => 'pending'],
+            'paid' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_paid'), 'tone' => 'paid'],
+            'processing' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_processing'), 'tone' => 'pending'],
+            'held' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_held'), 'tone' => 'pending'],
+            'failed' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_failed'), 'tone' => 'pending'],
+            'reversed' => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_reversed'), 'tone' => 'draft'],
+            default => ['label' => __('php/livewire/owner/concerns/formats_owner_data.payout_pending'), 'tone' => 'pending'],
         };
     }
 

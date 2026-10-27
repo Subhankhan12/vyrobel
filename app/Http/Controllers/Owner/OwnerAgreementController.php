@@ -45,6 +45,6 @@ class OwnerAgreementController extends Controller
 
         $service->acknowledge($model, $actor);
 
-        return back()->with('owner_notice', 'Amendment acknowledged — it takes effect on '.$model->effective_date->format('j M Y').'.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_agreement_controller.amendment_acknowledged', ['date' => $model->effective_date->translatedFormat('j M Y')]));
     }
 }

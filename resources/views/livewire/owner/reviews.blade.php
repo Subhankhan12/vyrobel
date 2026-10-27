@@ -6,7 +6,7 @@
      pending state = "Awaiting a reply" (real, not a fabricated "being drafted"); the OTA review INGEST + the
      Airbnb/Booking.com brand split are account-gated; NO fabricated SLA. By-category = GATE 2 (category ratings).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-owner.shell active="reviews" :title="'Reviews & reputation'" :subtitle="'What guests are saying across your villas — '.$agency.' replies for you.'" :viewer="$viewer">
+<x-owner.shell active="reviews" :title="__('livewire/owner/reviews.title')" :subtitle="__('livewire/owner/reviews.subtitle', ['agency' => $agency])" :viewer="$viewer">
     <style>
         .vy-rv-grid { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; }
         .vy-rv-left { flex:999 1 360px; min-width:0; display:flex; flex-direction:column; gap:20px; }
@@ -40,7 +40,7 @@
 
     @if (! $summary['has_reviews'])
         <section class="vy-card vy-fade" style="padding:40px;text-align:center;color:var(--vy-muted);font-size:14px">
-            No reviews yet for your units. As guests review their completed stays, your rating and your team’s replies appear here.
+            {{ __('livewire/owner/reviews.empty_state') }}
         </section>
     @else
     <div class="vy-rv-grid" x-data="{ filter: 'all', rows: {{ \Illuminate\Support\Js::from(collect($reviewsJson)->pluck('unit_key')) }}, get shown() { return this.filter === 'all' ? this.rows.length : this.rows.filter(k => k === this.filter).length; } }">
@@ -51,38 +51,38 @@
             {{-- Hero KPIs --}}
             <div class="vy-rv-kpis">
                 <div class="vy-card vy-fade" style="padding:18px 20px;animation-delay:.12s">
-                    <div class="vy-eyebrow">Overall rating</div>
+                    <div class="vy-eyebrow">{{ __('livewire/owner/reviews.overall_rating') }}</div>
                     <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                         <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ number_format((float) $summary['average'], 1) }}</span>
                         <x-star-rating :value="$summary['average']" size="16px" gap="2px" />
                     </div>
-                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $summary['count'] }} {{ \Illuminate\Support\Str::plural('review', $summary['count']) }} · all villas</div>
+                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ trans_choice('livewire/owner/reviews.reviews_all_villas', $summary['count'], ['count' => $summary['count']]) }}</div>
                 </div>
                 <div class="vy-card vy-fade" style="padding:18px 20px;animation-delay:.18s">
-                    <div class="vy-eyebrow">Response rate</div>
+                    <div class="vy-eyebrow">{{ __('livewire/owner/reviews.response_rate') }}</div>
                     <div style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:8px">{{ $summary['response_rate'] }}%</div>
-                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $summary['avg_response_hours'] !== null ? 'replies within ~'.$summary['avg_response_hours'].' '.\Illuminate\Support\Str::plural('hour', $summary['avg_response_hours']) : $summary['responded'].' of '.$summary['count'].' replied' }}</div>
+                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $summary['avg_response_hours'] !== null ? trans_choice('livewire/owner/reviews.replies_within', $summary['avg_response_hours'], ['count' => $summary['avg_response_hours']]) : __('livewire/owner/reviews.replied_of', ['responded' => $summary['responded'], 'total' => $summary['count']]) }}</div>
                 </div>
                 <div class="vy-card vy-fade" style="padding:18px 20px;animation-delay:.24s">
-                    <div class="vy-eyebrow">Last 30 days</div>
+                    <div class="vy-eyebrow">{{ __('livewire/owner/reviews.last_30_days') }}</div>
                     <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                         <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ $summary['last30_count'] }}</span>
                         @if ($summary['last30_average'] !== null)
-                            <span class="vy-rv-chip" style="background:rgba(79,122,70,.13);color:#3F6A38">avg {{ number_format((float) $summary['last30_average'], 1) }}</span>
+                            <span class="vy-rv-chip" style="background:rgba(79,122,70,.13);color:#3F6A38">{{ __('livewire/owner/reviews.last_30_avg', ['rating' => number_format((float) $summary['last30_average'], 1)]) }}</span>
                         @endif
                     </div>
-                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">new {{ \Illuminate\Support\Str::plural('review', $summary['last30_count']) }}</div>
+                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ trans_choice('livewire/owner/reviews.new_reviews', $summary['last30_count']) }}</div>
                 </div>
             </div>
 
             {{-- By villa --}}
             <section class="vy-card vy-fade" style="padding:22px;animation-delay:.28s">
-                <h2 class="vy-card-title" style="margin-bottom:14px">By villa</h2>
+                <h2 class="vy-card-title" style="margin-bottom:14px">{{ __('livewire/owner/reviews.by_villa') }}</h2>
                 @foreach ($summary['by_villa'] as $v)
                     <div class="vy-rv-villa">
                         <div>
                             <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $v['name'] }}</div>
-                            <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">{{ $v['count'] }} {{ \Illuminate\Support\Str::plural('review', $v['count']) }}</div>
+                            <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">{{ trans_choice('livewire/owner/reviews.villa_reviews', $v['count'], ['count' => $v['count']]) }}</div>
                         </div>
                         <div class="vy-rv-bar"><span style="width:{{ $v['pct'] }}%"></span></div>
                         <div style="display:flex;align-items:baseline;gap:6px;justify-content:flex-end">
@@ -90,7 +90,7 @@
                             <span aria-hidden="true" style="color:var(--vy-star);font-size:13px">★</span>
                         </div>
                         <div style="text-align:right">
-                            <span class="vy-rv-chip" style="{{ $v['direction'] === 'up' ? 'background:rgba(79,122,70,.13);color:#3F6A38' : ($v['direction'] === 'down' ? 'background:rgba(224,146,30,.14);color:#93610C' : 'background:rgba(120,70,40,.08);color:var(--vy-muted)') }}">{{ $v['trend'] }}</span>
+                            <span class="vy-rv-chip" style="{{ $v['direction'] === 'up' ? 'background:rgba(79,122,70,.13);color:#3F6A38' : ($v['direction'] === 'down' ? 'background:rgba(224,146,30,.14);color:#93610C' : 'background:rgba(120,70,40,.08);color:var(--vy-muted)') }}">{{ $v['direction'] === 'steady' ? __('livewire/owner/reviews.trend_steady') : $v['trend'] }}</span>
                         </div>
                     </div>
                 @endforeach
@@ -100,11 +100,11 @@
             <section class="vy-card vy-fade" style="padding:22px;animation-delay:.34s">
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap">
                     <div>
-                        <h2 class="vy-card-title" style="margin:0">Recent reviews</h2>
-                        <div style="font-size:12.5px;color:var(--vy-faint);margin-top:3px"><span x-text="shown"></span> shown · newest first</div>
+                        <h2 class="vy-card-title" style="margin:0">{{ __('livewire/owner/reviews.recent_reviews') }}</h2>
+                        <div style="font-size:12.5px;color:var(--vy-faint);margin-top:3px">{!! __('livewire/owner/reviews.shown_newest_first') !!}</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                        <button type="button" class="vy-rv-filt" :class="filter === 'all' ? 'is-on' : ''" @click="filter = 'all'">All villas</button>
+                        <button type="button" class="vy-rv-filt" :class="filter === 'all' ? 'is-on' : ''" @click="filter = 'all'">{{ __('livewire/owner/reviews.all_villas') }}</button>
                         @foreach ($summary['by_villa'] as $v)
                             <button type="button" class="vy-rv-filt" :class="filter === @js($v['unit_id']) ? 'is-on' : ''" @click="filter = @js($v['unit_id'])">{{ \Illuminate\Support\Str::of($v['name'])->afterLast(' ')->value() ?: $v['name'] }}</button>
                         @endforeach
@@ -120,7 +120,7 @@
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
                                         <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                                             <span style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $r['byline'] }}</span>
-                                            <span role="img" aria-label="{{ $r['rating'] }} out of 5 stars"><span aria-hidden="true" style="color:var(--vy-star);font-size:13px;letter-spacing:1.5px">{{ $r['stars_on'] }}</span><span aria-hidden="true" style="color:#7A6E64;font-size:13px;letter-spacing:1.5px;margin-left:-6px">{{ $r['stars_off'] }}</span></span>
+                                            <span role="img" aria-label="{{ __('livewire/owner/reviews.stars_aria', ['rating' => $r['rating']]) }}"><span aria-hidden="true" style="color:var(--vy-star);font-size:13px;letter-spacing:1.5px">{{ $r['stars_on'] }}</span><span aria-hidden="true" style="color:#7A6E64;font-size:13px;letter-spacing:1.5px;margin-left:-6px">{{ $r['stars_off'] }}</span></span>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:8px">
                                             @php $sc = $srcColor($r['source_key']); @endphp
@@ -137,11 +137,11 @@
                                     @endif
                                     @if ($r['response'] !== '')
                                         <div class="vy-rv-reply">
-                                            <div style="font-size:11px;font-weight:600;color:#B4400F;margin-bottom:4px">{{ $agency }} replied</div>
+                                            <div style="font-size:11px;font-weight:600;color:#B4400F;margin-bottom:4px">{{ __('livewire/owner/reviews.agency_replied', ['agency' => $agency]) }}</div>
                                             <div style="font-size:12.5px;color:#6E5C50;line-height:1.5">{{ $r['response'] }}</div>
                                         </div>
                                     @elseif ($r['pending'])
-                                        <div class="vy-rv-pending"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3 2"/></svg>Awaiting a reply from your team</div>
+                                        <div class="vy-rv-pending"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3 2"/></svg>{{ __('livewire/owner/reviews.awaiting_reply') }}</div>
                                     @endif
                                 </div>
                             </div>
@@ -156,7 +156,7 @@
 
             {{-- Rating breakdown --}}
             <section class="vy-card vy-fade" style="padding:22px;animation-delay:.18s">
-                <h2 class="vy-card-title" style="margin-bottom:15px">Rating breakdown</h2>
+                <h2 class="vy-card-title" style="margin-bottom:15px">{{ __('livewire/owner/reviews.rating_breakdown') }}</h2>
                 <div style="display:flex;flex-direction:column;gap:10px">
                     @foreach ($summary['distribution'] as $d)
                         <div class="vy-rv-dist">
@@ -172,12 +172,12 @@
                  (never a fabricated score). The softest category links the REAL Wave-C rate-proposals (owner.rates). --}}
             @if (count($summary['categories']) > 0)
                 <section class="vy-card vy-fade" style="padding:22px;animation-delay:.24s">
-                    <h2 class="vy-card-title" style="margin-bottom:15px">By category</h2>
+                    <h2 class="vy-card-title" style="margin-bottom:15px">{{ __('livewire/owner/reviews.by_category') }}</h2>
                     <div style="display:flex;flex-direction:column;gap:13px">
                         @foreach ($summary['categories'] as $c)
                             <div>
                                 <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
-                                    <span style="font-size:12.5px;font-weight:500;color:var(--vy-ink)">{{ $c['label'] }}</span>
+                                    <span style="font-size:12.5px;font-weight:500;color:var(--vy-ink)">{{ $categoryLabels[$c['key']] ?? $c['label'] }}</span>
                                     <span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ number_format((float) $c['score'], 1) }}</span>
                                 </div>
                                 <div class="vy-rv-bar" style="height:7px"><span style="width:{{ $c['pct'] }}%"></span></div>
@@ -192,7 +192,7 @@
                              is operator-authored with no review input. `softest_label` is genuinely derived, so
                              it stays; the invented cause-and-effect around it does not. The Rates link stays as
                              an ACTION the owner may take, never as a claim about what is already happening. --}}
-                        <div style="font-size:11.5px;color:var(--vy-faint);line-height:1.5;margin-top:14px">{{ $summary['softest_label'] }} is your softest score. Your rates are yours to set — <a href="{{ route('owner.rates') }}" style="color:var(--vy-accent);text-decoration:none;font-weight:500">open your Rates</a> if you want to act on it.</div>
+                        <div style="font-size:11.5px;color:var(--vy-faint);line-height:1.5;margin-top:14px">{!! __('livewire/owner/reviews.softest_score', ['category' => e(($softestKey !== null ? ($categoryLabels[$softestKey] ?? null) : null) ?? $summary['softest_label']), 'url' => e(route('owner.rates'))]) !!}</div>
                     @endif
                 </section>
             @endif
@@ -200,8 +200,8 @@
             {{-- Handled for you — HONEST: real responses; OTA review INGEST + brand split account-gated; no fake SLA --}}
             <section class="vy-fade" style="background:linear-gradient(150deg,rgba(43,35,32,.92),rgba(60,40,30,.9));border-radius:20px;box-shadow:0 14px 40px rgba(60,30,10,.28),inset 0 1px 0 rgba(255,255,255,.12);padding:22px;color:#F3E7DD;animation-delay:.3s">
                 <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-bottom:13px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F7D9C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg></div>
-                <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;margin-bottom:8px">Handled for you</div>
-                <div style="font-size:12.5px;line-height:1.6;color:#D6C4B8">{{ $agency }} replies to your published reviews — {{ $summary['response_rate'] }}% responded{{ $summary['avg_response_hours'] !== null ? ', on average within ~'.$summary['avg_response_hours'].' '.\Illuminate\Support\Str::plural('hour', $summary['avg_response_hours']) : '' }}. Direct-stay reviews appear here automatically; Airbnb &amp; Booking.com review sync activates once those channels are connected.</div>
+                <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;margin-bottom:8px">{{ __('livewire/owner/reviews.handled_for_you') }}</div>
+                <div style="font-size:12.5px;line-height:1.6;color:#D6C4B8">{{ $summary['avg_response_hours'] !== null ? trans_choice('livewire/owner/reviews.handled_body_hours', $summary['avg_response_hours'], ['count' => $summary['avg_response_hours'], 'agency' => $agency, 'response_rate' => $summary['response_rate']]) : __('livewire/owner/reviews.handled_body', ['agency' => $agency, 'response_rate' => $summary['response_rate']]) }}</div>
             </section>
         </div>
     </div>

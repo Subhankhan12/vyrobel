@@ -145,7 +145,7 @@ class OwnerAgreement extends Component
         $id = app(TenantContext::class)->id();
         $name = $id === null ? null : Organization::query()->whereKey($id)->value('name');
 
-        return is_string($name) && $name !== '' ? $name : 'your operator';
+        return is_string($name) && $name !== '' ? $name : __('php/livewire/owner/owner_agreement.your_operator');
     }
 
     /**
@@ -188,9 +188,9 @@ class OwnerAgreement extends Component
             'version' => (string) $amendment->version,
             'title' => (string) $amendment->title,
             'summary' => $amendment->summary !== null ? (string) $amendment->summary : null,
-            'effective_display' => $amendment->effective_date->format('j M Y'),
+            'effective_display' => $amendment->effective_date->translatedFormat('j M Y'),
             'acknowledged_by' => $ack?->acknowledgedBy?->name,
-            'acknowledged_display' => $ack?->acknowledged_at?->format('j M Y'),
+            'acknowledged_display' => $ack?->acknowledged_at?->translatedFormat('j M Y'),
             'changes' => $this->amendmentChanges(is_array($amendment->new_terms) ? $amendment->new_terms : []),
         ];
     }
@@ -206,19 +206,19 @@ class OwnerAgreement extends Component
         $rows = [];
 
         if (isset($terms['commission_pct'])) {
-            $rows[] = ['label' => 'Management fee', 'value' => $this->pct((float) $terms['commission_pct']).' of booking revenue'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.management_fee'), 'value' => __('php/livewire/owner/owner_agreement.rate_of_booking_revenue', ['rate' => $this->pct((float) $terms['commission_pct'])])];
         }
         if (isset($terms['payout_schedule'])) {
             $label = $this->intervalLabel($terms['payout_schedule']);
             if ($label !== null) {
-                $rows[] = ['label' => 'Payout schedule', 'value' => $label];
+                $rows[] = ['label' => __('php/livewire/owner/owner_agreement.payout_schedule'), 'value' => $label];
             }
         }
         if (isset($terms['term_months'])) {
-            $rows[] = ['label' => 'Term', 'value' => ((int) $terms['term_months']).' months'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.term'), 'value' => trans_choice('php/livewire/owner/owner_agreement.months', (int) $terms['term_months'], ['count' => (int) $terms['term_months']])];
         }
         if (isset($terms['notice_days'])) {
-            $rows[] = ['label' => 'Notice period', 'value' => ((int) $terms['notice_days']).' days'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.notice_period'), 'value' => trans_choice('php/livewire/owner/owner_agreement.days', (int) $terms['notice_days'], ['count' => (int) $terms['notice_days']])];
         }
 
         return $rows;
@@ -236,12 +236,12 @@ class OwnerAgreement extends Component
     private function feeCovers(array $ownerIds, ManagementAgreement $primary): array
     {
         $included = [
-            'Listing & channel distribution',
-            'Guest communications & support',
-            'Housekeeping coordination',
-            'Pricing & revenue management',
-            'Statements & payouts',
-            'Damage & incident handling',
+            __('php/livewire/owner/owner_agreement.included_listing'),
+            __('php/livewire/owner/owner_agreement.included_guest_comms'),
+            __('php/livewire/owner/owner_agreement.included_housekeeping'),
+            __('php/livewire/owner/owner_agreement.included_pricing'),
+            __('php/livewire/owner/owner_agreement.included_statements'),
+            __('php/livewire/owner/owner_agreement.included_damage'),
         ];
 
         // REAL at-cost add-ons = the distinct categories of deductible expenses actually charged to this
@@ -273,23 +273,23 @@ class OwnerAgreement extends Component
 
         $schedule = $this->intervalLabel($a->payout_schedule);
         if ($schedule !== null) {
-            $rows[] = ['label' => 'Payout schedule', 'value' => $schedule];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.payout_schedule'), 'value' => $schedule];
         }
         // A fixed periodic management fee is real data the wireframe has no slot for (its mock has none) —
         // surfaced honestly when set, never fabricated when null.
         $fee = $this->feeDisplay($a);
         if ($fee !== null) {
             $interval = $this->intervalLabel($a->management_fee_interval);
-            $rows[] = ['label' => 'Management fee', 'value' => $fee.($interval !== null ? ' · '.$interval : '')];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.management_fee'), 'value' => $interval !== null ? __('php/livewire/owner/owner_agreement.fee_with_interval', ['fee' => $fee, 'interval' => $interval]) : $fee];
         }
         if ($a->notice_days !== null) {
-            $rows[] = ['label' => 'Notice period', 'value' => $a->notice_days.' days, either side'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.notice_period'), 'value' => trans_choice('php/livewire/owner/owner_agreement.days_either_side', (int) $a->notice_days, ['count' => $a->notice_days])];
         }
         if ($a->term_months !== null) {
-            $rows[] = ['label' => 'Term', 'value' => $a->term_months.' months'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.term'), 'value' => trans_choice('php/livewire/owner/owner_agreement.months', (int) $a->term_months, ['count' => $a->term_months])];
         }
         if ($a->auto_renews !== null) {
-            $rows[] = ['label' => 'Renewal', 'value' => $a->auto_renews ? 'Auto-renewing' : 'Does not auto-renew'];
+            $rows[] = ['label' => __('php/livewire/owner/owner_agreement.renewal'), 'value' => $a->auto_renews ? __('php/livewire/owner/owner_agreement.auto_renewing') : __('php/livewire/owner/owner_agreement.does_not_auto_renew')];
         }
 
         return $rows;
@@ -316,10 +316,10 @@ class OwnerAgreement extends Component
                 ->get()
                 ->map(fn (AgreementAmendment $m): array => [
                     'id' => (string) $m->id,
-                    'label' => (string) $m->version.' amendment',
+                    'label' => __('php/livewire/owner/owner_agreement.amendment_label', ['version' => (string) $m->version]),
                     'meta' => $m->acknowledgment !== null
-                        ? 'Acknowledged '.$m->acknowledgment->acknowledged_at?->format('j M Y')
-                        : 'Awaiting acknowledgment',
+                        ? __('php/livewire/owner/owner_agreement.acknowledged_on', ['date' => (string) $m->acknowledgment->acknowledged_at?->translatedFormat('j M Y')])
+                        : __('php/livewire/owner/owner_agreement.awaiting_acknowledgment'),
                 ])
                 ->all();
 
@@ -372,8 +372,8 @@ class OwnerAgreement extends Component
             'status_meta' => $this->agreementStatusMeta((string) $a->status),
             'owner_label' => $multiOwner && $owner instanceof Owner ? (string) $owner->name : null,
             // Additive contractual terms (#82) — each honest: null → the row is omitted, never fabricated.
-            'term_display' => $a->term_months !== null ? $a->term_months.' months' : null,
-            'notice_display' => $a->notice_days !== null ? $a->notice_days.' days' : null,
+            'term_display' => $a->term_months !== null ? trans_choice('php/livewire/owner/owner_agreement.months', (int) $a->term_months, ['count' => $a->term_months]) : null,
+            'notice_display' => $a->notice_days !== null ? trans_choice('php/livewire/owner/owner_agreement.days', (int) $a->notice_days, ['count' => $a->notice_days]) : null,
             'auto_renews' => $a->auto_renews,
             'unit_count' => $this->ownerUnitCount((string) $a->owner_id),
         ];
@@ -421,10 +421,10 @@ class OwnerAgreement extends Component
     private function scopeLabel(ManagementAgreement $a, array $units): string
     {
         if ($a->unit_id === null) {
-            return 'Portfolio-wide';
+            return __('php/livewire/owner/owner_agreement.portfolio_wide');
         }
 
-        return $units[(string) $a->unit_id] ?? 'Unit-specific';
+        return $units[(string) $a->unit_id] ?? __('php/livewire/owner/owner_agreement.unit_specific');
     }
 
     /**
@@ -452,9 +452,9 @@ class OwnerAgreement extends Component
     private function intervalLabel(mixed $value): ?string
     {
         return match ($value) {
-            'monthly' => 'Monthly',
-            'quarterly' => 'Quarterly',
-            'yearly' => 'Yearly',
+            'monthly' => __('php/livewire/owner/owner_agreement.interval_monthly'),
+            'quarterly' => __('php/livewire/owner/owner_agreement.interval_quarterly'),
+            'yearly' => __('php/livewire/owner/owner_agreement.interval_yearly'),
             default => null,
         };
     }
@@ -483,7 +483,7 @@ class OwnerAgreement extends Component
         $onAgreement = is_string($a->payout_currency) && $a->payout_currency !== '' ? $a->payout_currency : null;
 
         if ($onAgreement !== null) {
-            return ['code' => $onAgreement, 'source' => 'Set on this agreement'];
+            return ['code' => $onAgreement, 'source' => __('php/livewire/owner/owner_agreement.currency_on_agreement')];
         }
 
         // owners.payout_currency is NOT NULL in the schema — only an empty value needs guarding.
@@ -491,7 +491,7 @@ class OwnerAgreement extends Component
             ? $owner->payout_currency
             : null;
 
-        return ['code' => $default, 'source' => $default === null ? null : 'From your owner profile'];
+        return ['code' => $default, 'source' => $default === null ? null : __('php/livewire/owner/owner_agreement.currency_from_profile')];
     }
 
     /**
@@ -526,7 +526,7 @@ class OwnerAgreement extends Component
     private function ruleValue(mixed $value): string
     {
         if (is_bool($value)) {
-            return $value ? 'Yes' : 'No';
+            return $value ? __('common.yes') : __('common.no');
         }
 
         if (is_scalar($value)) {
@@ -544,7 +544,7 @@ class OwnerAgreement extends Component
 
         // Anything genuinely structured (a nested object) has no honest one-line rendering; say so rather
         // than dumping JSON at the owner.
-        return $value === [] || $value === null ? '—' : 'See agreement document';
+        return $value === [] || $value === null ? '—' : __('php/livewire/owner/owner_agreement.see_agreement_document');
     }
 
     /**
@@ -558,11 +558,11 @@ class OwnerAgreement extends Component
         $to = $this->asDate($a->effective_to);
 
         if ($from !== null && $from->gt($today)) {
-            return 'Starts '.$from->format('j M Y');
+            return __('php/livewire/owner/owner_agreement.starts', ['date' => $from->translatedFormat('j M Y')]);
         }
 
         if ($to !== null && $to->lt($today)) {
-            return 'Ran to '.$to->format('j M Y');
+            return __('php/livewire/owner/owner_agreement.ran_to', ['date' => $to->translatedFormat('j M Y')]);
         }
 
         return null;
@@ -576,8 +576,8 @@ class OwnerAgreement extends Component
     private function agreementStatusMeta(string $status): array
     {
         return match ($status) {
-            'active' => ['label' => 'Active', 'tone' => 'paid'],
-            'ended' => ['label' => 'Ended', 'tone' => 'draft'],
+            'active' => ['label' => __('php/livewire/owner/owner_agreement.status_active'), 'tone' => 'paid'],
+            'ended' => ['label' => __('php/livewire/owner/owner_agreement.status_ended'), 'tone' => 'draft'],
             default => ['label' => ucfirst($status), 'tone' => 'draft'],
         };
     }
@@ -632,7 +632,7 @@ class OwnerAgreement extends Component
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $this->asDate($value)?->format('j M Y');
+        return $this->asDate($value)?->translatedFormat('j M Y');
     }
 
     /**

@@ -40,7 +40,14 @@ class OwnerBalanceExportController extends Controller
         return response()->streamDownload(function () use ($entries, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Date', 'Activity', 'Type', 'Amount', 'Running balance', 'On a statement']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_balance_export_controller.col_date'),
+                __('php/http/controllers/owner/owner_balance_export_controller.col_activity'),
+                __('php/http/controllers/owner/owner_balance_export_controller.col_type'),
+                __('php/http/controllers/owner/owner_balance_export_controller.col_amount'),
+                __('php/http/controllers/owner/owner_balance_export_controller.col_running_balance'),
+                __('php/http/controllers/owner/owner_balance_export_controller.col_on_statement'),
+            ]));
 
             /** @var array<string, int> $running */
             $running = [];
@@ -56,7 +63,7 @@ class OwnerBalanceExportController extends Controller
                     (string) $e->entry_type,
                     MoneyFormatter::display($signed, $currency, signed: true),
                     MoneyFormatter::display($running[$currency], $currency),
-                    $e->statement_id !== null ? 'yes' : 'not yet',
+                    $e->statement_id !== null ? __('php/http/controllers/owner/owner_balance_export_controller.on_statement_yes') : __('php/http/controllers/owner/owner_balance_export_controller.on_statement_not_yet'),
                 ]));
             }
 

@@ -98,6 +98,15 @@ class OwnerPayouts extends Component
             'nextPayout' => $this->nextPayoutCard($focus, $byId, $currency),
             'lifecycle' => $this->lifecycle($focus),
             'statuses' => $payouts->map(fn (Payout $p): string => (string) $p->status)->unique()->sort()->values()->all(),
+            // I18N-01 — the status filter pills' words, keyed by the status CODE (the filter itself compares codes)
+            'statusLabels' => [
+                'pending' => __('php/livewire/owner/owner_payouts.filter_pending'),
+                'held' => __('php/livewire/owner/owner_payouts.filter_held'),
+                'processing' => __('php/livewire/owner/owner_payouts.filter_processing'),
+                'paid' => __('php/livewire/owner/owner_payouts.filter_paid'),
+                'failed' => __('php/livewire/owner/owner_payouts.filter_failed'),
+                'reversed' => __('php/livewire/owner/owner_payouts.filter_reversed'),
+            ],
             'years' => $this->distinctYears($payouts),
             // Exact-match additions — all REAL / honest (never a fabricated hold, IBAN, or schedule).
             'hold' => $this->holdBanner($rail, $focus),
@@ -130,7 +139,7 @@ class OwnerPayouts extends Component
         return [
             'engine_enabled' => (bool) config('services.payouts.engine_enabled', false),
             'frequency_label' => OwnerPayoutPreference::frequencyLabel((string) $prefs['frequency']),
-            'next_date' => $next->format('j M Y'),
+            'next_date' => $next->translatedFormat('j M Y'),
             'paused' => (bool) $prefs['paused'],
         ];
     }
@@ -158,8 +167,8 @@ class OwnerPayouts extends Component
 
         return [
             'amount_display' => $this->money((int) $focus->amount_minor, (string) $focus->currency),
-            'reason' => 'We’re holding this payout until your tax details are on file.',
-            'cta_label' => 'Add tax details',
+            'reason' => __('php/livewire/owner/owner_payouts.hold_reason'),
+            'cta_label' => __('php/livewire/owner/owner_payouts.hold_cta'),
             'cta_route' => route('owner.tax'),
         ];
     }
@@ -201,10 +210,10 @@ class OwnerPayouts extends Component
 
         return [
             'amount_display' => $this->money((int) $failed->amount_minor, (string) $failed->currency),
-            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->format('F Y') : null,
+            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('F Y') : null,
             // The same parse shape {@see self::payoutDate()} uses — `failed_at` reaches static analysis as
             // string|null (the cast is invisible to it), so an instanceof check here is always-false.
-            'failed_on' => filled($failed->failed_at) ? Carbon::parse($failed->failed_at)->format('j M Y') : null,
+            'failed_on' => filled($failed->failed_at) ? Carbon::parse($failed->failed_at)->translatedFormat('j M Y') : null,
             'reason' => filled($failed->failure_reason) ? (string) $failed->failure_reason : null,
             'already_queued' => $replacement !== null,
             'blockers' => $blockers,
@@ -233,7 +242,7 @@ class OwnerPayouts extends Component
             'can_manage' => $canManage,
             'has_method' => $method instanceof PayoutMethod,
             'label' => $method instanceof PayoutMethod
-                ? (((string) $method->label) !== '' ? (string) $method->label : 'Bank account')
+                ? (((string) $method->label) !== '' ? (string) $method->label : __('php/livewire/owner/owner_payouts.bank_account'))
                 : null,
             'iban_masked' => $rail['iban_masked'],   // masked or null, by capability (#28)
             'country' => $method instanceof PayoutMethod ? Iban::nameForCode((string) $method->iban_country) : null,
@@ -256,7 +265,7 @@ class OwnerPayouts extends Component
             'frequency_label' => OwnerPayoutPreference::frequencyLabel($data['frequency']),
             'payout_day' => $data['payout_day'],
             'minimum_minor' => $data['minimum_minor'],
-            'minimum_display' => $data['minimum_minor'] > 0 ? $this->money($data['minimum_minor'], $currency) : 'None',
+            'minimum_display' => $data['minimum_minor'] > 0 ? $this->money($data['minimum_minor'], $currency) : __('php/livewire/owner/owner_payouts.minimum_none'),
             'paused' => $data['paused'],
         ];
     }
@@ -279,7 +288,7 @@ class OwnerPayouts extends Component
                 'status' => (string) $p->status,
                 'status_meta' => $this->payoutStatusMeta((string) $p->status),
                 'date_display' => $date['display'],
-                'month_label' => $statement instanceof OwnerStatement ? $statement->period_start->format('M Y') : '—',
+                'month_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('M Y') : '—',
                 'year' => $date['year'],
                 'statement_id' => $statement instanceof OwnerStatement ? $statement->id : null,
             ];
@@ -348,7 +357,7 @@ class OwnerPayouts extends Component
             'status_meta' => $this->payoutStatusMeta((string) $payout->status),
             'rail_label' => $this->railLabel((string) $payout->rail),
             'statement_id' => $statement instanceof OwnerStatement ? $statement->id : null,
-            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->format('F Y') : null,
+            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('F Y') : null,
             'breakdown' => $statement instanceof OwnerStatement ? $this->breakdown($statement) : [],
         ];
     }
@@ -386,31 +395,37 @@ class OwnerPayouts extends Component
 
         $stateOf = function (string $step) use ($status): string {
             if ($status === null) {
-                return $step === 'Finalized' ? 'active' : 'todo';
+                return $step === 'finalized' ? 'active' : 'todo';
             }
 
             return match ($status) {
                 'paid' => 'done',
                 // A Stripe Connect transfer is initiated → awaiting the webhook confirmation.
-                'processing' => $step === 'Paid' ? 'active' : 'done',
+                'processing' => $step === 'paid' ? 'active' : 'done',
                 // `held` (the engine tax-hold) reads as in-progress at Pending here; Phase 4 gives it a
                 // distinct "On hold" visual. Grouped with pending so the stepper stays honest, never invented.
                 'pending', 'held' => match ($step) {
-                    'Finalized' => 'done', 'Pending' => 'active', default => 'todo'
+                    'finalized' => 'done', 'pending' => 'active', default => 'todo'
                 },
                 'failed' => match ($step) {
-                    'Finalized' => 'done', 'Pending' => 'failed', default => 'todo'
+                    'finalized' => 'done', 'pending' => 'failed', default => 'todo'
                 },
                 'reversed' => match ($step) {
-                    'Paid' => 'reversed', default => 'done'
+                    'paid' => 'reversed', default => 'done'
                 },
                 default => 'todo',   // total over string (status is cast to string) — never an UnhandledMatchError
             };
         };
 
+        // I18N-01 — the steps are matched by CODE; only the label is translated (never logic on a displayed word).
+        $labels = [
+            'finalized' => __('php/livewire/owner/owner_payouts.lifecycle_finalized'),
+            'pending' => __('php/livewire/owner/owner_payouts.lifecycle_pending'),
+            'paid' => __('php/livewire/owner/owner_payouts.lifecycle_paid'),
+        ];
         $steps = array_map(
-            fn (string $label): array => ['label' => $label, 'state' => $stateOf($label)],
-            ['Finalized', 'Pending', 'Paid'],
+            fn (string $code): array => ['label' => $labels[$code], 'state' => $stateOf($code)],
+            array_keys($labels),
         );
 
         $note = match ($status) {
@@ -418,8 +433,8 @@ class OwnerPayouts extends Component
             // no scheduled job retries a failed payout, and until DO3-3 there was no control that could.
             // The sentence now states what is true — a retry is available and creates a new payout — and
             // promises no automatic one. Found beside the flagged item (§N.13.1), not by a failing test.
-            'failed' => 'This payout wasn’t sent. Retrying queues a new payout; the failed attempt stays in your history.',
-            'reversed' => 'This payout was reversed — the balance carries to your next statement.',
+            'failed' => __('php/livewire/owner/owner_payouts.note_failed'),
+            'reversed' => __('php/livewire/owner/owner_payouts.note_reversed'),
             default => null,
         };
 
@@ -446,12 +461,12 @@ class OwnerPayouts extends Component
         $when = $p->paid_at ?? $p->failed_at ?? ($p->status === 'pending' ? null : $p->created_at);
 
         if ($when === null) {
-            return ['display' => 'Pending', 'year' => null];
+            return ['display' => __('php/livewire/owner/owner_payouts.date_pending'), 'year' => null];
         }
 
         $c = Carbon::parse($when);
 
-        return ['display' => $c->format('j M Y'), 'year' => (int) $c->format('Y')];
+        return ['display' => $c->translatedFormat('j M Y'), 'year' => (int) $c->format('Y')];
     }
 
     /**

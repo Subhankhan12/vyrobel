@@ -7,8 +7,7 @@
     <div role="note" style="display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(180,120,20,.35);background:rgba(250,210,120,.14);border-radius:14px;padding:12px 14px;margin-bottom:16px">
         <span aria-hidden="true" style="font-size:16px;line-height:1.2">⚠️</span>
         <div style="font-size:12.5px;line-height:1.5;color:var(--vy-ink)">
-            <strong>Test mode.</strong>
-            Automated payouts run in test mode — no real funds move. Real transfers activate when your account goes live.
+            {!! __('components/owner/payout-test-mode.notice') !!}
         </div>
     </div>
 @endif

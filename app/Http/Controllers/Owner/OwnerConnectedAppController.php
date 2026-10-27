@@ -37,7 +37,7 @@ class OwnerConnectedAppController extends Controller
         ]);
 
         return back()->with('owner_notice', $revoked > 0
-            ? 'That app was disconnected — its access was revoked immediately.'
-            : 'That app was already disconnected.');
+            ? __('php/http/controllers/owner/owner_connected_app_controller.disconnected')
+            : __('php/http/controllers/owner/owner_connected_app_controller.already_disconnected'));
     }
 }

@@ -37,7 +37,7 @@ class OwnerAttentionController extends Controller
 
         $signal = OwnerAttention::signalFor($context, (string) $data['attention_key']);
         if ($signal === null) {
-            return back()->with('owner_notice', 'That item is no longer active.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_attention_controller.no_longer_active'));
         }
 
         $until = match ($data['duration']) {
@@ -48,7 +48,7 @@ class OwnerAttentionController extends Controller
 
         $this->apply($signal, ['snoozed_until' => $until, 'dismissed_at' => null], 'owner.attention_snoozed');
 
-        return back()->with('owner_notice', 'Snoozed — back '.$until->diffForHumans().'.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_attention_controller.snoozed_until', ['when' => $until->diffForHumans()]));
     }
 
     /** Dismiss an item — it stays hidden until the owner restores it (Undo). */
@@ -56,12 +56,12 @@ class OwnerAttentionController extends Controller
     {
         $signal = $this->resolve($request, $context);
         if ($signal === null) {
-            return back()->with('owner_notice', 'That item is no longer active.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_attention_controller.no_longer_active'));
         }
 
         $this->apply($signal, ['dismissed_at' => Carbon::now(), 'snoozed_until' => null], 'owner.attention_dismissed');
 
-        return back()->with('owner_notice', 'Dismissed.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_attention_controller.dismissed'));
     }
 
     /** Mark an item read (it stays visible) — a light acknowledgement. */
@@ -83,7 +83,7 @@ class OwnerAttentionController extends Controller
             $this->apply($signal, ['snoozed_until' => null, 'dismissed_at' => null], 'owner.attention_restored');
         }
 
-        return back()->with('owner_notice', 'Restored to your attention list.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_attention_controller.restored'));
     }
 
     /** BULK — mark EVERY currently-raised item read (Wave B · 💡). Only ever touches genuine current signals. */
@@ -94,7 +94,7 @@ class OwnerAttentionController extends Controller
             $this->apply($signal, ['read_at' => Carbon::now()], 'owner.attention_read');
         }
 
-        return back()->with('owner_notice', count($signals) === 0 ? 'Nothing to mark read.' : 'Marked all read.');
+        return back()->with('owner_notice', count($signals) === 0 ? __('php/http/controllers/owner/owner_attention_controller.nothing_to_mark_read') : __('php/http/controllers/owner/owner_attention_controller.marked_all_read'));
     }
 
     /** BULK — snooze EVERY currently-raised item for a week (Wave B · 💡). Genuine current signals only. */
@@ -106,7 +106,7 @@ class OwnerAttentionController extends Controller
             $this->apply($signal, ['snoozed_until' => $until, 'dismissed_at' => null], 'owner.attention_snoozed');
         }
 
-        return back()->with('owner_notice', count($signals) === 0 ? 'Nothing to snooze.' : 'Snoozed everything — back in a week.');
+        return back()->with('owner_notice', count($signals) === 0 ? __('php/http/controllers/owner/owner_attention_controller.nothing_to_snooze') : __('php/http/controllers/owner/owner_attention_controller.snoozed_everything'));
     }
 
     /**

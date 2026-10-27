@@ -48,7 +48,7 @@ class OwnerBookingsTargetController extends Controller
         $minor = MoneyInput::toMinor($validated['target'], 1_000_000_000);
 
         if ($minor === null) {
-            return back()->withErrors(['target' => 'Enter a monthly target above zero, e.g. 6000.']);
+            return back()->withErrors(['target' => __('php/http/controllers/owner/owner_bookings_target_controller.invalid_target')]);
         }
 
         // The currency the ring speaks in — the owner's real portfolio currency, not a request field.
@@ -61,6 +61,6 @@ class OwnerBookingsTargetController extends Controller
             ['target_minor' => $minor],
         );
 
-        return back()->with('status', 'Monthly target updated.');
+        return back()->with('status', __('php/http/controllers/owner/owner_bookings_target_controller.target_updated'));
     }
 }

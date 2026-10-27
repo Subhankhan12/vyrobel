@@ -10,6 +10,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Services\PdfService;
 use App\Support\Exports\ExportAudit;
+use App\Support\I18n\Locales;
 use App\Support\Owner\OwnerContext;
 use App\Support\Pdf\OwnerAgreementDocument;
 use Illuminate\Http\Request;
@@ -54,6 +55,7 @@ class OwnerAgreementPdfController extends Controller
             OwnerAgreementDocument::agreement($agreement, $owner, $ownerIds),
             'vyrobel-agreement-'.$agreement->effective_from->format('Y').'.pdf',
             $watermark,
+            Locales::SOURCE,   // I18N-01 — a LEGAL document stays English until the lawyer has seen a translation
         );
     }
 
@@ -79,6 +81,7 @@ class OwnerAgreementPdfController extends Controller
             OwnerAgreementDocument::amendment($model, $owner),
             'vyrobel-amendment-'.$model->effective_date->format('Y').'.pdf',
             $watermark,
+            Locales::SOURCE,   // I18N-01 — a LEGAL document stays English until the lawyer has seen a translation
         );
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Payouts;
 
+use App\Support\Countries;
+
 /**
  * IBAN validation + the bits derived FROM ITS STRUCTURE (Phase 2 · Sub-gate 5). Real, offline, no registry:
  * the ISO 7064 mod-97 checksum proves a well-formed IBAN, and the country (first two letters) + last four
@@ -15,13 +17,8 @@ namespace App\Support\Payouts;
  */
 final class Iban
 {
-    /** ISO 3166 → display name for the countries we surface; anything else falls back to the raw code. */
-    private const COUNTRIES = [
-        'PT' => 'Portugal', 'IE' => 'Ireland', 'ES' => 'Spain', 'FR' => 'France', 'GB' => 'United Kingdom',
-        'DE' => 'Germany', 'IT' => 'Italy', 'NL' => 'Netherlands', 'BE' => 'Belgium', 'LU' => 'Luxembourg',
-        'AT' => 'Austria', 'FI' => 'Finland', 'GR' => 'Greece', 'PL' => 'Poland', 'SE' => 'Sweden',
-        'DK' => 'Denmark', 'CH' => 'Switzerland', 'NO' => 'Norway',
-    ];
+    /** The IBAN countries shown by name; any other code is shown as the code. */
+    private const NAMED_COUNTRIES = ['PT', 'IE', 'ES', 'FR', 'GB', 'DE', 'IT', 'NL', 'BE', 'LU', 'AT', 'FI', 'GR', 'PL', 'SE', 'DK', 'CH', 'NO'];
 
     /** Uppercase, strip all whitespace — the canonical form the checksum runs on. */
     public static function normalize(string $iban): string
@@ -65,12 +62,17 @@ final class Iban
         return self::nameForCode(self::country($iban));
     }
 
-    /** A stored 2-letter country code → display name (or the code itself if unmapped). */
+    /**
+     * A stored 2-letter country code → display name for the countries we surface (or the code itself if unmapped),
+     * translated at call time in the reader's language.
+     */
     public static function nameForCode(string $code): string
     {
         $code = strtoupper($code);
 
-        return self::COUNTRIES[$code] ?? $code;
+        // I18N-01 — ONE country list: the names come from {@see Countries::everywhere()} (ICU's, in the reader's language;
+        // its English is word for word what this list printed). Outside these codes the code is shown, as it always was.
+        return in_array($code, self::NAMED_COUNTRIES, true) ? (Countries::everywhere()[$code] ?? $code) : $code;
     }
 
     /** The last four characters, for masked display. */

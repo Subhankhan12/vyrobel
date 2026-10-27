@@ -78,7 +78,7 @@ final class OwnerRows
             [$key, $label, $reason] = $this->status($owner, $latest, $payouts->get($id) ?? collect(), $hasMethod->has($id), $isPaused, $invite);
             // a pause with nothing due yet still has to be visible — its status says why nothing is paid, this says why nothing will be
             if ($isPaused && $reason === null && $owner->status === 'active') {
-                $reason = 'Payouts paused by your team';
+                $reason = __('php/support/owner/owner_rows.reason_paused_by_team');
             }
 
             return [
@@ -91,7 +91,7 @@ final class OwnerRows
                 'unit_codes' => $owner->units->map(fn ($u): string => (string) $u->code)->sort(SORT_NATURAL)->values()->all(),
                 'unit_labels' => $owner->units->map(fn ($u): string => (string) ($u->name ?: $u->code))->sort(SORT_NATURAL)->values()->all(),
                 'commission' => $agreement !== null ? rtrim(rtrim((string) $agreement->commission_pct, '0'), '.').'%' : '—',
-                'period' => $latest !== null ? CarbonImmutable::parse($latest->period_start)->format('M Y') : null,
+                'period' => $latest !== null ? CarbonImmutable::parse($latest->period_start)->translatedFormat('M Y') : null,
                 'net_minor' => $net,
                 'currency' => $currency,
                 'net' => $net !== null ? MoneyFormatter::display($net, $currency) : '—',
@@ -99,7 +99,7 @@ final class OwnerRows
                 'pay_label' => $label,
                 'reason' => $reason,
                 'paused' => $isPaused,
-                'invite' => $invite !== null ? ['id' => (string) $invite->id, 'status' => (string) $invite->status, 'expires' => $invite->expires_at?->format('j M Y')] : null,
+                'invite' => $invite !== null ? ['id' => (string) $invite->id, 'status' => (string) $invite->status, 'expires' => $invite->expires_at?->translatedFormat('j M Y')] : null,
             ];
         })->values()->all();
     }
@@ -170,43 +170,45 @@ final class OwnerRows
     {
         if ($owner->status !== 'active') {
             return $invite !== null && $invite->status === 'pending'
-                ? ['invited', 'Invited', $invite->expires_at !== null ? 'Invite expires '.$invite->expires_at->format('j M') : 'Invite sent']
-                : ['inactive', 'Not activated', $invite !== null ? 'The invite expired — send it again' : null];
+                ? ['invited', __('php/support/owner/owner_rows.pay_invited'), $invite->expires_at !== null
+                    ? __('php/support/owner/owner_rows.reason_invite_expires', ['date' => $invite->expires_at->translatedFormat('j M')])
+                    : __('php/support/owner/owner_rows.reason_invite_sent')]
+                : ['inactive', __('php/support/owner/owner_rows.pay_not_activated'), $invite !== null ? __('php/support/owner/owner_rows.reason_invite_expired') : null];
         }
         if ($latest === null) {
-            return ['none', 'No statement', null];
+            return ['none', __('php/support/owner/owner_rows.pay_no_statement'), null];
         }
 
         $statementPayouts = $payouts->where('owner_statement_id', $latest->getKey());
         if ((string) $latest->status === 'paid' || $statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'paid')) {
-            return ['paid', 'Paid', null];
+            return ['paid', __('php/support/owner/owner_rows.pay_paid'), null];
         }
         if ($statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'held')) {
-            return ['hold', 'On hold', 'Payout held until the owner adds tax details'];
+            return ['hold', __('php/support/owner/owner_rows.pay_on_hold'), __('php/support/owner/owner_rows.reason_payout_held')];
         }
 
         $net = (int) $latest->net_payable_minor;
         if ($net > 0 && (! $owner->hasTaxDetails() || ! $hasMethod)) {
             $reason = match (true) {
-                ! $owner->hasTaxDetails() && ! $hasMethod => 'Waiting for the owner’s tax details and payout account',
-                ! $owner->hasTaxDetails() => 'Waiting for the owner’s tax details',
-                default => 'No payout account on file',
+                ! $owner->hasTaxDetails() && ! $hasMethod => __('php/support/owner/owner_rows.reason_no_tax_no_account'),
+                ! $owner->hasTaxDetails() => __('php/support/owner/owner_rows.reason_no_tax'),
+                default => __('php/support/owner/owner_rows.reason_no_account'),
             };
 
-            return ['hold', 'On hold', $reason];
+            return ['hold', __('php/support/owner/owner_rows.pay_on_hold'), $reason];
         }
         if ((bool) $latest->has_unverified) {
-            return ['draft', 'Needs review', 'Some lines still wait for the booking channel to confirm them'];
+            return ['draft', __('php/support/owner/owner_rows.pay_needs_review'), __('php/support/owner/owner_rows.reason_unverified_lines')];
         }
         if ($net > 0 && $paused) {
             // DEC-n (2026-10-02) — a pause stops every payout, by the automatic run or by hand
-            return ['paused', 'Payouts paused', 'Paused by your team — no payout goes out until resumed'];
+            return ['paused', __('php/support/owner/owner_rows.pay_paused'), __('php/support/owner/owner_rows.reason_paused_until_resumed')];
         }
         if ($net > 0) {
-            return ['due', 'Ready', null];
+            return ['due', __('php/support/owner/owner_rows.pay_ready'), null];
         }
 
-        return ['zero', 'Nothing due', null];
+        return ['zero', __('php/support/owner/owner_rows.pay_nothing_due'), null];
     }
 
     /** Up to two initials for a name — the rows and the invites waiting draw their avatars from this one rule. */

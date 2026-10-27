@@ -137,7 +137,7 @@ class OwnerDocuments extends Component
 
         return [
             'count' => array_sum(array_map(static fn (array $y): int => (int) $y['count'], $years)),
-            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->format('F Y') : null,
+            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat('F Y') : null,
         ];
     }
 
@@ -178,8 +178,8 @@ class OwnerDocuments extends Component
                     'count' => array_sum(array_map(static fn (array $p): int => count($p['docs']), $periods)),
                     'statement_count' => $statementCount,
                     'span_label' => $statementCount === 1
-                        ? $earliest?->period_start->format('F') ?? ''
-                        : ($earliest?->period_start->format('M') ?? '').'–'.($latest?->period_start->format('M') ?? ''),
+                        ? $earliest?->period_start->translatedFormat('F') ?? ''
+                        : ($earliest?->period_start->translatedFormat('M') ?? '').'–'.($latest?->period_start->translatedFormat('M') ?? ''),
                     'periods' => $periods,
                     'tax_net_display' => $this->money($taxNetMinor, (string) $earliest?->source_currency),
                 ];
@@ -199,41 +199,41 @@ class OwnerDocuments extends Component
     private function periodGroup(OwnerStatement $s, Collection $byStatement): array
     {
         // The REAL statement number (per-owner, gap-free, stamped AT FINALIZE). Null → omitted, never faked.
-        $number = $s->sequence_no === null ? null : 'No. '.$s->sequence_no;
+        $number = $s->sequence_no === null ? null : __('php/livewire/owner/owner_documents.number', ['number' => $s->sequence_no]);
         // The REAL issue date. `finalized_at` is stamped at finalize; guarded, so an unset field omits
         // the date rather than inventing one.
-        $issued = $s->finalized_at === null ? null : Carbon::parse($s->finalized_at)->format('j M Y');
+        $issued = $s->finalized_at === null ? null : Carbon::parse($s->finalized_at)->translatedFormat('j M Y');
 
         $docs = [
             [
-                'kind' => 'STMT',
-                'name' => 'Owner statement',
+                'kind' => __('php/livewire/owner/owner_documents.kind_statement'),
+                'name' => __('php/livewire/owner/owner_documents.owner_statement'),
                 'ref_label' => $number,
-                'date_label' => $issued === null ? null : 'issued '.$issued,
+                'date_label' => $issued === null ? null : __('php/livewire/owner/owner_documents.issued', ['date' => $issued]),
                 // The statement's headline figure, in its PAYOUT currency — the same figure the PDF
                 // leads with, through the same shared MoneyFormatter, so the two reconcile to the cent.
                 'amount_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
-                'amount_note' => 'net payable',
+                'amount_line' => __('php/livewire/owner/owner_documents.amount_net_payable', ['amount' => $this->money((int) $s->net_payable_minor, (string) $s->currency)]),
                 'status_meta' => null,
                 'rail_label' => null,
                 'href' => route('owner.statements.pdf', $s->id),
-                'title' => 'Download this statement as a PDF',
+                'title' => __('php/livewire/owner/owner_documents.download_statement'),
             ],
             [
-                'kind' => 'BKG',
-                'name' => 'Booking summary',
+                'kind' => __('php/livewire/owner/owner_documents.kind_booking_summary'),
+                'name' => __('php/livewire/owner/owner_documents.booking_summary'),
                 'ref_label' => $number,
-                'date_label' => $issued === null ? null : 'issued '.$issued,
+                'date_label' => $issued === null ? null : __('php/livewire/owner/owner_documents.issued', ['date' => $issued]),
                 // `gross_minor` is denominated in `source_currency`, NOT in the payout `currency` — the
                 // booking-summary PDF totals in `source_currency` for exactly that reason. Rendering it
                 // against the payout currency here would state a silent FX the backend never made
                 // (invariant #17) and would contradict the very document this row downloads.
                 'amount_display' => $this->money((int) $s->gross_minor, (string) $s->source_currency),
-                'amount_note' => 'gross',
+                'amount_line' => __('php/livewire/owner/owner_documents.amount_gross', ['amount' => $this->money((int) $s->gross_minor, (string) $s->source_currency)]),
                 'status_meta' => null,
                 'rail_label' => null,
                 'href' => route('owner.statements.bookings', $s->id),
-                'title' => 'Download the bookings behind this statement as a PDF',
+                'title' => __('php/livewire/owner/owner_documents.download_bookings'),
             ],
         ];
 
@@ -268,25 +268,25 @@ class OwnerDocuments extends Component
         $when = $p->paid_at ?? $p->failed_at;
 
         return [
-            'kind' => 'RA',
-            'name' => 'Remittance advice',
+            'kind' => __('php/livewire/owner/owner_documents.kind_remittance'),
+            'name' => __('php/livewire/owner/owner_documents.remittance_advice'),
             // The operator's own bank reference, ONLY when they attached one. Never generated here — the
             // design's "RA-2025-09" format does not exist.
             'ref_label' => (is_string($p->external_ref) && $p->external_ref !== '') ? $p->external_ref : null,
-            'date_label' => $when === null ? null : Carbon::parse($when)->format('j M Y'),
+            'date_label' => $when === null ? null : Carbon::parse($when)->translatedFormat('j M Y'),
             'amount_display' => $this->money((int) $p->amount_minor, (string) $p->currency),
             // DERIVED from the real status, mirroring the document's own amount_label: a pending/failed
             // payout has NOT been paid, so neither the row nor the PDF claims it was.
-            'amount_note' => match ($status) {
-                'paid' => 'net paid',
-                'reversed' => 'net reversed',
-                default => 'net payable',
+            'amount_line' => match ($status) {
+                'paid' => __('php/livewire/owner/owner_documents.amount_net_paid', ['amount' => $this->money((int) $p->amount_minor, (string) $p->currency)]),
+                'reversed' => __('php/livewire/owner/owner_documents.amount_net_reversed', ['amount' => $this->money((int) $p->amount_minor, (string) $p->currency)]),
+                default => __('php/livewire/owner/owner_documents.amount_net_payable', ['amount' => $this->money((int) $p->amount_minor, (string) $p->currency)]),
             },
             'status_meta' => $this->payoutStatusMeta($status),
             // The SHARED rail map — the same one the owner Payouts screen and the remittance PDF render.
             'rail_label' => RailLabel::for((string) $p->rail),
             'href' => route('owner.payouts.remittance', $p->id),
-            'title' => 'Download the remittance advice for this payout as a PDF',
+            'title' => __('php/livewire/owner/owner_documents.download_remittance'),
         ];
     }
 
@@ -304,10 +304,10 @@ class OwnerDocuments extends Component
             $wholeMonth = $start->day === 1 && $end->day === $end->daysInMonth;
 
             return $wholeMonth
-                ? $start->format('F Y')
-                : $start->format('j').'–'.$end->format('j F Y');
+                ? $start->translatedFormat('F Y')
+                : $start->format('j').'–'.$end->translatedFormat('j F Y');
         }
 
-        return $start->format('j M').' – '.$end->format('j M Y');
+        return $start->translatedFormat('j M').' – '.$end->translatedFormat('j M Y');
     }
 }

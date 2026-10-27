@@ -23,7 +23,7 @@
 
     RAW-BLADE RULE: every `@` follows a space, newline or tag; inline conditions are ternaries in {{ }}.
 --}}
-<x-owner.shell active="expenses" title="Expenses & maintenance" :subtitle="'Every cost on your units — what’s charged to you, what’s the operator’s, and what’s still under review.'" :viewer="$viewer">
+<x-owner.shell active="expenses" :title="__('livewire/owner/expenses.title')" :subtitle="__('livewire/owner/expenses.subtitle')" :viewer="$viewer">
     <style>
         /* PAGE-SCOPED contrast overrides. The KPI band and the rows are translucent over the hero gradient,
            so these shell greys composite onto a saturated peach (≈236,153,110) and measure 3.05–4.35 — the
@@ -42,19 +42,19 @@
             {{-- KPIs — DERIVED from the real rows (voided excluded); money is display-currency, this year --}}
             <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Spent this year</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/expenses.spent_this_year') }}</div>
                     <div class="vy-kpi-val">{{ $metrics['spent_display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $metrics['spent_count'] }} {{ \Illuminate\Support\Str::plural('expense', $metrics['spent_count']) }} in {{ $metrics['year'] }}{{ $multiCurrency ? ' · '.$currency.' only' : '' }}</div>
+                    <div class="vy-kpi-sub">{{ trans_choice($multiCurrency ? 'livewire/owner/expenses.spent_sub_currency' : 'livewire/owner/expenses.spent_sub', $metrics['spent_count'], ['count' => $metrics['spent_count'], 'year' => $metrics['year'], 'currency' => $currency]) }}</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Awaiting your approval</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/expenses.awaiting_approval') }}</div>
                     <div class="vy-kpi-val">{{ $metrics['awaiting_display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $metrics['awaiting_count'] }} to approve · not charged until you do</div>
+                    <div class="vy-kpi-sub">{{ __('livewire/owner/expenses.awaiting_sub', ['number' => $metrics['awaiting_count']]) }}</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Charged to payouts</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/expenses.charged_to_payouts') }}</div>
                     <div class="vy-kpi-val">{{ $metrics['charged_display'] }}</div>
-                    <div class="vy-kpi-sub">Approved &amp; deducted year-to-date</div>
+                    <div class="vy-kpi-sub">{{ __('livewire/owner/expenses.charged_sub') }}</div>
                 </div>
             </div>
 
@@ -62,8 +62,8 @@
                  payout (reduces net); Query → held out of net + opens the owner↔operator relay. CAP_ACTIONS. --}}
             @if ($approvalRows)
                 <section class="vy-card vy-fade" style="animation-delay:.03s;border-left:3px solid var(--vy-amber)">
-                    <h2 class="vy-card-title">Needs your approval</h2>
-                    <div class="vy-line-sub" style="margin-bottom:8px">These deductible costs are not charged to your payout until you approve them. Approve to deduct, or query your team.</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/expenses.needs_approval') }}</h2>
+                    <div class="vy-line-sub" style="margin-bottom:8px">{{ __('livewire/owner/expenses.needs_approval_body') }}</div>
                     @foreach ($approvalRows as $a)
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--vy-hairline);flex-wrap:wrap">
                             <div style="min-width:0">
@@ -74,14 +74,14 @@
                                 <div style="display:flex;gap:8px;flex-shrink:0" x-data="{ q: false }">
                                     <form method="POST" action="{{ route('owner.expenses.approve', $a['id']) }}" style="margin:0">
                                         @csrf
-                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:6px 14px;font-size:12px">Approve</button>
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:6px 14px;font-size:12px">{{ __('livewire/owner/expenses.approve') }}</button>
                                     </form>
-                                    <button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px" @click="q = !q">Query</button>
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px" @click="q = !q">{{ __('livewire/owner/expenses.query') }}</button>
                                     <form method="POST" action="{{ route('owner.expenses.query', $a['id']) }}" x-show="q" x-cloak style="margin:0;display:flex;gap:6px;align-items:center">
                                         @csrf
-                                        <label class="vy-sr-only" for="vy-lbl-expenses-note">What's your question?</label>
-                                        <input id="vy-lbl-expenses-note" type="text" name="note" placeholder="What's your question?" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">
-                                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">Send</button>
+                                        <label class="vy-sr-only" for="vy-lbl-expenses-note">{{ __('livewire/owner/expenses.question_placeholder') }}</label>
+                                        <input id="vy-lbl-expenses-note" type="text" name="note" placeholder="{{ __('livewire/owner/expenses.question_placeholder') }}" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">
+                                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">{{ __('livewire/owner/expenses.send') }}</button>
                                     </form>
                                 </div>
                             @endownercan
@@ -94,8 +94,8 @@
                  honestly: deductibility is resolved from the agreement, NOT by the owner — so NO action here. --}}
             @if ($pendingRows)
                 <section class="vy-card vy-ex-pending vy-fade" style="animation-delay:.04s">
-                    <h2 class="vy-card-title">Pending review</h2>
-                    <div class="vy-line-sub" style="margin-bottom:6px">Deductibility for these is still being resolved from your management agreement — nothing for you to do.</div>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/expenses.pending_review') }}</h2>
+                    <div class="vy-line-sub" style="margin-bottom:6px">{{ __('livewire/owner/expenses.pending_review_body') }}</div>
                     @foreach ($pendingRows as $p)
                         <div class="vy-ex-prow">
                             <div>
@@ -111,14 +111,14 @@
             {{-- Expense history — REAL rows; unit + category filters + search are client-side over real data --}}
             <section class="vy-card vy-fade" style="animation-delay:.06s" x-data="{ q: '', cat: 'all', unit: 'all' }">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px">
-                    <h2 class="vy-card-title">Expense history</h2>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/expenses.expense_history') }}</h2>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                        <input type="search" x-model="q" placeholder="Search description or category" aria-label="Search expenses"
+                        <input type="search" x-model="q" placeholder="{{ __('livewire/owner/expenses.search_placeholder') }}" aria-label="{{ __('livewire/owner/expenses.search_label') }}"
                                style="padding:8px 12px;border-radius:var(--vy-r-sm);border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.6);font-size:13px;font-family:var(--vy-sans)">
                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                            <a class="vy-btn vy-btn--ghost" href="{{ route('owner.expenses.export') }}" title="Export your expenses as CSV">
+                            <a class="vy-btn vy-btn--ghost" href="{{ route('owner.expenses.export') }}" title="{{ __('livewire/owner/expenses.export_title') }}">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                                Export
+                                {{ __('common.export') }}
                             </a>
                         @endownercan
                     </div>
@@ -126,14 +126,14 @@
 
                 {{-- Unit filter — REAL owner units that have expenses --}}
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-                    <button type="button" class="vy-pill" :class="{ 'is-active': unit === 'all' }" @click="unit = 'all'">All units</button>
+                    <button type="button" class="vy-pill" :class="{ 'is-active': unit === 'all' }" @click="unit = 'all'">{{ __('livewire/owner/expenses.all_units') }}</button>
                     @foreach ($units as $u)
                         <button type="button" class="vy-pill" :class="{ 'is-active': unit === @js($u['id']) }" @click="unit = @js($u['id'])">{{ $u['name'] }}</button>
                     @endforeach
                 </div>
                 {{-- Category filter — the REAL enum --}}
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-                    <button type="button" class="vy-pill" :class="{ 'is-active': cat === 'all' }" @click="cat = 'all'">All</button>
+                    <button type="button" class="vy-pill" :class="{ 'is-active': cat === 'all' }" @click="cat = 'all'">{{ __('common.all') }}</button>
                     @foreach ($categories as $key => $label)
                         <button type="button" class="vy-pill" :class="{ 'is-active': cat === @js($key) }" @click="cat = @js($key)">{{ $label }}</button>
                     @endforeach
@@ -143,12 +143,12 @@
                     <table class="vy-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Description</th>
-                                <th>Vendor</th>
-                                <th>Unit</th>
-                                <th class="vy-num">Amount</th>
-                                <th>Status</th>
+                                <th>{{ __('common.date') }}</th>
+                                <th>{{ __('livewire/owner/expenses.col_description') }}</th>
+                                <th>{{ __('livewire/owner/expenses.col_vendor') }}</th>
+                                <th>{{ __('livewire/owner/expenses.col_unit') }}</th>
+                                <th class="vy-num">{{ __('livewire/owner/expenses.col_amount') }}</th>
+                                <th>{{ __('common.status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -162,7 +162,7 @@
                                         </div>
                                         {{-- REAL: a void is an append-only reversal — the row stays, honestly badged --}}
                                         @if ($e['voided'])
-                                            <span class="vy-status vy-status--draft" data-voided="1" style="margin-top:4px"><span class="vy-dot"></span>Voided</span>
+                                            <span class="vy-status vy-status--draft" data-voided="1" style="margin-top:4px"><span class="vy-dot"></span>{{ __('livewire/owner/expenses.voided') }}</span>
                                         @endif
                                     </td>
                                     <td style="white-space:nowrap">@if ($e['vendor']){{ $e['vendor'] }}@else<span class="vy-muted">—</span>@endif</td>
@@ -176,12 +176,12 @@
                                         @elseif ($e['flag_note'])
                                             <div class="vy-row-sub">{{ $e['flag_note'] }}</div>
                                         @else
-                                            <div class="vy-row-sub vy-muted">Not yet on a statement</div>
+                                            <div class="vy-row-sub vy-muted">{{ __('livewire/owner/expenses.not_on_statement') }}</div>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6"><div class="vy-empty">No expenses yet.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">{{ __('livewire/owner/expenses.no_expenses') }}</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -189,7 +189,7 @@
 
                 @if ($metrics['voided_count'] > 0)
                     <div class="vy-fx-note">
-                        {{ $metrics['voided_count'] }} voided {{ \Illuminate\Support\Str::plural('expense', $metrics['voided_count']) }} shown for the record — reversed, and excluded from every total.
+                        {{ trans_choice('livewire/owner/expenses.voided_note', $metrics['voided_count'], ['count' => $metrics['voided_count']]) }}
                     </div>
                 @endif
             </section>
@@ -199,7 +199,7 @@
         <div class="vy-stack">
             {{-- By category — DERIVED: Σ of the real rows, voided excluded, per currency (Batch-B shared bars) --}}
             <section class="vy-card vy-fade" style="animation-delay:.05s">
-                <span class="vy-eyebrow">By category</span>
+                <span class="vy-eyebrow">{{ __('livewire/owner/expenses.by_category') }}</span>
                 @forelse ($byCurrency as $block)
                     <div style="margin-top:12px">
                         @if ($multiCurrency)
@@ -210,7 +210,7 @@
                                 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
                                     <span>
                                         <span style="font-size:13px;font-weight:500">{{ $cat['label'] }}</span>
-                                        <span class="vy-line-sub" style="display:block">{{ $cat['count'] }} {{ \Illuminate\Support\Str::plural('expense', $cat['count']) }} · {{ $cat['bar_width'] }}% of total</span>
+                                        <span class="vy-line-sub" style="display:block">{{ trans_choice('livewire/owner/expenses.category_sub', $cat['count'], ['count' => $cat['count'], 'percent' => $cat['bar_width']]) }}</span>
                                     </span>
                                     <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums">{{ $cat['total_display'] }}</span>
                                 </div>
@@ -218,55 +218,52 @@
                             </div>
                         @endforeach
                         <div class="vy-list-row" style="border-top:1.5px solid rgba(120,70,40,.16)">
-                            <span style="font-size:13px;font-weight:600">Total</span>
+                            <span style="font-size:13px;font-weight:600">{{ __('common.total') }}</span>
                             <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums;color:var(--vy-accent-text)">{{ $block['total_display'] }}</span>
                         </div>
                     </div>
                 @empty
-                    <div class="vy-empty">No expenses yet.</div>
+                    <div class="vy-empty">{{ __('livewire/owner/expenses.no_expenses') }}</div>
                 @endforelse
 
                 <div class="vy-fx-note">
-                    Totals exclude voided expenses{{ $multiCurrency ? ' and are shown per currency — never converted' : '' }}.
+                    {{ $multiCurrency ? __('livewire/owner/expenses.totals_note_multi') : __('livewire/owner/expenses.totals_note') }}
                 </div>
             </section>
 
             {{-- How expenses work — a plain description of the REAL backend behaviour (no figures, no state) --}}
             <section class="vy-card vy-fade" style="animation-delay:.09s">
-                <span class="vy-eyebrow">How expenses work</span>
+                <span class="vy-eyebrow">{{ __('livewire/owner/expenses.how_it_works') }}</span>
                 <div style="margin-top:10px;font-size:12.5px;color:var(--vy-muted);line-height:1.7">
-                    A <strong style="color:var(--vy-ink)">deductible</strong> cost is charged to your monthly statement for the period it falls in.
-                    A <strong style="color:var(--vy-ink)">non-deductible</strong> cost is your operator's and never reaches your ledger.
-                    <strong style="color:var(--vy-ink)">Pending review</strong> means deductibility hasn't been resolved yet.
-                    Which is which is set by your management agreement — not by you.
+                    {!! __('livewire/owner/expenses.how_it_works_body') !!}
                 </div>
             </section>
 
             {{-- Need something fixed? — a REAL relay into the owner↔operator channel (never an expense write) --}}
             <section class="vy-card vy-ex-relay vy-fade" style="animation-delay:.12s" x-data="{ open: false }">
-                <span class="vy-eyebrow">Need something fixed?</span>
-                <div class="vy-line-sub" style="margin-top:6px">Send a repair request to your management team — they'll raise the work order, and the cost appears here once it's resolved.</div>
+                <span class="vy-eyebrow">{{ __('livewire/owner/expenses.need_fixed') }}</span>
+                <div class="vy-line-sub" style="margin-top:6px">{{ __('livewire/owner/expenses.need_fixed_body') }}</div>
                 <div x-show="!open" style="margin-top:12px">
                     <button type="button" class="vy-btn vy-btn--accent" @click="open = true" style="gap:6px">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2z"/></svg>
-                        Request a repair
+                        {{ __('livewire/owner/expenses.request_repair') }}
                     </button>
                 </div>
                 <form x-show="open" x-cloak method="POST" action="{{ route('owner.messages.start') }}" data-guard-submit style="margin-top:12px">
                     @csrf
                     <input type="hidden" name="subject" value="Repair request">
-                    <label class="vy-sr-only" for="vy-lbl-expenses-body">Describe what needs fixing (and which unit)…</label>
-                    <textarea id="vy-lbl-expenses-body" name="body" rows="3" required x-ref="repairBody" placeholder="Describe what needs fixing (and which unit)…"></textarea>
+                    <label class="vy-sr-only" for="vy-lbl-expenses-body">{{ __('livewire/owner/expenses.repair_placeholder') }}</label>
+                    <textarea id="vy-lbl-expenses-body" name="body" rows="3" required x-ref="repairBody" placeholder="{{ __('livewire/owner/expenses.repair_placeholder') }}"></textarea>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
-                        @foreach (['Please arrange a plumber', 'The air-conditioning needs a service', 'Can someone check the appliances?'] as $chip)
+                        @foreach ([__('livewire/owner/expenses.chip_plumber'), __('livewire/owner/expenses.chip_air_conditioning'), __('livewire/owner/expenses.chip_appliances')] as $chip)
                             <button type="button" @click="$refs.repairBody.value = @js($chip)" style="padding:5px 10px;border-radius:var(--vy-r-pill);background:rgba(255,255,255,.7);border:1px solid rgba(120,70,40,.16);color:#7A2E08;font-family:var(--vy-sans);font-size:11px;font-weight:500;cursor:pointer">{{ $chip }}</button>
                         @endforeach
                     </div>
                     <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px">
-                        <button type="button" @click="open = false" style="padding:7px 14px;border-radius:var(--vy-r-pill);background:transparent;border:1px solid rgba(120,70,40,.16);color:#6B5D54;font-family:var(--vy-sans);font-size:12.5px;font-weight:500;cursor:pointer">Cancel</button>
+                        <button type="button" @click="open = false" style="padding:7px 14px;border-radius:var(--vy-r-pill);background:transparent;border:1px solid rgba(120,70,40,.16);color:#6B5D54;font-family:var(--vy-sans);font-size:12.5px;font-weight:500;cursor:pointer">{{ __('common.cancel') }}</button>
                         <button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 16px;font-size:12.5px;gap:6px">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
-                            Send request
+                            {{ __('livewire/owner/expenses.send_request') }}
                         </button>
                     </div>
                 </form>

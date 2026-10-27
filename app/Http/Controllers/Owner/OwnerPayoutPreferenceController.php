@@ -87,7 +87,7 @@ class OwnerPayoutPreferenceController extends Controller
 
         $this->recordChange($ownerId, $before, $after);
 
-        return back()->with('payout_pref_notice', 'Payout preferences updated.');
+        return back()->with('payout_pref_notice', __('php/http/controllers/owner/owner_payout_preference_controller.updated'));
     }
 
     /** The largest minimum that means anything — above this a payout could never clear. */
@@ -178,11 +178,10 @@ class OwnerPayoutPreferenceController extends Controller
 
         if ($minor === null) {
             throw ValidationException::withMessages([
-                'minimum' => sprintf(
-                    'Enter a minimum payout between %s and %s, or 0 for none.',
-                    MoneyFormatter::display(100, $currency),
-                    MoneyFormatter::display(self::MAX_MINIMUM_MINOR, $currency),
-                ),
+                'minimum' => __('php/http/controllers/owner/owner_payout_preference_controller.invalid_minimum', [
+                    'lowest' => MoneyFormatter::display(100, $currency),
+                    'highest' => MoneyFormatter::display(self::MAX_MINIMUM_MINOR, $currency),
+                ]),
             ]);
         }
 

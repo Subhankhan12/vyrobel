@@ -78,7 +78,7 @@ class OwnerBlockCalendar extends Component
             ])->values()->all(),
             'unit' => ['id' => (string) $unit->id, 'label' => (string) ($unit->name ?? $unit->code)],
             'month' => [
-                'label' => $monthStart->format('F Y'),
+                'label' => $monthStart->translatedFormat('F Y'),
                 'value' => $monthStart->format('Y-m'),
                 'first_weekday' => $monthStart->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $monthStart->copy()->subMonthNoOverflow()->format('Y-m'),
@@ -88,6 +88,8 @@ class OwnerBlockCalendar extends Component
             'grid' => $grid,
             'blocks' => $this->blocksList($unit),
             'reasons' => OwnerBlockService::REASONS,
+            'reasonLabels' => OwnerBlockService::reasonLabels(),   // the ONE definition, keyed by the stored code
+            'weekdays' => $this->weekdayHeads(),
             'frequencies' => OwnerBlockService::FREQUENCIES,
             'maxOccurrences' => OwnerBlockService::MAX_OCCURRENCES,
             'statLine' => $this->statLine($grid),
@@ -103,7 +105,19 @@ class OwnerBlockCalendar extends Component
     {
         $count = fn (string $state): int => count(array_filter($grid, fn (array $d): bool => $d['state'] === $state));
 
-        return $count('blocked').' held · '.$count('booked').' booked · '.$count('open').' open';
+        return __('php/livewire/owner/owner_block_calendar.stat_line', ['held' => $count('blocked'), 'booked' => $count('booked'), 'open' => $count('open')]);
+    }
+
+    /**
+     * The grid's weekday heads, Monday first, in the reader's language and upper case ("MON" … "SUN" in English).
+     *
+     * @return list<string>
+     */
+    private function weekdayHeads(): array
+    {
+        $monday = Carbon::parse('2024-01-01');   // a Monday
+
+        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat('D')), range(0, 6));
     }
 
     /**
@@ -249,7 +263,7 @@ class OwnerBlockCalendar extends Component
                 'guest' => $state === 'booked' ? $bookedDays[$key] : null,
                 // The spoken date for the cell's accessible name. A day number alone ("14") is meaningless
                 // out of the grid's visual context, and every day control needs a name that identifies it.
-                'aria' => $date->format('j F Y'),
+                'aria' => $date->translatedFormat('j F Y'),
             ];
         }
 
@@ -282,14 +296,14 @@ class OwnerBlockCalendar extends Component
                 $lastNight = Carbon::parse($last->end_date)->subDay();   // end_date is exclusive
                 $nights = (int) $group->sum(fn (InventoryBlock $b): int => (int) Carbon::parse($b->start_date)->diffInDays(Carbon::parse($b->end_date)));
 
-                [$reason, $note] = $this->splitNote((string) ($first->notes ?? 'Owner hold'));
+                [$reason, $note] = $this->splitNote((string) ($first->notes ?? __('php/livewire/owner/owner_block_calendar.owner_hold')));
 
                 return [
                     'is_series' => $isSeries,
                     'series_id' => $isSeries ? (string) $first->series_id : null,
                     'block_id' => $isSeries ? null : (string) $first->id,
                     'count' => $group->count(),
-                    'range' => $start->format('j M').' – '.$lastNight->format('j M Y'),
+                    'range' => __('php/livewire/owner/owner_block_calendar.date_range', ['start' => $start->translatedFormat('j M'), 'end' => $lastNight->translatedFormat('j M Y')]),
                     'nights' => $nights,
                     'reason' => $reason,
                     'note' => $note,

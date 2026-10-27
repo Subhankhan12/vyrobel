@@ -98,12 +98,13 @@ final class OwnerTeamRole
         return $actorIsPrimaryOwner && self::isValid($targetRole);
     }
 
+    /** The role's name as a person reads it — the ONE definition (the Team page's matrix headers read it too). */
     public static function label(string $role): string
     {
         return match ($role) {
-            self::CO_OWNER => 'Co-owner',
-            self::ACCOUNTANT => 'Accountant',
-            self::VIEW_ONLY => 'View only',
+            self::CO_OWNER => __('php/support/owner/owner_team_role.label_co_owner'),
+            self::ACCOUNTANT => __('php/support/owner/owner_team_role.label_accountant'),
+            self::VIEW_ONLY => __('php/support/owner/owner_team_role.label_view_only'),
             default => ucfirst(str_replace('_', ' ', $role)),
         };
     }
@@ -112,9 +113,9 @@ final class OwnerTeamRole
     public static function summary(string $role): string
     {
         return match ($role) {
-            self::CO_OWNER => 'Everything you see — approvals, money, documents.',
-            self::ACCOUNTANT => 'Statements, payouts and tax documents. Read-only, export allowed.',
-            self::VIEW_ONLY => 'Dashboards, calendar and reports. No actions, no exports.',
+            self::CO_OWNER => __('php/support/owner/owner_team_role.summary_co_owner'),
+            self::ACCOUNTANT => __('php/support/owner/owner_team_role.summary_accountant'),
+            self::VIEW_ONLY => __('php/support/owner/owner_team_role.summary_view_only'),
             default => '',
         };
     }

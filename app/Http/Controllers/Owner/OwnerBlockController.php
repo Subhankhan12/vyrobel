@@ -66,13 +66,13 @@ class OwnerBlockController extends Controller
                 );
 
                 if ($result['created'] === 0) {
-                    return redirect()->to($back)->with('block_error', 'Every date in that series is already booked or blocked — nothing to hold.');
+                    return redirect()->to($back)->with('block_error', __('php/http/controllers/owner/owner_block_controller.series_nothing_to_hold'));
                 }
 
                 $total = $result['created'] + $result['skipped'];
                 $msg = $result['skipped'] === 0
-                    ? $result['created'].' blocks created across the series. Guests can no longer book them.'
-                    : $result['created'].' of '.$total.' blocks created — the rest were already booked or blocked.';
+                    ? trans_choice('php/http/controllers/owner/owner_block_controller.series_created', $result['created'], ['count' => $result['created']])
+                    : trans_choice('php/http/controllers/owner/owner_block_controller.series_partly_created', $total, ['created' => $result['created'], 'count' => $total]);
 
                 return redirect()->to($back)->with('block_notice', $msg)->with('block_undo_series', $result['series_id']);
             }
@@ -83,14 +83,14 @@ class OwnerBlockController extends Controller
             // BEFORE the parent so the owner gets the true reason — the refusal itself comes from the service
             // either way (this subclass extends OwnerBlockException, so a missed catch still refuses).
             return redirect()->to($back)->with('block_error',
-                'That unit is at a property that has been removed, so its dates can no longer be blocked.');
+                __('php/http/controllers/owner/owner_block_controller.property_removed'));
         } catch (OwnerBlockException) {
             abort(403);   // a foreign unit id — tampering, not a normal outcome
         } catch (UnitUnavailableException) {
-            return redirect()->to($back)->with('block_error', 'Those dates include a guest booking or an existing block — pick open dates.');
+            return redirect()->to($back)->with('block_error', __('php/http/controllers/owner/owner_block_controller.dates_taken'));
         }
 
-        return redirect()->to($back)->with('block_notice', 'Dates blocked. Guests can no longer book them.')->with('block_undo_block', (string) $block->id);
+        return redirect()->to($back)->with('block_notice', __('php/http/controllers/owner/owner_block_controller.dates_blocked'))->with('block_undo_block', (string) $block->id);
     }
 
     public function destroy(Request $request, OwnerBlockService $blocks, string $block): RedirectResponse
@@ -103,7 +103,7 @@ class OwnerBlockController extends Controller
             abort(404);
         }
 
-        return redirect()->back()->with('block_notice', 'Block removed. Those dates are open again.');
+        return redirect()->back()->with('block_notice', __('php/http/controllers/owner/owner_block_controller.block_removed'));
     }
 
     /** Release a whole repeat series (the Undo of a just-created series, and the series row's Remove). */
@@ -115,6 +115,6 @@ class OwnerBlockController extends Controller
             abort(403);
         }
 
-        return redirect()->back()->with('block_notice', 'Series removed. Those dates are open again.');
+        return redirect()->back()->with('block_notice', __('php/http/controllers/owner/owner_block_controller.series_removed'));
     }
 }

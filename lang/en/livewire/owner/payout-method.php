@@ -1,0 +1,95 @@
+<?php
+
+// resources/views/livewire/owner/payout-method.blade.php — the owner Payout method page (bank accounts, Stripe Connect, schedule, tax details).
+
+return [
+    'title' => 'Payout method',
+    'subtitle' => 'Where your payouts settle',
+    'breadcrumb_payouts' => 'Payouts',
+    'not_account_owner' => 'The payout account belongs to the account owner and is managed by them — only they can change where payouts settle.',
+    'no_owner_linked' => 'No owner account is linked to your login yet.',
+    // the Stripe Connect banner; the markup stays inside the sentence
+    'stripe_connected' => '<strong style="color:rgb(31,122,90)">✓ Stripe connected</strong> — your payouts settle automatically to your connected Stripe account.',
+    'stripe_unfinished' => 'Your Stripe onboarding isn’t finished. <strong>Continue setup</strong> to receive automated payouts.',
+    'stripe_get_paid' => '<strong>Get paid automatically.</strong> Connect a Stripe account to receive your payouts directly — Stripe handles verification; your details never touch Vyrobel.',
+    'continue_setup' => 'Continue setup',
+    'connect_stripe' => 'Connect Stripe',
+    // bank accounts
+    'bank_accounts_heading' => 'Bank accounts',
+    'bank_accounts_sub' => 'Choose where monthly payouts settle. The radio marks your default account.',
+    'default_account_aria' => 'Default account',
+    'make_default_title' => 'Make this the default account',
+    'set_default_aria' => 'Set :label as default',
+    'confirm_with_password' => 'Confirm with your password',
+    'current_password_aria' => 'Current password',
+    'make_default' => 'Make default',
+    'default_badge' => 'Default',
+    // one account row: holder · masked IBAN · country · currency
+    'account_sub' => ':holder · IBAN :masked · :country · :currency',
+    'remove_account_title' => 'Remove this bank account',
+    'remove_aria' => 'Remove :label',
+    'remove_account' => 'Remove account',
+    'no_accounts' => 'No bank account added yet — add one below so we know where to send your payouts.',
+    // honest: micro-deposit verification is not live yet
+    'verification_pending_live' => 'Automated bank verification (micro-deposits) activates with your live banking connection — connect Stripe above for hands-off payouts.',
+    // add a bank account
+    'add_heading' => 'Add a bank account',
+    'account_holder_label' => 'Account holder (legal name)',
+    'iban_label' => 'IBAN',
+    'iban_placeholder' => 'e.g. PT50 0002 0123 1234 5678 9015 4',
+    'iban_help' => 'We validate and store this securely — only the last 4 digits are ever shown.',
+    'label_label' => 'Label (optional)',
+    'label_placeholder' => 'e.g. Revolut Business',
+    'currency' => 'Currency',
+    'save_bank_account' => 'Save bank account',
+    'iban_encrypted_note' => 'Your IBAN is encrypted at rest. Your first account becomes the default automatically.',
+    // payout schedule (a stated preference)
+    'schedule_heading' => 'Payout schedule',
+    'schedule_sub' => 'When earnings are released to your default account.',
+    'frequency' => 'Frequency',
+    'payout_day_label' => 'Payout day <span style="text-transform:none;letter-spacing:0;color:var(--vy-on-grad-soft)">(business day of month)</span>',
+    'day_1st' => '1st',
+    'day_2nd' => '2nd',
+    'day_3rd' => '3rd',
+    'day_4th' => '4th',
+    'day_5th' => '5th',
+    'minimum_threshold' => 'Minimum threshold',
+    'minimum_help' => 'Balances below this roll into the next payout. 0 = none.',
+    'currency_note' => 'Set by your settlement region.',
+    // e.g. "Monthly · 1 business day."
+    'schedule_summary' => ':frequency · :day business day.',
+    'next_payout_to_default' => 'Next payout :amount to your default account.',
+    'next_payout_pending' => 'Your next payout appears once a statement is finalized.',
+    'schedule_preference_note' => 'Your stated preference. The actual payout date + release are confirmed with your operator and the payout rail.',
+    'save_schedule' => 'Save schedule',
+    // tax & remittance details
+    'tax_heading' => 'Tax & remittance details',
+    'tax_sub' => 'Printed on your remittance advice and annual summary.',
+    'payee_type' => 'Payee type',
+    'payee_individual' => 'Individual',
+    'payee_company' => 'Company',
+    'legal_name_label' => 'Registered legal name',
+    'tax_id_label' => 'Tax ID / NIF',
+    'tax_id_placeholder' => 'e.g. 501234567',
+    'vat_number_label' => 'VAT number (optional)',
+    'vat_number_placeholder' => 'e.g. PT501234567',
+    'tax_country_label' => 'Country of tax residence',
+    'tax_country_placeholder' => 'e.g. Portugal',
+    'tax_saved_note' => 'Saved in your Tax Center; a valid tax ID releases any held payout. Your tax ID + VAT number are stored encrypted.',
+    'save_tax_details' => 'Save tax details',
+    // right rail: where payouts go
+    'payouts_go_to' => 'Payouts go to',
+    // the default account under its name: masked IBAN · currency
+    'default_account_sub' => 'IBAN :masked · :currency',
+    'next_payout' => 'Next payout',
+    'no_default_account' => 'No default account yet — add one on the left.',
+    // protected changes (honest: the micro-deposit check and the 48h hold are not live yet)
+    'protected_heading' => 'Protected changes',
+    'protected_micro_deposits' => 'New accounts verify via micro-deposits before any payout switch — with your live banking connection.',
+    'protected_48h_hold' => 'Changing the default holds payouts 48h as a security check — with your live banking connection.',
+    'protected_email' => 'You’ll get an email whenever payout details change.',
+    // payout not arriving (honest: SEPA tracing is not live yet)
+    'not_arriving_heading' => 'Payout not arriving?',
+    'not_arriving_body' => 'Your account manager can trace a SEPA transfer once the live rail is connected.',
+    'contact_support' => 'Contact support',
+];

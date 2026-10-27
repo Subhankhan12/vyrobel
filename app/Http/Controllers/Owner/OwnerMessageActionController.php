@@ -65,7 +65,7 @@ class OwnerMessageActionController extends Controller
         $files = $request->file('attachments', []);
         $body = trim((string) ($validated['body'] ?? ''));
         if ($body === '' && $files === []) {
-            return back()->with('owner_error', 'Type a message or attach a file.');
+            return back()->with('owner_error', __('php/http/controllers/owner/owner_message_action_controller.empty_message'));
         }
 
         $author = $request->user();
@@ -78,7 +78,7 @@ class OwnerMessageActionController extends Controller
         );
         $this->storeAttachments($message, $files);
 
-        return redirect()->route('owner.messages', ['c' => $model->id])->with('owner_notice', 'Message sent.');
+        return redirect()->route('owner.messages', ['c' => $model->id])->with('owner_notice', __('php/http/controllers/owner/owner_message_action_controller.message_sent'));
     }
 
     /** Toggle an emoji reaction on a message in the owner's thread (GATE 2). Owner-scoped + allow-list. */
@@ -156,7 +156,7 @@ class OwnerMessageActionController extends Controller
 
         if ($owner === null) {
             // Fail closed: a portal user with no owner link has nobody to send AS.
-            return redirect()->route('owner.messages')->with('owner_error', 'Your account is not linked to an owner record yet.');
+            return redirect()->route('owner.messages')->with('owner_error', __('php/http/controllers/owner/owner_message_action_controller.no_owner_link'));
         }
 
         $thread = $inbox->startThread([
@@ -172,7 +172,7 @@ class OwnerMessageActionController extends Controller
         $message = $inbox->postOwnerMessage($thread, trim($validated['body']), $author instanceof User ? $author : null);
         $this->storeAttachments($message, $request->file('attachments', []));
 
-        return redirect()->route('owner.messages', ['c' => $thread->id])->with('owner_notice', 'Message sent.');
+        return redirect()->route('owner.messages', ['c' => $thread->id])->with('owner_notice', __('php/http/controllers/owner/owner_message_action_controller.message_sent'));
     }
 
     /**

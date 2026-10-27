@@ -18,8 +18,8 @@
     @php
         $attnCount = count($attention);
         $attnSub = $attnCount > 0
-            ? $attnCount.' '.\Illuminate\Support\Str::plural('item', $attnCount).' need your attention'
-            : "You're all caught up — nothing needs you right now.";
+            ? trans_choice('livewire/owner/dashboard.attention_count', $attnCount, ['count' => $attnCount])
+            : __('livewire/owner/dashboard.all_caught_up');
     @endphp
     <section class="vy-ov-attn vy-fade" style="animation-delay:.02s">
         <div class="vy-ov-attn-head @if ($attnCount > 0) has-chips @endif">
@@ -33,14 +33,14 @@
                 </span>
                 <div>
                     <div class="vy-ov-attn-t">
-                        <h2>Needs your attention</h2>
+                        <h2>{{ __('livewire/owner/dashboard.needs_attention') }}</h2>
                         @if ($attnCount > 0)<span class="vy-ov-attn-count">{{ $attnCount }}</span>@endif
                     </div>
                     <div class="vy-ov-attn-sub">{{ $attnSub }}</div>
                 </div>
             </div>
             <a class="vy-ov-attn-link" href="{{ route('owner.notifications') }}">
-                Open Action center
+                {{ __('livewire/owner/dashboard.open_action_center') }}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
             </a>
         </div>
@@ -80,12 +80,12 @@
                                 <span class="vy-ov-chip-title">{{ $item['title'] }}</span>
                                 <span class="vy-ov-chip-sub">{{ $item['body'] }}</span>
                             </span>
-                            <span class="vy-ov-chip-tag">{{ $item['tone'] === 'warn' ? 'Action' : 'Review' }}</span>
+                            <span class="vy-ov-chip-tag">{{ $item['tone'] === 'warn' ? __('livewire/owner/dashboard.chip_action') : __('livewire/owner/dashboard.chip_review') }}</span>
                         </a>
                     @endif
                 @endforeach
                 @if ($attnCount > 3)
-                    <a class="vy-ov-chip-more" href="{{ route('owner.notifications') }}">+{{ $attnCount - 3 }} more</a>
+                    <a class="vy-ov-chip-more" href="{{ route('owner.notifications') }}">{{ __('livewire/owner/dashboard.more_count', ['number' => $attnCount - 3]) }}</a>
                 @endif
             </div>
         @endif
@@ -96,24 +96,24 @@
         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_CALENDAR)
             <a class="vy-ov-qa-btn" href="{{ route('owner.calendar') }}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg>
-                View calendar
+                {{ __('livewire/owner/dashboard.view_calendar') }}
             </a>
         @endownercan
         <a class="vy-ov-qa-btn" href="{{ route('owner.messages') }}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.2-.6L3 21l1.7-5.1a8.4 8.4 0 1 1 16.3-4.4z"/></svg>
-            Message guests
+            {{ __('livewire/owner/dashboard.message_guests') }}
         </a>
         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
             @if (! empty($statements))
                 <a class="vy-ov-qa-btn" href="{{ route('owner.statements.pdf', $statements[0]['id']) }}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-                    Download statement
+                    {{ __('livewire/owner/dashboard.download_statement') }}
                 </a>
             @endif
         @endownercan
         <a class="vy-ov-qa-btn" href="{{ route('owner.help') }}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>
-            Contact support
+            {{ __('livewire/owner/dashboard.contact_support') }}
         </a>
     </div>
 
@@ -123,7 +123,7 @@
 
             {{-- Hero — REAL this-month net + count-up + derived MoM delta (terracotta accent, 52px) --}}
             <section class="vy-card vy-fade" style="animation-delay:.12s">
-                <div class="vy-eyebrow" style="margin-bottom:14px">This month @if ($hero['month_label'])· {{ $hero['month_label'] }}@endif</div>
+                <div class="vy-eyebrow" style="margin-bottom:14px">{{ $hero['month_label'] ? __('livewire/owner/dashboard.this_month_label', ['month' => $hero['month_label']]) : __('livewire/owner/dashboard.this_month') }}</div>
                 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
                     @if ($hero['has_data'])
                         <div class="vy-hero-figure" style="font-size:52px;margin:0;font-variant-numeric:tabular-nums" data-countup="{{ $hero['this_month_minor'] }}" data-symbol="{{ $hero['currency_symbol'] }}">{{ $hero['this_month_display'] }}</div>
@@ -138,9 +138,9 @@
                     @endif
                 </div>
                 @if ($hero['has_data'])
-                    <div class="vy-hero-sub" style="margin-top:10px">Next payout {{ $hero['next_payout_display'] }} · {{ $hero['next_payout_status']['label'] }}</div>
+                    <div class="vy-hero-sub" style="margin-top:10px">{{ __('livewire/owner/dashboard.next_payout_line', ['amount' => $hero['next_payout_display'], 'status' => $hero['next_payout_status']['label']]) }}</div>
                 @else
-                    <div class="vy-hero-sub" style="margin-top:10px">No earnings yet — your first finalized statement will show here.</div>
+                    <div class="vy-hero-sub" style="margin-top:10px">{{ __('livewire/owner/dashboard.no_earnings_hero') }}</div>
                 @endif
             </section>
 
@@ -148,14 +148,14 @@
             <div class="vy-ov-metrics vy-fade" style="animation-delay:.18s">
                 <a class="vy-ov-metric" href="{{ route('owner.units') }}">
                     <div class="vy-ov-metric-head">
-                        <span class="vy-ov-metric-label">Total units</span>
+                        <span class="vy-ov-metric-label">{{ __('livewire/owner/dashboard.total_units') }}</span>
                         <svg class="vy-ov-metric-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
                     </div>
                     <div class="vy-ov-metric-val">{{ $unitsCount }}</div>
                 </a>
                 <a class="vy-ov-metric" href="{{ route('owner.reports') }}">
                     <div class="vy-ov-metric-head">
-                        <span class="vy-ov-metric-label">Occupancy</span>
+                        <span class="vy-ov-metric-label">{{ __('livewire/owner/dashboard.occupancy') }}</span>
                         <svg class="vy-ov-metric-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
                     </div>
                     {{-- REAL owner-unit occupancy for the current month (OwnerOccupancy) + MoM delta + trend. --}}
@@ -181,7 +181,7 @@
                 </a>
                 <a class="vy-ov-metric" href="{{ route('owner.reports') }}">
                     <div class="vy-ov-metric-head">
-                        <span class="vy-ov-metric-label">Earned YTD</span>
+                        <span class="vy-ov-metric-label">{{ __('livewire/owner/dashboard.earned_ytd') }}</span>
                         <svg class="vy-ov-metric-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
                     </div>
                     <div class="vy-ov-metric-val">{{ $metrics['earned_ytd_display'] }}</div>
@@ -191,8 +191,8 @@
             {{-- Recent statements — REAL, each row links to the statement screen --}}
             <section class="vy-card vy-fade" style="animation-delay:.24s">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                    <h2 class="vy-ov-sec-title">Recent statements</h2>
-                    <a href="{{ route('owner.archive') }}" style="font-size:13px;font-weight:500;color:var(--vy-accent-text);text-decoration:none">View all</a>
+                    <h2 class="vy-ov-sec-title">{{ __('livewire/owner/dashboard.recent_statements') }}</h2>
+                    <a href="{{ route('owner.archive') }}" style="font-size:13px;font-weight:500;color:var(--vy-accent-text);text-decoration:none">{{ __('livewire/owner/dashboard.view_all') }}</a>
                 </div>
                 @forelse ($statements as $s)
                     <a class="vy-list-row vy-row-link" href="{{ route('owner.statements.show', $s['id']) }}">
@@ -207,7 +207,7 @@
                         </div>
                     </a>
                 @empty
-                    <div class="vy-empty">No statements yet.</div>
+                    <div class="vy-empty">{{ __('livewire/owner/dashboard.no_statements') }}</div>
                 @endforelse
             </section>
 
@@ -216,10 +216,10 @@
                  shown only when set — never a fabricated goal (#39). --}}
             <section class="vy-card vy-fade" style="animation-delay:.30s" x-data="{ range: 6 }">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-                    <h2 class="vy-ov-sec-title">Earnings</h2>
+                    <h2 class="vy-ov-sec-title">{{ __('livewire/owner/dashboard.earnings') }}</h2>
                     @if ($series['count'] > 0)
                         <div class="vy-ov-seg">
-                            @foreach ([3 => '3M', 6 => '6M', 12 => '12M'] as $n => $label)
+                            @foreach ([3 => __('livewire/owner/dashboard.range_3m'), 6 => __('livewire/owner/dashboard.range_6m'), 12 => __('livewire/owner/dashboard.range_12m')] as $n => $label)
                                 <button type="button" class="vy-ov-seg-btn" :class="{ 'is-active': range === {{ $n }} }" @click="range = {{ $n }}">{{ $label }}</button>
                             @endforeach
                         </div>
@@ -238,11 +238,11 @@
                         {{-- REAL monthly-target goal line (GATE 4) — same OwnerMonthlyTarget the Bookings ring reads (#56);
                              shown only when the owner has set a target, never a fabricated goal (#39). --}}
                         @if ($series['goal'])
-                            <div class="vy-ov-goal" title="Monthly goal · {{ $series['goal']['display'] }}"
+                            <div class="vy-ov-goal" title="{{ __('livewire/owner/dashboard.goal_title', ['amount' => $series['goal']['display']]) }}"
                                  style="bottom:{{ round($labelBlock + min(99, max(1, $series['goal']['pct'])) * $barScale, 2) }}%">
                                 {{-- ⚠️ NOT `range@endif` — a directive whose `@` follows a word character is not
                                      compiled (the CLAUDE.md `\B` rule); it cost a 500 here. Expression, no directive. --}}
-                                <span class="vy-ov-goal-tag">Goal {{ $series['goal']['display'] }}{{ $series['goal']['above_range'] ? ' · above this range' : '' }}</span>
+                                <span class="vy-ov-goal-tag">{{ __($series['goal']['above_range'] ? 'livewire/owner/dashboard.goal_tag_above' : 'livewire/owner/dashboard.goal_tag', ['amount' => $series['goal']['display']]) }}</span>
                             </div>
                         @endif
                         @foreach ($series['bars'] as $i => $bar)
@@ -264,7 +264,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="vy-deferred">No earnings yet — your first finalized statement will appear here.</div>
+                    <div class="vy-deferred">{{ __('livewire/owner/dashboard.no_earnings_chart') }}</div>
                 @endif
             </section>
         </div>
@@ -277,17 +277,17 @@
             <div class="vy-ov-payout vy-fade" style="animation-delay:.16s">
                 <div class="vy-ov-payout-halo"></div>
                 <section class="vy-card vy-card--dark">
-                    <span class="vy-eyebrow">Next payout</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/dashboard.next_payout') }}</span>
                     @if ($payout['paused'])
                         <div class="vy-ov-pause-row" style="margin-top:12px">
                             <span class="vy-ov-pause-ic">
                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
                             </span>
-                            <span class="vy-ov-pause-fig">Paused</span>
+                            <span class="vy-ov-pause-fig">{{ __('livewire/owner/dashboard.paused') }}</span>
                         </div>
-                        <div style="font-size:12.5px;color:rgba(255,255,255,.6);margin-top:11px;line-height:1.5">Earnings are holding in your balance until your tax details are on file.</div>
+                        <div style="font-size:12.5px;color:rgba(255,255,255,.6);margin-top:11px;line-height:1.5">{{ __('livewire/owner/dashboard.paused_body') }}</div>
                         <a href="{{ route('owner.tax') }}" class="vy-ov-resume">
-                            Add tax details
+                            {{ __('livewire/owner/dashboard.add_tax_details') }}
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                         </a>
                     @else
@@ -296,7 +296,7 @@
                         @if ($payout['iban_masked'])
                             <div class="vy-ov-iban">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v8"/><path d="M9.5 10v8"/><path d="M14.5 10v8"/><path d="M19 10v8"/><path d="M3 19.5h18"/></svg>
-                                IBAN {{ $payout['iban_masked'] }}
+                                {{ __('livewire/owner/dashboard.iban', ['iban' => $payout['iban_masked']]) }}
                             </div>
                         @endif
                     @endif
@@ -306,7 +306,7 @@
             {{-- My units — REAL codes + each unit's REAL current-month occupancy % (owner-scoped OwnerOccupancy). --}}
             <section class="vy-card vy-fade" style="animation-delay:.22s">
                 <div style="margin-bottom:14px">
-                    <span class="vy-eyebrow">My units</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/dashboard.my_units') }}</span>
                 </div>
                 <div class="vy-ov-units">
                     @forelse ($units as $u)
@@ -318,7 +318,7 @@
                             <div class="vy-track"><span style="width:{{ $u['occupancy_pct'] }}%"></span></div>
                         </div>
                     @empty
-                        <div class="vy-empty">No units yet.</div>
+                        <div class="vy-empty">{{ __('livewire/owner/dashboard.no_units') }}</div>
                     @endforelse
                 </div>
             </section>
@@ -338,26 +338,26 @@
                     @keydown.escape.window="fOpen = false">
                     <div class="vy-ov-stays-head">
                         <div>
-                            <div class="vy-eyebrow">Upcoming stays</div>
-                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">Next 30 days</div>
+                            <div class="vy-eyebrow">{{ __('livewire/owner/dashboard.upcoming_stays') }}</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ __('livewire/owner/dashboard.next_30_days') }}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-                            <button type="button" class="vy-ov-ctrl" @click="sortDesc = !sortDesc" :title="sortDesc ? 'Latest first' : 'Earliest first'" :aria-label="sortDesc ? 'Latest first' : 'Earliest first'">
+                            <button type="button" class="vy-ov-ctrl" @click="sortDesc = !sortDesc" :title="sortDesc ? @js(__('livewire/owner/dashboard.latest_first')) : @js(__('livewire/owner/dashboard.earliest_first'))" :aria-label="sortDesc ? @js(__('livewire/owner/dashboard.latest_first')) : @js(__('livewire/owner/dashboard.earliest_first'))">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" :style="sortDesc ? 'transform:rotate(180deg)' : ''"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-                                <span x-text="sortDesc ? 'Latest' : 'Earliest'"></span>
+                                <span x-text="sortDesc ? @js(__('livewire/owner/dashboard.sort_latest')) : @js(__('livewire/owner/dashboard.sort_earliest'))"></span>
                             </button>
                             <div style="position:relative">
                                 <button type="button" class="vy-ov-ctrl" @click="fOpen = !fOpen" :aria-expanded="fOpen ? 'true' : 'false'">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
-                                    Filter
+                                    {{ __('common.filter') }}
                                     <span x-show="activeCount > 0" x-cloak class="vy-ov-ctrl-count" x-text="activeCount"></span>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                 </button>
                                 <div x-show="fOpen" x-cloak @click.outside="fOpen = false" class="vy-ov-menu">
-                                    <div class="vy-ov-menu-h">Source</div>
+                                    <div class="vy-ov-menu-h">{{ __('livewire/owner/dashboard.source') }}</div>
                                     <button type="button" class="vy-ov-menu-item" @click="src = 'all'; fOpen = false">
                                         <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
-                                        <span style="flex:1;text-align:left;white-space:nowrap">All sources</span>
+                                        <span style="flex:1;text-align:left;white-space:nowrap">{{ __('livewire/owner/dashboard.all_sources') }}</span>
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="src === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
                                     </button>
                                     @foreach ($upcoming['sources'] as $o)
@@ -369,10 +369,10 @@
                                         </button>
                                     @endforeach
                                     <div class="vy-ov-menu-sep"></div>
-                                    <div class="vy-ov-menu-h">Status</div>
+                                    <div class="vy-ov-menu-h">{{ __('common.status') }}</div>
                                     <button type="button" class="vy-ov-menu-item" @click="status = 'all'; fOpen = false">
                                         <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
-                                        <span style="flex:1;text-align:left;white-space:nowrap">All statuses</span>
+                                        <span style="flex:1;text-align:left;white-space:nowrap">{{ __('livewire/owner/dashboard.all_statuses') }}</span>
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="status === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
                                     </button>
                                     @foreach ($upcoming['statuses'] as $o)
@@ -394,7 +394,7 @@
                                 <div class="vy-ov-stay-top">
                                     <span class="vy-ov-stay-guest">
                                         <span class="vy-ov-stay-dot" style="background:{{ $r['source_dot'] }}"></span>
-                                        <span class="vy-ov-stay-name">{{ $r['guest'] ?? 'Guest' }}</span>
+                                        <span class="vy-ov-stay-name">{{ $r['guest'] ?? __('livewire/owner/dashboard.guest_fallback') }}</span>
                                     </span>
                                     <span class="vy-ov-stay-val">{{ $r['value_display'] }}</span>
                                 </div>
@@ -411,26 +411,26 @@
                         @endforeach
                         <div x-show="!anyVisible" x-cloak style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 8px 18px;text-align:center">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4B8AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
-                            <div style="font-size:12.5px;color:var(--vy-muted)">No stays match these filters</div>
-                            <button type="button" @click="src = 'all'; status = 'all'" style="margin-top:2px;padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Clear filters</button>
+                            <div style="font-size:12.5px;color:var(--vy-muted)">{{ __('livewire/owner/dashboard.no_stays_match') }}</div>
+                            <button type="button" @click="src = 'all'; status = 'all'" style="margin-top:2px;padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ __('livewire/owner/dashboard.clear_filters') }}</button>
                         </div>
                     </div>
                     <div class="vy-ov-stays-foot">
-                        <span class="vy-ov-stays-foot-l">Net to you · {{ $upcoming['net_total_display'] }}</span>
-                        <a class="vy-ov-viewall" href="{{ route('owner.bookings') }}">View all bookings<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                        <span class="vy-ov-stays-foot-l">{{ __('livewire/owner/dashboard.net_to_you', ['amount' => $upcoming['net_total_display']]) }}</span>
+                        <a class="vy-ov-viewall" href="{{ route('owner.bookings') }}">{{ __('livewire/owner/dashboard.view_all_bookings') }}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
                     </div>
                 </section>
             @else
                 <section class="vy-card vy-fade" style="animation-delay:.28s">
                     <div class="vy-ov-stays-head">
                         <div>
-                            <div class="vy-eyebrow">Upcoming stays</div>
-                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">Next 30 days</div>
+                            <div class="vy-eyebrow">{{ __('livewire/owner/dashboard.upcoming_stays') }}</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ __('livewire/owner/dashboard.next_30_days') }}</div>
                         </div>
                     </div>
                     <div class="vy-deferred">
-                        <span class="vy-eyebrow">No upcoming stays</span>
-                        No arrivals on your units in the next 30 days.
+                        <span class="vy-eyebrow">{{ __('livewire/owner/dashboard.no_upcoming_stays') }}</span>
+                        {{ __('livewire/owner/dashboard.no_arrivals') }}
                     </div>
                 </section>
             @endif
@@ -439,7 +439,7 @@
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                 <a class="vy-ov-dl vy-fade" style="animation-delay:.34s" href="{{ route('owner.archive') }}">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>
-                    Download statements
+                    {{ __('livewire/owner/dashboard.download_statements') }}
                 </a>
             @endownercan
         </div>

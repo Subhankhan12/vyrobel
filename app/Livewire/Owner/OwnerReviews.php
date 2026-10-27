@@ -7,6 +7,7 @@ namespace App\Livewire\Owner;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Organization;
 use App\Models\RateProposal;
+use App\Models\Review;
 use App\Models\Scopes\OwnerScope;
 use App\Services\OwnerPortalService;
 use App\Support\Reviews\OwnerReviewSummary;
@@ -35,15 +36,31 @@ class OwnerReviews extends Component
     public function render(): View
     {
         $unitIds = app(OwnerPortalService::class)->units()->pluck('id')->map(fn ($id): string => (string) $id)->all();
+        $summary = OwnerReviewSummary::forUnits($unitIds);
+        $softest = collect($summary['categories'])->firstWhere('softest', true);
 
         return view('livewire.owner.reviews', [
             'viewer' => $this->viewer(),
-            'summary' => OwnerReviewSummary::forUnits($unitIds),
+            'summary' => $summary,
+            // The category labels the owner reads, keyed by the category CODE (Review::CATEGORIES' keys).
+            'categoryLabels' => $this->categoryLabels(),
+            'softestKey' => is_array($softest) ? (string) $softest['key'] : null,
             'reviews' => ReviewList::forUnits($unitIds),
             // The managing operator/agency name (the real org) — "{Name} replies for you". Honest fallback.
-            'agency' => (string) (Organization::query()->value('name') ?: 'Your management team'),
+            'agency' => (string) (Organization::query()->value('name') ?: __('php/livewire/owner/owner_reviews.agency_fallback')),
             // Real Wave-C rate-proposals awaiting the owner (the Value → rate-changes link is REAL, not a refusal).
             'pendingProposals' => RateProposal::query()->where('state', 'pending')->count(),
         ]);
+    }
+
+    /**
+     * Review category code → its label in the reader's language. Keyed by the code, so a label that translates
+     * the same as another can never merge two categories.
+     *
+     * @return array<string, string>
+     */
+    private function categoryLabels(): array
+    {
+        return Review::categoryLabels();   // the ONE definition, on the model
     }
 }

@@ -61,12 +61,8 @@ class OwnerExpenses extends Component
 {
     use FormatsOwnerData;
 
-    /** The REAL `owner_expenses.category` enum — the whole taxonomy, never invented. */
-    private const CATEGORIES = [
-        'cleaning' => 'Cleaning',
-        'maintenance' => 'Maintenance',
-        'other' => 'Other',
-    ];
+    /** The REAL `owner_expenses.category` enum — the whole taxonomy, never invented. Labels: {@see categoryLabels()}. */
+    private const CATEGORIES = ['cleaning', 'maintenance', 'other'];
 
     public function render(): View
     {
@@ -99,7 +95,7 @@ class OwnerExpenses extends Component
             'metrics' => $this->metrics($expenses, $currency),
             'byCurrency' => $this->byCurrency($expenses, $currencies),
             'multiCurrency' => count($currencies) > 1,
-            'categories' => self::CATEGORIES,
+            'categories' => $this->categoryLabels(),
             'units' => $this->unitFilter($expenses),
         ]);
     }
@@ -118,7 +114,7 @@ class OwnerExpenses extends Component
 
             return [
                 'id' => (string) $e->id,
-                'date_display' => Carbon::parse($e->expense_date)->format('j M Y'),
+                'date_display' => Carbon::parse($e->expense_date)->translatedFormat('j M Y'),
                 'category' => (string) $e->category,
                 'category_label' => $this->categoryLabel((string) $e->category),
                 'description' => (string) $e->description,
@@ -186,7 +182,7 @@ class OwnerExpenses extends Component
             if ($statement instanceof OwnerStatement) {
                 $out[(string) $ledgerId] = [
                     'id' => (string) $statement->id,
-                    'label' => $statement->period_start->format('F Y'),
+                    'label' => $statement->period_start->translatedFormat('F Y'),
                 ];
             }
         }
@@ -262,7 +258,7 @@ class OwnerExpenses extends Component
         $unit = $expense->unit;
 
         if ($unit === null) {
-            return ['id' => 'none', 'name' => 'Unassigned'];
+            return ['id' => 'none', 'name' => __('php/livewire/owner/owner_expenses.unassigned')];
         }
 
         return ['id' => (string) $unit->id, 'name' => (string) ($unit->name ?? $unit->code)];
@@ -287,7 +283,7 @@ class OwnerExpenses extends Component
             $blockTotal = $this->sumMinor($rows);
 
             $categories = [];
-            foreach (self::CATEGORIES as $key => $label) {
+            foreach ($this->categoryLabels() as $key => $label) {
                 $set = $rows->filter(fn (OwnerExpense $e): bool => (string) $e->category === $key);
                 $count = $set->count();
                 if ($count === 0) {
@@ -362,15 +358,31 @@ class OwnerExpenses extends Component
     private function deductibleMeta(?bool $deductible): array
     {
         return match ($deductible) {
-            true => ['key' => 'yes', 'label' => 'Deductible', 'tone' => 'paid'],
-            false => ['key' => 'no', 'label' => 'Not deductible', 'tone' => 'draft'],
-            null => ['key' => 'pending', 'label' => 'Pending review', 'tone' => 'pending'],
+            true => ['key' => 'yes', 'label' => __('php/livewire/owner/owner_expenses.deductible'), 'tone' => 'paid'],
+            false => ['key' => 'no', 'label' => __('php/livewire/owner/owner_expenses.not_deductible'), 'tone' => 'draft'],
+            null => ['key' => 'pending', 'label' => __('php/livewire/owner/owner_expenses.pending_review'), 'tone' => 'pending'],
         };
+    }
+
+    /**
+     * The category enum's labels, in the request's language (translated here, at render time — never in the constant).
+     *
+     * @return array<string, string>
+     */
+    private function categoryLabels(): array
+    {
+        $labels = [
+            'cleaning' => __('php/livewire/owner/owner_expenses.category_cleaning'),
+            'maintenance' => __('php/livewire/owner/owner_expenses.category_maintenance'),
+            'other' => __('php/livewire/owner/owner_expenses.category_other'),
+        ];
+
+        return array_intersect_key($labels, array_flip(self::CATEGORIES));
     }
 
     private function categoryLabel(string $category): string
     {
-        return self::CATEGORIES[$category] ?? ucfirst(str_replace('_', ' ', $category));
+        return $this->categoryLabels()[$category] ?? ucfirst(str_replace('_', ' ', $category));
     }
 
     /**
@@ -399,9 +411,9 @@ class OwnerExpenses extends Component
         }
 
         return match ($sourceType) {
-            'maintenance_ticket' => 'Maintenance ticket',
-            'housekeeping_task' => 'Housekeeping task',
-            'unit' => 'Unit',
+            'maintenance_ticket' => __('php/livewire/owner/owner_expenses.source_maintenance_ticket'),
+            'housekeeping_task' => __('php/livewire/owner/owner_expenses.source_housekeeping_task'),
+            'unit' => __('php/livewire/owner/owner_expenses.source_unit'),
             default => ucfirst(str_replace('_', ' ', $sourceType)),
         };
     }
@@ -417,8 +429,8 @@ class OwnerExpenses extends Component
         }
 
         return match ($flag) {
-            'no_agreement' => 'No management agreement covers this date',
-            'no_owner' => 'Not attributed to an owner',
+            'no_agreement' => __('php/livewire/owner/owner_expenses.flag_no_agreement'),
+            'no_owner' => __('php/livewire/owner/owner_expenses.flag_no_owner'),
             default => ucfirst(str_replace('_', ' ', $flag)),
         };
     }

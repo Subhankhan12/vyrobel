@@ -14,7 +14,7 @@
 
     Page-scoped CSS (.vy-bl-*) lives here. RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
-<x-owner.shell active="balance" title="Balance & withdrawals" :subtitle="'What’s cleared, what’s held, and where every payment is on its way to.'" :viewer="$viewer">
+<x-owner.shell active="balance" :title="__('livewire/owner/balance.title')" :subtitle="__('livewire/owner/balance.subtitle')" :viewer="$viewer">
     <style>
         .vy-bl-kpi--hold { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, .1); }
         /* ⚠️ On this tint NO grey token clears AA (--vy-on-grad tops out at 4.31), so the label and
@@ -39,19 +39,19 @@
             {{-- Clearing KPIs — Available / On hold / In transit (reconcile to Net + Paid, #17) --}}
             <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Available</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/balance.available') }}</div>
                     <div class="vy-kpi-val">{{ $available['display'] }}</div>
-                    <div class="vy-kpi-sub">cleared this period · {{ $available['currency'] }}</div>
+                    <div class="vy-kpi-sub">{{ __('livewire/owner/balance.available_sub', ['currency' => $available['currency']]) }}</div>
                 </div>
                 <div class="vy-kpi {{ $onHold['minor'] !== 0 ? 'vy-bl-kpi--hold' : '' }}">
-                    <div class="vy-kpi-label">On hold</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/balance.on_hold') }}</div>
                     <div class="vy-kpi-val">{{ $onHold['display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $onHold['minor'] !== 0 ? 'tax details needed' : 'nothing held' }}</div>
+                    <div class="vy-kpi-sub">{{ $onHold['minor'] !== 0 ? __('livewire/owner/balance.on_hold_sub_held') : __('livewire/owner/balance.on_hold_sub_none') }}</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">In transit</div>
+                    <div class="vy-kpi-label">{{ __('livewire/owner/balance.in_transit') }}</div>
                     <div class="vy-kpi-val">{{ $inTransit['display'] }}</div>
-                    <div class="vy-kpi-sub">{{ $inTransit['minor'] !== 0 ? 'on its way' : 'nothing in transit' }}</div>
+                    <div class="vy-kpi-sub">{{ $inTransit['minor'] !== 0 ? __('livewire/owner/balance.in_transit_sub_moving') : __('livewire/owner/balance.in_transit_sub_none') }}</div>
                 </div>
             </div>
 
@@ -60,9 +60,9 @@
                  (€0) in the normal case — never a fabricated line. --}}
             @if ($carriedForward['minor'] !== 0)
                 <section class="vy-card vy-fade" style="animation-delay:.03s">
-                    <div class="vy-eyebrow">Carried forward</div>
+                    <div class="vy-eyebrow">{{ __('livewire/owner/balance.carried_forward') }}</div>
                     <div class="vy-kpi-val" style="margin-top:6px">{{ $carriedForward['display'] }}</div>
-                    <p class="vy-line-sub" style="font-size:12.5px;margin-top:6px;max-width:480px">A refunded or negative statement is carried into your next payout period — it offsets a future payout instead of being charged back, and it’s already included in your Net position.</p>
+                    <p class="vy-line-sub" style="font-size:12.5px;margin-top:6px;max-width:480px">{{ __('livewire/owner/balance.carried_forward_body') }}</p>
                 </section>
             @endif
 
@@ -71,20 +71,20 @@
             <section class="vy-card vy-fade" style="animation-delay:.05s">
                 <div class="vy-bl-withdraw">
                     <div style="max-width:440px">
-                        <h2 class="vy-card-title" style="margin-bottom:4px">Withdraw early</h2>
+                        <h2 class="vy-card-title" style="margin-bottom:4px">{{ __('livewire/owner/balance.withdraw_heading') }}</h2>
                         <div class="vy-line-sub" style="font-size:12.5px">
-                            Anything cleared is paid out automatically{{ $schedule ? ' on your '.strtolower($schedule['label']).' schedule' : '' }}. Instant self-serve withdrawal activates with the live payments connection.
+                            {{ $schedule ? __('livewire/owner/balance.withdraw_note_schedule', ['schedule' => \App\Support\I18n\Locales::inSentence($schedule['label'])]) : __('livewire/owner/balance.withdraw_note') }}
                         </div>
                         @if ($ibanMasked)
                             <div class="vy-bl-iban">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3 3 7v3h18V7zM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
-                                to IBAN {{ $ibanMasked }}
+                                {{ __('livewire/owner/balance.to_iban', ['iban' => $ibanMasked]) }}
                             </div>
                         @endif
                     </div>
-                    <button type="button" class="vy-bl-withdraw-btn" disabled aria-disabled="true" title="Instant withdrawal activates with the live payments connection">
+                    <button type="button" class="vy-bl-withdraw-btn" disabled aria-disabled="true" title="{{ __('livewire/owner/balance.withdraw_disabled_title') }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                        Withdraw{{ $available['minor'] > 0 ? ' '.$available['display'] : '' }}
+                        {{ $available['minor'] > 0 ? __('livewire/owner/balance.withdraw_amount_button', ['amount' => $available['display']]) : __('livewire/owner/balance.withdraw_button') }}
                     </button>
                 </div>
             </section>
@@ -93,13 +93,13 @@
             <section class="vy-card vy-fade" style="animation-delay:.08s">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px">
                     <div>
-                        <h2 class="vy-card-title">Balance activity</h2>
-                        <div class="vy-line-sub">Grouped by month, newest first — open a month for every movement in it</div>
+                        <h2 class="vy-card-title">{{ __('livewire/owner/balance.activity_heading') }}</h2>
+                        <div class="vy-line-sub">{{ __('livewire/owner/balance.activity_sub') }}</div>
                     </div>
                     @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                        <a class="vy-btn vy-btn--ghost" href="{{ route('owner.balance.export') }}" title="Export your balance activity as CSV">
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('owner.balance.export') }}" title="{{ __('livewire/owner/balance.export_title') }}">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                            Export
+                            {{ __('common.export') }}
                         </a>
                     @endownercan
                 </div>
@@ -108,10 +108,10 @@
                     <table class="vy-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Activity</th>
-                                <th class="vy-num">Amount</th>
-                                <th class="vy-num">Balance</th>
+                                <th>{{ __('common.date') }}</th>
+                                <th>{{ __('livewire/owner/balance.col_activity') }}</th>
+                                <th class="vy-num">{{ __('livewire/owner/balance.col_amount') }}</th>
+                                <th class="vy-num">{{ __('livewire/owner/balance.col_balance') }}</th>
                             </tr>
                         </thead>
                         {{-- ⚠️ OWNER FIX 3 — ROLLED UP BY DEFAULT, EXPANDABLE TO THE REAL LINES.
@@ -140,9 +140,9 @@
                                             <span>
                                                 <span class="vy-row-month">{{ $group['label'] }}</span>
                                                 <span class="vy-row-sub" style="display:block">
-                                                    <span x-text="open ? 'Hide the {{ $group['count_label'] }}' : 'Show the {{ $group['count_label'] }}'">Show the {{ $group['count_label'] }}</span>
-                                                    @if ($group['prior_period'])<span class="vy-provisional" style="margin-left:6px">Prior-period adjustment</span>@endif
-                                                    @if ($group['unverified'])<span class="vy-provisional" style="margin-left:6px">Unverified</span>@endif
+                                                    <span x-text="open ? @js(trans_choice('livewire/owner/balance.hide_movements', $group['count'], ['count' => $group['count']])) : @js(trans_choice('livewire/owner/balance.show_movements', $group['count'], ['count' => $group['count']]))">{{ trans_choice('livewire/owner/balance.show_movements', $group['count'], ['count' => $group['count']]) }}</span>
+                                                    @if ($group['prior_period'])<span class="vy-provisional" style="margin-left:6px">{{ __('livewire/owner/balance.prior_period') }}</span>@endif
+                                                    @if ($group['unverified'])<span class="vy-provisional" style="margin-left:6px">{{ __('livewire/owner/balance.unverified') }}</span>@endif
                                                 </span>
                                             </span>
                                         </button>
@@ -159,12 +159,12 @@
                                             <div class="vy-row-sub">
                                                 {{ $entry['type_label'] }}
                                                 @if ($entry['statement_id'])
-                                                    · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent-text);font-weight:600">on a statement</a>
+                                                    · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent-text);font-weight:600">{{ __('livewire/owner/balance.on_a_statement') }}</a>
                                                 @else
-                                                    · <span class="vy-muted">not yet on a statement</span>
+                                                    · <span class="vy-muted">{{ __('livewire/owner/balance.not_on_a_statement') }}</span>
                                                 @endif
-                                                @if ($entry['prior_period'])<span class="vy-provisional" style="margin-left:6px">Prior-period adjustment</span>@endif
-                                                @if ($entry['unverified'])<span class="vy-provisional" style="margin-left:6px">Unverified</span>@endif
+                                                @if ($entry['prior_period'])<span class="vy-provisional" style="margin-left:6px">{{ __('livewire/owner/balance.prior_period') }}</span>@endif
+                                                @if ($entry['unverified'])<span class="vy-provisional" style="margin-left:6px">{{ __('livewire/owner/balance.unverified') }}</span>@endif
                                             </div>
                                         </td>
                                         <td class="vy-num vy-mono @if ($entry['is_negative']) vy-net @endif">{{ $entry['amount_display'] }}</td>
@@ -177,25 +177,25 @@
                             </tbody>
                         @empty
                             <tbody>
-                                <tr><td colspan="4"><div class="vy-empty">No balance activity yet.</div></td></tr>
+                                <tr><td colspan="4"><div class="vy-empty">{{ __('livewire/owner/balance.empty') }}</div></td></tr>
                             </tbody>
                         @endforelse
                     </table>
                 </div>
 
                 @if ($net['multi'])
-                    <div class="vy-fx-note">The running balance accumulates separately for each currency.</div>
+                    <div class="vy-fx-note">{{ __('livewire/owner/balance.multi_currency_note') }}</div>
                 @endif
             </section>
 
             {{-- Per-currency totals — only when the owner's rows span >1 currency (never a cross-currency sum) --}}
             @if ($byCurrency)
                 <section class="vy-card vy-fade" style="animation-delay:.1s">
-                    <h2 class="vy-card-title">Balances by currency</h2>
+                    <h2 class="vy-card-title">{{ __('livewire/owner/balance.by_currency_heading') }}</h2>
                     <div style="overflow-x:auto;margin-top:10px">
                         <table class="vy-table">
                             <thead>
-                                <tr><th>Currency</th><th class="vy-num">Net position</th><th class="vy-num">In transit</th><th class="vy-num">Paid to date</th></tr>
+                                <tr><th>{{ __('livewire/owner/balance.col_currency') }}</th><th class="vy-num">{{ __('livewire/owner/balance.col_net_position') }}</th><th class="vy-num">{{ __('livewire/owner/balance.in_transit') }}</th><th class="vy-num">{{ __('livewire/owner/balance.col_paid_to_date') }}</th></tr>
                             </thead>
                             <tbody>
                                 @foreach ($byCurrency as $row)
@@ -209,7 +209,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="vy-fx-note">Each currency is held and totalled separately — balances are never converted.</div>
+                    <div class="vy-fx-note">{{ __('livewire/owner/balance.by_currency_note') }}</div>
                 </section>
             @endif
         </div>
@@ -221,11 +221,11 @@
                 <section class="vy-card vy-card--accent vy-fade" style="animation-delay:.05s">
                     <div style="display:flex;align-items:center;gap:12px">
                         <span class="vy-bl-held-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span>
-                        <div class="vy-card-title" style="font-size:15px">Why is {{ $held['display'] }} held?</div>
+                        <div class="vy-card-title" style="font-size:15px">{{ __('livewire/owner/balance.held_heading', ['amount' => $held['display']]) }}</div>
                     </div>
-                    <div class="vy-line-sub" style="margin-top:10px;font-size:12.5px">Your payout can’t be sent until a valid tax ID is on file — a legal requirement before we can transfer rental income.</div>
+                    <div class="vy-line-sub" style="margin-top:10px;font-size:12.5px">{{ __('livewire/owner/balance.held_body') }}</div>
                     <a class="vy-bl-held-cta" href="{{ route('owner.tax') }}">
-                        Add tax details
+                        {{ __('livewire/owner/balance.add_tax_details') }}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </a>
                 </section>
@@ -235,19 +235,19 @@
                  (payout engine · PayoutSchedule) is shown on the Payouts page; this card states the cadence only. --}}
             @if ($schedule)
                 <section class="vy-card vy-fade" style="animation-delay:.09s">
-                    <span class="vy-eyebrow">Auto-payout schedule</span>
+                    <span class="vy-eyebrow">{{ __('livewire/owner/balance.schedule_eyebrow') }}</span>
                     <div class="vy-list-row">
                         <span style="font-size:13.5px;font-weight:500">{{ $schedule['label'] }}</span>
-                        <a href="{{ route('owner.payouts') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Payouts →</a>
+                        <a href="{{ route('owner.payouts') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">{{ __('livewire/owner/balance.payouts_link') }}</a>
                     </div>
-                    <div class="vy-line-sub">Everything cleared by the schedule goes out automatically — no action needed.</div>
+                    <div class="vy-line-sub">{{ __('livewire/owner/balance.schedule_note') }}</div>
                 </section>
             @endif
 
             {{-- How money clears — descriptive, real. --}}
             <section class="vy-card vy-bl-clears vy-fade" style="animation-delay:.12s">
-                <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-peach)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span class="vy-card-title" style="font-size:15px;color:#fff">How money clears</span></div>
-                <div style="margin-top:10px;font-size:12.5px;color:rgba(255,255,255,.72);line-height:1.6">Guest payments clear once the stay begins and the statement is finalised. Refunds and approved expenses are netted before anything reaches your balance.</div>
+                <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-peach)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><span class="vy-card-title" style="font-size:15px;color:#fff">{{ __('livewire/owner/balance.how_clears_heading') }}</span></div>
+                <div style="margin-top:10px;font-size:12.5px;color:rgba(255,255,255,.72);line-height:1.6">{{ __('livewire/owner/balance.how_clears_body') }}</div>
             </section>
         </div>
     </div>

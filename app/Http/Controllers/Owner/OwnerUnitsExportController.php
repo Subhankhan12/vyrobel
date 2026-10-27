@@ -43,7 +43,12 @@ class OwnerUnitsExportController extends Controller
         return response()->streamDownload(function () use ($occ, $month, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Date', 'Units booked', 'Total units', 'Booked %']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_units_export_controller.col_date'),
+                __('php/http/controllers/owner/owner_units_export_controller.col_units_booked'),
+                __('php/http/controllers/owner/owner_units_export_controller.col_total_units'),
+                __('php/http/controllers/owner/owner_units_export_controller.col_booked_pct'),
+            ]));
 
             for ($d = 1; $d <= $occ['days']; $d++) {
                 $count = $occ['heat'][$d] ?? 0;
@@ -57,7 +62,12 @@ class OwnerUnitsExportController extends Controller
             }
 
             fputcsv($out, CsvSafe::row([]));
-            fputcsv($out, CsvSafe::row(['Month total', $occ['nights'].' nights', $occ['unit_count'].' units', $occ['pct'].'%']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_units_export_controller.month_total'),
+                trans_choice('php/http/controllers/owner/owner_units_export_controller.total_nights', (int) $occ['nights'], ['count' => $occ['nights']]),
+                trans_choice('php/http/controllers/owner/owner_units_export_controller.total_units', (int) $occ['unit_count'], ['count' => $occ['unit_count']]),
+                $occ['pct'].'%',
+            ]));
             fclose($out);
         }, $filename, [
             'Content-Type' => 'text/csv',

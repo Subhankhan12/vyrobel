@@ -40,23 +40,36 @@ class OwnerExpensesExportController extends Controller
         return response()->streamDownload(function () use ($expenses, $watermark): void {
             $out = fopen('php://output', 'wb');
             fputcsv($out, CsvSafe::row(['# '.$watermark]));
-            fputcsv($out, CsvSafe::row(['Date', 'Unit', 'Category', 'Description', 'Vendor', 'Amount', 'Deductible', 'Voided']));
+            fputcsv($out, CsvSafe::row([
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_date'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_unit'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_category'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_description'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_vendor'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_amount'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_deductible'),
+                __('php/http/controllers/owner/owner_expenses_export_controller.col_voided'),
+            ]));
 
             foreach ($expenses as $e) {
                 $unit = $e->unit;
 
                 fputcsv($out, CsvSafe::row([
                     Carbon::parse($e->expense_date)->format('Y-m-d'),
-                    $unit === null ? 'Unassigned' : (string) ($unit->name ?? $unit->code),
-                    ucfirst((string) $e->category),
+                    $unit === null ? __('php/http/controllers/owner/owner_expenses_export_controller.unassigned') : (string) ($unit->name ?? $unit->code),
+                    match ((string) $e->category) {
+                        'cleaning' => __('php/http/controllers/owner/owner_expenses_export_controller.category_cleaning'),
+                        'maintenance' => __('php/http/controllers/owner/owner_expenses_export_controller.category_maintenance'),
+                        'other' => __('php/http/controllers/owner/owner_expenses_export_controller.category_other'),
+                    },
                     (string) $e->description,
                     (string) ($e->vendor ?? ''),
                     MoneyFormatter::display((int) $e->amount_minor, (string) $e->currency),
                     match ($e->deductible) {
-                        null => 'pending review',
-                        default => $e->deductible ? 'deductible' : 'not deductible',
+                        null => __('php/http/controllers/owner/owner_expenses_export_controller.pending_review'),
+                        default => $e->deductible ? __('php/http/controllers/owner/owner_expenses_export_controller.deductible') : __('php/http/controllers/owner/owner_expenses_export_controller.not_deductible'),
                     },
-                    $e->voided_at !== null ? 'yes' : 'no',
+                    $e->voided_at !== null ? __('php/http/controllers/owner/owner_expenses_export_controller.voided_yes') : __('php/http/controllers/owner/owner_expenses_export_controller.voided_no'),
                 ]));
             }
 

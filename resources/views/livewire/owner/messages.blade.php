@@ -5,7 +5,7 @@
      named, NEVER owner→guest; #20 every write (send/compose/react/star/pin) is a controller POST, audited; #39
      honest — presence + typing OMITTED (no real-time infra), read receipt is REAL (operator_last_read_at).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-owner.shell active="messages" :title="'Messages'" :subtitle="$subtitle" :viewer="$viewer">
+<x-owner.shell active="messages" :title="__('livewire/owner/messages.title')" :subtitle="$subtitle" :viewer="$viewer">
     <style>
         .vy-msg-wrap { display:flex; gap:18px; align-items:stretch; height:calc(100vh - 150px); min-height:460px; }
         .vy-msg-rail { width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; min-height:0; }
@@ -106,12 +106,12 @@
         <aside class="vy-msg-rail" x-data="{ compose: false }">
             {{-- Compose --}}
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative">
-                <span style="font-size:12.5px;color:var(--vy-on-grad)">{{ $total }} {{ \Illuminate\Support\Str::plural('conversation', $total) }}</span>
-                <button type="button" @click="compose = ! compose" title="New message" aria-label="New message" style="width:38px;height:38px;border-radius:11px;background:var(--vy-grad);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(194,65,12,.3)">
+                <span style="font-size:12.5px;color:var(--vy-on-grad)">{{ trans_choice('livewire/owner/messages.conversation_count', $total, ['count' => $total]) }}</span>
+                <button type="button" @click="compose = ! compose" title="{{ __('livewire/owner/messages.new_message') }}" aria-label="{{ __('livewire/owner/messages.new_message') }}" style="width:38px;height:38px;border-radius:11px;background:var(--vy-grad);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(194,65,12,.3)">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
                 </button>
                 <div x-show="compose" x-cloak @click.outside="compose = false" style="position:absolute;top:calc(100% + 8px);right:0;z-index:41;width:264px;padding:6px;border-radius:16px;background:rgba(255,252,248,.98);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.85);box-shadow:0 20px 54px rgba(120,70,40,.26)">
-                    <div style="padding:8px 10px 7px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">New message</div>
+                    <div style="padding:8px 10px 7px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">{{ __('livewire/owner/messages.new_message') }}</div>
                     @forelse ($staff as $i => $member)
                         <a href="{{ route('owner.messages', ['compose' => $member['id']]) }}" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 10px;border-radius:12px;text-decoration:none;color:inherit">
                             <span class="vy-msg-av" style="width:36px;height:36px;font-size:12.5px;background:{{ $avGrad[$i % count($avGrad)] }}">{{ $member['initials'] }}</span>
@@ -121,7 +121,7 @@
                             </span>
                         </a>
                     @empty
-                        <div style="padding:12px 10px;font-size:12.5px;color:var(--vy-faint)">No management contacts yet.</div>
+                        <div style="padding:12px 10px;font-size:12.5px;color:var(--vy-faint)">{{ __('livewire/owner/messages.no_contacts') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -129,14 +129,14 @@
             {{-- Search (real, server-side ?q) --}}
             <form method="GET" action="{{ route('owner.messages') }}" class="vy-msg-search">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-on-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" name="q" value="{{ $query }}" placeholder="Search messages" aria-label="Search messages">
-                @if ($query !== '')<a href="{{ route('owner.messages') }}" title="Clear" style="width:22px;height:22px;border-radius:50%;background:rgba(120,70,40,.1);color:var(--vy-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none">&times;</a>@endif
+                <input type="text" name="q" value="{{ $query }}" placeholder="{{ __('livewire/owner/messages.search_placeholder') }}" aria-label="{{ __('livewire/owner/messages.search_placeholder') }}">
+                @if ($query !== '')<a href="{{ route('owner.messages') }}" title="{{ __('common.clear') }}" style="width:22px;height:22px;border-radius:50%;background:rgba(120,70,40,.1);color:var(--vy-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none">&times;</a>@endif
             </form>
 
             {{-- All / Unread --}}
             <div class="vy-msg-tabs">
-                <a href="{{ route('owner.messages', array_filter(['q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter !== 'unread' ? 'is-on' : '' }}">All</a>
-                <a href="{{ route('owner.messages', array_filter(['filter' => 'unread', 'q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter === 'unread' ? 'is-on' : '' }}">Unread @if ($unread > 0)<span class="vy-msg-badge" aria-hidden="true">{{ $unread }}</span><span class="vy-sr-only">{{ $unread }} unread</span>@endif</a>
+                <a href="{{ route('owner.messages', array_filter(['q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter !== 'unread' ? 'is-on' : '' }}">{{ __('common.all') }}</a>
+                <a href="{{ route('owner.messages', array_filter(['filter' => 'unread', 'q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter === 'unread' ? 'is-on' : '' }}">{{ __('livewire/owner/messages.tab_unread') }} @if ($unread > 0)<span class="vy-msg-badge" aria-hidden="true">{{ $unread }}</span><span class="vy-sr-only">{{ __('livewire/owner/messages.unread_sr', ['number' => $unread]) }}</span>@endif</a>
             </div>
 
             {{-- Conversation list --}}
@@ -150,14 +150,14 @@
                                 <span style="font-size:10.5px;color:var(--vy-ink);flex-shrink:0">{{ $row['time'] }}</span>
                             </span>
                             <span style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px">
-                                <span style="font-size:12px;color:{{ $row['unread'] ? 'var(--vy-ink)' : 'var(--vy-muted)' }};font-weight:{{ $row['unread'] ? 600 : 500 }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $row['preview'] ?? 'No messages yet' }}</span>
+                                <span style="font-size:12px;color:{{ $row['unread'] ? 'var(--vy-ink)' : 'var(--vy-muted)' }};font-weight:{{ $row['unread'] ? 600 : 500 }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $row['preview'] ?? __('livewire/owner/messages.no_messages_yet') }}</span>
                                 @if ($row['unread'])
                                     {{-- A DOT, not a digit. `$row['unread']` is a BOOLEAN (isUnread), so the
                                          hardcoded "1" that used to sit here read as "one unread message" on a
                                          thread that might hold three. The tab badge beside it IS a real count,
                                          which made the two look identical while meaning different things.
                                          A real per-thread count is logged as missing backend. --}}
-                                    <span class="vy-msg-dot" aria-hidden="true"></span><span class="vy-sr-only">Unread</span>
+                                    <span class="vy-msg-dot" aria-hidden="true"></span><span class="vy-sr-only">{{ __('livewire/owner/messages.unread_state') }}</span>
                                 @endif
                             </span>
                         </span>
@@ -165,14 +165,14 @@
                 @empty
                     <div class="vy-msg-empty">
                         @if ($query !== '')
-                            <div style="font-size:13px;font-weight:500;color:#6B615A">No messages match “{{ $query }}”</div>
-                            <div style="font-size:11.5px">Try another name or keyword</div>
+                            <div style="font-size:13px;font-weight:500;color:#6B615A">{{ __('livewire/owner/messages.no_match', ['query' => $query]) }}</div>
+                            <div style="font-size:11.5px">{{ __('livewire/owner/messages.no_match_hint') }}</div>
                         @elseif ($filter === 'unread')
-                            <div style="font-size:13px;font-weight:500;color:#6B615A">You're all caught up</div>
-                            <div style="font-size:11.5px">No unread messages</div>
+                            <div style="font-size:13px;font-weight:500;color:#6B615A">{{ __('livewire/owner/messages.caught_up') }}</div>
+                            <div style="font-size:11.5px">{{ __('livewire/owner/messages.no_unread') }}</div>
                         @else
-                            <div style="font-size:13px;font-weight:500;color:#6B615A">No conversations yet</div>
-                            <div style="font-size:11.5px">Use New message to reach your management team</div>
+                            <div style="font-size:13px;font-weight:500;color:#6B615A">{{ __('livewire/owner/messages.no_conversations') }}</div>
+                            <div style="font-size:11.5px">{{ __('livewire/owner/messages.no_conversations_rail_hint') }}</div>
                         @endif
                     </div>
                 @endforelse
@@ -190,18 +190,18 @@
                 <div class="vy-msg-thread">
                     <div class="vy-msg-empty">
                         <div style="width:52px;height:52px;border-radius:16px;background:rgba(217,102,46,.1);color:var(--vy-accent);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></div>
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">Start your conversation with {{ explode(' ', $composeStaff['name'])[0] }}</div>
-                        <div style="font-size:12.5px;max-width:260px">Send a message below — they'll reply in your inbox.</div>
+                        <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">{{ __('livewire/owner/messages.start_with', ['name' => explode(' ', $composeStaff['name'])[0]]) }}</div>
+                        <div style="font-size:12.5px;max-width:260px">{{ __('livewire/owner/messages.start_with_hint') }}</div>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('owner.messages.start') }}" enctype="multipart/form-data" class="vy-msg-composer" x-data="{ files: 0 }" style="margin-top:14px">
                     @csrf
                     <input type="hidden" name="staff_id" value="{{ $composeStaff['id'] }}">
-                    <button type="button" class="vy-msg-attach" title="Attach a file" aria-label="Attach a file" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
+                    <button type="button" class="vy-msg-attach" title="{{ __('livewire/owner/messages.attach_file') }}" aria-label="{{ __('livewire/owner/messages.attach_file') }}" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
                     <input type="file" name="attachments[]" multiple x-ref="file" class="sr-only" style="display:none" @change="files = $refs.file.files.length">
-                    <input type="text" name="body" required maxlength="5000" placeholder="Message {{ explode(' ', $composeStaff['name'])[0] }}…" aria-label="Message">
-                    <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap"><span x-text="files"></span> file(s)</span>
-                    <button type="submit" class="vy-msg-send" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
+                    <input type="text" name="body" required maxlength="5000" placeholder="{{ __('livewire/owner/messages.message_placeholder', ['name' => explode(' ', $composeStaff['name'])[0]]) }}" aria-label="{{ __('livewire/owner/messages.message_aria') }}">
+                    <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap">{!! __('livewire/owner/messages.files_selected') !!}</span>
+                    <button type="submit" class="vy-msg-send" aria-label="{{ __('livewire/owner/messages.send') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
                 </form>
             @elseif ($active !== null)
                 <div x-data="{ replyTo: null, star: false, reactFor: null, files: 0 }">
@@ -210,19 +210,19 @@
                         <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $active['initials'] }}</span>
                         <div style="flex:1;min-width:0"><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $active['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">{{ $active['role'] }}</div></div>
                         <div style="position:relative">
-                            <button type="button" @click="star = ! star" title="Starred messages" aria-label="Starred messages" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:11px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.6);cursor:pointer;font:inherit;font-size:12.5px;color:var(--vy-muted)">
+                            <button type="button" @click="star = ! star" title="{{ __('livewire/owner/messages.starred_messages') }}" aria-label="{{ __('livewire/owner/messages.starred_messages') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:11px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.6);cursor:pointer;font:inherit;font-size:12.5px;color:var(--vy-muted)">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ count($starred) > 0 ? '#E8A63A' : 'none' }}" stroke="var(--vy-amber-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
                                 {{ count($starred) }}
                             </button>
                             <div x-show="star" x-cloak @click.outside="star = false" class="vy-star-panel">
-                                <div style="padding:6px 10px 8px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">Starred</div>
+                                <div style="padding:6px 10px 8px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">{{ __('livewire/owner/messages.starred') }}</div>
                                 @forelse ($starred as $s)
                                     <a href="#msg-{{ $s['id'] }}" @click="star = false" class="vy-star-row">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="#E8A63A" stroke="var(--vy-amber-text)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
                                         <span style="min-width:0"><span style="display:block;font-size:11px;color:var(--vy-faint)">{{ $s['author'] }} · {{ $s['time'] }}</span><span style="display:block;font-size:12.5px;color:var(--vy-ink)">{{ $s['snippet'] }}</span></span>
                                     </a>
                                 @empty
-                                    <div style="padding:12px 10px;font-size:12.5px;color:var(--vy-faint)">No starred messages yet. Star a message to keep it here.</div>
+                                    <div style="padding:12px 10px;font-size:12.5px;color:var(--vy-faint)">{{ __('livewire/owner/messages.no_starred') }}</div>
                                 @endforelse
                             </div>
                         </div>
@@ -232,11 +232,11 @@
                     @if ($pinned !== null)
                         <div class="vy-pin-banner">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
-                            <span style="flex:1;min-width:0"><span style="color:var(--vy-faint)">Pinned · {{ $pinned['author'] }} — </span>{{ $pinned['snippet'] }}</span>
+                            <span style="flex:1;min-width:0"><span style="color:var(--vy-faint)">{{ __('livewire/owner/messages.pinned_by', ['author' => $pinned['author']]) }} </span>{{ $pinned['snippet'] }}</span>
                             <form method="POST" action="{{ route('owner.messages.pin', $active['id']) }}" style="flex-shrink:0">
                                 @csrf
                                 <input type="hidden" name="message_id" value="{{ $pinned['id'] }}">
-                                <button type="submit" title="Unpin" aria-label="Unpin" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:12px">Unpin</button>
+                                <button type="submit" title="{{ __('livewire/owner/messages.unpin') }}" aria-label="{{ __('livewire/owner/messages.unpin') }}" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:12px">{{ __('livewire/owner/messages.unpin') }}</button>
                             </form>
                         </div>
                     @endif
@@ -264,7 +264,7 @@
                                                     <a href="{{ $att['url'] }}" target="_blank" rel="noopener"><img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" class="vy-msg-att-img"></a>
                                                 @elseif (($att['kind'] ?? '') === 'voice')
                                                     {{-- a voice note from the team (2026-10-06) — played here, never downloaded --}}
-                                                    <audio controls preload="none" src="{{ $att['url'] }}" class="vy-msg-att-voice" aria-label="Voice message"></audio>
+                                                    <audio controls preload="none" src="{{ $att['url'] }}" class="vy-msg-att-voice" aria-label="{{ __('livewire/owner/messages.voice_message') }}"></audio>
                                                 @else
                                                     <a href="{{ $att['url'] }}" target="_blank" rel="noopener" class="vy-msg-att-file">
                                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
@@ -290,19 +290,19 @@
                                         <div class="vy-msg-meta" style="justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
                                             <span>{{ $m['meta'] }}</span>
                                             @if ($m['failed'])
-                                                <span style="color:#B4400F;font-weight:600">· Not delivered</span>
+                                                <span style="color:#B4400F;font-weight:600">{{ __('livewire/owner/messages.not_delivered') }}</span>
                                             @elseif ($m['receipt'] !== null)
-                                                <span class="vy-msg-receipt" style="color:{{ $m['receipt'] === 'Read' ? 'var(--vy-accent)' : 'var(--vy-faint)' }}">· {{ $m['receipt'] === 'Read' ? '✓✓' : '✓' }} {{ $m['receipt'] }}</span>
+                                                <span class="vy-msg-receipt" style="color:{{ $m['receipt_code'] === 'read' ? 'var(--vy-accent)' : 'var(--vy-faint)' }}">· {{ $m['receipt_code'] === 'read' ? '✓✓' : '✓' }} {{ $m['receipt'] }}</span>
                                             @endif
                                         </div>
                                     </div>
 
                                     {{-- per-message actions (hover) --}}
                                     <div class="vy-msg-acts" style="position:relative">
-                                        <button type="button" class="vy-msg-act" title="Reply" aria-label="Reply" @click="replyTo = { id: '{{ $m['id'] }}', author: @js($m['author']), snippet: @js(\Illuminate\Support\Str::limit($m['body'] ?: 'Attachment', 60)) }; $refs.body.focus()">
+                                        <button type="button" class="vy-msg-act" title="{{ __('livewire/owner/messages.reply') }}" aria-label="{{ __('livewire/owner/messages.reply') }}" @click="replyTo = { id: '{{ $m['id'] }}', author: @js($m['author']), snippet: @js(\Illuminate\Support\Str::limit($m['body'] ?: __('livewire/owner/messages.attachment'), 60)) }; $refs.body.focus()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>
                                         </button>
-                                        <button type="button" class="vy-msg-act" title="React" aria-label="React" @click="reactFor = (reactFor === '{{ $m['id'] }}' ? null : '{{ $m['id'] }}')">
+                                        <button type="button" class="vy-msg-act" title="{{ __('livewire/owner/messages.react') }}" aria-label="{{ __('livewire/owner/messages.react') }}" @click="reactFor = (reactFor === '{{ $m['id'] }}' ? null : '{{ $m['id'] }}')">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                                         </button>
                                         {{-- ⚠️ PURELY CLIENT-SIDE: it copies the body ALREADY RENDERED on this
@@ -312,10 +312,10 @@
                                              `aria-live` announces the outcome; the label reverts so the button
                                              does not lie about its next action. --}}
                                         @if (trim((string) $m['body']) !== '')
-                                            <button type="button" class="vy-msg-act" title="Copy text" aria-label="Copy text"
+                                            <button type="button" class="vy-msg-act" title="{{ __('livewire/owner/messages.copy_text') }}" aria-label="{{ __('livewire/owner/messages.copy_text') }}"
                                                 x-data="{ done: false }"
                                                 @click="navigator.clipboard.writeText(@js($m['body'])).then(() => { done = true; setTimeout(() => done = false, 1600) })"
-                                                :title="done ? 'Copied' : 'Copy text'" :aria-label="done ? 'Copied' : 'Copy text'">
+                                                :title="done ? @js(__('livewire/owner/messages.copied')) : @js(__('livewire/owner/messages.copy_text'))" :aria-label="done ? @js(__('livewire/owner/messages.copied')) : @js(__('livewire/owner/messages.copy_text'))">
                                                 <template x-if="!done">
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                                 </template>
@@ -335,14 +335,14 @@
                                         <form method="POST" action="{{ route('owner.messages.star', $active['id']) }}">
                                             @csrf
                                             <input type="hidden" name="message_id" value="{{ $m['id'] }}">
-                                            <button type="submit" class="vy-msg-act {{ $m['starred'] ? 'is-on' : '' }}" title="{{ $m['starred'] ? 'Unstar' : 'Star' }}" aria-label="Star message" aria-pressed="{{ $m['starred'] ? 'true' : 'false' }}">
+                                            <button type="submit" class="vy-msg-act {{ $m['starred'] ? 'is-on' : '' }}" title="{{ $m['starred'] ? __('livewire/owner/messages.unstar') : __('livewire/owner/messages.star') }}" aria-label="{{ __('livewire/owner/messages.star_message') }}" aria-pressed="{{ $m['starred'] ? 'true' : 'false' }}">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $m['starred'] ? '#E8A63A' : 'none' }}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ route('owner.messages.pin', $active['id']) }}">
                                             @csrf
                                             <input type="hidden" name="message_id" value="{{ $m['id'] }}">
-                                            <button type="submit" class="vy-msg-act {{ $m['pinned'] ? 'is-on' : '' }}" title="{{ $m['pinned'] ? 'Unpin' : 'Pin' }}" aria-label="Pin message" aria-pressed="{{ $m['pinned'] ? 'true' : 'false' }}">
+                                            <button type="submit" class="vy-msg-act {{ $m['pinned'] ? 'is-on' : '' }}" title="{{ $m['pinned'] ? __('livewire/owner/messages.unpin') : __('livewire/owner/messages.pin') }}" aria-label="{{ __('livewire/owner/messages.pin_message') }}" aria-pressed="{{ $m['pinned'] ? 'true' : 'false' }}">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $m['pinned'] ? 'var(--vy-accent)' : 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
                                             </button>
                                         </form>
@@ -363,8 +363,8 @@
                         @empty
                             <div class="vy-msg-empty">
                                 <div style="width:52px;height:52px;border-radius:16px;background:rgba(217,102,46,.1);color:var(--vy-accent);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></div>
-                                <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">Start of your conversation with {{ $active['first_name'] }}</div>
-                                <div style="font-size:12.5px;max-width:260px">Send a message below to start the conversation.</div>
+                                <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">{{ __('livewire/owner/messages.start_of_conversation', ['name' => $active['first_name']]) }}</div>
+                                <div style="font-size:12.5px;max-width:260px">{{ __('livewire/owner/messages.start_of_conversation_hint') }}</div>
                             </div>
                         @endforelse
                     </div>
@@ -372,19 +372,19 @@
                     {{-- reply-to context banner (Alpine) --}}
                     <div x-show="replyTo" x-cloak style="flex-shrink:0;margin-top:10px;display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.12)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>
-                        <span style="flex:1;min-width:0;font-size:12px;color:var(--vy-muted)">Replying to <b x-text="replyTo?.author"></b> · <span x-text="replyTo?.snippet"></span></span>
-                        <button type="button" @click="replyTo = null" title="Cancel reply" aria-label="Cancel reply" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:15px;line-height:1">&times;</button>
+                        <span style="flex:1;min-width:0;font-size:12px;color:var(--vy-muted)">{!! __('livewire/owner/messages.replying_to') !!}</span>
+                        <button type="button" @click="replyTo = null" title="{{ __('livewire/owner/messages.cancel_reply') }}" aria-label="{{ __('livewire/owner/messages.cancel_reply') }}" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:15px;line-height:1">&times;</button>
                     </div>
 
                     {{-- Composer --}}
                     <form method="POST" action="{{ route('owner.messages.reply', $active['id']) }}" enctype="multipart/form-data" class="vy-msg-composer">
                         @csrf
                         <input type="hidden" name="reply_to_message_id" :value="replyTo?.id ?? ''">
-                        <button type="button" class="vy-msg-attach" title="Attach a file" aria-label="Attach a file" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
+                        <button type="button" class="vy-msg-attach" title="{{ __('livewire/owner/messages.attach_file') }}" aria-label="{{ __('livewire/owner/messages.attach_file') }}" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
                         <input type="file" name="attachments[]" multiple x-ref="file" style="display:none" @change="files = $refs.file.files.length">
-                        <input type="text" name="body" x-ref="body" maxlength="5000" placeholder="Message {{ $active['first_name'] }}…" aria-label="Message">
-                        <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap"><span x-text="files"></span> file(s)</span>
-                        <button type="submit" class="vy-msg-send" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
+                        <input type="text" name="body" x-ref="body" maxlength="5000" placeholder="{{ __('livewire/owner/messages.message_placeholder', ['name' => $active['first_name']]) }}" aria-label="{{ __('livewire/owner/messages.message_aria') }}">
+                        <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap">{!! __('livewire/owner/messages.files_selected') !!}</span>
+                        <button type="submit" class="vy-msg-send" aria-label="{{ __('livewire/owner/messages.send') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
                     </form>
                     {{-- Quick replies — seed the draft (a real send on submit) --}}
                     <div style="flex-shrink:0;display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
@@ -398,8 +398,8 @@
                 <div class="vy-msg-thread">
                     <div class="vy-msg-empty">
                         <div style="width:52px;height:52px;border-radius:16px;background:rgba(217,102,46,.1);color:var(--vy-accent);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></div>
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">No conversations yet</div>
-                        <div style="font-size:12.5px;max-width:260px">Use <strong>New message</strong> to reach your management team.</div>
+                        <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">{{ __('livewire/owner/messages.no_conversations') }}</div>
+                        <div style="font-size:12.5px;max-width:260px">{!! __('livewire/owner/messages.no_conversations_hint') !!}</div>
                     </div>
                 </div>
             @endif

@@ -44,7 +44,7 @@ class OwnerReportEmailController extends Controller
             ->first();
 
         if (! $statement instanceof OwnerStatement) {
-            return back()->with('owner_notice', 'You don’t have a finalized statement to email yet — we’ll have one ready after your first payout period.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_report_email_controller.no_statement_yet'));
         }
 
         // Payout-capable role ON THIS statement's owner → the masked IBAN appears on the PDF; an accountant
@@ -53,13 +53,13 @@ class OwnerReportEmailController extends Controller
         $pdfBytes = $pdf->raw('pdfs.owner-statement', OwnerStatementDocument::data($statement, $canSeePayout));
         $filename = 'vyrobel-statement-'.$statement->sequence_no.'-'.$statement->period_start->format('Y-m').'.pdf';
 
-        Mail::to($email)->queue(new OwnerReportMail(
+        Mail::to($email)->locale($user->preferredLocale())->queue(new OwnerReportMail(
             ownerName: (string) ($statement->owner->name ?? ($user->name ?? 'Owner')),
             periodLabel: $statement->period_start->format('F Y'),
             filename: $filename,
             pdfBytes: $pdfBytes,
         ));
 
-        return back()->with('owner_notice', 'Your latest statement is on its way to '.$email.'.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_report_email_controller.statement_sent', ['email' => $email]));
     }
 }

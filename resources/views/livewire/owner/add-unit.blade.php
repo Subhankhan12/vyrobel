@@ -21,14 +21,14 @@
     ];
     $amFallback = '<path d="M4.5 12.5 9.5 17.5 19.5 7"/>';
 @endphp
-<x-owner.shell active="add-unit" title="Add a unit" :viewer="$viewer">
+<x-owner.shell active="add-unit" :title="__('livewire/owner/add-unit.page_title')" :viewer="$viewer">
 
     {{-- Server validation only — the wizard never invents a client-side "looks good". Every message the server
          actually returned is shown (the old markup dropped all but the first), announced, and led by a word so
          the failure is not carried by the accent rule alone. --}}
     @if ($errors->any())
         <div class="vy-card vy-fade" role="alert" style="border-left:3px solid var(--vy-accent);margin-bottom:16px">
-            <div style="font-size:13px;font-weight:600;color:var(--vy-accent-text);margin-bottom:2px">We couldn’t send your request</div>
+            <div style="font-size:13px;font-weight:600;color:var(--vy-accent-text);margin-bottom:2px">{{ __('livewire/owner/add-unit.error_heading') }}</div>
             @foreach ($errors->all() as $error)
                 <div style="font-size:13px;color:var(--vy-ink)">{{ $error }}</div>
             @endforeach
@@ -38,14 +38,14 @@
     @unless ($linked)
         <a class="vy-au-back" href="{{ route('owner.units') }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-            My units
+            {{ __('livewire/owner/add-unit.my_units') }}
         </a>
-        <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+        <div class="vy-card vy-fade"><div class="vy-empty">{{ __('livewire/owner/add-unit.not_linked') }}</div></div>
     @elseif ($done)
         {{-- DONE — server-rendered after the PRG redirect from a REAL submission --}}
         <a class="vy-au-back" href="{{ route('owner.units') }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-            My units
+            {{ __('livewire/owner/add-unit.my_units') }}
         </a>
         <div class="vy-au-done vy-fade">
             <div class="vy-au-done-card">
@@ -55,28 +55,28 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                     </div>
                 </div>
-                <div class="vy-au-done-title">Request received</div>
-                <div class="vy-au-done-sub">Thanks, {{ $firstName }}. {{ $operatorName }} reviews new units and comes back to you within two business days.</div>
+                <div class="vy-au-done-title">{{ __('livewire/owner/add-unit.done_title') }}</div>
+                <div class="vy-au-done-sub">{{ __('livewire/owner/add-unit.done_sub', ['first_name' => $firstName, 'operator' => $operatorName]) }}</div>
 
                 <div class="vy-au-checklist">
                     <div class="vy-au-check">
                         <span class="vy-au-check-ico vy-au-check-ico--done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg></span>
-                        <span class="vy-au-check-txt">Submitted — <b>{{ $done['name'] }}</b>@if ($done['location'] !== '') in {{ $done['location'] }}@endif</span>
+                        <span class="vy-au-check-txt">@if ($done['location'] !== ''){!! __('livewire/owner/add-unit.done_submitted_in', ['name' => e($done['name']), 'location' => e($done['location'])]) !!}@else{!! __('livewire/owner/add-unit.done_submitted', ['name' => e($done['name'])]) !!}@endif</span>
                     </div>
                     <div class="vy-au-check">
                         <span class="vy-au-check-ico vy-au-check-ico--wait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
-                        <span class="vy-au-check-txt">Your team verifies the details, sets up channels &amp; pricing, and schedules photos if needed</span>
+                        <span class="vy-au-check-txt">{{ __('livewire/owner/add-unit.done_team_verifies') }}</span>
                     </div>
                     <div class="vy-au-check">
                         <span class="vy-au-check-ico vy-au-check-ico--home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>
-                        <span class="vy-au-check-txt">Once live, it joins <b>My units</b> and starts taking bookings</span>
+                        <span class="vy-au-check-txt">{!! __('livewire/owner/add-unit.done_once_live') !!}</span>
                     </div>
                 </div>
 
-                <a class="vy-au-cta" href="{{ route('owner.units') }}">Back to My units</a>
+                <a class="vy-au-cta" href="{{ route('owner.units') }}">{{ __('livewire/owner/add-unit.back_to_my_units') }}</a>
                 <div class="vy-au-done-actions">
-                    <a class="vy-au-cta--ghost" href="{{ route('owner.add-unit') }}">Add another</a>
-                    <a class="vy-au-cta--ghost" href="{{ route('owner.messages') }}">Message the team</a>
+                    <a class="vy-au-cta--ghost" href="{{ route('owner.add-unit') }}">{{ __('livewire/owner/add-unit.add_another') }}</a>
+                    <a class="vy-au-cta--ghost" href="{{ route('owner.messages') }}">{{ __('livewire/owner/add-unit.message_the_team') }}</a>
                 </div>
             </div>
         </div>
@@ -121,9 +121,9 @@
             pct: @js($commissionPct), sym: @js($currencySymbol), lim: @js($limits),
             kindLabels: @js($kinds), amNames: @js(collect($amenities)->pluck('name', 'id')),
             get canNext1() { return this.name.trim().length > 0 },
-            get stepLabel() { return 'Step ' + this.step + ' of 4' },
+            get stepLabel() { return @js(__('livewire/owner/add-unit.step_of', ['step' => ':step'])).replace(':step', this.step) },
             get kindLabel() { return this.kindLabels[this.kind] || '' },
-            get previewName() { return this.name.trim() || 'Your new unit' },
+            get previewName() { return this.name.trim() || @js(__('livewire/owner/add-unit.your_new_unit')) },
             get previewSub() { return this.kindLabel + (this.town.trim() ? ' · ' + this.town.trim() : '') },
             get previewRate() { return this.nightly.trim() ? this.sym + this.nightly.trim() : this.sym + '—' },
             get hasAmenities() { return this.amenities.length > 0 },
@@ -145,9 +145,9 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:2px">
                 <a class="vy-au-back" href="{{ route('owner.units') }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-                    My units
+                    {{ __('livewire/owner/add-unit.my_units') }}
                 </a>
-                <span class="vy-au-steplabel" x-text="stepLabel">Step 1 of 4</span>
+                <span class="vy-au-steplabel" x-text="stepLabel">{{ __('livewire/owner/add-unit.step_of', ['step' => 1]) }}</span>
             </div>
 
             {{-- Enter inside any text field triggers IMPLICIT submission against the step-4 submit button, even
@@ -182,16 +182,16 @@
                         <div class="vy-au-card">
                             {{-- STEP 1 — the basics --}}
                             <div x-show="step === 1">
-                                <div class="vy-au-steptitle">The basics</div>
-                                <div class="vy-au-stepsub">Tell us what you’re listing and where it is.</div>
+                                <div class="vy-au-steptitle">{{ __('livewire/owner/add-unit.step1_title') }}</div>
+                                <div class="vy-au-stepsub">{{ __('livewire/owner/add-unit.step1_sub') }}</div>
 
                                 <div class="vy-au-field">
-                                    <label class="vy-au-flabel" for="au-name">Unit name</label>
-                                    <input id="au-name" name="requested_name" x-model="name" placeholder="e.g. Villa Marisol" class="vy-au-input" maxlength="120" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-name">{{ __('livewire/owner/add-unit.unit_name') }}</label>
+                                    <input id="au-name" name="requested_name" x-model="name" placeholder="{{ __('livewire/owner/add-unit.unit_name_placeholder') }}" class="vy-au-input" maxlength="120" autocomplete="off">
                                 </div>
 
                                 <div class="vy-au-field">
-                                    <div class="vy-au-flabel" id="au-kind-label">Property type</div>
+                                    <div class="vy-au-flabel" id="au-kind-label">{{ __('livewire/owner/add-unit.property_type') }}</div>
                                     <div class="vy-au-chips" role="group" aria-labelledby="au-kind-label">
                                         @foreach ($kinds as $value => $label)
                                             <button type="button" @click="kind = '{{ $value }}'" :aria-pressed="kind === '{{ $value }}' ? 'true' : 'false'" :class="kind === '{{ $value }}' ? 'vy-au-chip is-sel' : 'vy-au-chip'">{{ $label }}</button>
@@ -200,53 +200,53 @@
                                 </div>
 
                                 <div class="vy-au-field">
-                                    <label class="vy-au-flabel" for="au-town">Town / city</label>
-                                    <input id="au-town" name="location" x-model="town" placeholder="e.g. Split" class="vy-au-input" maxlength="120" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-town">{{ __('livewire/owner/add-unit.town_city') }}</label>
+                                    <input id="au-town" name="location" x-model="town" placeholder="{{ __('livewire/owner/add-unit.town_placeholder') }}" class="vy-au-input" maxlength="120" autocomplete="off">
                                 </div>
 
                                 <div class="vy-au-field" style="margin-bottom:22px">
-                                    <label class="vy-au-flabel" for="au-address">Street address</label>
-                                    <input id="au-address" name="street_address" x-model="address" placeholder="Street &amp; number" class="vy-au-input" maxlength="200" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-address">{{ __('livewire/owner/add-unit.street_address') }}</label>
+                                    <input id="au-address" name="street_address" x-model="address" placeholder="{{ __('livewire/owner/add-unit.street_address_placeholder') }}" class="vy-au-input" maxlength="200" autocomplete="off">
                                 </div>
 
                                 <button type="button" @click="canNext1 && go(2)" :disabled="!canNext1" :class="canNext1 ? 'vy-au-cta' : 'vy-au-cta vy-au-cta--wait'">
-                                    <span x-text="canNext1 ? 'Continue' : 'Name your unit to continue'">Continue</span>
+                                    <span x-text="canNext1 ? @js(__('common.continue')) : @js(__('livewire/owner/add-unit.name_to_continue'))">{{ __('common.continue') }}</span>
                                 </button>
                             </div>
 
                             {{-- STEP 2 — space & capacity --}}
                             <div x-show="step === 2" class="vy-au-step" style="display:none">
-                                <div class="vy-au-steptitle">Space &amp; capacity</div>
-                                <div class="vy-au-stepsub">How big is it, and what does it offer?</div>
+                                <div class="vy-au-steptitle">{{ __('livewire/owner/add-unit.step2_title') }}</div>
+                                <div class="vy-au-stepsub">{{ __('livewire/owner/add-unit.step2_sub') }}</div>
 
                                 <div class="vy-au-group">
                                     <div class="vy-au-row">
-                                        <span class="vy-au-row-name" id="au-beds-label">Bedrooms</span>
+                                        <span class="vy-au-row-name" id="au-beds-label">{{ __('livewire/owner/add-unit.bedrooms') }}</span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" aria-label="One fewer bedroom" @click="dec('beds', 0)" :disabled="beds <= 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_fewer_bedroom') }}" @click="dec('beds', 0)" :disabled="beds <= 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
                                             <span class="vy-au-num" role="status" aria-labelledby="au-beds-label" x-text="beds">1</span>
-                                            <button type="button" class="vy-au-pm" aria-label="One more bedroom" @click="inc('beds', lim.bedrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_more_bedroom') }}" @click="inc('beds', lim.bedrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                     <div class="vy-au-row">
-                                        <span class="vy-au-row-name" id="au-baths-label">Bathrooms</span>
+                                        <span class="vy-au-row-name" id="au-baths-label">{{ __('livewire/owner/add-unit.bathrooms') }}</span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" aria-label="One fewer bathroom" @click="dec('baths', 1)" :disabled="baths <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_fewer_bathroom') }}" @click="dec('baths', 1)" :disabled="baths <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
                                             <span class="vy-au-num" role="status" aria-labelledby="au-baths-label" x-text="baths">1</span>
-                                            <button type="button" class="vy-au-pm" aria-label="One more bathroom" @click="inc('baths', lim.bathrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_more_bathroom') }}" @click="inc('baths', lim.bathrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                     <div class="vy-au-row">
-                                        <span><span class="vy-au-row-name" id="au-sleeps-label">Sleeps</span><span class="vy-au-row-sub">Maximum guests</span></span>
+                                        <span><span class="vy-au-row-name" id="au-sleeps-label">{{ __('livewire/owner/add-unit.sleeps') }}</span><span class="vy-au-row-sub">{{ __('livewire/owner/add-unit.max_guests') }}</span></span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" aria-label="One fewer guest" @click="dec('sleeps', 1)" :disabled="sleeps <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_fewer_guest') }}" @click="dec('sleeps', 1)" :disabled="sleeps <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
                                             <span class="vy-au-num" role="status" aria-labelledby="au-sleeps-label" x-text="sleeps">2</span>
-                                            <button type="button" class="vy-au-pm" aria-label="One more guest" @click="inc('sleeps', lim.sleeps)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_more_guest') }}" @click="inc('sleeps', lim.sleeps)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                 </div>
 
-                                <div class="vy-au-flabel" style="margin-bottom:10px" id="au-amenities-label">Amenities</div>
+                                <div class="vy-au-flabel" style="margin-bottom:10px" id="au-amenities-label">{{ __('livewire/owner/add-unit.amenities') }}</div>
                                 @if (count($amenities) > 0)
                                     <div class="vy-au-chips" style="margin-bottom:22px" role="group" aria-labelledby="au-amenities-label">
                                         @foreach ($amenities as $a)
@@ -257,37 +257,37 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <div class="vy-au-stepsub" style="margin-bottom:22px">Your team will confirm amenities when they set the unit up.</div>
+                                    <div class="vy-au-stepsub" style="margin-bottom:22px">{{ __('livewire/owner/add-unit.amenities_later') }}</div>
                                 @endif
 
-                                <button type="button" class="vy-au-cta" @click="go(3)">Continue</button>
-                                <button type="button" class="vy-au-cta--ghost" @click="go(1)">Back</button>
+                                <button type="button" class="vy-au-cta" @click="go(3)">{{ __('common.continue') }}</button>
+                                <button type="button" class="vy-au-cta--ghost" @click="go(1)">{{ __('common.back') }}</button>
                             </div>
 
                             {{-- STEP 3 — photos --}}
                             <div x-show="step === 3" class="vy-au-step" style="display:none">
-                                <div class="vy-au-steptitle">Photos</div>
-                                <div class="vy-au-stepsub">Add a <b style="font-weight:500;color:var(--vy-ink)">cover photo</b> — it appears first — then one more if you like.</div>
+                                <div class="vy-au-steptitle">{{ __('livewire/owner/add-unit.step3_title') }}</div>
+                                <div class="vy-au-stepsub">{!! __('livewire/owner/add-unit.step3_sub') !!}</div>
 
                                 <div class="vy-au-drops">
                                     <label class="vy-au-drop">
                                         {{-- The visible label is swapped for the chosen image, so the NAME lives on the input itself. --}}
-                                        <input type="file" name="photos[]" aria-label="Cover photo" accept="image/jpeg,image/png,image/webp" @change="onCover">
+                                        <input type="file" name="photos[]" aria-label="{{ __('livewire/owner/add-unit.cover_photo') }}" accept="image/jpeg,image/png,image/webp" @change="onCover">
                                         <template x-if="coverUrl"><img class="vy-au-drop-img" :src="coverUrl" alt=""></template>
                                         <template x-if="!coverUrl">
                                             <span style="display:flex;flex-direction:column;align-items:center;gap:6px">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="15" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-4-4-9 7"/></svg>
-                                                <span class="vy-au-drop-label">Cover photo</span>
+                                                <span class="vy-au-drop-label">{{ __('livewire/owner/add-unit.cover_photo') }}</span>
                                             </span>
                                         </template>
                                     </label>
                                     <label class="vy-au-drop">
-                                        <input type="file" name="photos[]" aria-label="Another photo" accept="image/jpeg,image/png,image/webp" @change="onPhoto2">
+                                        <input type="file" name="photos[]" aria-label="{{ __('livewire/owner/add-unit.another_photo') }}" accept="image/jpeg,image/png,image/webp" @change="onPhoto2">
                                         <template x-if="photo2Url"><img class="vy-au-drop-img" :src="photo2Url" alt=""></template>
                                         <template x-if="!photo2Url">
                                             <span style="display:flex;flex-direction:column;align-items:center;gap:6px">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                                                <span class="vy-au-drop-label">Another photo</span>
+                                                <span class="vy-au-drop-label">{{ __('livewire/owner/add-unit.another_photo') }}</span>
                                             </span>
                                         </template>
                                     </label>
@@ -295,28 +295,28 @@
 
                                 <div class="vy-au-note">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                                    <span>Bright, landscape photos convert best. {{ $operatorName }} can arrange a professional shoot after approval — just ask.</span>
+                                    <span>{{ __('livewire/owner/add-unit.photos_note', ['operator' => $operatorName]) }}</span>
                                 </div>
 
-                                <button type="button" class="vy-au-cta" @click="go(4)">Continue</button>
-                                <button type="button" class="vy-au-cta--ghost" @click="go(2)">Back</button>
+                                <button type="button" class="vy-au-cta" @click="go(4)">{{ __('common.continue') }}</button>
+                                <button type="button" class="vy-au-cta--ghost" @click="go(2)">{{ __('common.back') }}</button>
                             </div>
 
                             {{-- STEP 4 — rate & terms --}}
                             <div x-show="step === 4" class="vy-au-step" style="display:none">
-                                <div class="vy-au-steptitle">Rate &amp; terms</div>
-                                <div class="vy-au-stepsub">Set a starting rate — your revenue team fine-tunes it against demand.</div>
+                                <div class="vy-au-steptitle">{{ __('livewire/owner/add-unit.step4_title') }}</div>
+                                <div class="vy-au-stepsub">{{ __('livewire/owner/add-unit.step4_sub') }}</div>
 
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
                                     <div>
-                                        <label class="vy-au-flabel" for="au-nightly">Base rate / night</label>
+                                        <label class="vy-au-flabel" for="au-nightly">{{ __('livewire/owner/add-unit.base_rate_night') }}</label>
                                         <div class="vy-au-money">
                                             <span class="vy-au-money-cur" aria-hidden="true">{{ $currencySymbol }}</span>
                                             <input id="au-nightly" name="nightly_rate" x-model="nightly" inputmode="decimal" placeholder="0" maxlength="12">
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="vy-au-flabel" for="au-cleaning">Cleaning fee</label>
+                                        <label class="vy-au-flabel" for="au-cleaning">{{ __('livewire/owner/add-unit.cleaning_fee') }}</label>
                                         <div class="vy-au-money">
                                             <span class="vy-au-money-cur" aria-hidden="true">{{ $currencySymbol }}</span>
                                             <input id="au-cleaning" name="cleaning_fee" x-model="cleaning" inputmode="decimal" placeholder="0" maxlength="12">
@@ -326,11 +326,11 @@
 
                                 <div class="vy-au-group">
                                     <div class="vy-au-row">
-                                        <span><span class="vy-au-row-name" id="au-min-label">Minimum nights</span><span class="vy-au-row-sub">Shortest stay you’ll accept</span></span>
+                                        <span><span class="vy-au-row-name" id="au-min-label">{{ __('livewire/owner/add-unit.min_nights') }}</span><span class="vy-au-row-sub">{{ __('livewire/owner/add-unit.min_nights_sub') }}</span></span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" aria-label="One fewer minimum night" @click="dec('minNights', 1)" :disabled="minNights <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_fewer_min_night') }}" @click="dec('minNights', 1)" :disabled="minNights <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
                                             <span class="vy-au-num" role="status" aria-labelledby="au-min-label" x-text="minNights">2</span>
-                                            <button type="button" class="vy-au-pm" aria-label="One more minimum night" @click="inc('minNights', lim.min_nights)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="{{ __('livewire/owner/add-unit.one_more_min_night') }}" @click="inc('minNights', lim.min_nights)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                 </div>
@@ -347,9 +347,9 @@
                                      rather than discovered as a rejection; the server rule remains authoritative.
                                      Reuses .vy-au-input / .vy-au-flabel — the wizard's own field idiom (§N.8f). --}}
                                 <div class="vy-au-field" style="margin-bottom:16px">
-                                    <label class="vy-au-flabel" for="au-notes">Anything else we should know? <span style="font-weight:400;color:var(--vy-muted)">(optional)</span></label>
+                                    <label class="vy-au-flabel" for="au-notes">{!! __('livewire/owner/add-unit.notes_label') !!}</label>
                                     <textarea id="au-notes" name="notes" x-model="notes" class="vy-au-input" rows="3" maxlength="2000"
-                                              placeholder="Access quirks, parking, a gate code the cleaners need — anything that helps us set it up right."
+                                              placeholder="{{ __('livewire/owner/add-unit.notes_placeholder') }}"
                                               style="resize:vertical;min-height:76px;font-family:inherit"></textarea>
                                 </div>
 
@@ -358,18 +358,18 @@
                                     <span class="vy-au-commission-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
                                     <span class="vy-au-commission-main">
                                         @if ($commissionPct !== null)
-                                            <span class="vy-au-commission-l1">Managed by {{ $operatorName }} · <span style="font-weight:600">{{ rtrim(rtrim(number_format($commissionPct, 2), '0'), '.') }}% commission</span></span>
-                                            <span class="vy-au-commission-l2" x-show="netNight">You keep about <span class="vy-au-commission-net" x-text="netNight"></span> per night after commission</span>
-                                            <span class="vy-au-commission-l2" x-show="!netNight">Enter a rate to see what you’d keep after commission</span>
+                                            <span class="vy-au-commission-l1">{!! __('livewire/owner/add-unit.managed_by_pct', ['operator' => e($operatorName), 'pct' => e(rtrim(rtrim(number_format($commissionPct, 2), '0'), '.'))]) !!}</span>
+                                            <span class="vy-au-commission-l2" x-show="netNight">{!! __('livewire/owner/add-unit.you_keep', ['amount' => '<span class="vy-au-commission-net" x-text="netNight"></span>']) !!}</span>
+                                            <span class="vy-au-commission-l2" x-show="!netNight">{{ __('livewire/owner/add-unit.enter_rate') }}</span>
                                         @else
-                                            <span class="vy-au-commission-l1">Managed by {{ $operatorName }}</span>
-                                            <span class="vy-au-commission-l2">Your team confirms the commission when they set up your unit.</span>
+                                            <span class="vy-au-commission-l1">{{ __('livewire/owner/add-unit.managed_by', ['operator' => $operatorName]) }}</span>
+                                            <span class="vy-au-commission-l2">{{ __('livewire/owner/add-unit.commission_later') }}</span>
                                         @endif
                                     </span>
                                 </div>
 
-                                <button type="submit" class="vy-au-cta">Submit for review</button>
-                                <button type="button" class="vy-au-cta--ghost" @click="go(3)">Back</button>
+                                <button type="submit" class="vy-au-cta">{{ __('livewire/owner/add-unit.submit_for_review') }}</button>
+                                <button type="button" class="vy-au-cta--ghost" @click="go(3)">{{ __('common.back') }}</button>
                             </div>
 
                             {{-- DO9-2 — SAVE AS DRAFT, available from every step (that is the point: the wizard
@@ -383,16 +383,20 @@
                             <div class="vy-au-draftbar">
                                 <button type="submit" formaction="{{ route('owner.add-unit.draft') }}" formnovalidate
                                         class="vy-au-cta--ghost" style="width:100%;margin:0">
-                                    Save as draft
+                                    {{ __('livewire/owner/add-unit.save_as_draft') }}
                                 </button>
                                 <p class="vy-au-draftnote">
                                     @if ($draft)
-                                        Draft saved{{ $draft['saved_at'] ? ' · '.$draft['saved_at'] : '' }}. Nothing has been sent to {{ $operatorName }} yet.
+                                        @if ($draft['saved_at'])
+                                            {{ __('livewire/owner/add-unit.draft_saved_at', ['saved_at' => $draft['saved_at'], 'operator' => $operatorName]) }}
+                                        @else
+                                            {{ __('livewire/owner/add-unit.draft_saved', ['operator' => $operatorName]) }}
+                                        @endif
                                         @if ($draft['photo_count'] > 0)
-                                            {{ $draft['photo_count'] }} photo{{ $draft['photo_count'] === 1 ? '' : 's' }} already saved with this draft.
+                                            {{ trans_choice('livewire/owner/add-unit.draft_photos', $draft['photo_count'], ['count' => $draft['photo_count']]) }}
                                         @endif
                                     @else
-                                        Keeps what you’ve filled in so far. Nothing is sent to {{ $operatorName }} until you submit.
+                                        {{ __('livewire/owner/add-unit.draft_keeps', ['operator' => $operatorName]) }}
                                     @endif
                                 </p>
                             </div>
@@ -401,21 +405,21 @@
 
                     {{-- RIGHT — live preview --}}
                     <div class="vy-au-preview">
-                        <div class="vy-au-preview-label">Live preview</div>
+                        <div class="vy-au-preview-label">{{ __('livewire/owner/add-unit.live_preview') }}</div>
                         <div class="vy-au-preview-card">
                             <div class="vy-au-preview-cover">
                                 <template x-if="coverUrl"><img :src="coverUrl" alt=""></template>
-                                <template x-if="!coverUrl"><span class="vy-au-preview-cover-ph">Add a cover photo</span></template>
-                                <div class="vy-au-badge"><span></span>Pending review</div>
+                                <template x-if="!coverUrl"><span class="vy-au-preview-cover-ph">{{ __('livewire/owner/add-unit.add_cover_photo') }}</span></template>
+                                <div class="vy-au-badge"><span></span>{{ __('livewire/owner/add-unit.pending_review') }}</div>
                             </div>
                             <div class="vy-au-preview-body">
-                                <div class="vy-au-preview-name" x-text="previewName">Your new unit</div>
+                                <div class="vy-au-preview-name" x-text="previewName">{{ __('livewire/owner/add-unit.your_new_unit') }}</div>
                                 <div class="vy-au-preview-sub" x-text="previewSub"></div>
 
                                 <div class="vy-au-preview-meta">
                                     <span><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2.5 20c.9-3.4 3.6-5.5 6.5-5.5s5.6 2.1 6.5 5.5"/></svg><span x-text="sleeps"></span></span>
-                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3"/><path d="M2 14h20"/><path d="M4 14v5"/><path d="M20 14v5"/></svg><span x-text="beds + ' bd'"></span></span>
-                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V6a2 2 0 0 1 3.5-1.3"/><path d="M4 12h16v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/></svg><span x-text="baths + ' ba'"></span></span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3"/><path d="M2 14h20"/><path d="M4 14v5"/><path d="M20 14v5"/></svg><span x-text="@js(__('livewire/owner/add-unit.beds_short', ['beds' => ':beds'])).replace(':beds', beds)"></span></span>
+                                    <span><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V6a2 2 0 0 1 3.5-1.3"/><path d="M4 12h16v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/></svg><span x-text="@js(__('livewire/owner/add-unit.baths_short', ['baths' => ':baths'])).replace(':baths', baths)"></span></span>
                                 </div>
 
                                 <div class="vy-au-preview-am" x-show="hasAmenities">
@@ -423,11 +427,11 @@
                                 </div>
 
                                 <div class="vy-au-preview-rate">
-                                    <b x-text="previewRate">{{ $currencySymbol }}—</b><i>/ night</i>
+                                    <b x-text="previewRate">{{ $currencySymbol }}—</b><i>{{ __('livewire/owner/add-unit.per_night') }}</i>
                                 </div>
                             </div>
                         </div>
-                        <div class="vy-au-preview-cap">This is how your unit will appear<br>once {{ $operatorName }} approves it.</div>
+                        <div class="vy-au-preview-cap">{!! __('livewire/owner/add-unit.preview_caption', ['operator' => e($operatorName)]) !!}</div>
                     </div>
                 </div>
             </form>
@@ -437,8 +441,8 @@
              live page; the wireframe omits it, but hiding real pending requests would be a regression). --}}
         @if (count($requests) > 0)
             <section class="vy-card vy-fade" style="margin-top:22px">
-                <h2 class="vy-card-title" style="margin-bottom:4px">Your requests</h2>
-                <p class="vy-line-sub" style="font-size:12px;margin:0 0 12px">Requests you’ve sent and where they stand.</p>
+                <h2 class="vy-card-title" style="margin-bottom:4px">{{ __('livewire/owner/add-unit.your_requests') }}</h2>
+                <p class="vy-line-sub" style="font-size:12px;margin:0 0 12px">{{ __('livewire/owner/add-unit.your_requests_sub') }}</p>
                 @foreach ($requests as $r)
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--vy-hairline)">
                         <div>
@@ -448,16 +452,16 @@
                         <div style="display:flex;align-items:center;gap:10px">
                             {{-- DO9-2 — only a draft is resumable; a filed request has no continue link. --}}
                             @if ($r['resume_url'])
-                                <a href="{{ $r['resume_url'] }}" class="vy-au-resume">Continue</a>
+                                <a href="{{ $r['resume_url'] }}" class="vy-au-resume">{{ __('common.continue') }}</a>
                             @endif
                             {{-- DO9-3 — retracting a filed request is deliberate, so it confirms first (the
                                  realm's existing onsubmit-confirm idiom, as on Team and Payout method). The
                                  server re-decides under a lock: this control is convenience, not the gate. --}}
                             @if ($r['withdraw_url'])
                                 <form method="POST" action="{{ $r['withdraw_url'] }}" style="margin:0" data-guard-submit
-                                      onsubmit="return confirm('Withdraw this request? Your manager will no longer action it.')">
+                                      onsubmit="return confirm(@js(__('livewire/owner/add-unit.withdraw_confirm')))">
                                     @csrf
-                                    <button type="submit" class="vy-au-withdraw">Withdraw</button>
+                                    <button type="submit" class="vy-au-withdraw">{{ __('livewire/owner/add-unit.withdraw') }}</button>
                                 </form>
                             @endif
                             <span class="vy-status vy-status--{{ $r['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $r['status_meta']['label'] }}</span>

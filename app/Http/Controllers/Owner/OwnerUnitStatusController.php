@@ -29,11 +29,11 @@ class OwnerUnitStatusController extends Controller
         if ($model->is_active !== false) {
             $status->pause($model, $actorId);
 
-            return back()->with('owner_notice', 'Unit paused — it won’t take new bookings until you resume it.');
+            return back()->with('owner_notice', __('php/http/controllers/owner/owner_unit_status_controller.unit_paused'));
         }
 
         $status->resume($model, $actorId);
 
-        return back()->with('owner_notice', 'Unit resumed — it’s open for bookings again.');
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_unit_status_controller.unit_resumed'));
     }
 }

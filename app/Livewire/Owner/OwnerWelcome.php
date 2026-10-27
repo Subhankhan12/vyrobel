@@ -58,6 +58,6 @@ class OwnerWelcome extends Component
         $name = trim($this->viewer()['name']);
         $first = $name === '' ? '' : (string) preg_split('/\s+/', $name)[0];
 
-        return $first === '' || $first === 'Owner' ? '' : $first;
+        return $first === '' || ! $this->viewerHasName() ? '' : $first;
     }
 }

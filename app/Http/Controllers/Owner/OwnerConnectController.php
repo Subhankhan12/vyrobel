@@ -49,7 +49,7 @@ class OwnerConnectController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return redirect()->to(route('owner.payout-method'))->with('payout_method_error', 'We couldn’t start Stripe onboarding — please try again.');
+            return redirect()->to(route('owner.payout-method'))->with('payout_method_error', __('php/http/controllers/owner/owner_connect_controller.onboarding_failed'));
         }
 
         // Off-site to Stripe's hosted onboarding (no identity data touches our server).
