@@ -5,6 +5,11 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
+- **Live release `rel_BW` → commit `8c1a9d5f`** (I18N-01 ⛔ G2 — Phase A + B: every screen's words are translation keys, English
+  unchanged; only English is applied). **V:** MySQL 8.4.10 4,563/4,563 · MariaDB 11.8.9 4,563/4,563 (34,221 each) · PHPStan L5 0 ·
+  Pint clean · lang:check 0 · lang:todo 0 · money gate FULL unmoved · English render diff unchanged but 9 script-written pages
+  (browser-checked) · host preflight 307/307 views parse · swap 2026-10-27 23:31:06 UTC (5 ms) · public checks 12/0/0 · 0 errors in
+  the log since. ⚠️ Not pushed (his rule). Rollback target: `rel_BV @ f426f449`. Detail: `HISTORY.md`, "I18N-01, ⛔ G2".
 - **Live release `rel_BV` → commit `f426f449`** (the SECURITY REDESIGN, Part 3 — login alerts, the session timeout, "password last
   changed", login approval on the back office and Approve / Deny from a signed-in device; `HISTORY.md`, "SECURITY REDESIGN, PART 3").
   **V:** gates on the final code — MariaDB 11.8.9 **4,541/4,541** (34,120 assertions) · MySQL 8.4.10 4,540/4,541, the one failure (my

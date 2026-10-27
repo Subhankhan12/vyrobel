@@ -1597,6 +1597,37 @@ saves any 10 characters; the booking engine never sets a guest's language; the c
 (`OPEN.md` D-BOOK-NO-TERMS). Production read, counts only: no saved non-English language anywhere. Plan and proposals in
 `docs/i18n/PLAN.md`; stopped for his rulings (`OPEN.md` F10). Nothing in the app changed; no deploy.
 
+**I18N-01, ⛔ G2 (2026-10-27/28) — Phase A + B: every screen's words become keys, English unchanged; LIVE on `rel_BW`.** His
+rulings (F 2026-10-27, `docs/i18n/PLAN.md` §0): booking engine English by default + every finished language; each account, guest
+and recipient gets their own language in emails, notifications and PDFs; Arabic and Persian right-to-left; "the rest … you can
+decide". **Phase B** (commit `cf557b0b`): locale resolution (signed-in user → organisation default → English; guest → its own;
+signed out → `?lang=` → `vy_lang` cookie → English, never the browser), only FINISHED languages applied (`available_locales = [en]`),
+`Locales` (28 planned codes), RTL mirroring for ar/fa, `HasLocalePreference` on User/Guest, the bell storing keys (reader's
+language), PDFs in the document's language with Arabic/Thai shaping and CJK/Hangul/Thai fonts, `lang:check` + `lang:todo`, the
+reviewed hardcoded baseline (232 accepted strings with their text), the per-key glued-placeholder list, the `ops/i18n` pipeline.
+**Phase A** (`83a42500` admin · `9df8be07` auth/guest/booking · `008876ea` owner · `e7216e54` emails/PDFs/notifications ·
+`6ab41dab` operator + shared · `bd345edc` tests): 86 conversion batches by agents, then my follow-ups — template emails follow the
+organisation's language once its words are edited (and the editor no longer freezes unedited defaults), legal PDFs pinned to
+English, the VAT invoice/credit note in the organisation's language, team-chat/inbox bell titles built from facts, labels by code
+where a filter or a view compared a label (help categories, cancel reasons, review tags, customer source), JS plurals built on the
+server, browser dates in the page language, `Locales::inSentence()` instead of lowercasing a translated label, `owner_attention.approve`
+split, Iban country names from `Countries`. **Found and fixed on the way (V):** Carbon's locale is a static and leaked Arabic dates
+across tests (reset per test); Livewire's asset injection leaks across tests (off in the RTL probe); Pint moved two ops scripts'
+imports below their first use (render tool crashed); the checker read glued placeholders differently after a Latin vs an Arabic
+letter. **Gates on the final tree (V):** MySQL 8.4.10 **4,563/4,563** (34,221) · MariaDB 11.8.9 **4,563/4,563** (34,221), engine
+swap checked first (no other DB client, no test/serve/queue process) and MySQL restored · PHPStan L5 0 · Pint clean · `lang:check` 0 ·
+`lang:todo` 0/0/0/0 · mutation anchors 0/1,099 dead (144 re-anchored by agents; the harness run of each is NOT done yet) · English
+render diff: 929 renders, status counts identical, 9 pages differ only by words now written by the page script (guests list,
+roles) — browser-checked ("1 selected", "Send to 1/2 guest(s)", "45 permissions granted") · money gate `✅ MONEY AS SEEDED · FULL`
+(`929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged). ⚠️ **Test edits, said plainly** (the brief asked for "no assertion edits"):
+~30 test files changed — every one a source-reading test now reading the English through the lang files, an escaped-apostrophe
+compare, a constant→method token, or a decoded payload; no rendered-English expectation was weakened. **Deploy:** stage 1,260 files,
+nothing drifted, no migration; read-only host preflight (PHP 8.4.27, intl yes): 307 views compile AND their compiled PHP parses,
+600 lang files load, English only, keys resolve; swap 2026-10-27 23:31:06 UTC, 5 ms; public checks **12/0/0** (5xx sweep 168 routes);
+public pages 200 with no raw key or raw Blade; log since swap: 12 warnings, all `security.refusal` (the exposure battery), 0 errors.
+Not pushed (his rule). Rollback target `rel_BV @ f426f449`. **Phase C started in parallel** (outside the repo): glossary, prompts
+adapted from hrmzy, German 29/29 batches translated + reviewed + consistency-edited (0 errors), Arabic 12/29 translated, 7 reviewed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
