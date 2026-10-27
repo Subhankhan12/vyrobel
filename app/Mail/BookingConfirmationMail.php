@@ -19,7 +19,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * Guest: booking confirmed (transactional-emails exact-match #109) — sent on the REAL `reservation.confirmed`
@@ -59,11 +58,11 @@ class BookingConfirmationMail extends Mailable
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
-                'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'checkIn' => $checkIn->format('D, j M Y'),
-                'checkOut' => $checkOut->format('D, j M Y'),
-                'checkInTime' => $this->timeLabel($r->property?->check_in_time, 'from '),
-                'checkOutTime' => $this->timeLabel($r->property?->check_out_time, 'by '),
+                'propertyName' => (string) ($r->property->name ?? __('php/mail/booking_confirmation_mail.your_stay')),
+                'checkIn' => $checkIn->translatedFormat('D, j M Y'),
+                'checkOut' => $checkOut->translatedFormat('D, j M Y'),
+                'checkInTime' => $this->timeLabel($r->property?->check_in_time, true),
+                'checkOutTime' => $this->timeLabel($r->property?->check_out_time, false),
                 'nights' => $nights,
                 'guests' => $this->guestsLabel($r),
                 // #17 — the reconciling grand total (same figure the folio/PDFs use).
@@ -108,7 +107,7 @@ class BookingConfirmationMail extends Mailable
         return $folio->items->map(function ($item) use ($nights, $currency): array {
             $type = (string) $item->type;
             $label = $type === 'room'
-                ? 'Accommodation · '.$nights.' '.Str::plural('night', $nights)
+                ? trans_choice('php/mail/booking_confirmation_mail.accommodation_nights', $nights, ['count' => $nights])
                 : (string) $item->description;
 
             return [
@@ -124,33 +123,36 @@ class BookingConfirmationMail extends Mailable
     {
         $adults = max(1, (int) $r->adults);
         $children = (int) $r->children;
-        $parts = [$adults.' '.Str::plural('adult', $adults)];
+        $parts = [trans_choice('php/mail/booking_confirmation_mail.adults', $adults, ['count' => $adults])];
         if ($children > 0) {
-            $parts[] = $children.' '.Str::plural('child', $children);
+            $parts[] = trans_choice('php/mail/booking_confirmation_mail.children', $children, ['count' => $children]);
         }
 
         return implode(' · ', $parts);
     }
 
-    /** The property's real check-in/out time, prefixed (e.g. "from 15:00"), or '' when unset. */
-    private function timeLabel(mixed $time, string $prefix): string
+    /** The property's real check-in ("from 15:00") or check-out ("by 11:00") time, or '' when unset. */
+    private function timeLabel(mixed $time, bool $checkIn): string
     {
         if ($time === null || (string) $time === '') {
             return '';
         }
+        $clock = Carbon::parse((string) $time)->format('H:i');
 
-        return $prefix.Carbon::parse((string) $time)->format('H:i');
+        return $checkIn
+            ? __('php/mail/booking_confirmation_mail.check_in_from', ['time' => $clock])
+            : __('php/mail/booking_confirmation_mail.check_out_by', ['time' => $clock]);
     }
 
     /** A guest-facing source line — the booking's real category, never a fabricated OTA brand (#85). */
     private function sourceLine(Reservation $r): string
     {
-        $name = (string) ($r->property->name ?? 'us');
+        $name = $r->property->name ?? null;
 
         return match ((string) $r->source) {
-            'direct' => 'Booked direct with '.$name,
-            'ota' => 'Booked via a travel partner',
-            default => 'Booked with '.$name,
+            'direct' => $name !== null ? __('php/mail/booking_confirmation_mail.booked_direct_with', ['property' => (string) $name]) : __('php/mail/booking_confirmation_mail.booked_direct_with_us'),
+            'ota' => __('php/mail/booking_confirmation_mail.booked_via_partner'),
+            default => $name !== null ? __('php/mail/booking_confirmation_mail.booked_with', ['property' => (string) $name]) : __('php/mail/booking_confirmation_mail.booked_with_us'),
         };
     }
 
@@ -162,8 +164,8 @@ class BookingConfirmationMail extends Mailable
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'booking-confirmation', [
             'guest_name' => GuestName::display($guest),
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => (string) ($r->property->name ?? 'your stay'),
+            'first_name' => $first !== '' ? $first : __('php/mail/booking_confirmation_mail.there'),
+            'unit' => (string) ($r->property->name ?? __('php/mail/booking_confirmation_mail.your_stay')),
             'nights' => (string) max(1, (int) Carbon::parse($r->check_in)->diffInDays(Carbon::parse($r->check_out))),
             'reference' => (string) $r->reference,
         ]);

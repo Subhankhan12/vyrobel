@@ -28,7 +28,7 @@ class OwnerEmailChangeMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Confirm your new email address');
+        return new Envelope(subject: __('php/mail/owner_email_change_mail.subject'));
     }
 
     public function content(): Content

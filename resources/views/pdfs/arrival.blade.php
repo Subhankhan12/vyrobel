@@ -10,7 +10,7 @@
      released_from, in the withheld-state block. Same family as the "48h" literal fixed at G2.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -44,58 +44,58 @@
                 <span class="brand-mark">{{ mb_substr($property, 0, 1) }}</span>
             </td>
             <td style="vertical-align:top; padding-left:12px;">
-                <div class="eyebrow">Arrival guide</div>
+                <div class="eyebrow">{{ __('pdfs/arrival.eyebrow') }}</div>
                 <h1>{{ $property }}</h1>
             </td>
         </tr>
     </table>
 
     <table class="meta">
-        <tr><td class="k">Guest</td><td>{{ $guestName }}</td></tr>
-        <tr><td class="k">Reference</td><td>{{ $reference }}</td></tr>
-        <tr><td class="k">Check-in</td><td>{{ $checkIn }}@if ($pack['check_in_time']) · from {{ $pack['check_in_time'] }}@endif</td></tr>
-        <tr><td class="k">Check-out</td><td>{{ $checkOut }}@if ($pack['check_out_time']) · by {{ $pack['check_out_time'] }}@endif</td></tr>
+        <tr><td class="k">{{ __('pdfs/arrival.guest') }}</td><td>{{ $guestName }}</td></tr>
+        <tr><td class="k">{{ __('pdfs/arrival.reference') }}</td><td>{{ $reference }}</td></tr>
+        <tr><td class="k">{{ __('pdfs/arrival.check_in') }}</td><td>@if ($pack['check_in_time']){{ __('pdfs/arrival.check_in_with_time', ['date' => $checkIn, 'time' => $pack['check_in_time']]) }}@else{{ $checkIn }}@endif</td></tr>
+        <tr><td class="k">{{ __('pdfs/arrival.check_out') }}</td><td>@if ($pack['check_out_time']){{ __('pdfs/arrival.check_out_with_time', ['date' => $checkOut, 'time' => $pack['check_out_time']]) }}@else{{ $checkOut }}@endif</td></tr>
     </table>
 
     {{-- Access — door code + wifi, printed ONLY within the arrival window (#33). --}}
     @if ($pack['released'])
         @if ($pack['door_code'])
             <div class="card">
-                <div class="lbl">Door code</div>
+                <div class="lbl">{{ __('pdfs/arrival.door_code') }}</div>
                 <div class="code">{{ $pack['door_code'] }}</div>
             </div>
         @endif
         @if ($pack['wifi_ssid'])
             <div class="card">
                 <table class="wifi" style="width:100%; border-collapse:collapse;">
-                    <tr><td class="k">Wi-Fi network</td><td>{{ $pack['wifi_ssid'] }}</td></tr>
+                    <tr><td class="k">{{ __('pdfs/arrival.wifi_network') }}</td><td>{{ $pack['wifi_ssid'] }}</td></tr>
                     @if ($pack['wifi_password'])
-                        <tr><td class="k">Password</td><td>{{ $pack['wifi_password'] }}</td></tr>
+                        <tr><td class="k">{{ __('pdfs/arrival.password') }}</td><td>{{ $pack['wifi_password'] }}</td></tr>
                     @endif
                 </table>
             </div>
         @endif
     @else
         <div class="card withheld">
-            <div class="lbl">Your access details</div>
-            <div class="body" style="margin-top:4px;">Your door code and Wi-Fi unlock as your stay approaches — from {{ $pack['released_from'] }}. Save this guide and re-download it closer to arrival.</div>
+            <div class="lbl">{{ __('pdfs/arrival.access_details') }}</div>
+            <div class="body" style="margin-top:4px;">{{ __('pdfs/arrival.access_withheld', ['date' => $pack['released_from']]) }}</div>
         </div>
     @endif
 
     {{-- Getting here — the property's real address (SAME source as the pre-arrival email). --}}
     @if ($pack['directions'])
-        <div class="section-h">Getting here</div>
+        <div class="section-h">{{ __('pdfs/arrival.getting_here') }}</div>
         <div class="body">{{ $pack['directions'] }}</div>
     @endif
 
     {{-- House notes — the operator's real note for this unit (never a fabricated multi-section guide). --}}
     @if ($pack['released'] && $pack['arrival_notes'])
-        <div class="section-h">House notes</div>
+        <div class="section-h">{{ __('pdfs/arrival.house_notes') }}</div>
         <div class="body">{{ $pack['arrival_notes'] }}</div>
     @endif
 
     <div class="foot">
-        {{ $property }} · {{ $reference }} · Please keep this guide to yourself.
+        {{ $property }} · {{ $reference }} · {{ __('pdfs/arrival.keep_private') }}
     </div>
 </div>
 </body>

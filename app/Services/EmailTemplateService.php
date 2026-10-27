@@ -8,6 +8,8 @@ use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Support\Email\EmailTemplateCatalog;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\Locales;
+use Illuminate\Support\Traits\Localizable;
 
 /**
  * The audited writer for the per-org email-template customization (Operator Email Templates exact-match #86).
@@ -16,6 +18,8 @@ use App\Support\Events\AuditEventRecorder;
  */
 class EmailTemplateService
 {
+    use Localizable;
+
     public function __construct(private readonly AuditEventRecorder $audit) {}
 
     /**
@@ -43,11 +47,14 @@ class EmailTemplateService
             'template_key' => $key,
         ]);
 
+        // I18N-01 — a field left at its default is stored as NULL, never as the default's words: the editor shows the default
+        // in the operator's language, and saving it verbatim would freeze that email in that language for every guest.
+        $english = $this->withLocale(Locales::SOURCE, fn (): ?array => EmailTemplateCatalog::get($key)) ?? $catalog;
         $template->fill([
-            'subject' => $this->clean($data['subject'] ?? null),
-            'heading' => $this->clean($data['heading'] ?? null),
-            'message' => $this->clean($data['message'] ?? null),
-            'button_label' => $this->clean($data['button_label'] ?? null),
+            'subject' => $this->clean($data['subject'] ?? null, [$catalog['subject'], $english['subject']]),
+            'heading' => $this->clean($data['heading'] ?? null, [$catalog['heading'], $english['heading']]),
+            'message' => $this->clean($data['message'] ?? null, [$catalog['message'], $english['message']]),
+            'button_label' => $this->clean($data['button_label'] ?? null, [$catalog['button'], $english['button']]),
             'blocks' => $blocks,
             'updated_by' => $actor?->getKey(),
         ]);
@@ -83,10 +90,12 @@ class EmailTemplateService
         return $template;
     }
 
-    private function clean(?string $value): ?string
+    /** @param  list<string>  $defaults  the field's default, in the editor's language and in English */
+    private function clean(?string $value, array $defaults = []): ?string
     {
         $trimmed = is_string($value) ? trim($value) : '';
+        $isDefault = in_array($trimmed, array_map(fn (string $d): string => trim($d), $defaults), true);
 
-        return $trimmed !== '' ? $trimmed : null;
+        return $trimmed !== '' && ! $isDefault ? $trimmed : null;
     }
 }

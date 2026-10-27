@@ -16,7 +16,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * Guest: review request after a stay (transactional-emails exact-match). Sent on the REAL
@@ -44,7 +43,7 @@ class ReviewRequestMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
-        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? __('php/mail/review_request_mail.your_unit'));
 
         $checkIn = Carbon::parse($r->check_in);
         $checkOut = Carbon::parse($r->check_out);
@@ -65,11 +64,11 @@ class ReviewRequestMail extends Mailable
             view: 'emails.review-request',
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
-                'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'propertyName' => (string) ($r->property->name ?? __('php/mail/review_request_mail.your_stay')),
                 'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
-                'stay' => $checkIn->format('j').'–'.$checkOut->format('j M').' · '.$nights.' '.Str::plural('night', $nights),
+                'stay' => trans_choice('php/mail/review_request_mail.stay_line', $nights, ['count' => $nights, 'dates' => $checkIn->format('j').'–'.$checkOut->translatedFormat('j M')]),
                 'reviewUrl' => $this->reviewUrl,
                 'starUrls' => $starUrls,
                 // ── Operator-customizable template (#86) — the store drives these; default == the strings above ──
@@ -93,8 +92,8 @@ class ReviewRequestMail extends Mailable
         $first = $guest !== null ? trim((string) $guest->first_name) : '';
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'review-request', [
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'first_name' => $first !== '' ? $first : __('php/mail/review_request_mail.there'),
+            'unit' => $unitName ?? (string) ($r->property->name ?? __('php/mail/review_request_mail.your_unit')),
             'nights' => $nights ?? '',
             'reference' => (string) $r->reference,
         ]);

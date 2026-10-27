@@ -32,8 +32,8 @@ class PayoutSentNotification extends FeedNotification
         $amount = MoneyFormatter::display((int) $this->payout->amount_minor, (string) $this->payout->currency);
 
         return [
-            'title' => 'Payout sent',
-            'context' => $amount.' is on its way to your account',
+            'title' => $this->t('title', 'php/notifications/owner/payout_sent_notification.title'),
+            'context' => $this->t('context', 'php/notifications/owner/payout_sent_notification.context', ['amount' => $amount]),
             'url' => route('owner.payouts', [], false),
             'category' => 'finance',
         ];

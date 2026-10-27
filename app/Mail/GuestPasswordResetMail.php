@@ -24,7 +24,7 @@ class GuestPasswordResetMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Reset your Vyrobel password');
+        return new Envelope(subject: __('php/mail/guest_password_reset_mail.subject'));
     }
 
     public function content(): Content

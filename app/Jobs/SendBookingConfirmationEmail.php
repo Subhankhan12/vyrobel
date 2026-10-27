@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Jobs\Sync\RetryableSyncJob;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Log\LogSafe;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
@@ -80,7 +81,7 @@ class SendBookingConfirmationEmail implements ShouldQueue
                 return;   // no address (or an anonymised guest) → no send, never a throw.
             }
 
-            Mail::to($email)->send(new BookingConfirmationMail($reservation));
+            Mail::to($email)->locale(EmailTemplateResolver::localeFor((string) $reservation->organization_id, 'booking-confirmation', $reservation->leadGuest->preferredLocale()))->send(new BookingConfirmationMail($reservation));
         });
     }
 

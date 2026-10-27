@@ -58,7 +58,7 @@ class PaymentReminderMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
-        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? __('php/mail/payment_reminder_mail.your_unit'));
 
         $balanceDisplay = MoneyFormatter::display($this->balanceMinor, $currency);
         $tpl = $this->template($unitName, $balanceDisplay);
@@ -68,9 +68,9 @@ class PaymentReminderMail extends Mailable
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
-                'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'propertyName' => (string) ($r->property->name ?? __('php/mail/payment_reminder_mail.your_stay')),
                 'unitName' => $unitName,
-                'arriving' => Carbon::parse($r->check_in)->format('D, j M Y'),
+                'arriving' => Carbon::parse($r->check_in)->translatedFormat('D, j M Y'),
                 'total' => $totals !== null ? MoneyFormatter::display($totals['charges_minor'], $currency) : null,
                 'paid' => $totals !== null ? MoneyFormatter::display($totals['paid_minor'], $currency) : null,
                 'balance' => $balanceDisplay,
@@ -94,8 +94,8 @@ class PaymentReminderMail extends Mailable
         $first = $guest !== null ? trim((string) $guest->first_name) : '';
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'payment-reminder', [
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'first_name' => $first !== '' ? $first : __('php/mail/payment_reminder_mail.there'),
+            'unit' => $unitName ?? (string) ($r->property->name ?? __('php/mail/payment_reminder_mail.your_unit')),
             'reference' => (string) $r->reference,
             'balance' => $balance ?? MoneyFormatter::display($this->balanceMinor, (string) $r->currency),
         ]);

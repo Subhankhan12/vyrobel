@@ -6,7 +6,7 @@
      tax engine (#73) shipped — OwnerTaxService::annualSummary() emits a real "Withholding tax" bucket, so it
      reaches the categories table like any other deduction, and is omitted only when it is genuinely zero. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>

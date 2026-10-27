@@ -34,8 +34,12 @@ class MaintenanceReassignedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => $this->isNewAssignee ? 'Work order assigned to you · '.$this->title : 'Work order reassigned · '.$this->title,
-            'context' => 'Unit '.$this->unit.($this->isNewAssignee ? ' — it is now yours' : ' — you are off this one'),
+            'title' => $this->isNewAssignee
+                ? $this->t('title', 'php/notifications/operator/maintenance_reassigned_notification.title_assigned', ['title' => $this->title])
+                : $this->t('title', 'php/notifications/operator/maintenance_reassigned_notification.title_reassigned', ['title' => $this->title]),
+            'context' => $this->isNewAssignee
+                ? $this->t('context', 'php/notifications/operator/maintenance_reassigned_notification.context_assigned', ['unit' => $this->unit])
+                : $this->t('context', 'php/notifications/operator/maintenance_reassigned_notification.context_reassigned', ['unit' => $this->unit]),
             'url' => route('app.maintenance.show', $this->ticketId, false),
             'category' => 'maintenance',
         ];

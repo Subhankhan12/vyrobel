@@ -5,7 +5,7 @@
      shows the REAL rate (18%). #28 — GUEST NAME ONLY (no email/phone/country). All strings are built in
      OwnerBookingConfirmationDocument, so this view stays logic-free. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -51,33 +51,33 @@
                     <div class="lead-addr">{{ $operator_addr }}</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Booking confirmation</div>
+                    <div class="eyebrow">{{ __('pdfs/owner-booking-confirmation.title') }}</div>
                     <div class="doc-ref">{{ $reference }}</div>
                     <div class="muted" style="font-size:10.5px;margin-top:3px;">{{ $status }}</div>
                 </td>
             </tr>
         </table>
 
-        <h1>Booking confirmation</h1>
-        <div class="subtitle">{{ $guest }} · {{ $units }} · {{ $nights }} {{ \Illuminate\Support\Str::plural('night', $nights) }}</div>
+        <h1>{{ __('pdfs/owner-booking-confirmation.title') }}</h1>
+        <div class="subtitle">{{ trans_choice('pdfs/owner-booking-confirmation.subtitle', $nights, ['guest' => $guest, 'units' => $units, 'count' => $nights]) }}</div>
 
-        <h2>Reservation</h2>
+        <h2>{{ __('pdfs/owner-booking-confirmation.reservation') }}</h2>
         <table class="facts">
             <tr>
-                <td><div class="k">Check-in</div><div class="v">{{ $check_in }}</div></td>
-                <td><div class="k">Check-out</div><div class="v">{{ $check_out }}</div></td>
-                <td><div class="k">Nights</div><div class="v">{{ $nights }}</div></td>
-                <td><div class="k">Guests</div><div class="v">{{ $guests }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.check_in') }}</div><div class="v">{{ $check_in }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.check_out') }}</div><div class="v">{{ $check_out }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.nights') }}</div><div class="v">{{ $nights }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.guests') }}</div><div class="v">{{ $guests }}</div></td>
             </tr>
             <tr>
-                <td><div class="k">Guest</div><div class="v" style="font-size:13px;">{{ $guest }}</div></td>
-                <td><div class="k">Unit</div><div class="v" style="font-size:13px;">{{ $units }}</div></td>
-                <td><div class="k">Source</div><div class="v" style="font-size:13px;">{{ $source_label }}</div></td>
-                <td><div class="k">Booked on</div><div class="v" style="font-size:13px;">{{ $booked_on }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.guest') }}</div><div class="v" style="font-size:13px;">{{ $guest }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.unit') }}</div><div class="v" style="font-size:13px;">{{ $units }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.source') }}</div><div class="v" style="font-size:13px;">{{ $source_label }}</div></td>
+                <td><div class="k">{{ __('pdfs/owner-booking-confirmation.booked_on') }}</div><div class="v" style="font-size:13px;">{{ $booked_on }}</div></td>
             </tr>
         </table>
 
-        <h2>Your earnings — gross &#8594; net</h2>
+        <h2>{{ __('pdfs/owner-booking-confirmation.earnings_heading') }}</h2>
         @php $isZero = fn ($d) => (int) preg_replace('/\D/', '', (string) $d) === 0; @endphp
         @forelse ($earnings as $block)
             <table class="lines">
@@ -89,21 +89,21 @@
                         <tr><td>{{ $line['label'] }}</td><td class="r">{{ $line['display'] }}</td></tr>
                     @endunless
                 @endforeach
-                <tr class="gross"><td>Gross booking value</td><td class="r">{{ $block['credited_display'] }}</td></tr>
+                <tr class="gross"><td>{{ __('pdfs/owner-booking-confirmation.gross_booking_value') }}</td><td class="r">{{ $block['credited_display'] }}</td></tr>
                 @foreach ($block['deductions'] as $line)
                     @unless ($isZero($line['display']))
-                        <tr><td>{{ $line['label'] }}@if ($line['label'] === 'Commission' && $commission_rate) &#183; {{ $commission_rate }}%@endif</td><td class="r">{{ $line['display'] }}</td></tr>
+                        <tr><td>{{ $line['label'] }}@if ($line['type'] === 'commission' && $commission_rate) &#183; {{ $commission_rate }}%@endif</td><td class="r">{{ $line['display'] }}</td></tr>
                     @endunless
                 @endforeach
-                <tr class="net"><td>Net to you</td><td class="r hl">{{ $block['net_display'] }}</td></tr>
+                <tr class="net"><td>{{ __('pdfs/owner-booking-confirmation.net_to_you') }}</td><td class="r hl">{{ $block['net_display'] }}</td></tr>
             </table>
         @empty
-            <div class="empty">Not yet attributed — your earnings appear once this booking is attributed to your ledger, usually after check-out.</div>
+            <div class="empty">{{ __('pdfs/owner-booking-confirmation.not_attributed') }}</div>
         @endforelse
 
         <table class="foot" width="100%">
             <tr>
-                <td>Prepared for the property owner on {{ $prepared_on }}. Figures are computed from your owner ledger and reconcile to your statement.</td>
+                <td>{{ __('pdfs/owner-booking-confirmation.prepared_for', ['date' => $prepared_on]) }}</td>
                 <td style="text-align:right;">Vyrobel</td>
             </tr>
         </table>

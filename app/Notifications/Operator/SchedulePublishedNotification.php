@@ -27,8 +27,8 @@ class SchedulePublishedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => 'Your schedule is published',
-            'context' => $this->propertyName.' · week of '.$this->weekLabel,
+            'title' => $this->t('title', 'php/notifications/operator/schedule_published_notification.title'),
+            'context' => $this->t('context', 'php/notifications/operator/schedule_published_notification.context', ['property' => $this->propertyName, 'week' => $this->weekLabel]),
             'url' => route('app.schedule', [], false),
             'category' => 'operations',
         ];

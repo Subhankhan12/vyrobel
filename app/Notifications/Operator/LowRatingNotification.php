@@ -32,8 +32,8 @@ class LowRatingNotification extends FeedNotification
         $stars = str_repeat('★', (int) $this->review->rating).str_repeat('☆', max(0, 5 - (int) $this->review->rating));
 
         return [
-            'title' => 'Low rating · '.$stars,
-            'context' => 'A guest rated their stay under 4 stars',
+            'title' => $this->t('title', 'php/notifications/operator/low_rating_notification.title', ['stars' => $stars]),
+            'context' => $this->t('context', 'php/notifications/operator/low_rating_notification.context'),
             'url' => route('app.reviews', [], false),
             'category' => 'reputation',
         ];

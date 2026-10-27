@@ -13,7 +13,7 @@
      read changed. Property + week are the SELECTED context (no id in the URL). --}}
 @php $brand = $brand ?? \App\Support\Branding\PropertyBrand::default(); $address = is_array($property?->address) ? $property->address : []; @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -54,22 +54,22 @@
     <table style="width:100%;border-collapse:collapse"><tr>
         <td style="vertical-align:top"><span class="brand-mark">{{ $brand->initial }}</span></td>
         <td style="vertical-align:top;padding-left:10px">
-            <div class="eyebrow">Team schedule</div>
+            <div class="eyebrow">{{ __('pdfs/operator-schedule.eyebrow') }}</div>
             <h1>{{ $brand->displayName }}</h1>
             @if (($address['line1'] ?? $address['city'] ?? '') !== '')
                 <div class="addr">{{ trim(implode(', ', array_filter([$address['line1'] ?? null, $address['postal_code'] ?? null, $address['city'] ?? null, $address['country'] ?? null]))) }}</div>
             @endif
         </td>
         <td style="vertical-align:top;text-align:right" class="muted">
-            <div>Week of {{ $roster->weekLabel }}</div>
+            <div>{{ __('pdfs/operator-schedule.week_of', ['week' => $roster->weekLabel]) }}</div>
             <div>{{ $deptLabel }}</div>
         </td>
     </tr></table>
 
     {{-- The design's document title + provenance line. `generatedAt` is the REAL production time in the
          property's timezone — a rota printed and pinned up needs to say how old it is. --}}
-    <h1 class="doc-title">Weekly rota</h1>
-    <div class="doc-sub">{{ $brand->displayName }} · week of {{ $roster->weekLabel }} · generated {{ $generatedAt }}</div>
+    <h1 class="doc-title">{{ __('pdfs/operator-schedule.doc_title') }}</h1>
+    <div class="doc-sub">{{ __('pdfs/operator-schedule.doc_sub', ['property' => $brand->displayName, 'week' => $roster->weekLabel, 'generated' => $generatedAt]) }}</div>
 
     {{-- ⚠️ PUBLICATION STATE (D34-1). Read from the SHARED BUILDER — this template never touches
          `SchedulePublication`; that is the anti-drift rule, and it is why the accessor exists at all.
@@ -82,9 +82,14 @@
     @php $publication = $roster->publicationState(); @endphp
     <div class="doc-sub" style="margin-top:2px">
         @if ($publication['published'])
-            Published {{ $publication['published_at']->timezone($property?->timezone ?? 'UTC')->format('D j M Y · H:i') }}@if ($publication['published_by']) by {{ $publication['published_by'] }}@endif
+            @php $publishedAt = $publication['published_at']->timezone($property?->timezone ?? 'UTC')->translatedFormat('D j M Y · H:i'); @endphp
+            @if ($publication['published_by'])
+                {{ __('pdfs/operator-schedule.published_by', ['date' => $publishedAt, 'name' => $publication['published_by']]) }}
+            @else
+                {{ __('pdfs/operator-schedule.published', ['date' => $publishedAt]) }}
+            @endif
         @else
-            Not yet published — this week has not been sent to the team.
+            {{ __('pdfs/operator-schedule.not_published') }}
         @endif
     </div>
 
@@ -92,20 +97,20 @@
          tile is now real (D34-1): `openShiftCount()` counts the same rows `openShifts()` lists, so the tile
          and the section below can never disagree. --}}
     <table class="sum"><tr>
-        <td><div class="sum-n">{{ $roster->teamSize() }}</div><div class="sum-l">Team</div></td>
-        <td><div class="sum-n">{{ $roster->shiftCount() }}</div><div class="sum-l">Shifts</div></td>
-        <td><div class="sum-n">{{ $roster->hours() }}</div><div class="sum-l">Hours</div></td>
-        <td><div class="sum-n">{{ $roster->openShiftCount() }}</div><div class="sum-l">Open</div></td>
-        <td><div class="sum-n">{{ $roster->conflictCount }}</div><div class="sum-l">Conflicts</div></td>
+        <td><div class="sum-n">{{ $roster->teamSize() }}</div><div class="sum-l">{{ __('pdfs/operator-schedule.team') }}</div></td>
+        <td><div class="sum-n">{{ $roster->shiftCount() }}</div><div class="sum-l">{{ __('pdfs/operator-schedule.shifts') }}</div></td>
+        <td><div class="sum-n">{{ $roster->hours() }}</div><div class="sum-l">{{ __('pdfs/operator-schedule.hours') }}</div></td>
+        <td><div class="sum-n">{{ $roster->openShiftCount() }}</div><div class="sum-l">{{ __('pdfs/operator-schedule.open') }}</div></td>
+        <td><div class="sum-n">{{ $roster->conflictCount }}</div><div class="sum-l">{{ __('pdfs/operator-schedule.conflicts') }}</div></td>
     </tr></table>
 
     @if (count($roster->rows) === 0)
-        <p class="muted" style="margin-top:14px">No staff on this roster for the selected week.</p>
+        <p class="muted" style="margin-top:14px">{{ __('pdfs/operator-schedule.no_staff') }}</p>
     @else
         <table class="grid">
             <thead>
                 <tr>
-                    <th class="staff">Team member</th>
+                    <th class="staff">{{ __('pdfs/operator-schedule.team_member') }}</th>
                     @foreach ($roster->days as $day)
                         <th>{{ $day['dow'] }}<br>{{ $day['label'] }}</th>
                     @endforeach
@@ -118,9 +123,9 @@
                         @foreach ($row['cells'] as $cell)
                             <td class="{{ $cell['conflict'] ? 'conflict' : ($cell['on_leave'] ? 'leave' : ($cell['working'] ? 'work' : 'off')) }}">
                                 @if ($cell['conflict'])
-                                    {{ $cell['label'] }} / Leave!
+                                    {{ __('pdfs/operator-schedule.cell_conflict', ['shift' => $cell['label']]) }}
                                 @elseif ($cell['on_leave'])
-                                    Leave
+                                    {{ __('pdfs/operator-schedule.cell_leave') }}
                                 @elseif ($cell['working'])
                                     {{ $cell['label'] }}<br><span style="font-weight:normal;color:#6C645F">{{ $cell['hours'] }}</span>
                                 @else
@@ -134,11 +139,13 @@
         </table>
 
         <div class="legend">
-            <strong>Reading this rota:</strong> a cell shows the shift name and its times · <strong>Leave</strong> = approved time off ·
-            <strong>—</strong> = not rostered · <strong>“/ Leave!”</strong> = a shift on an approved-leave day.
-            Every state is written out, so this prints correctly in black and white.
-            <br>Early {{ \App\Support\Schedule\ShiftType::hours('early') }} · Day {{ \App\Support\Schedule\ShiftType::hours('day') }} · Late {{ \App\Support\Schedule\ShiftType::hours('late') }} · shift times shown per cell.
-            @if ($roster->conflictCount > 0) <strong style="color:#B0322A">{{ $roster->conflictCount }} conflict{{ $roster->conflictCount === 1 ? '' : 's' }}</strong> — a shift on an approved-leave day. @endif
+            {!! __('pdfs/operator-schedule.legend') !!}
+            <br>{{ __('pdfs/operator-schedule.shift_hours', [
+                'early' => \App\Support\Schedule\ShiftType::label('early'), 'early_hours' => \App\Support\Schedule\ShiftType::hours('early'),
+                'day' => \App\Support\Schedule\ShiftType::label('day'), 'day_hours' => \App\Support\Schedule\ShiftType::hours('day'),
+                'late' => \App\Support\Schedule\ShiftType::label('late'), 'late_hours' => \App\Support\Schedule\ShiftType::hours('late'),
+            ]) }}
+            @if ($roster->conflictCount > 0) {!! trans_choice('pdfs/operator-schedule.conflict_count', (int) $roster->conflictCount, ['count' => (int) $roster->conflictCount]) !!} @endif
         </div>
     @endif
 
@@ -148,15 +155,15 @@
          `openShifts()` matches the grid exactly (see its docblock); a PDF that filtered differently would
          disagree with the screen, which is the drift this builder exists to prevent. --}}
     @php $openShifts = $roster->openShifts(); @endphp
-    <h2>Open shifts</h2>
+    <h2>{{ __('pdfs/operator-schedule.open_shifts') }}</h2>
     @if (count($openShifts) === 0)
-        <p class="muted" style="margin-top:4px">Every shift on this rota is assigned — no open slots this week.</p>
+        <p class="muted" style="margin-top:4px">{{ __('pdfs/operator-schedule.all_assigned') }}</p>
     @else
         <table class="off-list">
             @foreach ($openShifts as $open)
                 <tr>
                     <td>{{ $open['day_label'] }} <span class="muted">· {{ $open['shift_label'] }}</span></td>
-                    <td style="text-align:right" class="muted">{{ $open['department'] ? \App\Support\Schedule\StaffDepartment::label($open['department']) : 'Any department' }}</td>
+                    <td style="text-align:right" class="muted">{{ $open['department'] ? \App\Support\Schedule\StaffDepartment::label($open['department']) : __('pdfs/operator-schedule.any_department') }}</td>
                 </tr>
             @endforeach
         </table>
@@ -164,7 +171,7 @@
 
     {{-- Time off — real LeaveRequest rows overlapping this week --}}
     @if (count($timeOff) > 0)
-        <h2>Time off</h2>
+        <h2>{{ __('pdfs/operator-schedule.time_off') }}</h2>
         <table class="off-list">
             @foreach ($timeOff as $off)
                 <tr>
@@ -177,8 +184,8 @@
 
     <div class="foot">
         <table style="width:100%;border-collapse:collapse"><tr>
-            <td style="text-align:left">{{ $brand->displayName }} · generated {{ $generatedAt }}</td>
-            <td style="text-align:right">Week schedule · {{ $roster->weekLabel }}</td>
+            <td style="text-align:left">{{ __('pdfs/operator-schedule.foot_generated', ['property' => $brand->displayName, 'generated' => $generatedAt]) }}</td>
+            <td style="text-align:right">{{ __('pdfs/operator-schedule.foot_week', ['week' => $roster->weekLabel]) }}</td>
         </tr></table>
         {{-- ⚠️ THIS SENTENCE CARRIED THREE ASSERTIONS AND TWO OF THEM WERE FALSE (§N.8d, rendered to a user).
              It read: "This rota reflects the LIVE roster — there is no draft or published state, so what you
@@ -199,7 +206,7 @@
 
              What replaces them is the one thing a printed rota can always verify about itself — WHEN it was
              taken. `$generatedAt` is already computed in the property's timezone for the header. --}}
-        <div style="margin-top:6px">This rota is a snapshot of the roster as it stood on {{ $generatedAt }} — any later change will not appear on this printout. Shift-swap requests go through the Vyrobel app or the front desk.</div>
+        <div style="margin-top:6px">{{ __('pdfs/operator-schedule.snapshot_note', ['generated' => $generatedAt]) }}</div>
     </div>
 </div>
 </body>

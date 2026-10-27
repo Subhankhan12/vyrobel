@@ -75,8 +75,8 @@ abstract class GuestReservationNotification extends FeedNotification
 
         return EmailTemplateResolver::for((string) $r->organization_id, $this->templateKey(), array_merge([
             'guest_name' => GuestName::display($guest),
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => (string) ($r->property->name ?? 'your stay'),
+            'first_name' => $first !== '' ? $first : __('php/notifications/guest/guest_reservation_notification.there'),
+            'unit' => (string) ($r->property->name ?? __('php/notifications/guest/guest_reservation_notification.your_stay')),
             'nights' => (string) max(1, $this->nights()),
             'reference' => (string) $r->reference,
         ], $this->extraVars()))->subject();
@@ -94,14 +94,18 @@ abstract class GuestReservationNotification extends FeedNotification
         $out = Carbon::parse((string) $r->check_out);
         $nights = $this->nights();
 
-        $context = (string) ($r->property->name ?? 'your stay')
-            .' · '.$in->format('j M Y').' – '.$out->format('j M Y');
+        $params = [
+            'property' => (string) ($r->property->name ?? __('php/notifications/guest/guest_reservation_notification.your_stay')),
+            'check_in' => $in->translatedFormat('j M Y'),
+            'check_out' => $out->translatedFormat('j M Y'),
+        ];
 
-        if ($nights > 0) {
-            $context .= ' · '.$nights.' '.($nights === 1 ? 'night' : 'nights');
-        }
-
-        return $context;
+        // ⚠️ I18N-01 — one key per shape (FeedNotification::t() records a key, not a plural choice).
+        return match (true) {
+            $nights === 1 => $this->t('context', 'php/notifications/guest/guest_reservation_notification.context_one_night', $params + ['nights' => $nights]),
+            $nights > 1 => $this->t('context', 'php/notifications/guest/guest_reservation_notification.context_nights', $params + ['nights' => $nights]),
+            default => $this->t('context', 'php/notifications/guest/guest_reservation_notification.context', $params),
+        };
     }
 
     protected function nights(): int

@@ -37,7 +37,7 @@ class OwnerReportMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your Vyrobel statement — '.$this->periodLabel);
+        return new Envelope(subject: __('php/mail/owner_report_mail.subject', ['period' => $this->periodLabel]));
     }
 
     public function content(): Content

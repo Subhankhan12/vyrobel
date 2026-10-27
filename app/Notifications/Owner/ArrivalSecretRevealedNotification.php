@@ -61,22 +61,25 @@ class ArrivalSecretRevealedNotification extends FeedNotification
     {
         // ⚠️ The field NAMES, rendered for a human. Nothing here can carry a value: the constructor never
         // received one, so there is none in scope to leak by accident.
-        $labels = [
-            'door_code' => 'door code',
-            'wifi_password' => 'wifi password',
-        ];
-
-        $named = array_values(array_filter(array_map(
-            fn (string $f): ?string => $labels[$f] ?? null,
+        // I18N-01 — each combination of named fields is its own whole sentence (word order differs by language), in
+        // the order the fields arrived: ArrivalInfoService::SECRET_FIELDS lists the door code first.
+        $named = implode(',', array_values(array_filter(
             $this->fields,
+            fn (string $f): bool => in_array($f, ['door_code', 'wifi_password'], true),
         )));
+        $params = ['actor' => $this->actorName, 'unit' => $this->unitLabel, 'property' => $this->propertyName];
 
-        $what = $named === [] ? 'arrival details' : implode(' and ', $named);
+        $context = match ($named) {
+            'door_code' => $this->t('context', 'php/notifications/owner/arrival_secret_revealed_notification.context_door_code', $params),
+            'wifi_password' => $this->t('context', 'php/notifications/owner/arrival_secret_revealed_notification.context_wifi_password', $params),
+            'door_code,wifi_password' => $this->t('context', 'php/notifications/owner/arrival_secret_revealed_notification.context_door_code_wifi', $params),
+            'wifi_password,door_code' => $this->t('context', 'php/notifications/owner/arrival_secret_revealed_notification.context_wifi_door_code', $params),
+            default => $this->t('context', 'php/notifications/owner/arrival_secret_revealed_notification.context_arrival_details', $params),
+        };
 
         return [
-            'title' => 'Arrival details viewed',
-            'context' => $this->actorName.' viewed the '.$what.' for '.$this->unitLabel
-                .' at '.$this->propertyName.'. If this wasn’t expected, contact your manager.',
+            'title' => $this->t('title', 'php/notifications/owner/arrival_secret_revealed_notification.title'),
+            'context' => $context,
             'url' => route('owner.units', [], false),
             'category' => 'account',
         ];

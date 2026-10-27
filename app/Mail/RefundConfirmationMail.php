@@ -50,7 +50,7 @@ class RefundConfirmationMail extends Mailable
         $processedAt = $this->refund->processed_at !== null ? Carbon::parse($this->refund->processed_at) : Carbon::now();
 
         // check_in / check_out are NOT NULL date columns on a reservation.
-        $stay = Carbon::parse($reservation->check_in)->format('j M').' – '.Carbon::parse($reservation->check_out)->format('j M Y');
+        $stay = Carbon::parse($reservation->check_in)->translatedFormat('j M').' – '.Carbon::parse($reservation->check_out)->translatedFormat('j M Y');
 
         $tpl = $this->template();
 
@@ -61,14 +61,14 @@ class RefundConfirmationMail extends Mailable
                 'reference' => (string) $reservation->reference,
                 'amount' => MoneyFormatter::display(abs((int) $this->refund->amount_minor), (string) $this->refund->currency),
                 // HONEST: no card_last4 is stored — never a fabricated masked number.
-                'method' => 'your original payment method',
+                'method' => __('php/mail/refund_confirmation_mail.refund_method'),
                 'reason' => $reason,
-                'propertyName' => (string) ($reservation->property->name ?? 'your stay'),
+                'propertyName' => (string) ($reservation->property->name ?? __('php/mail/refund_confirmation_mail.your_stay')),
                 'brand' => $this->brandFor($reservation->property),
                 'stay' => $stay,
-                'processedOn' => $processedAt->format('j M Y'),
+                'processedOn' => $processedAt->translatedFormat('j M Y'),
                 // HONEST ETA — a range, never a guaranteed arrival date.
-                'etaLabel' => RefundEta::WINDOW,
+                'etaLabel' => RefundEta::window(),
                 'reservationUrl' => route('guest.manage', $reservation->getKey()),
                 'messagesUrl' => route('guest.messages'),
                 // Operator-customizable template (#86)
@@ -93,7 +93,7 @@ class RefundConfirmationMail extends Mailable
         $first = $guest !== null ? trim((string) $guest->first_name) : '';
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'refund-confirmation', [
-            'first_name' => $first !== '' ? $first : 'there',
+            'first_name' => $first !== '' ? $first : __('php/mail/refund_confirmation_mail.there'),
             'reference' => (string) $r->reference,
         ]);
     }

@@ -3,7 +3,7 @@
      ⚠️ This documents an IN-PORTAL ACKNOWLEDGMENT, NOT a legally-binding e-signature — stated honestly in
      the footer; nothing here claims legal signature validity. Unset fields are omitted, never invented. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>

@@ -31,7 +31,7 @@ class LoginApprovalMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Approve your Vyrobel sign-in');
+        return new Envelope(subject: __('php/mail/login_approval_mail.subject'));
     }
 
     public function content(): Content

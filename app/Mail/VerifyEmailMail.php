@@ -34,7 +34,7 @@ class VerifyEmailMail extends Mailable
     public function __construct(
         public readonly string $guestName,
         public readonly string $verifyUrl,
-        public readonly string $expiresLabel = '1 hour',
+        public readonly ?string $expiresLabel = null,
         public readonly ?string $email = null,
         public readonly ?string $organizationId = null,
     ) {}
@@ -53,7 +53,7 @@ class VerifyEmailMail extends Mailable
             with: [
                 'guestName' => $this->guestName,
                 'verifyUrl' => $this->verifyUrl,
-                'expiresLabel' => $this->expiresLabel,
+                'expiresLabel' => $this->expiresLabel ?? __('php/mail/verify_email_mail.one_hour'),
                 'email' => $this->email,
                 // Operator-customizable template (#86)
                 'heading' => $tpl->heading(),

@@ -6,6 +6,7 @@ namespace App\Support\Email;
 
 use App\Models\EmailTemplate;
 use App\Models\Scopes\OrganizationScope;
+use App\Support\I18n\Locales;
 
 /**
  * Resolves the effective customization of a guest email for an org (Operator Email Templates exact-match #86).
@@ -28,6 +29,20 @@ final class EmailTemplateResolver
         $row = self::row($organizationId, $key);
 
         return $row === null ? true : (bool) $row->enabled;
+    }
+
+    /**
+     * I18N-01 (PLAN 5.3) — the language this email goes out in. An organisation that has EDITED any of its words wrote
+     * them in one language, so the whole email follows the organisation's default language (a guest never gets half one
+     * language, half another); an email left as Vyrobel wrote it goes in the recipient's own language.
+     */
+    public static function localeFor(?string $organizationId, string $key, ?string $recipientLocale): string
+    {
+        $row = self::row($organizationId, $key);
+        $edited = $row !== null && collect([$row->subject, $row->heading, $row->message, $row->button_label])
+            ->contains(fn ($v): bool => is_string($v) && trim($v) !== '');
+
+        return $edited ? Locales::resolve(Locales::organizationDefault($organizationId)) : Locales::resolve($recipientLocale);
     }
 
     private static function row(?string $organizationId, string $key): ?EmailTemplate

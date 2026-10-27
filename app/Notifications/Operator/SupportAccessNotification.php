@@ -35,9 +35,15 @@ class SupportAccessNotification extends FeedNotification
         $to = ($this->session->ended_at ?? $this->session->expires_at)->copy()->utc();
 
         return [
-            'title' => 'Vyrobel support viewed your workspace (read-only)',
-            'context' => $this->adminName.' · '.$from->format('j M Y, H:i').'–'.$to->format('H:i').' UTC · '
-                .$this->session->pages_viewed.' page'.($this->session->pages_viewed === 1 ? '' : 's').' viewed · Reason: '.$this->session->reason,
+            'title' => $this->t('title', 'php/notifications/operator/support_access_notification.title'),
+            // ⚠️ I18N-01 — one key per shape (FeedNotification::t() records a key, not a plural choice).
+            'context' => $this->t('context', $this->session->pages_viewed === 1 ? 'php/notifications/operator/support_access_notification.context_one_page' : 'php/notifications/operator/support_access_notification.context_pages', [
+                'admin' => $this->adminName,
+                'from' => $from->translatedFormat('j M Y, H:i'),
+                'to' => $to->format('H:i'),
+                'pages' => $this->session->pages_viewed,
+                'reason' => (string) $this->session->reason,
+            ]),
             'url' => route('app.notifications', [], false),
             'category' => 'account',
         ];

@@ -34,15 +34,18 @@ class UnitRequestReviewedNotification extends FeedNotification
         $name = (string) $this->request->requested_name;
         $note = (string) ($this->request->review_note ?? '');
 
-        $context = $approved
-            ? $name.' is now on your portfolio'
-            : 'Your request for '.$name.' wasn’t approved';
-        if ($note !== '') {
-            $context .= ' · '.$note;
-        }
+        $params = ['name' => $name, 'note' => $note];
+        $context = match (true) {
+            $approved && $note === '' => $this->t('context', 'php/notifications/owner/unit_request_reviewed_notification.context_approved', $params),
+            $approved => $this->t('context', 'php/notifications/owner/unit_request_reviewed_notification.context_approved_note', $params),
+            $note === '' => $this->t('context', 'php/notifications/owner/unit_request_reviewed_notification.context_declined', $params),
+            default => $this->t('context', 'php/notifications/owner/unit_request_reviewed_notification.context_declined_note', $params),
+        };
 
         return [
-            'title' => $approved ? 'Unit request approved' : 'Unit request declined',
+            'title' => $approved
+                ? $this->t('title', 'php/notifications/owner/unit_request_reviewed_notification.title_approved')
+                : $this->t('title', 'php/notifications/owner/unit_request_reviewed_notification.title_declined'),
             'context' => $context,
             'url' => route('owner.units', [], false),
             'category' => 'account',

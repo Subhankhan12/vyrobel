@@ -34,8 +34,8 @@ class BalanceDueNotification extends FeedNotification
         $amount = MoneyFormatter::display($this->balanceMinor, $this->currency);
 
         return [
-            'title' => 'Balance due · '.((string) $this->reservation->reference),
-            'context' => $amount.' outstanding at check-out',
+            'title' => $this->t('title', 'php/notifications/operator/balance_due_notification.title', ['reference' => (string) $this->reservation->reference]),
+            'context' => $this->t('context', 'php/notifications/operator/balance_due_notification.context', ['amount' => $amount]),
             'url' => route('app.front-desk', [], false),
             'category' => 'front_desk',
         ];

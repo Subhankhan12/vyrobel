@@ -33,12 +33,17 @@ class OwnerReviewPostedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $unit = $this->review->unit;
-        $label = $unit !== null ? (string) ($unit->code ?: $unit->name ?: 'your unit') : 'your unit';
+        $label = $unit !== null ? (string) ($unit->code ?: $unit->name ?: '') : '';
         $rating = (int) $this->review->rating;
 
+        // I18N-01 — a review with no unit label says "your unit" inside its own sentence, never a translated word passed in.
         return [
-            'title' => $rating.'★ review on '.$label,
-            'context' => 'A guest published a '.$rating.'-star review of '.$label.'. Read it on your Reviews page.',
+            'title' => $label !== ''
+                ? $this->t('title', 'php/notifications/owner/owner_review_posted_notification.title', ['rating' => $rating, 'unit' => $label])
+                : $this->t('title', 'php/notifications/owner/owner_review_posted_notification.title_your_unit', ['rating' => $rating]),
+            'context' => $label !== ''
+                ? $this->t('context', 'php/notifications/owner/owner_review_posted_notification.context', ['rating' => $rating, 'unit' => $label])
+                : $this->t('context', 'php/notifications/owner/owner_review_posted_notification.context_your_unit', ['rating' => $rating]),
             'url' => route('owner.reviews', [], false),
             'category' => 'performance',
         ];

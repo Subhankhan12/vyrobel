@@ -42,8 +42,8 @@ class ThreadAssignedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => 'Conversation assigned to you',
-            'context' => $this->guestName.' · in the shared inbox',
+            'title' => $this->t('title', 'php/notifications/operator/thread_assigned_notification.title'),
+            'context' => $this->t('context', 'php/notifications/operator/thread_assigned_notification.context', ['guest' => $this->guestName]),
             'url' => route('app.inbox', ['c' => $this->thread->getKey()], false),
             'category' => 'front_desk',
         ];

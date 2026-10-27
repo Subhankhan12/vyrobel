@@ -29,12 +29,20 @@ class UrgentWorkOrderNotification extends FeedNotification
 
     public function data(object $notifiable): array
     {
-        $title = (string) ($this->ticket->title ?? 'Maintenance');
-        $category = (string) ($this->ticket->category ?? '');
+        // I18N-01 — the category picks its own whole sentence (never a translated word passed in). `title` is a
+        // required string and `category` a database enum of these five codes (default 'other'), so 'other' is the
+        // remaining arm.
+        $context = match ($this->ticket->category) {
+            'plumbing' => $this->t('context', 'php/notifications/operator/urgent_work_order_notification.context_plumbing'),
+            'electrical' => $this->t('context', 'php/notifications/operator/urgent_work_order_notification.context_electrical'),
+            'appliance' => $this->t('context', 'php/notifications/operator/urgent_work_order_notification.context_appliance'),
+            'structural' => $this->t('context', 'php/notifications/operator/urgent_work_order_notification.context_structural'),
+            default => $this->t('context', 'php/notifications/operator/urgent_work_order_notification.context_other'),
+        };
 
         return [
-            'title' => 'Urgent work order · '.$title,
-            'context' => ($category !== '' ? ucfirst($category).' · ' : '').'needs attention now',
+            'title' => $this->t('title', 'php/notifications/operator/urgent_work_order_notification.title', ['title' => (string) $this->ticket->title]),
+            'context' => $context,
             'url' => route('app.maintenance', [], false),
             'category' => 'maintenance',
         ];

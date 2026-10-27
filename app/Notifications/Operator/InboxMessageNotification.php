@@ -20,7 +20,11 @@ use App\Support\Inbox\ThreadName;
  */
 class InboxMessageNotification extends FeedNotification
 {
-    public function __construct(private string $threadId, private string $title, private string $context) {}
+    /**
+     * I18N-01 — the facts, not a sentence: the title is built in data() with {@see FeedNotification::tc()}, so the bell shows
+     * it in each READER's language. $unread is at least 1.
+     */
+    public function __construct(private string $threadId, private string $name, private int $unread, private bool $fromOwner) {}
 
     /** In-app only — see the class docblock. */
     public function via(object $notifiable): array
@@ -41,8 +45,10 @@ class InboxMessageNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => $this->title,
-            'context' => $this->context,
+            'title' => $this->tc('title', 'php/notifications/operator/inbox_message_notification.title', $this->unread, ['name' => $this->name]),
+            'context' => $this->fromOwner
+                ? $this->t('context', 'php/notifications/operator/inbox_message_notification.context_owner')
+                : $this->t('context', 'php/notifications/operator/inbox_message_notification.context_guest'),
             'url' => route('app.inbox', ['c' => $this->threadId], false),
             'category' => 'messages',
             'thread_id' => $this->threadId,

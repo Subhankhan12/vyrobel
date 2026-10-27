@@ -34,7 +34,7 @@ class WinbackMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'We’d love to welcome you back');
+        return new Envelope(subject: __('php/mail/winback_mail.subject'));
     }
 
     /** RFC 2369/8058 unsubscribe headers — present ONLY on a marketing send (empty otherwise). */
@@ -47,7 +47,7 @@ class WinbackMail extends Mailable
     {
         // The optional "at <property>" phrase is built here (not with an inline @if) so the flowing copy never
         // writes `word@directive` — the Blade \B trap that ships raw source (invariant / CLAUDE.md).
-        $place = ($this->propertyName !== null && $this->propertyName !== '') ? ' at '.$this->propertyName : '';
+        $place = ($this->propertyName !== null && $this->propertyName !== '') ? ' '.__('php/mail/winback_mail.at_property', ['property' => $this->propertyName]) : '';
 
         return new Content(
             view: 'emails.winback',

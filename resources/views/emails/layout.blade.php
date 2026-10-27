@@ -24,7 +24,7 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @php $brand = $brand ?? \App\Support\Branding\PropertyBrand::default(); @endphp
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!} xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -66,7 +66,7 @@
                     <tr>
                         <td align="center" style="padding:20px 8px;">
                             @if ($brand->poweredBy)
-                                <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">Powered by Vyrobel · hotel management, done properly.</p>
+                                <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">{{ __('emails/layout.powered_by') }}</p>
                             @endif
                             {{-- ⚠️ THE FOOTER REASON (DO-EMAIL-9 · restructure, 2026-08-12).
 
@@ -89,20 +89,20 @@
                                  raw key. That is the whole difference between this and a reword. --}}
                             @php
                                 $vyReasons = [
-                                    'booking' => 'You’re receiving this because it relates to your booking with us.',
-                                    'security' => 'You’re receiving this because of a security change on your account.',
+                                    'booking' => __('emails/layout.reason_booking'),
+                                    'security' => __('emails/layout.reason_security'),
                                     // ⚠️ A NOMINATED ADDRESS, not necessarily an account holder. An email-change
                                     // confirmation is sent to the address being ADDED, whose reader may have no
                                     // account at all yet — so neither the booking line nor "your account" is
                                     // safely true of them. This says only what is certain: someone gave us this
                                     // address. (It is also what the admin template's one-off override said, kept
                                     // rather than flattened into the generic security line.)
-                                    'email_change' => 'You’re receiving this because this address was given as the login email for a Vyrobel account.',
-                                    'account' => 'You’re receiving this because it relates to your account with us.',
-                                    'owner' => 'You’re receiving this because you own a property we manage.',
-                                    'waitlist' => 'You’re receiving this because you asked to hear about these dates.',
+                                    'email_change' => __('emails/layout.reason_email_change'),
+                                    'account' => __('emails/layout.reason_account'),
+                                    'owner' => __('emails/layout.reason_owner'),
+                                    'waitlist' => __('emails/layout.reason_waitlist'),
                                     // The safe default: true of anyone we can legitimately email.
-                                    'generic' => 'You’re receiving this because you have an account with us.',
+                                    'generic' => __('emails/layout.reason_generic'),
                                 ];
                                 $vyReasonKey = trim($__env->yieldContent('footer_reason'));
                             @endphp

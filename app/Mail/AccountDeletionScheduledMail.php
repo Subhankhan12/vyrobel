@@ -33,7 +33,7 @@ class AccountDeletionScheduledMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return $this->brandedEnvelope('Your account deletion is scheduled', PropertyBrand::default());
+        return $this->brandedEnvelope(__('php/mail/account_deletion_scheduled_mail.subject'), PropertyBrand::default());
     }
 
     public function content(): Content
@@ -42,20 +42,16 @@ class AccountDeletionScheduledMail extends Mailable
 
         return new Content(view: 'emails.account-deletion', with: [
             'brand' => PropertyBrand::default(),
-            'heading' => 'Your account deletion is scheduled',
+            'heading' => __('php/mail/account_deletion_scheduled_mail.heading'),
             // ⚠️ The erase cancels bookings and can refund — the email says so, because a deadline with no
             // stated consequence is half a warning. Never promises a refund: it is policy-dependent.
-            'intro' => 'We’ve scheduled your Vyrobel guest account for deletion. You have '
-                .GuestDeletionService::GRACE_DAYS.' days to change your mind — nothing is removed until then.'
+            'intro' => trans_choice('php/mail/account_deletion_scheduled_mail.intro', GuestDeletionService::GRACE_DAYS, ['count' => GuestDeletionService::GRACE_DAYS])
                 .($this->staysCancelled > 0
-                    ? ' When it runs we will also cancel the '.$this->staysCancelled.' booking'
-                        .($this->staysCancelled === 1 ? '' : 's').' you still have with us, including a stay already'
-                        .' under way. Whether any money comes back follows each booking’s cancellation policy, so'
-                        .' some or all of it may not be refunded.'
+                    ? ' '.trans_choice('php/mail/account_deletion_scheduled_mail.cancel_note', $this->staysCancelled, ['count' => $this->staysCancelled])
                     : ''),
             'guestName' => GuestName::display($this->guest),
             'graceDays' => GuestDeletionService::GRACE_DAYS,
-            'effective' => $effective !== null ? $effective->format('j M Y') : null,
+            'effective' => $effective !== null ? $effective->translatedFormat('j M Y') : null,
         ]);
     }
 }

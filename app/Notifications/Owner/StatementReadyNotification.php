@@ -31,11 +31,11 @@ class StatementReadyNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $amount = MoneyFormatter::display((int) $this->statement->net_payable_minor, (string) $this->statement->currency);
-        $period = Carbon::parse($this->statement->period_start)->format('F Y');
+        $period = Carbon::parse($this->statement->period_start)->translatedFormat('F Y');
 
         return [
-            'title' => 'Your statement is ready',
-            'context' => $period.' · net payable '.$amount,
+            'title' => $this->t('title', 'php/notifications/owner/statement_ready_notification.title'),
+            'context' => $this->t('context', 'php/notifications/owner/statement_ready_notification.context', ['period' => $period, 'amount' => $amount]),
             'url' => route('owner.statements.show', [$this->statement->getKey()], false),
             'category' => 'finance',
         ];

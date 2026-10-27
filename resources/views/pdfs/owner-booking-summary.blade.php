@@ -8,7 +8,7 @@
      All composed strings (letterhead address, subtitle, reconciliation note, footer) are built in the document
      builder (OwnerBookingSummaryDocument), so this view stays logic-free. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -58,32 +58,32 @@
                     <div class="lead-addr">{{ $letterhead_addr }}</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Booking summary</div>
+                    <div class="eyebrow">{{ __('pdfs/owner-booking-summary.title') }}</div>
                     <div class="doc-ref">{{ $doc_ref }}</div>
                 </td>
             </tr>
         </table>
 
-        <h1>Booking summary</h1>
+        <h1>{{ __('pdfs/owner-booking-summary.title') }}</h1>
         <div class="subtitle">{{ $subtitle }}</div>
 
         {{-- KPI band — REAL counts + DERIVED folds + REAL owner-scoped occupancy; the gross cell is highlighted. --}}
         <table class="kpi">
             <tr>
                 <td>
-                    <div class="kpi-k">Bookings</div>
+                    <div class="kpi-k">{{ __('pdfs/owner-booking-summary.bookings') }}</div>
                     <div class="kpi-v">{{ $bookings_count }}</div>
                 </td>
                 <td>
-                    <div class="kpi-k">Nights</div>
+                    <div class="kpi-k">{{ __('pdfs/owner-booking-summary.nights') }}</div>
                     <div class="kpi-v">{{ $nights_total }}</div>
                 </td>
                 <td>
-                    <div class="kpi-k">Occupancy</div>
+                    <div class="kpi-k">{{ __('pdfs/owner-booking-summary.occupancy') }}</div>
                     <div class="kpi-v">{{ $occupancy_pct }}%</div>
                 </td>
                 <td class="hl">
-                    <div class="kpi-k">Gross revenue</div>
+                    <div class="kpi-k">{{ __('pdfs/owner-booking-summary.gross_revenue') }}</div>
                     <div class="kpi-v hl">{{ $gross_display }}</div>
                 </td>
             </tr>
@@ -91,19 +91,19 @@
 
         @if ($bookings === [])
             <div class="callout" style="margin-top:20px">
-                This statement's gross room revenue is not attributed to any booking in this period.
+                {{ __('pdfs/owner-booking-summary.not_attributed') }}
             </div>
         @else
             {{-- ── By unit — totals reconcile to the gross; occupancy is a REAL per-unit owner-scoped read ── --}}
-            <h2>By unit</h2>
+            <h2>{{ __('pdfs/owner-booking-summary.by_unit') }}</h2>
             <table class="lines">
                 <thead>
                     <tr>
-                        <th>Unit</th>
-                        <th class="r">Bookings</th>
-                        <th class="r">Nights</th>
-                        <th class="r">Occupancy</th>
-                        <th class="r">Revenue</th>
+                        <th>{{ __('pdfs/owner-booking-summary.unit') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.bookings') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.nights') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.occupancy') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.revenue') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,7 +120,7 @@
                         </tr>
                     @endforeach
                     <tr class="net">
-                        <td>Total</td>
+                        <td>{{ __('common.total') }}</td>
                         <td class="r">{{ $total_bookings_in_units }}</td>
                         <td class="r">{{ $total_nights_display }}</td>
                         <td class="r">{{ $total_occupancy_pct }}%</td>
@@ -130,36 +130,36 @@
             </table>
 
             {{-- ── By channel — the REAL source enum + the REAL channel commission (Σ ota_cost). No OTA brand. ── --}}
-            <h2>By channel</h2>
+            <h2>{{ __('pdfs/owner-booking-summary.by_channel') }}</h2>
             <table class="lines">
                 <tbody>
                     @foreach ($by_source as $row)
                         <tr>
                             <td>
                                 {{ $row['label'] }}
-                                <div class="sub">{{ $row['bookings'] }} {{ \Illuminate\Support\Str::plural('booking', $row['bookings']) }} · {{ $row['commission_note'] }}</div>
+                                <div class="sub">{{ trans_choice('pdfs/owner-booking-summary.channel_bookings', $row['bookings'], ['count' => $row['bookings'], 'commission' => $row['commission_note']]) }}</div>
                             </td>
                             <td class="r">{{ $row['revenue_display'] }}</td>
                         </tr>
                     @endforeach
                     <tr class="net">
-                        <td>Total</td>
+                        <td>{{ __('common.total') }}</td>
                         <td class="r hl">{{ $total_display }}</td>
                     </tr>
                 </tbody>
             </table>
 
             {{-- ── Every booking behind the gross — the full list (never truncated) with the guest NAME (name-only). ── --}}
-            <h2>Bookings this period</h2>
+            <h2>{{ __('pdfs/owner-booking-summary.bookings_this_period') }}</h2>
             <table class="lines">
                 <thead>
                     <tr>
-                        <th>Ref</th>
-                        <th>Guest</th>
-                        <th>Unit</th>
-                        <th>Dates</th>
-                        <th class="r">Nights</th>
-                        <th class="r">Revenue</th>
+                        <th>{{ __('pdfs/owner-booking-summary.ref') }}</th>
+                        <th>{{ __('pdfs/owner-booking-summary.guest') }}</th>
+                        <th>{{ __('pdfs/owner-booking-summary.unit') }}</th>
+                        <th>{{ __('pdfs/owner-booking-summary.dates') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.nights') }}</th>
+                        <th class="r">{{ __('pdfs/owner-booking-summary.revenue') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -174,7 +174,7 @@
                         </tr>
                     @endforeach
                     <tr class="net">
-                        <td colspan="4">Total</td>
+                        <td colspan="4">{{ __('common.total') }}</td>
                         <td class="r">{{ $total_nights_display }}</td>
                         <td class="r hl">{{ $total_display }}</td>
                     </tr>
@@ -187,17 +187,12 @@
             {{ $reconcile_note }}
             @if ($reversed_count > 0)
                 <div class="note">
-                    {{ $reversed_count }} further {{ \Illuminate\Support\Str::plural('booking', $reversed_count) }} claimed by this
-                    statement {{ $reversed_count === 1 ? 'was' : 'were' }} fully reversed (for example, cancelled), so
-                    {{ $reversed_count === 1 ? 'it' : 'they' }} contributed nothing to the gross above and
-                    {{ $reversed_count === 1 ? 'is' : 'are' }} not listed.
+                    {{ trans_choice('pdfs/owner-booking-summary.reversed_note', $reversed_count, ['count' => $reversed_count]) }}
                 </div>
             @endif
             @if ($prior_count > 0)
                 <div class="note">
-                    {{ $prior_count }} {{ \Illuminate\Support\Str::plural('booking', $prior_count) }} claimed by this statement
-                    {{ $prior_count === 1 ? 'has' : 'have' }} room revenue dated before this period. That revenue is reported on
-                    the statement within “Prior-period adjustments”, not in the gross above.
+                    {{ trans_choice('pdfs/owner-booking-summary.prior_note', $prior_count, ['count' => $prior_count]) }}
                 </div>
             @endif
         </div>
@@ -205,7 +200,7 @@
         <table class="foot" width="100%">
             <tr>
                 <td>{{ $footer_left }}</td>
-                <td style="text-align:right;">Booking summary · {{ $period_label }}</td>
+                <td style="text-align:right;">{{ __('pdfs/owner-booking-summary.footer_right', ['period' => $period_label]) }}</td>
             </tr>
         </table>
     </div>

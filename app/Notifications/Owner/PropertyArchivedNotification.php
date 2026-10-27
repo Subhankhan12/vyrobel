@@ -69,9 +69,8 @@ class PropertyArchivedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => 'A property holding your units was archived',
-            'context' => $this->propertyName.' has been archived and can’t be restored. Your earnings, '
-                .'statements and payouts are not affected and stay in your portal.',
+            'title' => $this->t('title', 'php/notifications/owner/property_archived_notification.title'),
+            'context' => $this->t('context', 'php/notifications/owner/property_archived_notification.context', ['property' => $this->propertyName]),
             'url' => route('owner.balance', [], false),
             'category' => 'account',
         ];

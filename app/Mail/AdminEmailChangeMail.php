@@ -28,7 +28,7 @@ class AdminEmailChangeMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Confirm your new Vyrobel platform email');
+        return new Envelope(subject: __('php/mail/admin_email_change_mail.subject'));
     }
 
     public function content(): Content

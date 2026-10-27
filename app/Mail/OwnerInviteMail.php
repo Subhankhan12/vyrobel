@@ -30,7 +30,7 @@ class OwnerInviteMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'You’re invited to Vyrobel');
+        return new Envelope(subject: __('php/mail/owner_invite_mail.subject'));
     }
 
     public function content(): Content
@@ -48,8 +48,8 @@ class OwnerInviteMail extends Mailable
                 // ⚠️ ADMIN 04 — a founder's workspace is set up by VYROBEL, not by the hotel: the footer's "you're
                 //    receiving this because …" must name who actually sent it.
                 'operator' => $copy['operator'] ?? $orgName,
-                'footerNote' => $copy['footer_note'] ?? 'Sent automatically when an operator invites someone to their organization.',
-                'ignoreNote' => $copy['ignore_note'] ?? 'If you didn’t expect this, you can safely ignore this email — no account is created until you set a password.',
+                'footerNote' => $copy['footer_note'] ?? __('php/mail/owner_invite_mail.footer_note'),
+                'ignoreNote' => $copy['ignore_note'] ?? __('php/mail/owner_invite_mail.ignore_note'),
                 'acceptUrl' => url('/invite/'.$this->token),
                 'expiresAt' => $this->invite->expires_at,
                 'accountLabel' => $copy['account'],
@@ -76,60 +76,60 @@ class OwnerInviteMail extends Mailable
         return match ($role) {
             // ADMIN 04 — the founder of an organisation created in the platform console (OwnerInviteService::FOUNDER_ROLE).
             'founder' => [
-                'account' => 'account',
-                'eyebrow' => 'Your new workspace',
-                'headline' => "{$orgName} is ready on Vyrobel",
-                'intro' => "A Vyrobel workspace has been set up for {$orgName}, with you as its founder. Set your password to sign in — using this link also confirms your email address.",
-                'section_title' => 'Your first steps',
+                'account' => __('php/mail/owner_invite_mail.founder_account'),
+                'eyebrow' => __('php/mail/owner_invite_mail.founder_eyebrow'),
+                'headline' => __('php/mail/owner_invite_mail.founder_headline', ['org' => $orgName]),
+                'intro' => __('php/mail/owner_invite_mail.founder_intro', ['org' => $orgName]),
+                'section_title' => __('php/mail/owner_invite_mail.founder_section_title'),
                 'features' => [
-                    ['title' => 'Rooms & units', 'desc' => 'Add a room type and a unit to your first property'],
-                    ['title' => 'Rates', 'desc' => 'Create a rate plan with prices'],
-                    ['title' => 'Bookings', 'desc' => 'Take bookings on your storefront and at the front desk'],
+                    ['title' => __('php/mail/owner_invite_mail.founder_rooms_title'), 'desc' => __('php/mail/owner_invite_mail.founder_rooms_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.founder_rates_title'), 'desc' => __('php/mail/owner_invite_mail.founder_rates_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.founder_bookings_title'), 'desc' => __('php/mail/owner_invite_mail.founder_bookings_desc')],
                 ],
                 'operator' => 'Vyrobel',
-                'role_reason' => "set up a workspace for {$orgName} with you as its founder.",
-                'footer_note' => 'Sent when Vyrobel creates a workspace for someone.',
+                'role_reason' => __('php/mail/owner_invite_mail.founder_role_reason', ['org' => $orgName]),
+                'footer_note' => __('php/mail/owner_invite_mail.founder_footer_note'),
                 // ⚠️ the workspace ALREADY exists for a founder — the standard "no account is created" line would be false
-                'ignore_note' => 'If you didn’t expect this, you can ignore this email — a workspace was set up for this address, but nobody can sign in to it until a password is set with this link.',
+                'ignore_note' => __('php/mail/owner_invite_mail.founder_ignore_note'),
             ],
             'manager' => [
-                'account' => 'Hotel Manager account',
-                'eyebrow' => 'Property manager invitation',
-                'headline' => "Your Hotel Manager access on {$orgName}",
-                'intro' => "{$orgName} has invited you to join their team on Vyrobel as a property manager — the operator app for day-to-day operations. Set your password to get started.",
-                'section_title' => 'In the operator app',
+                'account' => __('php/mail/owner_invite_mail.manager_account'),
+                'eyebrow' => __('php/mail/owner_invite_mail.manager_eyebrow'),
+                'headline' => __('php/mail/owner_invite_mail.manager_headline', ['org' => $orgName]),
+                'intro' => __('php/mail/owner_invite_mail.manager_intro', ['org' => $orgName]),
+                'section_title' => __('php/mail/owner_invite_mail.manager_section_title'),
                 'features' => [
-                    ['title' => 'Calendar & front desk', 'desc' => 'Arrivals, departures and the booking calendar'],
-                    ['title' => 'Housekeeping & maintenance', 'desc' => 'Turnovers, tasks and work orders'],
-                    ['title' => 'Reservations & guests', 'desc' => 'Bookings, folios and guest messaging'],
+                    ['title' => __('php/mail/owner_invite_mail.manager_calendar_title'), 'desc' => __('php/mail/owner_invite_mail.manager_calendar_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.manager_housekeeping_title'), 'desc' => __('php/mail/owner_invite_mail.manager_housekeeping_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.manager_reservations_title'), 'desc' => __('php/mail/owner_invite_mail.manager_reservations_desc')],
                 ],
-                'role_reason' => 'invited you as a property manager.',
+                'role_reason' => __('php/mail/owner_invite_mail.manager_role_reason'),
             ],
             'accountant' => [
-                'account' => 'Accountant account',
-                'eyebrow' => 'Accountant access invitation',
-                'headline' => "Your Accountant access on {$orgName}",
-                'intro' => "{$orgName} has given you accountant access to their properties on Vyrobel — statements, tax documents and payout records, all ready to export. Set your password to get started.",
-                'section_title' => 'What you can access',
+                'account' => __('php/mail/owner_invite_mail.accountant_account'),
+                'eyebrow' => __('php/mail/owner_invite_mail.accountant_eyebrow'),
+                'headline' => __('php/mail/owner_invite_mail.accountant_headline', ['org' => $orgName]),
+                'intro' => __('php/mail/owner_invite_mail.accountant_intro', ['org' => $orgName]),
+                'section_title' => __('php/mail/owner_invite_mail.accountant_section_title'),
                 'features' => [
-                    ['title' => 'Statements & ledgers', 'desc' => 'Every booking, fee and payout — itemised and exportable'],
-                    ['title' => 'Tax documents', 'desc' => 'VAT invoices, annual summaries and withholding'],
-                    ['title' => 'Payout reconciliation', 'desc' => 'Match payouts to statements across every unit'],
+                    ['title' => __('php/mail/owner_invite_mail.accountant_statements_title'), 'desc' => __('php/mail/owner_invite_mail.accountant_statements_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.accountant_tax_title'), 'desc' => __('php/mail/owner_invite_mail.accountant_tax_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.accountant_payouts_title'), 'desc' => __('php/mail/owner_invite_mail.accountant_payouts_desc')],
                 ],
-                'role_reason' => 'invited you as an accountant.',
+                'role_reason' => __('php/mail/owner_invite_mail.accountant_role_reason'),
             ],
             default => [
-                'account' => 'owner account',
-                'eyebrow' => 'Owner portal invitation',
-                'headline' => "Your owner portal on {$orgName}",
-                'intro' => "{$orgName} has invited you to your owner portal, where you can see your statements, payouts and unit performance — all in one place. Set your password to get started.",
-                'section_title' => 'In your portal',
+                'account' => __('php/mail/owner_invite_mail.owner_account'),
+                'eyebrow' => __('php/mail/owner_invite_mail.owner_eyebrow'),
+                'headline' => __('php/mail/owner_invite_mail.owner_headline', ['org' => $orgName]),
+                'intro' => __('php/mail/owner_invite_mail.owner_intro', ['org' => $orgName]),
+                'section_title' => __('php/mail/owner_invite_mail.owner_section_title'),
                 'features' => [
-                    ['title' => 'Monthly statements', 'desc' => 'Every booking, fee and payout, itemised'],
-                    ['title' => 'Payouts & schedule', 'desc' => 'Track what’s on the way and when it lands'],
-                    ['title' => 'Unit performance', 'desc' => 'Occupancy, rates and reviews per unit'],
+                    ['title' => __('php/mail/owner_invite_mail.owner_statements_title'), 'desc' => __('php/mail/owner_invite_mail.owner_statements_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.owner_payouts_title'), 'desc' => __('php/mail/owner_invite_mail.owner_payouts_desc')],
+                    ['title' => __('php/mail/owner_invite_mail.owner_performance_title'), 'desc' => __('php/mail/owner_invite_mail.owner_performance_desc')],
                 ],
-                'role_reason' => 'invited you as a property owner.',
+                'role_reason' => __('php/mail/owner_invite_mail.owner_role_reason'),
             ],
         };
     }

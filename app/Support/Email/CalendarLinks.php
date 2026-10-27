@@ -24,10 +24,12 @@ final class CalendarLinks
         $checkOut = Carbon::parse($reservation->check_out);
         $property = $reservation->property;
 
-        $title = trim((string) ($property->name ?? 'Your stay'));
+        $title = trim((string) ($property->name ?? __('php/support/email/calendar_links.your_stay')));
         $location = self::location($reservation);
         $times = self::timesNote($reservation);
-        $details = 'Booking '.((string) $reservation->reference).($times !== '' ? ' — '.$times : '');
+        $details = (string) ($times !== ''
+            ? __('php/support/email/calendar_links.details_with_times', ['reference' => (string) $reservation->reference, 'times' => $times])
+            : __('php/support/email/calendar_links.details', ['reference' => (string) $reservation->reference]));
 
         return [
             'google' => self::google($title, $checkIn, $checkOut, $details, $location),
@@ -104,14 +106,14 @@ final class CalendarLinks
         $property = $reservation->property;
         $in = $property?->check_in_time;
         $out = $property?->check_out_time;
-        $parts = [];
-        if ($in !== null && (string) $in !== '') {
-            $parts[] = 'check-in from '.Carbon::parse((string) $in)->format('H:i');
-        }
-        if ($out !== null && (string) $out !== '') {
-            $parts[] = 'check-out by '.Carbon::parse((string) $out)->format('H:i');
-        }
+        $inAt = $in !== null && (string) $in !== '' ? Carbon::parse((string) $in)->format('H:i') : null;
+        $outAt = $out !== null && (string) $out !== '' ? Carbon::parse((string) $out)->format('H:i') : null;
 
-        return implode(', ', $parts);
+        return (string) match (true) {
+            $inAt !== null && $outAt !== null => __('php/support/email/calendar_links.times_both', ['in' => $inAt, 'out' => $outAt]),
+            $inAt !== null => __('php/support/email/calendar_links.times_check_in', ['in' => $inAt]),
+            $outAt !== null => __('php/support/email/calendar_links.times_check_out', ['out' => $outAt]),
+            default => '',
+        };
     }
 }

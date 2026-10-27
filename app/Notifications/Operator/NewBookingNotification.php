@@ -28,12 +28,12 @@ class NewBookingNotification extends FeedNotification
 
     public function data(object $notifiable): array
     {
-        $checkIn = Carbon::parse($this->reservation->check_in)->format('j M');
-        $checkOut = Carbon::parse($this->reservation->check_out)->format('j M');
+        $checkIn = Carbon::parse($this->reservation->check_in)->translatedFormat('j M');
+        $checkOut = Carbon::parse($this->reservation->check_out)->translatedFormat('j M');
 
         return [
-            'title' => 'New booking · '.((string) $this->reservation->reference),
-            'context' => ucfirst((string) $this->reservation->source).' · '.$checkIn.' – '.$checkOut,
+            'title' => $this->t('title', 'php/notifications/operator/new_booking_notification.title', ['reference' => (string) $this->reservation->reference]),
+            'context' => $this->t('context', 'php/notifications/operator/new_booking_notification.context', ['source' => ucfirst((string) $this->reservation->source), 'check_in' => $checkIn, 'check_out' => $checkOut]),
             'url' => route('app.reservations', [], false),
             'category' => 'front_desk',
         ];

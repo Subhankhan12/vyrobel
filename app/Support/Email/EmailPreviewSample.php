@@ -37,7 +37,7 @@ final class EmailPreviewSample
 
         // verify-email carries no reservation — it renders from primitives + the org's stored template.
         if ($key === 'verify-email') {
-            return new VerifyEmailMail('Alex Traveller', url('/verify-email/sample-token'), '1 hour', null, (string) app(TenantContext::class)->id());
+            return new VerifyEmailMail('Alex Traveller', url('/verify-email/sample-token'), (string) __('php/support/email/email_preview_sample.verify_expires'), null, (string) app(TenantContext::class)->id());
         }
 
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
@@ -48,7 +48,7 @@ final class EmailPreviewSample
         return match ($key) {
             'booking-confirmation' => new BookingConfirmationMail($reservation),
             // Sample a refund figure so the editor preview shows Case A; the real send passes null unless a refund exists.
-            'cancellation' => new CancellationMail($reservation, 'Guest requested cancellation', (int) $reservation->total_minor),
+            'cancellation' => new CancellationMail($reservation, (string) __('php/support/email/email_preview_sample.cancellation_reason'), (int) $reservation->total_minor),
             'pre-arrival' => new PreArrivalMail($reservation),
             'payment-reminder' => new PaymentReminderMail($reservation, self::sampleBalance($reservation)),
             'refund-confirmation' => new RefundConfirmationMail(self::sampleRefund($reservation)),

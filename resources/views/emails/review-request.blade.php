@@ -5,11 +5,11 @@
 @extends('emails.layout')
 @section('footer_reason', 'booking')
 
-@section('title', 'Rate your stay')
-@section('preheader', 'A quick rating of your stay at '.$unitName.' would mean the world.')
+@section('title', __('emails/review-request.page_title'))
+@section('preheader', __('emails/review-request.preheader', ['unit' => $unitName]))
 
 @section('content')
-    <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">Your feedback</p>
+    <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">{{ __('emails/review-request.eyebrow') }}</p>
     <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $heading }}</h1>
     <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
 
@@ -18,7 +18,7 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 18px;">
             <tr>
                 <td align="center" style="padding:20px 16px 8px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#4A4038;">How would you rate your stay?</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#4A4038;">{{ __('emails/review-request.how_rate') }}</span>
                 </td>
             </tr>
             <tr>
@@ -39,14 +39,14 @@
                                  the rating it applies, mirroring the web review form's `aria-label` pattern
                                  (guest/review.blade.php), with `title` alongside for clients that drop ARIA. --}}
                         @foreach ($starUrls as $n => $url)
-                            <td style="padding:0 4px;"><a href="{{ $url }}" target="_blank" aria-label="Rate {{ $n }} out of 5 stars" title="Rate {{ $n }} out of 5 stars" style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:32px; color:#8F5A06; text-decoration:none; line-height:1;">★</a></td>
+                            <td style="padding:0 4px;"><a href="{{ $url }}" target="_blank" aria-label="{{ __('emails/review-request.rate_star', ['rating' => $n]) }}" title="{{ __('emails/review-request.rate_star', ['rating' => $n]) }}" style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:32px; color:#8F5A06; text-decoration:none; line-height:1;">★</a></td>
                         @endforeach
                     </tr></table>
                 </td>
             </tr>
             <tr>
                 <td align="center" style="padding:0 16px 18px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">Tap a star — it opens your review, already halfway done</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ __('emails/review-request.tap_star') }}</span>
                 </td>
             </tr>
         </table>
@@ -63,7 +63,7 @@
             </tr>
         </table>
     @else
-        <p style="margin:0 0 20px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">Simply reply to this email and tell us about your stay — we read every message.</p>
+        <p style="margin:0 0 20px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">{{ __('emails/review-request.reply_instead') }}</p>
     @endif
 
     {{-- Stay detail (toggleable block #86) --}}
@@ -71,19 +71,19 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
             <tr>
                 <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Stay</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">{{ __('emails/review-request.stay') }}</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $stay }}</span>
                 </td>
             </tr>
             <tr>
                 <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Unit</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">{{ __('emails/review-request.unit') }}</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $unitName }}</span>
                 </td>
             </tr>
             <tr>
                 <td style="padding:12px 16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Reference</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">{{ __('emails/review-request.reference') }}</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $reference }}</span>
                 </td>
             </tr>
@@ -92,6 +92,6 @@
 
     {{-- Team signature (toggleable block #86) — the honest property team, never a fabricated named person (#39) --}}
     @if ($blocks['signature'] ?? true)
-        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">You’re getting this because you stayed with us. We only ask once — thank you for choosing us.</p>
+        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">{{ __('emails/review-request.signature') }}</p>
     @endif
 @endsection

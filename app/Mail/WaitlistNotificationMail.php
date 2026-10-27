@@ -28,7 +28,7 @@ class WaitlistNotificationMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'A room just opened up at '.$this->propertyName);
+        return new Envelope(subject: __('php/mail/waitlist_notification_mail.subject', ['property' => $this->propertyName]));
     }
 
     public function content(): Content

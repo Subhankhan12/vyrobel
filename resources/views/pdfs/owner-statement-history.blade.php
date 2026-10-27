@@ -3,7 +3,7 @@
      real owner_statements row; the net total(s) reconcile to the listed rows (Σ per currency, no cross-currency
      sum, #17). No guest data (statements carry none). --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -34,12 +34,12 @@
                 <td>
                     <span class="brand-mark">V</span>
                     <span style="font-size:16px; font-weight:bold; padding-left:6px;">{{ $company }}</span>
-                    <div class="muted" style="margin-top:6px; font-size:11px;">managed with Vyrobel</div>
+                    <div class="muted" style="margin-top:6px; font-size:11px;">{{ __('pdfs/owner-statement-history.managed_with_vyrobel') }}</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Statement history</div>
+                    <div class="eyebrow">{{ __('pdfs/owner-statement-history.eyebrow') }}</div>
                     <h1>{{ $scope_label }}</h1>
-                    <div class="sub">{{ $owner_name }} · {{ $count }} {{ \Illuminate\Support\Str::plural('statement', $count) }}</div>
+                    <div class="sub">{{ $owner_name }} · {{ trans_choice('pdfs/owner-statement-history.statement_count', $count, ['count' => $count]) }}</div>
                 </td>
             </tr>
         </table>
@@ -47,10 +47,10 @@
         <table class="rows">
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th class="r">Gross</th>
-                    <th class="r">Net payable</th>
-                    <th class="r">Status</th>
+                    <th>{{ __('pdfs/owner-statement-history.month') }}</th>
+                    <th class="r">{{ __('pdfs/owner-statement-history.gross') }}</th>
+                    <th class="r">{{ __('pdfs/owner-statement-history.net_payable') }}</th>
+                    <th class="r">{{ __('pdfs/owner-statement-history.status') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,12 +62,12 @@
                         <td class="r">{{ $r['status_label'] }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="muted" style="padding:16px 4px;">No finalized statements in this period.</td></tr>
+                    <tr><td colspan="4" class="muted" style="padding:16px 4px;">{{ __('pdfs/owner-statement-history.empty_state') }}</td></tr>
                 @endforelse
 
                 @if ($rows !== [])
                     <tr class="tot">
-                        <td>Total net payable</td>
+                        <td>{{ __('pdfs/owner-statement-history.total_net_payable') }}</td>
                         <td class="r"></td>
                         <td class="r net">{{ implode(' · ', $net_totals) }}</td>
                         <td class="r"></td>
@@ -77,7 +77,7 @@
         </table>
 
         <div class="foot">
-            Generated from Vyrobel's owner ledger; each row reconciles to that month's owner statement. {{ $company }}.
+            {{ __('pdfs/owner-statement-history.footer') }} {{ $company }}.
         </div>
     </div>
 </body>

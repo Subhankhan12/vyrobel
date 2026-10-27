@@ -24,7 +24,7 @@ class MaintenanceCostReportMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your maintenance costs report');
+        return new Envelope(subject: __('php/mail/maintenance_cost_report_mail.subject'));
     }
 
     public function content(): Content

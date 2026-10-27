@@ -54,6 +54,7 @@ use App\Support\Notifications\NotificationRecipients;
 use App\Support\TeamChat\TeamChatReader;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 /**
  * Turns REAL domain events into notifications (Phase 3). Reacts to {@see DomainEventRecorded} — the same
  * synchronous bus the availability/ARI listeners use — and, for the event types it maps, resolves the correct
@@ -69,11 +70,13 @@ use Illuminate\Support\Facades\Log;
  * device detection — the OTHER half of account & security) · performance digest (needs a monthly aggregator) ·
  * terms-changed (no agreement-change event is recorded anywhere). (new-review is now WIRED — Phase 5.)
  */
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Traits\Localizable;
 use Throwable;
 
 class DispatchNotificationsForDomainEvent
 {
+    use Localizable;
+
     /** The event types this listener maps to notifications. Each has a match arm below (the two stay in sync). */
     private const HANDLED = [
         'reservation.confirmed',
@@ -492,7 +495,7 @@ class DispatchNotificationsForDomainEvent
             return;
         }
         $conversation = $message->conversation;
-        $sender = (string) ($message->sender->name ?? 'A teammate');
+        $sender = $message->sender->name ?? null;
         $reader = app(TeamChatReader::class);
 
         $staff = $this->recipients->operatorsForOrg($orgId)->map(fn (User $u): string => (string) $u->getKey())->all();
@@ -501,16 +504,18 @@ class DispatchNotificationsForDomainEvent
 
         foreach ($recipients as $recipient) {
             $unread = max(1, $reader->unreadIn($conversation, $recipient));
-            $groupName = $reader->displayName($conversation, $recipient);
-            $title = $conversation->kind === TeamConversation::DIRECT
-                ? ($unread > 1 ? $sender.' sent you '.$unread.' messages' : $sender.' sent you a message')
-                : ($unread > 1 ? $unread.' new messages in '.$groupName : $sender.' wrote in '.$groupName);
+            $direct = $conversation->kind === TeamConversation::DIRECT;
+            // The names are worked out in the READER's language (a group's "Anna, Max and 2 others"; a removed sender).
+            [$name, $groupName] = $this->withLocale($recipient->preferredLocale(), fn (): array => [
+                (string) ($sender ?? __('php/listeners/dispatch_notifications_for_domain_event.a_teammate')),
+                $direct ? '' : $reader->displayName($conversation, $recipient),
+            ]);
 
             $recipient->notifications()   // one entry per conversation — never a pile of read ones beneath it
                 ->where('type', TeamMessageNotification::class)
                 ->where('data->conversation_id', (string) $conversation->getKey())
                 ->delete();
-            $recipient->notify(new TeamMessageNotification((string) $conversation->getKey(), $title, 'Team chat'));
+            $recipient->notify(new TeamMessageNotification((string) $conversation->getKey(), $direct, $name, $unread, $groupName));
         }
     }
 
@@ -532,15 +537,13 @@ class DispatchNotificationsForDomainEvent
 
         $name = ThreadName::for($thread);
         $unread = max(1, (int) $thread->unread_count);
-        $title = $unread > 1 ? $unread.' new messages from '.$name : 'New message from '.$name;
-        $context = $thread->owner_id !== null ? 'Owner conversation' : 'Guest conversation';
 
         foreach ($recipients as $recipient) {
             $recipient->notifications()   // one entry per conversation — never a pile of read ones beneath it
                 ->where('type', InboxMessageNotification::class)
                 ->where('data->thread_id', (string) $thread->getKey())
                 ->delete();
-            $recipient->notify(new InboxMessageNotification((string) $thread->getKey(), $title, $context));
+            $recipient->notify(new InboxMessageNotification((string) $thread->getKey(), $name, $unread, $thread->owner_id !== null));
         }
     }
 

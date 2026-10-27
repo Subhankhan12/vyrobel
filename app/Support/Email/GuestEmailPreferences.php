@@ -44,6 +44,19 @@ final class GuestEmailPreferences
     ];
 
     /**
+     * The display label for an optional category, in the reader's language (I18N-01). {@see OPTIONAL}'s English
+     * values stay as the code map; a screen that names a category reads it here, by its code.
+     */
+    public static function label(string $category): string
+    {
+        return (string) match ($category) {
+            'payment' => __('php/support/email/guest_email_preferences.payment'),
+            'reviews' => __('php/support/email/guest_email_preferences.reviews'),
+            default => $category,
+        };
+    }
+
+    /**
      * May this email category be sent to this guest?
      *
      * True when: the category is not optional (always-on), the guest is unknown, or no opt-out row exists.

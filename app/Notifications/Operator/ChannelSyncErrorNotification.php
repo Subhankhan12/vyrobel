@@ -33,8 +33,8 @@ class ChannelSyncErrorNotification extends FeedNotification
         $name = (string) ($this->channel->name ?: $provider);
 
         return [
-            'title' => 'Channel sync error · '.$provider,
-            'context' => $name.' stopped syncing — reconnect needed',
+            'title' => $this->t('title', 'php/notifications/operator/channel_sync_error_notification.title', ['provider' => $provider]),
+            'context' => $this->t('context', 'php/notifications/operator/channel_sync_error_notification.context', ['channel' => $name]),
             'url' => route('app.dashboard', [], false),
             'category' => 'system',
         ];

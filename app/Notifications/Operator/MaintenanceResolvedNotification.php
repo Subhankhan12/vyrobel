@@ -33,8 +33,10 @@ class MaintenanceResolvedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => 'Work order resolved · '.$this->title,
-            'context' => 'Unit '.$this->unit.($this->backOnSale ? ' — fixed and back online' : ' — resolved (still out of order)'),
+            'title' => $this->t('title', 'php/notifications/operator/maintenance_resolved_notification.title', ['title' => $this->title]),
+            'context' => $this->backOnSale
+                ? $this->t('context', 'php/notifications/operator/maintenance_resolved_notification.context_back_online', ['unit' => $this->unit])
+                : $this->t('context', 'php/notifications/operator/maintenance_resolved_notification.context_still_out', ['unit' => $this->unit]),
             'url' => route('app.maintenance.show', $this->ticketId, false),
             'category' => 'maintenance',
         ];

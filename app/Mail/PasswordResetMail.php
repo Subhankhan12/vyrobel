@@ -28,7 +28,7 @@ class PasswordResetMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Reset your Vyrobel password');
+        return new Envelope(subject: __('php/mail/password_reset_mail.subject'));
     }
 
     public function content(): Content
@@ -40,7 +40,7 @@ class PasswordResetMail extends Mailable
         return new Content(
             view: 'emails.password-reset',
             with: [
-                'userName' => $this->userName !== '' ? $this->userName : 'there',
+                'userName' => $this->userName !== '' ? $this->userName : __('php/mail/password_reset_mail.there'),
                 'resetUrl' => $resetUrl,
                 'expiresMinutes' => (int) config('auth.passwords.'.config('auth.defaults.passwords', 'users').'.expire', 60),
             ],

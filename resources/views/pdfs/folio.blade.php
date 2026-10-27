@@ -3,7 +3,7 @@
      charges +, settled payments −, refunds their own + line; totals reconcile to the cent. No invented
      line items. Same branded document language as the owner-statement PDF. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -42,7 +42,7 @@
                     <div class="muted" style="margin-top:6px; font-size:11px;">{{ $operator }}@if ($property) · {{ $property }}@endif</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Folio</div>
+                    <div class="eyebrow">{{ __('pdfs/folio.eyebrow') }}</div>
                     <h1>{{ $reference }}</h1>
                     <div class="muted" style="margin-top:4px; font-size:11px;">{{ $currency }}</div>
                 </td>
@@ -50,16 +50,16 @@
         </table>
 
         <table class="meta">
-            @if ($guest)<tr><td class="k">Guest</td><td>{{ $guest }}</td></tr>@endif
-            <tr><td class="k">Stay</td><td>{{ $stay }}</td></tr>
+            @if ($guest)<tr><td class="k">{{ __('pdfs/folio.guest') }}</td><td>{{ $guest }}</td></tr>@endif
+            <tr><td class="k">{{ __('pdfs/folio.stay') }}</td><td>{{ $stay }}</td></tr>
         </table>
 
         @if (! $has_folio || count($lines) === 0)
-            <p class="muted" style="margin-top:20px;">No folio activity yet — no charges or payments have been posted.</p>
+            <p class="muted" style="margin-top:20px;">{{ __('pdfs/folio.no_activity') }}</p>
         @else
             <table class="lines">
                 <thead>
-                    <tr><th>Item</th><th class="c">Date</th><th class="r">Amount</th></tr>
+                    <tr><th>{{ __('pdfs/folio.col_item') }}</th><th class="c">{{ __('common.date') }}</th><th class="r">{{ __('pdfs/folio.col_amount') }}</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($lines as $line)
@@ -77,15 +77,14 @@
             </table>
 
             <table class="totals">
-                <tr><td class="muted">Charges</td><td class="r">{{ $charges }}</td></tr>
-                <tr><td class="muted">Paid</td><td class="r">{{ $paid }}</td></tr>
-                <tr class="bal"><td>Balance due</td><td class="r">{{ $balance }}</td></tr>
+                <tr><td class="muted">{{ __('pdfs/folio.charges') }}</td><td class="r">{{ $charges }}</td></tr>
+                <tr><td class="muted">{{ __('pdfs/folio.paid') }}</td><td class="r">{{ $paid }}</td></tr>
+                <tr class="bal"><td>{{ __('pdfs/folio.balance_due') }}</td><td class="r">{{ $balance }}</td></tr>
             </table>
         @endif
 
         <div class="foot">
-            Generated from Vyrobel's append-only folio ledger; charges, payments and refunds are shown exactly
-            as recorded and reconcile to the figures in the operator app. Vyrobel · {{ $operator }}.
+            {{ __('pdfs/folio.footer', ['operator' => $operator]) }}
         </div>
     </div>
 </body>

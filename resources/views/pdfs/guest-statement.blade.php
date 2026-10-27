@@ -10,7 +10,7 @@
      already shipped moved. PDF-SAFE (dompdf): table-based, inline CSS, DejaVu Sans for € / U+2212. Every
      row is a real folio_item or payment. No invented lines. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -54,7 +54,7 @@
                     <div class="muted" style="margin-top:6px; font-size:11px;">{{ $operator }}@if ($property) · {{ $property }}@endif</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Statement of account</div>
+                    <div class="eyebrow">{{ __('pdfs/guest-statement.eyebrow') }}</div>
                     <h1>{{ $reference }}</h1>
                     <div class="muted" style="margin-top:4px; font-size:11px;">{{ $currency }}</div>
                 </td>
@@ -62,12 +62,12 @@
         </table>
 
         <table class="meta">
-            @if ($guest)<tr><td class="k">Guest</td><td>{{ $guest }}</td></tr>@endif
-            <tr><td class="k">Stay</td><td>{{ $stay }}</td></tr>
+            @if ($guest)<tr><td class="k">{{ __('pdfs/guest-statement.guest') }}</td><td>{{ $guest }}</td></tr>@endif
+            <tr><td class="k">{{ __('pdfs/guest-statement.stay') }}</td><td>{{ $stay }}</td></tr>
         </table>
 
         @if (! $has_folio || count($lines) === 0)
-            <p class="muted" style="margin-top:20px;">No account activity yet — no charges or payments have been posted.</p>
+            <p class="muted" style="margin-top:20px;">{{ __('pdfs/guest-statement.empty') }}</p>
         @else
             {{-- The KPI band (audit 2026-08-07 · parity — the statement was the folio receipt relabelled).
                  All four tiles come from the ONE FolioTotals pass, so they cannot disagree with the receipt,
@@ -80,32 +80,32 @@
             <table class="kpis">
                 <tr>
                     <td>
-                        <div class="kpi-k">Charges</div>
+                        <div class="kpi-k">{{ __('pdfs/guest-statement.charges') }}</div>
                         <div class="kpi-v">{{ $charges }}</div>
-                        <div class="kpi-s">posted to your account</div>
+                        <div class="kpi-s">{{ __('pdfs/guest-statement.charges_caption') }}</div>
                     </td>
                     <td>
-                        <div class="kpi-k">Paid</div>
+                        <div class="kpi-k">{{ __('pdfs/guest-statement.paid') }}</div>
                         <div class="kpi-v">{{ $paid }}</div>
-                        <div class="kpi-s">net of any credit</div>
+                        <div class="kpi-s">{{ __('pdfs/guest-statement.paid_caption') }}</div>
                     </td>
                     <td>
-                        <div class="kpi-k">Credited</div>
+                        <div class="kpi-k">{{ __('pdfs/guest-statement.credited') }}</div>
                         <div class="kpi-v">{{ $credited }}</div>
-                        <div class="kpi-s">refunds issued to you</div>
+                        <div class="kpi-s">{{ __('pdfs/guest-statement.credited_caption') }}</div>
                     </td>
                     <td class="kpi-due">
-                        <div class="kpi-k">Balance due</div>
+                        <div class="kpi-k">{{ __('pdfs/guest-statement.balance_due') }}</div>
                         <div class="kpi-v">{{ $balance }}</div>
-                        <div class="kpi-s">charges less paid</div>
+                        <div class="kpi-s">{{ __('pdfs/guest-statement.balance_due_caption') }}</div>
                     </td>
                 </tr>
             </table>
 
-            <div class="section-k">Account activity</div>
+            <div class="section-k">{{ __('pdfs/guest-statement.account_activity') }}</div>
             <table class="lines">
                 <thead>
-                    <tr><th>Item</th><th class="c">Date</th><th class="r">Amount</th></tr>
+                    <tr><th>{{ __('pdfs/guest-statement.item') }}</th><th class="c">{{ __('common.date') }}</th><th class="r">{{ __('pdfs/guest-statement.amount') }}</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($lines as $line)
@@ -124,8 +124,7 @@
         @endif
 
         <div class="foot">
-            A statement of account for your booking, generated from Vyrobel's append-only ledger; charges, payments
-            and refunds are shown exactly as recorded and reconcile to the figures in your account. Vyrobel · {{ $operator }}.
+            {{ __('pdfs/guest-statement.footer', ['operator' => $operator]) }}
         </div>
     </div>
 </body>

@@ -51,8 +51,8 @@ class GuestMessageReceivedNotification extends FeedNotification
         $subject = trim((string) ($this->thread->subject ?? ''));
 
         return [
-            'title' => 'Message from your host',
-            'context' => $subject !== '' ? $subject : 'Open the conversation to read it',
+            'title' => $this->t('title', 'php/notifications/guest/guest_message_received_notification.title'),
+            'context' => $subject !== '' ? $subject : $this->t('context', 'php/notifications/guest/guest_message_received_notification.context'),
             'url' => route('guest.messages.show', ['thread' => $this->thread->getKey()], false),
             'category' => 'messages',
         ];

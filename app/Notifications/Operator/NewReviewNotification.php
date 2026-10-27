@@ -34,11 +34,11 @@ class NewReviewNotification extends FeedNotification
         $rating = (int) $this->review->rating;
         $stars = str_repeat('★', $rating).str_repeat('☆', max(0, 5 - $rating));
         $context = $this->review->visibility === Review::VISIBILITY_PRIVATE
-            ? 'Private feedback to the manager'
-            : 'Awaiting moderation';
+            ? $this->t('context', 'php/notifications/operator/new_review_notification.context_private')
+            : $this->t('context', 'php/notifications/operator/new_review_notification.context_awaiting');
 
         return [
-            'title' => 'New review · '.$stars,
+            'title' => $this->t('title', 'php/notifications/operator/new_review_notification.title', ['stars' => $stars]),
             'context' => $context,
             'url' => route('app.reviews', [], false),
             'category' => 'reputation',

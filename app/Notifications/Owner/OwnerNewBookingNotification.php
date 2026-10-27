@@ -38,7 +38,7 @@ class OwnerNewBookingNotification extends FeedNotification
 
     public function data(object $notifiable): array
     {
-        $label = (string) ($this->unit->code ?: $this->unit->name ?: 'Your unit');
+        $label = (string) ($this->unit->code ?: $this->unit->name ?: '');
 
         // ⚠️ PARSED, NOT METHOD-CALLED ON THE ATTRIBUTE — the same idiom the sibling operator notification
         // uses (NewBookingNotification), and BookingCadence/PerformanceMetrics before it. `check_in` is cast
@@ -48,14 +48,25 @@ class OwnerNewBookingNotification extends FeedNotification
         $out = Carbon::parse((string) $this->reservation->check_out);
         $nights = (int) $in->diffInDays($out);
 
-        $context = $label.' · '.$in->format('j M Y').' – '.$out->format('j M Y');
-        if ($nights > 0) {
-            $context .= ' · '.$nights.' '.($nights === 1 ? 'night' : 'nights');
-        }
-        $context .= ' · '.(string) $this->reservation->reference;
+        // I18N-01 — whole sentences: a unit with no code or name says "Your unit" inside its own sentence (never a
+        // translated word passed in), and a stay with nights is a plural sentence (tc() stores the count for the feed).
+        $params = [
+            'unit' => $label,
+            'check_in' => $in->translatedFormat('j M Y'),
+            'check_out' => $out->translatedFormat('j M Y'),
+            'reference' => (string) $this->reservation->reference,
+        ];
+        $context = match (true) {
+            $label !== '' && $nights > 0 => $this->tc('context', 'php/notifications/owner/owner_new_booking_notification.context_nights', $nights, $params),
+            $label !== '' => $this->t('context', 'php/notifications/owner/owner_new_booking_notification.context', $params),
+            $nights > 0 => $this->tc('context', 'php/notifications/owner/owner_new_booking_notification.context_your_unit_nights', $nights, $params),
+            default => $this->t('context', 'php/notifications/owner/owner_new_booking_notification.context_your_unit', $params),
+        };
 
         return [
-            'title' => 'New booking on '.$label,
+            'title' => $label !== ''
+                ? $this->t('title', 'php/notifications/owner/owner_new_booking_notification.title', ['unit' => $label])
+                : $this->t('title', 'php/notifications/owner/owner_new_booking_notification.title_your_unit'),
             'context' => $context,
             'url' => route('owner.bookings', [], false),
             'category' => 'performance',

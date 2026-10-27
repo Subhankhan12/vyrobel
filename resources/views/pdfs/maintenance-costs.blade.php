@@ -3,7 +3,7 @@
      the totals reconcile to what the owner is billed. --}}
 @php $c = $report['currency']; $fmt = fn (int $m): string => \App\Support\Money\MoneyFormatter::display($m, $c); @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -27,31 +27,31 @@
 <body>
 <div class="wrap">
     <span class="brand-mark">V</span>
-    <span class="eyebrow" style="margin-left: 8px;">Vyrobel · Maintenance</span>
-    <h1>Maintenance costs</h1>
-    <div class="muted" style="margin-top: 4px;">All resolved work orders · generated {{ now()->format('j M Y') }}</div>
+    <span class="eyebrow" style="margin-left: 8px;">{{ __('pdfs/maintenance-costs.eyebrow') }}</span>
+    <h1>{{ __('pdfs/maintenance-costs.heading') }}</h1>
+    <div class="muted" style="margin-top: 4px;">{{ __('pdfs/maintenance-costs.subheading', ['date' => now()->translatedFormat('j M Y')]) }}</div>
 
     <table class="kpi" style="margin-top: 20px;">
         <tr>
-            <td><div class="eyebrow">Total spend</div><div class="big">{{ $fmt($report['total_minor']) }}</div></td>
-            <td><div class="eyebrow">Orders closed</div><div class="big">{{ $report['orders_closed'] }}</div></td>
-            <td><div class="eyebrow">Avg / order</div><div class="big">{{ $report['avg_minor'] !== null ? $fmt($report['avg_minor']) : '—' }}</div></td>
-            <td><div class="eyebrow">Parts on order</div><div class="big">{{ $report['parts_on_order'] }}</div></td>
+            <td><div class="eyebrow">{{ __('pdfs/maintenance-costs.total_spend') }}</div><div class="big">{{ $fmt($report['total_minor']) }}</div></td>
+            <td><div class="eyebrow">{{ __('pdfs/maintenance-costs.orders_closed') }}</div><div class="big">{{ $report['orders_closed'] }}</div></td>
+            <td><div class="eyebrow">{{ __('pdfs/maintenance-costs.avg_per_order') }}</div><div class="big">{{ $report['avg_minor'] !== null ? $fmt($report['avg_minor']) : '—' }}</div></td>
+            <td><div class="eyebrow">{{ __('pdfs/maintenance-costs.parts_on_order') }}</div><div class="big">{{ $report['parts_on_order'] }}</div></td>
         </tr>
     </table>
 
-    <h2>Spend by category</h2>
+    <h2>{{ __('pdfs/maintenance-costs.spend_by_category') }}</h2>
     <table class="ledger">
         @forelse ($report['by_category'] as $cat)
             <tr><td>{{ ucfirst($cat['category']) }} <span class="muted">· {{ $cat['count'] }}</span></td><td class="num">{{ $fmt($cat['total_minor']) }}</td></tr>
         @empty
-            <tr><td class="muted">No resolved work orders yet.</td></tr>
+            <tr><td class="muted">{{ __('pdfs/maintenance-costs.no_resolved') }}</td></tr>
         @endforelse
     </table>
 
-    <h2>Billable work orders</h2>
+    <h2>{{ __('pdfs/maintenance-costs.billable_heading') }}</h2>
     <table class="ledger">
-        <thead><tr><th>Date</th><th>Work order</th><th class="num">Labor</th><th class="num">Parts</th><th class="num">Total</th></tr></thead>
+        <thead><tr><th>{{ __('common.date') }}</th><th>{{ __('pdfs/maintenance-costs.work_order') }}</th><th class="num">{{ __('pdfs/maintenance-costs.labor') }}</th><th class="num">{{ __('pdfs/maintenance-costs.parts') }}</th><th class="num">{{ __('common.total') }}</th></tr></thead>
         <tbody>
             @foreach ($report['billable'] as $row)
                 <tr>
@@ -63,14 +63,14 @@
                 </tr>
             @endforeach
             <tr class="total-row">
-                <td colspan="2">Total</td>
+                <td colspan="2">{{ __('common.total') }}</td>
                 <td class="num">{{ $fmt($report['labor_minor']) }}</td>
                 <td class="num">{{ $fmt($report['parts_minor']) }}</td>
                 <td class="num">{{ $fmt($report['total_minor']) }}</td>
             </tr>
         </tbody>
     </table>
-    <div class="muted" style="margin-top: 18px; font-size: 10px;">Labour + parts reconcile to the total; owner-billed work orders match the amount charged on the owner statement.</div>
+    <div class="muted" style="margin-top: 18px; font-size: 10px;">{{ __('pdfs/maintenance-costs.reconcile_note') }}</div>
 </div>
 </body>
 </html>

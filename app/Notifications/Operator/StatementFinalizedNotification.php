@@ -32,11 +32,13 @@ class StatementFinalizedNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $amount = MoneyFormatter::display((int) $this->statement->net_payable_minor, (string) $this->statement->currency);
-        $owner = (string) ($this->statement->owner->name ?? 'owner');
+        $owner = $this->statement->owner->name ?? null;
 
         return [
-            'title' => 'Statement finalized · '.$owner,
-            'context' => 'Net payable '.$amount,
+            'title' => $owner !== null
+                ? $this->t('title', 'php/notifications/operator/statement_finalized_notification.title', ['owner' => (string) $owner])
+                : $this->t('title', 'php/notifications/operator/statement_finalized_notification.title_no_owner'),
+            'context' => $this->t('context', 'php/notifications/operator/statement_finalized_notification.context', ['amount' => $amount]),
             'url' => route('app.owners', [], false),
             'category' => 'finance',
         ];

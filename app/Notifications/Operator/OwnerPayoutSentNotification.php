@@ -32,11 +32,13 @@ class OwnerPayoutSentNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $amount = MoneyFormatter::display((int) $this->payout->amount_minor, (string) $this->payout->currency);
-        $owner = (string) ($this->payout->owner->name ?? 'owner');
+        $owner = $this->payout->owner->name ?? null;
 
         return [
-            'title' => 'Owner payout sent',
-            'context' => $amount.' disbursed to '.$owner,
+            'title' => $this->t('title', 'php/notifications/operator/owner_payout_sent_notification.title'),
+            'context' => $owner !== null
+                ? $this->t('context', 'php/notifications/operator/owner_payout_sent_notification.context', ['amount' => $amount, 'owner' => (string) $owner])
+                : $this->t('context', 'php/notifications/operator/owner_payout_sent_notification.context_no_owner', ['amount' => $amount]),
             'url' => route('app.owners', [], false),
             'category' => 'finance',
         ];

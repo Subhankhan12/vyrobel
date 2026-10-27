@@ -38,8 +38,10 @@ class NewDeviceSignInNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         return [
-            'title' => 'New sign-in from '.$this->device,
-            'context' => ($this->ip !== null ? 'IP '.$this->ip.' · ' : '').$this->when.'. If this wasn’t you, change your password and sign out other devices.',
+            'title' => $this->t('title', 'php/notifications/new_device_sign_in_notification.title', ['device' => $this->device]),
+            'context' => $this->ip !== null
+                ? $this->t('context', 'php/notifications/new_device_sign_in_notification.context_ip', ['ip' => $this->ip, 'when' => $this->when])
+                : $this->t('context', 'php/notifications/new_device_sign_in_notification.context', ['when' => $this->when]),
             'url' => $this->securityUrl,
             'category' => 'account',
         ];

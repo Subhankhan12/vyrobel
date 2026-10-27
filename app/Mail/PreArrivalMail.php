@@ -57,7 +57,7 @@ class PreArrivalMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
-        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? __('php/mail/pre_arrival_mail.your_unit'));
 
         // The REAL outstanding balance (shared FolioTotals) — the "pay now to skip the desk" line shows ONLY when
         // money is genuinely owed; never a fabricated figure.
@@ -73,12 +73,12 @@ class PreArrivalMail extends Mailable
             view: 'emails.pre-arrival',
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
-                'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'propertyName' => (string) ($r->property->name ?? __('php/mail/pre_arrival_mail.your_stay')),
                 'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
-                'checkInLabel' => $checkIn->format('D, j M'),
-                'checkOutLabel' => Carbon::parse($r->check_out)->format('D, j M'),
+                'checkInLabel' => $checkIn->translatedFormat('D, j M'),
+                'checkOutLabel' => Carbon::parse($r->check_out)->translatedFormat('D, j M'),
                 'checkInTime' => $pack['check_in_time'],
                 'checkOutTime' => $pack['check_out_time'],
                 // The guest's OWN access secrets (released in-window; null before it opens → the template says when).
@@ -116,8 +116,8 @@ class PreArrivalMail extends Mailable
         $first = $guest !== null ? trim((string) $guest->first_name) : '';
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'pre-arrival', [
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'first_name' => $first !== '' ? $first : __('php/mail/pre_arrival_mail.there'),
+            'unit' => $unitName ?? (string) ($r->property->name ?? __('php/mail/pre_arrival_mail.your_unit')),
             'nights' => $nights ?? '',
             'reference' => (string) $r->reference,
             'balance' => $balance ?? '',

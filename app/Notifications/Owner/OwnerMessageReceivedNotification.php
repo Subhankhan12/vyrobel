@@ -41,8 +41,8 @@ class OwnerMessageReceivedNotification extends FeedNotification
         $subject = trim((string) ($this->thread->subject ?? ''));
 
         return [
-            'title' => 'New message from your management team',
-            'context' => $subject !== '' ? $subject : 'Open your inbox to read it.',
+            'title' => $this->t('title', 'php/notifications/owner/owner_message_received_notification.title'),
+            'context' => $subject !== '' ? $subject : $this->t('context', 'php/notifications/owner/owner_message_received_notification.context_no_subject'),
             'url' => route('owner.messages', [], false),
             'category' => 'account',
         ];

@@ -179,7 +179,7 @@ class SendGuestTransactionalEmails
         $reason = is_array($domainEvent->payload) ? ($domainEvent->payload['reason'] ?? null) : null;
         // A refund, if any, gets its OWN payment.refunded → RefundConfirmationMail; the cancellation email doesn't
         // guess a figure, so refundMinor is left null here.
-        $this->sendToGuest($reservation->leadGuest, new CancellationMail($reservation, is_string($reason) ? $reason : null));
+        $this->sendToGuest($reservation->leadGuest, new CancellationMail($reservation, is_string($reason) ? $reason : null), 'cancellation');
     }
 
     /**
@@ -213,7 +213,7 @@ class SendGuestTransactionalEmails
         }
 
         // ⚠️ RECORDED ON SUCCESS, NOT ON INTENT.
-        $sent = $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
+        $sent = $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())), 'review-request');
 
         $this->recordInvite(
             $reservation,
@@ -257,7 +257,7 @@ class SendGuestTransactionalEmails
             return;   // #86 — disabled by the operator
         }
 
-        $this->sendToGuest($refund->folio?->reservation?->leadGuest, new RefundConfirmationMail($refund));
+        $this->sendToGuest($refund->folio?->reservation?->leadGuest, new RefundConfirmationMail($refund), 'refund-confirmation');
     }
 
     /**
@@ -280,7 +280,7 @@ class SendGuestTransactionalEmails
      * 🔬 `ReviewRequestMail` does not implement `ShouldQueue` and no caller passes a delay for it, so the
      * review path is SYNCHRONOUS and a clean return here genuinely means it went.
      */
-    private function sendToGuest(?Guest $guest, Mailable $mail, ?int $delaySeconds = null): bool
+    private function sendToGuest(?Guest $guest, Mailable $mail, string $templateKey, ?int $delaySeconds = null): bool
     {
         $email = $guest?->email;
         if (! is_string($email) || $email === '') {
@@ -288,7 +288,8 @@ class SendGuestTransactionalEmails
         }
 
         try {
-            $pending = Mail::to($email);
+            // I18N-01 — the guest's language, or the organisation's when it has rewritten this email's words
+            $pending = Mail::to($email)->locale(EmailTemplateResolver::localeFor((string) $guest->organization_id, $templateKey, $guest->preferredLocale()));
             $delaySeconds !== null
                 ? $pending->later(now()->addSeconds($delaySeconds), $mail)
                 : $pending->send($mail);

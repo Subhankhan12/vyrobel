@@ -35,15 +35,15 @@ class AccountSecurityNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $context = match ($this->change) {
-            'added' => 'A new payout bank account was added.',
-            'default_changed' => 'Your default payout account was changed.',
-            'removed' => 'A payout bank account was removed.',
-            default => 'Your payout details were updated.',
+            'added' => $this->t('context', 'php/notifications/owner/account_security_notification.context_added'),
+            'default_changed' => $this->t('context', 'php/notifications/owner/account_security_notification.context_default_changed'),
+            'removed' => $this->t('context', 'php/notifications/owner/account_security_notification.context_removed'),
+            default => $this->t('context', 'php/notifications/owner/account_security_notification.context_updated'),
         };
 
         return [
-            'title' => 'Payout details changed',
-            'context' => $context.' If this wasn’t you, contact us.',
+            'title' => $this->t('title', 'php/notifications/owner/account_security_notification.title'),
+            'context' => $context,
             'url' => route('owner.payout-method', [], false),
             'category' => 'account',
         ];

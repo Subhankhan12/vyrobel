@@ -31,8 +31,8 @@ class UnitOutOfOrderNotification extends FeedNotification
         $label = (string) ($this->unit->name ?: $this->unit->code);
 
         return [
-            'title' => 'Unit out of service · '.$label,
-            'context' => 'Taken out of service — availability updated',
+            'title' => $this->t('title', 'php/notifications/operator/unit_out_of_order_notification.title', ['unit' => $label]),
+            'context' => $this->t('context', 'php/notifications/operator/unit_out_of_order_notification.context'),
             'url' => route('app.maintenance', [], false),
             'category' => 'maintenance',
         ];

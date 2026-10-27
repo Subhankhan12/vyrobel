@@ -6,11 +6,11 @@
 @extends('emails.layout')
 @section('footer_reason', 'booking')
 
-@section('title', 'Your booking has been cancelled')
-@section('preheader', 'Your booking '.$reference.' at '.$propertyName.' has been cancelled.')
+@section('title', __('emails/cancellation.title'))
+@section('preheader', __('emails/cancellation.preheader', ['reference' => $reference, 'property' => $propertyName]))
 
 @section('content')
-    <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#B4443A;">Booking cancelled</p>
+    <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#B4443A;">{{ __('emails/cancellation.eyebrow') }}</p>
     <h1 style="margin:0 0 12px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $heading }}</h1>
     <p style="margin:0 0 18px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.6; color:#4A4038;">{{ $intro }}</p>
 
@@ -19,13 +19,13 @@
         <tr>
             <td style="padding:14px 16px;">
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#5F5853; text-decoration:line-through;">{{ $propertyName }} · {{ $stay }}</span><br>
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#6C645F;">{{ $nights }} {{ \Illuminate\Support\Str::plural('night', $nights) }} · {{ $guests }} · {{ $reference }}</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#6C645F;">{{ trans_choice('emails/cancellation.nights', $nights, ['count' => $nights]) }} · {{ $guests }} · {{ $reference }}</span>
             </td>
         </tr>
     </table>
 
     @if ($reason)
-        <p style="margin:0 0 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">Reason: <em style="color:#2B2320;">{{ $reason }}</em></p>
+        <p style="margin:0 0 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">{!! __('emails/cancellation.reason_html', ['reason' => e($reason)]) !!}</p>
     @endif
 
     {{-- Refund summary (toggleable block #86) — TWO honest cases --}}
@@ -34,9 +34,9 @@
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
                 <tr>
                     <td align="center" style="padding:22px 16px;">
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Refund issued</span><br>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">{{ __('emails/cancellation.refund_issued') }}</span><br>
                         <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:30px; font-weight:700; color:#C2410C;">{{ $refund }}</span><br>
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">To {{ $refundMethod }} · arrives in {{ $refundEta }}</span>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{{ __('emails/cancellation.refund_to', ['method' => $refundMethod, 'eta' => $refundEta]) }}</span>
                     </td>
                 </tr>
             </table>
@@ -44,8 +44,8 @@
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
                 <tr>
                     <td style="padding:16px;">
-                        <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#2B2320;">No refund due</span><br>
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">This booking was non-refundable. If any payment is due back to you, we’ll confirm it separately.</span>
+                        <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#2B2320;">{{ __('emails/cancellation.no_refund') }}</span><br>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{{ __('emails/cancellation.no_refund_body') }}</span>
                     </td>
                 </tr>
             </table>
@@ -58,7 +58,7 @@
     @if ($blocks['return_offer'] ?? true)
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px dashed rgba(120,70,40,.22); border-radius:12px; margin:0 0 18px;">
             <tr>
-                <td style="padding:16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#4A4038;">When plans firm up, we’d love to host you. Book direct with us next time for the best rate.</td>
+                <td style="padding:16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#4A4038;">{{ __('emails/cancellation.return_offer') }}</td>
             </tr>
         </table>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;"><tr>
@@ -66,5 +66,5 @@
         </tr></table>
     @endif
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">Something not right with your cancellation? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — the {{ $propertyName }} team is here to help.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">{!! __('emails/cancellation.help_html', ['url' => e($messagesUrl), 'property' => e($propertyName)]) !!}</p>
 @endsection

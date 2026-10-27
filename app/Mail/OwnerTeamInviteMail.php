@@ -31,7 +31,7 @@ class OwnerTeamInviteMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'You’re invited to a Vyrobel owner team');
+        return new Envelope(subject: __('php/mail/owner_team_invite_mail.subject'));
     }
 
     public function content(): Content
@@ -48,13 +48,13 @@ class OwnerTeamInviteMail extends Mailable
                 'operator' => $orgName,
                 'acceptUrl' => url('/team-invite/'.$this->token),
                 'expiresAt' => $this->invite->expires_at,
-                'accountLabel' => 'owner-team account',
-                'eyebrow' => "{$roleLabel} invitation",
-                'headline' => "Your {$roleLabel} access on {$orgName}",
-                'intro' => "You’ve been invited to join an owner team on {$orgName} in the Vyrobel owner portal as {$roleLabel}. Set your password to activate your account and get started.",
-                'sectionTitle' => 'What you can access',
+                'accountLabel' => __('php/mail/owner_team_invite_mail.account_label'),
+                'eyebrow' => __('php/mail/owner_team_invite_mail.eyebrow', ['role' => $roleLabel]),
+                'headline' => __('php/mail/owner_team_invite_mail.headline', ['role' => $roleLabel, 'org' => $orgName]),
+                'intro' => __('php/mail/owner_team_invite_mail.intro', ['org' => $orgName, 'role' => $roleLabel]),
+                'sectionTitle' => __('php/mail/owner_team_invite_mail.section_title'),
                 'features' => self::featuresFor($role),
-                'roleReason' => "invited you to their owner team as {$roleLabel}.",
+                'roleReason' => __('php/mail/owner_team_invite_mail.role_reason', ['role' => $roleLabel]),
             ],
         );
     }
@@ -83,21 +83,21 @@ class OwnerTeamInviteMail extends Mailable
     {
         return match ($role) {
             OwnerTeamRole::CO_OWNER => [
-                ['title' => 'Earnings & statements', 'desc' => 'Every booking, fee and payout, itemised'],
-                ['title' => 'Calendar, bookings & units', 'desc' => 'How the properties are performing, night by night'],
-                ['title' => 'Approvals & payout settings', 'desc' => 'Blocks, rates and requests — and where the money goes'],
+                ['title' => __('php/mail/owner_team_invite_mail.earnings_title'), 'desc' => __('php/mail/owner_team_invite_mail.earnings_desc')],
+                ['title' => __('php/mail/owner_team_invite_mail.calendar_title'), 'desc' => __('php/mail/owner_team_invite_mail.calendar_desc')],
+                ['title' => __('php/mail/owner_team_invite_mail.approvals_title'), 'desc' => __('php/mail/owner_team_invite_mail.approvals_desc')],
             ],
             OwnerTeamRole::ACCOUNTANT => [
-                ['title' => 'Earnings & statements', 'desc' => 'Every booking, fee and payout, itemised'],
-                ['title' => 'Documents & tax', 'desc' => 'Statements, annual summaries and VAT records'],
-                ['title' => 'Exports', 'desc' => 'Download what you need — read-only, no approvals'],
+                ['title' => __('php/mail/owner_team_invite_mail.earnings_title'), 'desc' => __('php/mail/owner_team_invite_mail.earnings_desc')],
+                ['title' => __('php/mail/owner_team_invite_mail.documents_title'), 'desc' => __('php/mail/owner_team_invite_mail.documents_desc')],
+                ['title' => __('php/mail/owner_team_invite_mail.exports_title'), 'desc' => __('php/mail/owner_team_invite_mail.exports_desc')],
             ],
             OwnerTeamRole::VIEW_ONLY => [
-                ['title' => 'Earnings & statements', 'desc' => 'Every booking, fee and payout, itemised'],
-                ['title' => 'Calendar, bookings & units', 'desc' => 'How the properties are performing, night by night'],
+                ['title' => __('php/mail/owner_team_invite_mail.earnings_title'), 'desc' => __('php/mail/owner_team_invite_mail.earnings_desc')],
+                ['title' => __('php/mail/owner_team_invite_mail.calendar_title'), 'desc' => __('php/mail/owner_team_invite_mail.calendar_desc')],
             ],
             default => [
-                ['title' => 'Earnings & statements', 'desc' => 'Every booking, fee and payout, itemised'],
+                ['title' => __('php/mail/owner_team_invite_mail.earnings_title'), 'desc' => __('php/mail/owner_team_invite_mail.earnings_desc')],
             ],
         };
     }

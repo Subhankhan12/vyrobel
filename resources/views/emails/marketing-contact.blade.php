@@ -17,7 +17,7 @@
                    style="width:600px;max-width:600px;background:#FFFFFF;border-radius:14px;padding:28px 30px;">
                 <tr>
                     <td style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#5F5853;padding-bottom:6px;">
-                        Contact form
+                        {{ __('emails/marketing-contact.eyebrow') }}
                     </td>
                 </tr>
                 <tr>
@@ -31,24 +31,24 @@
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
                                style="font-size:14px;color:#2B2320;">
                             <tr>
-                                <td style="padding:5px 0;color:#5F5853;width:120px;">Reply to</td>
+                                <td style="padding:5px 0;color:#5F5853;width:120px;">{{ __('emails/marketing-contact.reply_to') }}</td>
                                 <td style="padding:5px 0;"><a href="mailto:{{ $contact->email }}" style="color:#B03808;">{{ $contact->email }}</a></td>
                             </tr>
                             @if ($contact->units_band)
                                 <tr>
-                                    <td style="padding:5px 0;color:#5F5853;">Units</td>
+                                    <td style="padding:5px 0;color:#5F5853;">{{ __('emails/marketing-contact.units') }}</td>
                                     <td style="padding:5px 0;">{{ $contact->units_band }}</td>
                                 </tr>
                             @endif
                             @if ($contact->topic)
                                 <tr>
-                                    <td style="padding:5px 0;color:#5F5853;">Topic</td>
+                                    <td style="padding:5px 0;color:#5F5853;">{{ __('emails/marketing-contact.topic') }}</td>
                                     <td style="padding:5px 0;">{{ $contact->topic }}</td>
                                 </tr>
                             @endif
                             <tr>
-                                <td style="padding:5px 0;color:#5F5853;">Received</td>
-                                <td style="padding:5px 0;">{{ $contact->created_at?->toDayDateTimeString() }} UTC</td>
+                                <td style="padding:5px 0;color:#5F5853;">{{ __('emails/marketing-contact.received') }}</td>
+                                <td style="padding:5px 0;">{{ __('emails/marketing-contact.received_at', ['date' => (string) $contact->created_at?->translatedFormat('D, M j, Y g:i A')]) }}</td>
                             </tr>
                         </table>
                     </td>
@@ -64,9 +64,7 @@
                      truncated. The database row is the system of record; this message is a notification. --}}
                 <tr>
                     <td style="border-top:1px solid #EDE4DC;margin-top:18px;padding-top:16px;font-size:12px;color:#5F5853;">
-                        Stored as <code>{{ $contact->id }}</code> in <code>marketing_contact_messages</code>.
-                        This message is a notification — the row is the record, and it is safe whether or not
-                        this email arrived.
+                        {!! __('emails/marketing-contact.stored_as_html', ['id' => e($contact->id)]) !!}
                     </td>
                 </tr>
             </table>

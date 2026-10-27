@@ -2,7 +2,7 @@
      by-reversal — each refund is its own folio payment row). Rendered only when a real refund exists. PDF-SAFE
      (dompdf): table-based, inline CSS, DejaVu Sans. No invented amounts. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -38,26 +38,26 @@
                     <div class="muted" style="margin-top:6px; font-size:11px;">{{ $operator }}@if ($property) · {{ $property }}@endif</div>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Refund receipt</div>
+                    <div class="eyebrow">{{ __('pdfs/guest-refund-receipt.eyebrow') }}</div>
                     <h1>{{ $refund_no }}</h1>
-                    <div class="muted" style="margin-top:4px; font-size:11px;">Issued {{ $issued_on }} · {{ $currency }}</div>
+                    <div class="muted" style="margin-top:4px; font-size:11px;">{{ __('pdfs/guest-refund-receipt.issued', ['date' => $issued_on]) }} · {{ $currency }}</div>
                 </td>
             </tr>
         </table>
 
         <table class="meta">
-            @if ($guest)<tr><td class="k">Guest</td><td>{{ $guest }}</td></tr>@endif
-            <tr><td class="k">Booking</td><td>{{ $reference }} · {{ $stay }}</td></tr>
+            @if ($guest)<tr><td class="k">{{ __('pdfs/guest-refund-receipt.guest') }}</td><td>{{ $guest }}</td></tr>@endif
+            <tr><td class="k">{{ __('pdfs/guest-refund-receipt.booking') }}</td><td>{{ $reference }} · {{ $stay }}</td></tr>
         </table>
 
         <table class="lines">
             <thead>
-                <tr><th>Refund</th><th class="r">Amount</th></tr>
+                <tr><th>{{ __('pdfs/guest-refund-receipt.col_refund') }}</th><th class="r">{{ __('pdfs/guest-refund-receipt.col_amount') }}</th></tr>
             </thead>
             <tbody>
                 @foreach ($refunds as $refund)
                     <tr>
-                        <td>Refund to {{ $refund['method'] }}<div class="muted" style="font-size:10.5px;">{{ $refund['date'] }}</div></td>
+                        <td>{{ __('pdfs/guest-refund-receipt.refund_to', ['method' => $refund['method']]) }}<div class="muted" style="font-size:10.5px;">{{ $refund['date'] }}</div></td>
                         <td class="r">{{ $refund['amount'] }}</td>
                     </tr>
                 @endforeach
@@ -65,12 +65,11 @@
         </table>
 
         <table class="totals">
-            <tr class="tot"><td>Total refunded</td><td class="r">{{ $total }}</td></tr>
+            <tr class="tot"><td>{{ __('pdfs/guest-refund-receipt.total_refunded') }}</td><td class="r">{{ $total }}</td></tr>
         </table>
 
         <div class="foot">
-            A receipt for money returned to you, generated from Vyrobel's append-only folio ledger; each refund is
-            recorded as its own reversal and reconciles to your account. Vyrobel · {{ $operator }}.
+            {{ __('pdfs/guest-refund-receipt.footer', ['operator' => $operator]) }}
         </div>
     </div>
 </body>

@@ -29,19 +29,19 @@
      • The single-use token is the only secret in the link.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!} xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="x-apple-disable-message-reformatting">
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
-    <title>You’re invited to {{ $orgName }}</title>
+    <title>{{ __('emails/owner-invite.title', ['organization' => $orgName]) }}</title>
 </head>
 <body style="margin:0; padding:0; background-color:#F6EBE2; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
     {{-- Preheader (hidden preview snippet) --}}
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#F6EBE2; font-size:1px; line-height:1px;">
-        Set your password to activate your Vyrobel {{ $accountLabel }} — this invitation expires in {{ \App\Services\OwnerInviteService::EXPIRY_DAYS }} days.
+        {{ trans_choice('emails/owner-invite.preheader', \App\Services\OwnerInviteService::EXPIRY_DAYS, ['account' => $accountLabel, 'count' => \App\Services\OwnerInviteService::EXPIRY_DAYS]) }}
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6EBE2;">
@@ -88,14 +88,14 @@
                                         </table>
                                     </td>
                                     <td valign="middle" style="padding:12px 14px 12px 11px;">
-                                        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#6C645F;">Invited by</p>
+                                        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#6C645F;">{{ __('emails/owner-invite.invited_by') }}</p>
                                         <p style="margin:1px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; font-weight:600; color:#2B2320;">{{ $operator }}</p>
                                     </td>
                                 </tr>
                             </table>
 
                             <h1 style="margin:0; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:25px; font-weight:600; letter-spacing:-.02em; line-height:1.25; color:#2B2320;">{{ $headline }}</h1>
-                            <p style="margin:12px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; line-height:1.65; color:#5F5853;">Hi {{ $ownerName }}, {{ $intro }}</p>
+                            <p style="margin:12px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; line-height:1.65; color:#5F5853;">{{ __('emails/owner-invite.greeting', ['name' => $ownerName, 'intro' => $intro]) }}</p>
 
                             {{-- Role-aware feature panel (owner: "In your portal" · accountant: "What you can
                                  access" · manager: "In the operator app") — honest descriptions, no per-account
@@ -133,7 +133,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;">
                                 <tr>
                                     <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; border-radius:30px;">
-                                        <a href="{{ $acceptUrl }}" target="_blank" style="display:block; padding:16px 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:30px; text-align:center;">Set your password</a>
+                                        <a href="{{ $acceptUrl }}" target="_blank" style="display:block; padding:16px 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:30px; text-align:center;">{{ __('emails/owner-invite.button') }}</a>
                                     </td>
                                 </tr>
                             </table>
@@ -142,7 +142,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F8F4EF; border:1px solid #EBE1D6; border-radius:14px; margin:18px 0 0;">
                                 <tr>
                                     <td style="padding:14px 16px;">
-                                        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">Or paste this link into your browser:</p>
+                                        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">{{ __('emails/owner-invite.paste_link') }}</p>
                                         <p style="margin:4px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; line-height:1.5; word-break:break-all;"><a href="{{ $acceptUrl }}" style="color:#B03808; text-decoration:none;">{{ $acceptUrl }}</a></p>
                                     </td>
                                 </tr>
@@ -150,7 +150,7 @@
                                     <td style="padding:0 16px 14px;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
-                                                <td style="border-top:1px solid #E3D6C9; padding-top:12px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">This invite is single-use and expires on <strong style="color:#2B2320;">{{ $expiresAt?->toFormattedDayDateString() }}</strong>.</td>
+                                                <td style="border-top:1px solid #E3D6C9; padding-top:12px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">{!! __('emails/owner-invite.expires_on_html', ['date' => e((string) $expiresAt?->translatedFormat('D, M j, Y'))]) !!}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -163,10 +163,10 @@
                          the "why you got this" line. Contrast here is the priority, not an afterthought. --}}
                     <tr>
                         <td bgcolor="#F4ECE4" style="background-color:#F4ECE4; border-top:1px solid #EADFD4; border-radius:0 0 20px 20px; padding:22px 32px;">
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $ignoreNote ?? 'If you didn’t expect this, you can safely ignore this email — no account is created until you set a password.' }}</p>
-                            <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6;"><a href="{{ url('/login') }}" style="color:#5F5853; font-weight:600; text-decoration:underline;">Sign in</a></p>
-                            <p style="margin:12px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">Vyrobel · hospitality, warmly run · You’re receiving this because {{ $operator }} {{ $roleReason }}</p>
-                            <p style="margin:4px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">{{ $footerNote ?? 'Sent automatically when an operator invites someone to their organization.' }}</p>
+                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $ignoreNote ?? __('emails/owner-invite.ignore_note') }}</p>
+                            <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6;"><a href="{{ url('/login') }}" style="color:#5F5853; font-weight:600; text-decoration:underline;">{{ __('emails/owner-invite.sign_in') }}</a></p>
+                            <p style="margin:12px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">{{ __('emails/owner-invite.footer_reason', ['operator' => $operator, 'reason' => $roleReason]) }}</p>
+                            <p style="margin:4px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">{{ $footerNote ?? __('emails/owner-invite.footer_note') }}</p>
                         </td>
                     </tr>
                 </table>

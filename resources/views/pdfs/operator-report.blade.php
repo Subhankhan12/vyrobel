@@ -7,11 +7,11 @@
     $brand = \App\Support\Branding\PropertyBrand::default();
     $money = fn (int $m): string => \App\Support\Money\MoneyFormatter::display($m, $currency);
     $signMoney = fn (?int $m): ?string => $m === null ? null : (($m >= 0 ? '+' : '−').\App\Support\Money\MoneyFormatter::display(abs($m), $currency));
-    $signPp = fn (?int $n): ?string => $n === null ? null : (($n > 0 ? '+' : ($n < 0 ? '−' : '')).abs($n).'pp');
+    $signPp = fn (?int $n): ?string => $n === null ? null : __('pdfs/operator-report.pp_delta', ['delta' => ($n > 0 ? '+' : ($n < 0 ? '−' : '')).abs($n)]);
     $monthMax = max(1, ...array_map(fn ($b): int => $b['revenue_minor'], $data['by_month'] ?: [['revenue_minor' => 0]]));
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -48,12 +48,12 @@
     <table style="width:100%;border-collapse:collapse"><tr>
         <td style="vertical-align:top"><span class="brand-mark">{{ $brand->initial }}</span></td>
         <td style="vertical-align:top;padding-left:10px">
-            <div class="eyebrow">Reports</div>
+            <div class="eyebrow">{{ __('pdfs/operator-report.eyebrow') }}</div>
             <h1>{{ $scopeLabel }}</h1>
-            <div class="muted" style="font-size:10px;margin-top:2px">Arrivals in {{ $range['label'] }}</div>
+            <div class="muted" style="font-size:10px;margin-top:2px">{{ __('pdfs/operator-report.arrivals_in', ['period' => $range['label']]) }}</div>
         </td>
         <td style="vertical-align:top;text-align:right" class="muted">
-            <div>{{ $data['arrivals'] }} {{ \Illuminate\Support\Str::plural('arrival', $data['arrivals']) }}</div>
+            <div>{{ trans_choice('pdfs/operator-report.arrivals_count', $data['arrivals'], ['count' => $data['arrivals']]) }}</div>
         </td>
     </tr></table>
 
@@ -63,54 +63,54 @@
             <div class="sum-n">{{ $data['occupancy_pct'] }}%
                 @if ($signPp($data['occupancy_delta']) !== null)<span class="sum-d" style="color:{{ $data['occupancy_delta'] < 0 ? '#8F3110' : $brand->accent }}">{{ $signPp($data['occupancy_delta']) }}</span>@endif
             </div>
-            <div class="sum-l">Occupancy</div>
+            <div class="sum-l">{{ __('pdfs/operator-report.occupancy') }}</div>
         </td>
         <td>
             <div class="sum-n">{{ $money($data['adr_minor']) }}
                 @if ($signMoney($data['adr_delta']) !== null)<span class="sum-d" style="color:{{ $data['adr_delta'] < 0 ? '#8F3110' : $brand->accent }}">{{ $signMoney($data['adr_delta']) }}</span>@endif
             </div>
-            <div class="sum-l">ADR</div>
+            <div class="sum-l">{{ __('pdfs/operator-report.adr') }}</div>
         </td>
         <td>
             <div class="sum-n">{{ $money($data['revpar_minor']) }}
                 @if ($signMoney($data['revpar_delta']) !== null)<span class="sum-d" style="color:{{ $data['revpar_delta'] < 0 ? '#8F3110' : $brand->accent }}">{{ $signMoney($data['revpar_delta']) }}</span>@endif
             </div>
-            <div class="sum-l">RevPAR</div>
+            <div class="sum-l">{{ __('pdfs/operator-report.revpar') }}</div>
         </td>
         <td>
             <div class="sum-n">{{ $money($data['gross_minor']) }}</div>
-            <div class="sum-l">Gross revenue</div>
+            <div class="sum-l">{{ __('pdfs/operator-report.gross_revenue') }}</div>
         </td>
     </tr></table>
-    <div class="muted" style="font-size:8.5px;margin-bottom:4px">Occupancy · ADR · RevPAR are the stay-night basis, vs the same period last year where prior-year data exists. Revenue below is the folio (arrival) basis.</div>
+    <div class="muted" style="font-size:8.5px;margin-bottom:4px">{{ __('pdfs/operator-report.basis_note') }}</div>
 
     {{-- Revenue P&L (folio basis) + Costs (maintenance real, the rest honestly not tracked) --}}
     <table style="width:100%;border-collapse:collapse"><tr>
         <td style="width:50%;vertical-align:top;padding-right:12px">
-            <h2>Revenue</h2>
+            <h2>{{ __('pdfs/operator-report.revenue') }}</h2>
             <table class="pl">
-                <tr><td>Room</td><td class="n">{{ $money($data['room_minor']) }}</td></tr>
-                <tr><td>Ancillary <span class="muted">· add-ons, products, fees</span></td><td class="n">{{ $money($data['ancillary_minor']) }}</td></tr>
-                <tr class="total"><td>Gross revenue</td><td class="n">{{ $money($data['gross_minor']) }}</td></tr>
-                <tr><td class="muted">Tax collected · pass-through</td><td class="n muted">{{ $money($data['tax_minor']) }}</td></tr>
+                <tr><td>{{ __('pdfs/operator-report.room') }}</td><td class="n">{{ $money($data['room_minor']) }}</td></tr>
+                <tr><td>{!! __('pdfs/operator-report.ancillary') !!}</td><td class="n">{{ $money($data['ancillary_minor']) }}</td></tr>
+                <tr class="total"><td>{{ __('pdfs/operator-report.gross_revenue') }}</td><td class="n">{{ $money($data['gross_minor']) }}</td></tr>
+                <tr><td class="muted">{{ __('pdfs/operator-report.tax_collected') }}</td><td class="n muted">{{ $money($data['tax_minor']) }}</td></tr>
             </table>
         </td>
         <td style="width:50%;vertical-align:top;padding-left:12px">
-            <h2>Costs <span class="muted" style="font-size:9px">· real data only</span></h2>
+            <h2>{!! __('pdfs/operator-report.costs_heading') !!}</h2>
             <table class="pl">
-                <tr><td>Maintenance <span class="muted">· resolved work orders</span></td><td class="n">{{ $money($data['maintenance_minor']) }}</td></tr>
+                <tr><td>{!! __('pdfs/operator-report.maintenance') !!}</td><td class="n">{{ $money($data['maintenance_minor']) }}</td></tr>
                 @foreach ($data['untracked'] as $cat)
-                    <tr><td class="muted">{{ $cat }}</td><td class="n"><span class="soon">not tracked yet</span></td></tr>
+                    <tr><td class="muted">{{ $cat }}</td><td class="n"><span class="soon">{{ __('pdfs/operator-report.not_tracked') }}</span></td></tr>
                 @endforeach
-                <tr class="total"><td>Net (revenue − tracked costs)</td><td class="n">{{ $money($data['net_minor']) }}</td></tr>
+                <tr class="total"><td>{{ __('pdfs/operator-report.net') }}</td><td class="n">{{ $money($data['net_minor']) }}</td></tr>
             </table>
         </td>
     </tr></table>
 
     {{-- Revenue by channel (real source) --}}
-    <h2>Revenue by channel</h2>
+    <h2>{{ __('pdfs/operator-report.revenue_by_channel') }}</h2>
     <table class="grid">
-        <thead><tr><th class="l">Channel</th><th>Bookings</th><th>Revenue</th><th>Share</th></tr></thead>
+        <thead><tr><th class="l">{{ __('pdfs/operator-report.channel') }}</th><th>{{ __('pdfs/operator-report.bookings') }}</th><th>{{ __('pdfs/operator-report.revenue') }}</th><th>{{ __('pdfs/operator-report.share') }}</th></tr></thead>
         <tbody>
             @forelse ($data['by_channel'] as $c)
                 <tr>
@@ -120,15 +120,15 @@
                     <td>{{ $c['share'] }}%</td>
                 </tr>
             @empty
-                <tr><td class="l muted" colspan="4">No channel revenue in this period.</td></tr>
+                <tr><td class="l muted" colspan="4">{{ __('pdfs/operator-report.no_channel_revenue') }}</td></tr>
             @endforelse
         </tbody>
     </table>
 
     {{-- Top units by real room revenue --}}
-    <h2>Top units</h2>
+    <h2>{{ __('pdfs/operator-report.top_units') }}</h2>
     <table class="grid">
-        <thead><tr><th class="l">Unit</th><th>Nights</th><th>Room revenue</th></tr></thead>
+        <thead><tr><th class="l">{{ __('pdfs/operator-report.unit') }}</th><th>{{ __('pdfs/operator-report.nights') }}</th><th>{{ __('pdfs/operator-report.room_revenue') }}</th></tr></thead>
         <tbody>
             @forelse ($data['top_units'] as $u)
                 <tr>
@@ -137,15 +137,15 @@
                     <td>{{ $money($u['revenue_minor']) }}</td>
                 </tr>
             @empty
-                <tr><td class="l muted" colspan="3">No unit revenue in this period.</td></tr>
+                <tr><td class="l muted" colspan="3">{{ __('pdfs/operator-report.no_unit_revenue') }}</td></tr>
             @endforelse
         </tbody>
     </table>
 
     {{-- Revenue by month (real buckets, proportional bar) --}}
-    <h2>Revenue by month</h2>
+    <h2>{{ __('pdfs/operator-report.revenue_by_month') }}</h2>
     <table class="grid">
-        <thead><tr><th class="l">Month</th><th class="l">&nbsp;</th><th>Revenue</th></tr></thead>
+        <thead><tr><th class="l">{{ __('pdfs/operator-report.month') }}</th><th class="l">&nbsp;</th><th>{{ __('pdfs/operator-report.revenue') }}</th></tr></thead>
         <tbody>
             @foreach ($data['by_month'] as $b)
                 <tr>
@@ -158,7 +158,7 @@
     </table>
 
     <div class="foot">
-        Computed from real folio &amp; maintenance data for {{ $scopeLabel }} · {{ $range['label'] }}. Occupancy/ADR/RevPAR are on the stay-night basis; revenue is on the folio (arrival) basis. Figures reconcile to the Reports screen. Vyrobel.
+        {{ __('pdfs/operator-report.footer', ['scope' => $scopeLabel, 'period' => $range['label']]) }}
     </div>
 </div>
 </body>

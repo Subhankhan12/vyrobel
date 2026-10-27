@@ -17,7 +17,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * Guest: booking cancelled (transactional-emails exact-match #109) — sent on the REAL `reservation.cancelled`
@@ -66,16 +65,16 @@ class CancellationMail extends Mailable
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
-                'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'propertyName' => (string) ($r->property->name ?? __('php/mail/cancellation_mail.your_stay')),
+                'stay' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
                 'nights' => $nights,
                 'guests' => $this->guestsLabel($r),
                 'reason' => $this->reason !== null && $this->reason !== '' ? $this->reason : null,
                 // Case A vs Case B — a real refund figure or an honest "no refund due".
                 'refund' => $refund,
                 // HONEST: no card_last4 stored (#28) — never a fabricated masked number.
-                'refundMethod' => 'your original payment method',
-                'refundEta' => RefundEta::WINDOW,
+                'refundMethod' => __('php/mail/cancellation_mail.refund_method'),
+                'refundEta' => RefundEta::window(),
                 'sourceLine' => $this->sourceLine($r),
                 'browseUrl' => $this->browseUrl($r),
                 'messagesUrl' => route('guest.messages'),
@@ -97,9 +96,9 @@ class CancellationMail extends Mailable
     {
         $adults = max(1, (int) $r->adults);
         $children = (int) $r->children;
-        $parts = [$adults.' '.Str::plural('adult', $adults)];
+        $parts = [trans_choice('php/mail/cancellation_mail.adults', $adults, ['count' => $adults])];
         if ($children > 0) {
-            $parts[] = $children.' '.Str::plural('child', $children);
+            $parts[] = trans_choice('php/mail/cancellation_mail.children', $children, ['count' => $children]);
         }
 
         return implode(' · ', $parts);
@@ -108,12 +107,12 @@ class CancellationMail extends Mailable
     /** A guest-facing source line — the booking's real category, never a fabricated OTA brand (#85). */
     private function sourceLine(Reservation $r): string
     {
-        $name = (string) ($r->property->name ?? 'us');
+        $name = $r->property->name ?? null;
 
         return match ((string) $r->source) {
-            'direct' => 'Booked direct with '.$name,
-            'ota' => 'Booked via a travel partner',
-            default => 'Booked with '.$name,
+            'direct' => $name !== null ? __('php/mail/cancellation_mail.booked_direct_with', ['property' => (string) $name]) : __('php/mail/cancellation_mail.booked_direct_with_us'),
+            'ota' => __('php/mail/cancellation_mail.booked_via_partner'),
+            default => $name !== null ? __('php/mail/cancellation_mail.booked_with', ['property' => (string) $name]) : __('php/mail/cancellation_mail.booked_with_us'),
         };
     }
 
@@ -132,8 +131,8 @@ class CancellationMail extends Mailable
         $first = $guest !== null ? trim((string) $guest->first_name) : '';
 
         return EmailTemplateResolver::for((string) $r->organization_id, 'cancellation', [
-            'first_name' => $first !== '' ? $first : 'there',
-            'unit' => (string) ($r->property->name ?? 'your stay'),
+            'first_name' => $first !== '' ? $first : __('php/mail/cancellation_mail.there'),
+            'unit' => (string) ($r->property->name ?? __('php/mail/cancellation_mail.your_stay')),
             'reference' => (string) $r->reference,
         ]);
     }

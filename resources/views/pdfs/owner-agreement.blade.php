@@ -4,7 +4,7 @@
      Per-villa commission is the SAME resolveFor the attribution engine uses (#17). This is a SUMMARY of
      the operator's terms, NOT a signed legal artifact — stated honestly in the footer. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>

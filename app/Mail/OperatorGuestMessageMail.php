@@ -46,9 +46,9 @@ class OperatorGuestMessageMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $from = ($this->propertyName !== null && $this->propertyName !== '') ? $this->propertyName : 'Your host';
+        $from = ($this->propertyName !== null && $this->propertyName !== '') ? $this->propertyName : __('php/mail/operator_guest_message_mail.your_host');
 
-        return $this->brandedEnvelope('A message from '.$from, $this->brandFor($this->property));
+        return $this->brandedEnvelope(__('php/mail/operator_guest_message_mail.subject', ['sender' => $from]), $this->brandFor($this->property));
     }
 
     /** RFC 2369/8058 unsubscribe headers — present ONLY on a marketing send (empty otherwise). */

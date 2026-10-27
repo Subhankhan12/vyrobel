@@ -2,7 +2,7 @@
      receipt (a credit against the booking's invoice). Rendered only when a real refund exists. PDF-SAFE (dompdf):
      table-based, inline CSS, DejaVu Sans. No invented amounts. --}}
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <style>
@@ -37,9 +37,9 @@
                     <span style="font-size:16px; font-weight:bold; padding-left:6px;">Vyrobel</span>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">Credit note</div>
+                    <div class="eyebrow">{{ __('pdfs/guest-credit-note.eyebrow') }}</div>
                     <h1>{{ $credit_note_no }}</h1>
-                    <div class="muted" style="margin-top:4px; font-size:11px;">Issued {{ $issued_on }} · {{ $currency }}</div>
+                    <div class="muted" style="margin-top:4px; font-size:11px;">{{ __('pdfs/guest-credit-note.issued', ['date' => $issued_on]) }} · {{ $currency }}</div>
                 </td>
             </tr>
         </table>
@@ -47,24 +47,24 @@
         <table class="parties">
             <tr>
                 <td>
-                    <div class="k">From</div>
+                    <div class="k">{{ __('pdfs/guest-credit-note.from') }}</div>
                     {{ $operator }}@if ($property)<div class="muted">{{ $property }}</div>@endif
                 </td>
                 <td>
-                    <div class="k">Credited to</div>
-                    {{ $guest ?? '—' }}<div class="muted">Booking {{ $reference }} · {{ $stay }}</div>
+                    <div class="k">{{ __('pdfs/guest-credit-note.credited_to') }}</div>
+                    {{ $guest ?? '—' }}<div class="muted">{{ __('pdfs/guest-credit-note.booking_line', ['reference' => $reference, 'stay' => $stay]) }}</div>
                 </td>
             </tr>
         </table>
 
         <table class="lines">
             <thead>
-                <tr><th>Credit</th><th class="r">Amount</th></tr>
+                <tr><th>{{ __('pdfs/guest-credit-note.col_credit') }}</th><th class="r">{{ __('pdfs/guest-credit-note.col_amount') }}</th></tr>
             </thead>
             <tbody>
                 @foreach ($refunds as $refund)
                     <tr>
-                        <td>Credit against invoice<div class="muted" style="font-size:10.5px;">{{ $refund['date'] }}</div></td>
+                        <td>{{ __('pdfs/guest-credit-note.credit_against_invoice') }}<div class="muted" style="font-size:10.5px;">{{ $refund['date'] }}</div></td>
                         <td class="r">{{ $refund['amount'] }}</td>
                     </tr>
                 @endforeach
@@ -72,12 +72,11 @@
         </table>
 
         <table class="totals">
-            <tr class="tot"><td>Total credited</td><td class="r">{{ $total }}</td></tr>
+            <tr class="tot"><td>{{ __('pdfs/guest-credit-note.total_credited') }}</td><td class="r">{{ $total }}</td></tr>
         </table>
 
         <div class="foot">
-            A credit note for your booking, generated from Vyrobel's append-only folio ledger; it records a credit
-            against your invoice matching the refund issued, and reconciles to your account. Vyrobel · {{ $operator }}.
+            {{ __('pdfs/guest-credit-note.footer', ['operator' => $operator]) }}
         </div>
     </div>
 </body>
