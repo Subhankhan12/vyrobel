@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Support\Exports\ExportAudit;
+use App\Support\I18n\Locales;
+use App\Support\Pdf\ArabicPdfShaper;
+use App\Support\Pdf\PdfFonts;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Adapter\CPDF;
+use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -16,6 +20,11 @@ use Symfony\Component\HttpFoundation\Response;
  * An optional `$watermark` (Wave B · GATE 5) stamps a fixed downloader footer onto every page — the SAME
  * identity {@see ExportAudit} records in the download log, so a financial export always
  * carries who downloaded it.
+ *
+ * I18N-01 — every PDF is rendered in its DOCUMENT's language: the caller passes it (a guest's documents in the guest's,
+ * an owner's in the owner's); without one, the language of the request. Here — the one renderer — the script is handled:
+ * shaping for Arabic/Persian/Thai, bundled fonts for Chinese/Japanese/Korean/Thai, no capitals for Georgian, and English
+ * wording for Hindi ({@see PdfFonts}). An English document renders exactly as before.
  */
 class PdfService
 {
@@ -29,9 +38,11 @@ class PdfService
      *
      * @param  array<string, mixed>  $data
      */
-    public function download(string $view, array $data, string $filename, ?string $watermark = null): Response
+    public function download(string $view, array $data, string $filename, ?string $watermark = null, ?string $locale = null): Response
     {
-        return $this->paginate($this->make($view, $data, $watermark)->setPaper('a4'))->download($filename);
+        $locale = $this->documentLocale($locale);
+
+        return $this->paginate($this->make($view, $data, $watermark, $locale)->setPaper('a4'), $locale)->download($filename);
     }
 
     /**
@@ -39,9 +50,17 @@ class PdfService
      *
      * @param  array<string, mixed>  $data
      */
-    public function raw(string $view, array $data, ?string $watermark = null): string
+    public function raw(string $view, array $data, ?string $watermark = null, ?string $locale = null): string
     {
-        return $this->paginate($this->make($view, $data, $watermark)->setPaper('a4'))->output();
+        $locale = $this->documentLocale($locale);
+
+        return $this->paginate($this->make($view, $data, $watermark, $locale)->setPaper('a4'), $locale)->output();
+    }
+
+    /** A finished language the document should speak (the caller's choice, else the request's), as it will be RENDERED. */
+    private function documentLocale(?string $locale): string
+    {
+        return PdfFonts::renderLocale(Locales::resolve($locale ?? App::getLocale()));
     }
 
     /**
@@ -62,12 +81,16 @@ class PdfService
      * Positioned bottom-RIGHT so it never collides with the centred downloader watermark below, and set in
      * the same 7.5pt / #5f5853 as that stamp so the two footer marks read as one family.
      */
-    private function paginate(\Barryvdh\DomPDF\PDF $pdf): \Barryvdh\DomPDF\PDF
+    private function paginate(\Barryvdh\DomPDF\PDF $pdf, string $locale): \Barryvdh\DomPDF\PDF
     {
         $pdf->render();
+        $label = __('php/services/pdf_service.page_of', ['page' => '{PAGE_NUM}', 'pages' => '{PAGE_COUNT}'], $locale);
+        if (Locales::script($locale) === 'Arab') {
+            $label = ArabicPdfShaper::shape($label);
+        }
         $pdf->getDomPDF()->getCanvas()->page_text(
-            self::FOOTER_X, self::FOOTER_Y, 'Page {PAGE_NUM} of {PAGE_COUNT}',
-            'sans-serif', 7.5, [0.373, 0.345, 0.325]   // #5f5853, the watermark's ink
+            self::FOOTER_X, self::FOOTER_Y, $label,
+            $locale === Locales::SOURCE ? 'sans-serif' : PdfFonts::family($locale), 7.5, [0.373, 0.345, 0.325]   // #5f5853, the watermark's ink
         );
 
         return $pdf;
@@ -79,13 +102,21 @@ class PdfService
      *
      * @param  array<string, mixed>  $data
      */
-    private function make(string $view, array $data, ?string $watermark)
+    private function make(string $view, array $data, ?string $watermark, string $locale)
     {
-        if ($watermark === null || $watermark === '') {
-            return Pdf::loadView($view, $data);
+        // the view renders in the document's language; the request's own language is put back straight after
+        $requestLocale = App::getLocale();
+        App::setLocale($locale);
+        try {
+            $html = view($view, $data)->render();
+        } finally {
+            App::setLocale($requestLocale);
         }
 
-        $html = view($view, $data)->render();
+        if ($watermark === null || $watermark === '') {
+            return $this->load(PdfFonts::html($html, $locale), $locale);
+        }
+
         // ⚠️ PDF-SWEEP GATE — THIS STAMP IS INFORMATIONAL, NOT DECORATIVE, so it is held to the text bar.
         // It carries WHO downloaded the document (the same identity {@see ExportAudit} writes to the download
         // log) plus "Confidential" — the fact that makes the Team security note's claim true. It is also NOT a
@@ -98,6 +129,14 @@ class PdfService
         $footer = '<div style="position:fixed;bottom:4px;left:0;right:0;text-align:center;font-size:7.5px;color:#5f5853;font-family:sans-serif;letter-spacing:.02em;">'.e($watermark).'</div>';
         $html = str_contains($html, '</body>') ? str_replace('</body>', $footer.'</body>', $html) : $html.$footer;
 
-        return Pdf::loadHTML($html);
+        return $this->load(PdfFonts::html($html, $locale), $locale);
+    }
+
+    private function load(string $html, string $locale): \Barryvdh\DomPDF\PDF
+    {
+        $pdf = Pdf::loadHTML($html);
+        PdfFonts::prepare($pdf->getDomPDF(), $locale);
+
+        return $pdf;
     }
 }

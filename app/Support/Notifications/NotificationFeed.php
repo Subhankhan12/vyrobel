@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * Maps a notifiable's OWN notifications to the shape the in-app feed renders (Phase 3). Reads only through
@@ -132,12 +133,43 @@ final class NotificationFeed
      *
      * @return array{id: string, title: string, context: string, url: ?string, category: string, read: bool, when: ?string}
      */
+    /**
+     * I18N-01 — a row written since the translation work also stores each text's KEY and parameters (`data.i18n`, see
+     * FeedNotification::t()), so the bell and the feed show it in the READER's language now, not the one it was sent in.
+     * Older rows keep the sentence they stored. A key that no longer exists falls back to the stored sentence.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private static function text(array $data, string $field): ?string
+    {
+        $spec = $data['i18n'][$field] ?? null;
+        if (! is_array($spec) || ! is_string($spec[0] ?? null) || ! Lang::has($spec[0])) {
+            return null;
+        }
+
+        $params = is_array($spec[1] ?? null) ? $spec[1] : [];
+
+        // a plural row (FeedNotification::tc) stored its count — pick the form in the reader's language
+        return is_int($spec[2] ?? null) ? (string) trans_choice($spec[0], $spec[2], $params) : (string) __($spec[0], $params);
+    }
+
+    /**
+     * The words for a notification category (the bell's tag, the feed pages' filters and chips) — ONE map, in
+     * lang/en/components/notifications/bell.php; a category with no entry keeps its code, humanised, as it always printed.
+     */
+    public static function categoryLabel(string $category): string
+    {
+        $labels = (array) __('components/notifications/bell.categories');
+
+        return is_string($labels[$category] ?? null) ? $labels[$category] : ucwords(str_replace('_', ' ', $category));
+    }
+
     private static function map(DatabaseNotification $n): array
     {
         return [
             'id' => (string) $n->id,
-            'title' => (string) ($n->data['title'] ?? 'Notification'),
-            'context' => (string) ($n->data['context'] ?? ''),
+            'title' => self::text($n->data, 'title') ?? (string) ($n->data['title'] ?? __('php/support/notifications/notification_feed.fallback_title')),
+            'context' => self::text($n->data, 'context') ?? (string) ($n->data['context'] ?? ''),
             'url' => is_string($n->data['url'] ?? null) ? (string) $n->data['url'] : null,
             'category' => (string) ($n->data['category'] ?? 'general'),
             'read' => $n->read_at !== null,

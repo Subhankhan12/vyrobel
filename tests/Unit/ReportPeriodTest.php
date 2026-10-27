@@ -2,6 +2,9 @@
 
 use App\Support\Reports\ReportPeriod;
 use Carbon\CarbonImmutable;
+use Tests\TestCase;
+
+uses(TestCase::class);   // I18N-01 — the period's labels are translated, so the app (and its translator) must be booted
 
 // GATE 10.1 — the ONE Reports period resolver (shared by the page + CSV + PDF exports, so they can't drift). A
 // valid ?month=YYYY-MM is a specific calendar month; otherwise the named range; a malformed month falls through.

@@ -26,6 +26,9 @@ use App\Support\Owner\OwnerAgreementTerms;
  *                "At cost", never €90); a legally-binding e-signature (this is an in-portal ACKNOWLEDGMENT,
  *                honestly framed — never a claim of legal signature validity).
  *   • NO GUEST PII — owner surface; no guest identity is reachable here.
+ *
+ * I18N-01: LEGAL TEXT — every word this builds is contract wording printed into the agreement / amendment PDFs, which
+ * stay English in every language (as do their views). Nothing here is a translation key, deliberately.
  */
 final class OwnerAgreementDocument
 {
@@ -140,7 +143,9 @@ final class OwnerAgreementDocument
 
     private static function operatorAddr(Organization $org): string
     {
-        return OperatorLetterhead::line($org);
+        // I18N-01: the agreement is a LEGAL document and stays English whatever the reader's language — so its
+        // letterhead line is pinned to English too, rather than mixing a translated role into English contract text.
+        return OperatorLetterhead::line($org, OperatorLetterhead::ROLE_MANAGING_AGENT, null, 'en');
     }
 
     private static function interval(mixed $value): ?string

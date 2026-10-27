@@ -82,7 +82,9 @@ return [
 
     // Languages a user may SAVE as their preference (Profile & account · Language). Only 'en' is translated
     // today, so the others persist the choice and fall back to English at render time — the UI says so.
-    'available_locales' => ['en', 'pt', 'es', 'fr'],
+    // ⚠️ I18N-01 — the FINISHED languages only: a code here is APPLIED to screens, so adding one is what turns a language
+    //    on (one release per language, after every gate). The full table and the pickable list: App\Support\I18n\Locales.
+    'available_locales' => ['en'],
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

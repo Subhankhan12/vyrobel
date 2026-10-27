@@ -10,9 +10,11 @@ use App\Services\OwnerInviteService;
 use App\Services\OwnerTeamInviteService;
 use App\Support\Auth\SignInCredentials;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\Locales;
 use App\Support\Security\ActiveSessions;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -64,7 +66,7 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * ⚠️ `Guest` has implemented this contract all along; this is the existing pattern, not a new mechanism.
  */
-class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, OAuthenticatable
 {
     /**
      * ⚠️ THE ONE DEFINITION OF "THIS ACCOUNT CAN SIGN IN".
@@ -127,7 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
      */
     public function sendPasswordResetNotification($token): void
     {
-        Mail::to($this->email)->send(new PasswordResetMail((string) $token, (string) $this->email, (string) $this->name));
+        Mail::to($this->email)->locale($this->preferredLocale())->send(new PasswordResetMail((string) $token, (string) $this->email, (string) $this->name));
     }
 
     /**
@@ -248,6 +250,18 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
         $path = $this->avatar_path;
 
         return ($path === null || $path === '') ? null : Storage::disk('public')->url($path);
+    }
+
+    /**
+     * The language mail and notifications to this person go out in (I18N-01): their own choice → the organisation they
+     * belong to's default → English; only a finished language is ever used (`Locales::resolve`). Laravel reads this for
+     * every Mailable and notification sent to them, queued ones included.
+     */
+    public function preferredLocale(): string
+    {
+        $organizationId = $this->memberships()->orderBy('created_at')->value('organization_id');
+
+        return Locales::resolve($this->locale, Locales::organizationDefault(is_string($organizationId) ? $organizationId : null));
     }
 
     public function organizations(): BelongsToMany

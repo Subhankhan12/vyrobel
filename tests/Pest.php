@@ -56,12 +56,18 @@ pest()->extend(TestCase::class)
 | freeze that produced 52 failures; the override exists so the next person can verify the claim rather than
 | trust it.
 */
+//
+// ⚠️ I18N-01 — and the DATE LANGUAGE is reset with it. Carbon's locale is a STATIC: a test that renders an Arabic page
+// (Locales → Carbon::setLocale('ar')) left every later test in the process printing "مارس 2026" for "March 2026". A
+// request in production starts fresh; a test process does not.
 pest()->beforeEach(function (): void {
     CarbonImmutable::setTestNow(CarbonImmutable::parse(getenv('VY_TEST_NOW') ?: VY_TEST_CLOCK));
     Carbon::setTestNow(Carbon::parse(getenv('VY_TEST_NOW') ?: VY_TEST_CLOCK));
+    Carbon::setLocale('en');
 })->afterEach(function (): void {
     CarbonImmutable::setTestNow();
     Carbon::setTestNow();
+    Carbon::setLocale('en');
 })->in('Feature', 'Unit');
 
 /*
@@ -100,6 +106,7 @@ require_once __DIR__.'/Support/queuing_refund_gateway.php';
 require_once __DIR__.'/Support/connect_helpers.php';
 require_once __DIR__.'/Support/marketing_helpers.php';
 require_once __DIR__.'/Support/heading_helpers.php';
+require_once __DIR__.'/Support/i18n_helpers.php';
 require_once __DIR__.'/Support/dialog_helpers.php';
 require_once __DIR__.'/Support/label_helpers.php';
 require_once __DIR__.'/Support/overflow_helpers.php';

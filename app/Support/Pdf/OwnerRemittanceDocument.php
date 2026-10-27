@@ -80,7 +80,7 @@ final class OwnerRemittanceDocument
             'iban_masked' => $ibanMasked,
             // The payee is the owner's REGISTERED legal name when set (from the Tax & remittance details), else
             // their display name — so the remittance advice prints the same payee the owner captured.
-            'owner_name' => (string) ($payout->owner?->legal_name ?: ($payout->owner->name ?? 'Owner')),
+            'owner_name' => (string) ($payout->owner?->legal_name ?: ($payout->owner->name ?? __('php/support/pdf/owner_remittance_document.owner_fallback'))),
             'currency' => $currency,
 
             // ── The payout — REAL columns; the enums supply every word ──────────────────────────────
@@ -88,11 +88,11 @@ final class OwnerRemittanceDocument
             // DERIVED from the real status: a pending/failed payout has NOT been paid, so the document
             // never claims it was.
             'amount_label' => match ($status) {
-                'paid' => 'Net paid to owner',
-                'reversed' => 'Net reversed',
-                default => 'Net payable to owner',
+                'paid' => __('php/support/pdf/owner_remittance_document.amount_net_paid'),
+                'reversed' => __('php/support/pdf/owner_remittance_document.amount_net_reversed'),
+                default => __('php/support/pdf/owner_remittance_document.amount_net_payable'),
             },
-            'status_label' => ucfirst($status),
+            'status_label' => self::statusLabel($status),
             // The status enum (pending/paid/failed/reversed) IS the tone vocabulary — the blade styles a
             // pill per real state, so an invented state cannot be rendered.
             'status_tone' => $status,
@@ -101,7 +101,7 @@ final class OwnerRemittanceDocument
             'method' => RailLabel::for((string) $payout->rail),
             // A real settlement date exists ONLY once the payout is paid — never an estimate.
             'paid_on' => ($status === 'paid' && $payout->paid_at !== null)
-                ? Carbon::parse($payout->paid_at)->format('j M Y')
+                ? Carbon::parse($payout->paid_at)->translatedFormat('j M Y')
                 : null,
             // The operator's own bank reference, when they attached one. Never generated here.
             'reference' => (is_string($payout->external_ref) && $payout->external_ref !== '') ? $payout->external_ref : null,
@@ -111,10 +111,10 @@ final class OwnerRemittanceDocument
 
             // ── The source statement — the REAL reconciling breakdown ───────────────────────────────
             'sequence_no' => $statement?->sequence_no,
-            'period_label' => $statement?->period_start->format('F Y'),
+            'period_label' => $statement?->period_start->translatedFormat('F Y'),
             'period_range' => $statement === null
                 ? null
-                : $statement->period_start->format('j M Y').' – '.$statement->period_end->format('j M Y'),
+                : $statement->period_start->translatedFormat('j M Y').' – '.$statement->period_end->translatedFormat('j M Y'),
             'lines' => $lines,
             'has_unverified' => $statement !== null && (bool) $statement->has_unverified,
             // FX shown ONLY when the statement genuinely converts currencies (source ≠ payout currency;
@@ -123,5 +123,19 @@ final class OwnerRemittanceDocument
                 ? ['source' => (string) $statement->source_currency, 'rate' => (string) $statement->fx_rate, 'src' => (string) $statement->fx_source]
                 : null,
         ];
+    }
+
+    /** The payout `status` enum → the word on the status pill (the tone stays the code). */
+    private static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('php/support/pdf/owner_remittance_document.status_pending'),
+            'held' => __('php/support/pdf/owner_remittance_document.status_held'),
+            'processing' => __('php/support/pdf/owner_remittance_document.status_processing'),
+            'paid' => __('php/support/pdf/owner_remittance_document.status_paid'),
+            'failed' => __('php/support/pdf/owner_remittance_document.status_failed'),
+            'reversed' => __('php/support/pdf/owner_remittance_document.status_reversed'),
+            default => ucfirst($status),
+        };
     }
 }

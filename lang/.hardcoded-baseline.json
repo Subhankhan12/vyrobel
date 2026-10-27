@@ -1,0 +1,358 @@
+{
+    "app/Actions/Reservations/ReverseCheckOut.php": {
+        "e094de8566ec": "checkout reversed"
+    },
+    "app/Http/Controllers/Admin/CustomerController.php": {
+        "12651e82f8d3": "ADMIN 05 — an organisation was deleted, but its result could not be written to the console ledger."
+    },
+    "app/Http/Controllers/Auth/Concerns/CompletesSignIn.php": {
+        "8440b9eb7d03": "Edge",
+        "218e75c7a912": "Chrome",
+        "b4ee6522335b": "Firefox",
+        "424dd4565e3b": "Safari",
+        "26d9c28d789c": "Windows",
+        "1928f95c598b": "Android",
+        "83ad8510bbd3": "Linux"
+    },
+    "app/Http/Controllers/HousekeepingActionController.php": {
+        "73c789704b7d": "Unsupported housekeeping status."
+    },
+    "app/Http/Controllers/Operator/GuestActionController.php": {
+        "2a20c7503389": "Conversation"
+    },
+    "app/Http/Controllers/Operator/GuestBulkActionController.php": {
+        "3cbdea50c4db": "Message from your host"
+    },
+    "app/Http/Controllers/Operator/InboxActionController.php": {
+        "2a20c7503389": "Conversation"
+    },
+    "app/Http/Controllers/Owner/OwnerExpenseApprovalController.php": {
+        "6e8d7b954e12": "Query on expense:"
+    },
+    "app/Http/Controllers/ReservationFolioActionController.php": {
+        "f6c95830c36c": "manual bank transfer",
+        "6e956e9d83e1": "original method"
+    },
+    "app/Http/Middleware/EnsureOwnerApiScope.php": {
+        "2da4bff9e50b": "The token does not carry the required scope:",
+        "949439adaae9": "This owner’s role does not permit the scope:"
+    },
+    "app/Http/Middleware/ResolveApiOwnerContext.php": {
+        "8e7991ff8365": "This token is not linked to an owner account.",
+        "ff048a5e9b9a": "This token spans more than one organization."
+    },
+    "app/Livewire/Operator/Concerns/FormatsOperatorData.php": {
+        "b336fc558722": "WhatsApp",
+        "6d785501e2b5": "Airbnb"
+    },
+    "app/Livewire/Operator/ReservationRefund.php": {
+        "82810cb97184": "Square"
+    },
+    "app/Models/PlatformAnnouncement.php": {
+        "0eb5ed506e49": "Information",
+        "e9c45563358e": "Warning"
+    },
+    "app/Services/FolioService.php": {
+        "f3741b4ec824": "Wallet credit applied"
+    },
+    "app/Services/InboxService.php": {
+        "d0e687b079fb": "Operator",
+        "89ff31225c5f": "Owner"
+    },
+    "app/Services/NotificationPreferences.php": {
+        "af7763e2a978": "New booking",
+        "55b7fc0b3e2b": "A booking is confirmed",
+        "9fe406a7dfa4": "Arrivals due today",
+        "00f11a1fb327": "Guests arriving that still need a unit",
+        "ff4627c80b79": "Balance due at checkout",
+        "262b9632cb4c": "An outstanding balance at check-out",
+        "29bed9d72386": "Housekeeping behind",
+        "39473901efea": "Turnovers are running late",
+        "f9a215cd2581": "Urgent work order",
+        "4837b5aef710": "A high-priority maintenance ticket opens",
+        "ed497774ed11": "Unit out of order",
+        "7a086b19ade2": "A unit is taken out of service",
+        "a6262e2174f9": "Work order resolved",
+        "28a38f8ac041": "A maintenance work order is resolved",
+        "a58445d3e973": "Work order reassigned",
+        "b808eba4eedb": "A maintenance work order is reassigned to you",
+        "a1bc361d28d7": "Owner payout sent",
+        "664605e895f9": "A payout is disbursed to an owner",
+        "8589341c1cfb": "Statement ready",
+        "963233477d6e": "An owner statement is finalized",
+        "39abbfe15af0": "New review",
+        "f6bc41f9dd80": "A guest leaves a review",
+        "7bf4b299eb62": "A guest leaves a review rated under 4 stars",
+        "9bf5d0cc4d97": "Channel sync error",
+        "5fb935671f43": "A channel stops syncing",
+        "07ae28ae47ff": "Login from a new device",
+        "55f9e2fbd78e": "Your account signs in somewhere new",
+        "289c34e518ec": "Daily morning summary",
+        "758e28813c4e": "A digest of the day at 08:00",
+        "fd7702a1ff0a": "Schedule published",
+        "a6b7b833107f": "Your week’s roster is published",
+        "6717c6f7e144": "Vyrobel support access",
+        "2f134e84d057": "Vyrobel support viewed your workspace, read-only — always on",
+        "a29a64e6d235": "Your monthly statement is finalized",
+        "9944c16a44bd": "Payout sent",
+        "3c0bd46e87dc": "The day money leaves for your account",
+        "2629e68b88e8": "Performance digest",
+        "0cca9926d141": "Occupancy & earnings vs last month",
+        "a643c62e51bf": "Terms changed",
+        "cb551e983cc4": "A change to commission or fees",
+        "eb23b4e3de0c": "Unit request reviewed",
+        "5881d1c30d47": "Your add-a-unit request is approved or declined",
+        "82208a92e2e2": "Booking confirmed",
+        "09c49f847f0a": "Your booking is confirmed",
+        "ac5a8db1bb77": "Check-in details ready",
+        "c2012ed8f3ad": "Your self check-in details are available",
+        "3cbdea50c4db": "Message from your host",
+        "ad726490eb71": "The property replied to you",
+        "bebeab86fb2e": "Balance due",
+        "3a460c916966": "A balance is outstanding before your stay",
+        "60cd3929310c": "Booking cancelled",
+        "f646df87799f": "Your booking was cancelled",
+        "6d0d184634ca": "Refund processed",
+        "35b347043b45": "A refund was processed on your booking",
+        "7ba88419c6a2": "Review your stay",
+        "1feab6c6e668": "An invitation to review a completed stay",
+        "0afc739d8f3d": "Account security",
+        "82b4534a359f": "A change to your account or a scheduled deletion",
+        "4be7407fedbb": "A booking is confirmed on one of your units",
+        "9fd936ba057e": "Review posted",
+        "7bb1b456fc68": "A guest review is published on one of your units",
+        "1ed2e7b50fa1": "New message",
+        "31a52722c09b": "Your management team sends you a message",
+        "8a8a4720325e": "Account & security",
+        "00551fbe9c69": "Sign-ins and bank changes — always on",
+        "2b07e7ec8a28": "Arrival details viewed",
+        "ceef1cc0d864": "Someone viewed a stored door code or wifi password for your unit — always on",
+        "636f71ed33e8": "Property archived",
+        "75bedb6da434": "A property holding your units was archived — permanent, and always on"
+    },
+    "app/Services/OwnerAttributionService.php": {
+        "a3f873e8a615": "Guest refund adjustment",
+        "af7e04d73045": "Not attributed — no governing management agreement on",
+        "3bd8c45651d0": "Room revenue ·",
+        "683d53240050": "Management commission",
+        "5d6739ba20db": "OTA commission — unverified / pending channel reconciliation",
+        "a10a61d6d072": "OTA commission on booking",
+        "91b59fcdc803": "Cleaning fee",
+        "41b634ed2413": "Add-ons",
+        "9d79e952252f": "Reversal —",
+        "ac7d32cf6bc4": "Management fee ("
+    },
+    "app/Services/OwnerExpenseService.php": {
+        "b16b8dec7698": "Expense —",
+        "9d79e952252f": "Reversal —"
+    },
+    "app/Services/OwnerInviteService.php": {
+        "bae64c4701ca": "Owner activated WITHOUT the owner-only role; portal access is unaffected and they remain non-operator-capable."
+    },
+    "app/Services/OwnerPayoutService.php": {
+        "0bcc4d692e49": "Balance carried forward from statement"
+    },
+    "app/Services/OwnerStatementService.php": {
+        "d6a0c474f51d": "Net payable"
+    },
+    "app/Services/OwnerTeamInviteService.php": {
+        "e116c4725eaf": "Sub-user joined WITHOUT the owner-only role; portal access is unaffected and they remain non-operator-capable."
+    },
+    "app/Services/Platform/OrganizationDeletion.php": {
+        "5c6c6da2f939": "ADMIN 05 — rows of a deleted organisation appeared after its deletion; remove them by hand.",
+        "4a5d30a6121a": "ADMIN 05 — a file of a deleted organisation could not be removed; remove it by hand."
+    },
+    "app/Services/PropertyRemovalService.php": {
+        "3b9483314fdf": "a stay reaches beyond the scheduled date"
+    },
+    "app/Services/WithholdingService.php": {
+        "d1ab84b6ac76": "Withholding tax ("
+    },
+    "app/Support/Auth/PasskeyService.php": {
+        "b7d869bc6936": "Not a registration response.",
+        "0284f4264423": "Edg",
+        "8440b9eb7d03": "Edge",
+        "218e75c7a912": "Chrome",
+        "b4ee6522335b": "Firefox",
+        "424dd4565e3b": "Safari",
+        "e35828da748d": "Passkey",
+        "c0fd8053739d": "Macintosh",
+        "26d9c28d789c": "Windows",
+        "1928f95c598b": "Android",
+        "83ad8510bbd3": "Linux"
+    },
+    "app/Support/Auth/TrustedDeviceService.php": {
+        "8440b9eb7d03": "Edge",
+        "19c9c9ed8477": "Opera",
+        "218e75c7a912": "Chrome",
+        "b4ee6522335b": "Firefox",
+        "424dd4565e3b": "Safari",
+        "54a2cf5e634d": "Browser",
+        "26d9c28d789c": "Windows",
+        "1928f95c598b": "Android",
+        "83ad8510bbd3": "Linux"
+    },
+    "app/Support/Mail/UndeliverableRecipients.php": {
+        "bc59046fa5ee": "no domain",
+        "28610ba82ea4": "reserved domain",
+        "91ce10ced4f0": "on the suppression list"
+    },
+    "app/Support/Pdf/OwnerAgreementDocument.php": {
+        "080d6131da7e": "Management fee",
+        "a33a4768eda3": "Fixed fee",
+        "b3fa96c64490": "Payout schedule",
+        "770bce19da07": "Term",
+        "fc421f518cc2": "Notice period"
+    },
+    "app/Support/Reconciliation/BillingReconciler.php": {
+        "94802b8b02d0": "is `",
+        "0cc090ddd162": "no reason recorded",
+        "e77b2ba950a2": "settled `",
+        "52f0243cc04b": "` with no audit row",
+        "1e0c02e6acf0": "refund settled but no `refund:",
+        "8970690dc38d": ":*` ledger adjustment exists",
+        "9f3cbc9fcf85": "resolves to the same tier and cycle as `",
+        "5704516d5eba": "` — one will not render on /pricing",
+        "d99697d81630": "could not read the Connect account back:",
+        "6f40c11cabbc": "Stripe payouts_enabled=",
+        "1c8b90f743ab": "but this product holds",
+        "0ea222bea633": "Stripe could not be reached:",
+        "cdcfb6a9885c": "Stripe does not know subscription ["
+    },
+    "app/Support/Safety/BaselineTenantWriteGuard.php": {
+        "7f4249a435ee": "the organisation row",
+        "0f9c1adbf32e": "` on",
+        "f558a6bf8f47": "in organisation",
+        "1d9323c6d9d3": "That tenant is the pinned money baseline and is read-only to a probe harness.",
+        "b675908d3e68": "If this is the seeder or a legitimate migration, run it WITHOUT security.baseline_tenant_guard set.",
+        "427bc5b78679": "⚠️ See App\\Support\\Safety\\BaselineTenantWriteGuard for what this guard cannot catch."
+    },
+    "resources/views/admin/partials/fields.blade.php": {
+        "14a67093e73a": "ArrowDown",
+        "e710c17948e9": "ArrowUp",
+        "2b9eceb7a86a": "Enter",
+        "70f8bb9a8a53": "Home",
+        "a2bb9d34b8a1": "End",
+        "b4cfe1f435f0": "Escape",
+        "fe06eb6459c8": "Tab",
+        "5a50fdd5938d": "A searchable field could not be built — the plain one is kept."
+    },
+    "resources/views/admin/plans/_shape-fields.blade.php": {
+        "24aff44a2d44": "price_..."
+    },
+    "resources/views/admin/privacy/index.blade.php": {
+        "4cc4db991aa8": "color: var(--ad-danger); font-weight: 600;"
+    },
+    "resources/views/auth/onboarding.blade.php": {
+        "6b7d5aedb12d": "input, select"
+    },
+    "resources/views/components/auth/passkeys.blade.php": {
+        "1928f95c598b": "Android",
+        "26d9c28d789c": "Windows",
+        "83ad8510bbd3": "Linux",
+        "4553d304e7fe": "Passkey on",
+        "e35828da748d": "Passkey"
+    },
+    "resources/views/components/operator/shell.blade.php": {
+        "66d0c5e6b170": "Pro"
+    },
+    "resources/views/components/owner/shell.blade.php": {
+        "6998057ab8dc": "open = false",
+        "94c553c6ea35": "open = !open",
+        "49d11dc5f67e": "open ? 'true' : 'false'"
+    },
+    "resources/views/components/public/seo.blade.php": {
+        "c57136a29758": "summary_large_image",
+        "05535ecff78e": "summary",
+        "87310ab2b7f9": "index, follow",
+        "37aeb32da73f": "noindex, nofollow"
+    },
+    "resources/views/components/rates/unit-price-form.blade.php": {
+        "b6c97396b104": "unitRt === '\u0001'",
+        "747de1a7f32c": "unitMode === 'set'",
+        "a5632ebb4cb4": "unitMode === 'clear'"
+    },
+    "resources/views/components/vy-selects.blade.php": {
+        "53e07a32bf19": "use strict",
+        "14a67093e73a": "ArrowDown",
+        "e710c17948e9": "ArrowUp",
+        "2b9eceb7a86a": "Enter",
+        "7cba3e212dcc": "PageDown",
+        "f37641df1bc9": "PageUp",
+        "70f8bb9a8a53": "Home",
+        "a2bb9d34b8a1": "End",
+        "b4cfe1f435f0": "Escape",
+        "fe06eb6459c8": "Tab",
+        "88d130a66de8": "Backspace"
+    },
+    "resources/views/emails/booking-confirmation.blade.php": {
+        "f4d6b594b322": "Outlook",
+        "476432a3e85a": "Apple"
+    },
+    "resources/views/guest/account.blade.php": {
+        "d6f5636098cd": "DELETE"
+    },
+    "resources/views/guest/auth/layout.blade.php": {
+        "3979840e66d5": "· Vyrobel"
+    },
+    "resources/views/guest/checkin.blade.php": {
+        "2b9eceb7a86a": "Enter"
+    },
+    "resources/views/livewire/operator/dashboard.blade.php": {
+        "3345867ecfee": "priority",
+        "5ccbf9c9c5fc": "category"
+    },
+    "resources/views/livewire/operator/guest-profile.blade.php": {
+        "491cd4818acc": "ERASE"
+    },
+    "resources/views/livewire/operator/guests-list.blade.php": {
+        "491cd4818acc": "ERASE"
+    },
+    "resources/views/livewire/operator/operator-inbox.blade.php": {
+        "dd6a02a553da": "Ctrl"
+    },
+    "resources/views/livewire/operator/operator-maintenance-settings.blade.php": {
+        "05f161617aa8": "opacity:.5; pointer-events:none;"
+    },
+    "resources/views/livewire/operator/operator-roles.blade.php": {
+        "d6b540bc75c6": "M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12zm10 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"
+    },
+    "resources/views/livewire/operator/operator-settings.blade.php": {
+        "4086d8c79c4d": "Seaside Villas Lda",
+        "6451e26ee9a6": "PT123456789",
+        "fa0754b9861f": "Lisboa",
+        "d8c80c922b16": "FT2026/",
+        "339acd346446": "hello@yourhotel.com"
+    },
+    "resources/views/livewire/operator/team-chat.blade.php": {
+        "6ce6c512ea43": "Files",
+        "bb54db510a92": "Accept"
+    },
+    "resources/views/livewire/owner/balance.blade.php": {
+        "47830ae1144e": "transform:rotate(90deg);transition:transform .15s"
+    },
+    "resources/views/livewire/owner/booking-detail.blade.php": {
+        "ca59f164cda8": "2px solid #D8CFC8"
+    },
+    "resources/views/livewire/owner/owner-settings.blade.php": {
+        "649df08a448e": "English"
+    },
+    "resources/views/livewire/owner/payouts.blade.php": {
+        "4c990244c5a2": "@if ($payoutAccount['country']) ·",
+        "d25314eea195": "font-weight:600;color:#fff;margin-top:4px;border-top:1px solid rgba(255,255,255,.12);padding-top:9px"
+    },
+    "resources/views/livewire/partials/two-factor-off-dialog.blade.php": {
+        "5baa61e4c9b9": "password"
+    },
+    "resources/views/partials/operator-list-script.blade.php": {
+        "324cefd2fcd2": "AbortError"
+    },
+    "resources/views/pdfs/guest-vat-invoice.blade.php": {
+        "87fd1d1048ca": "for your booking, generated from Vyrobel's append-only folio ledger; the net and total reconcile to the figures in your account. Issued by .",
+        "60ff2f32f0cd": ", VAT"
+    },
+    "resources/views/pdfs/owner-remittance.blade.php": {
+        "55f01c729acd": "@if ($paid_on) ·",
+        "49f9effe0061": "Vyrobel · ."
+    }
+}

@@ -4,39 +4,42 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\I18n\Locales;
+use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Apply the signed-in user's saved language preference (`users.locale`) to the request.
+ * The language of a SIGNED-IN person's request (I18N-01, 2026-10-27 — the founder's rulings on PLAN.md §5).
  *
- * HONEST SCOPE: the preference is REAL — it persists and is applied here via App::setLocale. Vyrobel ships
- * only English translation strings today, so a non-'en' preference falls back to English at render time
- * (Laravel's default) — the choice is saved for when more languages land, and the Profile page says so
- * plainly. Wiring the switch now (rather than after translations) means no second change is needed then.
+ * Whose language wins (`App\Support\I18n\Locales::resolve` — only a FINISHED language is ever applied, else English):
+ *  - the web guard (staff, owners): their own `users.locale` → their organisation's default → English;
+ *  - the guest guard (its own column): `guests.language` → the guest's organisation's default → English.
+ * Signed out, this sets English; a visitor's own pick is SetVisitorLocale's job, which runs straight after and acts only
+ * when nobody is signed in.
  *
- * Guests keep their own realm, but their saved preference is honoured the SAME way (wireframe-parity WAVE 2
- * · #23): the Guest Account page offers a language setting and persists `guests.language`, and nothing ever
- * read it — the control saved a value that changed nothing. Each realm's own authenticated subject is read
- * here, never a request-supplied value, so this can only ever apply the acting user's OWN preference.
+ * Self-only: each realm's own authenticated subject is read here — never a request-supplied value — so this can only
+ * ever apply the acting person's OWN preference (pinned by UnwiredControlsTest). Each guard is asked BY NAME: whichever
+ * guard a route later makes the default, staff are the `web` guard and guests the `guest` guard, never each other. Runs
+ * in the `web` group, so a Livewire update request speaks the same language as its page.
  */
 class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // The web-guard user (operator/owner) first; then the guest realm, which has its own guard and its
-        // own column. Whichever realm is acting, only that subject's own preference is read.
-        $locale = $request->user()?->locale;
+        $user = $request->user('web');
+        $guestLanguage = $user === null ? $request->user('guest')?->language : null;
+        $guest = $user === null ? $request->user('guest') : null;
 
-        if (! is_string($locale) || $locale === '') {
-            $locale = $request->user('guest')?->language;
-        }
+        $locale = match (true) {
+            $user !== null => Locales::resolve($user->locale, Locales::organizationDefault(app(TenantContext::class)->id())),
+            $guest !== null => Locales::resolve($guestLanguage, Locales::organizationDefault($guest->organization_id)),
+            default => Locales::SOURCE,
+        };
 
-        if (is_string($locale) && $locale !== '' && in_array($locale, config('app.available_locales', ['en']), true)) {
-            App::setLocale($locale);
-        }
+        App::setLocale($locale);
 
         return $next($request);
     }

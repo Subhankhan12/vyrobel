@@ -96,6 +96,13 @@ final class CookieConsent
             'lifetime' => '30 days',
             'set_when' => 'Only if you tick “trust this device” at a two-factor prompt. Never otherwise.',
         ],
+        'vy_lang' => [   // I18N-01 — App\Http\Middleware\SetVisitorLocale
+            'category' => 'essential',
+            'always' => false,
+            'purpose' => 'Remembers the language you chose on our public pages, so the next page is in it too.',
+            'lifetime' => '365 days',
+            'set_when' => 'Only when you choose a language. Never otherwise.',
+        ],
         self::COOKIE => [
             'category' => 'essential',
             'always' => false,

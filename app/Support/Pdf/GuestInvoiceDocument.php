@@ -43,9 +43,9 @@ final class GuestInvoiceDocument
                 }
                 $netMinor += $amount;
                 $lines[] = [
-                    'label' => ucfirst(str_replace('_', ' ', (string) $item->type)),
+                    'label' => FolioDocument::itemTypeLabel((string) $item->type),   // the ONE folio item-type label (shared)
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->format('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
                     'amount' => MoneyFormatter::display($amount, $currency),
                 ];
             }
@@ -76,20 +76,20 @@ final class GuestInvoiceDocument
         $isVatDocument = $letterhead['vat_id'] !== null || $vatMinor !== 0;
 
         return [
-            'doc_title' => $isVatDocument ? 'VAT invoice' : 'Invoice',
+            'doc_title' => $isVatDocument ? __('php/support/pdf/guest_invoice_document.title_vat_invoice') : __('php/support/pdf/guest_invoice_document.title_invoice'),
             'is_vat_document' => $isVatDocument,
             'seller' => $letterhead['name'],
             'seller_is_registered' => $letterhead['is_registered'],
             'seller_vat_id' => $letterhead['vat_id'],
             'seller_city' => $letterhead['city'],
             'seller_country' => $letterhead['country'],
-            'seller_role' => OperatorLetterhead::ROLE_ACCOMMODATION,
+            'seller_role' => OperatorLetterhead::roleLabel(OperatorLetterhead::ROLE_ACCOMMODATION),
             'property' => (string) ($reservation->property->name ?? ''),
             'buyer' => $guestName !== '' ? $guestName : null,
             'invoice_no' => 'INV-'.$reservation->reference,
-            'invoice_date' => CarbonImmutable::parse($reservation->booked_at ?? $reservation->created_at)->format('j M Y'),
+            'invoice_date' => CarbonImmutable::parse($reservation->booked_at ?? $reservation->created_at)->translatedFormat('j M Y'),
             'reference' => (string) $reservation->reference,
-            'stay' => CarbonImmutable::parse($reservation->check_in)->format('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M Y'),
+            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
             'currency' => $currency,
             'lines' => $lines,
             'net' => MoneyFormatter::display($netMinor, $currency),

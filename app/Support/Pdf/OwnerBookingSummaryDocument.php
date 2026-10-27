@@ -18,7 +18,6 @@ use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 /**
  * Builds the OWNER BOOKING SUMMARY PDF view data — the REAL bookings behind ONE finalized statement's
@@ -123,8 +122,8 @@ final class OwnerBookingSummaryDocument
         $operatorVat = OperatorLetterhead::vatId($org);
         $operatorCountry = self::countryName(is_string($org->country) ? $org->country : null);
 
-        $ownerName = (string) ($statement->owner->name ?? 'Owner');
-        $periodLabel = $statement->period_start->format('F Y');
+        $ownerName = (string) ($statement->owner->name ?? __('php/support/pdf/owner_booking_summary_document.owner_fallback'));
+        $periodLabel = $statement->period_start->translatedFormat('F Y');
         $unitCount = count($byUnit);
         $grossDisplay = MoneyFormatter::display($totalMinor, $totalCurrency);
         $sequenceNo = $statement->sequence_no;
@@ -135,10 +134,9 @@ final class OwnerBookingSummaryDocument
         // so it passes that resolved form rather than the stored code.
         $addr = OperatorLetterhead::line($org, OperatorLetterhead::ROLE_MANAGING_AGENT, $operatorCountry);
 
-        $reconcile = "This booking summary lists the reservations that generated {$periodLabel}'s gross room revenue of {$grossDisplay}.";
-        $reconcile .= $sequenceNo
-            ? " It accompanies statement #{$sequenceNo}; deductions and your net payout are detailed there."
-            : ' Deductions and your net payout are detailed on the statement for this period.';
+        $reconcile = $sequenceNo
+            ? __('php/support/pdf/owner_booking_summary_document.reconcile_with_statement', ['period' => $periodLabel, 'gross' => $grossDisplay, 'number' => $sequenceNo])
+            : __('php/support/pdf/owner_booking_summary_document.reconcile_without_statement', ['period' => $periodLabel, 'gross' => $grossDisplay]);
 
         return [
             'operator' => $operator,
@@ -152,10 +150,10 @@ final class OwnerBookingSummaryDocument
             // accompanies is cross-referenced by its actual sequence_no below — never a fabricated number.
             'doc_ref' => 'BS-'.$statement->period_start->format('Y-m'),
             'period_label' => $periodLabel,
-            'period_range' => $statement->period_start->format('j M Y').' – '.$statement->period_end->format('j M Y'),
-            'subtitle' => $periodLabel.' · '.$ownerName.' · '.$unitCount.' '.Str::plural('unit', $unitCount),
+            'period_range' => $statement->period_start->translatedFormat('j M Y').' – '.$statement->period_end->translatedFormat('j M Y'),
+            'subtitle' => trans_choice('php/support/pdf/owner_booking_summary_document.subtitle', $unitCount, ['period' => $periodLabel, 'owner' => $ownerName, 'count' => $unitCount]),
             'reconcile_note' => $reconcile,
-            'footer_left' => $operatorVat !== null ? $operatorCompany.' · VAT '.$operatorVat : $operatorCompany,
+            'footer_left' => $operatorVat !== null ? __('php/support/pdf/owner_booking_summary_document.footer_with_vat', ['company' => $operatorCompany, 'vat' => $operatorVat]) : $operatorCompany,
             'currency' => $totalCurrency,
             'unit_count' => $unitCount,
 
@@ -340,7 +338,7 @@ final class OwnerBookingSummaryDocument
 
         return [
             'nights' => $nights,
-            'dates' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+            'dates' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
             'sort_key' => $checkIn->getTimestamp(),
         ];
     }
@@ -397,14 +395,17 @@ final class OwnerBookingSummaryDocument
      */
     private static function bySource(array $rows, string $currency, array $otaByReservation): array
     {
+        // Grouped by the source CODE, never by its (translated) label — two labels that read the same in some
+        // language must not merge two sources (I18N rule 6). The label is the group's own, from the ONE map.
         /** @var array<string, list<BookingRow>> $groups */
         $groups = [];
         foreach ($rows as $row) {
-            $groups[$row['source_label']][] = $row;
+            $groups[$row['source'] ?? ''][] = $row;
         }
 
         $out = [];
-        foreach ($groups as $label => $group) {
+        foreach ($groups as $group) {
+            $label = $group[0]['source_label'];
             $revenue = (int) array_sum(array_column($group, 'net_minor'));
 
             // Channel commission for this source = Σ ota_cost over its DISTINCT reservations.
@@ -418,8 +419,8 @@ final class OwnerBookingSummaryDocument
                 'bookings' => self::countReservations($group),
                 'commission_minor' => $commission,
                 'commission_note' => $commission > 0
-                    ? MoneyFormatter::display($commission, $currency).' commission'
-                    : 'no commission',
+                    ? __('php/support/pdf/owner_booking_summary_document.commission_amount', ['amount' => MoneyFormatter::display($commission, $currency)])
+                    : __('php/support/pdf/owner_booking_summary_document.no_commission'),
                 'revenue_minor' => $revenue,
                 'revenue_display' => MoneyFormatter::display($revenue, $currency),
             ];
@@ -471,13 +472,13 @@ final class OwnerBookingSummaryDocument
     private static function sourceLabel(string $source): string
     {
         return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA / channel',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'manual' => 'Manual',
+            'direct' => __('php/support/pdf/owner_booking_summary_document.source_direct'),
+            'walk_in' => __('php/support/pdf/owner_booking_summary_document.source_walk_in'),
+            'ota' => __('php/support/pdf/owner_booking_summary_document.source_ota'),
+            'corporate' => __('php/support/pdf/owner_booking_summary_document.source_corporate'),
+            'group' => __('php/support/pdf/owner_booking_summary_document.source_group'),
+            'agent' => __('php/support/pdf/owner_booking_summary_document.source_agent'),
+            'manual' => __('php/support/pdf/owner_booking_summary_document.source_manual'),
             default => ucwords(str_replace('_', ' ', $source)),
         };
     }

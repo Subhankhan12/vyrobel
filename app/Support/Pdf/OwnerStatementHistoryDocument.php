@@ -29,11 +29,11 @@ final class OwnerStatementHistoryDocument
             : null;
 
         $rows = $statements->map(fn (OwnerStatement $s): array => [
-            'month_label' => $s->period_start->format('F Y'),
-            'period_range' => $s->period_start->format('j M Y').' – '.$s->period_end->format('j M Y'),
+            'month_label' => $s->period_start->translatedFormat('F Y'),
+            'period_range' => $s->period_start->translatedFormat('j M Y').' – '.$s->period_end->translatedFormat('j M Y'),
             'gross_display' => MoneyFormatter::display((int) $s->gross_minor, (string) $s->source_currency),
             'net_display' => MoneyFormatter::display((int) $s->net_payable_minor, (string) $s->currency),
-            'status_label' => $s->status === 'paid' ? 'Paid' : 'Payout pending',
+            'status_label' => $s->status === 'paid' ? __('php/support/pdf/owner_statement_history_document.status_paid') : __('php/support/pdf/owner_statement_history_document.status_payout_pending'),
         ])->values()->all();
 
         // Σ per payout currency — reconciles to the listed rows; rendered per currency (never summed across).
@@ -47,12 +47,12 @@ final class OwnerStatementHistoryDocument
             ->all();
 
         $company = $org instanceof Organization ? (string) ($org->billing_company ?: $org->name) : 'Vyrobel';
-        $ownerName = ($first instanceof OwnerStatement && $first->owner !== null) ? (string) $first->owner->name : 'Owner';
+        $ownerName = ($first instanceof OwnerStatement && $first->owner !== null) ? (string) $first->owner->name : __('php/support/pdf/owner_statement_history_document.owner_fallback');
 
         return [
             'company' => $company,
             'owner_name' => $ownerName,
-            'scope_label' => $year !== null ? (string) $year : 'All years',
+            'scope_label' => $year !== null ? (string) $year : __('php/support/pdf/owner_statement_history_document.all_years'),
             'count' => $statements->count(),
             'rows' => $rows,
             'net_totals' => $totals,

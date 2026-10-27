@@ -77,8 +77,8 @@ final class OwnerStatementDocument
             : null;
 
         $issued = $statement->finalized_at !== null
-            ? $statement->finalized_at->format('j M Y')
-            : $statement->period_end->format('j M Y');
+            ? $statement->finalized_at->translatedFormat('j M Y')
+            : $statement->period_end->translatedFormat('j M Y');
 
         return [
             // Letterhead / identity
@@ -89,8 +89,8 @@ final class OwnerStatementDocument
             'sequence_no' => $statement->sequence_no,
 
             // Title / subtitle
-            'period_label' => $statement->period_start->format('F Y'),
-            'owner_name' => (string) ($statement->owner->name ?? 'Owner'),
+            'period_label' => $statement->period_start->translatedFormat('F Y'),
+            'owner_name' => (string) ($statement->owner->name ?? __('php/support/pdf/owner_statement_document.owner_fallback')),
             // The owner's REAL registered address (GATE 3) — the recipient block. Empty parts are dropped, so an
             // owner who hasn't set an address simply shows none (never a fabricated line, #39).
             'owner_address_lines' => self::addressLines(is_array($statement->owner?->address) ? $statement->owner->address : []),
@@ -100,7 +100,7 @@ final class OwnerStatementDocument
             // Net-payable headline + stats
             'currency' => $currency,
             'net_display' => MoneyFormatter::display((int) $statement->net_payable_minor, $currency),
-            'status_label' => $statement->status === 'paid' ? 'Paid' : 'Payout pending',
+            'status_label' => $statement->status === 'paid' ? __('php/support/pdf/owner_statement_document.status_paid') : __('php/support/pdf/owner_statement_document.status_payout_pending'),
             'iban_masked' => $ibanMasked,
             'occupancy_pct' => (int) $breakdown['total_occupancy_pct'],
             'nights' => $nights,
@@ -157,7 +157,10 @@ final class OwnerStatementDocument
             $nights = (int) $breakdown['total_nights'];
             $units = (int) $breakdown['unit_count'];
 
-            return $nights.' '.($nights === 1 ? 'night' : 'nights').' · '.$units.' '.($units === 1 ? 'unit' : 'units');
+            return __('php/support/pdf/owner_statement_document.gross_detail', [
+                'nights' => trans_choice('php/support/pdf/owner_statement_document.nights', $nights, ['count' => $nights]),
+                'units' => trans_choice('php/support/pdf/owner_statement_document.units', $units, ['count' => $units]),
+            ]);
         }
 
         if ($gross === 0 || ! in_array($lineType, ['commission', 'ota_cost'], true)) {
@@ -166,6 +169,8 @@ final class OwnerStatementDocument
 
         $pct = (int) round(abs($amount) / $gross * 100);
 
-        return $pct.'% of '.($lineType === 'commission' ? 'gross room revenue' : 'gross revenue');
+        return $lineType === 'commission'
+            ? __('php/support/pdf/owner_statement_document.pct_of_gross_room_revenue', ['pct' => $pct])
+            : __('php/support/pdf/owner_statement_document.pct_of_gross_revenue', ['pct' => $pct]);
     }
 }

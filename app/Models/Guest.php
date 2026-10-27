@@ -10,6 +10,7 @@ use App\Models\Concerns\HasTags;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\Locales;
 use App\Support\Inbox\MessageAttachments;
 use App\Support\Security\ActiveSessions;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
@@ -18,6 +19,7 @@ use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,7 +54,7 @@ use Illuminate\Support\Str;
  * @property array<int, string>|null $preferences
  * @property Carbon|null $scheduled_deletion_at
  */
-class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, MustVerifyEmailContract
+class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, HasLocalePreference, MustVerifyEmailContract
 {
     use AuthenticatableTrait, BelongsToOrganization, CanResetPasswordTrait, HasDocuments, HasFactory, HasNotes, HasTags, HasUlids, MustVerifyEmailTrait, Notifiable, SoftDeletes;
 
@@ -148,6 +150,15 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
     }
 
     /** The account is CLAIMED (can log in) only once a password is set AND the email is verified. */
+    /**
+     * The language a guest's mail goes out in (I18N-01): their own `guests.language` → their organisation's default →
+     * English; only a finished language is ever used. Laravel reads this for every Mailable and notification to a guest.
+     */
+    public function preferredLocale(): string
+    {
+        return Locales::resolve($this->language, Locales::organizationDefault($this->organization_id));
+    }
+
     public function hasPortalAccount(): bool
     {
         return $this->password !== null && $this->email_verified_at !== null;
@@ -166,7 +177,7 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
     /** Deliver the guest reset link through our own branded, email-safe Mailable (Mailpit in dev; prod: a provider). */
     public function sendPasswordResetNotification($token): void
     {
-        Mail::to((string) $this->email)->send(new GuestPasswordResetMail((string) $token, GuestName::display($this)));
+        Mail::to((string) $this->email)->locale($this->preferredLocale())->send(new GuestPasswordResetMail((string) $token, GuestName::display($this)));
     }
 
     /**
@@ -233,11 +244,46 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
         $labels = [];
         foreach (is_array($this->preferences) ? $this->preferences : [] as $key) {
             if (isset(self::PREFERENCE_CATALOG[$key])) {
-                $labels[] = self::PREFERENCE_CATALOG[$key];
+                $labels[] = self::preferenceLabel((string) $key);
             }
         }
 
         return $labels;
+    }
+
+    /**
+     * A stay-preference CODE ({@see PREFERENCE_CATALOG}'s key) → its label in the reader's language, translated at
+     * call time (I18N-01). The constant keeps the codes and the English; this is what a screen prints.
+     */
+    public static function preferenceLabel(string $key): string
+    {
+        return match ($key) {
+            'sea_view' => (string) __('php/models/guest.pref_sea_view'),
+            'high_floor' => (string) __('php/models/guest.pref_high_floor'),
+            'late_checkout' => (string) __('php/models/guest.pref_late_checkout'),
+            'quiet_room' => (string) __('php/models/guest.pref_quiet_room'),
+            'ground_floor' => (string) __('php/models/guest.pref_ground_floor'),
+            'early_checkin' => (string) __('php/models/guest.pref_early_checkin'),
+            'extra_towels' => (string) __('php/models/guest.pref_extra_towels'),
+            'crib' => (string) __('php/models/guest.pref_crib'),
+            default => self::PREFERENCE_CATALOG[$key] ?? $key,
+        };
+    }
+
+    /**
+     * The whole stay-preference catalog, CODE → translated label, in catalog order — keyed by the code, never by
+     * a label (rule 6), so two labels that translate alike can never merge two preferences.
+     *
+     * @return array<string, string>
+     */
+    public static function preferenceCatalog(): array
+    {
+        $catalog = [];
+        foreach (array_keys(self::PREFERENCE_CATALOG) as $key) {
+            $catalog[$key] = self::preferenceLabel($key);
+        }
+
+        return $catalog;
     }
 
     /**

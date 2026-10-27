@@ -5,11 +5,13 @@ use App\Http\Controllers\PublicMediaController;
 use App\Http\Middleware\EndSessionsOnPasswordChange;
 use App\Http\Middleware\EnforceSessionTimeout;
 use App\Http\Middleware\EnterBreakGlassSession;
+use App\Http\Middleware\MirrorForRtl;
 use App\Http\Middleware\RefuseWritesDuringBreakGlass;
 use App\Http\Middleware\RequirePasswordBeforeReauth;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
+use App\Http\Middleware\SetVisitorLocale;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Platform\BreakGlass;
 use App\Support\Security\RefusalLog;
@@ -95,9 +97,12 @@ return Application::configure(basePath: dirname(__DIR__))
             //    the rule that was always going to run. See RequirePasswordBeforeReauth.
             RequirePasswordBeforeReauth::class,
             SetTenantForWebRequest::class,
-            // Apply the signed-in user's saved language preference (English-only strings today; the
-            // preference is real and persists — see App\Http\Middleware\SetLocale).
+            // I18N-01 — the request's language: a signed-in person's own choice (SetLocale, self-only), else a signed-out
+            // visitor's pick from the language menu, English by default (SetVisitorLocale). Only finished languages apply.
             SetLocale::class,
+            SetVisitorLocale::class,
+            // I18N-01 — Arabic and Persian read right to left: the page's own CSS is mirrored on the way out (LTR untouched)
+            MirrorForRtl::class,
             // ⚠️⚠️ ADMIN 01 · PHASE 3 — BREAK-GLASS READ-ONLY, LAYER 1: every non-GET request from a browser holding a
             //    break-glass session is refused, on EVERY web route (Livewire updates included) outside /admin.
             RefuseWritesDuringBreakGlass::class,

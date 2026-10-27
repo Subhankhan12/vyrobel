@@ -32,10 +32,10 @@ final class ArrivalPackDocument
     {
         return [
             'reference' => (string) $reservation->reference,
-            'property' => (string) ($reservation->property->name ?? 'Your stay'),
+            'property' => (string) ($reservation->property->name ?? __('php/support/pdf/arrival_pack_document.property_fallback')),
             'guestName' => GuestName::display($reservation->leadGuest),
-            'checkIn' => CarbonImmutable::parse($reservation->check_in)->format('l, j M Y'),
-            'checkOut' => CarbonImmutable::parse($reservation->check_out)->format('l, j M Y'),
+            'checkIn' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('l, j M Y'),
+            'checkOut' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('l, j M Y'),
             'pack' => ArrivalPack::for($reservation, $today),
         ];
     }

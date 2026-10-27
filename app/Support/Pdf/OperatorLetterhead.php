@@ -32,11 +32,27 @@ use App\Models\Organization;
  */
 final class OperatorLetterhead
 {
-    /** The role word for owner-facing documents — the operator manages the owner's units. */
+    /**
+     * The role for owner-facing documents — the operator manages the owner's units. A CODE (its English
+     * word): {@see roleLabel()} turns it into the words a reader sees, in their language.
+     */
     public const ROLE_MANAGING_AGENT = 'Managing agent';
 
-    /** The role word for guest-facing documents — the operator is the supplier of the stay. */
+    /** The role for guest-facing documents — the operator is the supplier of the stay. A code, as above. */
     public const ROLE_ACCOMMODATION = 'Accommodation provider';
+
+    /**
+     * A role code → the role as a reader reads it. `$locale` pins the language (the owner agreement, a legal
+     * document, stays English whatever the reader's language); null → the current request's language.
+     */
+    public static function roleLabel(string $role, ?string $locale = null): string
+    {
+        return match ($role) {
+            self::ROLE_MANAGING_AGENT => __('php/support/pdf/operator_letterhead.role_managing_agent', [], $locale),
+            self::ROLE_ACCOMMODATION => __('php/support/pdf/operator_letterhead.role_accommodation', [], $locale),
+            default => $role,
+        };
+    }
 
     /**
      * The full identity block, for a document that lays the seller out over several lines
@@ -82,18 +98,20 @@ final class OperatorLetterhead
      * drift that already existed between five hand-rolled copies of this rule. Rather than silently
      * change what an existing document says, the caller passes its resolved form and still shares the
      * rule. Pass null to use the stored value.
+     *
+     * `$locale` pins the language of the words (see {@see roleLabel()}); null → the current request's language.
      */
-    public static function line(?Organization $org, string $role = self::ROLE_MANAGING_AGENT, ?string $countryDisplay = null): string
+    public static function line(?Organization $org, string $role = self::ROLE_MANAGING_AGENT, ?string $countryDisplay = null, ?string $locale = null): string
     {
         $org ??= new Organization;
-        $out = $role;
+        $out = self::roleLabel($role, $locale);
 
         if (($country = $countryDisplay ?? self::clean($org->country)) !== null && trim($country) !== '') {
             $out .= ' · '.$country;
         }
 
         if (($vat = self::vatId($org)) !== null) {
-            $out .= ' · VAT '.$vat;
+            $out .= ' · '.__('php/support/pdf/operator_letterhead.vat_number', ['vat' => $vat], $locale);
         }
 
         return $out;

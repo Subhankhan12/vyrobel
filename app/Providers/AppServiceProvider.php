@@ -93,6 +93,7 @@ use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\I18n\Locales;
 use App\Support\Llm\AnthropicLlmClient;
 use App\Support\Llm\FakeLlmClient;
 use App\Support\Llm\LlmClientInterface;
@@ -106,11 +107,13 @@ use App\Support\Platform\PlatformWriteGuard;
 use App\Support\Property\PropertyContext;
 use App\Support\Safety\BaselineTenantWriteGuard;
 use App\Support\Tenancy\TenantContext;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSending;
@@ -451,6 +454,10 @@ class AppServiceProvider extends ServiceProvider
         //    accepted, for the health board. See SuppressUndeliverableRecipients / RecordAcceptedMail.
         Event::listen(MessageSending::class, SuppressUndeliverableRecipients::class);
         Event::listen(MessageSent::class, RecordAcceptedMail::class);
+        // I18N-01 — month and day names follow the page's language: Laravel moves its translator on App::setLocale but never
+        //    Carbon, so a translatedFormat()/diffForHumans() stayed English. Serbian maps to Carbon's CYRILLIC messages
+        //    (`sr_Cyrl`) — Carbon's plain `sr` is Latin (hrmzy's lesson). The map lives in App\Support\I18n\Locales.
+        Event::listen(LocaleUpdated::class, fn (LocaleUpdated $event) => Carbon::setLocale(Locales::carbon($event->locale)));
 
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof

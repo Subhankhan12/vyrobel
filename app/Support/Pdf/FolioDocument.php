@@ -48,7 +48,7 @@ final class FolioDocument
             'property' => (string) ($reservation->property->name ?? ''),
             'reference' => (string) $reservation->reference,
             'guest' => $guestName !== '' ? $guestName : null,
-            'stay' => CarbonImmutable::parse($reservation->check_in)->format('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M Y'),
+            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
             'currency' => $currency,
             'has_folio' => $folio !== null,
             'lines' => $lines,
@@ -81,9 +81,9 @@ final class FolioDocument
             $entries[] = [
                 'ts' => CarbonImmutable::parse($item->posted_at ?? $item->created_at)->getTimestamp(),
                 'line' => [
-                    'label' => ucfirst(str_replace('_', ' ', (string) $item->type)),
+                    'label' => self::itemTypeLabel((string) $item->type),
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->format('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
                     'amount' => ($amount < 0 ? '' : '+').MoneyFormatter::display($amount, $currency),
                     'is_negative' => $amount < 0,
                     'flag' => null,
@@ -95,17 +95,17 @@ final class FolioDocument
             $amount = (int) $payment->amount_minor;
             $type = (string) $payment->type;
             $status = (string) $payment->status;
-            $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M');
+            $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M');
 
             if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
-                $line = ['label' => $type === 'capture' ? 'Capture' : 'Payment', 'desc' => 'Received', 'date' => $date, 'amount' => '−'.MoneyFormatter::display($amount, $currency), 'is_negative' => true, 'flag' => null];
+                $line = ['label' => self::paymentTypeLabel($type), 'desc' => __('php/support/pdf/folio_document.desc_received'), 'date' => $date, 'amount' => '−'.MoneyFormatter::display($amount, $currency), 'is_negative' => true, 'flag' => null];
             } elseif ($type === 'refund' && $status === 'succeeded') {
-                $line = ['label' => 'Refund', 'desc' => 'Reverses a payment', 'date' => $date, 'amount' => '+'.MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => null];
+                $line = ['label' => self::paymentTypeLabel('refund'), 'desc' => __('php/support/pdf/folio_document.desc_reverses_payment'), 'date' => $date, 'amount' => '+'.MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => null];
             } elseif ($type === 'deposit_hold' && $status === 'authorized') {
-                $line = ['label' => 'Deposit hold', 'desc' => 'Pre-authorized', 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => 'Hold'];
+                $line = ['label' => self::paymentTypeLabel('deposit_hold'), 'desc' => __('php/support/pdf/folio_document.desc_pre_authorized'), 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => __('php/support/pdf/folio_document.flag_hold')];
             } else {
-                $flag = $status === 'pending' ? 'Pending' : ucfirst($status);
-                $line = ['label' => ucfirst(str_replace('_', ' ', $type)), 'desc' => 'Not counted in the balance', 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => $flag];
+                $flag = self::statusFlag($status);
+                $line = ['label' => self::paymentTypeLabel($type), 'desc' => __('php/support/pdf/folio_document.desc_not_counted'), 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => $flag];
             }
 
             $entries[] = ['ts' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->getTimestamp(), 'line' => $line];
@@ -114,5 +114,49 @@ final class FolioDocument
         usort($entries, fn (array $a, array $b): int => $a['ts'] <=> $b['ts']);
 
         return array_map(fn (array $e): array => $e['line'], $entries);
+    }
+
+    /** A folio item's `type` enum → its line label, in the reader's language (an unknown type is title-cased, never dropped). */
+    public static function itemTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'room' => __('php/support/pdf/folio_document.item_room'),
+            'tax' => __('php/support/pdf/folio_document.item_tax'),
+            'fee' => __('php/support/pdf/folio_document.item_fee'),
+            'add_on' => __('php/support/pdf/folio_document.item_add_on'),
+            'product' => __('php/support/pdf/folio_document.item_product'),
+            'manual' => __('php/support/pdf/folio_document.item_manual'),
+            'discount' => __('php/support/pdf/folio_document.item_discount'),
+            default => ucfirst(str_replace('_', ' ', $type)),
+        };
+    }
+
+    /** A payment's `type` enum → its line label. */
+    private static function paymentTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'payment' => __('php/support/pdf/folio_document.payment_payment'),
+            'capture' => __('php/support/pdf/folio_document.payment_capture'),
+            'refund' => __('php/support/pdf/folio_document.payment_refund'),
+            'deposit_hold' => __('php/support/pdf/folio_document.payment_deposit_hold'),
+            'void' => __('php/support/pdf/folio_document.payment_void'),
+            'chargeback' => __('php/support/pdf/folio_document.payment_chargeback'),
+            default => ucfirst(str_replace('_', ' ', $type)),
+        };
+    }
+
+    /** The flag on a line that does not count in the balance — the payment's `status` enum as a word. */
+    private static function statusFlag(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('php/support/pdf/folio_document.flag_pending'),
+            'succeeded' => __('php/support/pdf/folio_document.flag_succeeded'),
+            'failed' => __('php/support/pdf/folio_document.flag_failed'),
+            'refunded' => __('php/support/pdf/folio_document.flag_refunded'),
+            'authorized' => __('php/support/pdf/folio_document.flag_authorized'),
+            'captured' => __('php/support/pdf/folio_document.flag_captured'),
+            'voided' => __('php/support/pdf/folio_document.flag_voided'),
+            default => ucfirst($status),
+        };
     }
 }
