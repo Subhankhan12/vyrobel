@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Money;
 
+use App\Support\I18n\LocalNumber;
+
 /**
  * Parse a HAND-TYPED money amount to integer minor units — the one place that turns a text field into the
  * minor units the {@see Money} value object and the folio/rate tables store (convention #3 / invariant #17).
@@ -16,15 +18,15 @@ namespace App\Support\Money;
 final class MoneyInput
 {
     /**
-     * Minor units for a positive amount with up to two decimals (an optional currency glyph and thousands
-     * commas are tolerated); null for anything invalid, non-positive, or above $maxMinor.
+     * Minor units for a positive amount with up to two decimals, typed the way the page's language writes it — "150.50",
+     * "150,50", "1.234,50", "1,234.50", a currency glyph — read by {@see LocalNumber} (D-MONEY-COMMA: "150,50" was read as
+     * 15050). Null for anything invalid, ambiguous, non-positive, or above $maxMinor.
      */
     public static function toMinor(string $input, int $maxMinor = PHP_INT_MAX): ?int
     {
-        $clean = str_replace([' ', ','], '', trim($input));
-        $clean = ltrim($clean, '€£$');
+        $clean = LocalNumber::normalize($input, 2);
 
-        if ($clean === '' || preg_match('/^\d+(\.\d{1,2})?$/', $clean) !== 1) {
+        if ($clean === null || preg_match('/^\d+(\.\d{1,2})?$/', $clean) !== 1) {
             return null;
         }
 

@@ -239,12 +239,8 @@ return [
     'miss_guest_name' => 'Enter the guest’s first or last name.',
     'miss_email' => 'That email address doesn’t look right — check it, or leave it empty.',
     'miss_override_note' => 'Say why in the note — it’s needed when you choose Other.',
-    // the amount paid now: a comma for cents is refused (it reads as thousands)
-    'miss_pay_comma' => 'Use a dot for cents, e.g. 150.50 — a comma reads as thousands.',
     'miss_pay_amount' => 'Enter the amount paid now, e.g. 150 or 150.00.',
     'mail_needs_profile_address' => 'Needs an email address on the guest’s profile — someone who manages guests can add one.',
-    // the price set from here: a comma for cents is refused (it reads as thousands)
-    'price_comma' => 'Use a dot for cents, e.g. 120.50 — a comma reads as thousands.',
     'price_amount' => 'Enter the price a night, e.g. 120 or 120.50.',
     // the party when there are children: :adults and :children are the counts in words
     'party_with_children' => ':adults, :children',

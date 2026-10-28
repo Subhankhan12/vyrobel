@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Support\Billing\PlanIntegrity;
+use App\Support\I18n\LocalNumber;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
@@ -58,6 +59,7 @@ class PlanController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        LocalNumber::mergeInto($request, ['price', 'unit_rate']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $validated = $request->validate(PlanIntegrity::rules(), ConsoleFields::messages(), ConsoleFields::names());
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
@@ -116,6 +118,7 @@ class PlanController extends Controller
         // ⚠️ THE SAME RULESET AS CREATE (§N.8f). This method previously validated only `name` + `price`, so a
         // per-unit plan could be saved through it with no rate at all, and `pricing_type` was not checked to be
         // one of the two shapes the engine understands.
+        LocalNumber::mergeInto($request, ['price', 'unit_rate']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $validated = $request->validate(PlanIntegrity::rules($model->id) + [
             'is_active' => ['nullable', 'boolean'],
             'features' => ['array'],

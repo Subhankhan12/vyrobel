@@ -11,6 +11,7 @@ use App\Models\Reservation;
 use App\Services\CompanyAccountService;
 use App\Services\FolioService;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyInput;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -225,16 +226,18 @@ class ReservationFolioActionController extends Controller
         return implode(' · ', $parts);
     }
 
-    /** Parse an operator-entered major-unit amount (e.g. "50.00") to integer minor units. */
+    /**
+     * Parse an operator-entered major-unit amount ("50.00", "50,00", "1.234,50") to integer minor units — 0 when it cannot
+     * be read. ⚠️ D-MONEY-COMMA: this was `(int) round((float) $raw * 100)`, which read "150,50" as 150 (the cents silently
+     * gone) on a payment, a charge or a refund. Now the ONE money reader, {@see MoneyInput::toMinor()}.
+     */
     private function parseAmountMinor(mixed $raw): int
     {
         if (! is_string($raw) && ! is_numeric($raw)) {
             return 0;
         }
 
-        $value = (float) $raw;
-
-        return $value > 0 ? (int) round($value * 100) : 0;
+        return MoneyInput::toMinor((string) $raw) ?? 0;
     }
 
     /**

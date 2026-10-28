@@ -6,7 +6,6 @@
 return [
     'nights' => '{1} :count night|[0,*] :count nights',
     'open_full_form' => 'Open the full form',
-    'price_err_comma' => 'Use a dot for cents, e.g. 120.50 — a comma reads as thousands.',
     'price_err_invalid' => 'Enter the price a night, e.g. 120 or 120.50.',
     'apply_season_title' => 'Apply this season?',
     'title' => 'New reservation',

@@ -13,6 +13,7 @@ use App\Models\OwnerUser;
 use App\Models\Unit;
 use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\CommissionChange;
@@ -52,6 +53,7 @@ class OwnerManageController extends Controller
         }
 
         $model = Owner::query()->findOrFail($owner);
+        LocalNumber::mergeInto($request, ['commission_pct']);   // D-MONEY-COMMA: "12,5" read in the page's language before `numeric`
         $validated = $request->validate([
             'commission_pct' => ['required', 'numeric', 'min:0', 'max:100'],
         ], [

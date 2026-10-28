@@ -14,6 +14,7 @@ use App\Notifications\Operator\MaintenanceReassignedNotification;
 use App\Notifications\Operator\MaintenanceResolvedNotification;
 use App\Services\MaintenanceService;
 use App\Support\Export\CsvSafe;
+use App\Support\I18n\LocalNumber;
 use App\Support\Maintenance\MaintenanceListParams;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
@@ -328,6 +329,7 @@ class MaintenanceActionController extends Controller
      */
     public function resolve(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
+        LocalNumber::mergeInto($request, ['cost', 'labor', 'parts', 'time_spent']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $validated = $request->validate([
             'cost' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'labor' => ['nullable', 'numeric', 'min:0', 'max:99999999'],

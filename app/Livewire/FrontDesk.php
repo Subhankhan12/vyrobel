@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\UnitRateOverride;
 use App\Services\FrontDeskService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -81,7 +82,7 @@ class FrontDesk extends Component
 
         return view('livewire.front-desk', [
             'viewer' => $this->viewer(),
-            'property' => $property !== null ? ['id' => $property->id, 'name' => $property->name] : null,
+            'property' => $property !== null ? ['id' => $property->id, 'name' => $property->name, 'currency_symbol' => MoneyFormatter::symbol((string) ($property->currency ?? 'EUR'))] : null,
             'day' => [
                 'date' => $date,
                 'label' => $day->translatedFormat('l, j M Y'),
@@ -376,6 +377,7 @@ class FrontDesk extends Component
                 'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
                 'balance_minor' => $balanceMinor,
                 'balance' => $this->money($balanceMinor, $currency),
+                'currency_symbol' => MoneyFormatter::symbol($currency),   // D-MONEY-COMMA: the collect readout's "Records €150.50"
                 'has_balance' => $balanceMinor > 0,
                 'can_check_in' => $status === 'confirmed' && $canCheckIn,
                 'can_check_out' => $status === 'checked_in' && $canCheckOut,

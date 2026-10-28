@@ -15,5 +15,9 @@
         </select>
         <button type="submit" class="vy-act vy-act--accent">{{ __('livewire/partials/fd-collect-form.collect_button') }}</button>
     </div>
+    {{-- D-MONEY-COMMA — what the server will record, as typed, by the server's own rule (LocalNumber's script copy) --}}
+    <p class="vy-money-readout" aria-live="polite"
+       x-text="window.vyLocalNumber ? window.vyLocalNumber.readout(collectAmt, row.currency_symbol || '', @js(__('components/money-readout.records', ['amount' => ':amount'])), @js(__('components/money-readout.write_like', ['example' => \App\Support\I18n\LocalNumber::example()]))) : ''"></p>
+@once @include('partials.local-number-script') @endonce
     <div class="vy-fdm-hint">{{ __('livewire/partials/fd-collect-form.hint') }}</div>
 </form>

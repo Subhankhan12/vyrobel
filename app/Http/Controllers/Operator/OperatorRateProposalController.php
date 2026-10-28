@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\RateProposal;
 use App\Services\RateProposalService;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyInput;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +31,7 @@ class OperatorRateProposalController extends Controller
 
     public function store(Request $request, RateProposalService $proposals): RedirectResponse
     {
+        LocalNumber::mergeInto($request, ['weekend_uplift']);   // D-MONEY-COMMA: "12,5" read in the page's language before `numeric`
         $data = $request->validate([
             'owner_id' => ['required', 'string'],
             'room_type_id' => ['required', 'string'],

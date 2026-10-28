@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\Unit;
 use App\Services\OwnerInviteService;
+use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
 use App\Support\Property\PropertyContext;
@@ -54,6 +55,7 @@ class InviteOwnerController extends Controller
             ],
         );
 
+        LocalNumber::mergeInto($request, ['commission_pct']);   // D-MONEY-COMMA: "12,5" read in the page's language before `numeric`
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190'],

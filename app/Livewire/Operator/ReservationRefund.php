@@ -223,6 +223,7 @@ class ReservationRefund extends Component
             // THE CAP the input carries, in major units. Plain `.`-decimal, no thousands separator — a
             // grouped "1,200.00" is not a valid HTML number `max` and the browser would drop the cap.
             'max_input' => number_format($remainingMinor / 100, 2, '.', ''),
+            'max_minor' => $remainingMinor,   // the readout's REAL cap (D-MONEY-COMMA: a text field has no `max`)
             'refundable' => $remainingMinor > 0,
             // Total over the four real combinations; nothing is left to an unlabelled fallthrough.
             'state' => match (true) {

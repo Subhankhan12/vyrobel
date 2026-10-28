@@ -101,10 +101,12 @@
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
                                         <label class="vy-field-label" for="amount-{{ $payment['id'] }}">{{ __('livewire/operator/reservation-refund.refund_part', ['currency' => $payment['currency']]) }}</label>
                                         <div class="vy-input-group">
-                                            <input class="vy-input" type="number" inputmode="decimal" step="0.01"
-                                                min="0.01" max="{{ $payment['max_input'] }}"
+                                            {{-- D-MONEY-COMMA: text + a decimal keypad, read by the server in the page's language; the server
+                                                 caps the refund at what is refundable (#27), as it always did --}}
+                                            <input class="vy-input" type="text" inputmode="decimal" autocomplete="off"
                                                 name="amount" id="amount-{{ $payment['id'] }}" placeholder="0.00">
                                         </div>
+                                        <x-money-readout :for="'amount-'.$payment['id']" :currency="$payment['currency']" verb="refunds" :max-minor="$payment['max_minor']" />
 
                                         {{-- #100 — the refund REASON (recorded on the folio + reports) + REFUND-TO. --}}
                                         <label class="vy-field-label" style="margin-top: 12px;">{{ __('livewire/operator/reservation-refund.reason') }} <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">{{ __('livewire/operator/reservation-refund.reason_note') }}</span></label>

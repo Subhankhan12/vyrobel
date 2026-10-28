@@ -11,8 +11,10 @@ use App\Models\GuestCreditEntry;
 use App\Models\Reservation;
 use App\Services\GuestWalletService;
 use App\Support\Guest\GuestPayments;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Money\MoneyInput;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -71,8 +73,9 @@ class GuestWalletController extends Controller
     public function apply(Request $request, string $reservation): RedirectResponse
     {
         $model = $this->owned($reservation);
+        LocalNumber::mergeInto($request, ['amount']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $data = $request->validate(['amount' => ['required', 'numeric', 'gt:0']]);
-        $amountMinor = (int) round(((float) $data['amount']) * 100);
+        $amountMinor = MoneyInput::toMinor((string) $data['amount']) ?? 0;
 
         try {
             $this->wallet->applyToBooking($this->guest(), $model, Money::of($amountMinor, (string) $model->currency));

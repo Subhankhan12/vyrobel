@@ -326,9 +326,12 @@
                         <label class="vy-field-label" for="amount">{{ __('livewire/reservation-detail.amount_currency', ['currency' => $reservation['currency']]) }}</label>
                         <div class="vy-input-group">
                             <label class="vy-field-label" for="amount">0.00</label>
-                            <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" id="amount" placeholder="0.00">
+                            {{-- D-MONEY-COMMA: text + a decimal keypad, read by the server in the page's language (a number field
+                                 refused "150,50" in an English browser before it was ever sent) --}}
+                            <input class="vy-input" type="text" inputmode="decimal" autocomplete="off" name="amount" id="amount" placeholder="0.00">
                             <x-busy-btn class="vy-btn vy-btn--accent" :busy-label="__('livewire/reservation-detail.recording')">{{ __('livewire/reservation-detail.record_button') }}</x-busy-btn>
                         </div>
+                        <x-money-readout for="amount" :currency="$reservation['currency']" verb="records" />
                     </form>
                     <div class="vy-recon" style="margin-top: 12px;">{{ __('livewire/reservation-detail.payment_note') }}</div>
                 </div>
@@ -397,9 +400,10 @@
                                 </select>
                                 <label class="vy-field-label" for="vy-lbl-reservation-detail-description">{{ __('livewire/reservation-detail.description') }}</label>
                                 <input id="vy-lbl-reservation-detail-description" class="vy-input" type="text" name="description" maxlength="120" placeholder="{{ __('livewire/reservation-detail.description') }}" style="flex: 1 1 110px;">
-                                <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" placeholder="0.00" style="flex: 0 0 88px;">
+                                <input class="vy-input" type="text" inputmode="decimal" autocomplete="off" name="amount" id="vy-rd-charge-amount" aria-label="{{ __('livewire/reservation-detail.amount_currency', ['currency' => $reservation['currency']]) }}" placeholder="0.00" style="flex: 0 0 88px;">
                                 <x-busy-btn class="vy-btn vy-btn--ghost" :busy-label="__('livewire/reservation-detail.adding')">{{ __('common.add') }}</x-busy-btn>
                             </div>
+                            <x-money-readout for="vy-rd-charge-amount" :currency="$reservation['currency']" verb="charges" />
                         </form>
                     @endcan
 

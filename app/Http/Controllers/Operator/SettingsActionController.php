@@ -19,6 +19,7 @@ use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Guest\PropertySupport;
+use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
@@ -275,6 +276,7 @@ class SettingsActionController extends Controller
 
         $property = $this->currentProperty();
 
+        LocalNumber::mergeInto($request, ['amount']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'basis' => ['required', 'in:per_stay,per_night,per_guest'],
@@ -428,6 +430,7 @@ class SettingsActionController extends Controller
         // access — Phase 6a's property_user pivot) resolves to null and is skipped: no cross-property IDOR.
         $property = $this->currentProperty();
 
+        LocalNumber::mergeInto($request, ['taxes.*', 'fees.*']);   // D-MONEY-COMMA: "150,50" read in the page's language before `numeric`
         $validated = $request->validate([
             'taxes' => ['array'],
             'taxes.*' => ['nullable', 'numeric', 'min:0', 'max:100000'],

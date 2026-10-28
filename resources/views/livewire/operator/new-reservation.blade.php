@@ -625,6 +625,7 @@
                                                 <span class="vy-nr-money-sym" aria-hidden="true" x-text="symbol()">{{ $symbol }}</span>
                                                 <input id="pa" type="text" name="payment_amount" class="vy-nr-input" inputmode="decimal" autocomplete="off" x-model="payAmount" x-bind:disabled="depositChoice === 'nothing'">
                                             </span>
+                                            <p class="vy-money-readout" aria-live="polite" x-text="window.vyLocalNumber ? window.vyLocalNumber.readout(payAmount, symbol(), @js(__('components/money-readout.records', ['amount' => ':amount'])), @js(__('components/money-readout.write_like', ['example' => \App\Support\I18n\LocalNumber::example()]))) : ''"></p>
                                         </div>
                                     </div>
                                     <p class="vy-nr-fine vy-nr-fine--tight" x-show="(toMinor(payAmount) || 0) &gt; totalMinor()" x-cloak>{{ __('livewire/operator/new-reservation.more_than_total') }}</p>
@@ -748,6 +749,7 @@
                 'fromLeftOther' => trans_choice('livewire/operator/new-reservation.aria_from_left', 2, ['count' => ':count', 'price' => ':price']),
             ];
         @endphp
+        @once @include('partials.local-number-script') @endonce
         <script type="application/json" id="vy-nr-boot">{!! json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
         <script>
             function newReservationWizard() {
@@ -762,12 +764,10 @@
                     missGuestName: @js(__('livewire/operator/new-reservation.miss_guest_name')),
                     missEmail: @js(__('livewire/operator/new-reservation.miss_email')),
                     missOverrideNote: @js(__('livewire/operator/new-reservation.miss_override_note')),
-                    missPayComma: @js(__('livewire/operator/new-reservation.miss_pay_comma')),
                     missPayAmount: @js(__('livewire/operator/new-reservation.miss_pay_amount')),
                     mailNotSending: @js(__('livewire/operator/new-reservation.mail_not_sending')),
                     mailNeedsProfile: @js(__('livewire/operator/new-reservation.mail_needs_profile_address')),
                     mailNeedsAddress: @js(__('livewire/operator/new-reservation.mail_needs_address')),
-                    priceComma: @js(__('livewire/operator/new-reservation.price_comma')),
                     priceAmount: @js(__('livewire/operator/new-reservation.price_amount')),
                     partyWithChildren: @js(__('livewire/operator/new-reservation.party_with_children', ['adults' => ':adults', 'children' => ':children'])),
                     notChosen: @js(__('livewire/operator/new-reservation.not_chosen_yet')),
@@ -856,7 +856,6 @@
                         }
                         if (n === 4 && this.overrideProblem()) return T.missOverrideNote;
                         if (n === 4 && BOOT.canPay && this.depositChoice !== 'nothing') {
-                            if (/^\s*\d+,\d{1,2}\s*$/.test(this.payAmount)) return T.missPayComma;
                             if (this.toMinor(this.payAmount) === null) return T.missPayAmount;
                         }
                         return '';
@@ -940,7 +939,6 @@
                     priceSubmit(e, i) {
                         const field = document.getElementById('vy-nr-rate-' + i);
                         const raw = field ? field.value : '';
-                        if (/^\s*\d+,\d{1,2}\s*$/.test(raw)) { e.preventDefault(); this.priceErr[i] = T.priceComma; return; }
                         if (this.toMinor(raw) === null) { e.preventDefault(); this.priceErr[i] = T.priceAmount; return; }
                         this.persist();
                         this.priceBusy = i;
@@ -958,13 +956,8 @@
                     },
                     // a calendar night's price, short: €200 for whole amounts, €200.50 otherwise (the property's currency)
                     fmtNight(m) { return BOOT.symbol + (m % 100 === 0 ? String(m / 100) : (m / 100).toFixed(2)); },
-                    toMinor(s) {
-                        const c = String(s || '').trim().replace(/[ ,]/g, '').replace(/^[€£$]+/, '');
-                        if (! /^\d+(\.\d{1,2})?$/.test(c)) return null;
-                        const parts = c.split('.');
-                        const m = parseInt(parts[0], 10) * 100 + parseInt(((parts[1] || '') + '00').slice(0, 2), 10);
-                        return m > 0 ? m : null;
-                    },
+                    // D-MONEY-COMMA — the server's own reader (LocalNumber), as the page's script: "150,50" and "150.50" are cents
+                    toMinor(s) { return window.vyLocalNumber.toMinor(s); },
                     stayCurrency() { const r = rt(this.roomTypeId); return r ? r.currency : BOOT.currency; },
                     persons() { return Math.max(1, this.adults + this.children); },
                     quantity(e) {

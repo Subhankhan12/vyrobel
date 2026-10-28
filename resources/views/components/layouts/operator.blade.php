@@ -3403,7 +3403,9 @@
         body[data-density="compact"] .vy-dash-kpi { padding: 12px 14px; }
 
 
-    </style>
+                /* D-MONEY-COMMA — the line under a payment / refund / charge amount: what the server will record, as typed */
+            .vy-money-readout { font-size: 12px; margin: 4px 0 0; color: var(--vy-muted); min-height: 1em; }
+        </style>
     <x-vy-scrollbar />
     <x-vy-selects />
 </head>

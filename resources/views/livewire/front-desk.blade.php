@@ -536,6 +536,8 @@
                                                 <option value="bank">{{ __('livewire/front-desk.method_bank') }}</option>
                                             </select>
                                         </div>
+                                        <p class="vy-money-readout" aria-live="polite" x-text="window.vyLocalNumber ? window.vyLocalNumber.readout(wi.amt, @js($property['currency_symbol'] ?? ''), @js(__('components/money-readout.records', ['amount' => ':amount'])), @js(__('components/money-readout.write_like', ['example' => \App\Support\I18n\LocalNumber::example()]))) : ''"></p>
+                                        @once @include('partials.local-number-script') @endonce
                                         <div class="vy-fdm-hint">{{ __('livewire/front-desk.card_terminal_hint') }}</div>
                                     </div>
                                 @endcan

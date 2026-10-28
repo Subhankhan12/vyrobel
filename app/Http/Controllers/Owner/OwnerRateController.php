@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Exceptions\Owner\OwnerRateException;
 use App\Http\Controllers\Controller;
 use App\Services\OwnerRateService;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyInput;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -84,6 +85,7 @@ class OwnerRateController extends Controller
         // base × (1 + uplift%) — a REAL price change, applied by OwnerRateService (#39, never an inert store).
         $weekendUplift = null;
         $rawUplift = trim((string) $request->input('weekend_uplift', ''));
+        $rawUplift = $rawUplift === '' ? '' : (LocalNumber::normalize($rawUplift, 2) ?? $rawUplift);   // D-MONEY-COMMA: "12,5"
         if ($rawUplift !== '') {
             if (! is_numeric($rawUplift) || (float) $rawUplift < 0 || (float) $rawUplift > 200) {
                 return redirect()->to($back)->with('rate_error', __('php/http/controllers/owner/owner_rate_controller.invalid_weekend_uplift'));

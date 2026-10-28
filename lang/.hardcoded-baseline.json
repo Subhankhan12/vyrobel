@@ -344,6 +344,30 @@
     "resources/views/livewire/partials/two-factor-off-dialog.blade.php": {
         "5baa61e4c9b9": "password"
     },
+    "resources/views/partials/local-number-script.blade.php": {
+        "449ce4b1fe62": ");\n            if (s ===",
+        "3b420b79d00c": "|| ! /^[0-9.,]+$/.test(s) || ! /[0-9]/.test(s)) return null;\n            var dots = count(s,",
+        "0d2b51c8503c": "), commas = count(s,",
+        "c2fceee6ae2c": "), decimal = null;\n            if (dots > 0 && commas > 0) {\n                decimal = s.lastIndexOf(",
+        "33bd36949ef1": ") > s.lastIndexOf(",
+        "973ce7098aa9": ";\n            } else if (dots + commas === 1) {\n                var mark = dots === 1 ?",
+        "05f47ae4b254": ";\n                var after = s.length - s.indexOf(mark) - 1;\n                if (after >= 1 && after <= 2) { decimal = mark; }\n                else if (after === 3) { if (mark === decimalMark) return null; }\n                else { return null; }\n            }\n            var group = decimal === null ? (dots > 0 ?",
+        "21f17d1f895b": ": (commas > 0 ?",
+        "b2167c320aaf": ");\n            var whole = s, fraction =",
+        "53d6981398f2": ";\n            if (decimal !== null) {\n                if (count(s, decimal) !== 1) return null;\n                var parts = s.split(decimal); whole = parts[0]; fraction = parts[1] ||",
+        "aeef1cb6e62f": ";\n                if (fraction ===",
+        "b6b97f13d4d3": ") return null;\n            }\n            if (fraction !==",
+        "a25d8206df3a": "&& (fraction.length > maxDecimals || (group !== null && fraction.indexOf(group) !== -1))) return null;\n            if (group !== null && whole.indexOf(group) !== -1 && ! validGroups(whole.split(group))) return null;\n            var digits = group !== null ? whole.split(group).join(",
+        "88b010a94692": ") : whole;\n            if (digits ===",
+        "9c1850a43a4f": "|| ! /^[0-9]+$/.test(digits)) return null;\n            digits = digits.replace(/^0+/,",
+        "cc4ec276b0f4": ";\n            return fraction ===",
+        "b31ca52fe628": "? digits : digits +",
+        "f06fa159bb48": ");\n            var m = parseInt(parts[0], 10) * 100 + parseInt(((parts[1] ||",
+        "83af10724923": ": raw).trim();\n            if (raw ===",
+        "ae15fae507dd": ") return",
+        "ba05985efd46": ";\n            var minor = toMinor(raw);\n            if (minor === null) return hint;\n            return said.split(",
+        "627163b96b1f": ").join(symbol + (minor / 100).toLocaleString("
+    },
     "resources/views/partials/operator-list-script.blade.php": {
         "324cefd2fcd2": "AbortError"
     },

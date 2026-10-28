@@ -105,8 +105,11 @@ it('caps the partial-refund input at the remaining refundable, not the original 
 
     // THE LOAD-BEARING ASSERTION: the cap is the REMAINING. If the screen wrongly capped at the original
     // it would read max="300.00" — the exact over-refund the guard exists to refuse.
-    expect($body)->toContain('max="200.00"')
-        ->and($body)->not->toContain('max="300.00"');
+    // (D-MONEY-COMMA, 2026-10-28: the field is text so "150,50" can be typed; the cap moved from the number field's `max` to the
+    //  amount readout, which refuses to send more — the same remaining figure, and the server's own #27 bound behind it.)
+    expect($body)->toContain('data-max-minor="20000"')
+        ->and($body)->not->toContain('data-max-minor="30000"')
+        ->toMatch('~At most [^\'"]{0,12}200\.00~');   // the readout's own words carry the remaining (the € is escaped in the script)
 })->group('security');
 
 // ── 4. Over the remaining → cleanly REFUSED through the screen. Never clamped, never a 500 ────────

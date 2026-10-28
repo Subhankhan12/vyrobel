@@ -75,10 +75,9 @@
             const id = this.confirmSeason ? this.confirmSeason.id : ''; this.confirmSeason = null;
             this.$nextTick(() => requestAnimationFrame(() => requestAnimationFrame(() => { const b = document.getElementById('vy-rnr-apply-' + id); if (b) b.focus(); })));
         },
-        // the server's own money format (MoneyInput, as the New reservation page reads it): a comma is thousands, never cents
+        // the server's own money reader (LocalNumber/MoneyInput, D-MONEY-COMMA): 150,50 and 150.50 are both cents
         priceSubmit(e, i) {
             const field = document.getElementById('vy-rnr-rate-' + i); const raw = field ? field.value : '';
-            if (/^\s*\d+,\d{1,2}\s*$/.test(raw)) { e.preventDefault(); this.priceErr[i] = @js(__('livewire/operator/partials/rack-new-reservation.price_err_comma')); return; }
             if (window.vyRnrPriceMinor(raw) === null) { e.preventDefault(); this.priceErr[i] = @js(__('livewire/operator/partials/rack-new-reservation.price_err_invalid')); return; }
             this.keep(); this.priceBusy = i;
         },
@@ -335,14 +334,9 @@
                 @endforeach
                 {{-- the price read the New reservation page's way (its toMinor) — in a script block, where a typed currency sign may be named
                      (the currency guard reads tenant-facing markup, not scripts) --}}
+                @once @include('partials.local-number-script') @endonce
                 <script>
-                    window.vyRnrPriceMinor = function (raw) {
-                        const c = String(raw || '').trim().replace(/[ ,]/g, '').replace(/^[€£$]+/, '');
-                        if (! /^\d+(\.\d{1,2})?$/.test(c)) return null;
-                        const parts = c.split('.');
-                        const m = parseInt(parts[0], 10) * 100 + parseInt(((parts[1] || '') + '00').slice(0, 2), 10);
-                        return m > 0 ? m : null;
-                    };
+                    window.vyRnrPriceMinor = function (raw) { return window.vyLocalNumber.toMinor(raw); };   // D-MONEY-COMMA — the one reader
                 </script>
                 <script type="application/json" id="vy-rnr-seasons">{!! json_encode((object) $__rnr['seasons'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
             @endif
