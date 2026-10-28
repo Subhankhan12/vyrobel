@@ -5,6 +5,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
+- **Live release `rel_BX` → commit `d45bd320`** (D-MONEY-COMMA, his ruling 2026-10-28: every typed amount read the way the page's
+  language writes it; "150,50" = €150.50). **V:** MySQL 4,569/4,569 · MariaDB 4,569/4,569 (34,281) · PHPStan 0 · Pint · lang tools 0 ·
+  anchors 0/1,099 · money gate FULL · number parity 0/80,100 · host preflight (309 views parse; "150,50" → 15050) · swap 2026-10-28
+  01:20:36 UTC (4 ms) · public checks 12/0/0 · 0 errors since. ⚠️ Not pushed. Rollback target: `rel_BW @ 8c1a9d5f`.
 - **Live release `rel_BW` → commit `8c1a9d5f`** (I18N-01 ⛔ G2 — Phase A + B: every screen's words are translation keys, English
   unchanged; only English is applied). **V:** MySQL 8.4.10 4,563/4,563 · MariaDB 11.8.9 4,563/4,563 (34,221 each) · PHPStan L5 0 ·
   Pint clean · lang:check 0 · lang:todo 0 · money gate FULL unmoved · English render diff unchanged but 9 script-written pages

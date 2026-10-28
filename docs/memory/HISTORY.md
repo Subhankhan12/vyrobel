@@ -1628,6 +1628,21 @@ public pages 200 with no raw key or raw Blade; log since swap: 12 warnings, all 
 Not pushed (his rule). Rollback target `rel_BV @ f426f449`. **Phase C started in parallel** (outside the repo): glossary, prompts
 adapted from hrmzy, German 29/29 batches translated + reviewed + consistency-edited (0 errors), Arabic 12/29 translated, 7 reviewed.
 
+**D-MONEY-COMMA, 2026-10-28 — typed amounts read the way the page's language writes them; LIVE on `rel_BX`.** He asked how each
+language writes amounts (ICU: 19 of the 27 use a decimal comma; Persian its own ٫ and digits) and ruled on the recommendation —
+"Go ahead and make sure it real". **Found while building (V):** besides MoneyInput's 100× ("150,50" = €15,050.00), the folio's
+payment/charge/refund parser was a float cast: "150,50" recorded €150.00 and "1,234.50" recorded €1.00 — silently. **Built:**
+`LocalNumber` (one reader; ambiguous "1,234" on a decimal-comma page refused, never guessed) wired into every money path and every
+`numeric` money/percent field; its script copy fuzz-checked against PHP (`ops/i18n/number-parity.php`: 0 differences on 80,100
+inputs in en/de/fa/fr; two planted defects caught); the wizard's and rack's "use a dot" refusals replaced by the same reader;
+payment/charge/refund fields made text + decimal keypad (a number field refused "150,50" in an English browser) with a readout
+("Records €150.50"); the refund readout keeps the real cap at the remaining refundable. **Gates (V):** MySQL 4,569/4,569 · MariaDB
+4,569/4,569 (34,281) · PHPStan 0 · Pint · lang tools 0 · anchors 0/1,099 · money gate FULL · MoneyCommaTest 6/55 ·
+OperatorRefundScreenTest re-aimed (cap = the readout's data-max-minor, same figure). Two first-run failures were mine (a quote in
+an x-data comment, a CSS rule in a partial instead of the layout), fixed. Deploy: 27 files, preflight on the host (309 views
+parse; "150,50" → 15050; de "1.234,50" → 1234.50; de "1,234" refused), swap 01:20:36 UTC 4 ms, public checks 12/0/0, 0 errors
+since. Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
