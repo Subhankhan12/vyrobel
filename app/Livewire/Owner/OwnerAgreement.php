@@ -254,7 +254,7 @@ class OwnerAgreement extends Component
                 ->pluck('category')
                 ->filter(fn ($c): bool => is_string($c) && $c !== '')
                 ->unique()
-                ->map(fn (string $c): string => Str::headline($c))
+                ->map(fn (string $c): string => $this->valueWord($c))
                 ->values()
                 ->all();
 
@@ -520,7 +520,17 @@ class OwnerAgreement extends Component
 
     private function ruleLabel(string $key): string
     {
-        return (string) preg_replace('/\bOta\b/', 'OTA', Str::headline($key));
+        $words = __('php/livewire/owner/owner_agreement.rules');
+
+        return is_array($words) && is_string($words[$key] ?? null) ? $words[$key] : (string) preg_replace('/\bOta\b/', 'OTA', Str::headline($key));
+    }
+
+    /** One stored rule value in words — the reader's language for a known code, else its headline (as it always printed). */
+    private function valueWord(string $value): string
+    {
+        $words = __('php/livewire/owner/owner_agreement.rule_values');
+
+        return is_array($words) && is_string($words[$value] ?? null) ? $words[$value] : Str::headline($value);
     }
 
     private function ruleValue(mixed $value): string
@@ -530,7 +540,7 @@ class OwnerAgreement extends Component
         }
 
         if (is_scalar($value)) {
-            return Str::headline((string) $value);
+            return $this->valueWord((string) $value);
         }
 
         // ⚠️ A LIST OF VALUES IS A LIST, NOT JSON (audit 2026-08-07 · GATE 6). This fell straight through
@@ -539,7 +549,7 @@ class OwnerAgreement extends Component
         // a legal document. Each element goes through the same headline treatment a scalar gets, so a list
         // reads exactly like the single value it would have been.
         if (is_array($value) && array_is_list($value) && $value !== [] && ! array_filter($value, fn ($v): bool => ! is_scalar($v))) {
-            return implode(', ', array_map(fn (mixed $v): string => Str::headline((string) $v), $value));
+            return implode(', ', array_map(fn (mixed $v): string => $this->valueWord((string) $v), $value));
         }
 
         // Anything genuinely structured (a nested object) has no honest one-line rendering; say so rather

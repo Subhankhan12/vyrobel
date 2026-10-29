@@ -9,6 +9,7 @@ return [
     'new_recovery_codes_help' => 'Save these somewhere safe — each works once, and they replace any previous set. Shown only now.',
     'profile' => 'Profile',
     'save_profile' => 'Save profile',
+    'language' => 'Language',
     'login_email' => 'Login email',
     'current' => 'Current',
     'pending' => 'Pending',

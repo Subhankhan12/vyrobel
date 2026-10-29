@@ -112,7 +112,7 @@ final class PerformanceMetrics
 
             $trend[] = [
                 'month' => $cursor->format('Y-m'),
-                'label' => $cursor->format('M'),
+                'label' => $cursor->translatedFormat('M'),
                 'metrics' => self::forProperties($propertyIds, $bucketStart, $bucketEnd, $currency),
             ];
 
@@ -177,7 +177,7 @@ final class PerformanceMetrics
 
             $trend[] = [
                 'month' => $cursor->format('Y-m'),
-                'label' => $cursor->format('M'),
+                'label' => $cursor->translatedFormat('M'),
                 'metrics' => self::forOwnerUnits($unitIds, $bucketStart, $bucketEnd, $currency),
             ];
 

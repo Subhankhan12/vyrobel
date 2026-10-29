@@ -66,17 +66,17 @@ final class OwnerBookingConfirmationDocument
             // #28 — NAME ONLY (shared GuestName; anonymized → "Guest").
             'guest' => GuestName::display($reservation->leadGuest),
             'units' => collect($ownedUnits)->pluck('label')->implode(', '),
-            'check_in' => $checkIn->format('D j M Y'),
-            'check_out' => $checkOut->format('D j M Y'),
+            'check_in' => $checkIn->translatedFormat('D j M Y'),
+            'check_out' => $checkOut->translatedFormat('D j M Y'),
             'nights' => $nights,
             'guests' => $guestCount > 0 ? $guestCount.' '.Str::plural('guest', $guestCount) : '—',
             'source_label' => OwnerBookingsReader::sourceLabel((string) $reservation->source),
-            'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->format('j M Y') ?? '—',
+            'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->translatedFormat('j M Y') ?? '—',
             'earnings' => $earnings,
             'attributed' => $entries->isNotEmpty(),
             'commission_rate' => OwnerCommissionRate::percent(app(OwnerContext::class)),
             'nightly_rate' => self::nightlyRate($entries, $reservation, $nights),
-            'prepared_on' => now()->format('j M Y'),
+            'prepared_on' => now()->translatedFormat('j M Y'),
         ];
     }
 

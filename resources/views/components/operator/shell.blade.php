@@ -25,7 +25,7 @@
     // GATE 0 (bespoke-chrome, parameterized shell) — the account-dropdown identity, derived from the real
     // authed staff user (self only): role label + login email for the popover. No page needs to pass these.
     $__acctUser = auth()->user();
-    $__acctRole = $__acctUser?->getRoleNames()->first() ?? __('components/operator/shell.staff');
+    $__acctRole = ($__role = $__acctUser?->getRoleNames()->first()) !== null ? \App\Support\Authorization\RoleLabel::for((string) $__role) : __('components/operator/shell.staff');
     $__acctEmail = (string) ($__acctUser?->email ?? '');
     // F-OP-3 — the topbar identity chip ALWAYS reflects the REAL signed-in staff user (self only), so the
     // controller-rendered pages (email-previews / templates / guest-requests / reviews) show the same name as

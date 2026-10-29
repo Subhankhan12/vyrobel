@@ -85,7 +85,17 @@ final class LangChecks
         if (self::placeholders($english, $key) !== self::placeholders($translation, $key)) {
             $p[] = ['PLACEHOLDER', implode(',', self::placeholders($english, $key)).' ≠ '.implode(',', self::placeholders($translation, $key))];
         }
-        if (self::tags($english) !== self::tags($translation)) {
+        if (self::isPlural($english)) {
+            // a language with more plural forms than English (Arabic six) repeats the markup in each — compared FORM BY FORM:
+            // every translated form carries exactly the tags and attribute values of one English form (ops/i18n/lib.php's rule)
+            $shapes = array_map(fn (string $f): array => [self::tags($f), self::attributeValues($f)], self::pluralForms($english));
+            foreach (self::pluralForms($translation) as $form) {
+                if (! in_array([self::tags($form), self::attributeValues($form)], $shapes, true)) {
+                    $p[] = ['HTML', 'plural form "'.mb_strimwidth($form, 0, 60, '…').'" has markup no English form has'];
+                    break;
+                }
+            }
+        } elseif (self::tags($english) !== self::tags($translation)) {
             $p[] = ['HTML', implode(' ', self::tags($english)).' ≠ '.implode(' ', self::tags($translation))];
         } elseif (self::attributeValues($english) !== self::attributeValues($translation)) {
             $p[] = ['ATTR', 'an attribute value differs from the English'];
@@ -97,6 +107,17 @@ final class LangChecks
         }
 
         return $p;
+    }
+
+    private static function isPlural(string $s): bool
+    {
+        return str_contains($s, '|') && preg_match('/^\s*(\{[\d,]+\}|\[[\d*,]+\])/', $s) === 1;
+    }
+
+    /** A plural's forms without their range prefixes. @return list<string> */
+    private static function pluralForms(string $s): array
+    {
+        return array_map(fn (string $f): string => (string) preg_replace('/^\s*(\{[\d,]+\}|\[[\d*,]+\])\s*/', '', $f), explode('|', $s));
     }
 
     /**

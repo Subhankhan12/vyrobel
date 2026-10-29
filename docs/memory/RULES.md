@@ -105,6 +105,15 @@ them. Ten of these rules are repeated at the top of `CLAUDE.md`.
 - The mutation runner refuses to count a mutation that didn't land. A stale mutation fails a test.
 - `preventSilentlyDiscardingAttributes` is on in tests only. It found about 30 silent drops.
 
+**Translations (I18N-01, 2026-10-29)**
+- Every new or changed UI text is a KEY, in the same change that writes it (`lang/en/<view path>.php`, or `lang/en/php/<class path>.php`
+  for a class) — never a typed English string in a view, a class, an email, a PDF or a notification. Whole sentences: never glue two
+  keys, never build a plural by hand (`trans_choice`), never `format()` a date people read (`translatedFormat()`).
+- A code shown to people (a status, a source, a role, a kind) goes through ONE words map; a sentence the system stores in a row is
+  stored as a key with parameters (a date as a date — `FeedParams::date()`), never as finished English.
+- Every pass report ends with the `php artisan lang:todo` summary line: what now needs translation. "Translate the new texts" =
+  `~/vyrobel-local/i18n/DELTA.md`.
+
 ### 2a · Every L-entry in docs/KNOWN-LIMITS.md (one line each: what broke → what it taught → status)
 
 All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the doc's own.
@@ -629,6 +638,11 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 Rule for all of them: **one run at a time**. A guard never seen to fire is not a guard, so use the self-test or
 prove-red mode where one exists. Commands are copied from each script's header (git). Where a header and the code
 disagree, it says so.
+
+**`php artisan lang:check` (the translation gate) and `php artisan lang:todo` (what needs translation).** Both have
+`--self-test` (each needle must be caught). lang:check runs in the suite (`LangCheckTest`) and BLOCKS `ops/release.sh stage`; lang:todo
+`--since=<ref|live>` is printed by stage as a warning. Per language: `ops/i18n/render-all.php` + `ops/i18n/english-left.php` (LEAK and
+DATE must be 0), the PDFs as images, `EveryMailableRendersTest` (every applied language).
 
 **Suite on MySQL (local).** Prerequisites: a `vyrobel_test` DB and Redis. Run it ALONE:
 `ops/proc-check.sh -q '[p]hpunit|[p]est|artisan [t]est' && php artisan test`

@@ -6,6 +6,7 @@ namespace App\Support\Platform;
 
 use App\Models\PrivacyRequest;
 use App\Models\StatusIncident;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 
 /**
@@ -136,7 +137,12 @@ final class ActionLabel
     /** Words for a tenant's business event (`audit_events.action`, e.g. `maintenance_ticket.opened`). */
     public static function event(string $action): string
     {
-        return Str::ucfirst(self::words(str_replace('.', ' ', $action)));
+        $english = Str::ucfirst(self::words(str_replace('.', ' ', $action)));
+        // I18N-01 — where the reservation timeline already words this event IDENTICALLY in English, its key says it in the
+        // reader's language; any other event keeps the headline it always printed (English unchanged either way)
+        $key = 'php/livewire/reservation_detail.action_'.str_replace('.', '_', $action);
+
+        return Lang::has($key, 'en', false) && Lang::get($key, [], 'en', false) === $english ? (string) __($key) : $english;
     }
 
     private static function words(string $key): string

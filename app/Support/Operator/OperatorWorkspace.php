@@ -58,6 +58,6 @@ final class OperatorWorkspace
     /** "5 Oct" — the pause's resume date for the banner, or null when not paused (a cancel has no resume). */
     public function resumeLabel(): ?string
     {
-        return $this->pausedUntil()?->format('j M');
+        return $this->pausedUntil()?->translatedFormat('j M');
     }
 }

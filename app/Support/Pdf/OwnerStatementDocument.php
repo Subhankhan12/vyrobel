@@ -46,7 +46,7 @@ final class OwnerStatementDocument
             ->orderBy('sort_order')
             ->get()
             ->map(fn (OwnerStatementLine $l): array => [
-                'description' => (string) $l->description,
+                'description' => $l->label(),
                 'detail' => self::lineDetail((string) $l->line_type, (int) $l->amount_minor, $gross, $breakdown),
                 'amount_display' => MoneyFormatter::display((int) $l->amount_minor, (string) $l->currency, signed: $l->line_type !== 'net'),
                 'is_negative' => (int) $l->amount_minor < 0,

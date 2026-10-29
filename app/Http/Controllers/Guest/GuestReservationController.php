@@ -47,12 +47,12 @@ class GuestReservationController extends Controller
             'adults' => (int) $model->adults,
             'children' => (int) $model->children,
             'guests' => max(1, (int) $model->adults + (int) $model->children),
-            'checkInShort' => CarbonImmutable::parse($model->check_in)->format('j M'),
-            'checkOutShort' => CarbonImmutable::parse($model->check_out)->format('j M'),
+            'checkInShort' => CarbonImmutable::parse($model->check_in)->translatedFormat('j M'),
+            'checkOutShort' => CarbonImmutable::parse($model->check_out)->translatedFormat('j M'),
             // ArrivalPack self-gates the door code / wifi to the release window (#33) — safe to pass whole.
             'arrival' => ArrivalPack::for($model, $today),
             // Real free-cancellation deadline (null when the policy gives none / it has passed).
-            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->format('D, j M Y') : null,
+            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat('D, j M Y') : null,
             // Actions only make sense for a live (not past/cancelled) stay.
             'active' => ! in_array(ReservationStage::for($model, $today), [ReservationStage::PAST, ReservationStage::CANCELLED], true),
         ]);

@@ -7,12 +7,14 @@ namespace App\Support\Notifications;
 use App\Models\Guest;
 use App\Models\User;
 use App\Notifications\Operator\TeamMessageNotification;
+use App\Support\I18n\StoredEnglish;
 use App\Support\Platform\BreakGlass;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Str;
 
 /**
  * Maps a notifiable's OWN notifications to the shape the in-app feed renders (Phase 3). Reads only through
@@ -136,7 +138,7 @@ final class NotificationFeed
     /**
      * I18N-01 — a row written since the translation work also stores each text's KEY and parameters (`data.i18n`, see
      * FeedNotification::t()), so the bell and the feed show it in the READER's language now, not the one it was sent in.
-     * Older rows keep the sentence they stored. A key that no longer exists falls back to the stored sentence.
+     * Older rows stored only the sentence: legacy() finds its key for a reader in another language, else it shows as stored.
      *
      * @param  array<string, mixed>  $data
      */
@@ -147,10 +149,24 @@ final class NotificationFeed
             return null;
         }
 
-        $params = is_array($spec[1] ?? null) ? $spec[1] : [];
+        $params = FeedParams::say(is_array($spec[1] ?? null) ? $spec[1] : []);
 
         // a plural row (FeedNotification::tc) stored its count — pick the form in the reader's language
         return is_int($spec[2] ?? null) ? (string) trans_choice($spec[0], $spec[2], $params) : (string) __($spec[0], $params);
+    }
+
+    /**
+     * I18N-01 — an OLDER row (written before the translation work) stored only its finished English sentence. For a reader in
+     * another language it is matched against the notification's OWN English texts — `lang/en/php/notifications/…`, the group
+     * named after its class — and said in the reader's language ({@see StoredEnglish}); no match → null → shown as stored.
+     */
+    private static function legacy(string $type, mixed $stored): ?string
+    {
+        if (! str_starts_with($type, 'App\\Notifications\\')) {
+            return null;
+        }
+
+        return StoredEnglish::say('php/'.implode('/', array_map(fn (string $part) => Str::snake($part), explode('\\', substr($type, 4)))), $stored, FeedParams::legacyFilled());
     }
 
     /**
@@ -168,8 +184,9 @@ final class NotificationFeed
     {
         return [
             'id' => (string) $n->id,
-            'title' => self::text($n->data, 'title') ?? (string) ($n->data['title'] ?? __('php/support/notifications/notification_feed.fallback_title')),
-            'context' => self::text($n->data, 'context') ?? (string) ($n->data['context'] ?? ''),
+            'title' => self::text($n->data, 'title') ?? self::legacy((string) $n->type, $n->data['title'] ?? null)
+                ?? (string) ($n->data['title'] ?? __('php/support/notifications/notification_feed.fallback_title')),
+            'context' => self::text($n->data, 'context') ?? self::legacy((string) $n->type, $n->data['context'] ?? null) ?? (string) ($n->data['context'] ?? ''),
             'url' => is_string($n->data['url'] ?? null) ? (string) $n->data['url'] : null,
             'category' => (string) ($n->data['category'] ?? 'general'),
             'read' => $n->read_at !== null,

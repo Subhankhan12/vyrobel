@@ -42,4 +42,13 @@ return [
     'not_yet' => 'not yet',
     'cohort_active_of' => ':active of :size',
     'cohorts_hint' => 'Active in month k = at least one business event in the k-th month after it joined. “Not yet” = that month has not ended for every organisation in the cohort — never counted as zero.',
+    // module adoption rows — keyed by PlatformHotelStats::MODULES' names (the identifiers stay English in code); a module
+    // with no entry shows its name
+    'modules' => [
+        'Front desk' => 'Front desk',
+        'Reservations' => 'Reservations',
+        'Housekeeping' => 'Housekeeping',
+        'Folios & payments' => 'Folios & payments',
+        'Channel manager' => 'Channel manager',
+    ],
 ];

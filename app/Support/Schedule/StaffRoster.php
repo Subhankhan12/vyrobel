@@ -6,6 +6,7 @@ namespace App\Support\Schedule;
 
 use App\Models\Membership;
 use App\Models\User;
+use App\Support\Authorization\RoleLabel;
 use App\Support\Tenancy\TenantContext;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -59,7 +60,7 @@ final class StaffRoster
                     'name' => $name,
                     'initials' => $this->initials($name),
                     'department' => StaffDepartment::forRoles($staffRoles),
-                    'role_label' => $staffRoles[0],
+                    'role_label' => RoleLabel::for($staffRoles[0]),
                 ];
             }
 

@@ -28,7 +28,7 @@
         <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1.5;min-width:320px">
             @php
                 $tile = 'display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline);text-decoration:none;box-sizing:border-box';
-                $tileNum = 'font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.02em;color:var(--vy-ink);line-height:1;white-space:nowrap';
+                $tileNum = 'font-family:var(--vy-display);font-weight:600;font-size:min(19px,3.7vw);letter-spacing:-.02em;color:var(--vy-ink);line-height:1;white-space:nowrap';
                 $tileSub = 'font-size:11px;color:var(--vy-muted);margin-top:4px';
                 $tileIcon = 'width:28px;height:28px;border-radius:9px;background:rgba(217,102,46,.12);color:#B4400F;display:grid;place-items:center;margin-bottom:9px';
             @endphp

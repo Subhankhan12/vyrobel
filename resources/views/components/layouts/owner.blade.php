@@ -160,6 +160,9 @@
             display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-md);
             font-size: 13.5px; font-weight: 500; color: var(--vy-on-grad); cursor: pointer;
             transition: background .16s ease, color .16s ease;
+            /* I18N-01 — a long compound ("Auszahlungsmethode") cannot wrap and was cut off; hyphenate it by the page's
+               language, only when it does not fit */
+            hyphens: auto; -webkit-hyphens: auto;
         }
         .vy-nav-item .vy-ico { width: 16px; height: 16px; flex: none; }
         .vy-nav-item:hover { background: rgba(255, 255, 255, 0.35); }

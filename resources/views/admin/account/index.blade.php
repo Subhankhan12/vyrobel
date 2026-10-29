@@ -29,6 +29,10 @@
                         <label class="ad-label" for="name">{{ __('common.name') }}</label>
                         <input class="ad-input" type="text" id="name" name="name" value="{{ old('name', $admin->name) }}" required>
                     </div>
+                    <div class="ad-field" style="margin-bottom: 14px;">
+                        <label class="ad-label" for="locale">{{ __('admin/account/index.language') }}</label>
+                        <select class="ad-input" id="locale" name="locale">@foreach (\App\Support\I18n\Locales::offeredOptions() as $code => $native)<option value="{{ $code }}" @selected(old('locale', $admin->locale ?? 'en') === $code)>{{ $native }}</option>@endforeach</select>
+                    </div>
                     <button type="submit" class="ad-btn">{{ __('admin/account/index.save_profile') }}</button>
                 </form>
             </div>

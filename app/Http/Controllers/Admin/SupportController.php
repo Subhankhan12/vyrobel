@@ -9,6 +9,7 @@ use App\Models\Membership;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\Auth\SignInCredentials;
+use App\Support\Authorization\RoleLabel;
 use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\BreakGlass;
@@ -223,7 +224,7 @@ class SupportController extends Controller
                 'organization' => (string) ($orgs[$m->organization_id]->name ?? '—'),
                 'archived' => ($orgs[$m->organization_id]->deleted_at ?? null) !== null,
                 'status' => (string) $m->status,
-                'roles' => collect($roles[$m->organization_id] ?? [])->pluck('name')->sort()->values()->all(),
+                'roles' => collect($roles[$m->organization_id] ?? [])->pluck('name')->map(fn ($r): string => RoleLabel::for((string) $r))->sort()->values()->all(),
             ])->all(),
         ];
     }

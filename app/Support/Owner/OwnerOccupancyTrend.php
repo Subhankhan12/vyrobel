@@ -53,7 +53,7 @@ final class OwnerOccupancyTrend
         // uses `spark` (the SVG line) — both are the SAME real monthly series, drawn two ways.
         $monthBars = [];
         foreach ($months as $i => $m) {
-            $monthBars[] = ['label' => $m->format('M'), 'pct' => $pcts[$i]];
+            $monthBars[] = ['label' => $m->translatedFormat('M'), 'pct' => $pcts[$i]];
         }
 
         return [

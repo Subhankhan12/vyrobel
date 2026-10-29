@@ -7,6 +7,7 @@ namespace App\Notifications\Owner;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Notifications\FeedNotification;
+use App\Support\Notifications\FeedParams;
 use Illuminate\Support\Carbon;
 
 /**
@@ -52,8 +53,8 @@ class OwnerNewBookingNotification extends FeedNotification
         // translated word passed in), and a stay with nights is a plural sentence (tc() stores the count for the feed).
         $params = [
             'unit' => $label,
-            'check_in' => $in->translatedFormat('j M Y'),
-            'check_out' => $out->translatedFormat('j M Y'),
+            'check_in' => FeedParams::date($in, 'j M Y'),
+            'check_out' => FeedParams::date($out, 'j M Y'),
             'reference' => (string) $this->reservation->reference,
         ];
         $context = match (true) {

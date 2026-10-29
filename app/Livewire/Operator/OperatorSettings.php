@@ -20,6 +20,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Services\SettingsService;
+use App\Support\Authorization\RoleLabel;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
@@ -301,7 +302,7 @@ class OperatorSettings extends Component
                 'id' => (string) $u->getKey(),
                 'name' => (string) $u->name,
                 'initials' => $this->initials((string) $u->name),
-                'roles' => implode(' · ', $backOffice),
+                'roles' => implode(' · ', array_map(RoleLabel::for(...), $backOffice)),
                 'all' => $ids === [],
                 'ids' => $ids,
                 'you' => (string) $u->getKey() === $meId,
@@ -357,7 +358,7 @@ class OperatorSettings extends Component
                 'id' => (string) $u->getKey(),
                 'name' => (string) $u->name,
                 'initials' => $this->initials((string) $u->name),
-                'roles' => implode(' · ', $backOffice),
+                'roles' => implode(' · ', array_map(RoleLabel::for(...), $backOffice)),
                 'scope' => $scope,
                 'you' => (string) $u->getKey() === $meId,
             ];

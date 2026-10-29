@@ -6,6 +6,7 @@ namespace App\Notifications\Operator;
 
 use App\Models\BreakGlassSession;
 use App\Notifications\FeedNotification;
+use App\Support\Notifications\FeedParams;
 use App\Support\Platform\BreakGlass;
 
 /**
@@ -39,7 +40,7 @@ class SupportAccessNotification extends FeedNotification
             // ⚠️ I18N-01 — one key per shape (FeedNotification::t() records a key, not a plural choice).
             'context' => $this->t('context', $this->session->pages_viewed === 1 ? 'php/notifications/operator/support_access_notification.context_one_page' : 'php/notifications/operator/support_access_notification.context_pages', [
                 'admin' => $this->adminName,
-                'from' => $from->translatedFormat('j M Y, H:i'),
+                'from' => FeedParams::date($from, 'j M Y, H:i'),
                 'to' => $to->format('H:i'),
                 'pages' => $this->session->pages_viewed,
                 'reason' => (string) $this->session->reason,

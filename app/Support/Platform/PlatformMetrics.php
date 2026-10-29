@@ -136,7 +136,7 @@ class PlatformMetrics
         $series = [];
         for ($i = 0; $i < 6; $i++) {
             $month = $start->copy()->addMonths($i);
-            $series[$month->format('Y-m')] = ['label' => $month->format('M'), 'count' => 0];
+            $series[$month->format('Y-m')] = ['label' => $month->translatedFormat('M'), 'count' => 0];
         }
 
         foreach ($rows as $org) {

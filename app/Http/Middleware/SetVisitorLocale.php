@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  * **English is the default**, never the browser's language; the visitor picks another from the language menu, which links
  * to the SAME page with `?lang=<code>` (no `/{locale}/` route — risk E1 cannot fire), and the pick is remembered in the
  * `vy_lang` cookie. Only a FINISHED language is ever applied. Does nothing for anyone signed in (SetLocale has applied their
- * own), so a signed-in person can never be switched by a link.
+ * own — a platform admin's on /admin too), so a signed-in person can never be switched by a link.
  *
  * The booking engine copies the language in use onto the guest when they book (BookingEngineService), so their
  * confirmation and pre-arrival emails arrive in it.
@@ -27,7 +27,8 @@ class SetVisitorLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user('web') !== null || $request->user('guest') !== null) {
+        if ($request->user('web') !== null || $request->user('guest') !== null
+            || ($request->is('admin', 'admin/*') && $request->user('admin') !== null)) {
             return $next($request);
         }
 

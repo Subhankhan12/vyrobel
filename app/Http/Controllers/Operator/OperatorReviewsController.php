@@ -10,6 +10,7 @@ use App\Models\Review;
 use App\Services\ReviewService;
 use App\Support\Guest\GuestName;
 use App\Support\Reviews\ReviewRating;
+use App\Support\Reviews\ReviewTag;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +52,7 @@ class OperatorReviewsController extends Controller
                 'guest' => GuestName::display($r->guest),   // NAME only — no contact PII (#28)
                 'rating' => (int) $r->rating,
                 'stars' => str_repeat('★', (int) $r->rating).str_repeat('☆', 5 - (int) $r->rating),
-                'tags' => $r->tags ?? [],
+                'tags' => ReviewTag::labels($r->tags ?? []),
                 'body' => (string) $r->body,
                 'room' => (string) ($r->roomType->name ?? ''),
                 'private' => $r->visibility === Review::VISIBILITY_PRIVATE,

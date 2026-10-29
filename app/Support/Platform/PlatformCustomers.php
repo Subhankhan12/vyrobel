@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\PlatformAdminAction;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\Authorization\RoleLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -317,7 +318,7 @@ class PlatformCustomers
         return $members->map(fn (object $m): array => [
             'name' => (string) $m->name,
             'email' => (string) $m->email,
-            'roles' => collect($roles[$m->id] ?? [])->pluck('name')->map(fn ($r): string => (string) $r)->sort()->values()->all(),
+            'roles' => collect($roles[$m->id] ?? [])->pluck('name')->map(fn ($r): string => RoleLabel::for((string) $r))->sort()->values()->all(),
             'verified' => $m->email_verified_at !== null,
             'last_login_at' => $this->asCarbon($m->last_login_at),
             'status' => (string) $m->status,

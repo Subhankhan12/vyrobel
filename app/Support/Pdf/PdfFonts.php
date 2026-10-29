@@ -56,7 +56,9 @@ final class PdfFonts
 
         if ($script === 'Arab') {
             $html = ArabicPdfShaper::shapeHtml($html);
-            $extra .= 'body{text-align:right}td,th{text-align:right}';
+            // the templates' own `table.x th { text-align: left }` is more specific than a bare `th` — so the Arabic rule must win
+            // explicitly, or every header sits left over right-aligned cells (seen 2026-10-29 on the folio); centred columns stay centred
+            $extra .= 'body{text-align:right}td,th{text-align:right !important}td.c,th.c{text-align:center !important}';
         }
         if ($script === 'Thai') {
             $html = ThaiPdfShaper::shapeHtml($html);

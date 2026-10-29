@@ -80,6 +80,9 @@ class LangCheck extends Command
             'HTML' => fn () => LangChecks::value('New? <a href=":url">Sign up</a>', 'Neu? Registrieren'),
             'ATTR' => fn () => LangChecks::value('<a class="vy-x" href=":url">Go</a>', '<a class="other" href=":url">Los</a>'),
             'JSQUOTE' => fn () => LangChecks::value('Remove this unit?', 'Supprimer l\'unité ?'),
+            // a plural form with markup no English form has (a six-form language repeats the markup per form — counted per form)
+            'HTML (one plural form)' => fn () => array_map(fn ($p) => [$p[0] === 'HTML' ? 'HTML (one plural form)' : $p[0]],
+                LangChecks::value('{1} <b>:count</b> night|[2,*] <b>:count</b> nights', '{0} <b>:count</b> ليلة|{1} :count ليلة|[2,*] <b>:count</b> ليال')),
             'LOST' => fn () => LangChecks::locale(['a.b' => 'Save'], [], ['a.b' => 'hash']),
             'GLUED' => fn () => LangChecks::view("<p>{{ __('a.add') }} {{ __('a.unit') }}</p>"),
             'RAWVAR' => fn () => LangChecks::view("{!! __('a.hi', ['name' => \$guest->name]) !!}"),
@@ -97,6 +100,7 @@ class LangCheck extends Command
         }
         $clean = array_merge(
             LangChecks::value('Paid :amount of :total', 'Bezahlt: :amount von :total'),
+            LangChecks::value('{1} <b>:count</b> night|[2,*] <b>:count</b> nights', '{0} <b>:count</b> ليلة|{1} <b>:count</b> ليلة|{2} <b>:count</b> ليلتان|[3,*] <b>:count</b> ليال'),
             LangChecks::value('New? <a class="vy-x" href=":url">Sign up</a>', 'Neu? <a class="vy-x" href=":url">Registrieren</a>'),
             LangChecks::view("{!! __('a.hi', ['url' => e(route('x'))]) !!} <p>{{ __('a.one') }}</p>"),
             LangChecks::view("@php(\$whenHtml = '<time>'.e(\$at).'</time>')\n{!! __('a.t', ['w' => \$whenHtml]) !!}"),

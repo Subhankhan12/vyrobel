@@ -60,8 +60,8 @@ final class OwnerAgreementDocument
             'commission' => $a->commission_pct === null ? null : self::pct((float) $a->commission_pct),
             'scope' => $a->unit_id === null ? 'Portfolio-wide' : 'Unit-specific',
             'status' => ucfirst((string) $a->status),
-            'started' => $a->effective_from->format('j M Y'),
-            'runs_until' => $a->effective_to?->format('j M Y'),          // null → "Open-ended" in the view
+            'started' => $a->effective_from->translatedFormat('j M Y'),
+            'runs_until' => $a->effective_to?->translatedFormat('j M Y'),          // null → "Open-ended" in the view
             'fee' => $fee,
             'fee_interval' => self::interval($a->management_fee_interval),
             'schedule' => self::interval($a->payout_schedule),
@@ -70,7 +70,7 @@ final class OwnerAgreementDocument
             'notice' => $a->notice_days !== null ? $a->notice_days.' days' : null,
             'auto_renews' => $a->auto_renews,                            // null → row omitted
             'villas' => OwnerAgreementTerms::perVilla($ownerIds, $a->effective_from->toDateString() < now()->toDateString() ? now()->toDateString() : $a->effective_from->toDateString()),
-            'generated_on' => now()->format('j M Y'),
+            'generated_on' => now()->translatedFormat('j M Y'),
         ];
     }
 
@@ -93,11 +93,11 @@ final class OwnerAgreementDocument
             'version' => (string) $amendment->version,
             'title' => (string) $amendment->title,
             'summary' => $amendment->summary !== null ? (string) $amendment->summary : null,
-            'effective_date' => $amendment->effective_date->format('j M Y'),
+            'effective_date' => $amendment->effective_date->translatedFormat('j M Y'),
             'changes' => self::changes(is_array($amendment->new_terms) ? $amendment->new_terms : []),
             'acknowledged_by' => $ack?->acknowledgedBy?->name,
-            'acknowledged_at' => $ack?->acknowledged_at?->format('j M Y'),
-            'generated_on' => now()->format('j M Y'),
+            'acknowledged_at' => $ack?->acknowledged_at?->translatedFormat('j M Y'),
+            'generated_on' => now()->translatedFormat('j M Y'),
         ];
     }
 

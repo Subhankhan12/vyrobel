@@ -77,10 +77,10 @@ class LeaveRequest extends Model
         $end = $this->end_date;
 
         if ($start->isSameDay($end)) {
-            return $start->format('D j M');
+            return $start->translatedFormat('D j M');
         }
 
-        return $start->format('D j').'–'.$end->format('D j M');
+        return $start->translatedFormat('D j').'–'.$end->translatedFormat('D j M');
     }
 
     /**

@@ -294,7 +294,7 @@ class OwnerBalance extends Component
                 'signed_minor' => $signed,
                 'month_key' => $currency.'|'.$entry->service_date->format('Y-m'),
                 'month_label' => $entry->service_date->translatedFormat('F Y'),
-                'description' => (string) $entry->description,
+                'description' => $entry->label(),
                 'type_label' => $this->entryTypeLabel((string) $entry->entry_type),
                 'amount_display' => $this->money($signed, $currency, signed: true),
                 'is_negative' => $signed < 0,

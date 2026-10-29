@@ -11,6 +11,7 @@ use App\Models\Reservation;
 use App\Models\Review;
 use App\Services\ReviewService;
 use App\Support\Branding\PropertyBrand;
+use App\Support\Reviews\ReviewTag;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -111,21 +112,10 @@ class GuestReviewController extends Controller
         return redirect()->route('guest.trips')->with('status', __('php/http/controllers/guest/guest_review_controller.thanks'));
     }
 
-    /** The words for a review-tag code. */
+    /** The words for a review-tag code — the ONE map, shared with every review list. */
     private function tagLabel(string $code): string
     {
-        return match ($code) {
-            'Spotless villa' => __('php/http/controllers/guest/guest_review_controller.tag_spotless_villa'),
-            'Easy check-in' => __('php/http/controllers/guest/guest_review_controller.tag_easy_check_in'),
-            'Great location' => __('php/http/controllers/guest/guest_review_controller.tag_great_location'),
-            'Fast replies' => __('php/http/controllers/guest/guest_review_controller.tag_fast_replies'),
-            'Comfy beds' => __('php/http/controllers/guest/guest_review_controller.tag_comfy_beds'),
-            'Cleanliness' => __('php/http/controllers/guest/guest_review_controller.tag_cleanliness'),
-            'Check-in hassle' => __('php/http/controllers/guest/guest_review_controller.tag_check_in_hassle'),
-            'Noise' => __('php/http/controllers/guest/guest_review_controller.tag_noise'),
-            'Slow replies' => __('php/http/controllers/guest/guest_review_controller.tag_slow_replies'),
-            default => $code,
-        };
+        return ReviewTag::label($code);
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */

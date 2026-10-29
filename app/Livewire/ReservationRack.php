@@ -215,6 +215,8 @@ class ReservationRack extends Component
                 'room_type_id' => $roomType->id,
                 'room_type' => $roomType->name,
                 'kind' => (string) $roomType->kind,
+                // the kind in words (the Units page's own words) — the chip printed the raw code ("room") in every language
+                'kind_label' => __('php/livewire/units_list.kind_'.$roomType->kind),   // room · apartment · villa · dorm — always one of the four
                 'units' => $activeUnits->count(),
                 'availability' => $rtAvailability,
                 'no_price' => $noPrice,

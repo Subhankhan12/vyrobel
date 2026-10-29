@@ -60,7 +60,7 @@ final class ArrivalPack
             'check_in_time' => self::time($property?->check_in_time),
             'check_out_time' => self::time($property?->check_out_time),
             'released' => $released,
-            'released_from' => $opensOn->format('D, j M'),
+            'released_from' => $opensOn->translatedFormat('D, j M'),
             'has_code' => $code !== null,
             // Sensitive fields are gated on the arrival window — withheld (null) before it opens.
             'door_code' => $released ? $code : null,

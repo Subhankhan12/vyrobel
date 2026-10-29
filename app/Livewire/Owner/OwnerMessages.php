@@ -13,6 +13,7 @@ use App\Models\MessageThread;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Authorization\RoleLabel;
 use App\Support\Inbox\MessageAttachments;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -572,7 +573,7 @@ class OwnerMessages extends Component
     {
         $roles = $user->getRoleNames();
 
-        return $roles->isNotEmpty() ? (string) $roles->first() : null;
+        return $roles->isNotEmpty() ? RoleLabel::for((string) $roles->first()) : null;
     }
 
     /**

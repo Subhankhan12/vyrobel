@@ -64,7 +64,7 @@ it('⚠️ keeps an older row\'s stored sentence — nothing stored is rewritten
     app()->setLocale('de');
     $item = NotificationFeed::recentForUser($me->fresh())['items'][0];
     expect($item['title'])->toBe('Stored English title')
-        ->and(NotificationFeed::categoryLabel('front_desk'))->toBe('Front Desk')
+        ->and(NotificationFeed::categoryLabel('front_desk'))->toBe(__('components/notifications/bell.categories', [], 'de')['front_desk'])   // a known category in the reader's words
         ->and(NotificationFeed::categoryLabel('a_new_code'))->toBe('A New Code');
 });
 

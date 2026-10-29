@@ -33,13 +33,20 @@ final class RtlCss
     /** Mirror one declaration list (`a: b; c: d`), as found inside a block or a style="" attribute. */
     public static function flipDeclarations(string $decls): string
     {
+        // the CENTRING idiom — `left: 50%` with `translateX(-50%)` — looks the same both ways; flipping only its `left` puts the
+        // element a full width off-centre (the owner chart's tooltips hung off the screen and widened an Arabic phone page)
+        $centred = preg_match('/(?:^|[;\s])left\s*:\s*50%/i', $decls) === 1 && preg_match('/translate(?:X)?\(\s*-50%/i', $decls) === 1;
+
         return preg_replace_callback(
             '/(^|;|\s)(\s*)([a-zA-Z-]+)(\s*:\s*)([^;]+)/',
-            function (array $m): string {
+            function (array $m) use ($centred): string {
                 [$all, $lead, $ws, $prop, $colon, $value] = $m;
                 $p = strtolower($prop);
                 if (str_starts_with($p, '--')) {
                     return $all;   // custom properties hold design tokens, never a side
+                }
+                if ($centred && $p === 'left' && trim($value) === '50%') {
+                    return $all;
                 }
 
                 return $lead.$ws.self::flipProperty($prop).$colon.self::flipValue($p, $value);

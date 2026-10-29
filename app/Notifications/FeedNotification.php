@@ -6,6 +6,7 @@ namespace App\Notifications;
 
 use App\Models\User;
 use App\Services\NotificationPreferences;
+use App\Support\Notifications\FeedParams;
 use App\Support\Notifications\QuietHours;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -28,9 +29,10 @@ abstract class FeedNotification extends Notification
     /**
      * I18N-01 — the key and parameters behind each text data() returned, recorded by {@see t()} and stored beside the
      * sentence (`data.i18n`), so the feed can show the row in its READER's language later (NotificationFeed). Parameters
-     * must be plain values (names, dates already formatted, amounts already formatted).
+     * are plain values (names, amounts already formatted), or a date / a booking source as {@see FeedParams::date()} /
+     * {@see FeedParams::source()} — those are said when the row is READ, so they follow the reader's language too.
      *
-     * @var array<string, array{0: string, 1: array<string, scalar|null>, 2?: int}>
+     * @var array<string, array{0: string, 1: array<string, mixed>, 2?: int}>
      */
     private array $i18n = [];
 
@@ -38,27 +40,27 @@ abstract class FeedNotification extends Notification
      * Translate one of data()'s texts and remember how: `'title' => $this->t('title', 'php/notifications/x.title', [...])`.
      * Laravel sends each notification in its recipient's language (HasLocalePreference), so the stored sentence is theirs.
      *
-     * @param  array<string, scalar|null>  $params
+     * @param  array<string, mixed>  $params
      */
     protected function t(string $field, string $key, array $params = []): string
     {
         $this->i18n[$field] = [$key, $params];
 
-        return (string) __($key, $params);
+        return (string) __($key, FeedParams::say($params));
     }
 
     /**
      * The plural form of {@see t()}: `'context' => $this->tc('context', 'php/notifications/x.nights', $n, ['unit' => …])`. The count is
      * stored with the key, so the feed picks the right plural form in the READER's language too.
      *
-     * @param  array<string, scalar|null>  $params
+     * @param  array<string, mixed>  $params
      */
     protected function tc(string $field, string $key, int $count, array $params = []): string
     {
         $params = ['count' => $count] + $params;
         $this->i18n[$field] = [$key, $params, $count];
 
-        return (string) trans_choice($key, $count, $params);
+        return (string) trans_choice($key, $count, FeedParams::say($params));
     }
 
     /** The preference key (snake_case) — the event a user toggles on/off (must be a {@see NotificationPreferences::CATALOG} key). */

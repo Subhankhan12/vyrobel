@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\AdminEmailChangeMail;
 use App\Models\PlatformAdmin;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\I18n\Locales;
 use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminPasswordPolicy;
 use App\Support\Platform\PlatformAdminSessions;
@@ -49,12 +50,16 @@ class AccountController extends Controller
         ]);
     }
 
-    /** Edit the always-safe profile fields (name). Audited. */
+    /** Edit the always-safe profile fields (name, language). Audited. */
     public function updateProfile(Request $request): RedirectResponse
     {
         $admin = $this->admin();
 
-        $data = $request->validate(['name' => ['required', 'string', 'max:120']], [], ConsoleFields::names());
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            // I18N-01 — the console's language: one of the languages a person may pick today; blank = English
+            'locale' => ['nullable', Rule::in(Locales::offered())],
+        ], [], ConsoleFields::names());
         $admin->forceFill($data)->save();
 
         $this->audit->record('platform.account.profile_updated', ['fields' => array_keys($data)]);

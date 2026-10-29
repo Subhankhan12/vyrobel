@@ -56,6 +56,12 @@ stage)
     [ "$FROM" != "$TO" ] || die "HEAD is already live"
     say "live $CUR @ ${FROM:0:8}  →  staging $NEW @ ${TO:0:8}"
 
+    # ⚠️ I18N-01 Phase E — the translation gate BLOCKS (a finished language with a broken placeholder, tag or quote can break a
+    #    page or a script); what still needs translation only WARNS (a new English text shows in English until DELTA runs).
+    LANG_CHECK="$(php artisan lang:check 2>&1)" || { printf '%s\n' "$LANG_CHECK" | tail -n 15; die "lang:check fails — a release never ships a broken translation"; }
+    say "translation: $(printf '%s\n' "$LANG_CHECK" | tail -n 1)"
+    say "needs translation since live: $(php artisan lang:todo --since="$FROM" 2>/dev/null | tail -n 1)"
+
     # ⚠️ bash 3.2 (macOS) has no `mapfile`, and treats an EMPTY array as unbound under `set -u` — so the file
     #    lists are plain files read with `while read`, never arrays.
     WORK="$(mktemp -d -t vyrel)"

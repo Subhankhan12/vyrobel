@@ -88,10 +88,11 @@ class PdfService
         if (Locales::script($locale) === 'Arab') {
             $label = ArabicPdfShaper::shape($label);
         }
-        $pdf->getDomPDF()->getCanvas()->page_text(
-            self::FOOTER_X, self::FOOTER_Y, $label,
-            $locale === Locales::SOURCE ? 'sans-serif' : PdfFonts::family($locale), 7.5, [0.373, 0.345, 0.325]   // #5f5853, the watermark's ink
-        );
+        // the canvas takes a font FILE, not a CSS family: a family name it cannot resolve falls back to Helvetica, which has no
+        // Arabic letters — "Page 1 of 1" printed "????? 1 ?? 1 ???" (seen 2026-10-29). Resolve the document's family first.
+        $dompdf = $pdf->getDomPDF();
+        $font = $locale === Locales::SOURCE ? 'sans-serif' : ($dompdf->getFontMetrics()->getFont(PdfFonts::family($locale)) ?? PdfFonts::family($locale));
+        $dompdf->getCanvas()->page_text(self::FOOTER_X, self::FOOTER_Y, $label, $font, 7.5, [0.373, 0.345, 0.325]);   // #5f5853, the watermark's ink
 
         return $pdf;
     }
@@ -126,7 +127,10 @@ class PdfService
         // reader cannot read is a cosmetic feature. Now the same grey the 17 templates use for secondary text.
         // ⚠️ Its plate is still NON-DETERMINISTIC — `position:fixed` puts it over whatever the page ends with
         // (see DO-PDF-2); this fixes the ink, not that.
-        $footer = '<div style="position:fixed;bottom:4px;left:0;right:0;text-align:center;font-size:7.5px;color:#5f5853;font-family:sans-serif;letter-spacing:.02em;">'.e($watermark).'</div>';
+        // in another language its font is the documents' own (DejaVu Sans, swapped for a bundled family where the script needs
+        // one): a generic sans-serif has no Arabic letters, and the stamp printed as "???" on an Arabic statement (seen 2026-10-29)
+        $stampFont = $locale === Locales::SOURCE ? 'sans-serif' : '\'DejaVu Sans\'';   // English exactly as before
+        $footer = '<div style="position:fixed;bottom:4px;left:0;right:0;text-align:center;font-size:7.5px;color:#5f5853;font-family:'.$stampFont.';letter-spacing:.02em;">'.e($watermark).'</div>';
         $html = str_contains($html, '</body>') ? str_replace('</body>', $footer.'</body>', $html) : $html.$footer;
 
         return $this->load(PdfFonts::html($html, $locale), $locale);

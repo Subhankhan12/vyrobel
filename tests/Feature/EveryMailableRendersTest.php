@@ -156,3 +156,43 @@ it('renders every mailable to real HTML', function () {
     expect($failures)->toBe([], "mailables that cannot be built:\n  - ".implode("\n  - ", $failures));
     expect($rendered)->toBe(count(emrBuilders()));
 });
+
+// ── 3. I18N-01 Phase D — AND IN EVERY LANGUAGE THAT HAS BEEN APPLIED ────────────────────────────────────────────
+// Each lang/<code>/ folder (written by ops/i18n/apply.php) is rendered through every mailable: no raw key may reach the
+// recipient, and the message must not be the English one (a mailable that ignores its locale would send English to a
+// German guest). VY_I18N_MAIL_DUMP=<dir> also writes each message to <dir>/<lang>/<Mailable>.html, to be looked at.
+it('renders every mailable in every applied language — no raw key, and not the English text', function () {
+    $languages = array_values(array_filter(array_map('basename', glob(lang_path('*'), GLOB_ONLYDIR) ?: []), fn (string $l): bool => $l !== 'en' && $l !== 'vendor'));
+    if ($languages === []) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+    $dump = getenv('VY_I18N_MAIL_DUMP') ?: null;
+    $problems = [];
+
+    foreach ($languages as $lang) {
+        config(['app.available_locales' => ['en', $lang]]);
+        foreach (emrBuilders() as $class => $make) {
+            $english = $make()->locale('en')->render();
+            $html = $make()->locale($lang)->render();
+            $name = class_basename($class);
+            if ($dump !== null) {
+                @mkdir("$dump/$lang", 0777, true);
+                file_put_contents("$dump/$lang/$name.html", $html);
+            }
+            if (preg_match_all('~(?<![\w./-])((?:[a-z_]+/)+[a-z_-]+\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)(?![\w(])~', strip_tags($html), $m)) {
+                foreach (array_unique($m[1]) as $k) {
+                    if (Lang::has($k, 'en', false)) {
+                        $problems[] = "$lang $name: raw key $k";
+                    }
+                }
+            }
+            if ($html === $english) {
+                $problems[] = "$lang $name: identical to the English message";
+            }
+        }
+    }
+
+    expect($problems)->toBe([], "mail problems:\n  - ".implode("\n  - ", $problems));
+});

@@ -81,6 +81,9 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - **Reuse, don't duplicate:** polymorphic `media` / `documents` / `notes` / `tags` are shared across modules. Extend existing services; never build a parallel structure for an existing concept. **When a PDF/document mirrors a screen, the shared rule lives in ONE `App\Support\*` helper** (`MoneyFormatter`, `FolioTotals`, `RailLabel`, `OwnerOccupancy`) — two `match`es for one concept WILL drift and make the two surfaces disagree.
 - **Livewire — two traps that cost real bugs (both invisible to PHPStan/Pint):** (1) never type-hint a scoped model as a public prop (RMB resolves before the scope middleware → leak); hold a **string** id and `findOrFail` in `render()`. (2) **name that prop `$xxxId`** — a public prop is injected into the view scope, so `public string $unit` SHADOWS a `'unit' => [...]` array from `render()` and `$unit['name']` fatals on a string offset.
 - **Blade — a directive whose `@` follows a word character is NOT compiled** (the `\B` rule that lets `foo@bar.com` render literally): `expenses@if ($x)…@endif` ships **raw source to the user** as ordinary text, which `assertSee`/`assertDontSee` sail straight past. Never write `word@directive`. `assertNoRawBlade()` (tests/Support/owner_helpers.php) guards it.
+- **Translations (I18N-01):** every UI text is a key (`lang/en/…`), dates people read use `translatedFormat()`, codes shown to people
+  go through one words map, and every pass report ends with the `php artisan lang:todo` line. Rule and instruments: `docs/memory/RULES.md`
+  (Part 2 "Translations", Part 3). Finished languages = `config('app.available_locales')`.
 - **Static checks cannot see a rendered page.** `php -l` + PHPStan + Pint + a Blade compile all pass on a page that 500s or leaks raw source. **Run the suite AND open the thing in a browser** before claiming any gate.
 
 ## Workflow rules

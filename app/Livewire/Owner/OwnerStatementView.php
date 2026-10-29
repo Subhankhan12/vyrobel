@@ -189,7 +189,7 @@ class OwnerStatementView extends Component
 
                 return [
                     'line_type' => $l->line_type,
-                    'description' => $l->description,
+                    'description' => $l->label(),
                     'sublabel' => $this->lineSublabel((string) $l->line_type, $amount, $gross, $grossSub),
                     'amount_minor' => $amount,
                     'amount_display' => $this->money($amount, (string) $l->currency, signed: ! $isNet),

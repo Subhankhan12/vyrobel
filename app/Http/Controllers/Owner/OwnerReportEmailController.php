@@ -55,7 +55,7 @@ class OwnerReportEmailController extends Controller
 
         Mail::to($email)->locale($user->preferredLocale())->queue(new OwnerReportMail(
             ownerName: (string) ($statement->owner->name ?? ($user->name ?? 'Owner')),
-            periodLabel: $statement->period_start->format('F Y'),
+            periodLabel: $statement->period_start->translatedFormat('F Y'),
             filename: $filename,
             pdfBytes: $pdfBytes,
         ));

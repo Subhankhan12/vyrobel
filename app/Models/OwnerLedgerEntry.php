@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Casts\MoneyCast;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use App\Support\I18n\StoredEnglish;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * One immutable line in the append-only `owner_ledger` (Phase 3 · Module 1). Correct-by-reversal:
@@ -63,6 +65,25 @@ class OwnerLedgerEntry extends Model
             'meta' => 'array',
             'posted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * I18N-01 — this line's description in the reader's language when it is one of the sentences the system writes (see
+     * lang/en/php/models/owner_ledger_entry.php); a reversal says its original line the same way, an expense its category in
+     * words, a fee its interval in words. Anything else — and every English reader — gets the stored description unchanged.
+     */
+    public function label(): string
+    {
+        return self::say((string) $this->description);
+    }
+
+    private static function say(string $description): string
+    {
+        return StoredEnglish::say('php/models/owner_ledger_entry', $description, [
+            'original' => fn (string $original): string => self::say($original),
+            'category' => fn (string $code): string => Lang::has('php/livewire/owner/owner_expenses.category_'.$code) ? (string) __('php/livewire/owner/owner_expenses.category_'.$code) : $code,
+            'interval' => fn (string $code): string => Lang::has('php/livewire/owner/owner_agreement.interval_'.$code) ? (string) __('php/livewire/owner/owner_agreement.interval_'.$code) : $code,
+        ]) ?? $description;
     }
 
     /**

@@ -79,7 +79,7 @@ final class ReviewList
                 // — the same Owner-26 defect <x-star-rating> exists to prevent, still live one section below
                 // the hero that was migrated to it. Nothing rounds up; the count is the real rating.
                 'stars_off' => str_repeat('☆', 5 - (int) $r->rating),
-                'tags' => $r->tags ?? [],
+                'tags' => ReviewTag::labels($r->tags ?? []),
                 'body' => (string) $r->body,
                 'response' => $response,
                 // Honest pending state — a PUBLISHED review with no operator response yet is "awaiting a reply"

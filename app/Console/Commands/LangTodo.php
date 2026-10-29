@@ -147,6 +147,12 @@ class LangTodo extends Command
         $prefix = self::usedByPrefix('a/b.status_paid', ['a/b.status_']);
         $this->line(($prefix ? 'caught  ' : 'MISSED  ').'a dynamic prefix counts as use (no false REMOVED)');
         $ok = $ok && $prefix;
+        [$u, $p] = [[], []];
+        self::scanLine("\$key = 'a/b.'.\$this->line_type;", 'x', $u, $p);
+        self::scanLine("StoredEnglish::say('a/c', \$text);", 'x', $u, $p);
+        $joined = self::usedByPrefix('a/b.net', $p) && self::usedByPrefix('a/c.reversal', $p) && ! self::usedByPrefix('a/d.x', $p);
+        $this->line(($joined ? 'caught  ' : 'MISSED  ').'a joined literal prefix and a whole group count as use (and nothing else does)');
+        $ok = $ok && $joined;
         $stale = substr(sha1('Old English'), 0, 16) !== substr(sha1('New English'), 0, 16);
         $this->line(($stale ? 'caught  ' : 'MISSED  ').'CHANGED (a different English text has a different hash)');
         $ok = $ok && $stale;
@@ -154,6 +160,44 @@ class LangTodo extends Command
         $this->line(($clean ? 'clean   ' : 'FALSE   ').'a converted view reports nothing');
 
         return $ok && $clean ? SymfonyCommand::SUCCESS : SymfonyCommand::FAILURE;
+    }
+
+    /**
+     * The uses one line of code makes of keys: a full key (a call, or a plain literal — FeedNotification::t('title', 'php/…key'),
+     * a key held in a constant); a dynamic prefix (__('x.status_'.$code), or a literal 'group.' joined to a code); a whole GROUP
+     * handed over as a literal ('php/models/owner_ledger_entry' — App\Support\I18n\StoredEnglish reads every key in it).
+     *
+     * @param  array<string, string>  $usage
+     * @param  list<string>  $prefixes
+     */
+    private static function scanLine(string $line, string $where, array &$usage, array &$prefixes): void
+    {
+        if (preg_match_all('~[\'"]([a-z0-9_\-]+(?:/[a-z0-9_\-]+)*\.[a-z0-9_\-]+(?:\.[a-z0-9_\-]+)*)[\'"]~i', $line, $lit)) {
+            foreach ($lit[1] as $k) {
+                $usage[$k] ??= $where;
+            }
+        }
+        // a literal ending in "." or "_" with a value joined on: 'php/models/owner_statement_line.'.$type
+        if (preg_match_all('~[\'"]((?:[a-z0-9_\-]+/)*[a-z0-9_\-]+\.(?:[a-z0-9_\-]+\.)*[a-z0-9_\-]*)[\'"]\s*\.(?!\.)~', $line, $pre)) {
+            foreach ($pre[1] as $p) {
+                $prefixes[] = $p;
+            }
+        }
+        // a whole group as a literal (a path with at least one "/" and no dot)
+        if (preg_match_all('~[\'"]((?:[a-z0-9_\-]+/)+[a-z0-9_\-]+)[\'"]~', $line, $grp)) {
+            foreach ($grp[1] as $g) {
+                $prefixes[] = $g.'.';
+            }
+        }
+        if (preg_match_all('/(?:__|trans_choice|trans|@lang|@choice)\s*\(\s*[\'"]([^\'"$]+)[\'"]\s*(\.)?/', $line, $m, PREG_SET_ORDER)) {
+            foreach ($m as $mm) {
+                if (($mm[2] ?? '') === '.') {
+                    $prefixes[] = $mm[1];
+                } else {
+                    $usage[$mm[1]] ??= $where;
+                }
+            }
+        }
     }
 
     /** @return list<string> */
@@ -206,21 +250,7 @@ class LangTodo extends Command
         $prefixes = [];
         foreach ($this->scanFiles(includeAll: true) as $rel) {
             foreach (file(base_path($rel)) ?: [] as $n => $line) {
-                // a full key written as a plain literal is a use too — FeedNotification::t('title', 'php/…key'), a key held in a constant
-                if (preg_match_all('~[\'"]([a-z0-9_\-]+(?:/[a-z0-9_\-]+)*\.[a-z0-9_\-]+(?:\.[a-z0-9_\-]+)*)[\'"]~i', $line, $lit)) {
-                    foreach ($lit[1] as $k) {
-                        $usage[$k] ??= $rel.':'.($n + 1);
-                    }
-                }
-                if (preg_match_all('/(?:__|trans_choice|trans|@lang|@choice)\s*\(\s*[\'"]([^\'"$]+)[\'"]\s*(\.)?/', $line, $m, PREG_SET_ORDER)) {
-                    foreach ($m as $mm) {
-                        if (($mm[2] ?? '') === '.') {
-                            $prefixes[] = $mm[1];
-                        } else {
-                            $usage[$mm[1]] ??= $rel.':'.($n + 1);
-                        }
-                    }
-                }
+                self::scanLine($line, $rel.':'.($n + 1), $usage, $prefixes);
             }
         }
 

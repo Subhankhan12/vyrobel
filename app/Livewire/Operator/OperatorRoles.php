@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Services\RoleAssignmentService;
 use App\Services\RolePermissionService;
+use App\Support\Authorization\RoleLabel;
 use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -91,24 +92,10 @@ class OperatorRoles extends Component
         ]);
     }
 
-    /** A role's displayed name, keyed by its spatie name (the identifier stays untouched in data and logic). */
+    /** A role's displayed name, keyed by its spatie name — the shared map ({@see RoleLabel}). */
     private function roleLabel(string $roleName): string
     {
-        return match ($roleName) {
-            'Super Admin' => __('php/livewire/operator/operator_roles.role_super_admin'),
-            'Property Owner' => __('php/livewire/operator/operator_roles.role_property_owner'),
-            'Group Admin' => __('php/livewire/operator/operator_roles.role_group_admin'),
-            'Hotel Manager' => __('php/livewire/operator/operator_roles.role_hotel_manager'),
-            'Revenue Manager' => __('php/livewire/operator/operator_roles.role_revenue_manager'),
-            'Front Desk' => __('php/livewire/operator/operator_roles.role_front_desk'),
-            'Reservation Agent' => __('php/livewire/operator/operator_roles.role_reservation_agent'),
-            'Housekeeping' => __('php/livewire/operator/operator_roles.role_housekeeping'),
-            'Maintenance' => __('php/livewire/operator/operator_roles.role_maintenance'),
-            'Accountant' => __('php/livewire/operator/operator_roles.role_accountant'),
-            'Marketing Manager' => __('php/livewire/operator/operator_roles.role_marketing_manager'),
-            'Guest Support Agent' => __('php/livewire/operator/operator_roles.role_guest_support_agent'),
-            default => $roleName,
-        };
+        return RoleLabel::for($roleName);
     }
 
     /** The role card's one-line description, keyed by the role name ({@see RolePermissionService} writes the English). */

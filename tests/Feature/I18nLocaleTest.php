@@ -156,6 +156,7 @@ it('⚠️⚠️ carries the language a guest BOOKED in onto the guest — and l
 });
 
 it('⚠️ shows the language menu only when there is a second finished language — never to someone signed in', function () {
+    config(['app.available_locales' => ['en']]);
     expect((string) test()->get('/login')->getContent())->not->toContain('vy-langmenu');   // English only: nothing new on the page
 
     i18nGermanFinished();

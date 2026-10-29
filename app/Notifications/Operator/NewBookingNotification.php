@@ -6,6 +6,7 @@ namespace App\Notifications\Operator;
 
 use App\Models\Reservation;
 use App\Notifications\FeedNotification;
+use App\Support\Notifications\FeedParams;
 use Illuminate\Support\Carbon;
 
 /**
@@ -28,12 +29,13 @@ class NewBookingNotification extends FeedNotification
 
     public function data(object $notifiable): array
     {
-        $checkIn = Carbon::parse($this->reservation->check_in)->translatedFormat('j M');
-        $checkOut = Carbon::parse($this->reservation->check_out)->translatedFormat('j M');
+        // dates and the source are said when the row is READ (FeedParams), so they follow the reader's language
+        $checkIn = FeedParams::date(Carbon::parse($this->reservation->check_in), 'j M');
+        $checkOut = FeedParams::date(Carbon::parse($this->reservation->check_out), 'j M');
 
         return [
             'title' => $this->t('title', 'php/notifications/operator/new_booking_notification.title', ['reference' => (string) $this->reservation->reference]),
-            'context' => $this->t('context', 'php/notifications/operator/new_booking_notification.context', ['source' => ucfirst((string) $this->reservation->source), 'check_in' => $checkIn, 'check_out' => $checkOut]),
+            'context' => $this->t('context', 'php/notifications/operator/new_booking_notification.context', ['source' => FeedParams::source((string) $this->reservation->source), 'check_in' => $checkIn, 'check_out' => $checkOut]),
             'url' => route('app.reservations', [], false),
             'category' => 'front_desk',
         ];

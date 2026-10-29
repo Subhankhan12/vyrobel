@@ -15,6 +15,7 @@ use App\Support\Billing\CheckoutSessions;
 use App\Support\Billing\StripePriceWiring;
 use App\Support\Billing\SubscriptionStatus;
 use Database\Seeders\BillingPlanSeeder;
+use Illuminate\Support\Facades\Lang;
 use RuntimeException;
 
 /**
@@ -243,7 +244,7 @@ final class BillingService
                 $dbFeature = $dbFeatures->get($key);
                 $features[] = [
                     'key' => $key,
-                    'label' => (string) $feature['label'],
+                    'label' => self::words('feature_'.$key, (string) $feature['label']),
                     'enabled' => $dbFeature !== null ? (bool) $dbFeature->enabled : (bool) ($feature['enabled'] ?? true),
                     'limit' => $dbFeature !== null ? $dbFeature->limit : ($feature['limit'] ?? null),
                 ];
@@ -252,7 +253,7 @@ final class BillingService
             $out[] = [
                 'code' => $code,
                 'name' => (string) $tier['name'],
-                'blurb' => (string) $tier['blurb'],
+                'blurb' => self::words('blurb_'.$code, (string) $tier['blurb']),
                 'currency' => $monthly->currency,
                 'monthly_minor' => $monthly->price_minor,
                 'yearly_minor' => $yearly->price_minor,
@@ -261,5 +262,13 @@ final class BillingService
         }
 
         return $out;
+    }
+
+    /** I18N-01 — config copy in the reader's language, while it is still the text the key translates; else as written. */
+    private static function words(string $item, string $configText): string
+    {
+        $key = 'php/services/billing_service.'.$item;
+
+        return Lang::has($key, 'en', false) && Lang::get($key, [], 'en', false) === $configText ? (string) __($key) : $configText;
     }
 }

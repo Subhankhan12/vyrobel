@@ -59,7 +59,7 @@ class OwnerBalanceExportController extends Controller
 
                 fputcsv($out, CsvSafe::row([
                     $e->service_date->format('Y-m-d'),
-                    (string) $e->description,
+                    $e->label(),
                     (string) $e->entry_type,
                     MoneyFormatter::display($signed, $currency, signed: true),
                     MoneyFormatter::display($running[$currency], $currency),

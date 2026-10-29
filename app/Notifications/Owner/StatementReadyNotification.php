@@ -7,6 +7,7 @@ namespace App\Notifications\Owner;
 use App\Models\OwnerStatement;
 use App\Notifications\FeedNotification;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Notifications\FeedParams;
 use Illuminate\Support\Carbon;
 
 /**
@@ -31,7 +32,7 @@ class StatementReadyNotification extends FeedNotification
     public function data(object $notifiable): array
     {
         $amount = MoneyFormatter::display((int) $this->statement->net_payable_minor, (string) $this->statement->currency);
-        $period = Carbon::parse($this->statement->period_start)->translatedFormat('F Y');
+        $period = FeedParams::date(Carbon::parse($this->statement->period_start), 'F Y');
 
         return [
             'title' => $this->t('title', 'php/notifications/owner/statement_ready_notification.title'),

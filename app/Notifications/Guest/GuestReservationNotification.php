@@ -9,6 +9,7 @@ use App\Notifications\FeedNotification;
 use App\Services\NotificationPreferences;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Guest\GuestName;
+use App\Support\Notifications\FeedParams;
 use Illuminate\Support\Carbon;
 
 /**
@@ -96,8 +97,8 @@ abstract class GuestReservationNotification extends FeedNotification
 
         $params = [
             'property' => (string) ($r->property->name ?? __('php/notifications/guest/guest_reservation_notification.your_stay')),
-            'check_in' => $in->translatedFormat('j M Y'),
-            'check_out' => $out->translatedFormat('j M Y'),
+            'check_in' => FeedParams::date($in, 'j M Y'),
+            'check_out' => FeedParams::date($out, 'j M Y'),
         ];
 
         // ⚠️ I18N-01 — one key per shape (FeedNotification::t() records a key, not a plural choice).

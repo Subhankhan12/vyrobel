@@ -66,8 +66,9 @@
         </div>
         <div class="ad-card">
             <h2 class="ad-panel-title">{{ __('admin/hotels.adoption_heading') }}</h2>
+            @php($moduleWords = (array) __('admin/hotels.modules'))
             @foreach ($s['adoption'] as $module => $n)
-                <div class="ad-row"><span class="ad-row-k">{{ $module }}</span><span class="ad-row-v">{{ __('admin/hotels.adoption_row', ['used' => $n, 'total' => $s['organizations']]) }}</span></div>
+                <div class="ad-row"><span class="ad-row-k">{{ is_string($moduleWords[$module] ?? null) ? $moduleWords[$module] : $module }}</span><span class="ad-row-v">{{ __('admin/hotels.adoption_row', ['used' => $n, 'total' => $s['organizations']]) }}</span></div>
             @endforeach
             <p class="ad-reason-hint">{{ __('admin/hotels.adoption_hint') }}</p>
         </div>

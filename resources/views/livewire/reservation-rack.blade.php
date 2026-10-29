@@ -169,7 +169,7 @@
                             <div class="vy-rack-flexrow vy-rt-availrow">
                                 <div class="vy-rt-label vy-rack-labelcol">
                                     <span class="vy-rt-name">{{ $row['room_type'] }}</span>
-                                    <span class="vy-rt-kind">{{ $row['kind'] }}</span>
+                                    <span class="vy-rt-kind">{{ $row['kind_label'] }}</span>
                                     <span class="vy-rt-meta">{{ trans_choice('livewire/reservation-rack.units', $row['units'], ['count' => $row['units']]) }}</span>
                                 </div>
                                 <div class="vy-nights">

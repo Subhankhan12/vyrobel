@@ -224,7 +224,7 @@ class ScheduleController extends Controller
         $audit->record('schedule.published', $publication, null, ['week_starts_on' => $weekStart]);
 
         // Notify each rostered staff member (real FeedNotification; edits stay live afterwards).
-        $label = CarbonImmutable::parse($weekStart)->format('j M');
+        $label = CarbonImmutable::parse($weekStart)->translatedFormat('j M');
         foreach ($roster->rows as $row) {
             User::query()->find($row['staff']['id'])?->notify(new SchedulePublishedNotification($property->name, $label));
         }

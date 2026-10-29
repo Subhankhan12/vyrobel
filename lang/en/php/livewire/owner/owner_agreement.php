@@ -38,4 +38,19 @@ return [
     'ran_to' => 'Ran to :date',
     'status_active' => 'Active',
     'status_ended' => 'Ended',
+    // attribution overrides — a stored rule key or value said in words (English = the code's headline, as it always printed);
+    // a key or value with no entry here keeps that headline
+    'rules' => [
+        'non_deductible_categories' => 'Non Deductible Categories',
+        'ota_cost_bearer' => 'OTA Cost Bearer',
+        'cleaning_fee_bearer' => 'Cleaning Fee Bearer',
+        'addon_bearer' => 'Addon Bearer',
+    ],
+    'rule_values' => [
+        'owner' => 'Owner',
+        'operator' => 'Operator',
+        'cleaning' => 'Cleaning',
+        'maintenance' => 'Maintenance',
+        'other' => 'Other',
+    ],
 ];

@@ -62,7 +62,7 @@ final class OwnerRemittanceDocument
             ->orderBy('sort_order')
             ->get()
             ->map(fn (OwnerStatementLine $l): array => [
-                'description' => (string) $l->description,
+                'description' => $l->label(),
                 'amount_display' => MoneyFormatter::display((int) $l->amount_minor, (string) $l->currency, signed: $l->line_type !== 'net'),
                 'is_negative' => (int) $l->amount_minor < 0,
                 'is_net' => $l->line_type === 'net',

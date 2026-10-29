@@ -29,6 +29,14 @@ it('⚠️ leaves what has no side alone — symmetric shorthands, design tokens
         ->toBe('@media (max-width:600px){.a:hover{margin-left:4px}} .left-rail{right:0}');
 });
 
+it('⚠️ keeps a CENTRED element centred — left:50% with translateX(-50%) is symmetric; a lone left:50% still mirrors', function () {
+    // G3 (2026-10-29): flipping only the `left` of the owner chart's tooltips put each a full width off its bar, off the
+    // edge of an Arabic phone screen (the page scrolled sideways, 447px on 390)
+    expect(RtlCss::flipDeclarations('position:absolute; left:50%; transform:translateX(-50%) translateY(4px)'))
+        ->toBe('position:absolute; left:50%; transform:translateX(-50%) translateY(4px)')
+        ->and(RtlCss::flipDeclarations('position:absolute; left:50%; width:50%'))->toBe('position:absolute; right:50%; width:50%');
+});
+
 it('⚠️⚠️ mirrors an Arabic page and leaves an English page byte for byte', function () {
     // Livewire auto-injects its styles into any HTML page once ANY test in the process has rendered a component (a static
     // it never resets) — that is Livewire, not the mirroring; off here so the byte-for-byte claim measures the mirroring only.

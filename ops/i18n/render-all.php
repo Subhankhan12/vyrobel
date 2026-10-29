@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\I18n\Locales;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -213,7 +214,9 @@ foreach ($actors as $label => $actor) {
         }
         $request = Request::create($base.'/'.ltrim($uri, '/'), 'GET');
         if ($actor['guard'] === null && $locale !== 'en') {
-            $request->cookies->set(SetVisitorLocale::COOKIE, $locale);
+            // the browser holds the cookie ENCRYPTED (EncryptCookies) — a plain value is dropped on the way in, and the page
+            // would render in English (measured 2026-10-29: every signed-out page of the first German run was English)
+            $request->cookies->set(SetVisitorLocale::COOKIE, app('encrypter')->encrypt(CookieValuePrefix::create(SetVisitorLocale::COOKIE, app('encrypter')->getKey()).$locale, false));
         }
         app()->instance('request', $request);
         DB::beginTransaction();
@@ -225,7 +228,7 @@ foreach ($actors as $label => $actor) {
             if ($actor['guard'] !== null && $locale !== 'en') {
                 if ($actor['guard'] === 'guest') {
                     $actor['user']->forceFill(['language' => $locale])->saveQuietly();
-                } elseif ($actor['guard'] === 'web') {
+                } elseif ($actor['guard'] === 'web' || $actor['guard'] === 'admin') {
                     $actor['user']->forceFill(['locale' => $locale])->saveQuietly();
                 }
             }
@@ -246,6 +249,10 @@ foreach ($actors as $label => $actor) {
                 if (preg_match('/@(if|foreach|lang|endif|csrf|auth|can)\b|\{\{\s*\$/', visibleText($body))) {
                     $problems[] = "$label /$uri RAW-BLADE";
                 }
+            } elseif (str_contains($type, 'pdf') && $body !== '') {
+                // Phase D: every PDF in this language, kept to be turned into images and looked at (glyphs, joined Arabic)
+                @mkdir("$outDir/pdf");
+                file_put_contents("$outDir/pdf/".Str::slug($label)."__$slug.pdf", $body);
             } elseif (str_contains($type, 'csv')) {
                 file_put_contents("$outDir/".Str::slug($label)."__$slug.csv.txt", strtok($body, "\n")."\n");
             }
