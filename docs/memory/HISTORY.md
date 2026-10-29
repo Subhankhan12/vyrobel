@@ -1643,6 +1643,29 @@ an x-data comment, a CSS rule in a partial instead of the layout), fixed. Deploy
 parse; "150,50" → 15050; de "1.234,50" → 1234.50; de "1,234" refused), swap 01:20:36 UTC 4 ms, public checks 12/0/0, 0 errors
 since. Not pushed.
 
+**I18N-01, ⛔ G3 (2026-10-28/29) — the pilot pair: German and Arabic LIVE on `rel_BY`.** All 29 batches per language translated
+→ reviewed by a different agent → one consistency editor (de 94 fixes, ar 62); DELTA ran twice for texts added since the export
+(030 money readout + approve split, 031 the fixes below, 032 plan copy). **Rendering both languages found what keys alone could
+not (V, `ops/i18n/english-left.php`, new):** older bell rows, owner ledger and statement lines stored as finished English; review
+tags, roles, agreement rules, the calendar's room-type kind, console modules/events and plan copy printed as codes or config
+text; 30 dates printed with `format()`; the console had no language at all (no column) and a signed-in admin was reset to English
+by the visitor middleware; Arabic PDFs printed "???" for the page number and the download stamp (a font with no Arabic) with
+left-aligned headers; the RTL mirror moved centred tooltips a full width off the screen (an Arabic phone page scrolled sideways);
+German compounds cut off in the sidebar; "14n"/"pp" left Latin in Arabic. All fixed, English byte-identical except the bell now
+says "OTA"/"Walk-in" (was "Ota"/"Walk_in"). Rows are never rewritten: `StoredEnglish` matches a stored sentence to its key (most
+specific first) and `FeedParams` stores dates/sources as data. Tooling: lang:check compares plural markup per form (24 false
+errors on Arabic's six forms), lang:todo counts joined prefixes and whole groups, `ops/release.sh stage` BLOCKS on lang:check
+and WARNS lang:todo, `EveryMailableRendersTest` renders every mail in every applied language, RULES Part 2 "Translations".
+**Two test files re-aimed** for German being applied (I18nLocaleTest sets its own English-only list; a known bell category is
+the reader's word) — claims kept. **Gates (V):** MySQL 4,582/4,582 · MariaDB 4,582/4,582 (34,348) · PHPStan 0 · Pint · lang:check
+0 · money gate FULL unchanged · 70 Arabic pages at phone width, none scrolls sideways · 21 mails × 2 languages. **Production
+(read-only):** users.locale en × 17, empty × 3; guests.language empty × 18; organizations.default_locale en × 15 — nobody had de/ar.
+Deploy: stage (gate passed in the script) → host preflight → migrate (additive) → swap 01:40:50 UTC 4 ms → public checks 12/0/0 →
+live de/ar sign-in and booking pages checked, cache-busted → 0 errors. Screenshots: `~/Desktop/vyrobel-translation/{de,ar}/`.
+**For his signed-in look:** /app/dashboard, /app/calendar, a reservation, /app/front-desk, /app/schedule (staff); /owner,
+a statement, /owner/balance, the statement PDF (owner); the guest's trips and a reservation on a phone; /admin/account (pick a
+language). Open from it: D-AGREEMENT-BEARER-WORD (his), D-GUEST-TILE-NARROW, D-I18N-DATE-ORDER, D-I18N-STORED-RECORDS. Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

@@ -16,7 +16,7 @@ change is said.** Briefs live in `briefs/`.
 | F7 | Real tax rates (`tax:set-rate`, replacing the EXAMPLE rates) | him | `docs/TAX-ENGINE-DESIGN.md` | The VAT figures shown are example rates. |
 | F8 | Optional: one email to `sales@` to prove the alias | him | — | **R:** the alias was created 2026-09-26; delivery is not proven. |
 | F9 | Keep `advisor-platform`'s test runs paused while a Vyrobel pass swaps the local database engine (MariaDB gate) — **F 2026-09-29: he paused them for ADMIN 06's finish.** **F 2026-09-30 (the Units pass): after an hour with the dev server still up, he said "stop advisor and complete vyrobel"; it was stopped with SIGTERM at 16:09 Baku (the Octane process and its frankenphp child) and left stopped.** Each pass still asks. **2026-10-06:** today's two earlier swaps (17:59 and 20:41 Baku) CHECKED rather than asked — who was connected to 3306 and whether advisor's processes ran; the time-limit follow-up's swap (22:28–22:30 Baku) checked only for test runs: a slip (nothing was connected; advisor's server stayed stopped). Whether a check may stand in for asking is his call. **F 2026-10-09 (ROLE SIGN-IN): asked, "Yes, swap" — for this pass;** checked first too (nothing on 3306, no advisor process); MySQL restored at 17:49 Baku. **2026-10-09/10: asked before every swap — five more passes (SIDEBAR POSITION, OWNER TOP BAR, TOP BAR BELL, THE VYROBEL SELECT, THE ONE SELECT ENGINE), "Yes, swap" each time, each checked first (nothing on 3306, no advisor process) and MySQL restored after.** Still asked per pass; the "stop asking" option was offered each time and not chosen. | him, per pass | — | The engine swap stops the shared local MySQL for ~25 min; that project's tests and its Octane dev server use it. |
-| F10 | **I18N-01 — ⛔ G3: the pilot pair de + ar.** His rulings on PLAN §5 are given (F 2026-10-27, PLAN §0) and G2 is live (`rel_BW`). D-MONEY-COMMA is closed (`rel_BX`). Next: screenshots of de + ar, his signed-in look | him | `briefs/I18N-01.md`, `docs/i18n/PLAN.md`, `~/vyrobel-local/i18n/STATE.md` | German translated + reviewed + consistent (29/29); Arabic in progress. Resume: "continue the Vyrobel translation from ~/vyrobel-local/i18n/STATE.md". |
+| F10 | **I18N-01 — ⛔ G3 LIVE (2026-10-29, `rel_BY`): German + Arabic are on.** Waiting on HIS signed-in look (the list is in `HISTORY.md` "I18N-01, ⛔ G3"; screenshots in `~/Desktop/vyrobel-translation/de` + `/ar`) and his word on D-AGREEMENT-BEARER-WORD. Then, by his brief, the other 25 languages go live one at a time without stopping (style guide → translate → review → consistency → gates → release), and ⛔ G4 (DELTA shown on real new strings — it already ran twice: batches 030–032) | him, then me | `briefs/I18N-01.md`, `docs/i18n/PLAN.md`, `~/vyrobel-local/i18n/STATE.md` | Resume: "continue the Vyrobel translation from ~/vyrobel-local/i18n/STATE.md". Machine translation with AI review — no native speaker has checked either language. |
 
 ## Agent
 | ID | What | Waiting on | Brief | Why it matters |
@@ -320,6 +320,22 @@ change is said.** Briefs live in `briefs/`.
   (essential; set only when a visitor chooses a language), so the privacy page's cookie table gains a row. Lawyer list.
 - **D-I18N-LAWYER (2026-10-27 — the lawyer's):** translations of: the owner agreement page's "portal acknowledgment, not a
   legally-binding e-signature" note; the VAT invoice footer (kept English); the cookie row above. Legal PDFs stay English.
+- **D-I18N-DATE-ORDER (2026-10-29, V — the German render and mails; low, mine before more languages):** dates are translated
+  (month and day names) but keep the English ORDER of the shared patterns: German reads "Di., 1 Sep 2026" where it writes
+  "Di., 1. Sep. 2026". ~395 `format()` patterns are shared code; the fix is one named-format helper per locale. Readable as is.
+- **D-I18N-STORED-RECORDS (2026-10-29, V — english-left.php):** text the system wrote into a RECORD in English stays English
+  in every language: folio line descriptions ("Room · Double Room", "Room (R-…)", "Group discount (10%)", the seeders' "Room stay
+  …") on the folio, invoice and receipt, and owner-expense query subjects. Bell notifications, owner statement lines and owner
+  ledger lines ARE said in the reader's language now (`App\Support\I18n\StoredEnglish`, the rows untouched). Folio lines are an
+  invoice record — said by type would change what an invoice prints; recorded, not done. Names an operator typed (room types,
+  rate plans, amenities, taxes, fees, extras) are their content and show as typed — by design.
+- **D-GUEST-TILE-NARROW (2026-10-29, V — low, pre-existing in English too):** the guest reservation's four stat tiles on a 390px
+  phone are 73px wide; a money figure ("€369.00") now shrinks (min(19px, 3.7vw)) but still overhangs its tile by ~5px. A layout
+  change (2 + 2 tiles on a phone) is the real fix — his look first.
+- **D-AGREEMENT-BEARER-WORD (found 2026-10-29 by the Arabic reviewer, 📖 `OwnerAttributionService` — his):** the owner Agreement
+  page labels two terms "Cleaning Fee Bearer: Owner" and "Addon Bearer: Owner" (the rule codes, headlined). Those rules decide who
+  RECEIVES the fee — the owner is CREDITED it — so "bearer" says the opposite in English. German and Arabic say what the rule does
+  ("Reinigungsgebühr geht an", "رسوم التنظيف لصالح"); the English label is unchanged until he rules ("Cleaning fee goes to"?).
 - **D-I18N-FALLBACK-NAMES (2026-10-27, 📖 — low):** `the_guest`, `your_operator`, `your_stay`/`your_unit` fall-back names fill
   sentences of different shapes; they show only when a REQUIRED name is missing, so not split. Recorded, not fixed.
 - **D-BOOK-NO-TERMS (found 2026-10-27 by I18N-01's G1 read, 🔬 grep; pre-existing, not changed — the lawyer's and his):** the public
