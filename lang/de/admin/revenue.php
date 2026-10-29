@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Umsatz',
+    'subtitle' => 'Aus dem, was Stripe tatsächlich belastet hat — nie aus Listenpreisen. Nur Kunden, es sei denn, Sie beziehen die Organisationen von Vyrobel selbst ein.',
+    'including_internal' => 'Einschließlich der internen Organisationen von Vyrobel selbst.',
+    'customers_only_note' => 'Nur Kunden.',
+    'customers_only_link' => 'Nur Kunden',
+    'include_internal_link' => 'Interne einbeziehen',
+    'no_live_billing_pill' => 'Noch keine Live-Abrechnung',
+    'no_customer_charged' => 'Bisher wurde kein Kunde belastet.',
+    'not_live_explainer' => 'Stripe ist nicht live, daher gibt es keine bezahlte Rechnung zum Zählen. Das ist kein schlechter Monat — es gibt noch keinen Monat. Der Umsatz wird hier nur aus <strong>bezahlten Stripe-Rechnungen</strong> berechnet (der Belastung selbst, erfasst, wenn Stripe sie uns meldet), nie aus dem Listenpreis eines Tarifs.',
+    'live_billed_subscriptions' => 'Live abgerechnete Abonnements',
+    'trialing_unbilled' => 'Abonnements in der Testphase, nicht abgerechnet',
+    'failed_payments_30d' => 'Fehlgeschlagene Zahlungen, letzte 30 Tage',
+    'when_first_paid' => 'Sobald die erste Rechnung bezahlt ist, zeigt diese Seite: MRR und ARR je Währung · neuer MRR, Erweiterungs-, Reduzierungs- und gekündigter MRR · Umwandlung von Testphase zu bezahlt · fehlgeschlagene Zahlungen.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Berücksichtigte Abonnements',
+    'no_live_subscription_charged' => 'Kein aktives, live abgerechnetes Abonnement wurde belastet.',
+    'mrr_hint' => 'Jedes aktive oder überfällige Live-Abonnement mit dem Betrag seiner letzten bezahlten Rechnung, über den Abrechnungszeitraum dieser Rechnung auf Monatsbasis umgerechnet.',
+    'this_month_vs_last' => 'Dieser Monat vs. Vormonat',
+    'movement_new' => 'Neu · :currency',
+    'movement_expansion' => 'Erweiterung · :currency',
+    'movement_contraction' => 'Reduzierung · :currency',
+    'movement_churned' => 'Gekündigt · :currency',
+    'nothing_charged' => 'Weder im Vormonat noch in diesem Monat wurde etwas belastet.',
+    'movements_hint' => 'Je Organisation, aus dem, was in jedem Monat belastet wurde. Gekündigt = im Vormonat belastet, in diesem Monat nichts, und das Abonnement ist gekündigt.',
+    'trial_to_paid' => 'Testphase → bezahlt',
+    'trial_to_paid_value' => ':converted von :ended beendeten Testphasen wurden belastet',
+    'past_due_now' => 'Derzeit überfällig',
+    'paid_invoices_counted' => 'Gezählte bezahlte Rechnungen',
+    'never_moves_money' => 'Diese Konsole belastet, erstattet oder bewegt niemals Geld. Jede Zahl gilt je Währung und wird nie über Währungen hinweg summiert.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Unterkünfte',
+    'book_direct' => 'Direkt buchen',
+    'nav_stays' => 'Unterkünfte',
+    'my_account' => 'Mein Konto',
+    'sign_in' => 'Anmelden',
+    'rating_across' => '{1} :average aus :count Bewertung|[0,*] :average aus :count Bewertungen',
+    'heading' => 'Direkt buchen bei<br>:org.',
+    'subheading' => 'Liebevoll gepflegte Unterkünfte, direkt beim Gastgeber gebucht — keine Gebühren, unser bester Preis und ein echter Mensch als Ansprechpartner.',
+    'where' => 'Reiseziel',
+    'check_in' => 'Check-in',
+    'check_out' => 'Check-out',
+    'adults' => 'Erwachsene',
+    'children' => 'Kinder',
+    'where_to_stay' => 'Wo Sie übernachten',
+    'towns_lede' => '{1} Unser Standort.|[0,*] :count Orte, jeder mit seinem eigenen Tempo.',
+    'from_price' => 'ab :price',
+    'featured_stays' => 'Ausgewählte Unterkünfte',
+    'featured_lede' => 'Die Favoriten unserer Gäste aus unserem gesamten Angebot.',
+    'per_night' => '/ Nacht',
+    'see_dates_for_pricing' => 'Für Preise Reisedaten wählen',
+    'browse_by_what_matters' => 'Suchen Sie nach dem, was Ihnen wichtig ist',
+    'why_book_direct' => 'Warum direkt buchen',
+    'recent_guests' => 'Unsere letzten Gäste',
+    'rating_short' => '{1} :average · :count Bewertung|[0,*] :average · :count Bewertungen',
+    'stars_aria' => ':rating von 5 Sternen',
+    'review_quote' => '„:body“',
+    'no_reviews_yet' => 'Noch keine Bewertungen — machen Sie den Anfang: Übernachten Sie bei uns und teilen Sie Ihre Erfahrung.',
+    'cta_heading' => 'Finden Sie Ihr Zuhause auf Zeit',
+    'cta_sub' => 'Echte Reisedaten, aktuelle Preise, sofortige Bestätigung.',
+    'browse_all_stays' => 'Alle Unterkünfte ansehen',
+];

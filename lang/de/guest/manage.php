@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => ':reference verwalten',
+    'back_to_booking' => '← Zurück zur Buchung',
+    'heading' => 'Ihre Buchung verwalten',
+    'subheading' => ':property · :check_in → :check_out. Änderungen werden von der Unterkunft bestätigt — wir benachrichtigen Sie, sobald das geschehen ist.',
+    'pending_requests' => 'Ausstehende Anfragen',
+    'pending_badge' => 'Ausstehend',
+    'pending_note' => 'An Ihrer Buchung hat sich noch nichts geändert — eine Anfrage wird zuerst von der Unterkunft bestätigt.',
+    'pick_new_dates' => 'Neue Reisedaten wählen',
+    'currently' => 'Derzeit :check_in → :check_out. Wählen Sie neue Reisedaten, um den Preisunterschied zu sehen, und fragen Sie dann die Änderung an.',
+    'new_check_in' => 'Neue Anreise',
+    'new_check_out' => 'Neue Abreise',
+    'see_price_difference' => 'Preisunterschied anzeigen',
+    'new_stay' => 'Neuer Aufenthalt',
+    'current' => 'Aktuell',
+    'difference' => 'Differenz',
+    'estimate_note' => 'Nur eine Schätzung — vorbehaltlich der Bestätigung durch die Unterkunft. Eine Zahlung erfolgt erst nach deren Bestätigung.',
+    'unpriced_note' => 'Für diese Reisedaten gibt es noch keinen veröffentlichten Preis — fragen Sie die Änderung an, und die Unterkunft bestätigt den Preis.',
+    'request_date_change' => 'Datumsänderung anfragen',
+    'add_to_your_stay' => 'Zu Ihrem Aufenthalt hinzufügen',
+    'add_to_your_stay_sub' => 'Buchen Sie Frühstück, Transfers und mehr dazu — alles wird bei Bestätigung über Ihre Buchung abgerechnet.',
+    'browse_extras' => 'Extras ansehen',
+    'cancellation_policy' => 'Stornierungsbedingungen',
+    'free_until' => 'Kostenlose Stornierung bis <strong>:date</strong> — bei einer Stornierungsanfrage vor diesem Datum erhalten Sie den vollen Betrag zurück.',
+    'policy_by_property' => 'Die Unterkunft bestätigt Ihre Stornierung und wickelt eine etwaige Rückerstattung gemäß ihren Bedingungen ab.',
+    'cancel_confirm' => 'Stornierungsanfrage für diese Buchung senden? Die Unterkunft prüft sie und wickelt eine etwaige Rückerstattung gemäß ihren Bedingungen ab.',
+    'reason' => 'Grund',
+    'choose_reason' => 'Grund auswählen…',
+    'request_cancellation' => 'Stornierung anfragen',
+    'closed_heading' => 'Diese Buchung ist abgeschlossen',
+    'closed_body' => 'Hier gibt es nichts mehr zu ändern — aber Ihre Reisedaten, Ihre Aufenthaltsdetails und alle Zahlungen bleiben hier jederzeit für Sie abrufbar.',
+];

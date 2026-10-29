@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'ملاحظة',
+    'kind_progress' => 'تقدم العمل',
+    'kind_part' => 'تم طلب قطعة غيار',
+    'elapsed_minutes' => ':minutes د',
+    'elapsed_hours' => ':hours س :minutes د',
+    'elapsed_days' => ':days يوم :hours س',
+    'hours_short' => ':hours س',
+    'timeline_opened' => 'تم الإبلاغ',
+    'timeline_assigned_to' => 'المكلف: :name',
+    'a_technician' => 'فني',
+    'timeline_unassigned' => 'غير معيّن',
+    'timeline_started' => 'تم بدء العمل',
+    'timeline_resolved' => 'تم الحل',
+    'timeline_cancelled' => 'تم الإلغاء',
+    'timeline_parts_updated' => 'تم تحديث قطع الغيار',
+    'timeline_cost_corrected' => 'تم تصحيح التكلفة',
+    'timeline_updated' => 'تم تعديل التفاصيل',
+    'note_progress' => 'تحديث تقدم العمل',
+    'note_part' => 'تم طلب قطعة غيار',
+    'note_added' => 'تمت إضافة ملاحظة',
+    'a_team_member' => 'أحد أعضاء الفريق',
+    'system' => 'النظام',
+    'photo_alt' => 'صورة الصيانة',
+    'the_owner' => 'المالك',
+    'load_none' => 'لا توجد أوامر عمل مفتوحة',
+    'load_open' => 'مفتوحة: :open',
+    'load_open_urgent' => 'مفتوحة: :open · عاجلة: :urgent',
+    'impact_arrivals' => '{0} :count حجوزات تصل الليلة وتحتاج إلى غرف|حجز واحد يصل الليلة ويحتاج إلى غرفة|حجزان يصلان الليلة ويحتاجان إلى غرفتين|:count حجوزات تصل الليلة وتحتاج إلى غرف|:count حجزًا تصل الليلة وتحتاج إلى غرف|:count حجز تصل الليلة وتحتاج إلى غرف',
+    'impact_bookings' => '{0} :count حجوزات يجب نقلها|حجز واحد يجب نقله|حجزان يجب نقلهما|:count حجوزات يجب نقلها|:count حجزًا يجب نقلها|:count حجز يجب نقلها',
+    'impact_none' => 'لا توجد حجوزات متأثرة',
+];

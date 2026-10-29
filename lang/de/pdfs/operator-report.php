@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Berichte',
+    'arrivals_in' => 'Anreisen im Zeitraum :period',
+    'arrivals_count' => '{1} :count Anreise|[0,*] :count Anreisen',
+    'pp_delta' => ':delta Pp.',
+    'occupancy' => 'Auslastung',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Bruttoumsatz',
+    'basis_note' => 'Auslastung · ADR · RevPAR beruhen auf Übernachtungen, verglichen mit demselben Zeitraum des Vorjahres, sofern Vorjahresdaten vorliegen. Der Umsatz unten beruht auf dem Folio (Anreisedatum).',
+    'revenue' => 'Umsatz',
+    'room' => 'Zimmer',
+    'ancillary' => 'Nebenerlöse <span class="muted">· Extras, Produkte, Gebühren</span>',
+    'tax_collected' => 'Eingenommene Steuern · durchlaufender Posten',
+    'costs_heading' => 'Kosten <span class="muted" style="font-size:9px">· nur echte Daten</span>',
+    'maintenance' => 'Wartung <span class="muted">· erledigte Arbeitsaufträge</span>',
+    'not_tracked' => 'noch nicht erfasst',
+    'net' => 'Netto (Umsatz − erfasste Kosten)',
+    'revenue_by_channel' => 'Umsatz nach Kanal',
+    'channel' => 'Kanal',
+    'bookings' => 'Buchungen',
+    'share' => 'Anteil',
+    'no_channel_revenue' => 'Kein Kanalumsatz in diesem Zeitraum.',
+    'top_units' => 'Top-Einheiten',
+    'unit' => 'Einheit',
+    'nights' => 'Nächte',
+    'room_revenue' => 'Zimmerumsatz',
+    'no_unit_revenue' => 'Kein Einheitenumsatz in diesem Zeitraum.',
+    'revenue_by_month' => 'Umsatz nach Monat',
+    'month' => 'Monat',
+    'footer' => 'Berechnet aus echten Folio- & Wartungsdaten für :scope · :period. Auslastung/ADR/RevPAR beruhen auf Übernachtungen; der Umsatz beruht auf dem Folio (Anreisedatum). Die Zahlen stimmen mit der Berichtsseite überein. Vyrobel.',
+];

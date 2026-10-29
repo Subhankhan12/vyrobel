@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'تفضيلات الإشعارات',
+    'subtitle' => 'طرق تواصل Vyrobel معك',
+    'breadcrumb_label' => 'مسار التنقل',
+    'crumb_settings' => 'الإعدادات',
+    'crumb_notifications' => 'الإشعارات',
+    'channel_email' => 'البريد الإلكتروني',
+    'channel_push' => 'الإشعارات الفورية',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'لا يوجد بريد إلكتروني مسجل',
+    'email_verified_title' => 'تم التحقق من البريد الإلكتروني المستخدم لتسجيل الدخول',
+    'email_verified' => 'تم التحقق',
+    'push_not_set_up_title' => 'لم يتم إعداد الإشعارات الفورية بعد',
+    'not_set_up_tag' => 'لم يتم الإعداد',
+    'push_not_available' => 'إشعارات المتصفح والأجهزة غير متاحة بعد',
+    'channel_off' => 'متوقف',
+    'sms_not_set_up_title' => 'لم يتم إعداد SMS بعد',
+    'sms_no_provider' => 'لم يتم ربط أي مزود SMS بعد',
+    'notify_me_when' => 'إشعاري عند',
+    'always_on' => 'مفعّلة دائمًا',
+    'email_always_on_sr' => 'البريد الإلكتروني مفعّل دائمًا لهذا الحدث: :event',
+    'email_me_when_aria' => 'إرسال بريد إلكتروني عند: :event',
+    'push_not_set_up_sr' => 'لم يتم إعداد الإشعارات الفورية',
+    'sms_not_set_up_sr' => 'لم يتم إعداد SMS',
+    'quiet_hours' => 'ساعات الهدوء',
+    'quiet_hours_help' => 'تأجيل رسائل البريد الإلكتروني الروتينية خلال هذه الساعات — تصل تنبيهات الأمان العاجلة دائمًا، ولا تتأثر الإشعارات داخل التطبيق.',
+    'quiet_from' => 'من',
+    'quiet_to' => 'إلى',
+    'digest_heading' => 'ملخص يومي عبر البريد الإلكتروني',
+    'digest_help' => 'ملخص صباحي لليوم. <span class="vy-np-soon">لا يتم الإرسال بعد</span> — يتم حفظ التفضيل إلى حين إطلاق خاصية الملخص.',
+    'digest_off' => 'متوقف',
+    'digest_morning' => 'صباحًا · 08:00',
+];

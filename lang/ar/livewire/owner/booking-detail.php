@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'نظرة عامة',
+    'breadcrumb_bookings' => 'الحجوزات',
+    'guest_fallback' => 'ضيف',
+    'reservation' => 'الحجز',
+    'check_in' => 'الوصول',
+    'nights_count' => '{0} :count ليالٍ|ليلة واحدة|ليلتان|:count ليالٍ|:count ليلةً|:count ليلة',
+    'check_out' => 'المغادرة',
+    'unit' => 'الوحدة',
+    'guests' => 'الضيوف',
+    'nights' => 'الليالي',
+    'nightly_rate' => 'سعر الليلة',
+    'your_earnings' => 'أرباحك',
+    'gross_to_net' => 'الإجمالي ← الصافي',
+    'gross_booking_value' => 'القيمة الإجمالية للحجز',
+    'net_to_you' => 'الصافي لك',
+    'refunds_we_covered' => 'مبالغ مستردة تحملناها',
+    'refunds_we_covered_note' => 'تم ردها إلى الضيف وتحميلها علينا وليس عليك. أرباحك أعلاه لم تتغير.',
+    'not_yet_attributed' => 'لم يتم احتسابه بعد.',
+    'not_yet_attributed_note' => 'تظهر أرباحك هنا بمجرد احتساب هذا الحجز في دفتر حسابك — عادة بعد تسجيل المغادرة.',
+    'guest_heading' => 'الضيف',
+    'guest_contact_note' => 'يتولى فريق الإدارة بيانات الاتصال بالضيف — ويظهر لك الحجز وأرباحك.',
+    'message_your_team' => 'مراسلة فريق الإدارة',
+    'timeline' => 'السجل الزمني',
+    'for_night_stay' => 'عن هذه الإقامة (عدد الليالي: :nights)',
+    'booking_details' => 'تفاصيل الحجز',
+    'confirmation' => 'رقم التأكيد',
+    'source' => 'المصدر',
+    'channel' => 'القناة',
+    'booked_on' => 'تاريخ الحجز',
+    'download_confirmation' => 'تنزيل تأكيد الحجز',
+    'download_unavailable' => 'متاح للملاك المشاركين والمحاسبين',
+    'view_unit' => 'عرض :unit',
+];

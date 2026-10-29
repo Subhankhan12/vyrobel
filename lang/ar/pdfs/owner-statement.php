@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'تتم إدارته عبر Vyrobel',
+    'eyebrow' => 'كشف حساب المالك',
+    'unit_count' => '{0} :count وحدات|وحدة واحدة|وحدتان|:count وحدات|:count وحدةً|:count وحدة',
+    'issued' => 'تاريخ الإصدار: :date',
+    'prepared_for' => 'مقدم إلى',
+    'net_payable_to_owner' => 'صافي المستحق للمالك',
+    'iban' => 'رقم IBAN :iban',
+    'occupancy' => 'الإشغال',
+    'nights_sold' => 'الليالي المباعة',
+    'avg_nightly_rate' => 'متوسط سعر الليلة',
+    'breakdown' => 'تفصيل المبلغ',
+    'item' => 'البند',
+    'detail' => 'التفاصيل',
+    'amount' => 'المبلغ',
+    'provisional' => '(مبدئي)',
+    'performance_by_unit' => 'الأداء حسب الوحدة',
+    'unit' => 'الوحدة',
+    'nights' => 'الليالي',
+    'revenue' => 'الإيرادات',
+    'total_gross_room_revenue' => 'إجمالي إيرادات الغرف',
+    'callout_heading' => 'تحويل المستحقات.',
+    'settles_to_iban' => 'تتم تسوية صافي المبلغ البالغ :amount بتحويل بنكي إلى رقم IBAN :iban.',
+    'settles' => 'تتم تسوية صافي المبلغ البالغ :amount بتحويل بنكي.',
+    'fees_with_commission' => 'يتم احتساب عمولة الإدارة بنسبة :pct% من إجمالي إيرادات الغرف؛ ويتم تمرير رسوم الدفع ورسوم المنصة بتكلفتها الفعلية. جميع المبالغ بعملة :currency وتشمل الضرائب المطبقة المحصلة نيابة عنك.',
+    'fees' => 'يتم تمرير رسوم الدفع ورسوم المنصة بتكلفتها الفعلية. جميع المبالغ بعملة :currency وتشمل الضرائب المطبقة المحصلة نيابة عنك.',
+    'fx_note' => 'تم تحويل العملة من :source بسعر :rate (المصدر: :src).',
+    'provisional_note' => 'بعض البنود مبدئية، بانتظار مطابقة قنوات البيع.',
+    'statement_ref' => 'كشف الحساب :ref',
+    'sequence_no' => 'رقم :number',
+    'generated' => 'تاريخ الإنشاء: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'هل لديك أسئلة؟ :email',
+];

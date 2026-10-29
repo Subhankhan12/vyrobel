@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Aufenthalt',
+    'step_guest' => 'Gast',
+    'step_extras' => 'Extras',
+    'step_confirm' => 'Bestätigen',
+    'source_direct' => 'Direkt',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Firmenkunde',
+    'source_agent' => 'Reisebüro',
+    'the_guest' => 'Der Gast',
+    'a_night' => ':amount pro Nacht',
+    'a_night_range' => ':low–:high pro Nacht',
+    'dates_label' => '{1} :from → :to · :count Nacht|[0,*] :from → :to · :count Nächte',
+    'restrict_min_stay' => '{1} Bei Anreise am :date beträgt der Mindestaufenthalt :count Nacht|[0,*] Bei Anreise am :date beträgt der Mindestaufenthalt :count Nächte',
+    'restrict_max_stay' => '{1} Bei Anreise am :date beträgt der Höchstaufenthalt :count Nacht|[0,*] Bei Anreise am :date beträgt der Höchstaufenthalt :count Nächte',
+    'restrict_no_arrivals' => 'Keine Anreisen am :date',
+    'restrict_no_departures' => 'Keine Abreisen am :date',
+    'restrict_stop_sell' => 'Am :date sind keine neuen Buchungen möglich',
+    'restrict_other' => ':restriction am :date',
+    'arrival_mail_off' => 'Vyrobel versendet noch keine E-Mails — geben Sie dem Gast die Anfahrtsbeschreibung und den Türcode selbst.',
+    'arrival_pre_arrival_off' => 'Die E-Mail vor der Anreise ist für Ihre Unterkünfte ausgeschaltet — geben Sie dem Gast die Anfahrtsbeschreibung und den Türcode selbst.',
+    'arrival_too_soon' => 'Dieser Aufenthalt beginnt zu bald für die E-Mail vor der Anreise, die :count Tage vor dem Check-in versendet wird — geben Sie dem Gast die Anfahrtsbeschreibung und den Türcode selbst.',
+    'arrival_by_email' => 'Die Anfahrtsbeschreibung und, falls die Einheit einen hat, der Türcode erreichen den Gast :count Tage vor dem Check-in per E-Mail — sofern eine E-Mail-Adresse hinterlegt ist. Der Türcode wird hier nie angezeigt.',
+    'cancel_not_free' => 'Für diesen Aufenthalt nicht kostenlos — die Frist endete am :date',
+    'cancel_free_until_check_in' => 'Kostenlos bis zum Check-in',
+    'cancel_free_until_date' => 'Kostenlos bis :date',
+    'cancel_free_until_days' => '{1} Kostenlos bis :count Tag vor dem Check-in|[0,*] Kostenlos bis :count Tage vor dem Check-in',
+    'min_stay_none' => 'Kein Mindestaufenthalt',
+    'min_stay_nights' => '{1} :count Nacht|[0,*] :count Nächte',
+    'guest_no_name' => 'Gast',
+    'no_stays_yet' => 'Noch keine Aufenthalte',
+];

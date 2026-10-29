@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'تم فتح البلاغ «:title» على الوحدة :unit.',
+    'not_assignable_staff' => 'هذا المستخدم ليس من الموظفين الذين يمكن تكليفهم في هذه المؤسسة.',
+    'cannot_reassign_closed' => 'لا يمكن إعادة تعيين هذا البلاغ — فهو مغلق بالفعل.',
+    'assignment_updated' => 'تم تحديث تعيين البلاغ.',
+    'work_order_closed' => 'أمر العمل هذا مغلق — لا يمكن تغيير تفاصيله.',
+    'work_order_updated' => 'تم تحديث أمر العمل.',
+    'col_title' => 'العنوان',
+    'col_unit' => 'الوحدة',
+    'col_category' => 'الفئة',
+    'col_priority' => 'الأولوية',
+    'col_status' => 'الحالة',
+    'col_assignee' => 'المكلف',
+    'col_reported' => 'تاريخ الإبلاغ',
+    'col_cost' => 'التكلفة',
+    'bulk_assigned_skipped' => '{0} تم تعيين :count أوامر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم تعيين أمر عمل واحد · تم التخطي: :skipped (مغلقة بالفعل)|تم تعيين أمري عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم تعيين :count أوامر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم تعيين :count أمر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم تعيين :count أمر عمل · تم التخطي: :skipped (مغلقة بالفعل)',
+    'bulk_assigned' => '{0} تم تعيين :count أوامر عمل.|تم تعيين أمر عمل واحد.|تم تعيين أمري عمل.|تم تعيين :count أوامر عمل.|تم تعيين :count أمر عمل.|تم تعيين :count أمر عمل.',
+    'bulk_resolved_skipped' => '{0} تم حل :count أوامر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم حل أمر عمل واحد · تم التخطي: :skipped (مغلقة بالفعل)|تم حل أمري عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم حل :count أوامر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم حل :count أمر عمل · تم التخطي: :skipped (مغلقة بالفعل)|تم حل :count أمر عمل · تم التخطي: :skipped (مغلقة بالفعل)',
+    'bulk_resolved' => '{0} تم حل :count أوامر عمل.|تم حل أمر عمل واحد.|تم حل أمري عمل.|تم حل :count أوامر عمل.|تم حل :count أمر عمل.|تم حل :count أمر عمل.',
+    'cannot_start' => 'لا يمكن بدء العمل على هذا البلاغ — لم يعد مفتوحًا.',
+    'work_started' => 'تم بدء العمل على هذا البلاغ.',
+    'cannot_resolve_closed' => 'لا يمكن حل أمر العمل هذا — فهو مغلق بالفعل.',
+    'ticket_resolved' => 'تم حل البلاغ.',
+    'cannot_cancel_closed' => 'لا يمكن إلغاء هذا البلاغ — فهو مغلق بالفعل.',
+    'ticket_cancelled' => 'تم إلغاء البلاغ.',
+    'parts_closed' => 'هذا البلاغ مغلق — لا يمكن تحديث قطع الغيار.',
+    'awaiting_parts' => 'تم تعيين الحالة: بانتظار قطع الغيار.',
+    'parts_arrived' => 'تم تأكيد استلام قطع الغيار.',
+    'update_posted_waiting_part' => 'تم نشر التحديث — الحالة: بانتظار قطعة الغيار.',
+    'update_posted' => 'تم نشر التحديث.',
+    'photo_added' => 'تمت إضافة الصورة.',
+    'photo_removed' => 'تمت إزالة الصورة.',
+    'workspace_paused' => 'مساحة العمل متوقفة مؤقتًا (للقراءة فقط) — تغييرات الصيانة غير متاحة حتى استئناف مساحة العمل.',
+];

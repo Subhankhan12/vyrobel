@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Die automatische Auszahlung ist deaktiviert (PAYOUT_ENGINE_ENABLED). Aktivieren Sie sie, bevor Sie eine Auszahlung ausführen.',
+    'nothing_to_run' => 'Nichts auszuführen — kein Eigentümer hier hat eine zahlbare Abrechnung oder eine einbehaltene Auszahlung:paused_note.',
+    'run_complete' => 'Auszahlungslauf abgeschlossen (Modus :mode) — Erstellt: :created · Bezahlt: :paid · Einbehalten: :held:paused_note.',
+    'create_failed' => 'Die Auszahlung konnte nicht erstellt werden — :reason',
+    'already_has_payout' => 'Für diese Abrechnung gibt es bereits eine Auszahlung — es wurde nichts erstellt.',
+    'one_payout_created' => '1 Auszahlung erstellt.',
+    'pay_failed' => 'Auszahlung nicht möglich — :reason',
+    'one_payout_paid' => '1 Auszahlung als bezahlt markiert.',
+    'payout_failed_reason' => 'Die Auszahlung ist fehlgeschlagen — :reason',
+    'payout_failed_no_reason' => 'Die Auszahlung ist fehlgeschlagen — der Auszahlungsweg hat keinen Grund genannt.',
+    'create_all_failed' => 'Die Auszahlungen konnten nicht erstellt werden — :reason',
+    'no_payout_created_paused' => 'Keine Auszahlung erstellt:paused_note — setzen Sie die Auszahlungen auf der Seite des jeweiligen Eigentümers fort.',
+    'nothing_ready' => 'Nichts ist zahlungsbereit — keine abgeschlossene Abrechnung hat einen positiven Auszahlungsbetrag:paused_note.',
+    'no_new_payouts' => 'Keine neuen Auszahlungen — jede zahlungsbereite Abrechnung hat bereits eine:paused_note.',
+    'payouts_created' => '{1} :count Auszahlung erstellt:paused_note.|[0,*] :count Auszahlungen erstellt:paused_note.',
+    'some_not_created' => ':message Einige konnten nicht erstellt werden — :reason',
+    'nothing_paid_paused' => 'Nichts ausgezahlt:paused_note — setzen Sie die Auszahlungen auf der Seite des jeweiligen Eigentümers fort.',
+    'no_pending_payouts' => 'Keine ausstehenden Auszahlungen.',
+    'paid_only' => '{1} :count Auszahlung als bezahlt markiert:paused_note.|[0,*] :count Auszahlungen als bezahlt markiert:paused_note.',
+    'failed_only' => '[0,*] Beim Auszahlungsweg fehlgeschlagen: :count:paused_note.',
+    'paid_and_failed' => '{1} :count Auszahlung als bezahlt markiert · beim Auszahlungsweg fehlgeschlagen: :failed:paused_note.|[0,*] :count Auszahlungen als bezahlt markiert · beim Auszahlungsweg fehlgeschlagen: :failed:paused_note.',
+    'some_not_attempted' => ':message Bei einigen erfolgte kein Versuch — :reason',
+    'nothing_payable_negative' => 'Nichts zahlbar — der Nettobetrag dieser Abrechnung ist negativ, daher wird der Saldo vorgetragen und mit der nächsten Abrechnung des Eigentümers verrechnet.',
+    'nothing_payable_zero' => 'Nichts zahlbar — der Nettobetrag dieser Abrechnung ist null, es ist also nichts geschuldet.',
+    'workspace_paused_until' => 'Organisation pausiert — bei Auszahlungen besteht bis :date nur Lesezugriff.',
+    'workspace_paused_for_now' => 'Organisation pausiert — bei Auszahlungen besteht vorerst nur Lesezugriff.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1} :count pausierter Eigentümer übersprungen|[0,*] :count pausierte Eigentümer übersprungen',
+];

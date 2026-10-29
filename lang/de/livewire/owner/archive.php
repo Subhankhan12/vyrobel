@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Abrechnungsarchiv',
+    'history_summary' => 'Ihre abgeschlossene Historie · :years · :statements',
+    'years' => '{1} :count Jahr|[0,*] :count Jahre',
+    'statements' => '{1} :count Abrechnung|[0,*] :count Abrechnungen',
+    'archived_on_finalize' => 'Abrechnungen werden hier archiviert, sobald sie abgeschlossen sind.',
+    'net_earned_lifetime' => 'Netto verdient · seit Beginn',
+    'since' => 'seit :date',
+    'per_currency_note' => 'Je Auszahlungswährung summiert — Salden in verschiedenen Währungen werden nie zusammengerechnet.',
+    'lifetime_empty' => 'Noch keine abgeschlossenen Abrechnungen — Ihre erste erscheint hier.',
+    'search_placeholder' => 'Abrechnungen durchsuchen — Monat, Jahr, Status oder Nummer',
+    'search_label' => 'Abrechnungen durchsuchen',
+    'no_match' => 'Keine Abrechnungen für „:query“ gefunden.',
+    'no_match_hint' => 'Versuchen Sie einen Monat („September“), ein Jahr („2026“), einen Status („Bezahlt“) oder eine Abrechnungsnummer („Nr. 1“).',
+    'group_summary' => ':statements · netto :nets',
+    'per_payout_currency' => '(je Auszahlungswährung)',
+    'tax_summary_title' => 'Die jährliche Steuerübersicht :year als PDF herunterladen',
+    'tax_summary' => 'Steuerübersicht',
+    'col_statement' => 'Abrechnung',
+    'col_net_payable' => 'Auszahlungsbetrag',
+    'col_links' => 'Links',
+    'unverified_title' => 'Einige Positionen warten noch auf den Abgleich mit dem Kanal',
+    'unverified' => 'Enthält ungeprüfte Positionen',
+    'pdf_title' => 'Diese Abrechnung als PDF herunterladen',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Die Buchungen zu dieser Abrechnung als PDF herunterladen',
+    'bookings' => 'Buchungen',
+    'empty' => 'Noch keine abgeschlossenen Abrechnungen. Eine Abrechnung wird hier archiviert, sobald sie abgeschlossen ist.',
+    'zip_heading' => 'Gesamtes Archiv herunterladen',
+    'zip_sub' => '{1} Eine ZIP-Datei mit :count Abrechnungs-PDF. Jede Abrechnung oben lässt sich auch einzeln herunterladen.|[0,*] Eine ZIP-Datei mit :count Abrechnungs-PDFs. Jede Abrechnung oben lässt sich auch einzeln herunterladen.',
+    'download_zip' => 'ZIP herunterladen',
+];

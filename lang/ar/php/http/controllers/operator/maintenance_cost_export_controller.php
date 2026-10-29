@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'المبالغ',
+    'csv_amounts_note' => 'بالوحدة الرئيسية للعملة، والعلامة العشرية نقطة، دون فاصل للآلاف',
+    'col_date' => 'التاريخ',
+    'col_work_order' => 'أمر العمل',
+    'col_unit' => 'الوحدة',
+    'col_category' => 'الفئة',
+    'col_labor' => 'العمالة',
+    'col_parts' => 'قطع الغيار',
+    'col_total' => 'الإجمالي',
+    'col_currency' => 'العملة',
+    'total_row' => 'الإجمالي',
+    'sheet_summary' => 'الملخص',
+    'col_measure' => 'المقياس',
+    'col_value' => 'القيمة',
+    'total_spend' => 'إجمالي الإنفاق',
+    'measure_labour' => 'العمالة',
+    'measure_parts' => 'قطع الغيار',
+    'orders_closed' => 'الأوامر المغلقة',
+    'owner_billed' => 'على حساب المالك',
+    'operator_borne' => 'على حساب المشغل',
+    'parts_on_order' => 'قطع الغيار المطلوبة',
+    'average_per_order' => 'المتوسط لكل أمر',
+    'by_category' => 'حسب الفئة',
+    'col_orders' => 'الأوامر',
+    'by_month' => 'حسب الشهر',
+    'top_units' => 'الوحدات الأعلى إنفاقًا',
+    'sheet_line_items' => 'البنود',
+    'col_labour' => 'العمالة',
+    'no_email' => 'لا يوجد بريد إلكتروني مسجل في حسابك.',
+    'report_emailed' => 'تم إرسال تقرير التكاليف إلى :email.',
+];

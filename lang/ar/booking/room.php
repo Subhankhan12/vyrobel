@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'كل الغرف',
+    'kind_sleeps_up_to' => ':kind · السعة القصوى: :capacity',
+    'reviews_count' => '{0} :count تقييمات|تقييم واحد|تقييمان|:count تقييمات|:count تقييمًا|:count تقييم',
+    'no_reviews_yet' => 'لا توجد تقييمات بعد',
+    'save_to_wishlist' => 'حفظ في المفضلة',
+    'sleeps' => 'السعة',
+    'adults' => 'البالغون',
+    'children' => 'الأطفال',
+    'bedrooms' => 'غرف النوم',
+    'standard_occupancy' => 'السعة القياسية',
+    'amenities' => 'المرافق',
+    'not_yet_listed' => 'غير مدرجة بعد',
+    'amenities_not_published' => 'لم يتم نشر مرافق هذه الغرفة بعد.',
+    'guest_reviews' => 'تقييمات الضيوف',
+    'stars_aria' => ':rating من 5 نجوم',
+    'response_label' => 'الرد:',
+    'no_reviews_be_first' => 'لا توجد تقييمات بعد — كن أول من يقيم لدينا ويشارك تجربته.',
+    'coming_soon' => 'متاح قريبًا',
+    'description_soon' => 'الوصف الكامل وخريطة الموقع قادمان قريبًا — المواصفات والتوفر والسعر والتقييمات أعلاه حقيقية.',
+    'per_night' => '/ ليلة',
+    'per_night_with_note' => '/ ليلة · :note',
+    'total_nights' => '{0} الإجمالي :amount · :count ليالٍ|الإجمالي :amount · ليلة واحدة|الإجمالي :amount · ليلتان|الإجمالي :amount · :count ليالٍ|الإجمالي :amount · :count ليلةً|الإجمالي :amount · :count ليلة',
+    'left_for_your_dates' => 'المتبقي لتواريخك: :count',
+    'book_this_room' => 'احجز هذه الغرفة',
+    'nothing_reserved' => 'لن يتم حجز أي شيء حتى تؤكد عند إتمام الحجز.',
+    'your_dates' => 'تواريخك',
+    'not_available' => 'غير متاحة في هذه التواريخ — جرب تواريخ أخرى.',
+    'check_in' => 'تسجيل الوصول',
+    'check_out' => 'تسجيل المغادرة',
+    'check_dates' => 'التحقق من التواريخ',
+    'check_availability' => 'التحقق من التوفر والسعر',
+    'see_price' => 'عرض السعر',
+];

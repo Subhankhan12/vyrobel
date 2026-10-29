@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'ضيف',
+    'nights' => '{0} :count ليالٍ|ليلة واحدة|ليلتان|:count ليالٍ|:count ليلةً|:count ليلة',
+    'block_reason_none' => 'محجوب',
+    'block_reason_maintenance' => 'الصيانة',
+    'block_reason_owner' => 'المالك',
+    'block_reason_manual' => 'يدوي',
+    'block_reason_overbooking_protection' => 'الحماية من الحجز الزائد',
+    'cleaning_departure' => 'تنظيف بعد المغادرة',
+    'cleaning_stayover' => 'خدمة أثناء الإقامة',
+    'cleaning_deep' => 'تنظيف عميق',
+    'cleaning_arrival_prep' => 'تجهيز للوصول',
+    'cleaning_status_pending' => 'مجدولة',
+    'cleaning_status_in_progress' => 'قيد التنفيذ',
+    'cleaning_status_clean' => 'تم التنظيف',
+    'cleaning_status_inspected' => 'تم الفحص',
+    'kind_room' => 'غرفة',
+    'kind_apartment' => 'شقة',
+    'kind_villa' => 'فيلا',
+    'kind_dorm_bed' => 'سرير في مهجع',
+    'condition_out_of_order' => 'خارج الخدمة',
+    'condition_out_of_service' => 'موقوفة عن البيع',
+    'status_enquiry' => 'استفسار',
+    'status_tentative' => 'مبدئي',
+    'status_confirmed' => 'مؤكد',
+    'status_checked_in' => 'تم تسجيل الوصول',
+    'status_checked_out' => 'تم تسجيل المغادرة',
+    'status_cancelled' => 'ملغى',
+    'status_no_show' => 'لم يحضر',
+    'terms_portfolio' => 'شروط لجميع الوحدات',
+    'terms_unit' => 'شروط هذه الوحدة',
+];

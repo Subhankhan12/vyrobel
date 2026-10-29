@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Benachrichtigungseinstellungen',
+    'subtitle' => 'Wie Vyrobel Sie erreicht',
+    'breadcrumb_label' => 'Navigationspfad',
+    'crumb_settings' => 'Einstellungen',
+    'crumb_notifications' => 'Benachrichtigungen',
+    'channel_email' => 'E-Mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Keine E-Mail-Adresse hinterlegt',
+    'email_verified_title' => 'Ihre Anmelde-E-Mail ist bestätigt',
+    'email_verified' => 'Verifiziert',
+    'push_not_set_up_title' => 'Push ist noch nicht eingerichtet',
+    'not_set_up_tag' => 'nicht eingerichtet',
+    'push_not_available' => 'Push-Benachrichtigungen für Browser & Geräte sind noch nicht verfügbar',
+    'channel_off' => 'Aus',
+    'sms_not_set_up_title' => 'SMS ist noch nicht eingerichtet',
+    'sms_no_provider' => 'Noch kein SMS-Anbieter verbunden',
+    'notify_me_when' => 'Benachrichtigen, wenn',
+    'always_on' => 'Immer aktiv',
+    'email_always_on_sr' => 'E-Mail immer aktiv für: :event',
+    'email_me_when_aria' => 'E-Mail an mich, wenn: :event',
+    'push_not_set_up_sr' => 'Push nicht eingerichtet',
+    'sms_not_set_up_sr' => 'SMS nicht eingerichtet',
+    'quiet_hours' => 'Ruhezeiten',
+    'quiet_hours_help' => 'Routine-E-Mails in diesem Zeitraum zurückhalten — dringende Sicherheitswarnungen kommen immer durch; die Benachrichtigungen in der App sind nicht betroffen.',
+    'quiet_from' => 'Von',
+    'quiet_to' => 'Bis',
+    'digest_heading' => 'Tägliche E-Mail-Übersicht',
+    'digest_help' => 'Eine morgendliche Übersicht über den Tag. <span class="vy-np-soon">noch nicht versendet</span> — die Einstellung wird gespeichert und gilt, sobald der Versand startet.',
+    'digest_off' => 'Aus',
+    'digest_morning' => 'Morgens · 08:00',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Team & Zugriff',
+    'subtitle' => 'Geben Sie einem Miteigentümer oder Ihrem Buchhalter eine eigene Anmeldung — beschränkt auf das, was die Person braucht.',
+    'people_with_access' => 'Personen mit Zugriff',
+    'account_owner' => 'Kontoinhaber',
+    'thats_you' => 'das sind Sie',
+    'owner_access' => 'Vollzugriff auf alles, einschließlich dieser Seite.',
+    'active_now' => 'Jetzt aktiv',
+    'role_for' => 'Rolle für :name',
+    'your_password' => 'Ihr Passwort',
+    'confirm_password' => 'Mit Ihrem Passwort bestätigen',
+    'remove_confirm' => ':name entfernen? Die Person kann sich dann nicht mehr anmelden.',
+    'no_members' => 'Bisher nur Sie — laden Sie unten einen Miteigentümer oder Buchhalter ein.',
+    'invite_heading' => 'Jemanden einladen',
+    'invite_sub' => 'Die Person erhält eine eigene Anmeldung — Sie können den Zugriff jederzeit entziehen.',
+    'invite_email_label' => 'E-Mail-Adresse der eingeladenen Person',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Einladung senden',
+    'pending_invites' => 'Ausstehende Einladungen',
+    'resend' => 'Erneut senden',
+    'revoke' => 'Widerrufen',
+    'matrix_heading' => 'Was jede Rolle sehen kann',
+    'matrix_note' => 'Nur Sie als Kontoinhaber können das Team und das Auszahlungskonto verwalten.',
+    'recent_activity' => 'Letzte Aktivität',
+    'no_activity' => 'Noch nichts — Einladungen und Anmeldungen erscheinen hier.',
+    'download_log' => 'Download-Protokoll exportieren',
+    'download_log_sub' => 'Jede Abrechnung, Buchung, Auszahlung oder Steuerdatei, die Ihr Team herunterlädt, wird mit dem Namen der herunterladenden Person versehen — und hier erfasst.',
+    'no_downloads' => 'Noch keine Exporte heruntergeladen — sie erscheinen hier, versehen mit dem Namen der herunterladenden Person.',
+    'security_heading' => 'Jeder bekommt einen eigenen Schlüssel',
+    'security_body' => 'Keine geteilten Passwörter — jede Person meldet sich mit ihrem eigenen Konto an, und der Zugriff ist auf ihre Rolle beschränkt. Finanzexporte tragen ein Wasserzeichen mit dem Namen der herunterladenden Person und werden im Protokoll oben erfasst. Aktivieren Sie für Ihr eigenes Konto die Bestätigung in zwei Schritten.',
+    'security_settings' => 'Sicherheitseinstellungen',
+];

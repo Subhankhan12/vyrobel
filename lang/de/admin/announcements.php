@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ankündigungen',
+    'subtitle' => 'Ein Hinweis im Backoffice und im Eigentümerportal jeder Organisation — oder ausgewählter Organisationen. Nur Text; es wird nichts per E-Mail versendet.',
+    'empty_state' => 'Es wurde noch nie eine Ankündigung veröffentlicht.',
+    'col_announcement' => 'Ankündigung',
+    'col_to' => 'An',
+    'col_from_until' => 'Von → bis',
+    'col_state' => 'Status',
+    'audience_all' => 'Alle Organisationen',
+    'audience_chosen_count' => ':number ausgewählt',
+    'no_end' => 'unbefristet',
+    'state_withdrawn' => 'Zurückgezogen',
+    'state_showing' => 'Wird angezeigt',
+    'state_scheduled' => 'Geplant',
+    'state_ended' => 'Beendet',
+    'reason_aria' => 'Grund',
+    'withdraw_placeholder' => 'Warum zurückziehen?',
+    'withdraw_button' => 'Zurückziehen',
+    'publish_heading' => 'Ankündigung veröffentlichen',
+    'title_label' => 'Titel',
+    'message_label' => 'Nachricht (nur Text)',
+    'kind_label' => 'Art',
+    'show_from_label' => 'Anzeigen ab (UTC)',
+    'until_label' => 'Bis (UTC, optional)',
+    'to_label' => 'An',
+    'option_every_organisation' => 'Alle Organisationen',
+    'option_chosen_organisations' => 'Ausgewählte Organisationen',
+    'chosen_organisations_label' => 'Organisationen (bei „Ausgewählte Organisationen“)',
+    'no_organisation_chosen' => 'Noch keine Organisation ausgewählt',
+    'reason_label' => 'Grund',
+    'publish_reason_placeholder' => 'Warum wird dies veröffentlicht?',
+    'publish_button' => 'Veröffentlichen',
+];

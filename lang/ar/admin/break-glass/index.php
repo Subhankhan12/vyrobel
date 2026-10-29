@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'وصول الدعم الطارئ',
+    'subtitle' => 'اطلاع للقراءة فقط ولمدة محددة داخل مؤسسة واحدة — مع سبب ورمز 2FA، ويتم إبلاغ المؤسسة.',
+    'back_label' => 'الدعم',
+    'open_heading' => 'جلستك مفتوحة',
+    'open_summary' => '{0} :organization · تنتهي الساعة :time UTC · تم عرض :count صفحات.|:organization · تنتهي الساعة :time UTC · تم عرض صفحة واحدة.|:organization · تنتهي الساعة :time UTC · تم عرض صفحتين.|:organization · تنتهي الساعة :time UTC · تم عرض :count صفحات.|:organization · تنتهي الساعة :time UTC · تم عرض :count صفحةً.|:organization · تنتهي الساعة :time UTC · تم عرض :count صفحة.',
+    'go_to_back_office' => 'الانتقال إلى الواجهة الإدارية للمؤسسة',
+    'end_now' => 'إنهاء الجلسة الآن',
+    'start_heading' => 'فتح جلسة',
+    'rule_read_only' => '<strong>للقراءة فقط.</strong> يرفض أي تغيير — النماذج والأزرار وكل ما يحفظ بيانات.',
+    'rule_minutes' => '{0} <strong>:count دقائق</strong>، ثم تنتهي الجلسة تلقائيًا.|<strong>دقيقة واحدة</strong>، ثم تنتهي الجلسة تلقائيًا.|<strong>دقيقتان</strong>، ثم تنتهي الجلسة تلقائيًا.|<strong>:count دقائق</strong>، ثم تنتهي الجلسة تلقائيًا.|<strong>:count دقيقةً</strong>، ثم تنتهي الجلسة تلقائيًا.|<strong>:count دقيقة</strong>، ثم تنتهي الجلسة تلقائيًا.',
+    'rule_senior_user' => 'ترى ما يراه المستخدم الموثق صاحب أعلى صلاحية في الواجهة الإدارية للمؤسسة — بما في ذلك بيانات الضيوف. يرجى الاطلاع فقط على ما يتطلبه السبب.',
+    'rule_recorded' => 'يتم تسجيل كل صفحة تفتحها، ويتم إبلاغ فريق المؤسسة لاحقًا باسمك والوقت وهذا السبب.',
+    'organisation_label' => 'المؤسسة',
+    'choose_option' => 'اختيار…',
+    'code_label' => 'رمز 2FA الحالي',
+    'reason_label' => 'السبب — سيطلع عليه فريق المؤسسة',
+    'reason_placeholder' => 'مثال: التذكرة #123 — يبلغ المالك عن حجز مفقود',
+    'open_button' => 'فتح جلسة للقراءة فقط',
+    'recent_heading' => 'الجلسات الأخيرة',
+    'empty_state' => 'لم يتم فتح أي جلسة وصول دعم طارئ حتى الآن.',
+    'col_admin' => 'المسؤول',
+    'col_organisation' => 'المؤسسة',
+    'col_reason' => 'السبب',
+    'col_started' => 'البداية',
+    'col_ended' => 'النهاية',
+    'col_pages' => 'الصفحات',
+    'col_told' => 'تم الإبلاغ',
+    'ended_open' => 'مفتوحة',
+    'ended_due' => 'انتهت مدتها — لم يتم إغلاقها بعد',
+    'told_yes' => 'نعم',
+    'told_not_yet' => 'ليس بعد',
+];

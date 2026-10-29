@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Die Organisation hat Live-Finanzdatensätze (:records). Das Gesetz kann verlangen, dass sie jahrelang aufbewahrt werden. Deshalb ist ihre Löschung ausgesetzt, bis rechtlich geklärt ist, wie lange — vorher kann die Organisation nicht gelöscht werden.',
+    'uncounted_cascades' => 'Die Datenbank verknüpft Datensätze auf eine Weise, die die Löschung nicht genau zählen kann (:links), daher konnte die Bestätigung nicht angeben, was entfernt wird. Es kann nichts gelöscht werden, bis das behoben ist.',
+    'stripe_billing_live' => 'Für diese Organisation ist die Stripe-Abrechnung live. Kündigen Sie zuerst das Abonnement in Stripe, sonst wird ein Kunde, den es nicht mehr gibt, weiterhin belastet. Wenn es dort bereits gekündigt ist, wurde die Meldung von Stripe hier nicht übernommen — klären Sie das manuell.',
+    'checkout_open_subscription' => 'Eine Stripe-Zahlungsseite für das Abonnement ist noch offen (geöffnet: :opened) und kann bis :closes bezahlt werden. Versuchen Sie es erneut, sobald sie bezahlt oder abgelaufen ist.',
+    'checkout_open_card' => 'Eine Stripe-Zahlungsseite für die Kartenzahlung eines Gastes ist noch offen (geöffnet: :opened) und kann bis :closes bezahlt werden. Versuchen Sie es erneut, sobald sie bezahlt oder abgelaufen ist.',
+    'checkout_unreported_subscription' => 'Eine Live-Zahlungsseite von Stripe für das Abonnement war offen (geöffnet: :opened, geschlossen: :closed), doch hier wurde keine Meldung übernommen, ob sie bezahlt wurde. Prüfen Sie die Seite im Stripe-Dashboard; wurde sie bezahlt, machen Sie dort zuerst rückgängig, was dadurch ausgelöst wurde. Stripe wiederholt eine nicht zugestellte Meldung bis zu 3 Tage lang — versuchen Sie es erneut, sobald sie übernommen ist. Hat Stripe sie bereits gemeldet und die Meldung konnte nicht übernommen werden, klären Sie das manuell.',
+    'checkout_unreported_card' => 'Eine Live-Zahlungsseite von Stripe für die Kartenzahlung eines Gastes war offen (geöffnet: :opened, geschlossen: :closed), doch hier wurde keine Meldung übernommen, ob sie bezahlt wurde. Prüfen Sie die Seite im Stripe-Dashboard; wurde sie bezahlt, machen Sie dort zuerst rückgängig, was dadurch ausgelöst wurde. Stripe wiederholt eine nicht zugestellte Meldung bis zu 3 Tage lang — versuchen Sie es erneut, sobald sie übernommen ist. Hat Stripe sie bereits gemeldet und die Meldung konnte nicht übernommen werden, klären Sie das manuell.',
+    'refund_processing' => 'Eine Kartenrückerstattung wird bei Stripe noch bearbeitet. Warten Sie, bis Stripe sie bestätigt, und versuchen Sie es dann erneut.',
+    'card_payment_open' => 'Eine Kartenzahlung oder Kartenvorautorisierung ist noch offen. Warten Sie zuerst, bis sie abgeschlossen ist, oder geben Sie sie frei.',
+    'dispute_open' => 'Eine Kartenzahlung wird bei Stripe angefochten (Beginn: :since). Reagieren Sie in Stripe darauf und versuchen Sie es erneut, sobald Stripe den Streitfall als abgeschlossen meldet. Zeigt das Stripe-Dashboard ihn bereits als abgeschlossen an, ist die Meldung nie angekommen — klären Sie das manuell.',
+    'payouts_in_transit' => '{1} Eine Auszahlung an einen Eigentümer ist bei Stripe unterwegs (Beginn: :since).|[0,*] :count Auszahlungen an Eigentümer sind bei Stripe unterwegs (Beginn: :since).',
+    'payout_transit_stale' => 'Das dauert länger, als es sollte — klären Sie es zuerst manuell mit Stripe.',
+    'payout_transit_wait' => 'Warten Sie, bis Stripe bestätigt, und versuchen Sie es dann erneut.',
+    'payouts_owed' => '{1} Einem Eigentümer wird noch eine Auszahlung geschuldet (wartend oder einbehalten). Zahlen Sie sie zuerst aus — eine Löschung würde den Eigentümer unbezahlt lassen, ohne jeden Nachweis darüber.|[0,*] Eigentümern werden noch :count Auszahlungen geschuldet (wartend oder einbehalten). Zahlen Sie sie zuerst aus — eine Löschung würde die Eigentümer unbezahlt lassen, ohne jeden Nachweis darüber.',
+    'payout_run_running' => 'Ein Auszahlungslauf ist noch aktiv (Beginn: :since).',
+    'looks_stuck' => 'Das sieht festgefahren aus — klären Sie es vor dem Löschen manuell.',
+    'payout_run_wait' => 'Versuchen Sie es erneut, sobald er abgeschlossen ist.',
+    'webhook_unprocessed' => 'Eine Benachrichtigung von :source für diese Organisation (eingegangen: :received) wurde noch nicht verarbeitet.',
+    'webhook_wait' => 'Versuchen Sie es in ein paar Minuten erneut.',
+    'cross_tenant_references' => 'Eine andere Organisation hat Datensätze, die auf diese verweisen (:links). Beim Löschen würden sie ebenfalls gelöscht.',
+    'schema_unreadable' => 'Das Datenbankschema konnte nicht vollständig gelesen werden (nicht gefunden: :tables).',
+    'already_deleted' => 'Diese Organisation existiert nicht mehr — sie wurde bereits gelöscht.',
+    'protected' => 'Diese Organisation ist geschützt und kann niemals gelöscht werden.',
+    'not_suspended' => 'Sperren Sie sie zuerst — nur eine gesperrte oder archivierte Organisation kann gelöscht werden.',
+    'record_survived' => 'Ein Datensatz dieser Organisation ist nach der Löschung noch vorhanden (in :tables), daher wurde alles rückgängig gemacht.',
+    'organization_survived' => 'Die Organisation oder eine ihrer Personen ist nach der Löschung noch vorhanden, daher wurde alles rückgängig gemacht.',
+    'live_card_payments' => '{1} :count Kartenzahlung|[0,*] :count Kartenzahlungen',
+    'live_refunds' => '{1} :count Rückerstattung|[0,*] :count Rückerstattungen',
+    'live_payouts' => '{1} :count Auszahlung|[0,*] :count Auszahlungen',
+    'live_stripe_billing' => 'Live-Abrechnung über Stripe mit ihren Rechnungen',
+    'unknown_time' => 'unbekannter Zeitpunkt',
+    'time_utc' => ':time UTC',
+];

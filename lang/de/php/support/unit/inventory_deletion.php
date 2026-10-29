@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1} :count Buchung|[0,*] :count Buchungen',
+    'room_moves' => '{1} :count Zimmerwechsel|[0,*] :count Zimmerwechsel',
+    'cleaning_tasks' => '{1} :count Reinigungsaufgabe|[0,*] :count Reinigungsaufgaben',
+    'work_orders' => '{1} :count Arbeitsauftrag|[0,*] :count Arbeitsaufträge',
+    'status_changes' => '{1} :count Statusänderung|[0,*] :count Statusänderungen',
+    'blocks' => '{1} :count Sperre|[0,*] :count Sperren',
+    'owner_agreements' => '{1} :count Verwaltungsvertrag|[0,*] :count Verwaltungsverträge',
+    'owner_statement_lines' => '{1} :count Position einer Eigentümerabrechnung|[0,*] :count Positionen in Eigentümerabrechnungen',
+    'owner_expenses' => '{1} :count Eigentümerausgabe|[0,*] :count Eigentümerausgaben',
+    'reviews' => '{1} :count Bewertung|[0,*] :count Bewertungen',
+    'owner_requests' => '{1} :count Eigentümeranfrage|[0,*] :count Eigentümeranfragen',
+    'notes' => '{1} :count Notiz|[0,*] :count Notizen',
+    'documents' => '{1} :count Dokument|[0,*] :count Dokumente',
+    'files' => '{1} :count Datei|[0,*] :count Dateien',
+    'units' => '{1} :count Einheit|[0,*] :count Einheiten',
+    'rate_proposals' => '{1} :count Preisvorschlag|[0,*] :count Preisvorschläge',
+    'overbooking_records' => '{1} :count Überbuchungseintrag|[0,*] :count Überbuchungseinträge',
+    'guest_waitlist_entries' => '{1} :count Wartelisteneintrag eines Gastes|[0,*] :count Wartelisteneinträge von Gästen',
+    'guest_wishlist_saves' => '{1} :count Merklisteneintrag eines Gastes|[0,*] :count Merklisteneinträge von Gästen',
+    'derived_room_types' => '{1} :count darauf aufbauende Zimmerkategorie|[0,*] :count darauf aufbauende Zimmerkategorien',
+    'derived_rate_plans' => '{1} :count anderswo davon abgeleiteter Preisplan|[0,*] :count anderswo davon abgeleitete Preispläne',
+    'corporate_default_rates' => '{1} Standardpreis von :count Firmenkonto|[0,*] Standardpreis von :count Firmenkonten',
+    'channel_connections' => '{1} :count Kanalverbindung|[0,*] :count Kanalverbindungen',
+    'an_owner' => 'ein Eigentümer',
+    'pending_owner_invitation' => 'eine ausstehende Eigentümereinladung',
+    'list_and' => ':items und :last',
+    'kind_rooms' => 'Zimmer',
+    'kind_apartments' => 'Apartments',
+    'kind_villas' => 'Villen',
+    'kind_dorm_beds' => 'Schlafsaalbetten',
+];

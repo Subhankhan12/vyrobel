@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'verwaltet mit Vyrobel',
+    'eyebrow' => 'Eigentümerabrechnung',
+    'unit_count' => '{1} :count Einheit|[0,*] :count Einheiten',
+    'issued' => 'ausgestellt am :date',
+    'prepared_for' => 'Erstellt für',
+    'net_payable_to_owner' => 'Auszahlungsbetrag an den Eigentümer',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Auslastung',
+    'nights_sold' => 'Verkaufte Nächte',
+    'avg_nightly_rate' => 'Ø Preis pro Nacht',
+    'breakdown' => 'Aufschlüsselung',
+    'item' => 'Position',
+    'detail' => 'Detail',
+    'amount' => 'Betrag',
+    'provisional' => '(vorläufig)',
+    'performance_by_unit' => 'Leistung pro Einheit',
+    'unit' => 'Einheit',
+    'nights' => 'Nächte',
+    'revenue' => 'Umsatz',
+    'total_gross_room_revenue' => 'Brutto-Zimmerumsatz gesamt',
+    'callout_heading' => 'Auszahlung.',
+    'settles_to_iban' => 'Der Nettobetrag von :amount wird per Banküberweisung auf die IBAN :iban ausgezahlt.',
+    'settles' => 'Der Nettobetrag von :amount wird per Banküberweisung ausgezahlt.',
+    'fees_with_commission' => 'Die Verwaltungsprovision beträgt :pct % des Brutto-Zimmerumsatzes; Zahlungs- und Plattformgebühren werden zum Selbstkostenpreis weitergegeben. Alle Beträge sind in :currency angegeben und enthalten die anfallenden Steuern, die in Ihrem Namen erhoben wurden.',
+    'fees' => 'Zahlungs- und Plattformgebühren werden zum Selbstkostenpreis weitergegeben. Alle Beträge sind in :currency angegeben und enthalten die anfallenden Steuern, die in Ihrem Namen erhoben wurden.',
+    'fx_note' => 'Umgerechnet aus :source zum Kurs :rate (Quelle: :src).',
+    'provisional_note' => 'Einige Positionen sind vorläufig, bis der Abgleich mit den Kanälen erfolgt ist.',
+    'statement_ref' => 'Abrechnung :ref',
+    'sequence_no' => 'Nr. :number',
+    'generated' => 'erstellt am <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Fragen? :email',
+];

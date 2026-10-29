@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'أنت',
+    'total_part' => ':name :amount',
+    'total_includes' => 'شامل :items',
+    'nightly_excludes' => 'غير شامل :tax',
+    'sleeps' => 'السعة: :count',
+    'studio' => 'استوديو',
+    'bedrooms' => '{0} :count غرف نوم|غرفة نوم واحدة|غرفتا نوم|:count غرف نوم|:count غرفة نوم|:count غرفة نوم',
+    'checkout_title' => 'إتمام الحجز — :property',
+    'room_just_taken' => 'تم حجز هذه الغرفة للتو من قبل شخص آخر — يرجى اختيار غرفة أو تواريخ أخرى.',
+    'payment_received' => 'تم استلام الدفعة',
+    'payment_received_note' => 'تم الدفع بالكامل.',
+    'payment_processing' => 'جارٍ معالجة الدفعة',
+    'payment_processing_note' => 'نقوم الآن بتأكيد الدفع ببطاقتك. يمكنك تحديث هذه الصفحة بعد لحظات لرؤية الدفعة.',
+    'pay_on_arrival' => 'الدفع عند الوصول',
+    'pay_on_arrival_note' => 'يتم الدفع في مكان الإقامة عند تسجيل الوصول.',
+    'confirmed_title' => 'تم تأكيد الحجز — :property',
+    'kind_room' => 'غرفة',
+    'kind_apartment' => 'شقة',
+    'kind_villa' => 'فيلا',
+    'kind_dorm' => 'مهجع',
+    'type_hotel' => 'فندق',
+    'type_aparthotel' => 'فندق شقق',
+    'type_serviced_apartment' => 'شقة مخدومة',
+    'type_apartment_building' => 'مبنى شقق',
+    'type_apartment' => 'شقة',
+    'type_villa' => 'فيلا',
+    'type_hostel' => 'بيت شباب',
+    'type_guest_house' => 'دار ضيافة',
+    'type_resort' => 'منتجع',
+    'type_mixed' => 'متنوع',
+    'type_portfolio' => 'مجموعة أماكن الإقامة',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'من :time',
+    'by_time' => 'حتى :time',
+    'repeat_guest' => '{0} ضيف عائد · :count إقامات|ضيف عائد · إقامة واحدة|ضيف عائد · إقامتان|ضيف عائد · :count إقامات|ضيف عائد · :count إقامةً|ضيف عائد · :count إقامة',
+    'new_guest' => 'ضيف جديد',
+    'guests_count' => '{0} :count ضيوف|ضيف واحد|ضيفان|:count ضيوف|:count ضيفًا|:count ضيف',
+    'nights_count' => '{0} :count ليالٍ|ليلة واحدة|ليلتان|:count ليالٍ|:count ليلةً|:count ليلة',
+    'channel_direct' => 'حجز مباشر عبر Vyrobel',
+    'channel_walk_in' => 'بدون حجز مسبق',
+    'channel_ota' => 'قناة OTA',
+    'event_booking_received' => 'تم استلام الحجز',
+    'event_cancelled' => 'تم الإلغاء',
+    'event_payment_received' => 'تم استلام الدفعة',
+    'when_paid_in_full' => 'تم الدفع بالكامل',
+    'event_part_payment_received' => 'تم استلام دفعة جزئية',
+    'when_balance_due' => 'الرصيد المستحق',
+    'event_payment' => 'الدفع',
+    'when_not_yet_received' => 'لم يتم الاستلام بعد',
+    'event_checked_in' => 'تم تسجيل الوصول',
+    'event_check_in' => 'تسجيل الوصول',
+    'event_checked_out' => 'تم تسجيل المغادرة',
+    'event_payout_released' => 'تم صرف التحويل',
+    'event_payout' => 'التحويل',
+    'when_next_payout' => 'مع تحويلك القادم',
+    'payout_not_attributed' => 'لم يتم احتسابه بعد',
+    'payout_not_attributed_note' => 'لم يتم احتساب هذا الحجز في دفتر حسابك بعد.',
+    'payout_scheduled' => 'مجدول',
+    'payout_scheduled_note' => 'مدرج في كشف حسابك القادم، ثم يتم صرفه مع ذلك التحويل.',
+    'payout_pending' => 'التحويل قيد الانتظار',
+    'payout_pending_note' => 'مدرج في كشف حساب معتمد — يتم صرفه مع ذلك التحويل.',
+    'payout_paid' => 'مدفوع',
+    'payout_paid_note' => 'تم صرفه مع تحويل مكتمل.',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Notfallzugriff',
+    'subtitle' => 'Ein zeitlich begrenzter Einblick in eine Organisation, nur mit Lesezugriff — mit Grund und 2FA, und die Organisation wird informiert.',
+    'back_label' => 'Support',
+    'open_heading' => 'Ihre Sitzung ist geöffnet',
+    'open_summary' => '{1} :organization · endet um :time UTC · :count Seite aufgerufen.|[0,*] :organization · endet um :time UTC · :count Seiten aufgerufen.',
+    'go_to_back_office' => 'Zum Backoffice der Organisation',
+    'end_now' => 'Sitzung jetzt beenden',
+    'start_heading' => 'Sitzung öffnen',
+    'rule_read_only' => '<strong>Nur Lesezugriff.</strong> Jede Änderung wird abgelehnt — Formulare, Schaltflächen, alles, was speichert.',
+    'rule_minutes' => '{1} <strong>:count Minute</strong>, dann endet die Sitzung von selbst.|[0,*] <strong>:count Minuten</strong>, dann endet die Sitzung von selbst.',
+    'rule_senior_user' => 'Sie sehen, was der ranghöchste verifizierte Backoffice-Benutzer der Organisation sieht — einschließlich der Gäste. Sehen Sie sich nur das für den Grund Nötige an.',
+    'rule_recorded' => 'Jede Seite, die Sie öffnen, wird protokolliert, und das Team der Organisation wird anschließend informiert: Ihr Name, die Uhrzeit und dieser Grund.',
+    'organisation_label' => 'Organisation',
+    'choose_option' => 'Auswählen…',
+    'code_label' => 'Ihr 2FA-Code (aktuell)',
+    'reason_label' => 'Grund — die Organisation liest ihn',
+    'reason_placeholder' => 'z. B. Ticket #123 — der Eigentümer meldet eine fehlende Buchung',
+    'open_button' => 'Sitzung mit Lesezugriff öffnen',
+    'recent_heading' => 'Letzte Sitzungen',
+    'empty_state' => 'Es wurde noch nie ein Notfallzugriff gestartet.',
+    'col_admin' => 'Admin',
+    'col_organisation' => 'Organisation',
+    'col_reason' => 'Grund',
+    'col_started' => 'Begonnen',
+    'col_ended' => 'Beendet',
+    'col_pages' => 'Seiten',
+    'col_told' => 'Informiert',
+    'ended_open' => 'offen',
+    'ended_due' => 'fällig — noch nicht bereinigt',
+    'told_yes' => 'Ja',
+    'told_not_yet' => 'Noch nicht',
+];

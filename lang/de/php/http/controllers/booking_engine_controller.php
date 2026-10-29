@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Sie',
+    'total_part' => ':amount :name',
+    'total_includes' => 'inkl. :items',
+    'nightly_excludes' => 'zzgl. :tax',
+    'sleeps' => 'Max. Personen: :count',
+    'studio' => 'Studio',
+    'bedrooms' => '{1} :count Schlafzimmer|[0,*] :count Schlafzimmer',
+    'checkout_title' => 'Buchungsabschluss — :property',
+    'room_just_taken' => 'Dieses Zimmer wurde gerade von jemand anderem gebucht — bitte wählen Sie ein anderes Zimmer oder andere Reisedaten.',
+    'payment_received' => 'Zahlung eingegangen',
+    'payment_received_note' => 'Vollständig bezahlt.',
+    'payment_processing' => 'Zahlung wird verarbeitet',
+    'payment_processing_note' => 'Wir bestätigen gerade Ihre Kartenzahlung. Aktualisieren Sie diese Seite in Kürze, um den Zahlungseingang zu sehen.',
+    'pay_on_arrival' => 'Bei Anreise bezahlen',
+    'pay_on_arrival_note' => 'Begleichen Sie den Betrag beim Check-in in der Unterkunft.',
+    'confirmed_title' => 'Buchung bestätigt — :property',
+    'kind_room' => 'Zimmer',
+    'kind_apartment' => 'Apartment',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Schlafsaal',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviced Apartment',
+    'type_apartment_building' => 'Apartmenthaus',
+    'type_apartment' => 'Apartment',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Gästehaus',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Gemischt',
+    'type_portfolio' => 'Portfolio',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'الإقامة',
+    'step_guest' => 'الضيف',
+    'step_extras' => 'الإضافات',
+    'step_confirm' => 'التأكيد',
+    'source_direct' => 'حجز مباشر',
+    'source_walk_in' => 'بدون حجز مسبق',
+    'source_corporate' => 'الشركات',
+    'source_agent' => 'وكيل سفر',
+    'the_guest' => 'الضيف',
+    'a_night' => ':amount لليلة',
+    'a_night_range' => ':low–:high لليلة',
+    'dates_label' => '{0} :from ← :to · :count ليالٍ|:from ← :to · ليلة واحدة|:from ← :to · ليلتان|:from ← :to · :count ليالٍ|:from ← :to · :count ليلةً|:from ← :to · :count ليلة',
+    'restrict_min_stay' => '{0} للوصول في :date، يجب ألا تقل الإقامة عن :count ليالٍ|للوصول في :date، يجب ألا تقل الإقامة عن ليلة واحدة|للوصول في :date، يجب ألا تقل الإقامة عن ليلتين|للوصول في :date، يجب ألا تقل الإقامة عن :count ليالٍ|للوصول في :date، يجب ألا تقل الإقامة عن :count ليلةً|للوصول في :date، يجب ألا تقل الإقامة عن :count ليلة',
+    'restrict_max_stay' => '{0} للوصول في :date، يجب ألا تزيد الإقامة على :count ليالٍ|للوصول في :date، يجب ألا تزيد الإقامة على ليلة واحدة|للوصول في :date، يجب ألا تزيد الإقامة على ليلتين|للوصول في :date، يجب ألا تزيد الإقامة على :count ليالٍ|للوصول في :date، يجب ألا تزيد الإقامة على :count ليلةً|للوصول في :date، يجب ألا تزيد الإقامة على :count ليلة',
+    'restrict_no_arrivals' => 'مغلق للوصول في :date',
+    'restrict_no_departures' => 'مغلق للمغادرة في :date',
+    'restrict_stop_sell' => 'التاريخ :date مغلق أمام الحجوزات الجديدة',
+    'restrict_other' => ':restriction في :date',
+    'arrival_mail_off' => 'لا يتم إرسال البريد الإلكتروني من Vyrobel بعد — يرجى تزويد الضيف بالاتجاهات ورمز الباب مباشرة.',
+    'arrival_pre_arrival_off' => 'رسالة ما قبل الوصول متوقفة لأماكن الإقامة لديك — يرجى تزويد الضيف بالاتجاهات ورمز الباب مباشرة.',
+    'arrival_too_soon' => 'تبدأ هذه الإقامة في موعد أقرب من موعد رسالة ما قبل الوصول، التي يتم إرسالها قبل :count يوم من تسجيل الوصول — يرجى تزويد الضيف بالاتجاهات ورمز الباب مباشرة.',
+    'arrival_by_email' => 'تصل الاتجاهات، ورمز الباب إن كان للوحدة رمز، إلى الضيف عبر البريد الإلكتروني قبل :count يوم من تسجيل الوصول — إذا كان لديه عنوان بريد إلكتروني. لا يظهر رمز الباب هنا أبدًا.',
+    'cancel_not_free' => 'غير مجاني لهذه الإقامة — انتهت المهلة في :date',
+    'cancel_free_until_check_in' => 'مجاني حتى تسجيل الوصول',
+    'cancel_free_until_date' => 'مجاني حتى :date',
+    'cancel_free_until_days' => '{0} مجاني حتى :count أيام قبل تسجيل الوصول|مجاني حتى يوم واحد قبل تسجيل الوصول|مجاني حتى يومين قبل تسجيل الوصول|مجاني حتى :count أيام قبل تسجيل الوصول|مجاني حتى :count يومًا قبل تسجيل الوصول|مجاني حتى :count يوم قبل تسجيل الوصول',
+    'min_stay_none' => 'لا يوجد حد أدنى',
+    'min_stay_nights' => '{0} :count ليالٍ|ليلة واحدة|ليلتان|:count ليالٍ|:count ليلةً|:count ليلة',
+    'guest_no_name' => 'ضيف',
+    'no_stays_yet' => 'لا توجد إقامات بعد',
+];

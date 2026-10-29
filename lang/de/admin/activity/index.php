@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Betreiber/Eigentümer',
+    'realm_guest' => 'Gast',
+    'realm_admin' => 'Plattform-Admin',
+    'event_login' => 'Anmeldung',
+    'event_failed' => 'Fehlgeschlagen',
+    'event_lockout' => 'Sperrung',
+    'subject_user' => 'Benutzer',
+    'subject_guest' => 'Gast',
+    'subject_platform_admin' => 'Plattform-Admin',
+    'subject_unknown' => 'Unbekannt',
+    'actor_user' => 'Benutzer',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'System',
+    'page_title' => 'Sicherheit & Aktivität',
+    'page_subtitle' => 'Anmeldeaktivität und Kontoereignisse auf der gesamten Plattform — :days Tage aufbewahrt, dann gelöscht.',
+    'kpi_failures' => 'Fehlgeschlagen / Sperrung · 24 h',
+    'kpi_failures_help' => 'Wiederholte Fehlversuche können auf Angriffsversuche hindeuten.',
+    'privacy' => 'Datenschutz',
+    'privacy_body' => 'Anmeldeaktivität (inkl. IP) wird nur als <strong style="color: var(--ad-ink);">Sicherheitssignal</strong> erfasst — um verdächtige Anmeldungen zu erkennen und für den Support — und niemals zur allgemeinen Nachverfolgung. Aufbewahrung :days Tage, danach automatische Löschung; Zugriff nur über diese Konsole.',
+    'recent_sign_ins' => 'Letzte Anmeldeaktivität',
+    'col_event' => 'Ereignis',
+    'col_realm' => 'Bereich',
+    'col_account' => 'Konto',
+    'col_ip' => 'IP',
+    'col_when' => 'Zeitpunkt',
+    'no_sign_ins' => 'Noch keine Anmeldeaktivität erfasst.',
+    'recent_account_events' => 'Letzte Kontoereignisse <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· über alle Kunden</span>',
+    'col_customer' => 'Kunde',
+    'col_actor' => 'Akteur',
+    'no_account_events' => 'Noch keine Kontoereignisse.',
+];

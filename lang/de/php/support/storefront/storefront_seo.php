@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviced Apartments',
+    'type_apartment_building' => 'Apartments',
+    'type_apartment' => 'Apartment',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Gästehaus',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel & Apartments',
+    'type_portfolio' => 'Unterkünfte',
+    'title_town' => ':name, :town — Direkt buchen',
+    'title' => ':name — Direkt buchen',
+    'title_room' => ':room bei :property — Direkt buchen',
+    'org_description_towns' => '{1} Entdecken Sie :count Unterkunft in :towns. Prüfen Sie die Verfügbarkeit und buchen Sie direkt bei :org.|[0,*] Entdecken Sie :count Unterkünfte in :towns. Prüfen Sie die Verfügbarkeit und buchen Sie direkt bei :org.',
+    'org_description' => '{1} Entdecken Sie :count Unterkunft. Prüfen Sie die Verfügbarkeit und buchen Sie direkt bei :org.|[0,*] Entdecken Sie :count Unterkünfte. Prüfen Sie die Verfügbarkeit und buchen Sie direkt bei :org.',
+    'org_description_empty' => 'Prüfen Sie die Verfügbarkeit und buchen Sie direkt bei :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1} Buchen Sie :name direkt. :type in :place. :count Zimmerkategorie. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.|[0,*] Buchen Sie :name direkt. :type in :place. :count Zimmerkategorien. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.',
+    'description_place' => 'Buchen Sie :name direkt. :type in :place. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.',
+    'description_rooms' => '{1} Buchen Sie :name direkt. :type. :count Zimmerkategorie. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.|[0,*] Buchen Sie :name direkt. :type. :count Zimmerkategorien. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.',
+    'description' => 'Buchen Sie :name direkt. :type. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie ohne Umweg über ein Buchungsportal.',
+    'detail_sleeps' => 'für bis zu :guests Personen',
+    'detail_bedrooms' => '{1} :count Schlafzimmer|[0,*] :count Schlafzimmer',
+    'room_description_town_details' => ':room bei :property in :town — :details. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie direkt.',
+    'room_description_town' => ':room bei :property in :town. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie direkt.',
+    'room_description_details' => ':room bei :property — :details. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie direkt.',
+    'room_description' => ':room bei :property. Prüfen Sie die Verfügbarkeit in Echtzeit und buchen Sie direkt.',
+    'list_and' => ':items und :last',
+];

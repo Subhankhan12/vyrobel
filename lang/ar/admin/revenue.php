@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'الإيرادات',
+    'subtitle' => 'من المبالغ التي حصلها Stripe فعليًا — وليس من أسعار القائمة أبدًا. العملاء فقط ما لم يتم تضمين مؤسسات Vyrobel الخاصة.',
+    'including_internal' => 'بما في ذلك مؤسسات Vyrobel الداخلية الخاصة.',
+    'customers_only_note' => 'العملاء فقط.',
+    'customers_only_link' => 'العملاء فقط',
+    'include_internal_link' => 'تضمين المؤسسات الداخلية',
+    'no_live_billing_pill' => 'لا توجد فوترة فعلية بعد',
+    'no_customer_charged' => 'لم يتم تحصيل أي مبلغ من أي عميل بعد.',
+    'not_live_explainer' => 'Stripe لا يعمل في الوضع الفعلي بعد، لذا لا توجد فاتورة مدفوعة لاحتسابها. هذا ليس شهرًا سيئًا — بل لا يوجد شهر بعد. تحتسب الإيرادات هنا فقط من <strong>فواتير Stripe المدفوعة</strong> (المبلغ المحصل نفسه، ويسجل عندما يبلغنا Stripe)، وليس من سعر القائمة للباقة أبدًا.',
+    'live_billed_subscriptions' => 'الاشتراكات ذات الفوترة الفعلية',
+    'trialing_unbilled' => 'اشتراكات في فترة تجريبية، دون فوترة',
+    'failed_payments_30d' => 'المدفوعات الفاشلة، آخر 30 يومًا',
+    'when_first_paid' => 'عند دفع أول فاتورة، تعرض هذه الصفحة: MRR وARR لكل عملة · MRR الجديد والتوسع والتقلص والمفقود · التحويل من الفترة التجريبية إلى الدفع · المدفوعات الفاشلة.',
+    'mrr_arr_heading' => 'الإيرادات المتكررة (MRR / ARR)',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'الاشتراكات المحتسبة',
+    'no_live_subscription_charged' => 'لم يتم تحصيل أي مبلغ من أي اشتراك نشط ذي فوترة فعلية.',
+    'mrr_hint' => 'كل اشتراك فعلي نشط أو متأخر السداد بحسب أحدث فاتورة مدفوعة له، محولًا إلى أساس شهري وفق فترة الفوترة لتلك الفاتورة.',
+    'this_month_vs_last' => 'هذا الشهر مقارنة بالشهر الماضي',
+    'movement_new' => 'الجديد · :currency',
+    'movement_expansion' => 'التوسع · :currency',
+    'movement_contraction' => 'التقلص · :currency',
+    'movement_churned' => 'المفقود · :currency',
+    'nothing_charged' => 'لم يتم تحصيل أي مبلغ في الشهر الماضي ولا هذا الشهر.',
+    'movements_hint' => 'لكل مؤسسة، من المبالغ المحصلة في كل شهر. المفقود = تم تحصيل مبلغ في الشهر الماضي، ولا شيء هذا الشهر، والاشتراك ملغى.',
+    'trial_to_paid' => 'من التجربة إلى الدفع',
+    'trial_to_paid_value' => 'الفترات التجريبية المنتهية: :ended، وتم تحصيل مبالغ من :converted منها',
+    'past_due_now' => 'متأخر السداد حاليًا',
+    'paid_invoices_counted' => 'الفواتير المدفوعة المحتسبة',
+    'never_moves_money' => 'لا تقوم لوحة الإدارة هذه أبدًا بتحصيل أي مبالغ أو استردادها أو تحويلها. كل رقم لكل عملة على حدة ولا يجمع عبر العملات أبدًا.',
+];

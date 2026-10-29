@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'جاهز للدفع',
+    'chip_hold' => 'قيد الاحتجاز',
+    'chip_review' => 'بحاجة إلى مراجعة',
+    'chip_paused' => 'التحويلات متوقفة مؤقتًا',
+    'chip_invited' => 'مدعو',
+    'sorted_name_asc' => 'حسب المالك، أ–ي',
+    'sorted_name_desc' => 'حسب المالك، ي–أ',
+    'sorted_units_desc' => 'الأكثر وحدات أولًا',
+    'sorted_units_asc' => 'الأقل وحدات أولًا',
+    'sorted_net_desc' => 'الأعلى صافي مستحق أولًا',
+    'sorted_net_asc' => 'الأقل صافي مستحق أولًا',
+    'sorted_status_asc' => 'ما يحتاج إلى إجراء أولًا',
+    'sorted_status_desc' => 'ما يحتاج إلى إجراء أخيرًا',
+    'kpi_invited' => 'مدعوون: :number',
+    'kpi_units' => '{0} :count وحدات|وحدة واحدة|وحدتان|:count وحدات|:count وحدةً|:count وحدة',
+    'kpi_owners_ready' => '{0} :count ملاك جاهزون|مالك واحد جاهز|مالكان جاهزان|:count ملاك جاهزون|:count مالكًا جاهزًا|:count مالك جاهز',
+    'kpi_paused_not_counted' => 'متوقفون مؤقتًا: :number، غير محتسبين',
+    'kpi_hold_none' => 'لا يوجد مبلغ محتجز',
+    'kpi_hold_waiting' => 'بالانتظار: :amounts',
+    'kpi_review_sub' => 'ملاك لديهم بنود لم تؤكدها قناة البيع: :number',
+    'schedule' => 'يوم العمل رقم :day من الشهر',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'مدير مكان الإقامة',
+    'role_accountant' => 'محاسب',
+    'role_owner' => 'مالك',
+    'another_owner' => 'مالك آخر',
+];

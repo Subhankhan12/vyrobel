@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'إقاماتنا',
+    'properties_count' => 'أماكن الإقامة: :count',
+    'stays_count' => '{0} :count إقامات|إقامة واحدة|إقامتان|:count إقامات|:count إقامةً|:count إقامة',
+    'stays_sleeps' => ':stays · السعة: :max',
+    'stays_sleeps_range' => ':stays · السعة: :min–:max',
+    'perk_free_cancel_days' => '{0} استرداد كامل للمبلغ حتى :count أيام قبل الوصول.|استرداد كامل للمبلغ حتى يوم واحد قبل الوصول.|استرداد كامل للمبلغ حتى يومين قبل الوصول.|استرداد كامل للمبلغ حتى :count أيام قبل الوصول.|استرداد كامل للمبلغ حتى :count يومًا قبل الوصول.|استرداد كامل للمبلغ حتى :count يوم قبل الوصول.',
+    'perk_free_cancel_window' => 'استرداد كامل للمبلغ خلال فترة الإلغاء المجاني.',
+    'perk_no_fees' => 'دون رسوم حجز',
+    'perk_no_fees_sub' => 'السعر الذي تراه هو السعر الذي تدفعه.',
+    'perk_best_rate' => 'أفضل سعر بالحجز المباشر',
+    'perk_best_rate_sub' => 'الحجز المباشر يمنحك أفضل أسعارنا — دون وسيط.',
+    'perk_free_cancel' => 'إلغاء مجاني',
+    'perk_host_support' => 'تواصل مباشر مع المضيف',
+    'perk_host_support_sub' => 'شخص حقيقي يرد على رسائلك بشأن حجزك.',
+    'kind_room' => 'غرفة',
+    'kind_apartment' => 'شقة',
+    'kind_villa' => 'فيلا',
+    'kind_dorm' => 'مهجع',
+    'type_hotel' => 'فندق',
+    'type_aparthotel' => 'فندق شقق',
+    'type_serviced_apartment' => 'شقة مخدومة',
+    'type_apartment_building' => 'مبنى شقق',
+    'type_apartment' => 'شقة',
+    'type_villa' => 'فيلا',
+    'type_hostel' => 'بيت شباب',
+    'type_guest_house' => 'دار ضيافة',
+    'type_resort' => 'منتجع',
+    'type_mixed' => 'متنوع',
+    'type_portfolio' => 'مجموعة أماكن الإقامة',
+];

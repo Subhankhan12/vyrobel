@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — de translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Übersicht',
+    'subtitle_all' => 'Alle Organisationen, einschließlich der internen von Vyrobel selbst.',
+    'subtitle_customers' => 'Nur Kunden — die internen Organisationen von Vyrobel selbst sind ausgenommen.',
+    'showing_all' => '<strong>Alle</strong> Organisationen werden angezeigt — davon :internal intern.',
+    'internal_excluded' => '{1} :count interne Organisation ist von allen folgenden Zahlen ausgenommen.|[0,*] :count interne Organisationen sind von allen folgenden Zahlen ausgenommen.',
+    'customers_only' => 'Nur Kunden',
+    'include_internal' => 'Interne einbeziehen',
+    'no_customers_heading' => 'Noch keine Kunden',
+    'no_customers_body' => 'Jede Organisation auf der Plattform gehört Vyrobel selbst (:internal intern). Die erste echte Registrierung erscheint hier.',
+    'kpi_organisations' => 'Organisationen',
+    'kpi_customers' => 'Kunden',
+    'kpi_account_status' => ':active aktiv · :suspended gesperrt',
+    'kpi_subscriptions' => 'Abonnements',
+    'kpi_subscriptions_sub' => 'aktiv · :trial in kostenloser Testphase',
+    'kpi_revenue' => 'Umsatz',
+    'no_live_billing' => 'Noch keine Live-Abrechnung',
+    'no_live_billing_sub' => 'Kein Abonnement wird über Stripe abgerechnet. Der Listenpreis einer Testphase ist kein Umsatz.',
+    'billed_live' => '{1} :count live abgerechnet|[0,*] :count live abgerechnet',
+    'billed_live_sub' => 'Berechnet aus dem, was Stripe belastet hat, nie aus der Preisliste — siehe <a class="ad-cell-link" href=":url">Umsatz</a>.',
+    'kpi_properties' => 'Unterkünfte',
+    'kpi_reservations' => '{1} :count Buchung|[0,*] :count Buchungen',
+    'new_organisations_heading' => 'Neue Organisationen · letzte 6 Monate',
+    'new_customers_heading' => 'Neue Kunden · letzte 6 Monate',
+    'no_signups' => 'Keine Registrierungen in den letzten 6 Monaten.',
+    'account_status_heading' => 'Kontostatus',
+    'status_active' => 'Aktiv',
+    'status_suspended' => 'Gesperrt',
+    'status_cancelled' => 'Gekündigt',
+    'status_trialing' => 'Testphase (Konto)',
+    'free_trial_hint' => 'Eine kostenlose Testphase ist ein Abonnementstatus, kein Kontostatus — derzeit :trial in kostenloser Testphase.',
+    'plans_in_use' => 'Genutzte Tarife <span class="ad-stat-sub" style="font-weight: 400;">· aktiv oder Testphase</span>',
+    'no_plans' => 'Noch keine Tarife in Nutzung.',
+];

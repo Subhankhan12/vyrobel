@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'التقارير',
+    'arrivals_in' => 'الوصول خلال :period',
+    'arrivals_count' => '{0} :count حالات وصول|حالة وصول واحدة|حالتا وصول|:count حالات وصول|:count حالة وصول|:count حالة وصول',
+    'pp_delta' => ':delta نقطة مئوية',
+    'occupancy' => 'الإشغال',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'إجمالي الإيرادات',
+    'basis_note' => 'نسبة الإشغال · ADR · RevPAR محسوبة على أساس ليالي الإقامة، مقارنة بالفترة نفسها من العام الماضي عند توفر بيانات العام السابق. أما الإيرادات أدناه فمحسوبة على أساس حساب الإقامة (تاريخ الوصول).',
+    'revenue' => 'الإيرادات',
+    'room' => 'الغرف',
+    'ancillary' => 'الخدمات الإضافية <span class="muted">· الإضافات والمنتجات والرسوم</span>',
+    'tax_collected' => 'الضرائب المحصلة · مستحقة للجهات الضريبية',
+    'costs_heading' => 'التكاليف <span class="muted" style="font-size:9px">· بيانات حقيقية فقط</span>',
+    'maintenance' => 'الصيانة <span class="muted">· أوامر العمل التي تم حلها</span>',
+    'not_tracked' => 'لا يتم تتبعها بعد',
+    'net' => 'الصافي (الإيرادات − التكاليف المتتبعة)',
+    'revenue_by_channel' => 'الإيرادات حسب قناة البيع',
+    'channel' => 'القناة',
+    'bookings' => 'الحجوزات',
+    'share' => 'الحصة',
+    'no_channel_revenue' => 'لا توجد إيرادات قنوات بيع في هذه الفترة.',
+    'top_units' => 'أفضل الوحدات',
+    'unit' => 'الوحدة',
+    'nights' => 'الليالي',
+    'room_revenue' => 'إيرادات الغرف',
+    'no_unit_revenue' => 'لا توجد إيرادات وحدات في هذه الفترة.',
+    'revenue_by_month' => 'الإيرادات حسب الشهر',
+    'month' => 'الشهر',
+    'footer' => 'محسوب من بيانات حقيقية لحساب الإقامة والصيانة في :scope · :period. نسبة الإشغال/ADR/RevPAR على أساس ليالي الإقامة؛ والإيرادات على أساس حساب الإقامة (تاريخ الوصول). تتطابق الأرقام مع شاشة «التقارير». Vyrobel.',
+];

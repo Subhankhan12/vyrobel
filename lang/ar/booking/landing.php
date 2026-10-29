@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'الإقامات',
+    'book_direct' => 'الحجز المباشر',
+    'nav_stays' => 'الإقامات',
+    'my_account' => 'حسابي',
+    'sign_in' => 'تسجيل الدخول',
+    'rating_across' => '{0} :average بناءً على :count تقييمات|:average بناءً على تقييم واحد|:average بناءً على تقييمين|:average بناءً على :count تقييمات|:average بناءً على :count تقييمًا|:average بناءً على :count تقييم',
+    'heading' => 'احجز مباشرة مع<br>:org.',
+    'subheading' => 'إقامات نعتني بها بأنفسنا، تحجزها مباشرة مع المضيف — دون رسوم، وبأفضل أسعارنا، ومع شخص حقيقي يتواصل معك.',
+    'where' => 'الوجهة',
+    'check_in' => 'تسجيل الوصول',
+    'check_out' => 'تسجيل المغادرة',
+    'adults' => 'البالغون',
+    'children' => 'الأطفال',
+    'where_to_stay' => 'أين تقيم',
+    'towns_lede' => '{0} :count مدن، لكل منها إيقاعها الخاص.|مقرنا الأساسي.|مدينتان، لكل منهما إيقاعها الخاص.|:count مدن، لكل منها إيقاعها الخاص.|:count مدينةً، لكل منها إيقاعها الخاص.|:count مدينة، لكل منها إيقاعها الخاص.',
+    'from_price' => 'ابتداءً من :price',
+    'featured_stays' => 'إقامات مميزة',
+    'featured_lede' => 'الأكثر تفضيلًا لدى الضيوف في مجموعتنا.',
+    'per_night' => '/ ليلة',
+    'see_dates_for_pricing' => 'حدد التواريخ لعرض الأسعار',
+    'browse_by_what_matters' => 'تصفح حسب ما يهمك',
+    'why_book_direct' => 'لماذا الحجز المباشر',
+    'recent_guests' => 'أحدث الضيوف',
+    'rating_short' => '{0} :average · :count تقييمات|:average · تقييم واحد|:average · تقييمان|:average · :count تقييمات|:average · :count تقييمًا|:average · :count تقييم',
+    'stars_aria' => ':rating من 5 نجوم',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'لا توجد تقييمات بعد — كن أول من يقيم لدينا ويشارك تجربته.',
+    'cta_heading' => 'اعثر على مكانك',
+    'cta_sub' => 'تواريخ حقيقية، وأسعار محدثة، وتأكيد فوري.',
+    'browse_all_stays' => 'تصفح كل الإقامات',
+];

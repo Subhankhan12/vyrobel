@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'إدارة :reference',
+    'back_to_booking' => '→ العودة إلى الحجز',
+    'heading' => 'إدارة حجزك',
+    'subheading' => ':property · :check_in ← :check_out. يؤكد مكان الإقامة التغييرات — وسنراسلك فور تأكيدها.',
+    'pending_requests' => 'الطلبات قيد الانتظار',
+    'pending_badge' => 'قيد الانتظار',
+    'pending_note' => 'لم يتغير شيء في حجزك بعد — يجب أن يؤكد مكان الإقامة الطلب أولًا.',
+    'pick_new_dates' => 'اختيار تواريخ جديدة',
+    'currently' => 'حاليًا :check_in ← :check_out. يمكنك اختيار تواريخ جديدة لمعرفة فرق السعر، ثم طلب التغيير.',
+    'new_check_in' => 'تاريخ الوصول الجديد',
+    'new_check_out' => 'تاريخ المغادرة الجديد',
+    'see_price_difference' => 'عرض فرق السعر',
+    'new_stay' => 'الإقامة الجديدة',
+    'current' => 'الحالية',
+    'difference' => 'الفرق',
+    'estimate_note' => 'تقدير فقط — يخضع لتأكيد مكان الإقامة. تتم معالجة أي دفعة بعد التأكيد.',
+    'unpriced_note' => 'لا يوجد سعر منشور لهذه التواريخ بعد — يمكنك طلب التغيير وسيؤكد مكان الإقامة السعر.',
+    'request_date_change' => 'طلب تغيير التواريخ',
+    'add_to_your_stay' => 'إضافة إلى إقامتك',
+    'add_to_your_stay_sub' => 'يمكنك إضافة الإفطار وخدمات النقل وغيرها — يضاف كل شيء إلى حجزك عند التأكيد.',
+    'browse_extras' => 'تصفح الإضافات',
+    'cancellation_policy' => 'سياسة الإلغاء',
+    'free_until' => 'إلغاء مجاني حتى <strong>:date</strong> — إذا قدمت طلب الإلغاء قبل ذلك، فسيتم استرداد المبلغ بالكامل.',
+    'policy_by_property' => 'يؤكد مكان الإقامة الإلغاء ويتولى أي استرداد وفقًا لسياسته.',
+    'cancel_confirm' => 'هل تريد إرسال طلب إلغاء لهذا الحجز؟ سيراجعه مكان الإقامة ويتولى أي استرداد وفقًا لسياسته.',
+    'reason' => 'السبب',
+    'choose_reason' => 'اختيار سبب…',
+    'request_cancellation' => 'طلب الإلغاء',
+    'closed_heading' => 'هذا الحجز مغلق',
+    'closed_body' => 'لم يعد هناك ما يمكن تغييره فيه — لكن تواريخك وتفاصيل إقامتك وكل ما دفعته لا تزال متاحة هنا متى احتجت إليها.',
+];

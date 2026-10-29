@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Notiz',
+    'kind_progress' => 'Fortschritt',
+    'kind_part' => 'Teil bestellt',
+    'elapsed_minutes' => ':minutes Min.',
+    'elapsed_hours' => ':hours Std. :minutes Min.',
+    'elapsed_days' => ':days Tg. :hours Std.',
+    'hours_short' => ':hours Std.',
+    'timeline_opened' => 'Gemeldet',
+    'timeline_assigned_to' => 'Zugewiesen an :name',
+    'a_technician' => 'einen Techniker',
+    'timeline_unassigned' => 'Nicht zugewiesen',
+    'timeline_started' => 'Arbeit begonnen',
+    'timeline_resolved' => 'Erledigt',
+    'timeline_cancelled' => 'Storniert',
+    'timeline_parts_updated' => 'Teile aktualisiert',
+    'timeline_cost_corrected' => 'Kosten korrigiert',
+    'timeline_updated' => 'Details bearbeitet',
+    'note_progress' => 'Fortschrittsmeldung',
+    'note_part' => 'Teil bestellt',
+    'note_added' => 'Notiz hinzugefügt',
+    'a_team_member' => 'Ein Teammitglied',
+    'system' => 'System',
+    'photo_alt' => 'Wartungsfoto',
+    'the_owner' => 'dem Eigentümer',
+    'load_none' => 'Keine offenen Arbeitsaufträge',
+    'load_open' => ':open offen',
+    'load_open_urgent' => ':open offen · :urgent dringend',
+    'impact_arrivals' => '{1} :count Anreise heute braucht ein Zimmer|[0,*] :count Anreisen heute brauchen ein Zimmer',
+    'impact_bookings' => '{1} :count Buchung muss verlegt werden|[0,*] :count Buchungen müssen verlegt werden',
+    'impact_none' => 'Keine Buchungen betroffen',
+];

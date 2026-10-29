@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — de translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Übersicht',
+    'breadcrumb_bookings' => 'Buchungen',
+    'guest_fallback' => 'Gast',
+    'reservation' => 'Buchung',
+    'check_in' => 'Check-in',
+    'nights_count' => '{1} :count Nacht|[0,*] :count Nächte',
+    'check_out' => 'Check-out',
+    'unit' => 'Einheit',
+    'guests' => 'Gäste',
+    'nights' => 'Nächte',
+    'nightly_rate' => 'Preis pro Nacht',
+    'your_earnings' => 'Ihre Einnahmen',
+    'gross_to_net' => 'brutto → netto',
+    'gross_booking_value' => 'Bruttobuchungswert',
+    'net_to_you' => 'Netto für Sie',
+    'refunds_we_covered' => 'Von uns getragene Erstattungen',
+    'refunds_we_covered_note' => 'An den Gast erstattet und uns belastet, nicht Ihnen. Ihre Einnahmen oben bleiben unverändert.',
+    'not_yet_attributed' => 'Noch nicht zugeordnet.',
+    'not_yet_attributed_note' => 'Ihre Einnahmen erscheinen hier, sobald diese Buchung Ihrem Eigentümerkonto zugeordnet ist — meist nach dem Check-out.',
+    'guest_heading' => 'Gast',
+    'guest_contact_note' => 'Die Kontaktdaten des Gastes verwaltet Ihr Verwaltungsteam — Sie sehen die Buchung und Ihre Einnahmen.',
+    'message_your_team' => 'Ihrem Team schreiben',
+    'timeline' => 'Verlauf',
+    'for_night_stay' => 'für diesen Aufenthalt (Nächte: :nights)',
+    'booking_details' => 'Buchungsdetails',
+    'confirmation' => 'Bestätigungsnummer',
+    'source' => 'Quelle',
+    'channel' => 'Kanal',
+    'booked_on' => 'Gebucht am',
+    'download_confirmation' => 'Bestätigung herunterladen',
+    'download_unavailable' => 'Für Miteigentümer und Buchhalter verfügbar',
+    'view_unit' => ':unit anzeigen',
+];

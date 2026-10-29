@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — de translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Alle Zimmer',
+    'kind_sleeps_up_to' => ':kind · bis zu :capacity Personen',
+    'reviews_count' => '{1} :count Bewertung|[0,*] :count Bewertungen',
+    'no_reviews_yet' => 'Noch keine Bewertungen',
+    'save_to_wishlist' => 'Auf die Merkliste',
+    'sleeps' => 'Max. Personen',
+    'adults' => 'Erwachsene',
+    'children' => 'Kinder',
+    'bedrooms' => 'Schlafzimmer',
+    'standard_occupancy' => 'Standardbelegung',
+    'amenities' => 'Ausstattung',
+    'not_yet_listed' => 'Noch nicht angegeben',
+    'amenities_not_published' => 'Die Ausstattung dieses Zimmers ist noch nicht veröffentlicht.',
+    'guest_reviews' => 'Gästebewertungen',
+    'stars_aria' => ':rating von 5 Sternen',
+    'response_label' => 'Antwort:',
+    'no_reviews_be_first' => 'Noch keine Bewertungen — machen Sie den Anfang: Übernachten Sie bei uns und teilen Sie Ihre Erfahrung.',
+    'coming_soon' => 'Demnächst',
+    'description_soon' => 'Eine ausführliche Beschreibung & eine Lagekarte folgen in Kürze — Angaben, Verfügbarkeit, Preis und Bewertungen oben sind echt.',
+    'per_night' => '/ Nacht',
+    'per_night_with_note' => '/ Nacht · :note',
+    'total_nights' => '{1} :amount gesamt · :count Nacht|[0,*] :amount gesamt · :count Nächte',
+    'left_for_your_dates' => 'Noch :count frei für Ihre Reisedaten',
+    'book_this_room' => 'Dieses Zimmer buchen',
+    'nothing_reserved' => 'Gebucht wird erst, wenn Sie beim Buchungsabschluss bestätigen.',
+    'your_dates' => 'Ihre Reisedaten',
+    'not_available' => 'Für diese Reisedaten nicht verfügbar — wählen Sie andere Reisedaten.',
+    'check_in' => 'Check-in',
+    'check_out' => 'Check-out',
+    'check_dates' => 'Reisedaten prüfen',
+    'check_availability' => 'Verfügbarkeit & Preis prüfen',
+    'see_price' => 'Preis ansehen',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'ab :time',
+    'by_time' => 'bis :time',
+    'repeat_guest' => '{1} Stammgast · :count Aufenthalt|[0,*] Stammgast · :count Aufenthalte',
+    'new_guest' => 'Neuer Gast',
+    'guests_count' => '{1} :count Gast|[0,*] :count Gäste',
+    'nights_count' => '{1} :count Nacht|[0,*] :count Nächte',
+    'channel_direct' => 'Vyrobel direkt',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'OTA-Kanal',
+    'event_booking_received' => 'Buchung eingegangen',
+    'event_cancelled' => 'Storniert',
+    'event_payment_received' => 'Zahlung eingegangen',
+    'when_paid_in_full' => 'Vollständig bezahlt',
+    'event_part_payment_received' => 'Teilzahlung eingegangen',
+    'when_balance_due' => 'Offener Betrag',
+    'event_payment' => 'Zahlung',
+    'when_not_yet_received' => 'Noch nicht eingegangen',
+    'event_checked_in' => 'Eingecheckt',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Ausgecheckt',
+    'event_payout_released' => 'Auszahlung freigegeben',
+    'event_payout' => 'Auszahlung',
+    'when_next_payout' => 'Mit Ihrer nächsten Auszahlung',
+    'payout_not_attributed' => 'Noch nicht zugeordnet',
+    'payout_not_attributed_note' => 'Diese Buchung wurde Ihrem Eigentümerkonto noch nicht zugeordnet.',
+    'payout_scheduled' => 'Geplant',
+    'payout_scheduled_note' => 'In Ihrer nächsten Abrechnung enthalten und dann mit dieser Auszahlung freigegeben.',
+    'payout_pending' => 'Auszahlung ausstehend',
+    'payout_pending_note' => 'In einer abgeschlossenen Abrechnung — wird mit dieser Auszahlung freigegeben.',
+    'payout_paid' => 'Bezahlt',
+    'payout_paid_note' => 'Mit einer abgeschlossenen Auszahlung freigegeben.',
+];

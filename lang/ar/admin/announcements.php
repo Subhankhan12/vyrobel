@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'الإعلانات',
+    'subtitle' => 'إشعار يظهر في الواجهة الإدارية وبوابة الملاك لدى كل مؤسسة — أو لدى مؤسسات مختارة. نص عادي؛ لا يرسل أي بريد إلكتروني.',
+    'empty_state' => 'لم ينشر أي إعلان حتى الآن.',
+    'col_announcement' => 'الإعلان',
+    'col_to' => 'إلى',
+    'col_from_until' => 'من ← حتى',
+    'col_state' => 'الحالة',
+    'audience_all' => 'كل المؤسسات',
+    'audience_chosen_count' => 'مؤسسات مختارة: :number',
+    'no_end' => 'بلا نهاية',
+    'state_withdrawn' => 'مسحوب',
+    'state_showing' => 'معروض',
+    'state_scheduled' => 'مجدول',
+    'state_ended' => 'منتهٍ',
+    'reason_aria' => 'السبب',
+    'withdraw_placeholder' => 'لماذا يتم السحب؟',
+    'withdraw_button' => 'سحب',
+    'publish_heading' => 'نشر إعلان',
+    'title_label' => 'العنوان',
+    'message_label' => 'الرسالة (نص عادي)',
+    'kind_label' => 'النوع',
+    'show_from_label' => 'العرض من (UTC)',
+    'until_label' => 'حتى (UTC، اختياري)',
+    'to_label' => 'إلى',
+    'option_every_organisation' => 'كل المؤسسات',
+    'option_chosen_organisations' => 'مؤسسات مختارة',
+    'chosen_organisations_label' => 'المؤسسات المختارة (عند اختيار «مؤسسات مختارة»)',
+    'no_organisation_chosen' => 'لم يتم اختيار أي مؤسسة بعد',
+    'reason_label' => 'السبب',
+    'publish_reason_placeholder' => 'لماذا يتم نشر هذا الإعلان؟',
+    'publish_button' => 'نشر',
+];

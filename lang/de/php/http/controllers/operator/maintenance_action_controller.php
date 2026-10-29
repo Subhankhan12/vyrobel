@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Wartungsauftrag „:title“ für Einheit :unit eröffnet.',
+    'not_assignable_staff' => 'Diese Person gehört in dieser Organisation nicht zu den Mitarbeitern, denen Aufträge zugewiesen werden können.',
+    'cannot_reassign_closed' => 'Dieser Auftrag kann nicht neu zugewiesen werden — er ist bereits abgeschlossen.',
+    'assignment_updated' => 'Zuweisung des Auftrags aktualisiert.',
+    'work_order_closed' => 'Dieser Arbeitsauftrag ist abgeschlossen — seine Angaben können nicht geändert werden.',
+    'work_order_updated' => 'Arbeitsauftrag aktualisiert.',
+    'col_title' => 'Titel',
+    'col_unit' => 'Einheit',
+    'col_category' => 'Kategorie',
+    'col_priority' => 'Priorität',
+    'col_status' => 'Status',
+    'col_assignee' => 'Zuständig',
+    'col_reported' => 'Gemeldet',
+    'col_cost' => 'Kosten',
+    'bulk_assigned_skipped' => '{1} :count Arbeitsauftrag zugewiesen · :skipped übersprungen (bereits abgeschlossen)|[0,*] :count Arbeitsaufträge zugewiesen · :skipped übersprungen (bereits abgeschlossen)',
+    'bulk_assigned' => '{1} :count Arbeitsauftrag zugewiesen.|[0,*] :count Arbeitsaufträge zugewiesen.',
+    'bulk_resolved_skipped' => '{1} :count Arbeitsauftrag erledigt · :skipped übersprungen (bereits abgeschlossen)|[0,*] :count Arbeitsaufträge erledigt · :skipped übersprungen (bereits abgeschlossen)',
+    'bulk_resolved' => '{1} :count Arbeitsauftrag erledigt.|[0,*] :count Arbeitsaufträge erledigt.',
+    'cannot_start' => 'Dieser Auftrag kann nicht begonnen werden — er ist nicht mehr offen.',
+    'work_started' => 'Die Arbeit an diesem Auftrag hat begonnen.',
+    'cannot_resolve_closed' => 'Dieser Arbeitsauftrag kann nicht erledigt werden — er ist bereits abgeschlossen.',
+    'ticket_resolved' => 'Auftrag erledigt.',
+    'cannot_cancel_closed' => 'Dieser Auftrag kann nicht storniert werden — er ist bereits abgeschlossen.',
+    'ticket_cancelled' => 'Auftrag storniert.',
+    'parts_closed' => 'Dieser Auftrag ist abgeschlossen — Teile können nicht aktualisiert werden.',
+    'awaiting_parts' => 'Als „Wartet auf Teile“ markiert.',
+    'parts_arrived' => 'Teile als eingetroffen markiert.',
+    'update_posted_waiting_part' => 'Eintrag gesendet — als „Wartet auf Teile“ markiert.',
+    'update_posted' => 'Eintrag gesendet.',
+    'photo_added' => 'Foto hinzugefügt.',
+    'photo_removed' => 'Foto entfernt.',
+    'workspace_paused' => 'Ihre Organisation ist pausiert (nur Lesezugriff) — Änderungen an der Wartung sind erst nach dem Fortsetzen wieder möglich.',
+];

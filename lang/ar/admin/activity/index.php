@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'المشغل/المالك',
+    'realm_guest' => 'ضيف',
+    'realm_admin' => 'مسؤول المنصة',
+    'event_login' => 'تسجيل الدخول',
+    'event_failed' => 'محاولة فاشلة',
+    'event_lockout' => 'قفل الحساب',
+    'subject_user' => 'مستخدم',
+    'subject_guest' => 'ضيف',
+    'subject_platform_admin' => 'مسؤول المنصة',
+    'subject_unknown' => 'غير معروف',
+    'actor_user' => 'مستخدم',
+    'actor_agent' => 'المساعد الذكي',
+    'actor_system' => 'النظام',
+    'page_title' => 'الأمان والنشاط',
+    'page_subtitle' => 'نشاط تسجيل الدخول وأحداث الحسابات على مستوى المنصة — يحتفظ بها لمدة :days يوم ثم تحذف.',
+    'kpi_failures' => 'محاولات فاشلة / قفل · 24 ساعة',
+    'kpi_failures_help' => 'قد يشير تكرار المحاولات الفاشلة إلى محاولات تخمين.',
+    'privacy' => 'الخصوصية',
+    'privacy_body' => 'يسجل نشاط تسجيل الدخول (بما في ذلك عنوان IP) بوصفه <strong style="color: var(--ad-ink);">مؤشرًا أمنيًا</strong> فقط — لرصد عمليات الدخول المشبوهة ولأغراض الدعم — ولا يستخدم أبدًا للتتبع العام. يحتفظ به لمدة :days يوم ثم يحذف تلقائيًا، ويقتصر الوصول إليه على لوحة الإدارة هذه.',
+    'recent_sign_ins' => 'نشاط تسجيل الدخول الأخير',
+    'col_event' => 'الحدث',
+    'col_realm' => 'نوع الحساب',
+    'col_account' => 'الحساب',
+    'col_ip' => 'عنوان IP',
+    'col_when' => 'الوقت',
+    'no_sign_ins' => 'لم يسجل أي نشاط لتسجيل الدخول بعد.',
+    'recent_account_events' => 'أحداث الحسابات الأخيرة <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· لدى جميع العملاء</span>',
+    'col_customer' => 'العميل',
+    'col_actor' => 'المنفذ',
+    'no_account_events' => 'لا توجد أحداث حسابات بعد.',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — de translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Auszahlungsbereit',
+    'chip_hold' => 'Einbehalten',
+    'chip_review' => 'Prüfung nötig',
+    'chip_paused' => 'Auszahlungen pausiert',
+    'chip_invited' => 'Eingeladen',
+    'sorted_name_asc' => 'nach Eigentümer, A–Z',
+    'sorted_name_desc' => 'nach Eigentümer, Z–A',
+    'sorted_units_desc' => 'meiste Einheiten zuerst',
+    'sorted_units_asc' => 'wenigste Einheiten zuerst',
+    'sorted_net_desc' => 'höchster Auszahlungsbetrag zuerst',
+    'sorted_net_asc' => 'niedrigster Auszahlungsbetrag zuerst',
+    'sorted_status_asc' => 'Handlungsbedarf zuerst',
+    'sorted_status_desc' => 'Handlungsbedarf zuletzt',
+    'kpi_invited' => ':number eingeladen',
+    'kpi_units' => '{1} :count Einheit|[0,*] :count Einheiten',
+    'kpi_owners_ready' => '{1} :count Eigentümer bereit|[0,*] :count Eigentümer bereit',
+    'kpi_paused_not_counted' => ':number pausiert, nicht mitgezählt',
+    'kpi_hold_none' => 'nichts ausstehend',
+    'kpi_hold_waiting' => ':amounts ausstehend',
+    'kpi_review_sub' => ':number mit Posten, die der Buchungskanal noch nicht bestätigt hat',
+    'schedule' => ':day Werktag des Monats',
+    'ordinal_st' => ':number.',
+    'ordinal_nd' => ':number.',
+    'ordinal_rd' => ':number.',
+    'ordinal_th' => ':number.',
+    'role_manager' => 'Hotel-Manager',
+    'role_accountant' => 'Buchhalter',
+    'role_owner' => 'Eigentümer',
+    'another_owner' => 'ein anderer',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ar translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'نظرة عامة',
+    'subtitle_all' => 'كل المؤسسات، بما في ذلك مؤسسات Vyrobel الداخلية الخاصة.',
+    'subtitle_customers' => 'العملاء فقط — مؤسسات Vyrobel الداخلية الخاصة مستبعدة.',
+    'showing_all' => 'يتم عرض <strong>كل</strong> المؤسسات — الداخلية منها: :internal.',
+    'internal_excluded' => '{0} :count مؤسسات داخلية مستبعدة من كل الأرقام أدناه.|مؤسسة داخلية واحدة مستبعدة من كل الأرقام أدناه.|مؤسستان داخليتان مستبعدتان من كل الأرقام أدناه.|:count مؤسسات داخلية مستبعدة من كل الأرقام أدناه.|:count مؤسسةً داخلية مستبعدة من كل الأرقام أدناه.|:count مؤسسة داخلية مستبعدة من كل الأرقام أدناه.',
+    'customers_only' => 'العملاء فقط',
+    'include_internal' => 'تضمين المؤسسات الداخلية',
+    'no_customers_heading' => 'لا يوجد عملاء بعد',
+    'no_customers_body' => 'كل مؤسسة على المنصة هي إحدى مؤسسات Vyrobel الخاصة (المؤسسات الداخلية: :internal). سيظهر هنا أول تسجيل حقيقي.',
+    'kpi_organisations' => 'المؤسسات',
+    'kpi_customers' => 'العملاء',
+    'kpi_account_status' => 'نشطة: :active · معلّقة: :suspended',
+    'kpi_subscriptions' => 'الاشتراكات',
+    'kpi_subscriptions_sub' => 'نشطة · في الفترة التجريبية المجانية: :trial',
+    'kpi_revenue' => 'الإيرادات',
+    'no_live_billing' => 'لا توجد فوترة فعلية بعد',
+    'no_live_billing_sub' => 'لا يوجد اشتراك تتم فوترته عبر Stripe. سعر القائمة لفترة تجريبية ليس إيرادًا.',
+    'billed_live' => '{0} :count اشتراكات بفوترة فعلية|اشتراك واحد بفوترة فعلية|اشتراكان بفوترة فعلية|:count اشتراكات بفوترة فعلية|:count اشتراكًا بفوترة فعلية|:count اشتراك بفوترة فعلية',
+    'billed_live_sub' => 'محسوبة مما حصله Stripe، وليس من قائمة الأسعار أبدًا — التفاصيل في <a class="ad-cell-link" href=":url">الإيرادات</a>.',
+    'kpi_properties' => 'أماكن الإقامة',
+    'kpi_reservations' => '{0} :count حجوزات|حجز واحد|حجزان|:count حجوزات|:count حجزًا|:count حجز',
+    'new_organisations_heading' => 'المؤسسات الجديدة · آخر 6 أشهر',
+    'new_customers_heading' => 'العملاء الجدد · آخر 6 أشهر',
+    'no_signups' => 'لا توجد عمليات تسجيل خلال آخر 6 أشهر.',
+    'account_status_heading' => 'حالة الحساب',
+    'status_active' => 'نشطة',
+    'status_suspended' => 'معلّقة',
+    'status_cancelled' => 'ملغاة',
+    'status_trialing' => 'تجريبية (الحساب)',
+    'free_trial_hint' => 'الفترة التجريبية المجانية حالة اشتراك وليست حالة حساب — في فترة تجريبية مجانية الآن: :trial.',
+    'plans_in_use' => 'الباقات المستخدمة <span class="ad-stat-sub" style="font-weight: 400;">· نشطة أو تجريبية</span>',
+    'no_plans' => 'لا توجد باقات مستخدمة بعد.',
+];
