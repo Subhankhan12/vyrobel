@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Reports;
 
 use App\Livewire\Operator\OperatorReports;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 
 /**
@@ -30,7 +31,7 @@ final class ReportPeriod
         if ($monthStart !== null) {
             return [
                 'key' => 'month:'.$monthStart->format('Y-m'),
-                'label' => $monthStart->translatedFormat('F Y'),
+                'label' => $monthStart->translatedFormat(LocalDate::pattern('F Y')),
                 'start' => $monthStart,
                 'end' => $monthStart->addMonth(),
             ];
@@ -74,7 +75,7 @@ final class ReportPeriod
         for ($i = 0; $i < 12; $i++) {
             $m = $cursor->subMonths($i);
             $value = $m->format('Y-m');
-            $out[] = ['value' => $value, 'label' => $m->translatedFormat('M Y'), 'active' => $value === $active];
+            $out[] = ['value' => $value, 'label' => $m->translatedFormat(LocalDate::pattern('M Y')), 'active' => $value === $active];
         }
 
         return $out;

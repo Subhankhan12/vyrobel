@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Ödenmeye hazır',
+    'chip_hold' => 'Bloke',
+    'chip_review' => 'İnceleme gerekiyor',
+    'chip_paused' => 'Hakedişler duraklatıldı',
+    'chip_invited' => 'Davet edildi',
+    'sorted_name_asc' => 'mülk sahibine göre, A–Z',
+    'sorted_name_desc' => 'mülk sahibine göre, Z–A',
+    'sorted_units_desc' => 'en çok birimi olanlar önce',
+    'sorted_units_asc' => 'en az birimi olanlar önce',
+    'sorted_net_desc' => 'ödenecek net tutarı en yüksek olanlar önce',
+    'sorted_net_asc' => 'ödenecek net tutarı en düşük olanlar önce',
+    'sorted_status_asc' => 'ilgilenmeniz gerekenler önce',
+    'sorted_status_desc' => 'ilgilenmeniz gerekenler sonda',
+    'kpi_invited' => 'Davet edilen: :number',
+    'kpi_units' => '{1} :count birim|[0,*] :count birim',
+    'kpi_owners_ready' => '{1} :count mülk sahibi hazır|[0,*] :count mülk sahibi hazır',
+    'kpi_paused_not_counted' => 'Duraklatılan: :number, sayılmadı',
+    'kpi_hold_none' => 'bekleyen yok',
+    'kpi_hold_waiting' => 'Bekleyen: :amounts',
+    'kpi_review_sub' => 'Rezervasyon kanalının onaylamadığı satırları olan: :number',
+    'schedule' => 'Ayın :day iş günü',
+    'ordinal_st' => ':number.',
+    'ordinal_nd' => ':number.',
+    'ordinal_rd' => ':number.',
+    'ordinal_th' => ':number.',
+    'role_manager' => 'Tesis yöneticisi',
+    'role_accountant' => 'Muhasebeci',
+    'role_owner' => 'Mülk sahibi',
+    'another_owner' => 'başka bir mülk sahibi',
+];

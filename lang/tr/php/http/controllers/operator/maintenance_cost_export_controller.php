@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Tutarlar',
+    'csv_amounts_note' => 'ana para birimi cinsinden, ondalık ayırıcı nokta, binlik ayırıcı yok',
+    'col_date' => 'Tarih',
+    'col_work_order' => 'İş emri',
+    'col_unit' => 'Birim',
+    'col_category' => 'Kategori',
+    'col_labor' => 'İşçilik',
+    'col_parts' => 'Parça',
+    'col_total' => 'Toplam',
+    'col_currency' => 'Para birimi',
+    'total_row' => 'Toplam',
+    'sheet_summary' => 'Özet',
+    'col_measure' => 'Ölçüt',
+    'col_value' => 'Değer',
+    'total_spend' => 'Toplam harcama',
+    'measure_labour' => 'İşçilik',
+    'measure_parts' => 'Parça',
+    'orders_closed' => 'Kapatılan iş emirleri',
+    'owner_billed' => 'Mülk sahibine faturalanan',
+    'operator_borne' => 'İşletmenin üstlendiği',
+    'parts_on_order' => 'Siparişteki parçalar',
+    'average_per_order' => 'İş emri başına ortalama',
+    'by_category' => 'Kategoriye göre',
+    'col_orders' => 'İş emirleri',
+    'by_month' => 'Aya göre',
+    'top_units' => 'En yüksek maliyetli birimler',
+    'sheet_line_items' => 'Kalemler',
+    'col_labour' => 'İşçilik',
+    'no_email' => 'Hesabınızda e-posta adresi yok.',
+    'report_emailed' => 'Maliyet raporu :email adresine gönderildi.',
+];

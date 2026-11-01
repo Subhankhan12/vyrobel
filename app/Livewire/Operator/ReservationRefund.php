@@ -11,6 +11,7 @@ use App\Models\Reservation;
 use App\Services\FolioService;
 use App\Services\OwnerAttributionService;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -130,8 +131,8 @@ class ReservationRefund extends Component
                 'id' => (string) $reservation->id,
                 'reference' => (string) $reservation->reference,
                 'status_label' => $this->reservationStatusMeta((string) $reservation->status)['label'],
-                'check_in' => $checkIn->translatedFormat('j M Y'),
-                'check_out' => $checkOut->translatedFormat('j M Y'),
+                'check_in' => $checkIn->translatedFormat(LocalDate::pattern('j M Y')),
+                'check_out' => $checkOut->translatedFormat(LocalDate::pattern('j M Y')),
                 'guest' => $name !== '' ? $name : null,
             ],
             'folio' => $folioModel !== null ? $this->folioContext($folioModel, $currency) : null,
@@ -213,7 +214,7 @@ class ReservationRefund extends Component
             // The REAL gateway the money moved through — `payments.gateway` is a real enum column. This is
             // what the design's fabricated "Visa ····4242" is replaced by: no card brand or last4 exists.
             'gateway' => $this->gatewayLabel((string) $payment->gateway),
-            'date' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M Y'),
+            'date' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
             'original' => $this->money($originalMinor, $currency),
             'refunded' => $this->money($refundedMinor, $currency),
             // ⚠️ Accepted by Stripe, not yet moved. It holds headroom, so the desk is told why.

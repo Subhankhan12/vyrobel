@@ -23,6 +23,7 @@ use App\Services\OperatorConnectService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
@@ -383,7 +384,7 @@ class BookingEngineController extends Controller
         // Real free-cancellation deadline from the property's policy + the proposed check-in (honest fallback when
         // the property has no such policy — never a fabricated "14 days"); the SAME reading the booked surfaces use.
         $freeCancel = ($checkIn !== null)
-            ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn)?->translatedFormat('j M')
+            ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn)?->translatedFormat(LocalDate::pattern('j M'))
             : null;
 
         // The wallet card shows the guest's REAL spendable balance + the amount that WOULD apply (capped at what's
@@ -676,8 +677,8 @@ class BookingEngineController extends Controller
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'reservation' => [
                 'reference' => (string) $reservation->reference,
-                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('l, j M Y'),
-                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('l, j M Y'),
+                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('l, j M Y')),
+                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('l, j M Y')),
                 'nights' => (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out)),
                 'total' => $this->money((int) $reservation->total_minor, (string) $reservation->currency),
                 'email' => (string) $bookingQuote->email,

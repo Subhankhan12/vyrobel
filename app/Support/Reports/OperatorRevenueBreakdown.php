@@ -7,6 +7,7 @@ namespace App\Support\Reports;
 use App\Models\Folio;
 use App\Models\FolioItem;
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 
 /**
@@ -114,7 +115,7 @@ final class OperatorRevenueBreakdown
         $cursor = $start->startOfMonth();
         $guard = 0;
         while ($cursor->lessThan($end) && $guard < 13) {
-            $buckets[$cursor->format('Y-m')] = ['month' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat('M'), 'revenue_minor' => 0];
+            $buckets[$cursor->format('Y-m')] = ['month' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat(LocalDate::pattern('M')), 'revenue_minor' => 0];
             $cursor = $cursor->addMonth();
             $guard++;
         }

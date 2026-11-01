@@ -8,6 +8,7 @@ use App\Models\Availability;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -289,6 +290,6 @@ final class BookingCadence
      */
     private static function dayLabel(int $dayOfWeek): string
     {
-        return CarbonImmutable::create(2024, 1, 7)->addDays($dayOfWeek)->translatedFormat('D');
+        return CarbonImmutable::create(2024, 1, 7)->addDays($dayOfWeek)->translatedFormat(LocalDate::pattern('D'));
     }
 }

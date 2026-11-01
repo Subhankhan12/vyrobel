@@ -10,6 +10,7 @@ use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -77,8 +78,8 @@ final class GuestPayments
                 'reference' => (string) $reservation->reference,
                 'property' => (string) ($reservation->property->name ?? __('php/support/guest/guest_payments.your_stay')),
                 'stay' => __('php/support/guest/guest_payments.stay_range', [
-                    'from' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M'),
-                    'to' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
+                    'from' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M')),
+                    'to' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M Y')),
                 ]),
                 'balance' => MoneyFormatter::display($totals['balance_minor'], $bookingCurrency),
                 'balance_minor' => $totals['balance_minor'],
@@ -134,7 +135,7 @@ final class GuestPayments
             'ts' => $when->getTimestamp(),
             'label' => $label,
             'reference' => $reference,
-            'date' => $when->translatedFormat('j M Y'),
+            'date' => $when->translatedFormat(LocalDate::pattern('j M Y')),
             'amount' => ($signed ? '−' : '').MoneyFormatter::display((int) $payment->amount_minor, $currency),
         ];
     }

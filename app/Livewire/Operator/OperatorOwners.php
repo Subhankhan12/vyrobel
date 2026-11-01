@@ -13,6 +13,7 @@ use App\Models\OwnerPayoutPreference;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
@@ -365,8 +366,8 @@ class OperatorOwners extends Component
                 'accountant' => __('php/livewire/operator/operator_owners.role_accountant'),
                 default => __('php/livewire/operator/operator_owners.role_owner'),
             },
-            'sent' => $i->created_at?->translatedFormat('j M') ?? '',
-            'expires' => $i->expires_at?->translatedFormat('j M Y'),
+            'sent' => $i->created_at?->translatedFormat(LocalDate::pattern('j M')) ?? '',
+            'expires' => $i->expires_at?->translatedFormat(LocalDate::pattern('j M Y')),
             'expired' => $i->expires_at !== null && $i->expires_at->isPast(),
             'units' => count($i->assigned_unit_ids ?? []),
             'commission' => $i->commission_pct !== null ? rtrim(rtrim((string) $i->commission_pct, '0'), '.').'%' : null,

@@ -35,7 +35,7 @@
         ->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
     $__viewerInitials = $__viewerInitials !== '' ? $__viewerInitials : 'S';
     $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
-    $__todayLabel = \Carbon\CarbonImmutable::now()->translatedFormat('D · j M');
+    $__todayLabel = \Carbon\CarbonImmutable::now()->translatedFormat(\App\Support\I18n\LocalDate::pattern('D · j M'));
     // #84 read-only workspace — resolved once, used by BOTH the topbar read-only pill and the banner below.
     $__workspace = app(\App\Support\Operator\OperatorWorkspace::class);
 @endphp

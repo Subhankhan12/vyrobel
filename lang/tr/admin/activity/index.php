@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'İşletme/Mülk sahibi',
+    'realm_guest' => 'Misafir',
+    'realm_admin' => 'Platform yöneticisi',
+    'event_login' => 'Oturum açma',
+    'event_failed' => 'Başarısız',
+    'event_lockout' => 'Kilitlenme',
+    'subject_user' => 'Kullanıcı',
+    'subject_guest' => 'Misafir',
+    'subject_platform_admin' => 'Platform yöneticisi',
+    'subject_unknown' => 'Bilinmiyor',
+    'actor_user' => 'Kullanıcı',
+    'actor_agent' => 'Ajan',
+    'actor_system' => 'Sistem',
+    'page_title' => 'Güvenlik ve etkinlik',
+    'page_subtitle' => 'Platform genelinde oturum açma etkinliği ve hesap olayları — :days gün saklanır, ardından silinir.',
+    'kpi_failures' => 'Başarısız / kilitlenme · 24 sa',
+    'kpi_failures_help' => 'Tekrarlanan başarısız denemeler bir yoklama girişimine işaret edebilir.',
+    'privacy' => 'Gizlilik',
+    'privacy_body' => 'Oturum açma etkinliği (IP dahil) yalnızca bir <strong style="color: var(--ad-ink);">güvenlik sinyali</strong> olarak kaydedilir — şüpheli oturum açmaları fark etmek ve destek vermek için — asla genel bir izleme amacıyla değil. :days gün saklanır, ardından otomatik olarak silinir; erişim bu konsolla sınırlıdır.',
+    'recent_sign_ins' => 'Son oturum açma etkinliği',
+    'col_event' => 'Olay',
+    'col_realm' => 'Alan',
+    'col_account' => 'Hesap',
+    'col_ip' => 'IP',
+    'col_when' => 'Zaman',
+    'no_sign_ins' => 'Henüz kaydedilmiş oturum açma etkinliği yok.',
+    'recent_account_events' => 'Son hesap olayları <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· tüm müşteriler genelinde</span>',
+    'col_customer' => 'Müşteri',
+    'col_actor' => 'İşlemi yapan',
+    'no_account_events' => 'Henüz hesap olayı yok.',
+];

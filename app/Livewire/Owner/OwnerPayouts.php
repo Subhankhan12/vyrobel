@@ -15,6 +15,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Payouts\PayoutEngineMode;
 use App\Payouts\PayoutSchedule;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use App\Support\Owner\OwnerTeamRole;
@@ -139,7 +140,7 @@ class OwnerPayouts extends Component
         return [
             'engine_enabled' => (bool) config('services.payouts.engine_enabled', false),
             'frequency_label' => OwnerPayoutPreference::frequencyLabel((string) $prefs['frequency']),
-            'next_date' => $next->translatedFormat('j M Y'),
+            'next_date' => $next->translatedFormat(LocalDate::pattern('j M Y')),
             'paused' => (bool) $prefs['paused'],
         ];
     }
@@ -210,10 +211,10 @@ class OwnerPayouts extends Component
 
         return [
             'amount_display' => $this->money((int) $failed->amount_minor, (string) $failed->currency),
-            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('F Y') : null,
+            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat(LocalDate::pattern('F Y')) : null,
             // The same parse shape {@see self::payoutDate()} uses — `failed_at` reaches static analysis as
             // string|null (the cast is invisible to it), so an instanceof check here is always-false.
-            'failed_on' => filled($failed->failed_at) ? Carbon::parse($failed->failed_at)->translatedFormat('j M Y') : null,
+            'failed_on' => filled($failed->failed_at) ? Carbon::parse($failed->failed_at)->translatedFormat(LocalDate::pattern('j M Y')) : null,
             'reason' => filled($failed->failure_reason) ? (string) $failed->failure_reason : null,
             'already_queued' => $replacement !== null,
             'blockers' => $blockers,
@@ -288,7 +289,7 @@ class OwnerPayouts extends Component
                 'status' => (string) $p->status,
                 'status_meta' => $this->payoutStatusMeta((string) $p->status),
                 'date_display' => $date['display'],
-                'month_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('M Y') : '—',
+                'month_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat(LocalDate::pattern('M Y')) : '—',
                 'year' => $date['year'],
                 'statement_id' => $statement instanceof OwnerStatement ? $statement->id : null,
             ];
@@ -357,7 +358,7 @@ class OwnerPayouts extends Component
             'status_meta' => $this->payoutStatusMeta((string) $payout->status),
             'rail_label' => $this->railLabel((string) $payout->rail),
             'statement_id' => $statement instanceof OwnerStatement ? $statement->id : null,
-            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat('F Y') : null,
+            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->translatedFormat(LocalDate::pattern('F Y')) : null,
             'breakdown' => $statement instanceof OwnerStatement ? $this->breakdown($statement) : [],
         ];
     }
@@ -466,7 +467,7 @@ class OwnerPayouts extends Component
 
         $c = Carbon::parse($when);
 
-        return ['display' => $c->translatedFormat('j M Y'), 'year' => (int) $c->format('Y')];
+        return ['display' => $c->translatedFormat(LocalDate::pattern('j M Y')), 'year' => (int) $c->format('Y')];
     }
 
     /**

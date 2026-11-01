@@ -8,6 +8,7 @@ use App\Http\Controllers\Operator\MaintenanceCostExportController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Services\MaintenanceCostService;
+use App\Support\I18n\LocalDate;
 use App\Support\Maintenance\MaintenancePeriod;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -46,7 +47,7 @@ class OperatorMaintenanceCosts extends Component
             'money' => fn (?int $minor): string => $minor === null ? '—' : $this->money($minor, $currency),
             // The shared category label (same English as the old ucfirst for every real category; ucfirst stays its fallback).
             'categoryLabel' => fn (string $c): string => $this->maintenanceCategoryLabel($c),
-            'monthLabel' => fn (string $ym): string => CarbonImmutable::createFromFormat('Y-m', $ym)->translatedFormat('M Y'),
+            'monthLabel' => fn (string $ym): string => CarbonImmutable::createFromFormat('Y-m', $ym)->translatedFormat(LocalDate::pattern('M Y')),
         ]);
     }
 }

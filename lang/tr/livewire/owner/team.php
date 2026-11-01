@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ekip ve erişim',
+    'subtitle' => 'Ortak sahibinize veya muhasebecinize kendi oturum açma bilgilerini verin — yalnızca ihtiyaç duydukları erişimle.',
+    'people_with_access' => 'Erişimi olan kişiler',
+    'account_owner' => 'Hesap sahibi',
+    'thats_you' => 'siz',
+    'owner_access' => 'Bu sayfa dahil her şeye tam erişim.',
+    'active_now' => 'Şu an aktif',
+    'role_for' => ':name için rol',
+    'your_password' => 'Şifreniz',
+    'confirm_password' => 'Şifrenizle onaylayın',
+    'remove_confirm' => ':name kaldırılsın mı? Bu kişi artık oturum açamaz.',
+    'no_members' => 'Şimdilik yalnızca siz varsınız — aşağıdan bir ortak sahibi veya muhasebecinizi davet edin.',
+    'invite_heading' => 'Birini davet et',
+    'invite_sub' => 'Davet edilen kişi kendi oturum açma bilgilerini alır — erişimi dilediğiniz zaman kaldırabilirsiniz.',
+    'invite_email_label' => 'Davet edilecek e-posta adresi',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Davet gönder',
+    'pending_invites' => 'Bekleyen davetler',
+    'resend' => 'Yeniden gönder',
+    'revoke' => 'İptal et',
+    'matrix_heading' => 'Her rol neleri görebilir',
+    'matrix_note' => 'Ekibi ve hakediş hesabını yalnızca hesap sahibi olarak siz yönetebilirsiniz.',
+    'recent_activity' => 'Son etkinlikler',
+    'no_activity' => 'Henüz bir şey yok — davetler ve oturum açmalar burada görünecek.',
+    'download_log' => 'Dışa aktarma indirme günlüğü',
+    'download_log_sub' => 'Ekibinizin indirdiği her hesap özeti, rezervasyon, hakediş veya vergi dosyası, indiren kişinin bilgisiyle damgalanır — ve burada kaydedilir.',
+    'no_downloads' => 'Henüz indirilen dışa aktarma yok — indirildiklerinde, indiren kişinin bilgisiyle damgalanmış olarak burada görünür.',
+    'security_heading' => 'Herkesin kendi anahtarı var',
+    'security_body' => 'Ortak şifre yok — her kişi kendi hesabıyla oturum açar ve erişimi rolüyle sınırlıdır. Finansal dışa aktarmalara, indiren kişinin bilgisini taşıyan bir filigran eklenir ve bunlar yukarıdaki günlüğe kaydedilir. Kendi hesabınız için iki adımlı doğrulamayı açın.',
+    'security_settings' => 'Güvenlik ayarları',
+];

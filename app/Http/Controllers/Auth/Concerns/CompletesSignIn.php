@@ -8,6 +8,7 @@ use App\Mail\LoginApprovalMail;
 use App\Models\User;
 use App\Support\Auth\LoginApprovalService;
 use App\Support\Auth\TrustedDeviceService;
+use App\Support\I18n\LocalDate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -111,7 +112,7 @@ trait CompletesSignIn
             approveUrl: $approveUrl,
             device: $this->deviceLabel($request, $locale),
             ip: (string) $request->ip(),
-            when: now()->locale($locale)->translatedFormat('j M Y, H:i'),
+            when: now()->locale($locale)->translatedFormat(LocalDate::pattern('j M Y, H:i')),
         ));
 
         $request->session()->put('login.approval.user_id', (string) $user->getKey());

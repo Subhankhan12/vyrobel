@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OwnerReportMail;
 use App\Models\OwnerStatement;
 use App\Services\PdfService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Pdf\OwnerStatementDocument;
@@ -55,7 +56,7 @@ class OwnerReportEmailController extends Controller
 
         Mail::to($email)->locale($user->preferredLocale())->queue(new OwnerReportMail(
             ownerName: (string) ($statement->owner->name ?? ($user->name ?? 'Owner')),
-            periodLabel: $statement->period_start->translatedFormat('F Y'),
+            periodLabel: $statement->period_start->translatedFormat(LocalDate::pattern('F Y')),
             filename: $filename,
             pdfBytes: $pdfBytes,
         ));

@@ -10,6 +10,7 @@ use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateBulkService;
 use App\Services\RateDerivationService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
@@ -237,7 +238,7 @@ class RateActionController extends Controller
                 // ⚠️ one night is "the night of 2 Sep" — never "these 1 night" (2026-10-04)
                 $price = MoneyFormatter::display($priceMinor, (string) $plan->currency);
                 $set = $nights === 1
-                    ? __('php/http/controllers/operator/rate_action_controller.price_set_one_night', ['price' => $price, 'date' => $start->translatedFormat('j M')])
+                    ? __('php/http/controllers/operator/rate_action_controller.price_set_one_night', ['price' => $price, 'date' => $start->translatedFormat(LocalDate::pattern('j M'))])
                     : trans_choice('php/http/controllers/operator/rate_action_controller.price_set_nights', $nights, ['price' => $price, 'count' => $nights]);
 
                 // the wizard says what comes next; the Calendar's dialog says it itself, from what it shows — a unit may already be

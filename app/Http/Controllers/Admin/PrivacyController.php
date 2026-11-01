@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\PrivacyRequest;
 use App\Models\User;
+use App\Support\I18n\LocalDate;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformQuery;
@@ -91,7 +92,7 @@ class PrivacyController extends Controller
             'recorded_by' => (string) auth('admin')->id(),
         ]), ['kind' => $data['kind'], 'subject_kind' => $data['subject_kind']], $userId !== null ? 'user' : 'organization', (string) ($userId ?? $orgId));
 
-        return $back->with('admin_notice', __('php/http/controllers/admin/privacy_controller.request_recorded', ['date' => $received->addMonthsNoOverflow(PrivacyRequest::DUE_MONTHS)->translatedFormat('j M Y')]));
+        return $back->with('admin_notice', __('php/http/controllers/admin/privacy_controller.request_recorded', ['date' => $received->addMonthsNoOverflow(PrivacyRequest::DUE_MONTHS)->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 
     /** MOVE a request along: received → in progress → completed | refused. A reason each time. */

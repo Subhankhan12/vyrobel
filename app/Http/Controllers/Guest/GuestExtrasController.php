@@ -10,6 +10,7 @@ use App\Models\AddOn;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
 use App\Models\Tax;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\ReservationExtras;
 use Carbon\CarbonImmutable;
@@ -103,7 +104,7 @@ class GuestExtrasController extends Controller
             ->map(fn (GuestChangeRequest $request): array => [
                 'status' => (string) $request->status,
                 'names' => $this->addOnNames($reservation, $request),
-                'at' => $request->created_at?->translatedFormat('j M'),
+                'at' => $request->created_at?->translatedFormat(LocalDate::pattern('j M')),
             ])
             ->all();
     }

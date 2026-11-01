@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Genel bakış',
+    'subtitle_all' => 'Vyrobel bünyesindeki dahili kuruluşlar dahil tüm kuruluşlar.',
+    'subtitle_customers' => 'Yalnızca müşteriler — Vyrobel bünyesindeki dahili kuruluşlar hariç tutulur.',
+    'showing_all' => '<strong>Tüm</strong> kuruluşlar gösteriliyor — dahili olanlar: :internal.',
+    'internal_excluded' => '{1} Dahili kuruluşlar aşağıdaki tüm rakamların dışında tutuldu: :count.|[0,*] Dahili kuruluşlar aşağıdaki tüm rakamların dışında tutuldu: :count.',
+    'customers_only' => 'Yalnızca müşteriler',
+    'include_internal' => 'Dahilileri ekle',
+    'no_customers_heading' => 'Henüz müşteri yok',
+    'no_customers_body' => 'Platformdaki her kuruluş Vyrobel bünyesindedir (dahili: :internal). İlk gerçek kayıt burada görünecek.',
+    'kpi_organisations' => 'Kuruluşlar',
+    'kpi_customers' => 'Müşteriler',
+    'kpi_account_status' => ':active aktif · :suspended askıda',
+    'kpi_subscriptions' => 'Abonelikler',
+    'kpi_subscriptions_sub' => 'aktif · ücretsiz denemede: :trial',
+    'kpi_revenue' => 'Gelir',
+    'no_live_billing' => 'Henüz canlı faturalandırma yok',
+    'no_live_billing_sub' => 'Hiçbir abonelik Stripe üzerinden faturalandırılmıyor. Bir deneme süresinin liste fiyatı gelir değildir.',
+    'billed_live' => '{1} Canlı faturalandırılan: :count|[0,*] Canlı faturalandırılan: :count',
+    'billed_live_sub' => 'Fiyat listesinden değil, Stripe’ın tahsil ettiği tutarlardan hesaplanır — bkz. <a class="ad-cell-link" href=":url">Gelir</a>.',
+    'kpi_properties' => 'Tesisler',
+    'kpi_reservations' => '{1} :count rezervasyon|[0,*] :count rezervasyon',
+    'new_organisations_heading' => 'Yeni kuruluşlar · son 6 ay',
+    'new_customers_heading' => 'Yeni müşteriler · son 6 ay',
+    'no_signups' => 'Son 6 ayda kayıt yok.',
+    'account_status_heading' => 'Hesap durumu',
+    'status_active' => 'Aktif',
+    'status_suspended' => 'Askıya alındı',
+    'status_cancelled' => 'İptal edildi',
+    'status_trialing' => 'Deneme süresinde (hesap)',
+    'free_trial_hint' => 'Ücretsiz deneme süresi bir hesap durumu değil, bir abonelik durumudur — şu anda ücretsiz denemede olan: :trial.',
+    'plans_in_use' => 'Kullanılan paketler <span class="ad-stat-sub" style="font-weight: 400;">· aktif veya deneme süresinde</span>',
+    'no_plans' => 'Henüz kullanılan paket yok.',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Genel bakış',
+    'breadcrumb_bookings' => 'Rezervasyonlar',
+    'guest_fallback' => 'Misafir',
+    'reservation' => 'Rezervasyon',
+    'check_in' => 'Giriş',
+    'nights_count' => '{1} :count gece|[0,*] :count gece',
+    'check_out' => 'Çıkış',
+    'unit' => 'Birim',
+    'guests' => 'Misafirler',
+    'nights' => 'Gece',
+    'nightly_rate' => 'Gecelik fiyat',
+    'your_earnings' => 'Kazancınız',
+    'gross_to_net' => 'brüt → net',
+    'gross_booking_value' => 'Brüt rezervasyon tutarı',
+    'net_to_you' => 'Size kalan net',
+    'refunds_we_covered' => 'Karşıladığımız iadeler',
+    'refunds_we_covered_note' => 'Misafire iade edildi ve size değil, bize yansıtıldı. Yukarıdaki kazancınız değişmedi.',
+    'not_yet_attributed' => 'Henüz hesabınıza işlenmedi.',
+    'not_yet_attributed_note' => 'Bu rezervasyon hesap defterinize işlendiğinde kazancınız burada görünür — genellikle check-out sonrasında.',
+    'guest_heading' => 'Misafir',
+    'guest_contact_note' => 'Misafir iletişim bilgileri yönetim ekibiniz tarafından yönetilir — siz rezervasyonu ve kazancınızı görürsünüz.',
+    'message_your_team' => 'Ekibinize mesaj gönder',
+    'timeline' => 'Zaman çizelgesi',
+    'for_night_stay' => 'bu :nights gecelik konaklama için',
+    'booking_details' => 'Rezervasyon ayrıntıları',
+    'confirmation' => 'Onay numarası',
+    'source' => 'Kaynak',
+    'channel' => 'Kanal',
+    'booked_on' => 'Rezervasyon tarihi',
+    'download_confirmation' => 'Onay belgesini indir',
+    'download_unavailable' => 'Ortak sahipler ve muhasebeciler kullanabilir',
+    'view_unit' => ':unit birimini görüntüle',
+];

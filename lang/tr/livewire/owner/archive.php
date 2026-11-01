@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Hesap özeti arşivi',
+    'history_summary' => 'Kesinleşmiş geçmişiniz · :years · :statements',
+    'years' => '{1} :count yıl|[0,*] :count yıl',
+    'statements' => '{1} :count hesap özeti|[0,*] :count hesap özeti',
+    'archived_on_finalize' => 'Hesap özetleri kesinleştiği anda buraya arşivlenir.',
+    'net_earned_lifetime' => 'Net kazanç · tüm zamanlar',
+    'since' => ':date tarihinden beri',
+    'per_currency_note' => 'Hakediş para birimine göre toplanır — farklı para birimlerindeki bakiyeler hiçbir zaman birleştirilmez.',
+    'lifetime_empty' => 'Henüz kesinleşmiş hesap özeti yok — ilkiniz burada görünecek.',
+    'search_placeholder' => 'Hesap özetlerinizde arayın — ay, yıl, durum veya numara',
+    'search_label' => 'Hesap özeti ara',
+    'no_match' => '“:query” ile eşleşen hesap özeti yok.',
+    'no_match_hint' => 'Bir ay (“Eylül”), yıl (“2026”), durum (“Ödendi”) veya hesap özeti numarası (“No. 1”) deneyin.',
+    'group_summary' => ':statements · net :nets',
+    'per_payout_currency' => '(hakediş para birimine göre)',
+    'tax_summary_title' => ':year yıllık vergi özetini PDF olarak indir',
+    'tax_summary' => 'Vergi özeti',
+    'col_statement' => 'Hesap özeti',
+    'col_net_payable' => 'Ödenecek net tutar',
+    'col_links' => 'Bağlantılar',
+    'unverified_title' => 'Bazı satırlar henüz kanal mutabakatını bekliyor',
+    'unverified' => 'Doğrulanmamış satırlar içerir',
+    'pdf_title' => 'Bu hesap özetini PDF olarak indir',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Bu hesap özetine ait rezervasyonları PDF olarak indir',
+    'bookings' => 'Rezervasyonlar',
+    'empty' => 'Henüz kesinleşmiş hesap özeti yok. Hesap özetleri kesinleştiğinde buraya arşivlenir.',
+    'zip_heading' => 'Arşivin tamamını indir',
+    'zip_sub' => '{1} :count hesap özeti PDF dosyasını içeren tek bir ZIP. Yukarıdaki her hesap özeti ayrıca tek başına da indirilebilir.|[0,*] :count hesap özeti PDF dosyasını içeren tek bir ZIP. Yukarıdaki her hesap özeti ayrıca tek başına da indirilebilir.',
+    'download_zip' => 'ZIP indir',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Duyurular',
+    'subtitle' => 'Her kuruluşun yönetim panelinde ve mülk sahibi portalında — ya da yalnızca seçilenlerde — gösterilen bir duyuru. Düz metin; e-posta gönderilmez.',
+    'empty_state' => 'Henüz hiç duyuru yayınlanmadı.',
+    'col_announcement' => 'Duyuru',
+    'col_to' => 'Kime',
+    'col_from_until' => 'Başlangıç → bitiş',
+    'col_state' => 'Durum',
+    'audience_all' => 'Tüm kuruluşlar',
+    'audience_chosen_count' => ':number seçili',
+    'no_end' => 'bitiş yok',
+    'state_withdrawn' => 'Geri çekildi',
+    'state_showing' => 'Yayında',
+    'state_scheduled' => 'Planlandı',
+    'state_ended' => 'Sona erdi',
+    'reason_aria' => 'Gerekçe',
+    'withdraw_placeholder' => 'Neden geri çekiliyor?',
+    'withdraw_button' => 'Geri çek',
+    'publish_heading' => 'Duyuru yayınla',
+    'title_label' => 'Başlık',
+    'message_label' => 'Mesaj (düz metin)',
+    'kind_label' => 'Tür',
+    'show_from_label' => 'Gösterim başlangıcı (UTC)',
+    'until_label' => 'Bitiş (UTC, isteğe bağlı)',
+    'to_label' => 'Kime',
+    'option_every_organisation' => 'Tüm kuruluşlar',
+    'option_chosen_organisations' => 'Seçilen kuruluşlar',
+    'chosen_organisations_label' => 'Seçilen kuruluşlar (“Seçilen kuruluşlar” seçildiğinde)',
+    'no_organisation_chosen' => 'Henüz kuruluş seçilmedi',
+    'reason_label' => 'Gerekçe',
+    'publish_reason_placeholder' => 'Bu duyuru neden yayınlanıyor?',
+    'publish_button' => 'Yayınla',
+];

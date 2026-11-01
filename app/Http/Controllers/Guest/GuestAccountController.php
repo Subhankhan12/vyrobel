@@ -12,6 +12,7 @@ use App\Services\GuestWalletService;
 use App\Services\GuestWishlistService;
 use App\Support\Email\GuestEmailPreferences;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\View\View;
@@ -75,7 +76,7 @@ class GuestAccountController extends Controller
             'marketingConsent' => (bool) $guest->marketing_consent,
             'deletion' => [
                 'scheduled' => $guest->scheduled_deletion_at !== null,
-                'on' => $guest->scheduled_deletion_at?->translatedFormat('j M Y'),
+                'on' => $guest->scheduled_deletion_at?->translatedFormat(LocalDate::pattern('j M Y')),
                 // ⚠️ The count the screen WARNS with, read from the same set the erase cancels
                 // ({@see GuestDeletionService::reservationsToCancel()}) so the two can never disagree.
                 'stays' => $deletions->reservationsToCancel($guest)->count(),
@@ -164,7 +165,7 @@ class GuestAccountController extends Controller
         $effective = $deletions->schedule($this->guest());
 
         return redirect()->route('guest.account')->with('status',
-            __('php/http/controllers/guest/guest_account_controller.deletion_scheduled', ['date' => $effective->translatedFormat('j M Y')]));
+            __('php/http/controllers/guest/guest_account_controller.deletion_scheduled', ['date' => $effective->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 
     /** Undo a scheduled deletion — the guest keeps their account. */
@@ -185,7 +186,7 @@ class GuestAccountController extends Controller
     private function waitlistDates(GuestWaitlistEntry $entry): string
     {
         if ($entry->check_in !== null && $entry->check_out !== null) {
-            return __('php/http/controllers/guest/guest_account_controller.waitlist_date_range', ['from' => $entry->check_in->translatedFormat('j M'), 'to' => $entry->check_out->translatedFormat('j M Y')]);
+            return __('php/http/controllers/guest/guest_account_controller.waitlist_date_range', ['from' => $entry->check_in->translatedFormat(LocalDate::pattern('j M')), 'to' => $entry->check_out->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
         return $entry->flexible_month !== null ? __('php/http/controllers/guest/guest_account_controller.flexible_month', ['month' => (string) $entry->flexible_month]) : __('php/http/controllers/guest/guest_account_controller.flexible_dates');

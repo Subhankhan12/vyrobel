@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Konaklama',
+    'step_guest' => 'Misafir',
+    'step_extras' => 'Ekstralar',
+    'step_confirm' => 'Onay',
+    'source_direct' => 'Doğrudan',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Kurumsal',
+    'source_agent' => 'Seyahat acentesi',
+    'the_guest' => 'misafir',
+    'a_night' => 'Gecelik :amount',
+    'a_night_range' => 'Gecelik :low–:high',
+    'dates_label' => '{1} :from → :to · :count gece|[0,*] :from → :to · :count gece',
+    'restrict_min_stay' => '{1} :date girişinde konaklama en az :count gece olmalı|[0,*] :date girişinde konaklama en az :count gece olmalı',
+    'restrict_max_stay' => '{1} :date girişinde konaklama en fazla :count gece olabilir|[0,*] :date girişinde konaklama en fazla :count gece olabilir',
+    'restrict_no_arrivals' => ':date tarihinde giriş yapılamaz',
+    'restrict_no_departures' => ':date tarihinde çıkış yapılamaz',
+    'restrict_stop_sell' => ':date tarihi yeni rezervasyonlara kapalı',
+    'restrict_other' => ':date tarihinde :restriction',
+    'arrival_mail_off' => 'E-postalar henüz Vyrobel üzerinden gönderilmiyor — yol tarifini ve kapı kodunu misafire kendiniz iletin.',
+    'arrival_pre_arrival_off' => 'Varış öncesi e-postası tesisleriniz için kapalı — yol tarifini ve kapı kodunu misafire kendiniz iletin.',
+    'arrival_too_soon' => 'Bu konaklama, giriş tarihinden :count gün önce gönderilen varış öncesi e-postası için çok yakın bir tarihte başlıyor — yol tarifini ve kapı kodunu misafire kendiniz iletin.',
+    'arrival_by_email' => 'Yol tarifi ve birimin kapı kodu varsa kapı kodu, misafirin e-posta adresi kayıtlıysa giriş tarihinden :count gün önce e-postayla misafire ulaşır. Kapı kodu burada hiçbir zaman gösterilmez.',
+    'cancel_not_free' => 'Bu konaklama için ücretsiz değil — ücretsiz iptal süresi :date tarihinde sona erdi',
+    'cancel_free_until_check_in' => 'Check-in zamanına kadar ücretsiz',
+    'cancel_free_until_date' => ':date tarihine kadar ücretsiz',
+    'cancel_free_until_days' => '{1} Giriş tarihinden :count gün öncesine kadar ücretsiz|[0,*] Giriş tarihinden :count gün öncesine kadar ücretsiz',
+    'min_stay_none' => 'Minimum yok',
+    'min_stay_nights' => '{1} :count gece|[0,*] :count gece',
+    'guest_no_name' => 'Misafir',
+    'no_stays_yet' => 'Henüz konaklama yok',
+];

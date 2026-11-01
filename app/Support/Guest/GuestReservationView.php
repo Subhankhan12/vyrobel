@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 
@@ -89,7 +90,7 @@ class GuestReservationView
 
         return array_map(fn (array $e): array => [
             'label' => $e['label'],
-            'at' => CarbonImmutable::createFromTimestamp($e['ts'])->translatedFormat('j M Y · H:i'),
+            'at' => CarbonImmutable::createFromTimestamp($e['ts'])->translatedFormat(LocalDate::pattern('j M Y · H:i')),
         ], $entries);
     }
 

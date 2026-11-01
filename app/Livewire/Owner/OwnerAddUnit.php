@@ -12,6 +12,7 @@ use App\Models\Owner;
 use App\Models\Scopes\OwnerScope;
 use App\Models\UnitRequest;
 use App\Services\OwnerUnitRequestService;
+use App\Support\I18n\LocalDate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Attributes\Layout;
@@ -87,7 +88,7 @@ class OwnerAddUnit extends Component
                 'name' => filled($r->requested_name) ? (string) $r->requested_name : __('php/livewire/owner/owner_add_unit.untitled_draft'),
                 'kind' => $kinds[$r->requested_kind],
                 'status_meta' => $this->requestStatusMeta((string) $r->status),
-                'when' => $r->created_at?->translatedFormat('j M Y'),
+                'when' => $r->created_at?->translatedFormat(LocalDate::pattern('j M Y')),
                 // DO9-2 — only a DRAFT is resumable; a filed request has no continue link.
                 'resume_url' => $r->isDraft() ? route('owner.add-unit', ['draft' => $r->id]) : null,
                 // DO9-3 — only a PENDING request can be retracted. ⚠️ This drives the CONTROL only; the
@@ -218,7 +219,7 @@ class OwnerAddUnit extends Component
             'notes' => (string) ($draft->notes ?? ''),
             'amenities' => $draft->amenities()->pluck('amenities.id')->map(fn ($id): string => (string) $id)->all(),
             'photo_count' => $draft->photos()->count(),
-            'saved_at' => $draft->updated_at?->translatedFormat('j M Y, H:i'),
+            'saved_at' => $draft->updated_at?->translatedFormat(LocalDate::pattern('j M Y, H:i')),
         ];
     }
 

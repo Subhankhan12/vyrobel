@@ -10,6 +10,7 @@ use App\Models\GuestWaitlistEntry;
 use App\Models\GuestWishlistItem;
 use App\Models\RoomType;
 use App\Services\GuestWishlistService;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -46,13 +47,13 @@ class GuestSavedController extends Controller
                 'room' => (string) ($e->roomType->name ?? __('php/http/controllers/guest/guest_saved_controller.room_fallback')),
                 'property' => (string) ($e->roomType->property->name ?? ''),
                 'dates' => $e->flexible_month !== null
-                    ? __('php/http/controllers/guest/guest_saved_controller.anytime_in', ['month' => CarbonImmutable::parse($e->flexible_month.'-01')->translatedFormat('F Y')])
+                    ? __('php/http/controllers/guest/guest_saved_controller.anytime_in', ['month' => CarbonImmutable::parse($e->flexible_month.'-01')->translatedFormat(LocalDate::pattern('F Y'))])
                     : ($e->check_in !== null && $e->check_out !== null
-                        ? __('php/http/controllers/guest/guest_saved_controller.date_range', ['from' => CarbonImmutable::parse($e->check_in)->translatedFormat('j M'), 'to' => CarbonImmutable::parse($e->check_out)->translatedFormat('j M Y')])
+                        ? __('php/http/controllers/guest/guest_saved_controller.date_range', ['from' => CarbonImmutable::parse($e->check_in)->translatedFormat(LocalDate::pattern('j M')), 'to' => CarbonImmutable::parse($e->check_out)->translatedFormat(LocalDate::pattern('j M Y'))])
                         : __('php/http/controllers/guest/guest_saved_controller.flexible')),
                 'notify_similar' => (bool) $e->notify_similar,
                 'expired' => $e->expires_at !== null && $e->expires_at->lessThanOrEqualTo($now),
-                'expires' => $e->expires_at !== null ? $e->expires_at->translatedFormat('j M Y') : null,
+                'expires' => $e->expires_at !== null ? $e->expires_at->translatedFormat(LocalDate::pattern('j M Y')) : null,
             ])->all(),
             // The guest's own org room types — options for the waitlist join form.
             'roomTypes' => RoomType::query()->with('property')->orderBy('name')->get()

@@ -7,6 +7,7 @@ namespace App\Support\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 
@@ -56,7 +57,7 @@ final class OwnerStatementBreakdown
                 'currency' => $currency,
                 'currency_symbol' => $symbol,
                 'unit_count' => 0,
-                'period_label' => $s->period_start->translatedFormat('F Y'),
+                'period_label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
                 'units' => [],
                 'unattributed' => null,
                 'total_net_minor' => 0,
@@ -141,7 +142,7 @@ final class OwnerStatementBreakdown
             'currency' => $currency,
             'currency_symbol' => $symbol,
             'unit_count' => count($units),
-            'period_label' => $s->period_start->translatedFormat('F Y'),
+            'period_label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
             'units' => $units,
             'unattributed' => $unattributed,
             'total_net_minor' => $totalNet,

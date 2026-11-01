@@ -11,6 +11,7 @@ use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -162,8 +163,8 @@ class OwnerDashboard extends Component
     {
         return $statements->take(6)->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'month_label' => $s->period_start->translatedFormat('F Y'),
-            'period_range' => $s->period_start->translatedFormat('j M').' – '.$s->period_end->translatedFormat('j M Y'),
+            'month_label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
+            'period_range' => $s->period_start->translatedFormat(LocalDate::pattern('j M')).' – '.$s->period_end->translatedFormat(LocalDate::pattern('j M Y')),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'status_meta' => $this->statusMeta((string) $s->status),
         ])->values()->all();
@@ -191,7 +192,7 @@ class OwnerDashboard extends Component
                 $delta = [
                     'label' => __('php/livewire/owner/owner_dashboard.delta_vs_month', [
                         'delta' => ($pct >= 0 ? '+' : '−').abs($pct).'%',
-                        'month' => $prev->period_start->translatedFormat('F'),
+                        'month' => $prev->period_start->translatedFormat(LocalDate::pattern('F')),
                     ]),
                     'positive' => $pct >= 0,
                 ];
@@ -207,7 +208,7 @@ class OwnerDashboard extends Component
 
         return [
             'has_data' => $latest instanceof OwnerStatement,
-            'month_label' => $latest instanceof OwnerStatement ? mb_strtoupper($latest->period_start->translatedFormat('F Y')) : '',
+            'month_label' => $latest instanceof OwnerStatement ? mb_strtoupper($latest->period_start->translatedFormat(LocalDate::pattern('F Y'))) : '',
             'this_month_minor' => $thisMonthMinor,
             'this_month_display' => $this->money($thisMonthMinor, $currency),
             'currency_symbol' => $this->currencySymbol($currency),
@@ -278,7 +279,7 @@ class OwnerDashboard extends Component
         $goalAboveRange = $goalMinor > $maxNet;
 
         $bars = $chrono->map(fn (OwnerStatement $s): array => [
-            'label' => $s->period_start->translatedFormat('M'),
+            'label' => $s->period_start->translatedFormat(LocalDate::pattern('M')),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'pct' => (int) round(max(0, (int) $s->net_payable_minor) / $scale * 100),
         ])->values()->all();

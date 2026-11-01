@@ -7,6 +7,7 @@ namespace App\Livewire\Owner;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\Scopes\OwnerScope;
+use App\Support\I18n\LocalDate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
@@ -91,7 +92,7 @@ class OwnerArchive extends Component
         return [
             'count' => $statements->count(),
             'years' => $years,
-            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat('F Y') : null,
+            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat(LocalDate::pattern('F Y')) : null,
         ];
     }
 
@@ -218,8 +219,8 @@ class OwnerArchive extends Component
             return '';
         }
 
-        $from = $earliest->period_start->translatedFormat('M');
-        $to = $latest->period_end->translatedFormat('M');
+        $from = $earliest->period_start->translatedFormat(LocalDate::pattern('M'));
+        $to = $latest->period_end->translatedFormat(LocalDate::pattern('M'));
 
         return $from === $to ? $from : $from.' – '.$to;
     }
@@ -238,11 +239,11 @@ class OwnerArchive extends Component
             $wholeMonth = $start->day === 1 && $end->day === $end->daysInMonth;
 
             return $wholeMonth
-                ? $start->translatedFormat('F Y')
-                : $start->format('j').'–'.$end->translatedFormat('j F Y');
+                ? $start->translatedFormat(LocalDate::pattern('F Y'))
+                : $start->format('j').'–'.$end->translatedFormat(LocalDate::pattern('j F Y'));
         }
 
-        return $start->translatedFormat('j M').' – '.$end->translatedFormat('j M Y');
+        return $start->translatedFormat(LocalDate::pattern('j M')).' – '.$end->translatedFormat(LocalDate::pattern('j M Y'));
     }
 
     /**

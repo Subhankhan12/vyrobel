@@ -20,6 +20,7 @@ use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\FrontDeskService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Property\PropertyOccupancy;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -105,7 +106,7 @@ class OperatorDashboard extends Component
             'property' => $propertyLabel,
             'day' => [
                 'date' => $date,
-                'label' => $day->translatedFormat('l, j M Y'),
+                'label' => $day->translatedFormat(LocalDate::pattern('l, j M Y')),
                 'prev' => $day->subDay()->toDateString(),
                 'next' => $day->addDay()->toDateString(),
                 'today' => CarbonImmutable::today()->toDateString(),
@@ -254,7 +255,7 @@ class OperatorDashboard extends Component
         for ($i = 0; $i < 7; $i++) {
             $d = $start->addDays($i);
             $occ = $propertyIds === [] ? ['pct' => 0] : PropertyOccupancy::forProperties($propertyIds, $d->toDateString());
-            $out[] = ['day' => $d->translatedFormat('D'), 'date' => $d->toDateString(), 'pct' => (int) $occ['pct']];
+            $out[] = ['day' => $d->translatedFormat(LocalDate::pattern('D')), 'date' => $d->toDateString(), 'pct' => (int) $occ['pct']];
         }
 
         return $out;

@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Reservation;
 use App\Services\SearchService;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -123,7 +124,7 @@ class OperatorSearch extends Component
             ->map(fn (Reservation $r): array => [
                 'reference' => (string) $r->reference,
                 'guest' => trim(((string) $r->leadGuest?->first_name).' '.((string) $r->leadGuest?->last_name)) ?: __('php/livewire/operator/operator_search.guest_fallback'),
-                'when' => CarbonImmutable::parse($r->check_in)->translatedFormat('j M'),
+                'when' => CarbonImmutable::parse($r->check_in)->translatedFormat(LocalDate::pattern('j M')),
             ])->all();
     }
 

@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\RefundEta;
 use Illuminate\Bus\Queueable;
@@ -50,7 +51,7 @@ class RefundConfirmationMail extends Mailable
         $processedAt = $this->refund->processed_at !== null ? Carbon::parse($this->refund->processed_at) : Carbon::now();
 
         // check_in / check_out are NOT NULL date columns on a reservation.
-        $stay = Carbon::parse($reservation->check_in)->translatedFormat('j M').' – '.Carbon::parse($reservation->check_out)->translatedFormat('j M Y');
+        $stay = Carbon::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M')).' – '.Carbon::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M Y'));
 
         $tpl = $this->template();
 
@@ -66,7 +67,7 @@ class RefundConfirmationMail extends Mailable
                 'propertyName' => (string) ($reservation->property->name ?? __('php/mail/refund_confirmation_mail.your_stay')),
                 'brand' => $this->brandFor($reservation->property),
                 'stay' => $stay,
-                'processedOn' => $processedAt->translatedFormat('j M Y'),
+                'processedOn' => $processedAt->translatedFormat(LocalDate::pattern('j M Y')),
                 // HONEST ETA — a range, never a guaranteed arrival date.
                 'etaLabel' => RefundEta::window(),
                 'reservationUrl' => route('guest.manage', $reservation->getKey()),

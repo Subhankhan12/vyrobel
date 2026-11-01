@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Konaklama yerlerimiz',
+    'properties_count' => ':count tesis',
+    'stays_count' => '{1} :count konaklama yeri|[0,*] :count konaklama yeri',
+    'stays_sleeps' => ':stays · en fazla :max kişi',
+    'stays_sleeps_range' => ':stays · :min–:max kişi',
+    'perk_free_cancel_days' => '{1} Girişten :count gün öncesine kadar tam iade.|[0,*] Girişten :count gün öncesine kadar tam iade.',
+    'perk_free_cancel_window' => 'İptal süresi içinde tam iade.',
+    'perk_no_fees' => 'Rezervasyon ücreti yok',
+    'perk_no_fees_sub' => 'Gördüğünüz fiyat, ödeyeceğiniz fiyattır.',
+    'perk_best_rate' => 'Doğrudan en iyi fiyat',
+    'perk_best_rate_sub' => 'En iyi fiyatımız için doğrudan rezervasyon yapın — aracı yok.',
+    'perk_free_cancel' => 'Ücretsiz iptal',
+    'perk_host_support' => 'Tesisle doğrudan iletişim',
+    'perk_host_support_sub' => 'Rezervasyonunuzla ilgili gerçek bir kişiye mesaj gönderin.',
+    'kind_room' => 'Oda',
+    'kind_apartment' => 'Daire',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Yatakhane',
+    'type_hotel' => 'Otel',
+    'type_aparthotel' => 'Apart otel',
+    'type_serviced_apartment' => 'Hizmetli daire',
+    'type_apartment_building' => 'Apartman',
+    'type_apartment' => 'Daire',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pansiyon',
+    'type_resort' => 'Tatil köyü',
+    'type_mixed' => 'Karma',
+    'type_portfolio' => 'Portföy',
+];

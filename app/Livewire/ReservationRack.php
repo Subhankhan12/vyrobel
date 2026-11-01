@@ -22,6 +22,7 @@ use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\StayEstimator;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
@@ -237,7 +238,7 @@ class ReservationRack extends Component
             'window' => [
                 'start' => $start->toDateString(),
                 'end' => $end->toDateString(),
-                'label' => __('php/livewire/reservation_rack.window_label', ['from' => $start->translatedFormat('d M'), 'to' => $end->subDay()->translatedFormat('d M Y')]),
+                'label' => __('php/livewire/reservation_rack.window_label', ['from' => $start->translatedFormat(LocalDate::pattern('d M')), 'to' => $end->subDay()->translatedFormat(LocalDate::pattern('d M Y'))]),
                 'days' => count($dates),
                 'selected_days' => $this->days,   // the chosen 7/14/30 (for the range switcher + to preserve across nav)
                 'prev' => $start->subDays(max(1, $this->days))->toDateString(),
@@ -558,8 +559,8 @@ class ReservationRack extends Component
             $seasons[(string) $season->getKey()] = __('php/livewire/reservation_rack.season_offer', [
                 'name' => (string) $season->name,
                 'price' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency),
-                'from' => $season->starts_on->translatedFormat('j M'),
-                'to' => $season->ends_on->translatedFormat('j M'),
+                'from' => $season->starts_on->translatedFormat(LocalDate::pattern('j M')),
+                'to' => $season->ends_on->translatedFormat(LocalDate::pattern('j M')),
             ]);
         }
 
@@ -663,11 +664,11 @@ class ReservationRack extends Component
         for ($date = $start; $date->lessThan($end); $date = $date->addDay()) {
             $dates[] = [
                 'date' => $date->toDateString(),
-                'dow' => $date->translatedFormat('D'),
+                'dow' => $date->translatedFormat(LocalDate::pattern('D')),
                 'day' => $date->format('j'),
-                'mon' => $date->translatedFormat('M'),
+                'mon' => $date->translatedFormat(LocalDate::pattern('M')),
                 // the night as a person reads it ("Mon 5 Oct") — for the cells' titles and labels, one piece so each language orders it
-                'label' => $date->translatedFormat('D j M'),
+                'label' => $date->translatedFormat(LocalDate::pattern('D j M')),
                 'weekend' => $date->isWeekend(),
                 // before the property's today — greyed, and never offered for a new booking (2026-10-04)
                 'past' => $date->toDateString() < $today,

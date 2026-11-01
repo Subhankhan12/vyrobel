@@ -12,6 +12,7 @@ use App\Services\OwnerPortalService;
 use App\Support\Analytics\BookingCadence;
 use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -298,7 +299,7 @@ class OwnerInsights extends Component
         }
 
         // The weekday's name in the reader's language: 1 Jan 2023 was a Sunday (dayOfWeek 0), so + $topDay days.
-        $dayName = CarbonImmutable::create(2023, 1, 1)->addDays($topDay)->translatedFormat('l');
+        $dayName = CarbonImmutable::create(2023, 1, 1)->addDays($topDay)->translatedFormat(LocalDate::pattern('l'));
 
         return __('php/livewire/owner/owner_insights.busiest_night', ['day' => $dayName]);
     }

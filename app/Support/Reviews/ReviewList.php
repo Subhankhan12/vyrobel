@@ -6,6 +6,7 @@ namespace App\Support\Reviews;
 
 use App\Models\Review;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -90,7 +91,7 @@ final class ReviewList
                 'room' => (string) ($r->roomType->name ?? ''),
                 'villa' => (string) ($r->unit->name ?? $r->unit->code ?? $r->roomType->name ?? ''),
                 'unit_key' => (string) ($r->unit_id ?? ''),
-                'at' => $publishedAt?->translatedFormat('M Y') ?? '',
+                'at' => $publishedAt?->translatedFormat(LocalDate::pattern('M Y')) ?? '',
                 'when' => $publishedAt?->diffForHumans() ?? '',
             ];
         })->all();

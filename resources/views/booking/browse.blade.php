@@ -139,8 +139,8 @@
                 <span class="vy-muted" style="font-size:13px;font-weight:500;">
                     {{ __('booking/browse.results_summary', [
                         'stays' => trans_choice('booking/browse.stays_count', count($rooms), ['count' => count($rooms)]),
-                        'from' => Carbon::parse($search['check_in'])->translatedFormat('j M'),
-                        'to' => Carbon::parse($search['check_out'])->translatedFormat('j M'),
+                        'from' => Carbon::parse($search['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')),
+                        'to' => Carbon::parse($search['check_out'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')),
                         'nights' => trans_choice('booking/browse.nights_count', $search['nights'], ['count' => $search['nights']]),
                     ]) }}
                 </span>

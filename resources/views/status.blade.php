@@ -42,7 +42,7 @@
             <article class="card">
                 <span class="tag {{ $i->impact === 'major' && $i->isOpen() ? 'tag--major' : '' }}">{{ \App\Models\StatusIncident::statusLabel((string) $i->status) }}</span>
                 <h2 style="font-size: 18px; margin: 10px 0 0;">{{ $i->title }}</h2>
-                <div class="when">{{ $i->resolved_at ? __('status.when_resolved', ['started' => $i->started_at->utc()->translatedFormat('j M Y, H:i'), 'resolved' => $i->resolved_at->utc()->translatedFormat('j M Y, H:i')]) : __('status.when_open', ['started' => $i->started_at->utc()->translatedFormat('j M Y, H:i'), 'updated' => (string) $i->updated_at?->utc()->translatedFormat('j M Y, H:i')]) }}</div>
+                <div class="when">{{ $i->resolved_at ? __('status.when_resolved', ['started' => $i->started_at->utc()->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i')), 'resolved' => $i->resolved_at->utc()->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i'))]) : __('status.when_open', ['started' => $i->started_at->utc()->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i')), 'updated' => (string) $i->updated_at?->utc()->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i'))]) }}</div>
                 <p>{{ $i->message }}</p>
             </article>
         @empty

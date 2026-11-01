@@ -15,6 +15,7 @@ use App\Models\Unit;
 use App\Services\BillingService;
 use App\Services\OperatorConnectService;
 use App\Support\Billing\SubscriptionPricing;
+use App\Support\I18n\LocalDate;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -139,8 +140,8 @@ class OperatorBilling extends Component
                     'yearly' => __('php/livewire/operator/operator_billing.interval_yearly'),
                     default => ucfirst((string) $current->plan->interval),
                 },
-                'subscribed_on' => CarbonImmutable::parse($current->created_at)->translatedFormat('j M Y'),
-                'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->translatedFormat('j M Y') : null,
+                'subscribed_on' => CarbonImmutable::parse($current->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
+                'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->translatedFormat(LocalDate::pattern('j M Y')) : null,
             ],
             'pricing' => [
                 'units' => $pricing['units'],
@@ -172,8 +173,8 @@ class OperatorBilling extends Component
             'lifecycle' => [
                 'is_paused' => $isPaused,
                 'is_canceling' => $isCanceling,
-                'paused_until' => $pausedUntil?->translatedFormat('j M Y'),
-                'readonly_from' => $readonlyFrom?->translatedFormat('j M Y'),
+                'paused_until' => $pausedUntil?->translatedFormat(LocalDate::pattern('j M Y')),
+                'readonly_from' => $readonlyFrom?->translatedFormat(LocalDate::pattern('j M Y')),
             ],
             // The honest invoice history — the real trial only; paid invoices are account-gated (no fabrication).
             // ⚠️ THE PLATFORM'S BILLING CURRENCY, NOT THE TENANT'S. What Vyrobel charges an operator is
@@ -224,7 +225,7 @@ class OperatorBilling extends Component
             $rows[] = [
                 'ref' => 'Trial',
                 'label' => __('php/livewire/operator/operator_billing.trial_label', ['days' => $trialDays]),
-                'period' => $start->translatedFormat('j M').' – '.$start->addDays($trialDays)->translatedFormat('j M Y'),
+                'period' => $start->translatedFormat(LocalDate::pattern('j M')).' – '.$start->addDays($trialDays)->translatedFormat(LocalDate::pattern('j M Y')),
                 'status' => __('php/livewire/operator/operator_billing.invoice_free'),
                 'amount' => $this->money(0, $currency),
                 'gated' => false,

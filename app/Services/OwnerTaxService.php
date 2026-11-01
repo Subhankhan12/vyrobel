@@ -10,6 +10,7 @@ use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\LocalDate;
 use Illuminate\Support\Collection;
 
 /**
@@ -153,7 +154,7 @@ class OwnerTaxService
             }
 
             $months[] = [
-                'label' => $statement->period_start->translatedFormat('F'),
+                'label' => $statement->period_start->translatedFormat(LocalDate::pattern('F')),
                 'gross_minor' => $gross,
                 'commission_minor' => $commission,
                 // The remainder reconciles the row exactly: gross + commission + fees = net.
@@ -168,8 +169,8 @@ class OwnerTaxService
             'year' => $year,
             'currency' => $currency,
             'statement_count' => $statements->count(),
-            'period_start' => $statements->first()->period_start->translatedFormat('j M Y'),
-            'period_end' => $statements->last()->period_end->translatedFormat('j M Y'),
+            'period_start' => $statements->first()->period_start->translatedFormat(LocalDate::pattern('j M Y')),
+            'period_end' => $statements->last()->period_end->translatedFormat(LocalDate::pattern('j M Y')),
             'gross_minor' => $grossMinor,
             'deductions_minor' => $deductionsMinor,
             'net_minor' => $netMinor,

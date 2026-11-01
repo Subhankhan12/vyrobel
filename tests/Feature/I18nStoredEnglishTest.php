@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatementLine;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\StoredEnglish;
 use App\Support\Notifications\FeedParams;
 use App\Support\Notifications\NotificationFeed;
@@ -112,7 +113,7 @@ it('says a notification\'s dates and booking source in the READER\'s language �
 
     app()->setLocale('de');
     Carbon\Carbon::setLocale('de');
-    expect(FeedParams::say($params)['check_in'])->toBe(CarbonImmutable::parse('2026-10-26')->locale('de')->translatedFormat('j M'))
+    expect(FeedParams::say($params)['check_in'])->toBe(CarbonImmutable::parse('2026-10-26')->locale('de')->translatedFormat(LocalDate::pattern('j M', 'de')))
         ->not->toBe('26 Oct');
     Carbon\Carbon::setLocale('en');
 });
@@ -140,4 +141,11 @@ it('matches the MOST specific stored sentence — a shorter one never swallows t
     $d = fn (int $day): string => CarbonImmutable::create(2026, 10, $day)->locale('de')->translatedFormat('j M Y');
     expect($said)->toBe('XX Seaside · '.$d(5).' – '.$d(8).' · Nächte: 3');
     Carbon\Carbon::setLocale('en');
+});
+
+it('re-reads an older row of a SUBCLASS through its parent\'s texts — the guest stay notifications share one group', function () {
+    sePretend(['php/notifications/guest/guest_reservation_notification.context_nights' => 'XX :property · :check_in – :check_out · :nights']);
+    $legacy = new ReflectionMethod(NotificationFeed::class, 'legacy');
+    expect($legacy->invoke(null, 'App\\Notifications\\Guest\\GuestBookingConfirmedNotification', 'Seaside · 5 Oct 2026 – 8 Oct 2026 · 3 nights'))
+        ->toStartWith('XX Seaside · ');
 });

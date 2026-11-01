@@ -7,6 +7,7 @@ namespace App\Support\Pdf;
 use App\Models\Folio;
 use App\Models\Organization;
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 
@@ -44,7 +45,7 @@ final class GuestReversalDocument
                 $when = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at);
                 $latest = $latest === null || $when->greaterThan($latest) ? $when : $latest;
                 $refunds[] = [
-                    'date' => $when->translatedFormat('j M Y'),
+                    'date' => $when->translatedFormat(LocalDate::pattern('j M Y')),
                     'amount' => MoneyFormatter::display($amount, $currency),
                     'method' => ucfirst(str_replace('_', ' ', (string) ($payment->gateway ?? 'manual'))),
                 ];
@@ -56,11 +57,11 @@ final class GuestReversalDocument
             'property' => (string) ($reservation->property->name ?? ''),
             'reference' => (string) $reservation->reference,
             'guest' => $guestName !== '' ? $guestName : null,
-            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
+            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M Y')).' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M Y')),
             'currency' => $currency,
             'refunds' => $refunds,
             'total' => MoneyFormatter::display($totalMinor, $currency),
-            'issued_on' => ($latest ?? CarbonImmutable::now())->translatedFormat('j M Y'),
+            'issued_on' => ($latest ?? CarbonImmutable::now())->translatedFormat(LocalDate::pattern('j M Y')),
             'refund_no' => 'RF-'.$reservation->reference,
             'credit_note_no' => 'CN-'.$reservation->reference,
         ];

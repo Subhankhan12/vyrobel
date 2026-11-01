@@ -8,7 +8,7 @@
         $last = $problems['latest'];
         $more = $problems['count'] - 1;
         // I18N-01 — the <time> sits inside the sentence, so it travels into the translation as a placeholder.
-        $vyWhenHtml = '<time datetime="'.e($last['at']->toIso8601String()).'" title="'.e($last['at']->translatedFormat('j M Y, H:i T')).'">'.e($last['at']->diffForHumans()).'</time>';
+        $vyWhenHtml = '<time datetime="'.e($last['at']->toIso8601String()).'" title="'.e($last['at']->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i T'))).'">'.e($last['at']->diffForHumans()).'</time>';
     @endphp
     <section class="vy-sx-alert vy-sx-in" aria-labelledby="vy-sx-alert-t">
         <span class="vy-sx-ico is-lg"><x-security.icon name="shield-alert" :size="18" /></span>

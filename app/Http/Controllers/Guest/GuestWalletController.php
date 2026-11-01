@@ -11,6 +11,7 @@ use App\Models\GuestCreditEntry;
 use App\Models\Reservation;
 use App\Services\GuestWalletService;
 use App\Support\Guest\GuestPayments;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
@@ -53,9 +54,9 @@ class GuestWalletController extends Controller
                 'description' => (string) $e->description,
                 'signed_amount' => ((string) $e->direction === GuestCreditEntry::DIRECTION_DEBIT ? '−' : '+').MoneyFormatter::display((int) $e->amount_minor, (string) $e->currency),
                 'is_debit' => (string) $e->direction === GuestCreditEntry::DIRECTION_DEBIT,
-                'date' => CarbonImmutable::parse($e->posted_at ?? $e->created_at)->translatedFormat('j M Y'),
+                'date' => CarbonImmutable::parse($e->posted_at ?? $e->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
                 'expired' => $e->expires_at !== null && $e->expires_at->lessThanOrEqualTo($now),
-                'expires' => $e->expires_at !== null ? $e->expires_at->translatedFormat('j M Y') : null,
+                'expires' => $e->expires_at !== null ? $e->expires_at->translatedFormat(LocalDate::pattern('j M Y')) : null,
             ])->all(),
             // Owed bookings the guest can apply credit to (real folio balances via the shared overview).
             'owed' => collect(GuestPayments::overview($guest, $now)['bookings'])->filter(fn (array $b): bool => $b['balance_due'])->values()->all(),

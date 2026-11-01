@@ -11,6 +11,7 @@ use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
 use App\Services\AssignmentService;
 use App\Services\GuestChangeRequestService;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\CancellationPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -54,8 +55,8 @@ class GuestManageController extends Controller
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
             'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_manage_controller.your_stay')),
-            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat('D, j M Y'),
-            'checkOut' => CarbonImmutable::parse($model->check_out)->translatedFormat('D, j M Y'),
+            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat(LocalDate::pattern('D, j M Y')),
+            'checkOut' => CarbonImmutable::parse($model->check_out)->translatedFormat(LocalDate::pattern('D, j M Y')),
             'newCheckIn' => $newCheckIn,
             'newCheckOut' => $newCheckOut,
             'quote' => $quote,
@@ -64,7 +65,7 @@ class GuestManageController extends Controller
             'cancelReasonLabels' => array_combine(self::CANCEL_REASONS, array_map(fn (string $code): string => $this->cancelReasonLabel($code), self::CANCEL_REASONS)),
             'pending' => $this->pendingFor($model),
             // Real free-cancellation deadline (null when none / it has passed) — never a "convert to credit" fabrication.
-            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat('D, j M Y') : null,
+            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat(LocalDate::pattern('D, j M Y')) : null,
             'canRequestChanges' => self::changesAllowed($model),
         ]);
     }
@@ -177,7 +178,7 @@ class GuestManageController extends Controller
                     GuestChangeRequest::TYPE_CANCELLATION => __('php/http/controllers/guest/guest_manage_controller.pending_cancellation'),
                 },
                 'detail' => $this->detail($r),
-                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y · H:i'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat(LocalDate::pattern('j M Y · H:i')),
             ])
             ->all();
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Owner;
 
+use App\Support\I18n\LocalDate;
 use Illuminate\Support\Carbon;
 
 /**
@@ -53,7 +54,7 @@ final class OwnerOccupancyTrend
         // uses `spark` (the SVG line) — both are the SAME real monthly series, drawn two ways.
         $monthBars = [];
         foreach ($months as $i => $m) {
-            $monthBars[] = ['label' => $m->translatedFormat('M'), 'pct' => $pcts[$i]];
+            $monthBars[] = ['label' => $m->translatedFormat(LocalDate::pattern('M')), 'pct' => $pcts[$i]];
         }
 
         return [

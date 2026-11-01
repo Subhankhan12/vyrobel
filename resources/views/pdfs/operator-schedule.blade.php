@@ -82,7 +82,7 @@
     @php $publication = $roster->publicationState(); @endphp
     <div class="doc-sub" style="margin-top:2px">
         @if ($publication['published'])
-            @php $publishedAt = $publication['published_at']->timezone($property?->timezone ?? 'UTC')->translatedFormat('D j M Y · H:i'); @endphp
+            @php $publishedAt = $publication['published_at']->timezone($property?->timezone ?? 'UTC')->translatedFormat(\App\Support\I18n\LocalDate::pattern('D j M Y · H:i')); @endphp
             @if ($publication['published_by'])
                 {{ __('pdfs/operator-schedule.published_by', ['date' => $publishedAt, 'name' => $publication['published_by']]) }}
             @else

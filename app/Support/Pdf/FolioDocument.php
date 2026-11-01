@@ -8,6 +8,7 @@ use App\Models\Folio;
 use App\Models\Organization;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 
@@ -48,7 +49,7 @@ final class FolioDocument
             'property' => (string) ($reservation->property->name ?? ''),
             'reference' => (string) $reservation->reference,
             'guest' => $guestName !== '' ? $guestName : null,
-            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
+            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M Y')).' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M Y')),
             'currency' => $currency,
             'has_folio' => $folio !== null,
             'lines' => $lines,
@@ -83,7 +84,7 @@ final class FolioDocument
                 'line' => [
                     'label' => self::itemTypeLabel((string) $item->type),
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat(LocalDate::pattern('j M')),
                     'amount' => ($amount < 0 ? '' : '+').MoneyFormatter::display($amount, $currency),
                     'is_negative' => $amount < 0,
                     'flag' => null,
@@ -95,7 +96,7 @@ final class FolioDocument
             $amount = (int) $payment->amount_minor;
             $type = (string) $payment->type;
             $status = (string) $payment->status;
-            $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M');
+            $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat(LocalDate::pattern('j M'));
 
             if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
                 $line = ['label' => self::paymentTypeLabel($type), 'desc' => __('php/support/pdf/folio_document.desc_received'), 'date' => $date, 'amount' => '−'.MoneyFormatter::display($amount, $currency), 'is_negative' => true, 'flag' => null];

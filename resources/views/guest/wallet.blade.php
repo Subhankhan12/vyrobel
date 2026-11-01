@@ -54,7 +54,7 @@
                         <div style="font-size:13.5px;color:var(--vy-ink)">{{ $booking['property'] }}</div>
                         <div style="font-size:11.5px;color:var(--vy-faint)">{{ $booking['reference'] }} · {{ __('guest/wallet.owed', ['amount' => $booking['balance']]) }}</div>
                     </div>
-                    <input class="vy-input" type="number" name="amount" step="0.01" min="0.01" placeholder="0.00"
+                    <input class="vy-input" type="text" inputmode="decimal" autocomplete="off" name="amount" placeholder="0.00"
                            aria-label="{{ __('guest/wallet.apply_amount_label', ['reference' => $booking['reference']]) }}" style="width:96px">
                     <button type="submit" class="vy-btn vy-btn--ghost">{{ __('guest/wallet.apply_button') }}</button>
                 </form>

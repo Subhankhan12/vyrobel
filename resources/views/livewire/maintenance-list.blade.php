@@ -566,11 +566,11 @@
                                         <div class="vy-gl-fields">
                                             <div class="vy-field">
                                                 <label class="vy-field-label" for="vy-mt-r-labor">{{ __('livewire/maintenance-list.labour_cost') }} <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
-                                                <input class="vy-input" id="vy-mt-r-labor" type="number" inputmode="decimal" step="0.01" min="0" name="labor" placeholder="0.00">
+                                                <input class="vy-input" id="vy-mt-r-labor" type="text" inputmode="decimal" autocomplete="off" name="labor" placeholder="0.00">
                                             </div>
                                             <div class="vy-field">
                                                 <label class="vy-field-label" for="vy-mt-r-parts">{{ __('livewire/maintenance-list.parts_cost') }} <span class="vy-fl-note" x-text="'· ' + resolve.currency"></span></label>
-                                                <input class="vy-input" id="vy-mt-r-parts" type="number" inputmode="decimal" step="0.01" min="0" name="parts" placeholder="0.00">
+                                                <input class="vy-input" id="vy-mt-r-parts" type="text" inputmode="decimal" autocomplete="off" name="parts" placeholder="0.00">
                                             </div>
                                         </div>
                                         <p class="vy-gl-note vy-mt-first">{{ __('livewire/maintenance-list.owner_charge_note') }}</p>

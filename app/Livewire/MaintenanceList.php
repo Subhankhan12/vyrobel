@@ -16,6 +16,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Services\MaintenanceSettingsService;
+use App\Support\I18n\LocalDate;
 use App\Support\Maintenance\MaintenanceListParams;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Maintenance\RevenueOnHold;
@@ -245,7 +246,7 @@ class MaintenanceList extends Component
             'is_urgent' => $ticket->priority === 'urgent',
             'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
             'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
-            'part_eta' => $ticket->part_eta?->translatedFormat('j M'),
+            'part_eta' => $ticket->part_eta?->translatedFormat(LocalDate::pattern('j M')),
             'sla' => [
                 'state' => $sla['state'],
                 'breached' => $sla['breached'],
@@ -260,7 +261,7 @@ class MaintenanceList extends Component
             'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, $currency) : null,
             'labor' => $ticket->labor_minor !== null ? $this->money((int) $ticket->labor_minor, $currency) : null,
             'parts_cost' => $ticket->parts_minor !== null ? $this->money((int) $ticket->parts_minor, $currency) : null,
-            'resolved' => $ticket->resolved_at?->translatedFormat('j M'),
+            'resolved' => $ticket->resolved_at?->translatedFormat(LocalDate::pattern('j M')),
             'photos' => $photos[(string) $ticket->id] ?? [],
             // What this viewer may do to THIS ticket, in a fixed order. Nothing that writes on a closed ticket — the old
             // board offered Assign on a resolved one, which the service refuses.

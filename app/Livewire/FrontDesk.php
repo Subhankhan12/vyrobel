@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\UnitRateOverride;
 use App\Services\FrontDeskService;
 use App\Services\UnitAvailabilityService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
@@ -85,7 +86,7 @@ class FrontDesk extends Component
             'property' => $property !== null ? ['id' => $property->id, 'name' => $property->name, 'currency_symbol' => MoneyFormatter::symbol((string) ($property->currency ?? 'EUR'))] : null,
             'day' => [
                 'date' => $date,
-                'label' => $day->translatedFormat('l, j M Y'),
+                'label' => $day->translatedFormat(LocalDate::pattern('l, j M Y')),
                 'prev' => $day->subDay()->toDateString(),
                 'next' => $day->addDay()->toDateString(),
                 'today' => CarbonImmutable::today()->toDateString(),
@@ -371,8 +372,8 @@ class FrontDesk extends Component
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'check_in' => $checkIn->toDateString(),
                 'check_out' => $checkOut->toDateString(),
-                'check_in_label' => $checkIn->translatedFormat('j M'),
-                'check_out_label' => $checkOut->translatedFormat('j M'),
+                'check_in_label' => $checkIn->translatedFormat(LocalDate::pattern('j M')),
+                'check_out_label' => $checkOut->translatedFormat(LocalDate::pattern('j M')),
                 // #104 GATE 3 — the guest's estimated arrival (real, was dropped at booking). Free-text window.
                 'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
                 'balance_minor' => $balanceMinor,

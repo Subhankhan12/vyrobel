@@ -485,7 +485,7 @@
                         <div class="vy-fdm-head">
                             <div>
                                 <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-walkin-1">{{ __('livewire/front-desk.walk_in') }}</div>
-                                <div class="vy-fdm-sub">{{ __('livewire/front-desk.walkin_sub', ['date' => \Carbon\CarbonImmutable::parse($walkin['today'])->translatedFormat('D j M')]) }}</div>
+                                <div class="vy-fdm-sub">{{ __('livewire/front-desk.walkin_sub', ['date' => \Carbon\CarbonImmutable::parse($walkin['today'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('D j M'))]) }}</div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="{{ __('common.close') }}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>

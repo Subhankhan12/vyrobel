@@ -107,7 +107,7 @@ return [
         'id' => 'HK-M12',
         'name' => 'an overdue room reads like any other day',
         'file' => 'app/Livewire/HousekeepingBoard.php',
-        'old' => '            $d->lessThan($today) && ! $done => [\'day\' => __(\'php/livewire/housekeeping_board.day_overdue\', [\'date\' => $d->translatedFormat(\'j M\')]), \'day_tone\' => \'overdue\'],
+        'old' => '            $d->lessThan($today) && ! $done => [\'day\' => __(\'php/livewire/housekeeping_board.day_overdue\', [\'date\' => $d->translatedFormat(LocalDate::pattern(\'j M\'))]), \'day_tone\' => \'overdue\'],
 ',
         'new' => '',
         'tests' => [['file' => $test, 'filter' => 'says which day each room is for']],

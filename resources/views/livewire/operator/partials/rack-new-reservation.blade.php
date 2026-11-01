@@ -18,8 +18,8 @@
 @php
     $__rnr = $newRes;
     $__rnrPre = collect($__rnr['units'])->firstWhere('unit_id', $__rnr['preselect']);
-    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M').' → '
-        .\Carbon\CarbonImmutable::parse($__rnr['form']['check_out'])->translatedFormat('j M');
+    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')).' → '
+        .\Carbon\CarbonImmutable::parse($__rnr['form']['check_out'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'));
     $__rnrNights = trans_choice('livewire/operator/partials/rack-new-reservation.nights', $__rnr['nights'], ['count' => $__rnr['nights']]);
     $__rnrBack = '?start='.$window['start'].'&days='.$window['selected_days'].$window['rt_q'];
     // the "Open the full form" link inside its sentence (rule 13: the Alpine attribute stays out of the translation)
@@ -269,9 +269,9 @@
                                                 </div>
                                                 <p class="vy-rnr-problem vy-rnr-problem--tight" id="vy-rnr-rate-err-{{ $loop->index }}" x-show="priceErr[{{ $loop->index }}]" x-text="priceErr[{{ $loop->index }}]" x-cloak role="alert"></p>
                                                 @if ($__rnr['nights'] === 1)
-                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_one_plan', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_one', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M')]) }}</p>
+                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_one_plan', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_one', ['date' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'))]) }}</p>
                                                 @else
-                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_many_plan', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat('j M'), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_many', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat('j M'), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat('j M')]) }}</p>
+                                                    <p class="vy-rnr-fine vy-rnr-fine--tight">{{ $w['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_many_plan', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'plan' => $w['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_many', ['from' => \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($__rnr['last_night'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'))]) }}</p>
                                                 @endif
                                             </form>
                                         @endif

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Siz',
+    'total_part' => ':amount :name',
+    'total_includes' => ':items dahil',
+    'nightly_excludes' => ':tax hariç',
+    'sleeps' => ':count kişilik',
+    'studio' => 'Stüdyo',
+    'bedrooms' => '{1} :count yatak odası|[0,*] :count yatak odası',
+    'checkout_title' => 'Ödeme — :property',
+    'room_just_taken' => 'Bu oda az önce başka biri tarafından rezerve edildi — lütfen başka bir oda veya tarih seçin.',
+    'payment_received' => 'Ödeme alındı',
+    'payment_received_note' => 'Tamamı ödendi.',
+    'payment_processing' => 'Ödeme işleniyor',
+    'payment_processing_note' => 'Kart ödemeniz onaylanıyor. Ödemenin görünmesi için bu sayfayı birazdan yenileyin.',
+    'pay_on_arrival' => 'Tesiste öde',
+    'pay_on_arrival_note' => 'Check-in sırasında tesiste ödeyin.',
+    'confirmed_title' => 'Rezervasyon onaylandı — :property',
+    'kind_room' => 'Oda',
+    'kind_apartment' => 'Daire',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Yatakhane',
+    'type_hotel' => 'Otel',
+    'type_aparthotel' => 'Apart otel',
+    'type_serviced_apartment' => 'Hizmetli daire',
+    'type_apartment_building' => 'Apartman',
+    'type_apartment' => 'Daire',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pansiyon',
+    'type_resort' => 'Tatil köyü',
+    'type_mixed' => 'Karma',
+    'type_portfolio' => 'Portföy',
+];

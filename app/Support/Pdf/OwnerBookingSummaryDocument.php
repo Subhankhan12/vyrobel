@@ -14,6 +14,7 @@ use App\Services\OwnerStatementService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Countries;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -123,7 +124,7 @@ final class OwnerBookingSummaryDocument
         $operatorCountry = self::countryName(is_string($org->country) ? $org->country : null);
 
         $ownerName = (string) ($statement->owner->name ?? __('php/support/pdf/owner_booking_summary_document.owner_fallback'));
-        $periodLabel = $statement->period_start->translatedFormat('F Y');
+        $periodLabel = $statement->period_start->translatedFormat(LocalDate::pattern('F Y'));
         $unitCount = count($byUnit);
         $grossDisplay = MoneyFormatter::display($totalMinor, $totalCurrency);
         $sequenceNo = $statement->sequence_no;
@@ -150,7 +151,7 @@ final class OwnerBookingSummaryDocument
             // accompanies is cross-referenced by its actual sequence_no below — never a fabricated number.
             'doc_ref' => 'BS-'.$statement->period_start->format('Y-m'),
             'period_label' => $periodLabel,
-            'period_range' => $statement->period_start->translatedFormat('j M Y').' – '.$statement->period_end->translatedFormat('j M Y'),
+            'period_range' => $statement->period_start->translatedFormat(LocalDate::pattern('j M Y')).' – '.$statement->period_end->translatedFormat(LocalDate::pattern('j M Y')),
             'subtitle' => trans_choice('php/support/pdf/owner_booking_summary_document.subtitle', $unitCount, ['period' => $periodLabel, 'owner' => $ownerName, 'count' => $unitCount]),
             'reconcile_note' => $reconcile,
             'footer_left' => $operatorVat !== null ? __('php/support/pdf/owner_booking_summary_document.footer_with_vat', ['company' => $operatorCompany, 'vat' => $operatorVat]) : $operatorCompany,
@@ -338,7 +339,7 @@ final class OwnerBookingSummaryDocument
 
         return [
             'nights' => $nights,
-            'dates' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
+            'dates' => $checkIn->translatedFormat(LocalDate::pattern('j M')).' – '.$checkOut->translatedFormat(LocalDate::pattern('j M Y')),
             'sort_key' => $checkIn->getTimestamp(),
         ];
     }

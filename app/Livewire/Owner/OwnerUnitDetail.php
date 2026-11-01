@@ -22,6 +22,7 @@ use App\Services\OwnerPortalService;
 use App\Services\OwnerRateService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -175,7 +176,7 @@ class OwnerUnitDetail extends Component
             'unit' => $this->unitFacts($unit),
             'occupancy' => $occupancy,
             'month' => [
-                'label' => $month->translatedFormat('F Y'),
+                'label' => $month->translatedFormat(LocalDate::pattern('F Y')),
                 'first_weekday' => $month->copy()->startOfMonth()->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $month->copy()->subMonthNoOverflow()->format('Y-m'),
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
@@ -305,7 +306,7 @@ class OwnerUnitDetail extends Component
                 'type' => 'booked',
                 'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : __('php/livewire/owner/owner_unit_detail.guest_fallback'),
                 'reference' => $reservation instanceof Reservation ? (string) $reservation->reference : null,
-                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat('j M'), 'end' => $checkOut->translatedFormat('j M Y')]),
+                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat(LocalDate::pattern('j M')), 'end' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'nights_label' => trans_choice('php/livewire/owner/owner_unit_detail.nights', (int) $checkIn->diffInDays($checkOut), ['count' => (int) $checkIn->diffInDays($checkOut)]),
                 'net' => $nets[(string) $line->reservation_id] ?? [],
@@ -367,7 +368,7 @@ class OwnerUnitDetail extends Component
     {
         $monday = Carbon::parse('2024-01-01');   // a Monday
 
-        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat('D')), range(0, 6));
+        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
     }
 
     /**
@@ -391,7 +392,7 @@ class OwnerUnitDetail extends Component
             ->get(['date', 'type', 'status']);
 
         $rows = $tasks->map(fn (HousekeepingTask $t): array => [
-            'date' => Carbon::parse($t->date)->translatedFormat('j M Y'),
+            'date' => Carbon::parse($t->date)->translatedFormat(LocalDate::pattern('j M Y')),
             'type' => $this->cleaningTypeLabel((string) $t->type),
             'status' => $this->cleaningStatusMeta((string) $t->status)['label'],
             'tone' => $this->cleaningStatusMeta((string) $t->status)['tone'],
@@ -536,7 +537,7 @@ class OwnerUnitDetail extends Component
 
             $net = OwnerLedgerAttribution::netPerCurrency($entries)[$currency] ?? 0;
             $maxPositive = max($maxPositive, $net);
-            $rows[] = ['label' => $mStart->translatedFormat('M'), 'net' => $net];
+            $rows[] = ['label' => $mStart->translatedFormat(LocalDate::pattern('M')), 'net' => $net];
         }
 
         $bars = array_map(fn (array $r): array => [
@@ -569,9 +570,9 @@ class OwnerUnitDetail extends Component
             $sum += $pct;
             if ($pct > $peakPct) {
                 $peakPct = $pct;
-                $peakLabel = $mStart->translatedFormat('M');
+                $peakLabel = $mStart->translatedFormat(LocalDate::pattern('M'));
             }
-            $bars[] = ['label' => $mStart->translatedFormat('M'), 'display' => $pct.'%', 'pct' => $pct];
+            $bars[] = ['label' => $mStart->translatedFormat(LocalDate::pattern('M')), 'display' => $pct.'%', 'pct' => $pct];
         }
 
         return [
@@ -635,7 +636,7 @@ class OwnerUnitDetail extends Component
             return null;
         }
 
-        return ['count' => $units->count(), 'month' => $month->translatedFormat('F Y')];
+        return ['count' => $units->count(), 'month' => $month->translatedFormat(LocalDate::pattern('F Y'))];
     }
 
     /**
@@ -766,7 +767,7 @@ class OwnerUnitDetail extends Component
 
             return [
                 'reference' => $real ? (string) $reservation->reference : null,
-                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat('j M'), 'end' => $checkOut->translatedFormat('j M Y')]),
+                'stay' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $checkIn->translatedFormat(LocalDate::pattern('j M')), 'end' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'source_label' => $real ? $this->sourceLabel((string) $reservation->source) : null,
                 'status_meta' => $real ? $this->reservationStatusMeta((string) $reservation->status) : null,
@@ -902,7 +903,7 @@ class OwnerUnitDetail extends Component
             ->get()
             ->map(fn (OwnerStatement $statement): array => [
                 'id' => (string) $statement->id,
-                'period' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $statement->period_start->translatedFormat('j M'), 'end' => $statement->period_end->translatedFormat('j M Y')]),
+                'period' => __('php/livewire/owner/owner_unit_detail.date_range', ['start' => $statement->period_start->translatedFormat(LocalDate::pattern('j M')), 'end' => $statement->period_end->translatedFormat(LocalDate::pattern('j M Y'))]),
                 'status_meta' => $this->statusMeta((string) $statement->status),
             ])
             ->values()

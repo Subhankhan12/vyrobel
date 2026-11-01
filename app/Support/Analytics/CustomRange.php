@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Analytics;
 
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 
 /**
@@ -74,7 +75,7 @@ final class CustomRange
 
         return [
             'key' => 'custom',
-            'label' => $start->translatedFormat('j M Y').' – '.$end->translatedFormat('j M Y'),
+            'label' => $start->translatedFormat(LocalDate::pattern('j M Y')).' – '.$end->translatedFormat(LocalDate::pattern('j M Y')),
             'start' => $start,
             // ⚠️ END-EXCLUSIVE, matching every preset. `?to=` is the last day the user means to INCLUDE, and
             // the metric layer's windows are half-open `[start, end)` — so a range typed 1–31 Aug that

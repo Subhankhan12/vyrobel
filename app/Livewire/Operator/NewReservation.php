@@ -30,6 +30,7 @@ use App\Support\Email\EmailTemplateResolver;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestHistory;
+use App\Support\I18n\LocalDate;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
@@ -623,9 +624,9 @@ class NewReservation extends Component
     {
         $in = CarbonImmutable::parse($checkIn);
         $out = CarbonImmutable::parse($checkOut);
-        $from = $in->isSameYear($out) ? $in->translatedFormat('j M') : $in->translatedFormat('j M Y');
+        $from = $in->isSameYear($out) ? $in->translatedFormat(LocalDate::pattern('j M')) : $in->translatedFormat(LocalDate::pattern('j M Y'));
 
-        return trans_choice('php/livewire/operator/new_reservation.dates_label', $nights, ['from' => $from, 'to' => $out->translatedFormat('j M Y'), 'count' => $nights]);
+        return trans_choice('php/livewire/operator/new_reservation.dates_label', $nights, ['from' => $from, 'to' => $out->translatedFormat(LocalDate::pattern('j M Y')), 'count' => $nights]);
     }
 
     private function resolveQuery(): string
@@ -754,7 +755,7 @@ class NewReservation extends Component
             if (! is_array($b) || ! is_string($b['date'] ?? null)) {
                 continue;
             }
-            $date = CarbonImmutable::parse($b['date'])->translatedFormat('D j M');
+            $date = CarbonImmutable::parse($b['date'])->translatedFormat(LocalDate::pattern('D j M'));
             $value = is_numeric($b['value'] ?? null) ? (int) $b['value'] : null;
             // a missing value printed as nothing before ("at least  nights") — still so
             $count = ['date' => $date, 'count' => $value ?? ''];
@@ -821,9 +822,9 @@ class NewReservation extends Component
             'smoking' => PropertyPolicy::ruleLabel(data_get($policy, 'smoking')),
             'cancellation' => match (true) {
                 // ⚠️ the review: "Free until 30 Sep" was shown on 4 Oct for a stay that close, and "until 0 days before"
-                $freeUntil !== null && $freeUntil->toDateString() < CarbonImmutable::now((string) ($property->timezone ?: config('app.timezone')))->toDateString() => __('php/livewire/operator/new_reservation.cancel_not_free', ['date' => $freeUntil->translatedFormat('j M')]),
+                $freeUntil !== null && $freeUntil->toDateString() < CarbonImmutable::now((string) ($property->timezone ?: config('app.timezone')))->toDateString() => __('php/livewire/operator/new_reservation.cancel_not_free', ['date' => $freeUntil->translatedFormat(LocalDate::pattern('j M'))]),
                 $freeDays === 0 => __('php/livewire/operator/new_reservation.cancel_free_until_check_in'),
-                $freeUntil !== null => __('php/livewire/operator/new_reservation.cancel_free_until_date', ['date' => $freeUntil->translatedFormat('j M')]),
+                $freeUntil !== null => __('php/livewire/operator/new_reservation.cancel_free_until_date', ['date' => $freeUntil->translatedFormat(LocalDate::pattern('j M'))]),
                 $freeDays !== null => trans_choice('php/livewire/operator/new_reservation.cancel_free_until_days', $freeDays, ['count' => $freeDays]),
                 is_array($cancellation) && is_string($cancellation['type'] ?? null) && $cancellation['type'] !== '' => ucfirst($cancellation['type']),
                 default => null,

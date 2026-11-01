@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\User;
 use App\Support\Authorization\RoleLabel;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
 use App\Support\Property\PropertyContext;
 use App\Support\Security\ActiveSessions;
@@ -92,7 +93,7 @@ class OperatorProfile extends Component
             'user' => $user,
             'roles' => $user->getRoleNames()->map(fn ($r): string => RoleLabel::for((string) $r))->implode(' · '),
             'statusLabel' => $this->statusLabel((string) $user->status),
-            'memberSince' => $user->created_at?->translatedFormat('M Y'),
+            'memberSince' => $user->created_at?->translatedFormat(LocalDate::pattern('M Y')),
             'propertyLabel' => $property !== null ? (string) $property->name : null,
             // Personal details (real columns).
             'personal' => [

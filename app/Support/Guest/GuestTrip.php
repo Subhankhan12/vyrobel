@@ -7,6 +7,7 @@ namespace App\Support\Guest;
 use App\Models\Folio;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -42,8 +43,8 @@ class GuestTrip
             'reference' => (string) $reservation->reference,
             'property' => (string) ($reservation->property->name ?? __('php/support/guest/guest_trip.your_stay')),
             'location' => self::location($reservation),
-            'check_in' => $checkIn->translatedFormat('D, j M Y'),
-            'check_out' => $checkOut->translatedFormat('D, j M Y'),
+            'check_in' => $checkIn->translatedFormat(LocalDate::pattern('D, j M Y')),
+            'check_out' => $checkOut->translatedFormat(LocalDate::pattern('D, j M Y')),
             'nights' => max(1, $checkIn->diffInDays($checkOut)),
             'total' => MoneyFormatter::display((int) $reservation->total_minor, $currency),
             'balance_due' => $balance > 0,
@@ -87,7 +88,7 @@ class GuestTrip
 
         return (string) match ($stage) {
             ReservationStage::CANCELLED => __('php/support/guest/guest_trip.countdown_cancelled'),
-            ReservationStage::PAST => __('php/support/guest/guest_trip.countdown_stayed', ['month' => $checkIn->translatedFormat('M Y')]),
+            ReservationStage::PAST => __('php/support/guest/guest_trip.countdown_stayed', ['month' => $checkIn->translatedFormat(LocalDate::pattern('M Y'))]),
             default => match (true) {
                 $today->betweenIncluded($checkIn->startOfDay(), $checkOut->startOfDay()->subDay()) => __('php/support/guest/guest_trip.countdown_in_stay'),
                 $checkIn->isSameDay($today) => __('php/support/guest/guest_trip.countdown_today'),
@@ -101,13 +102,13 @@ class GuestTrip
     private static function dateRange(CarbonImmutable $checkIn, CarbonImmutable $checkOut): string
     {
         if ($checkIn->isSameMonth($checkOut)) {
-            return (string) __('php/support/guest/guest_trip.range_same_month', ['from' => $checkIn->translatedFormat('j'), 'to' => $checkOut->translatedFormat('j M Y')]);
+            return (string) __('php/support/guest/guest_trip.range_same_month', ['from' => $checkIn->translatedFormat(LocalDate::pattern('j')), 'to' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
         if ($checkIn->isSameYear($checkOut)) {
-            return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat('j M'), 'to' => $checkOut->translatedFormat('j M Y')]);
+            return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat(LocalDate::pattern('j M')), 'to' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
-        return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat('j M Y'), 'to' => $checkOut->translatedFormat('j M Y')]);
+        return (string) __('php/support/guest/guest_trip.range', ['from' => $checkIn->translatedFormat(LocalDate::pattern('j M Y')), 'to' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]);
     }
 
     /** A short "City, Country" from the property's address (a real array) — empty when none is set. */

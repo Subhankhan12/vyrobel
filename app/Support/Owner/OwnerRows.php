@@ -13,6 +13,7 @@ use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Services\PayoutRunService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -91,7 +92,7 @@ final class OwnerRows
                 'unit_codes' => $owner->units->map(fn ($u): string => (string) $u->code)->sort(SORT_NATURAL)->values()->all(),
                 'unit_labels' => $owner->units->map(fn ($u): string => (string) ($u->name ?: $u->code))->sort(SORT_NATURAL)->values()->all(),
                 'commission' => $agreement !== null ? rtrim(rtrim((string) $agreement->commission_pct, '0'), '.').'%' : '—',
-                'period' => $latest !== null ? CarbonImmutable::parse($latest->period_start)->translatedFormat('M Y') : null,
+                'period' => $latest !== null ? CarbonImmutable::parse($latest->period_start)->translatedFormat(LocalDate::pattern('M Y')) : null,
                 'net_minor' => $net,
                 'currency' => $currency,
                 'net' => $net !== null ? MoneyFormatter::display($net, $currency) : '—',
@@ -99,7 +100,7 @@ final class OwnerRows
                 'pay_label' => $label,
                 'reason' => $reason,
                 'paused' => $isPaused,
-                'invite' => $invite !== null ? ['id' => (string) $invite->id, 'status' => (string) $invite->status, 'expires' => $invite->expires_at?->translatedFormat('j M Y')] : null,
+                'invite' => $invite !== null ? ['id' => (string) $invite->id, 'status' => (string) $invite->status, 'expires' => $invite->expires_at?->translatedFormat(LocalDate::pattern('j M Y'))] : null,
             ];
         })->values()->all();
     }
@@ -171,7 +172,7 @@ final class OwnerRows
         if ($owner->status !== 'active') {
             return $invite !== null && $invite->status === 'pending'
                 ? ['invited', __('php/support/owner/owner_rows.pay_invited'), $invite->expires_at !== null
-                    ? __('php/support/owner/owner_rows.reason_invite_expires', ['date' => $invite->expires_at->translatedFormat('j M')])
+                    ? __('php/support/owner/owner_rows.reason_invite_expires', ['date' => $invite->expires_at->translatedFormat(LocalDate::pattern('j M'))])
                     : __('php/support/owner/owner_rows.reason_invite_sent')]
                 : ['inactive', __('php/support/owner/owner_rows.pay_not_activated'), $invite !== null ? __('php/support/owner/owner_rows.reason_invite_expired') : null];
         }

@@ -14,6 +14,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\AssignmentService;
 use App\Services\FrontDeskService;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
@@ -276,7 +277,7 @@ class FrontDeskActionController extends Controller
             return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.move_unavailable'), refused: true);
         }
 
-        return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.moved_to_date', ['reference' => $model->reference, 'date' => $newCheckIn->translatedFormat('j M')]));
+        return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.moved_to_date', ['reference' => $model->reference, 'date' => $newCheckIn->translatedFormat(LocalDate::pattern('j M'))]));
     }
 
     /**

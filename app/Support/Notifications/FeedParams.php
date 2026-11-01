@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Notifications;
 
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\StoredEnglish;
 use App\Support\Reports\OperatorRevenueBreakdown;
 use Carbon\Carbon;
@@ -42,7 +43,7 @@ final class FeedParams
         $out = [];
         foreach ($params as $name => $value) {
             $out[$name] = match (true) {
-                is_array($value) && isset($value['@date'], $value['@format']) => CarbonImmutable::parse((string) $value['@date'])->translatedFormat((string) $value['@format']),
+                is_array($value) && isset($value['@date'], $value['@format']) => CarbonImmutable::parse((string) $value['@date'])->translatedFormat(LocalDate::pattern((string) $value['@format'])),
                 is_array($value) && isset($value['@source']) => OperatorRevenueBreakdown::sourceLabel((string) $value['@source']),
                 is_scalar($value) || $value === null => $value,
                 default => '',
@@ -78,7 +79,7 @@ final class FeedParams
                 continue;
             }
             if ($d !== null && $d->locale('en')->translatedFormat($format) === $text) {
-                return $d->locale(Carbon::getLocale())->translatedFormat($format);   // createFromFormat() does not take the current locale
+                return $d->locale(Carbon::getLocale())->translatedFormat(LocalDate::pattern($format));   // createFromFormat() does not take the current locale
             }
         }
 

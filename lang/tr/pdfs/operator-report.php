@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Raporlar',
+    'arrivals_in' => ':period dönemindeki girişler',
+    'arrivals_count' => '{1} :count giriş|[0,*] :count giriş',
+    'pp_delta' => ':delta puan',
+    'occupancy' => 'Doluluk',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Brüt gelir',
+    'basis_note' => 'Doluluk · ADR · RevPAR konaklama gecesi esasına göredir; önceki yıl verisi olan yerlerde geçen yılın aynı dönemiyle karşılaştırılır. Aşağıdaki gelir folyo (giriş) esasına göredir.',
+    'revenue' => 'Gelir',
+    'room' => 'Oda',
+    'ancillary' => 'Ek gelirler <span class="muted">· ekstralar, ürünler, ücretler</span>',
+    'tax_collected' => 'Tahsil edilen vergi · doğrudan aktarılır',
+    'costs_heading' => 'Maliyetler <span class="muted" style="font-size:9px">· yalnızca gerçek veriler</span>',
+    'maintenance' => 'Bakım <span class="muted">· çözülen iş emirleri</span>',
+    'not_tracked' => 'henüz izlenmiyor',
+    'net' => 'Net (gelir − izlenen maliyetler)',
+    'revenue_by_channel' => 'Kanala göre gelir',
+    'channel' => 'Kanal',
+    'bookings' => 'Rezervasyon',
+    'share' => 'Pay',
+    'no_channel_revenue' => 'Bu dönemde kanal geliri yok.',
+    'top_units' => 'En çok gelir getiren birimler',
+    'unit' => 'Birim',
+    'nights' => 'Gece',
+    'room_revenue' => 'Oda geliri',
+    'no_unit_revenue' => 'Bu dönemde birim geliri yok.',
+    'revenue_by_month' => 'Aylara göre gelir',
+    'month' => 'Ay',
+    'footer' => ':scope · :period için gerçek folyo ve bakım verilerinden hesaplanmıştır. Doluluk/ADR/RevPAR konaklama gecesi esasına, gelir ise folyo (giriş) esasına göredir. Rakamlar Raporlar ekranıyla tutarlıdır. Vyrobel.',
+];

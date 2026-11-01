@@ -10,6 +10,7 @@ use App\Models\Plan;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\Subscription;
+use App\Support\I18n\LocalDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -136,7 +137,7 @@ class PlatformMetrics
         $series = [];
         for ($i = 0; $i < 6; $i++) {
             $month = $start->copy()->addMonths($i);
-            $series[$month->format('Y-m')] = ['label' => $month->translatedFormat('M'), 'count' => 0];
+            $series[$month->format('Y-m')] = ['label' => $month->translatedFormat(LocalDate::pattern('M')), 'count' => 0];
         }
 
         foreach ($rows as $org) {

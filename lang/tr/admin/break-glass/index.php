@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Acil durum erişimi',
+    'subtitle' => 'Tek bir kuruluşun içine salt okunur, süre sınırlı bir bakış — gerekçe, 2FA ve kuruluşa bildirim.',
+    'back_label' => 'Destek',
+    'open_heading' => 'Oturumunuz açık',
+    'open_summary' => '{1} :organization · bitiş: :time UTC · görüntülenen sayfa: :count.|[0,*] :organization · bitiş: :time UTC · görüntülenen sayfa: :count.',
+    'go_to_back_office' => 'Kuruluşun yönetim paneline git',
+    'end_now' => 'Oturumu şimdi sonlandır',
+    'start_heading' => 'Oturum başlat',
+    'rule_read_only' => '<strong>Salt okunur.</strong> Her değişiklik reddedilir — formlar, düğmeler, kayıt yapan her şey.',
+    'rule_minutes' => '{1} <strong>:count dakika</strong>, ardından kendiliğinden sona erer.|[0,*] <strong>:count dakika</strong>, ardından kendiliğinden sona erer.',
+    'rule_senior_user' => 'Kuruluşun en kıdemli, doğrulanmış yönetim paneli kullanıcısı ne görüyorsa onu görürsünüz — misafirler dahil. Yalnızca gerekçenin gerektirdiği kısma bakın.',
+    'rule_recorded' => 'Açtığınız her sayfa kaydedilir ve kuruluşun ekibine sonradan bildirilir: adınız, zaman ve bu gerekçe.',
+    'organisation_label' => 'Kuruluş',
+    'choose_option' => 'Seçin…',
+    'code_label' => 'Güncel 2FA kodunuz',
+    'reason_label' => 'Gerekçe — kuruluş bunu okuyacak',
+    'reason_placeholder' => 'örn. Ticket #123 — mülk sahibi eksik bir rezervasyon bildiriyor',
+    'open_button' => 'Salt okunur oturum başlat',
+    'recent_heading' => 'Son oturumlar',
+    'empty_state' => 'Henüz hiç acil durum erişimi oturumu açılmadı.',
+    'col_admin' => 'Yönetici',
+    'col_organisation' => 'Kuruluş',
+    'col_reason' => 'Gerekçe',
+    'col_started' => 'Başlangıç',
+    'col_ended' => 'Bitiş',
+    'col_pages' => 'Sayfalar',
+    'col_told' => 'Bildirildi',
+    'ended_open' => 'açık',
+    'ended_due' => 'süresi doldu — henüz kapatılmadı',
+    'told_yes' => 'Evet',
+    'told_not_yet' => 'Henüz değil',
+];

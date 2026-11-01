@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -112,7 +113,7 @@ final class PerformanceMetrics
 
             $trend[] = [
                 'month' => $cursor->format('Y-m'),
-                'label' => $cursor->translatedFormat('M'),
+                'label' => $cursor->translatedFormat(LocalDate::pattern('M')),
                 'metrics' => self::forProperties($propertyIds, $bucketStart, $bucketEnd, $currency),
             ];
 
@@ -177,7 +178,7 @@ final class PerformanceMetrics
 
             $trend[] = [
                 'month' => $cursor->format('Y-m'),
-                'label' => $cursor->translatedFormat('M'),
+                'label' => $cursor->translatedFormat(LocalDate::pattern('M')),
                 'metrics' => self::forOwnerUnits($unitIds, $bucketStart, $bucketEnd, $currency),
             ];
 

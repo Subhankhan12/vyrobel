@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Reservations;
 
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 
 /**
@@ -22,11 +23,11 @@ final class StayLabel
     {
         $own = ReservationStage::for($reservation, $today);   // THIS booking's stage, from the one resolver the badges read
         $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
-        $day = $checkIn->translatedFormat($dateFormat);
+        $day = $checkIn->translatedFormat(LocalDate::pattern($dateFormat));
 
         return match (true) {
             $own === ReservationStage::IN_HOUSE => __('php/support/reservations/stay_label.in_house'),
-            (string) $reservation->status === 'checked_out' => __('php/support/reservations/stay_label.left', ['date' => CarbonImmutable::parse($reservation->check_out)->translatedFormat($dateFormat)]),
+            (string) $reservation->status === 'checked_out' => __('php/support/reservations/stay_label.left', ['date' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern($dateFormat))]),
             $own === ReservationStage::TENTATIVE => __('php/support/reservations/stay_label.tentative', ['date' => $day]),   // the badge's word for enquiry and tentative
             $own === ReservationStage::UPCOMING => __('php/support/reservations/stay_label.arrives', ['date' => $day]),
             $checkIn->isSameDay($today) => __('php/support/reservations/stay_label.arrives_today'),

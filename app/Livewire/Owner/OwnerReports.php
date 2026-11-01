@@ -15,6 +15,7 @@ use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Services\OwnerVatService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Notifications\NotificationFeed;
 use App\Support\Owner\OwnerCommissionRate;
@@ -229,7 +230,7 @@ class OwnerReports extends Component
             }
             $priorNet = $priorVals[$idx] ?? 0;
             $months[] = [
-                'label' => CarbonImmutable::parse($key.'-01')->translatedFormat('M'),
+                'label' => CarbonImmutable::parse($key.'-01')->translatedFormat(LocalDate::pattern('M')),
                 'net_display' => $this->money($net, $currency),
                 'pct' => $maxAbs > 0 ? (int) round(abs($net) / $maxAbs * 100) : 0,
                 'prior_pct' => $hasPrior && $maxAbs > 0 ? (int) round(abs($priorNet) / $maxAbs * 100) : 0,
@@ -423,7 +424,7 @@ class OwnerReports extends Component
         $date = null;
         if ($latest instanceof Payout) {
             $stamp = $latest->paid_at ?? $latest->created_at;
-            $date = $stamp?->translatedFormat('j M Y');
+            $date = $stamp?->translatedFormat(LocalDate::pattern('j M Y'));
         }
 
         return [
@@ -450,7 +451,7 @@ class OwnerReports extends Component
             ->limit(3)
             ->get()
             ->map(fn (OwnerStatement $s): array => [
-                'name' => __('php/livewire/owner/owner_reports.doc_statement', ['month' => $s->period_start->translatedFormat('F Y')]),
+                'name' => __('php/livewire/owner/owner_reports.doc_statement', ['month' => $s->period_start->translatedFormat(LocalDate::pattern('F Y'))]),
                 'sub' => __('php/livewire/owner/owner_reports.doc_statement_sub'),
                 'href' => route('owner.statements.pdf', $s->id),
             ])
@@ -500,7 +501,7 @@ class OwnerReports extends Component
                 $end = $start->addMonth();
             }
 
-            return ['key' => 'custom', 'label' => $start->translatedFormat('M Y').' – '.$to->startOfMonth()->translatedFormat('M Y'), 'start' => $start, 'end' => $end, 'custom' => true, 'from' => $start->format('Y-m'), 'to' => $to->startOfMonth()->format('Y-m')];
+            return ['key' => 'custom', 'label' => $start->translatedFormat(LocalDate::pattern('M Y')).' – '.$to->startOfMonth()->translatedFormat(LocalDate::pattern('M Y')), 'start' => $start, 'end' => $end, 'custom' => true, 'from' => $start->format('Y-m'), 'to' => $to->startOfMonth()->format('Y-m')];
         }
 
         $range = (string) request()->query('range', '');
@@ -591,7 +592,7 @@ class OwnerReports extends Component
         $cursor = CarbonImmutable::today()->startOfMonth();
         $out = [];
         for ($i = 0; $i < 24; $i++) {
-            $out[] = ['value' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat('M Y')];
+            $out[] = ['value' => $cursor->format('Y-m'), 'label' => $cursor->translatedFormat(LocalDate::pattern('M Y'))];
             $cursor = $cursor->subMonth();
         }
 

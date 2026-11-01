@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Bu kuruluşun canlı para kayıtları var (:records). Yasalar bu kayıtların yıllarca saklanmasını gerektirebilir; bu nedenle saklama süresine ilişkin hukuki karar verilene kadar silme işlemi bekletiliyor — o zamana kadar kuruluş silinemez.',
+    'uncounted_cascades' => 'Veritabanı, kayıtları silme işleminin tam olarak sayamayacağı bir şekilde birbirine bağlıyor (:links); bu nedenle onay ekranı nelerin silineceğini gösteremedi. Bu düzeltilene kadar hiçbir şey silinemez.',
+    'stripe_billing_live' => 'Bu kuruluş için canlı Stripe faturalandırması etkin. Önce aboneliği Stripe üzerinden iptal edin; aksi halde artık var olmayan bir müşteriden ücret almaya devam eder. Abonelik orada zaten iptal edildiyse bununla ilgili Stripe bildirimi burada işlenmemiş demektir — sorunu elle çözün.',
+    'checkout_open_subscription' => 'Aboneliği için bir Stripe ödeme sayfası açıldı (açılış: :opened) ve :closes tarihine kadar hâlâ ödenebilir. Sayfa ödendikten veya süresi dolduktan sonra tekrar deneyin.',
+    'checkout_open_card' => 'Bir misafirin kartla ödemesi için bir Stripe ödeme sayfası açıldı (açılış: :opened) ve :closes tarihine kadar hâlâ ödenebilir. Sayfa ödendikten veya süresi dolduktan sonra tekrar deneyin.',
+    'checkout_unreported_subscription' => 'Aboneliği için canlı bir Stripe ödeme sayfası açıldı (açılış: :opened) ve kapandı (kapanış: :closed), ancak ödenip ödenmediğine dair bir bildirim burada işlenmedi. Sayfayı Stripe panelinde kontrol edin; ödendiyse önce sayfanın orada başlattığı işlemi iptal edin. Stripe, iletemediği bir bildirimi 3 güne kadar yeniden dener — bildirim işlendikten sonra tekrar deneyin. Stripe bildirimi zaten gönderdiyse ve bildirim işlenemediyse sorunu elle çözün.',
+    'checkout_unreported_card' => 'Bir misafirin kartla ödemesi için canlı bir Stripe ödeme sayfası açıldı (açılış: :opened) ve kapandı (kapanış: :closed), ancak ödenip ödenmediğine dair bir bildirim burada işlenmedi. Sayfayı Stripe panelinde kontrol edin; ödendiyse önce sayfanın orada başlattığı işlemi iptal edin. Stripe, iletemediği bir bildirimi 3 güne kadar yeniden dener — bildirim işlendikten sonra tekrar deneyin. Stripe bildirimi zaten gönderdiyse ve bildirim işlenemediyse sorunu elle çözün.',
+    'refund_processing' => 'Bir kart iadesi Stripe tarafında hâlâ işleniyor. Stripe onaylayana kadar bekleyin, ardından tekrar deneyin.',
+    'card_payment_open' => 'Bir kart ödemesi veya kart provizyonu hâlâ açık. Önce sonuçlanmasını bekleyin ya da provizyonu serbest bırakın.',
+    'dispute_open' => 'Bir kart ödemesi için Stripe üzerinde itiraz süreci devam ediyor (başlangıç: :since). İtirazı Stripe üzerinden yanıtlayın ve Stripe itirazın kapandığını bildirdikten sonra tekrar deneyin. Stripe panelinde itiraz zaten kapalı görünüyorsa bildirim hiç ulaşmamıştır — sorunu elle çözün.',
+    'payouts_in_transit' => '{1} Bir mülk sahibine yapılan bir hakediş ödemesi Stripe üzerinde transferde (başlangıç: :since).|[0,*] Mülk sahiplerine yapılan :count hakediş ödemesi Stripe üzerinde transferde (başlangıç: :since).',
+    'payout_transit_stale' => 'Bu, olması gerekenden uzun sürüyor — önce sorunu Stripe ile elle çözün.',
+    'payout_transit_wait' => 'Stripe onaylayana kadar bekleyin, ardından tekrar deneyin.',
+    'payouts_owed' => '{1} Bir mülk sahibine hâlâ ödenmesi gereken bir hakediş var (beklemede veya bloke). Önce bu hakedişi ödeyin — silerseniz mülk sahipleri ödemelerini alamaz ve buna dair hiçbir kayıt kalmaz.|[0,*] Mülk sahiplerine hâlâ ödenmesi gereken :count hakediş var (beklemede veya bloke). Önce bunları ödeyin — silerseniz mülk sahipleri ödemelerini alamaz ve buna dair hiçbir kayıt kalmaz.',
+    'payout_run_running' => 'Bir toplu hakediş ödemesi çalışıyor (başlangıç: :since).',
+    'looks_stuck' => 'Takılmış görünüyor — silmeden önce sorunu elle çözün.',
+    'payout_run_wait' => 'Tamamlandığında tekrar deneyin.',
+    'webhook_unprocessed' => 'Bu kuruluş için alınan bir :source bildirimi (alınma: :received) henüz işlenmedi.',
+    'webhook_wait' => 'Birkaç dakika sonra tekrar deneyin.',
+    'cross_tenant_references' => 'Başka bir kuruluşun, bu kuruluşa bağlanan kayıtları var (:links). Silme işlemi bu kayıtları da siler.',
+    'schema_unreadable' => 'Veritabanı şeması tam olarak okunamadı (bulunamayanlar: :tables).',
+    'already_deleted' => 'Bu kuruluş artık mevcut değil — zaten silindi.',
+    'protected' => 'Bu kuruluş korumalıdır ve hiçbir zaman silinemez.',
+    'not_suspended' => 'Önce askıya alın — yalnızca askıya alınmış veya arşivlenmiş bir kuruluş silinebilir.',
+    'record_survived' => 'Bu kuruluşa ait bir kayıt silme işleminden sonra hâlâ duruyordu (:tables içinde), bu nedenle her şey geri alındı.',
+    'organization_survived' => 'Kuruluş veya kişilerinden biri silme işleminden sonra hâlâ duruyordu, bu nedenle her şey geri alındı.',
+    'live_card_payments' => '{1} :count kart ödemesi|[0,*] :count kart ödemesi',
+    'live_refunds' => '{1} :count iade|[0,*] :count iade',
+    'live_payouts' => '{1} :count hakediş|[0,*] :count hakediş',
+    'live_stripe_billing' => 'faturalarıyla birlikte canlı Stripe faturalandırması',
+    'unknown_time' => 'bilinmiyor',
+    'time_utc' => ':time UTC',
+];

@@ -10,6 +10,7 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
 use App\Payouts\PayoutEngineMode;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use Illuminate\Contracts\View\View;
@@ -287,13 +288,13 @@ class OwnerBalance extends Component
 
             $rows[] = [
                 'id' => (string) $entry->id,
-                'date' => $entry->service_date->translatedFormat('j M Y'),
+                'date' => $entry->service_date->translatedFormat(LocalDate::pattern('j M Y')),
                 // ⚠️ CARRIED, NOT RECOMPUTED. `$signed` is the exact value the running balance above just
                 // consumed and `amount_display` just formatted; the rollup sums these same integers. Nothing
                 // downstream re-derives a figure from the ledger, so a group cannot drift from its lines.
                 'signed_minor' => $signed,
                 'month_key' => $currency.'|'.$entry->service_date->format('Y-m'),
-                'month_label' => $entry->service_date->translatedFormat('F Y'),
+                'month_label' => $entry->service_date->translatedFormat(LocalDate::pattern('F Y')),
                 'description' => $entry->label(),
                 'type_label' => $this->entryTypeLabel((string) $entry->entry_type),
                 'amount_display' => $this->money($signed, $currency, signed: true),

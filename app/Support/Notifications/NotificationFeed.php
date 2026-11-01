@@ -162,11 +162,18 @@ final class NotificationFeed
      */
     private static function legacy(string $type, mixed $stored): ?string
     {
-        if (! str_starts_with($type, 'App\\Notifications\\')) {
-            return null;
+        // the class's own texts first, then its parents' (the guest stay notifications share GuestReservationNotification's)
+        for ($class = $type; is_string($class) && str_starts_with($class, 'App\\Notifications\\'); $class = get_parent_class($class)) {
+            $said = StoredEnglish::say('php/'.implode('/', array_map(fn (string $part) => Str::snake($part), explode('\\', substr($class, 4)))), $stored, FeedParams::legacyFilled());
+            if ($said !== null) {
+                return $said;
+            }
+            if (! class_exists($class)) {
+                break;
+            }
         }
 
-        return StoredEnglish::say('php/'.implode('/', array_map(fn (string $part) => Str::snake($part), explode('\\', substr($type, 4)))), $stored, FeedParams::legacyFilled());
+        return null;
     }
 
     /**

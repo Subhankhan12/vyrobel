@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Not',
+    'kind_progress' => 'İlerleme',
+    'kind_part' => 'Parça sipariş edildi',
+    'elapsed_minutes' => ':minutes dk',
+    'elapsed_hours' => ':hours sa :minutes dk',
+    'elapsed_days' => ':days g :hours sa',
+    'hours_short' => ':hours sa',
+    'timeline_opened' => 'Bildirildi',
+    'timeline_assigned_to' => 'Atanan kişi: :name',
+    'a_technician' => 'bir teknisyen',
+    'timeline_unassigned' => 'Atama kaldırıldı',
+    'timeline_started' => 'İş başladı',
+    'timeline_resolved' => 'Çözüldü',
+    'timeline_cancelled' => 'İptal edildi',
+    'timeline_parts_updated' => 'Parçalar güncellendi',
+    'timeline_cost_corrected' => 'Maliyet düzeltildi',
+    'timeline_updated' => 'Ayrıntılar düzenlendi',
+    'note_progress' => 'İlerleme güncellemesi',
+    'note_part' => 'Parça sipariş edildi',
+    'note_added' => 'Not eklendi',
+    'a_team_member' => 'Bir ekip üyesi',
+    'system' => 'Sistem',
+    'photo_alt' => 'Bakım fotoğrafı',
+    'the_owner' => 'mülk sahibi',
+    'load_none' => 'Açık iş emri yok',
+    'load_open' => ':open açık',
+    'load_open_urgent' => ':open açık · :urgent acil',
+    'impact_arrivals' => '{1} Bu gece :count giriş için oda gerekiyor|[0,*] Bu gece :count giriş için oda gerekiyor',
+    'impact_bookings' => '{1} :count rezervasyonun taşınması gerekiyor|[0,*] :count rezervasyonun taşınması gerekiyor',
+    'impact_none' => 'Etkilenen rezervasyon yok',
+];

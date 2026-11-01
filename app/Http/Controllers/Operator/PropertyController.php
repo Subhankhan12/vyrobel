@@ -11,6 +11,7 @@ use App\Models\PropertyAssignment;
 use App\Services\ChannelConnectionService;
 use App\Services\PropertyRemovalRefused;
 use App\Services\PropertyRemovalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
@@ -149,7 +150,7 @@ class PropertyController extends Controller
 
         return redirect()->route('app.portfolio')->with('portfolio_notice', __('php/http/controllers/operator/property_controller.removal_scheduled', [
             'name' => $name,
-            'date' => (string) $target->removal_effective_at?->translatedFormat('j M Y'),
+            'date' => (string) $target->removal_effective_at?->translatedFormat(LocalDate::pattern('j M Y')),
         ]));
     }
 

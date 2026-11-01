@@ -14,6 +14,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Authorization\RoleLabel;
+use App\Support\I18n\LocalDate;
 use App\Support\Inbox\MessageAttachments;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -234,7 +235,7 @@ class OwnerMessages extends Component
                 'time' => $at?->format('H:i') ?? '',
                 'meta' => __('php/livewire/owner/owner_messages.meta', [
                     'author' => $mine ? __('php/livewire/owner/owner_messages.you') : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : __('php/livewire/owner/owner_messages.team_author')),
-                    'time' => $at?->translatedFormat('j M, H:i') ?? '',
+                    'time' => $at?->translatedFormat(LocalDate::pattern('j M, H:i')) ?? '',
                 ]),
                 'day_label' => $day !== $lastDay && $at !== null ? $this->dayLabel($at) : null,
                 'failed' => $mine && $message->delivery_status === 'failed',
@@ -377,7 +378,7 @@ class OwnerMessages extends Component
                     'id' => (string) $m->getKey(),
                     'author' => $author,
                     'snippet' => Str::limit((string) $m->body, 90),
-                    'time' => $at?->translatedFormat('j M') ?? '',
+                    'time' => $at?->translatedFormat(LocalDate::pattern('j M')) ?? '',
                 ];
             })
             ->values()
@@ -395,7 +396,7 @@ class OwnerMessages extends Component
             return __('php/livewire/owner/owner_messages.yesterday');
         }
 
-        return $at->translatedFormat('j F').($at->year !== $today->year ? ' '.$at->year : '');
+        return $at->translatedFormat(LocalDate::pattern('j F')).($at->year !== $today->year ? ' '.$at->year : '');
     }
 
     // ── Request state ────────────────────────────────────────────────────────────────────────────
@@ -661,6 +662,6 @@ class OwnerMessages extends Component
             return __('php/livewire/owner/owner_messages.yesterday');
         }
 
-        return $at->translatedFormat('j M');
+        return $at->translatedFormat(LocalDate::pattern('j M'));
     }
 }

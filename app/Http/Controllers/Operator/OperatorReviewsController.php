@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Services\ReviewService;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Reviews\ReviewRating;
 use App\Support\Reviews\ReviewTag;
 use Carbon\CarbonImmutable;
@@ -58,7 +59,7 @@ class OperatorReviewsController extends Controller
                 'private' => $r->visibility === Review::VISIBILITY_PRIVATE,
                 'status' => (string) $r->status,
                 'response' => (string) $r->operator_response,
-                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
             ]);
 
         return response()->view('operator.reviews', [

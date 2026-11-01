@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Rezervasyonlar',
+    'arrivals_this_month' => 'Bu ayki girişler',
+    'arrivals_this_month_sub' => 'bu takvim ayında check-in yapacaklar · iptal ve no-show rezervasyonlar hariç',
+    'booked_value' => 'Rezervasyon değeri · bu ayki girişler',
+    'booked_value_sub' => 'bu ayki girişler için faturalanan',
+    'booked_value_sub_multi' => 'bu ayki girişler için faturalanan · para birimine göre gösterilir (hiçbir zaman birbirine eklenmez)',
+    'balances_due' => 'Ödenecek bakiyeler · bu ayki girişler',
+    'folios_owing' => '{0} ödenecek tutar yok|{1} :count folyoda hâlâ borç var|[2,*] :count folyoda hâlâ borç var',
+    'search_placeholder' => 'Misafir adı veya referans ile ara…',
+    'search_label' => 'Rezervasyonlarda ara',
+    'group_booking' => 'Grup rezervasyonu',
+    'new_reservation' => 'Yeni rezervasyon',
+    'empty_heading' => 'Henüz rezervasyon yok',
+    'empty_body' => 'Her rezervasyon — doğrudan, walk-in veya içe aktarılan — alındığı anda burada görünür.',
+    'no_match_query' => '“:query” ile eşleşen rezervasyon yok',
+    'no_match_view' => 'Bu görünümde rezervasyon yok',
+    'no_match_hint' => '{1} Bir misafir adı veya rezervasyon referansı deneyin. Toplam: :count rezervasyon.|[0,*] Bir misafir adı veya rezervasyon referansı deneyin. Toplam: :count rezervasyon.',
+    'no_match_hint_filter' => '{1} Bir misafir adı veya rezervasyon referansı deneyin ya da filtreyi temizleyin. Toplam: :count rezervasyon.|[0,*] Bir misafir adı veya rezervasyon referansı deneyin ya da filtreyi temizleyin. Toplam: :count rezervasyon.',
+    'clear_search_filters' => 'Aramayı ve filtreleri temizle',
+    'col_guest' => 'Misafir',
+    'col_stay' => 'Konaklama',
+    'col_unit' => 'Birim',
+    'col_source' => 'Kaynak',
+    'col_stage' => 'Aşama',
+    'col_balance_due' => 'Ödenecek tutar',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count gece|[0,*] :count gece',
+    'guests' => '{1} :count misafir|[0,*] :count misafir',
+    'unassigned' => 'Atanmamış',
+    'refunded' => 'İade edildi',
+    'pager_label' => 'rezervasyon',
+];

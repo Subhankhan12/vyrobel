@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1} :count rezervasyon|[0,*] :count rezervasyon',
+    'room_moves' => '{1} :count oda değişikliği|[0,*] :count oda değişikliği',
+    'cleaning_tasks' => '{1} :count temizlik görevi|[0,*] :count temizlik görevi',
+    'work_orders' => '{1} :count iş emri|[0,*] :count iş emri',
+    'status_changes' => '{1} :count durum değişikliği|[0,*] :count durum değişikliği',
+    'blocks' => '{1} :count bloke|[0,*] :count bloke',
+    'owner_agreements' => '{1} :count mülk sahibi sözleşmesi|[0,*] :count mülk sahibi sözleşmesi',
+    'owner_statement_lines' => '{1} :count hesap özeti satırı|[0,*] :count hesap özeti satırı',
+    'owner_expenses' => '{1} :count mülk sahibi gideri|[0,*] :count mülk sahibi gideri',
+    'reviews' => '{1} :count değerlendirme|[0,*] :count değerlendirme',
+    'owner_requests' => '{1} :count mülk sahibi talebi|[0,*] :count mülk sahibi talebi',
+    'notes' => '{1} :count not|[0,*] :count not',
+    'documents' => '{1} :count belge|[0,*] :count belge',
+    'files' => '{1} :count dosya|[0,*] :count dosya',
+    'units' => '{1} :count birim|[0,*] :count birim',
+    'rate_proposals' => '{1} :count fiyat önerisi|[0,*] :count fiyat önerisi',
+    'overbooking_records' => '{1} :count overbooking kaydı|[0,*] :count overbooking kaydı',
+    'guest_waitlist_entries' => '{1} :count misafir bekleme listesi kaydı|[0,*] :count misafir bekleme listesi kaydı',
+    'guest_wishlist_saves' => '{1} :count misafir favori kaydı|[0,*] :count misafir favori kaydı',
+    'derived_room_types' => '{1} buna dayalı :count oda tipi|[0,*] buna dayalı :count oda tipi',
+    'derived_rate_plans' => '{1} fiyatı bundan türetilen :count başka fiyat planı|[0,*] fiyatı bundan türetilen :count başka fiyat planı',
+    'corporate_default_rates' => '{1} :count kurumsal hesabın varsayılan fiyatı|[0,*] :count kurumsal hesabın varsayılan fiyatı',
+    'channel_connections' => '{1} :count kanal bağlantısı|[0,*] :count kanal bağlantısı',
+    'an_owner' => 'bir mülk sahibi',
+    'pending_owner_invitation' => 'bekleyen bir mülk sahibi daveti',
+    'list_and' => ':items ve :last',
+    'kind_rooms' => 'oda',
+    'kind_apartments' => 'daire',
+    'kind_villas' => 'villa',
+    'kind_dorm_beds' => 'yatakhane yatağı',
+];

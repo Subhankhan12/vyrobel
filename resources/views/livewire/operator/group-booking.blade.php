@@ -72,7 +72,7 @@
         </div>
     </div>
 @else
-    @php $__gbMonths = array_map(fn (int $m) => \Carbon\CarbonImmutable::create(2000, $m, 1)->translatedFormat('M'), range(1, 12)); @endphp
+    @php $__gbMonths = array_map(fn (int $m) => \Carbon\CarbonImmutable::create(2000, $m, 1)->translatedFormat(\App\Support\I18n\LocalDate::pattern('M')), range(1, 12)); @endphp
     @php
         // I18N-01 rule 12 — every count the wizard shows gets its real plural here, never `n === 1 ?` in the script.
         // Guests: the headcount counter is clamped to 1 … 80 (and a restored draft is clamped to the same range), so 0 … 80.

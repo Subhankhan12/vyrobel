@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Platform\Health;
 
+use App\Support\I18n\LocalDate;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Mail\MailSendLog;
 use App\Support\Ops\ConfigInventory;
@@ -221,7 +222,7 @@ final class HealthBoard
             $at = Carbon::parse($hour, 'UTC');
             $lines[] = trans_choice('php/support/platform/health/health_board.errors_hour_line', $n, [
                 'count' => $n,
-                'from' => $at->translatedFormat('j M, H:i'),
+                'from' => $at->translatedFormat(LocalDate::pattern('j M, H:i')),
                 'to' => $at->copy()->addHour()->format('H:i'),
             ]);
         }

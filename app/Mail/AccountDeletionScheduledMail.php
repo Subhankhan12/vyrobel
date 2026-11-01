@@ -9,6 +9,7 @@ use App\Models\Guest;
 use App\Services\GuestDeletionService;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -51,7 +52,7 @@ class AccountDeletionScheduledMail extends Mailable
                     : ''),
             'guestName' => GuestName::display($this->guest),
             'graceDays' => GuestDeletionService::GRACE_DAYS,
-            'effective' => $effective !== null ? $effective->translatedFormat('j M Y') : null,
+            'effective' => $effective !== null ? $effective->translatedFormat(LocalDate::pattern('j M Y')) : null,
         ]);
     }
 }

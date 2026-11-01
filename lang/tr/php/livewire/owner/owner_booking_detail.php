@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'saat :time itibarıyla',
+    'by_time' => 'en geç saat :time',
+    'repeat_guest' => '{1} Tekrar gelen misafir · :count konaklama|[0,*] Tekrar gelen misafir · :count konaklama',
+    'new_guest' => 'Yeni misafir',
+    'guests_count' => '{1} :count misafir|[0,*] :count misafir',
+    'nights_count' => '{1} :count gece|[0,*] :count gece',
+    'channel_direct' => 'Doğrudan (Vyrobel)',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'OTA kanalı',
+    'event_booking_received' => 'Rezervasyon alındı',
+    'event_cancelled' => 'İptal edildi',
+    'event_payment_received' => 'Ödeme alındı',
+    'when_paid_in_full' => 'Tamamı ödendi',
+    'event_part_payment_received' => 'Kısmi ödeme alındı',
+    'when_balance_due' => 'Ödenecek tutar',
+    'event_payment' => 'Ödeme',
+    'when_not_yet_received' => 'Henüz alınmadı',
+    'event_checked_in' => 'Check-in yapıldı',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out yapıldı',
+    'event_payout_released' => 'Hakediş ödendi',
+    'event_payout' => 'Hakediş',
+    'when_next_payout' => 'Sonraki hakedişinizle',
+    'payout_not_attributed' => 'Henüz işlenmedi',
+    'payout_not_attributed_note' => 'Bu rezervasyon henüz hesap defterinize işlenmedi.',
+    'payout_scheduled' => 'Planlandı',
+    'payout_scheduled_note' => 'Sonraki hesap özetinize dahil edilir, ardından o hakedişle ödenir.',
+    'payout_pending' => 'Hakediş bekleniyor',
+    'payout_pending_note' => 'Kesinleşmiş bir hesap özetinde — o hakedişle ödenir.',
+    'payout_paid' => 'Ödendi',
+    'payout_paid_note' => 'Tamamlanmış bir hakedişle ödendi.',
+];

@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -135,7 +136,7 @@ final class OwnerBookingsReader
             'unit_label' => $owned['label'],
             'check_in_sort' => $checkIn->toDateString(),
             'check_out_sort' => $checkOut->toDateString(),
-            'stay' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
+            'stay' => $checkIn->translatedFormat(LocalDate::pattern('j M')).' – '.$checkOut->translatedFormat(LocalDate::pattern('j M Y')),
             'nights' => (int) $checkIn->diffInDays($checkOut),
             'month' => $checkIn->format('Y-m'),
             'source' => (string) $r->source,

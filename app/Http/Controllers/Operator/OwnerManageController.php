@@ -13,6 +13,7 @@ use App\Models\OwnerUser;
 use App\Models\Unit;
 use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
@@ -23,13 +24,13 @@ use App\Support\Owner\OwnerLoginLifecycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 /**
  * Operator OWNER management writes (#93) — Edit owner (commission / portal), Pause payouts, Remove owner (a careful
  * ARCHIVE-not-destroy), and Add note. All PRG (POST → controller → redirect), tenant-scoped (`{owner}` resolves via
  * the global scope → cross-org 404), gated `can:users.manage` (the same owner-management privilege as the invite),
  * read-only-respecting (#20), and audited. NEVER a destructive cascade — the financial + booking records are kept.
  */
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class OwnerManageController extends Controller
@@ -74,7 +75,7 @@ class OwnerManageController extends Controller
         $wasWaiting = $today !== null && $waiting !== null && (string) $waiting->getKey() !== (string) $today->getKey();
 
         if (! CommissionChange::apply($model, $pct)) {
-            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_unchanged', ['rate' => $display, 'name' => $model->name, 'date' => $startsOn->translatedFormat('j M Y')]));
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_unchanged', ['rate' => $display, 'name' => $model->name, 'date' => $startsOn->translatedFormat(LocalDate::pattern('j M Y'))]));
         }
 
         // ⚠️ A field list, never the figures — an audit row is not a second copy of the money.
@@ -86,12 +87,12 @@ class OwnerManageController extends Controller
 
         // back to today's rate while a change was waiting: the waiting change is what moved, so that is what the notice says
         if ($wasWaiting && $today->commission_pct !== null && round((float) $today->commission_pct, 2) === $pct) {
-            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_waiting_cancelled', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat('j M Y')]));
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_waiting_cancelled', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat(LocalDate::pattern('j M Y'))]));
         }
 
         // ⚠️ "Worked out", not "booked": earnings are worked out when a booking is made — or later, for one imported without
         //    them, and again when a booking moves to another owner's unit (the review) — so that is the honest unit.
-        return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_from_date', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat('j M Y')]));
+        return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.commission_from_date', ['name' => $model->name, 'rate' => $display, 'date' => $startsOn->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 
     /**

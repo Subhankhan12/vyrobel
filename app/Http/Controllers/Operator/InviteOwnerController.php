@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\Unit;
 use App\Services\OwnerInviteService;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
@@ -111,7 +112,7 @@ class InviteOwnerController extends Controller
             ->with('owners_notice', __('php/http/controllers/operator/invite_owner_controller.invite_sent', ['email' => $validated['email']]))
             ->with('owner_invite_sent', [
                 'email' => $validated['email'],
-                'expires' => $result['invite']->expires_at?->translatedFormat('j M Y'),
+                'expires' => $result['invite']->expires_at?->translatedFormat(LocalDate::pattern('j M Y')),
             ]);
     }
 

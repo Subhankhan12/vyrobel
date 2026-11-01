@@ -16,6 +16,7 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\HousekeepingService;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Schedule\StaffRoster;
 use App\Support\StayTime;
@@ -215,7 +216,7 @@ class HousekeepingBoard extends Component
             'priority_label' => $priority['label'],
             'priority_tone' => $priority['tone'],
             'is_priority' => $task->priority === 'high',
-            'date' => CarbonImmutable::parse($task->date)->translatedFormat('j M'),
+            'date' => CarbonImmutable::parse($task->date)->translatedFormat(LocalDate::pattern('j M')),
             // ⚠️ 2026-10-05 — which DAY this room is for. The page lists every day's cleaning (no date filter), and said "Today's":
             //    tomorrow's rooms read as today's. Today · Tomorrow · Overdue · <date> (not done, its day passed) · <weekday date>
             ...$this->day((string) $task->date, $status, $now->startOfDay()),
@@ -249,8 +250,8 @@ class HousekeepingBoard extends Component
         return match (true) {
             $d->isSameDay($today) => ['day' => __('common.today'), 'day_tone' => 'today'],
             $d->isSameDay($today->addDay()) => ['day' => __('php/livewire/housekeeping_board.day_tomorrow'), 'day_tone' => 'later'],
-            $d->lessThan($today) && ! $done => ['day' => __('php/livewire/housekeeping_board.day_overdue', ['date' => $d->translatedFormat('j M')]), 'day_tone' => 'overdue'],
-            default => ['day' => $d->translatedFormat('D j M'), 'day_tone' => $d->lessThan($today) ? 'past' : 'later'],
+            $d->lessThan($today) && ! $done => ['day' => __('php/livewire/housekeeping_board.day_overdue', ['date' => $d->translatedFormat(LocalDate::pattern('j M'))]), 'day_tone' => 'overdue'],
+            default => ['day' => $d->translatedFormat(LocalDate::pattern('D j M')), 'day_tone' => $d->lessThan($today) ? 'past' : 'later'],
         };
     }
 

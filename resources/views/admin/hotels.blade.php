@@ -85,7 +85,7 @@
                     @foreach ($s['cohorts'] as $c)
                         <tr>
                             {{-- ADMIN 03 · F18 — "Sep 2026" like every other date here; the `Y-m` key stays underneath because it sorts. --}}
-                            <td>{{ preg_match('/^\d{4}-\d{2}$/', $c['month']) === 1 ? \Carbon\CarbonImmutable::createFromFormat('!Y-m', $c['month'], 'UTC')->translatedFormat('M Y') : __('admin/hotels.unknown_month') }}</td>
+                            <td>{{ preg_match('/^\d{4}-\d{2}$/', $c['month']) === 1 ? \Carbon\CarbonImmutable::createFromFormat('!Y-m', $c['month'], 'UTC')->translatedFormat(\App\Support\I18n\LocalDate::pattern('M Y')) : __('admin/hotels.unknown_month') }}</td>
                             <td class="ad-num">{{ $c['size'] }}</td>
                             @foreach (PlatformHotelStats::COHORT_MONTHS as $k)
                                 <td class="ad-num" style="{{ $c['active'][$k] === null ? 'color: var(--ad-faint);' : '' }}">{{ $c['active'][$k] === null ? __('admin/hotels.not_yet') : __('admin/hotels.cohort_active_of', ['active' => $c['active'][$k], 'size' => $c['size']]) }}</td>

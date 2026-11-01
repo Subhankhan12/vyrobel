@@ -10,6 +10,7 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Scopes\OwnerScope;
 use App\Services\OwnerExpenseService;
+use App\Support\I18n\LocalDate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -114,7 +115,7 @@ class OwnerExpenses extends Component
 
             return [
                 'id' => (string) $e->id,
-                'date_display' => Carbon::parse($e->expense_date)->translatedFormat('j M Y'),
+                'date_display' => Carbon::parse($e->expense_date)->translatedFormat(LocalDate::pattern('j M Y')),
                 'category' => (string) $e->category,
                 'category_label' => $this->categoryLabel((string) $e->category),
                 'description' => (string) $e->description,
@@ -182,7 +183,7 @@ class OwnerExpenses extends Component
             if ($statement instanceof OwnerStatement) {
                 $out[(string) $ledgerId] = [
                     'id' => (string) $statement->id,
-                    'label' => $statement->period_start->translatedFormat('F Y'),
+                    'label' => $statement->period_start->translatedFormat(LocalDate::pattern('F Y')),
                 ];
             }
         }

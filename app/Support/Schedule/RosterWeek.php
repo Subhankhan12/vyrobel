@@ -11,6 +11,7 @@ use App\Models\SchedulePublication;
 use App\Models\Shift;
 use App\Models\User;
 use App\Services\LeaveService;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 
 /**
@@ -137,7 +138,7 @@ final class RosterWeek
         return [
             'date' => $day['date'],
             'index' => $focusIdx,
-            'label' => CarbonImmutable::parse($day['date'])->translatedFormat('l j M'),
+            'label' => CarbonImmutable::parse($day['date'])->translatedFormat(LocalDate::pattern('l j M')),
             'working_count' => $workingCount,
             'groups' => $groups,
             'not_working' => $notWorking,
@@ -269,7 +270,7 @@ final class RosterWeek
             ->map(fn (OpenShift $o): array => [
                 'id' => (string) $o->getKey(),
                 'date' => $o->date->toDateString(),
-                'day_label' => $o->date->translatedFormat('D j M'),
+                'day_label' => $o->date->translatedFormat(LocalDate::pattern('D j M')),
                 'shift_label' => ShiftType::label((string) $o->shift_type),
                 'department' => $o->department,
             ])->all();
@@ -290,7 +291,7 @@ final class RosterWeek
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $d = $monday->addDays($i);
-            $days[] = ['date' => $d->toDateString(), 'dow' => $d->translatedFormat('D'), 'label' => $d->translatedFormat('j M'), 'today' => $d->isSameDay($today)];
+            $days[] = ['date' => $d->toDateString(), 'dow' => $d->translatedFormat(LocalDate::pattern('D')), 'label' => $d->translatedFormat(LocalDate::pattern('j M')), 'today' => $d->isSameDay($today)];
         }
         $from = $days[0]['date'];
         $to = $days[6]['date'];
@@ -345,7 +346,7 @@ final class RosterWeek
         return new self(
             days: $days,
             rows: $rows,
-            weekLabel: __('php/support/schedule/roster_week.week_range', ['start' => $monday->translatedFormat('j M'), 'end' => $monday->addDays(6)->translatedFormat('j M Y')]),
+            weekLabel: __('php/support/schedule/roster_week.week_range', ['start' => $monday->translatedFormat(LocalDate::pattern('j M')), 'end' => $monday->addDays(6)->translatedFormat(LocalDate::pattern('j M Y'))]),
             isThisWeek: $week === 0,
             week: $week,
             dept: $dept,

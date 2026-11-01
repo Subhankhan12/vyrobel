@@ -14,6 +14,7 @@ use App\Services\AssignmentService;
 use App\Services\OwnerBlockService;
 use App\Services\OwnerPortalService;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -78,7 +79,7 @@ class OwnerBlockCalendar extends Component
             ])->values()->all(),
             'unit' => ['id' => (string) $unit->id, 'label' => (string) ($unit->name ?? $unit->code)],
             'month' => [
-                'label' => $monthStart->translatedFormat('F Y'),
+                'label' => $monthStart->translatedFormat(LocalDate::pattern('F Y')),
                 'value' => $monthStart->format('Y-m'),
                 'first_weekday' => $monthStart->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $monthStart->copy()->subMonthNoOverflow()->format('Y-m'),
@@ -117,7 +118,7 @@ class OwnerBlockCalendar extends Component
     {
         $monday = Carbon::parse('2024-01-01');   // a Monday
 
-        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat('D')), range(0, 6));
+        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
     }
 
     /**
@@ -263,7 +264,7 @@ class OwnerBlockCalendar extends Component
                 'guest' => $state === 'booked' ? $bookedDays[$key] : null,
                 // The spoken date for the cell's accessible name. A day number alone ("14") is meaningless
                 // out of the grid's visual context, and every day control needs a name that identifies it.
-                'aria' => $date->translatedFormat('j F Y'),
+                'aria' => $date->translatedFormat(LocalDate::pattern('j F Y')),
             ];
         }
 
@@ -303,7 +304,7 @@ class OwnerBlockCalendar extends Component
                     'series_id' => $isSeries ? (string) $first->series_id : null,
                     'block_id' => $isSeries ? null : (string) $first->id,
                     'count' => $group->count(),
-                    'range' => __('php/livewire/owner/owner_block_calendar.date_range', ['start' => $start->translatedFormat('j M'), 'end' => $lastNight->translatedFormat('j M Y')]),
+                    'range' => __('php/livewire/owner/owner_block_calendar.date_range', ['start' => $start->translatedFormat(LocalDate::pattern('j M')), 'end' => $lastNight->translatedFormat(LocalDate::pattern('j M Y'))]),
                     'nights' => $nights,
                     'reason' => $reason,
                     'note' => $note,

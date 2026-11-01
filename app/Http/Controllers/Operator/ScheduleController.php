@@ -17,6 +17,7 @@ use App\Services\PdfService;
 use App\Services\ShiftRosterService;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Schedule\RosterWeek;
@@ -224,7 +225,7 @@ class ScheduleController extends Controller
         $audit->record('schedule.published', $publication, null, ['week_starts_on' => $weekStart]);
 
         // Notify each rostered staff member (real FeedNotification; edits stay live afterwards).
-        $label = CarbonImmutable::parse($weekStart)->translatedFormat('j M');
+        $label = CarbonImmutable::parse($weekStart)->translatedFormat(LocalDate::pattern('j M'));
         foreach ($roster->rows as $row) {
             User::query()->find($row['staff']['id'])?->notify(new SchedulePublishedNotification($property->name, $label));
         }
@@ -346,7 +347,7 @@ class ScheduleController extends Controller
             'timeOff' => $timeOff,
             // The REAL production time, in the PROPERTY's timezone (store UTC, show property-local) — a
             // printed rota needs to say how old it is. Presentation only; nothing derives from it.
-            'generatedAt' => CarbonImmutable::now($property->timezone ?: config('app.timezone'))->translatedFormat('D j M Y · H:i'),
+            'generatedAt' => CarbonImmutable::now($property->timezone ?: config('app.timezone'))->translatedFormat(LocalDate::pattern('D j M Y · H:i')),
         ], 'schedule-'.$property->getKey().'-week-'.$week.'.pdf');
     }
 

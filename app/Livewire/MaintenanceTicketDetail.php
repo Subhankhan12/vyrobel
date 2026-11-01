@@ -16,6 +16,7 @@ use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Services\MaintenanceSettingsService;
+use App\Support\I18n\LocalDate;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\StaffRoster;
@@ -130,11 +131,11 @@ class MaintenanceTicketDetail extends Component
                 'assignee' => $ticket->assignedTo instanceof User ? (string) $ticket->assignedTo->name : null,
                 'assignee_id' => $ticket->assigned_to !== null ? (string) $ticket->assigned_to : null,
                 'assignee_initials' => $ticket->assignedTo instanceof User ? $this->initials((string) $ticket->assignedTo->name) : null,
-                'opened' => $openedAt->translatedFormat('j M Y · H:i'),
-                'reported_day' => $openedAt->isToday() ? __('common.today') : $openedAt->translatedFormat('j M'),
+                'opened' => $openedAt->translatedFormat(LocalDate::pattern('j M Y · H:i')),
+                'reported_day' => $openedAt->isToday() ? __('common.today') : $openedAt->translatedFormat(LocalDate::pattern('j M')),
                 'reported_time' => $openedAt->format('H:i'),
                 'open_for' => $this->elapsedLabel($openedAt, $now),
-                'resolved' => $ticket->resolved_at?->translatedFormat('j M Y · H:i'),
+                'resolved' => $ticket->resolved_at?->translatedFormat(LocalDate::pattern('j M Y · H:i')),
                 'labor_hours_label' => $ticket->labor_hours !== null ? $this->hoursLabel((float) $ticket->labor_hours) : null,
                 'is_oos' => $isOos,
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
@@ -150,7 +151,7 @@ class MaintenanceTicketDetail extends Component
                 'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
                 'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
                 'part_eta' => $ticket->part_eta?->format('Y-m-d'),
-                'part_eta_label' => $ticket->part_eta?->translatedFormat('j M Y'),
+                'part_eta_label' => $ticket->part_eta?->translatedFormat(LocalDate::pattern('j M Y')),
                 'can_parts' => $canManage && $ticket->isActive(),
             ],
             'sla' => [
@@ -162,7 +163,7 @@ class MaintenanceTicketDetail extends Component
                 'label' => $this->slaLabel($sla),
                 // "Same-day target" only for a short (≤12h) SLA — a 24h target spans into the next day.
                 'same_day' => is_int($sla['target_hours']) && $sla['target_hours'] <= 12,
-                'due_by' => $deadline?->isSameDay($now) === true ? $deadline->format('H:i') : $deadline?->translatedFormat('j M · H:i'),
+                'due_by' => $deadline?->isSameDay($now) === true ? $deadline->format('H:i') : $deadline?->translatedFormat(LocalDate::pattern('j M · H:i')),
                 'reported_time' => $openedAt->format('H:i'),
                 'progress_pct' => $this->slaProgress($openedAt, $now, is_int($sla['target_hours']) ? $sla['target_hours'] : null),
             ],
@@ -238,7 +239,7 @@ class MaintenanceTicketDetail extends Component
             return [
                 'sort' => $at?->format('Y-m-d H:i:s.u') ?? '',
                 'label' => $label,
-                'time' => $at?->translatedFormat('j M · H:i') ?? '',
+                'time' => $at?->translatedFormat(LocalDate::pattern('j M · H:i')) ?? '',
                 'actor' => $event->actor_id !== null
                     ? ($names[(string) $event->actor_id] ?? __('php/livewire/maintenance_ticket_detail.a_team_member'))
                     : ($event->actor_type === 'system' ? __('php/livewire/maintenance_ticket_detail.system') : __('php/livewire/maintenance_ticket_detail.a_team_member')),
@@ -263,7 +264,7 @@ class MaintenanceTicketDetail extends Component
                         'part' => __('php/livewire/maintenance_ticket_detail.note_part'),
                         default => __('php/livewire/maintenance_ticket_detail.note_added'),
                     },
-                    'time' => $at?->translatedFormat('j M · H:i') ?? '',
+                    'time' => $at?->translatedFormat(LocalDate::pattern('j M · H:i')) ?? '',
                     'actor' => (string) ($note->author->name ?? __('php/livewire/maintenance_ticket_detail.a_team_member')),
                     'note' => (string) $note->body,
                     'has_note' => true,

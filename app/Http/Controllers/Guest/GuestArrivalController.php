@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Services\PdfService;
 use App\Support\Guest\ArrivalPack;
+use App\Support\I18n\LocalDate;
 use App\Support\Pdf\ArrivalPackDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -38,7 +39,7 @@ class GuestArrivalController extends Controller
             'reference' => (string) $model->reference,
             'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_arrival_controller.your_stay')),
             'firstName' => (string) ($this->guest()->first_name ?: __('php/http/controllers/guest/guest_arrival_controller.greeting_fallback')),
-            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat('D, j M Y'),
+            'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat(LocalDate::pattern('D, j M Y')),
             'pack' => ArrivalPack::for($model, CarbonImmutable::today()),
         ]);
     }

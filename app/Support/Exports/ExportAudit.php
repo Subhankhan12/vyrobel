@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Exports;
 
 use App\Models\ExportDownload;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -44,7 +45,7 @@ class ExportAudit
         // The audit row above keeps the stored English fallback; the watermark is read by the downloader, so it is
         // written in the downloader's language (I18N-01).
         $shownName = $user !== null && filled($user->name) ? (string) $user->name : (string) __('php/support/exports/export_audit.unknown_user');
-        $when = Carbon::now('UTC')->translatedFormat('j M Y, H:i');
+        $when = Carbon::now('UTC')->translatedFormat(LocalDate::pattern('j M Y, H:i'));
 
         return (string) ($email !== ''
             ? __('php/support/exports/export_audit.watermark_with_email', ['name' => $shownName, 'email' => $email, 'when' => $when])

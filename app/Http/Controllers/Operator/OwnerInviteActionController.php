@@ -9,6 +9,7 @@ use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerInviteService;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
 use Illuminate\Http\RedirectResponse;
@@ -51,7 +52,7 @@ class OwnerInviteActionController extends Controller
         $expiresAt = $result['invite']->expires_at;
 
         return $this->back($request, $model)->with('owners_notice', $expiresAt !== null
-            ? __('php/http/controllers/operator/owner_invite_action_controller.resent_valid_until', ['email' => $model->email, 'date' => $expiresAt->translatedFormat('j M Y')])
+            ? __('php/http/controllers/operator/owner_invite_action_controller.resent_valid_until', ['email' => $model->email, 'date' => $expiresAt->translatedFormat(LocalDate::pattern('j M Y'))])
             : __('php/http/controllers/operator/owner_invite_action_controller.resent_valid_7_days', ['email' => $model->email]));
     }
 

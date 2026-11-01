@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -39,7 +40,7 @@ class OperatorChannels extends Component
 
         $monthStart = CarbonImmutable::today()->startOfMonth();
         $monthEnd = $monthStart->addMonth();
-        $monthLabel = $monthStart->translatedFormat('M');
+        $monthLabel = $monthStart->translatedFormat(LocalDate::pattern('M'));
 
         // REAL bookings by source this month (tenant-scoped) — the honest booking mix.
         $bySource = $orgId === null

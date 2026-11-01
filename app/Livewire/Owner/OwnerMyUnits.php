@@ -15,6 +15,7 @@ use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Services\OwnerRateService;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -91,8 +92,8 @@ class OwnerMyUnits extends Component
             'snoozedAttention' => OwnerAttention::snoozed(app(OwnerContext::class)),
             'currencySymbol' => $this->currencySymbol($currency),
             'month' => [
-                'label' => $month->translatedFormat('F Y'),
-                'label_short' => $month->translatedFormat('M'),
+                'label' => $month->translatedFormat(LocalDate::pattern('F Y')),
+                'label_short' => $month->translatedFormat(LocalDate::pattern('M')),
                 'first_weekday' => $month->copy()->startOfMonth()->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $month->copy()->subMonthNoOverflow()->format('Y-m'),
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
@@ -207,7 +208,7 @@ class OwnerMyUnits extends Component
             $detail = [
                 'unit' => $unitLabel[(string) $line->unit_id] ?? __('php/livewire/owner/owner_my_units.unit_fallback'),
                 'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : __('php/livewire/owner/owner_my_units.guest_fallback'),
-                'stay' => __('php/livewire/owner/owner_my_units.stay_range', ['from' => $checkIn->translatedFormat('j M'), 'to' => $checkOut->translatedFormat('j M Y')]),
+                'stay' => __('php/livewire/owner/owner_my_units.stay_range', ['from' => $checkIn->translatedFormat(LocalDate::pattern('j M')), 'to' => $checkOut->translatedFormat(LocalDate::pattern('j M Y'))]),
                 'nights' => $nights,
                 // the calendar's day detail prints this (Alpine) — the plural is chosen here, per language
                 'nights_label' => trans_choice('php/livewire/owner/owner_my_units.nights', $nights, ['count' => $nights]),
@@ -376,7 +377,7 @@ class OwnerMyUnits extends Component
             'nights' => $m['nights'],
             'revenue' => $this->money($m['gross_minor'], $currency),
             'count' => $units->count(),
-            'month' => $month->translatedFormat('F Y'),
+            'month' => $month->translatedFormat(LocalDate::pattern('F Y')),
         ];
     }
 

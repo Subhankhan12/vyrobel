@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Services\FrontDeskService;
 use App\Services\PropertyRemovalService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
@@ -189,10 +190,10 @@ class OperatorPortfolio extends Component
 
         return [
             'scheduled' => $property->removal_scheduled_at !== null,
-            'leaves_on' => $property->removal_effective_at?->translatedFormat('j M Y'),
+            'leaves_on' => $property->removal_effective_at?->translatedFormat(LocalDate::pattern('j M Y')),
             'stays' => $o['stays'],
             'in_house' => $o['in_house'],
-            'last_checkout' => $o['last_checkout']?->translatedFormat('j M Y'),
+            'last_checkout' => $o['last_checkout']?->translatedFormat(LocalDate::pattern('j M Y')),
             'clear' => $o['clear'],
             'last_remaining' => $o['last_remaining'],
         ];

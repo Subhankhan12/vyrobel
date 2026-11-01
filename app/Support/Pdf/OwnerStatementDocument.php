@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\PayoutMethod;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerStatementBreakdown;
 use App\Support\Payouts\Iban;
@@ -77,8 +78,8 @@ final class OwnerStatementDocument
             : null;
 
         $issued = $statement->finalized_at !== null
-            ? $statement->finalized_at->translatedFormat('j M Y')
-            : $statement->period_end->translatedFormat('j M Y');
+            ? $statement->finalized_at->translatedFormat(LocalDate::pattern('j M Y'))
+            : $statement->period_end->translatedFormat(LocalDate::pattern('j M Y'));
 
         return [
             // Letterhead / identity
@@ -89,7 +90,7 @@ final class OwnerStatementDocument
             'sequence_no' => $statement->sequence_no,
 
             // Title / subtitle
-            'period_label' => $statement->period_start->translatedFormat('F Y'),
+            'period_label' => $statement->period_start->translatedFormat(LocalDate::pattern('F Y')),
             'owner_name' => (string) ($statement->owner->name ?? __('php/support/pdf/owner_statement_document.owner_fallback')),
             // The owner's REAL registered address (GATE 3) — the recipient block. Empty parts are dropped, so an
             // owner who hasn't set an address simply shows none (never a fabricated line, #39).

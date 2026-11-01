@@ -10,7 +10,7 @@
     <div class="vy-card is-warn">
         <h2 class="vy-card-title">{{ trans_choice('operator/early-check-in.arrival_days_away', $daysEarly, ['count' => $daysEarly]) }}</h2>
         <p>
-            {!! __('operator/early-check-in.booked_to_arrive', ['reference' => e($reservation->reference), 'date' => e(\Carbon\CarbonImmutable::parse((string) $reservation->check_in)->translatedFormat('D j M Y'))]) !!}
+            {!! __('operator/early-check-in.booked_to_arrive', ['reference' => e($reservation->reference), 'date' => e(\Carbon\CarbonImmutable::parse((string) $reservation->check_in)->translatedFormat(\App\Support\I18n\LocalDate::pattern('D j M Y')))]) !!}
         </p>
         <p>
             {{ __('operator/early-check-in.different_booking') }}

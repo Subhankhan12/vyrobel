@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Rezervasyonu yönet · :reference',
+    'back_to_booking' => '← Rezervasyona dön',
+    'heading' => 'Rezervasyonunuzu yönetin',
+    'subheading' => ':property · :check_in → :check_out. Değişiklikler tesis tarafından onaylanır — onaylandığı anda size mesaj göndereceğiz.',
+    'pending_requests' => 'Bekleyen talepler',
+    'pending_badge' => 'Beklemede',
+    'pending_note' => 'Rezervasyonunuzda henüz hiçbir şey değişmedi — bir talep önce tesis tarafından onaylanır.',
+    'pick_new_dates' => 'Yeni tarihler seçin',
+    'currently' => 'Mevcut tarihler: :check_in → :check_out. Fiyat farkını görmek için yeni tarihler seçin, ardından değişikliği talep edin.',
+    'new_check_in' => 'Yeni giriş tarihi',
+    'new_check_out' => 'Yeni çıkış tarihi',
+    'see_price_difference' => 'Fiyat farkını gör',
+    'new_stay' => 'Yeni konaklama',
+    'current' => 'Mevcut',
+    'difference' => 'Fark',
+    'estimate_note' => 'Yalnızca tahminidir — tesisin onayına tabidir. Olası ödemeler tesis onayladıktan sonra yapılır.',
+    'unpriced_note' => 'Bu tarihler için henüz yayımlanmış bir fiyat yok — değişikliği talep edin, fiyatı tesis onaylayacaktır.',
+    'request_date_change' => 'Tarih değişikliği talep et',
+    'add_to_your_stay' => 'Konaklamanıza ekleyin',
+    'add_to_your_stay_sub' => 'Kahvaltı, transfer ve daha fazlasını ekleyin — onaylandığında hepsi rezervasyonunuza işlenir.',
+    'browse_extras' => 'Ekstralara göz at',
+    'cancellation_policy' => 'İptal politikası',
+    'free_until' => '<strong>:date</strong> tarihine kadar ücretsiz iptal — bu tarihten önce gönderilen iptal taleplerinde tutarın tamamı iade edilir.',
+    'policy_by_property' => 'Tesis iptalinizi onaylar ve olası iadeleri kendi politikasına göre yapar.',
+    'cancel_confirm' => 'Bu rezervasyon için iptal talebi gönderilsin mi? Tesis talebi inceler ve olası iadeleri kendi politikasına göre yapar.',
+    'reason' => 'Neden',
+    'choose_reason' => 'Bir neden seçin…',
+    'request_cancellation' => 'İptal talep et',
+    'closed_heading' => 'Bu rezervasyon kapandı',
+    'closed_body' => 'Değiştirilecek bir şey kalmadı — ancak tarihleriniz, konaklama bilgileriniz ve ödediğiniz her şey, ihtiyaç duyduğunuzda burada.',
+];

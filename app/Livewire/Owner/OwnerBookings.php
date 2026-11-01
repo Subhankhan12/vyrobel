@@ -10,6 +10,7 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerMonthlyTarget;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -377,7 +378,7 @@ class OwnerBookings extends Component
 
             $months[] = [
                 'month' => (string) $month,
-                'label' => Carbon::parse($month.'-01')->translatedFormat('M ’y'),
+                'label' => Carbon::parse($month.'-01')->translatedFormat(LocalDate::pattern('M ’y')),
                 'confirmed' => $confirmed,
                 'pending' => $pending,
                 'other' => $total - $confirmed - $pending,
@@ -446,7 +447,7 @@ class OwnerBookings extends Component
 
         return [
             'currency' => $currency,
-            'month_label' => $today->translatedFormat('M ’y'),
+            'month_label' => $today->translatedFormat(LocalDate::pattern('M ’y')),
             'month_net_minor' => $monthNet,
             'month_net_display' => MoneyFormatter::compact($monthNet, $currency),
             'has_target' => $hasTarget,

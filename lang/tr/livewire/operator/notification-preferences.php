@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Bildirim tercihleri',
+    'subtitle' => 'Vyrobel size nasıl ulaşır',
+    'breadcrumb_label' => 'Sayfa yolu',
+    'crumb_settings' => 'Ayarlar',
+    'crumb_notifications' => 'Bildirimler',
+    'channel_email' => 'E-posta',
+    'channel_push' => 'Anlık bildirim',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Kayıtlı e-posta adresi yok',
+    'email_verified_title' => 'Oturum açma e-postanız doğrulandı',
+    'email_verified' => 'Doğrulandı',
+    'push_not_set_up_title' => 'Anlık bildirimler henüz kurulmadı',
+    'not_set_up_tag' => 'kurulmadı',
+    'push_not_available' => 'Tarayıcı ve cihaz bildirimleri henüz kullanılamıyor',
+    'channel_off' => 'Kapalı',
+    'sms_not_set_up_title' => 'SMS henüz kurulmadı',
+    'sms_no_provider' => 'Henüz bağlı bir SMS sağlayıcısı yok',
+    'notify_me_when' => 'Şu durumlarda bildir',
+    'always_on' => 'Her zaman açık',
+    'email_always_on_sr' => 'E-posta her zaman açık: :event',
+    'email_me_when_aria' => 'Bana e-posta gönder: :event',
+    'push_not_set_up_sr' => 'Anlık bildirimler kurulmadı',
+    'sms_not_set_up_sr' => 'SMS kurulmadı',
+    'quiet_hours' => 'Sessiz saatler',
+    'quiet_hours_help' => 'Bu saatler arasında rutin e-postaları bekletin — acil güvenlik uyarıları her zaman gelir; uygulama içi akış etkilenmez.',
+    'quiet_from' => 'Başlangıç',
+    'quiet_to' => 'Bitiş',
+    'digest_heading' => 'Günlük özet e-postası',
+    'digest_help' => 'Günün sabah özeti. <span class="vy-np-soon">henüz gönderilmiyor</span> — tercih, özet görevi devreye girdiğinde kullanılmak üzere kaydedilir.',
+    'digest_off' => 'Kapalı',
+    'digest_morning' => 'Sabah · 08:00',
+];

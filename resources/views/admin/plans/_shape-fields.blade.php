@@ -41,12 +41,12 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
         <div data-shape-group="{{ Plan::PRICING_FLAT }}">
             <label class="ad-label" for="price">{{ __('admin/plans/_shape-fields.price_label') }}</label>
-            <input class="ad-input" type="number" step="0.01" min="0" id="price" name="price" value="{{ $priceValue }}">
+            <input class="ad-input" type="text" inputmode="decimal" autocomplete="off" id="price" name="price" value="{{ $priceValue }}">
             <div style="color: var(--ad-faint); font-size: 11.5px; margin-top: 5px;">{{ __('admin/plans/_shape-fields.price_hint') }}</div>
         </div>
         <div data-shape-group="{{ Plan::PRICING_PER_UNIT }}">
             <label class="ad-label" for="unit_rate">{{ __('admin/plans/_shape-fields.unit_rate_label') }}</label>
-            <input class="ad-input" type="number" step="0.01" min="0" id="unit_rate" name="unit_rate" value="{{ $rateValue }}">
+            <input class="ad-input" type="text" inputmode="decimal" autocomplete="off" id="unit_rate" name="unit_rate" value="{{ $rateValue }}">
             {{-- ⚠️ Pre-tax, and the reason is worth stating on the form: under Stripe Tax the customer's own
                  rate applies, and an EU business under reverse charge pays €0 (billing pass 2b). --}}
             <div style="color: var(--ad-faint); font-size: 11.5px; margin-top: 5px;">{{ __('admin/plans/_shape-fields.unit_rate_hint') }}</div>

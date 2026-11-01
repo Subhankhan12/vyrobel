@@ -10,6 +10,7 @@ use App\Services\BillingService;
 use App\Services\BillingWebhookService;
 use App\Services\SubscriptionLifecycleService;
 use App\Support\Billing\StripeTaxIdSync;
+use App\Support\I18n\LocalDate;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -100,7 +101,7 @@ class BillingActionController extends Controller
 
         $until = $lifecycle->pause($org, $months);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.paused_until', ['date' => $until->translatedFormat('j M Y')]));
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.paused_until', ['date' => $until->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 
     /** CANCEL — full access until the paid-through date, then read-only (data kept). REAL; audited. */
@@ -110,7 +111,7 @@ class BillingActionController extends Controller
 
         $from = $lifecycle->cancel($org);
 
-        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.cancel_scheduled', ['date' => $from->translatedFormat('j M Y')]));
+        return redirect()->to(route('app.billing'))->with('billing_notice', __('php/http/controllers/operator/billing_action_controller.cancel_scheduled', ['date' => $from->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 
     /** RESUME — clear the pause / scheduled cancellation → the workspace is live again. */

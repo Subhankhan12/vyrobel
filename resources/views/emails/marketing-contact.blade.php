@@ -48,7 +48,7 @@
                             @endif
                             <tr>
                                 <td style="padding:5px 0;color:#5F5853;">{{ __('emails/marketing-contact.received') }}</td>
-                                <td style="padding:5px 0;">{{ __('emails/marketing-contact.received_at', ['date' => (string) $contact->created_at?->translatedFormat('D, M j, Y g:i A')]) }}</td>
+                                <td style="padding:5px 0;">{{ __('emails/marketing-contact.received_at', ['date' => (string) $contact->created_at?->translatedFormat(\App\Support\I18n\LocalDate::pattern('D, M j, Y g:i A'))]) }}</td>
                             </tr>
                         </table>
                     </td>

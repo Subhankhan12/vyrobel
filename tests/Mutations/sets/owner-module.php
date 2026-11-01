@@ -151,7 +151,7 @@ return [
         'id' => 'OM-M15',
         'name' => 'how far the owner is closed is printed as a database date',
         'file' => $detail,
-        'old' => "            'lockedThroughWords' => \$lockedThrough !== null ? Carbon::parse(\$lockedThrough)->translatedFormat('j M Y') : null,",
+        'old' => "            'lockedThroughWords' => \$lockedThrough !== null ? Carbon::parse(\$lockedThrough)->translatedFormat(LocalDate::pattern('j M Y')) : null,",
         'new' => "            'lockedThroughWords' => \$lockedThrough,",
         'tests' => [['file' => $fixes, 'filter' => 'says how far the owner is already closed in words']],
     ],

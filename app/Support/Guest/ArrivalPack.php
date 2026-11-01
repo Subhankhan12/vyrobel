@@ -7,6 +7,7 @@ namespace App\Support\Guest;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\Unit;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -60,7 +61,7 @@ final class ArrivalPack
             'check_in_time' => self::time($property?->check_in_time),
             'check_out_time' => self::time($property?->check_out_time),
             'released' => $released,
-            'released_from' => $opensOn->translatedFormat('D, j M'),
+            'released_from' => $opensOn->translatedFormat(LocalDate::pattern('D, j M')),
             'has_code' => $code !== null,
             // Sensitive fields are gated on the arrival window — withheld (null) before it opens.
             'door_code' => $released ? $code : null,

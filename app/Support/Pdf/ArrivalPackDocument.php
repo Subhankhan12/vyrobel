@@ -7,6 +7,7 @@ namespace App\Support\Pdf;
 use App\Models\Reservation;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -34,8 +35,8 @@ final class ArrivalPackDocument
             'reference' => (string) $reservation->reference,
             'property' => (string) ($reservation->property->name ?? __('php/support/pdf/arrival_pack_document.property_fallback')),
             'guestName' => GuestName::display($reservation->leadGuest),
-            'checkIn' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('l, j M Y'),
-            'checkOut' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('l, j M Y'),
+            'checkIn' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('l, j M Y')),
+            'checkOut' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('l, j M Y')),
             'pack' => ArrivalPack::for($reservation, $today),
         ];
     }

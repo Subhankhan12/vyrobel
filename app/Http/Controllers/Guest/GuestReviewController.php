@@ -11,6 +11,7 @@ use App\Models\Reservation;
 use App\Models\Review;
 use App\Services\ReviewService;
 use App\Support\Branding\PropertyBrand;
+use App\Support\I18n\LocalDate;
 use App\Support\Reviews\ReviewTag;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -59,7 +60,7 @@ class GuestReviewController extends Controller
             'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_review_controller.your_stay')),
             // #98 — the property's guest-facing brand accent flows to the review page (fail-open to Vyrobel).
             'brandAccent' => PropertyBrand::for($model->property)->accent,
-            'stay' => __('php/http/controllers/guest/guest_review_controller.stay_dates', ['from' => CarbonImmutable::parse($model->check_in)->translatedFormat('j M'), 'to' => CarbonImmutable::parse($model->check_out)->translatedFormat('j M Y')]),
+            'stay' => __('php/http/controllers/guest/guest_review_controller.stay_dates', ['from' => CarbonImmutable::parse($model->check_in)->translatedFormat(LocalDate::pattern('j M')), 'to' => CarbonImmutable::parse($model->check_out)->translatedFormat(LocalDate::pattern('j M Y'))]),
             'positiveTags' => self::POSITIVE_TAGS,
             'negativeTags' => self::NEGATIVE_TAGS,
             // code => the label the guest reads (the chip's text; its value stays the code)

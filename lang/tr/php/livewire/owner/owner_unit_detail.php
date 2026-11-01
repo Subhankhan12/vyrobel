@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Misafir',
+    'nights' => '{1} :count gece|[0,*] :count gece',
+    'block_reason_none' => 'Bloke',
+    'block_reason_maintenance' => 'Bakım',
+    'block_reason_owner' => 'Mülk sahibi',
+    'block_reason_manual' => 'Manuel',
+    'block_reason_overbooking_protection' => 'Fazla rezervasyon koruması',
+    'cleaning_departure' => 'Çıkış temizliği',
+    'cleaning_stayover' => 'Ara temizlik',
+    'cleaning_deep' => 'Derin temizlik',
+    'cleaning_arrival_prep' => 'Giriş hazırlığı',
+    'cleaning_status_pending' => 'Planlandı',
+    'cleaning_status_in_progress' => 'Devam ediyor',
+    'cleaning_status_clean' => 'Temizlendi',
+    'cleaning_status_inspected' => 'Kontrol edildi',
+    'kind_room' => 'Oda',
+    'kind_apartment' => 'Daire',
+    'kind_villa' => 'Villa',
+    'kind_dorm_bed' => 'Yatakhane yatağı',
+    'condition_out_of_order' => 'Kullanım dışı',
+    'condition_out_of_service' => 'Kullanım dışı',
+    'status_enquiry' => 'Talep',
+    'status_tentative' => 'Opsiyonlu',
+    'status_confirmed' => 'Onaylandı',
+    'status_checked_in' => 'Check-in yapıldı',
+    'status_checked_out' => 'Check-out yapıldı',
+    'status_cancelled' => 'İptal edildi',
+    'status_no_show' => 'No-show',
+    'terms_portfolio' => 'Tüm portföy için geçerli koşullar',
+    'terms_unit' => 'Bu birime ait koşullar',
+];

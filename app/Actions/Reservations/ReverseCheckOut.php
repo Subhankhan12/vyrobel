@@ -11,6 +11,7 @@ use App\Models\ReservationStatusHistory;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\I18n\LocalDate;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -152,7 +153,7 @@ class ReverseCheckOut
         $message = match (true) {
             ! $state['known'] => __('php/actions/reservations/reverse_check_out.review_unknown'),
             $state['sent'] => $state['sent_at'] !== null
-                ? __('php/actions/reservations/reverse_check_out.review_sent_on', ['date' => $state['sent_at']->translatedFormat('j M Y, H:i')])
+                ? __('php/actions/reservations/reverse_check_out.review_sent_on', ['date' => $state['sent_at']->translatedFormat(LocalDate::pattern('j M Y, H:i'))])
                 : __('php/actions/reservations/reverse_check_out.review_sent'),
             $state['state'] === GuestReviewInvite::SUPPRESSED_BY_OPERATOR => __('php/actions/reservations/reverse_check_out.review_suppressed_by_operator'),
             $state['state'] === GuestReviewInvite::SUPPRESSED_BY_GUEST => __('php/actions/reservations/reverse_check_out.review_suppressed_by_guest'),

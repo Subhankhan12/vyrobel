@@ -19,6 +19,7 @@ use App\Models\UnitRateOverride;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
 use App\Services\SeasonalRateService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
@@ -252,7 +253,7 @@ class RatesGrid extends Component
                     // ⚠️ The edit form's price field needs the MAJOR-unit string the create form accepts, not
                     //    the display string — `MoneyInput::toMinor()` parses this back on the way in.
                     'price_input' => number_format((int) $season->price_minor / 100, 2, '.', ''),
-                    'applied_on' => $season->applied_at?->translatedFormat('j M Y'),
+                    'applied_on' => $season->applied_at?->translatedFormat(LocalDate::pattern('j M Y')),
                 ] + SeasonApplyFacts::of($season, $p);
             })->all();
     }
@@ -789,9 +790,9 @@ class RatesGrid extends Component
 
         return [
             'date' => $date,
-            'weekday' => $carbon->translatedFormat('D'),
+            'weekday' => $carbon->translatedFormat(LocalDate::pattern('D')),
             'day' => $carbon->format('j'),
-            'month' => $carbon->translatedFormat('M'),
+            'month' => $carbon->translatedFormat(LocalDate::pattern('M')),
             // ⚠️ 2026-09-30 — a weekend NIGHT is Friday or Saturday: the nights bulk edit's "Weekends" changes, the nights
             //    the weekend uplift prices and the nights a season counts as "Fri/Sat". The grid shaded Saturday and Sunday,
             //    so its colours disagreed with every price rule on the page.
@@ -873,7 +874,7 @@ class RatesGrid extends Component
         }
 
         return [
-            'label' => $from->translatedFormat('j M').' – '.$through->translatedFormat('j M Y'),
+            'label' => $from->translatedFormat(LocalDate::pattern('j M')).' – '.$through->translatedFormat(LocalDate::pattern('j M Y')),
             // D18-6 — the raw bounds, so a dialog opened from a unit row defaults to the window the operator
             // is actually looking at. (The label above is for humans and cannot be put in a date input.)
             'from' => $fromStr,

@@ -18,6 +18,7 @@ use App\Payouts\PayoutEngineMode;
 use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
+use App\Support\I18n\LocalDate;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
 use Carbon\CarbonImmutable;
@@ -422,7 +423,7 @@ class PayoutRun extends Component
 
     private function period(OwnerStatement $s): string
     {
-        return $s->period_start->translatedFormat('j M Y').' – '.$s->period_end->translatedFormat('j M Y');
+        return $s->period_start->translatedFormat(LocalDate::pattern('j M Y')).' – '.$s->period_end->translatedFormat(LocalDate::pattern('j M Y'));
     }
 
     /** The payout's source statement number. Null `sequence_no` renders "—", never a made-up ref. */
@@ -451,7 +452,7 @@ class PayoutRun extends Component
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $value instanceof DateTimeInterface ? Carbon::instance($value)->translatedFormat('j M Y') : null;
+        return $value instanceof DateTimeInterface ? Carbon::instance($value)->translatedFormat(LocalDate::pattern('j M Y')) : null;
     }
 
     private function nullableString(mixed $value): ?string

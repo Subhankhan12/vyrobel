@@ -16,6 +16,7 @@ use App\Models\Tag;
 use App\Services\GuestService;
 use App\Support\Guest\GuestHistory;
 use App\Support\Guest\GuestSpend;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -187,7 +188,7 @@ class GuestProfile extends Component
             'stars' => str_repeat('★', $rating).str_repeat('☆', 5 - $rating),
             'body' => (string) ($review->body ?? ''),
             'unit' => $unitName,
-            'when' => $review->created_at !== null ? CarbonImmutable::parse($review->created_at)->translatedFormat('F Y') : null,
+            'when' => $review->created_at !== null ? CarbonImmutable::parse($review->created_at)->translatedFormat(LocalDate::pattern('F Y')) : null,
             'status' => (string) $review->status,
             // The label the view prints when the review is not published — keyed by the status CODE.
             'status_label' => match ((string) $review->status) {
@@ -411,8 +412,8 @@ class GuestProfile extends Component
         return [
             'id' => (string) $reservation->getKey(),
             'reference' => (string) $reservation->reference,
-            'check_in' => $checkIn->translatedFormat('j M Y'),
-            'check_out' => $checkOut->translatedFormat('j M Y'),
+            'check_in' => $checkIn->translatedFormat(LocalDate::pattern('j M Y')),
+            'check_out' => $checkOut->translatedFormat(LocalDate::pattern('j M Y')),
             // Half-open [check_in, check_out) — the same arithmetic as the folio's room nights.
             'nights' => (int) $checkIn->diffInDays($checkOut),
             // `reservation_units.unit_id` is nullable by design (a fresh OTA import lands unassigned), so
@@ -467,7 +468,7 @@ class GuestProfile extends Component
                 // wrote it. Say so rather than inventing an author.
                 'author' => $note->author?->name !== null ? (string) $note->author->name : __('php/livewire/operator/guest_profile.former_staff_member'),
                 'created' => $note->created_at !== null
-                    ? CarbonImmutable::parse($note->created_at)->translatedFormat('j M Y')
+                    ? CarbonImmutable::parse($note->created_at)->translatedFormat(LocalDate::pattern('j M Y'))
                     : '—',
             ];
         })->all();

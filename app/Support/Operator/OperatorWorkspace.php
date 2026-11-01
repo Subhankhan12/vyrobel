@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Operator;
 
 use App\Models\Organization;
+use App\Support\I18n\LocalDate;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Carbon;
 
@@ -58,6 +59,6 @@ final class OperatorWorkspace
     /** "5 Oct" — the pause's resume date for the banner, or null when not paused (a cancel has no resume). */
     public function resumeLabel(): ?string
     {
-        return $this->pausedUntil()?->translatedFormat('j M');
+        return $this->pausedUntil()?->translatedFormat(LocalDate::pattern('j M'));
     }
 }

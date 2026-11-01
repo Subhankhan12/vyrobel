@@ -8,6 +8,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
+use App\Support\I18n\LocalDate;
 use App\Support\Payouts\RailLabel;
 use App\Support\Pdf\OwnerRemittanceDocument;
 use Illuminate\Contracts\View\View;
@@ -137,7 +138,7 @@ class OwnerDocuments extends Component
 
         return [
             'count' => array_sum(array_map(static fn (array $y): int => (int) $y['count'], $years)),
-            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat('F Y') : null,
+            'since' => $earliest instanceof OwnerStatement ? $earliest->period_start->translatedFormat(LocalDate::pattern('F Y')) : null,
         ];
     }
 
@@ -178,8 +179,8 @@ class OwnerDocuments extends Component
                     'count' => array_sum(array_map(static fn (array $p): int => count($p['docs']), $periods)),
                     'statement_count' => $statementCount,
                     'span_label' => $statementCount === 1
-                        ? $earliest?->period_start->translatedFormat('F') ?? ''
-                        : ($earliest?->period_start->translatedFormat('M') ?? '').'–'.($latest?->period_start->translatedFormat('M') ?? ''),
+                        ? $earliest?->period_start->translatedFormat(LocalDate::pattern('F')) ?? ''
+                        : ($earliest?->period_start->translatedFormat(LocalDate::pattern('M')) ?? '').'–'.($latest?->period_start->translatedFormat(LocalDate::pattern('M')) ?? ''),
                     'periods' => $periods,
                     'tax_net_display' => $this->money($taxNetMinor, (string) $earliest?->source_currency),
                 ];
@@ -202,7 +203,7 @@ class OwnerDocuments extends Component
         $number = $s->sequence_no === null ? null : __('php/livewire/owner/owner_documents.number', ['number' => $s->sequence_no]);
         // The REAL issue date. `finalized_at` is stamped at finalize; guarded, so an unset field omits
         // the date rather than inventing one.
-        $issued = $s->finalized_at === null ? null : Carbon::parse($s->finalized_at)->translatedFormat('j M Y');
+        $issued = $s->finalized_at === null ? null : Carbon::parse($s->finalized_at)->translatedFormat(LocalDate::pattern('j M Y'));
 
         $docs = [
             [
@@ -273,7 +274,7 @@ class OwnerDocuments extends Component
             // The operator's own bank reference, ONLY when they attached one. Never generated here — the
             // design's "RA-2025-09" format does not exist.
             'ref_label' => (is_string($p->external_ref) && $p->external_ref !== '') ? $p->external_ref : null,
-            'date_label' => $when === null ? null : Carbon::parse($when)->translatedFormat('j M Y'),
+            'date_label' => $when === null ? null : Carbon::parse($when)->translatedFormat(LocalDate::pattern('j M Y')),
             'amount_display' => $this->money((int) $p->amount_minor, (string) $p->currency),
             // DERIVED from the real status, mirroring the document's own amount_label: a pending/failed
             // payout has NOT been paid, so neither the row nor the PDF claims it was.
@@ -304,10 +305,10 @@ class OwnerDocuments extends Component
             $wholeMonth = $start->day === 1 && $end->day === $end->daysInMonth;
 
             return $wholeMonth
-                ? $start->translatedFormat('F Y')
-                : $start->format('j').'–'.$end->translatedFormat('j F Y');
+                ? $start->translatedFormat(LocalDate::pattern('F Y'))
+                : $start->format('j').'–'.$end->translatedFormat(LocalDate::pattern('j F Y'));
         }
 
-        return $start->translatedFormat('j M').' – '.$end->translatedFormat('j M Y');
+        return $start->translatedFormat(LocalDate::pattern('j M')).' – '.$end->translatedFormat(LocalDate::pattern('j M Y'));
     }
 }

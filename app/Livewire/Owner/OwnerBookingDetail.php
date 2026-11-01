@@ -15,6 +15,7 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\AssignmentService;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
@@ -117,13 +118,13 @@ class OwnerBookingDetail extends Component
                 'stage' => $this->statusPill($stage),
                 'head_sub' => $this->headSub($ownedUnits, $nights, (string) $reservation->source),
                 'ci_day' => $checkIn->format('j'),
-                'ci_sub' => $checkIn->translatedFormat('M Y · D'),
+                'ci_sub' => $checkIn->translatedFormat(LocalDate::pattern('M Y · D')),
                 // The property's REAL check-in/out times (was a hardcoded "from 3:00 PM"); null ⇒ the
                 // view renders no time line at all rather than inventing an hour.
                 'ci_time' => $this->stayTime($reservation->property?->check_in_time, false),
                 'co_time' => $this->stayTime($reservation->property?->check_out_time, true),
                 'co_day' => $checkOut->format('j'),
-                'co_sub' => $checkOut->translatedFormat('M Y · D'),
+                'co_sub' => $checkOut->translatedFormat(LocalDate::pattern('M Y · D')),
                 'nights' => $nights,
                 'units' => $ownedUnits,
                 'guests_label' => $this->guestsLabel($reservation),
@@ -131,7 +132,7 @@ class OwnerBookingDetail extends Component
                 'source_label' => $this->sourceLabel((string) $reservation->source),
                 'source_dot' => $this->sourceDot((string) $reservation->source),
                 'channel' => $this->channelLabel((string) $reservation->source),
-                'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->translatedFormat('j M Y'),
+                'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->translatedFormat(LocalDate::pattern('j M Y')),
             ],
             'earnings' => $earnings,
             'absorbedRefunds' => $absorbedRefunds,
@@ -313,7 +314,7 @@ class OwnerBookingDetail extends Component
             ->map(fn (Payment $r): array => [
                 // abs(): the refund row stores its amount positive; the note states an amount refunded.
                 'amount_display' => MoneyFormatter::display(abs((int) $r->amount_minor), (string) ($r->currency ?? $currency)),
-                'date' => $r->processed_at !== null ? Carbon::parse($r->processed_at)->translatedFormat('j M Y') : '',
+                'date' => $r->processed_at !== null ? Carbon::parse($r->processed_at)->translatedFormat(LocalDate::pattern('j M Y')) : '',
             ])
             ->values()
             ->all();
@@ -394,13 +395,13 @@ class OwnerBookingDetail extends Component
     private function timeline(Reservation $reservation, string $stage, Carbon $checkIn, Carbon $checkOut, array $payout): array
     {
         $booked = $reservation->booked_at ?? $reservation->created_at;
-        $events = [['label' => __('php/livewire/owner/owner_booking_detail.event_booking_received'), 'when' => $booked?->translatedFormat('j M Y') ?? '—', 'state' => 'done']];
+        $events = [['label' => __('php/livewire/owner/owner_booking_detail.event_booking_received'), 'when' => $booked?->translatedFormat(LocalDate::pattern('j M Y')) ?? '—', 'state' => 'done']];
 
         // Cancelled bookings have a short, honest timeline — no payment/stay/payout followed.
         if (in_array((string) $reservation->status, ReservationStage::CANCELLED_STATUSES, true)) {
             $events[] = [
                 'label' => __('php/livewire/owner/owner_booking_detail.event_cancelled'),
-                'when' => ($reservation->cancelled_at ?? $booked)?->translatedFormat('j M Y') ?? '—',
+                'when' => ($reservation->cancelled_at ?? $booked)?->translatedFormat(LocalDate::pattern('j M Y')) ?? '—',
                 'state' => 'cancel',
             ];
 
@@ -414,7 +415,7 @@ class OwnerBookingDetail extends Component
         };
 
         if ($reservation->guest_checked_in_at !== null) {
-            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_in'), 'when' => Carbon::parse($reservation->guest_checked_in_at)->translatedFormat('j M · g:i A'), 'state' => 'done'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_in'), 'when' => Carbon::parse($reservation->guest_checked_in_at)->translatedFormat(LocalDate::pattern('j M · g:i A')), 'state' => 'done'];
             // ⚠️ TERMINAL STATUS IS CONSULTED (wireframe-parity WAVE 3). This branch used to fire on any
             // future-dated check-in, so a booking already cancelled / no-show / checked out rendered
             // "Check-in — upcoming" directly ABOVE its own completed "Checked out" row. One demo reservation is
@@ -426,11 +427,11 @@ class OwnerBookingDetail extends Component
             // the property stores a real check_in_time. Both are fixed by passing a real time through a
             // real format; an unset time simply omits the hour rather than inventing one (#39).
             $ciTime = StayTime::display($reservation->property?->check_in_time);
-            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_check_in'), 'when' => $checkIn->translatedFormat('D j M').($ciTime !== null ? ' · '.$ciTime : ''), 'state' => 'next'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_check_in'), 'when' => $checkIn->translatedFormat(LocalDate::pattern('D j M')).($ciTime !== null ? ' · '.$ciTime : ''), 'state' => 'next'];
         }
 
         if ((string) $reservation->status === 'checked_out') {
-            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_out'), 'when' => $checkOut->translatedFormat('D j M Y'), 'state' => 'done'];
+            $events[] = ['label' => __('php/livewire/owner/owner_booking_detail.event_checked_out'), 'when' => $checkOut->translatedFormat(LocalDate::pattern('D j M Y')), 'state' => 'done'];
         }
 
         // Payout — REAL, from the statement the ledger rows landed on (via payoutStatus()).
@@ -481,6 +482,6 @@ class OwnerBookingDetail extends Component
             ->map(fn (Payout $p): Carbon => Carbon::parse($p->paid_at))
             ->max();
 
-        return ['label' => __('php/livewire/owner/owner_booking_detail.payout_paid'), 'tone' => 'paid', 'note' => __('php/livewire/owner/owner_booking_detail.payout_paid_note'), 'paid_on' => $paidOn?->translatedFormat('j M Y')];
+        return ['label' => __('php/livewire/owner/owner_booking_detail.payout_paid'), 'tone' => 'paid', 'note' => __('php/livewire/owner/owner_booking_detail.payout_paid_note'), 'paid_on' => $paidOn?->translatedFormat(LocalDate::pattern('j M Y'))];
     }
 }

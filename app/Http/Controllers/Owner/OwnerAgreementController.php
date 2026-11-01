@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AgreementAmendment;
 use App\Models\User;
 use App\Services\AgreementAmendmentService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +46,6 @@ class OwnerAgreementController extends Controller
 
         $service->acknowledge($model, $actor);
 
-        return back()->with('owner_notice', __('php/http/controllers/owner/owner_agreement_controller.amendment_acknowledged', ['date' => $model->effective_date->translatedFormat('j M Y')]));
+        return back()->with('owner_notice', __('php/http/controllers/owner/owner_agreement_controller.amendment_acknowledged', ['date' => $model->effective_date->translatedFormat(LocalDate::pattern('j M Y'))]));
     }
 }

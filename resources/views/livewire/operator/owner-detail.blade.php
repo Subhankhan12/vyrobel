@@ -928,7 +928,7 @@
     <script>
         document.addEventListener('alpine:init', () => {
             // I18N-01: the month names, the error and the "N days" plural are all worked out on the server (CONVERSION.md rules 5, 12)
-            const months = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('M'))->all());
+            const months = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat(\App\Support\I18n\LocalDate::pattern('M')))->all());
             const dayWords = @js(collect(range(1, 366))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/owner-detail.span_days', $n, ['count' => $n])])->all());
             const dayWordsMany = @js(trans_choice('livewire/operator/owner-detail.span_days', 1000, ['count' => ':n']));
             const spanText = @js(__('livewire/operator/owner-detail.span', ['from' => ':from', 'to' => ':to', 'days' => ':days']));

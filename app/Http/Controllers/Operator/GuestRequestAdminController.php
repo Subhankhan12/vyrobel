@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GuestChangeRequest;
 use App\Services\GuestChangeRequestService;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -44,7 +45,7 @@ class GuestRequestAdminController extends Controller
                 'reference' => (string) ($r->reservation->reference ?? ''),
                 'type' => $this->typeLabel((string) $r->type),
                 'detail' => $this->detail($r),
-                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat('j M Y · H:i'),
+                'at' => CarbonImmutable::parse($r->created_at)->translatedFormat(LocalDate::pattern('j M Y · H:i')),
             ]);
 
         return response()->view('operator.guest-requests', ['requests' => $pending->all()]);

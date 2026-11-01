@@ -6,6 +6,7 @@ namespace App\Support\Pdf;
 
 use App\Models\Organization;
 use App\Models\OwnerStatement;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Support\Collection;
 
@@ -29,8 +30,8 @@ final class OwnerStatementHistoryDocument
             : null;
 
         $rows = $statements->map(fn (OwnerStatement $s): array => [
-            'month_label' => $s->period_start->translatedFormat('F Y'),
-            'period_range' => $s->period_start->translatedFormat('j M Y').' – '.$s->period_end->translatedFormat('j M Y'),
+            'month_label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
+            'period_range' => $s->period_start->translatedFormat(LocalDate::pattern('j M Y')).' – '.$s->period_end->translatedFormat(LocalDate::pattern('j M Y')),
             'gross_display' => MoneyFormatter::display((int) $s->gross_minor, (string) $s->source_currency),
             'net_display' => MoneyFormatter::display((int) $s->net_payable_minor, (string) $s->currency),
             'status_label' => $s->status === 'paid' ? __('php/support/pdf/owner_statement_history_document.status_paid') : __('php/support/pdf/owner_statement_history_document.status_payout_pending'),

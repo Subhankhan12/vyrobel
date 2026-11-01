@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Tüm odalar',
+    'kind_sleeps_up_to' => ':kind · en fazla :capacity kişi',
+    'reviews_count' => '{1} :count değerlendirme|[0,*] :count değerlendirme',
+    'no_reviews_yet' => 'Henüz değerlendirme yok',
+    'save_to_wishlist' => 'Favorilere ekle',
+    'sleeps' => 'Kapasite',
+    'adults' => 'Yetişkin',
+    'children' => 'Çocuk',
+    'bedrooms' => 'Yatak odası',
+    'standard_occupancy' => 'Standart kişi sayısı',
+    'amenities' => 'Olanaklar',
+    'not_yet_listed' => 'Henüz listelenmedi',
+    'amenities_not_published' => 'Bu odanın olanakları henüz yayınlanmadı.',
+    'guest_reviews' => 'Misafir değerlendirmeleri',
+    'stars_aria' => '5 üzerinden :rating yıldız',
+    'response_label' => 'Yanıt:',
+    'no_reviews_be_first' => 'Henüz değerlendirme yok — ilk konaklayan siz olun ve deneyiminizi paylaşın.',
+    'coming_soon' => 'Yakında',
+    'description_soon' => 'Ayrıntılı açıklama ve konum haritası hazırlanıyor — yukarıdaki özellikler, müsaitlik, fiyat ve değerlendirmeler gerçektir.',
+    'per_night' => '/ gece',
+    'per_night_with_note' => '/ gece · :note',
+    'total_nights' => '{1} Toplam :amount · :count gece|[0,*] Toplam :amount · :count gece',
+    'left_for_your_dates' => 'Seçtiğiniz tarihler için :count kaldı',
+    'book_this_room' => 'Bu odayı rezerve et',
+    'nothing_reserved' => 'Ödeme adımında onaylayana kadar hiçbir şey rezerve edilmez.',
+    'your_dates' => 'Tarihleriniz',
+    'not_available' => 'Bu tarihlerde müsait değil — farklı tarihler deneyin.',
+    'check_in' => 'Giriş',
+    'check_out' => 'Çıkış',
+    'check_dates' => 'Tarihleri kontrol et',
+    'check_availability' => 'Müsaitlik ve fiyatı kontrol et',
+    'see_price' => 'Fiyatı gör',
+];

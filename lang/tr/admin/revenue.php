@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Gelir',
+    'subtitle' => 'Liste fiyatlarından değil, Stripe’ın gerçekte tahsil ettiği tutarlardan. Vyrobel bünyesindeki kuruluşları eklemediğiniz sürece yalnızca müşteriler.',
+    'including_internal' => 'Vyrobel bünyesindeki dahili kuruluşlar dahil.',
+    'customers_only_note' => 'Yalnızca müşteriler.',
+    'customers_only_link' => 'Yalnızca müşteriler',
+    'include_internal_link' => 'Dahilileri ekle',
+    'no_live_billing_pill' => 'Henüz canlı faturalandırma yok',
+    'no_customer_charged' => 'Henüz hiçbir müşteriden tahsilat yapılmadı.',
+    'not_live_explainer' => 'Stripe canlı değil, bu yüzden sayılacak ödenmiş fatura yok. Bu kötü bir ay değil — henüz bir ay yok. Buradaki gelir yalnızca <strong>ödenmiş Stripe faturalarından</strong> (tahsilatın kendisi, Stripe bize bildirdiğinde kaydedilir) hesaplanır, hiçbir zaman bir paketin liste fiyatından değil.',
+    'live_billed_subscriptions' => 'Canlı faturalandırılan abonelikler',
+    'trialing_unbilled' => 'Deneme süresindeki, faturalandırılmayan abonelikler',
+    'failed_payments_30d' => 'Başarısız ödemeler, son 30 gün',
+    'when_first_paid' => 'İlk fatura ödendiğinde bu sayfa şunları gösterir: para birimine göre MRR ve ARR · yeni, genişleme, daralma ve kayıp MRR · denemeden ücretliye geçiş · başarısız ödemeler.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Hesaba katılan abonelikler',
+    'no_live_subscription_charged' => 'Aktif ve canlı faturalandırılan hiçbir abonelikten tahsilat yapılmadı.',
+    'mrr_hint' => 'Aktif veya vadesi geçmiş her canlı abonelik, en son ödenmiş faturası esas alınarak o faturanın fatura dönemine göre aylık bazda hesaplanır.',
+    'this_month_vs_last' => 'Bu ay ve geçen ay',
+    'movement_new' => 'Yeni · :currency',
+    'movement_expansion' => 'Genişleme · :currency',
+    'movement_contraction' => 'Daralma · :currency',
+    'movement_churned' => 'Kayıp · :currency',
+    'nothing_charged' => 'Geçen ay da bu ay da tahsilat yapılmadı.',
+    'movements_hint' => 'Kuruluş başına, her ay tahsil edilen tutarlardan. Kayıp = geçen ay tahsilat yapılmış, bu ay hiçbir şey yok ve abonelik iptal edilmiş.',
+    'trial_to_paid' => 'Denemeden ücretliye',
+    'trial_to_paid_value' => 'Sona eren deneme süresi: :ended · tahsilat yapılan: :converted',
+    'past_due_now' => 'Şu anda vadesi geçmiş',
+    'paid_invoices_counted' => 'Sayılan ödenmiş faturalar',
+    'never_moves_money' => 'Bu konsol hiçbir zaman tahsilat, iade veya para transferi yapmaz. Her rakam para birimine göredir ve para birimleri arasında asla toplanmaz.',
+];

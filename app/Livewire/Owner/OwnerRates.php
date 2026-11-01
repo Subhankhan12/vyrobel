@@ -16,6 +16,7 @@ use App\Services\OwnerRateService;
 use App\Services\RateAndRestrictionService;
 use App\Services\SeasonalRateService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use Carbon\CarbonImmutable;
@@ -138,10 +139,10 @@ class OwnerRates extends Component
             'id' => (string) $p->getKey(),
             'villa' => (string) ($p->roomType->name ?? __('php/livewire/owner/owner_rates.room_type_fallback')),
             'window' => __('php/livewire/owner/owner_rates.date_window', [
-                'start' => Carbon::parse($p->from_date)->translatedFormat('j M'),
-                'end' => Carbon::parse($p->to_date)->translatedFormat('j M'),
+                'start' => Carbon::parse($p->from_date)->translatedFormat(LocalDate::pattern('j M')),
+                'end' => Carbon::parse($p->to_date)->translatedFormat(LocalDate::pattern('j M')),
             ]),
-            'effective' => Carbon::parse($p->from_date)->translatedFormat('j M'),
+            'effective' => Carbon::parse($p->from_date)->translatedFormat(LocalDate::pattern('j M')),
             'rationale' => (string) ($p->note ?? ''),
             'from_str' => $current !== null ? $this->money($current, $currency) : '—',
             'to_str' => $this->money($proposed, $currency),

@@ -12,6 +12,7 @@ use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
@@ -77,8 +78,8 @@ class PreArrivalMail extends Mailable
                 'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
-                'checkInLabel' => $checkIn->translatedFormat('D, j M'),
-                'checkOutLabel' => Carbon::parse($r->check_out)->translatedFormat('D, j M'),
+                'checkInLabel' => $checkIn->translatedFormat(LocalDate::pattern('D, j M')),
+                'checkOutLabel' => Carbon::parse($r->check_out)->translatedFormat(LocalDate::pattern('D, j M')),
                 'checkInTime' => $pack['check_in_time'],
                 'checkOutTime' => $pack['check_out_time'],
                 // The guest's OWN access secrets (released in-window; null before it opens → the template says when).

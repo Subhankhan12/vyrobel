@@ -7,6 +7,7 @@ namespace App\Support\Pdf;
 use App\Models\Organization;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Payouts\RailLabel;
 use Illuminate\Support\Carbon;
@@ -101,7 +102,7 @@ final class OwnerRemittanceDocument
             'method' => RailLabel::for((string) $payout->rail),
             // A real settlement date exists ONLY once the payout is paid — never an estimate.
             'paid_on' => ($status === 'paid' && $payout->paid_at !== null)
-                ? Carbon::parse($payout->paid_at)->translatedFormat('j M Y')
+                ? Carbon::parse($payout->paid_at)->translatedFormat(LocalDate::pattern('j M Y'))
                 : null,
             // The operator's own bank reference, when they attached one. Never generated here.
             'reference' => (is_string($payout->external_ref) && $payout->external_ref !== '') ? $payout->external_ref : null,
@@ -111,10 +112,10 @@ final class OwnerRemittanceDocument
 
             // ── The source statement — the REAL reconciling breakdown ───────────────────────────────
             'sequence_no' => $statement?->sequence_no,
-            'period_label' => $statement?->period_start->translatedFormat('F Y'),
+            'period_label' => $statement?->period_start->translatedFormat(LocalDate::pattern('F Y')),
             'period_range' => $statement === null
                 ? null
-                : $statement->period_start->translatedFormat('j M Y').' – '.$statement->period_end->translatedFormat('j M Y'),
+                : $statement->period_start->translatedFormat(LocalDate::pattern('j M Y')).' – '.$statement->period_end->translatedFormat(LocalDate::pattern('j M Y')),
             'lines' => $lines,
             'has_unverified' => $statement !== null && (bool) $statement->has_unverified,
             // FX shown ONLY when the statement genuinely converts currencies (source ≠ payout currency;

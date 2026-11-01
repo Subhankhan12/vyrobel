@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -132,7 +133,7 @@ final class OwnerUpcomingStays
                 'status_key' => $statusKey,
                 'status_label' => self::statusLabel($statusKey),
                 'status_tone' => $statusKey === 'confirmed' ? 'confirmed' : 'pending',
-                'date' => $checkIn->translatedFormat('j M'),
+                'date' => $checkIn->translatedFormat(LocalDate::pattern('j M')),
                 'sort' => $checkIn->toDateString(),
             ];
         }

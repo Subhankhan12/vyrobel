@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'Vyrobel ile yönetilir',
+    'eyebrow' => 'Hesap özeti',
+    'unit_count' => '{1} :count birim|[0,*] :count birim',
+    'issued' => 'düzenlenme: :date',
+    'prepared_for' => 'Hazırlandığı kişi',
+    'net_payable_to_owner' => 'Mülk sahibine ödenecek net tutar',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Doluluk',
+    'nights_sold' => 'Satılan gece',
+    'avg_nightly_rate' => 'Ort. gecelik fiyat',
+    'breakdown' => 'Döküm',
+    'item' => 'Kalem',
+    'detail' => 'Ayrıntı',
+    'amount' => 'Tutar',
+    'provisional' => '(geçici)',
+    'performance_by_unit' => 'Birim bazında performans',
+    'unit' => 'Birim',
+    'nights' => 'Gece',
+    'revenue' => 'Gelir',
+    'total_gross_room_revenue' => 'Toplam brüt oda geliri',
+    'callout_heading' => 'Hakediş.',
+    'settles_to_iban' => 'Net :amount tutarı, banka havalesiyle IBAN :iban hesabına ödenir.',
+    'settles' => 'Net :amount tutarı banka havalesiyle ödenir.',
+    'fees_with_commission' => 'Yönetim komisyonu brüt oda gelirinin %:pct oranında alınır; ödeme ve platform ücretleri maliyet üzerinden yansıtılır. Tüm tutarlar :currency cinsindendir ve sizin adınıza tahsil edilen ilgili vergileri içerir.',
+    'fees' => 'Ödeme ve platform ücretleri maliyet üzerinden yansıtılır. Tüm tutarlar :currency cinsindendir ve sizin adınıza tahsil edilen ilgili vergileri içerir.',
+    'fx_note' => ':source para biriminden :rate kuruyla dönüştürülmüştür (kaynak: :src).',
+    'provisional_note' => 'Bazı satırlar kanal mutabakatı beklendiği için geçicidir.',
+    'statement_ref' => 'hesap özeti :ref',
+    'sequence_no' => 'no. :number',
+    'generated' => 'oluşturulma: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Sorularınız için: :email',
+];

@@ -11,6 +11,7 @@ use App\Support\Email\CalendarLinks;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\CancellationPolicy;
 use Illuminate\Bus\Queueable;
@@ -59,8 +60,8 @@ class BookingConfirmationMail extends Mailable
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
                 'propertyName' => (string) ($r->property->name ?? __('php/mail/booking_confirmation_mail.your_stay')),
-                'checkIn' => $checkIn->translatedFormat('D, j M Y'),
-                'checkOut' => $checkOut->translatedFormat('D, j M Y'),
+                'checkIn' => $checkIn->translatedFormat(LocalDate::pattern('D, j M Y')),
+                'checkOut' => $checkOut->translatedFormat(LocalDate::pattern('D, j M Y')),
                 'checkInTime' => $this->timeLabel($r->property?->check_in_time, true),
                 'checkOutTime' => $this->timeLabel($r->property?->check_out_time, false),
                 'nights' => $nights,

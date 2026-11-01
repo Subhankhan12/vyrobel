@@ -10,6 +10,7 @@ use App\Models\OwnerStatementLine;
 use App\Models\Payout;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use App\Support\Owner\OwnerOccupancyTrend;
@@ -126,7 +127,7 @@ class OwnerStatementView extends Component
     {
         return $statements->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'label' => $s->period_start->translatedFormat('F Y'),
+            'label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'is_current' => $s->id === $currentId,
         ])->values()->all();
@@ -136,8 +137,8 @@ class OwnerStatementView extends Component
     private function dateRange(OwnerStatement $s): string
     {
         return __('php/livewire/owner/owner_statement_view.date_range', [
-            'start' => $s->period_start->translatedFormat('j M'),
-            'end' => $s->period_end->translatedFormat('j M Y'),
+            'start' => $s->period_start->translatedFormat(LocalDate::pattern('j M')),
+            'end' => $s->period_end->translatedFormat(LocalDate::pattern('j M Y')),
         ]);
     }
 
@@ -151,7 +152,7 @@ class OwnerStatementView extends Component
             'sequence_no' => $s->sequence_no,
             'period_start' => $s->period_start->toDateString(),
             'period_end' => $s->period_end->toDateString(),
-            'period_label' => $s->period_start->translatedFormat('F Y'),
+            'period_label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
             'period_range' => $this->dateRange($s),
             'status' => $s->status,
             'status_meta' => $this->statusMeta((string) $s->status),
@@ -231,7 +232,7 @@ class OwnerStatementView extends Component
     {
         return $statements->map(fn (OwnerStatement $s): array => [
             'id' => $s->id,
-            'month_label' => $s->period_start->translatedFormat('M Y'),
+            'month_label' => $s->period_start->translatedFormat(LocalDate::pattern('M Y')),
             'period_range' => $this->dateRange($s),
             'year' => (int) $s->period_start->format('Y'),
             'gross_display' => $this->money((int) $s->gross_minor, (string) $s->source_currency),
@@ -314,7 +315,7 @@ class OwnerStatementView extends Component
             $s = $chrono->get($i);
 
             return $s instanceof OwnerStatement
-                ? ['id' => $s->id, 'label' => $s->period_start->translatedFormat('F Y')]
+                ? ['id' => $s->id, 'label' => $s->period_start->translatedFormat(LocalDate::pattern('F Y'))]
                 : null;
         };
 
@@ -346,7 +347,7 @@ class OwnerStatementView extends Component
                 'amount_display' => $this->money((int) $payout->amount_minor, (string) $payout->currency),
                 'status_meta' => $this->payoutStatusMeta((string) $payout->status),
                 'rail' => $payout->rail === 'manual' ? __('php/livewire/owner/owner_statement_view.bank_transfer') : (string) $payout->rail,
-                'paid_at' => $paidAt !== null ? Carbon::parse($paidAt)->translatedFormat('j M Y') : null,
+                'paid_at' => $paidAt !== null ? Carbon::parse($paidAt)->translatedFormat(LocalDate::pattern('j M Y')) : null,
             ];
         }
 

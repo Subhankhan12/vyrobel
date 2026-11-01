@@ -150,7 +150,7 @@
                                     <td style="padding:0 16px 14px;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
-                                                <td style="border-top:1px solid #E3D6C9; padding-top:12px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">{!! __('emails/owner-invite.expires_on_html', ['date' => e((string) $expiresAt?->translatedFormat('D, M j, Y'))]) !!}</td>
+                                                <td style="border-top:1px solid #E3D6C9; padding-top:12px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.55; color:#5F5853;">{!! __('emails/owner-invite.expires_on_html', ['date' => e((string) $expiresAt?->translatedFormat(\App\Support\I18n\LocalDate::pattern('D, M j, Y')))]) !!}</td>
                                             </tr>
                                         </table>
                                     </td>

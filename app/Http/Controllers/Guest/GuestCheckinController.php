@@ -10,6 +10,7 @@ use App\Models\GuestDocument;
 use App\Models\Reservation;
 use App\Services\Guest\GuestIdDocumentService;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use App\Support\StayTime;
 use Carbon\CarbonImmutable;
@@ -72,11 +73,11 @@ class GuestCheckinController extends Controller
             'lastName' => (string) $guest->last_name,
             'email' => (string) $guest->email,                   // read-only confirmation (managed in Account)
             'phone' => (string) $guest->phone,                   // editable (arrival contact — the guest's own)
-            'checkInLabel' => $checkIn->translatedFormat('D, j M Y'),
-            'checkInShort' => $checkIn->translatedFormat('j M'),
-            'checkInDay' => $checkIn->translatedFormat('D'),
+            'checkInLabel' => $checkIn->translatedFormat(LocalDate::pattern('D, j M Y')),
+            'checkInShort' => $checkIn->translatedFormat(LocalDate::pattern('j M')),
+            'checkInDay' => $checkIn->translatedFormat(LocalDate::pattern('D')),
             'checkInTime' => $this->timeLabel($model->property?->check_in_time),
-            'checkOutLabel' => CarbonImmutable::parse($model->check_out)->translatedFormat('D, j M Y'),
+            'checkOutLabel' => CarbonImmutable::parse($model->check_out)->translatedFormat(LocalDate::pattern('D, j M Y')),
             'nights' => (int) $checkIn->diffInDays(CarbonImmutable::parse($model->check_out)),
             'adults' => (int) $model->adults,
             'children' => (int) $model->children,

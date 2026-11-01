@@ -123,3 +123,22 @@ it('shows what will be recorded under the payment amount, by the server\'s own r
         ->toContain('id="vy-mro-amount"')                             // the readout under the payment field
         ->toMatch('~<input class="vy-input" type="text" inputmode="decimal"[^>]*name="amount" id="amount"~');   // text: a comma can be typed
 });
+
+it('⚠️ D-NUMBER-FIELDS: no decimal amount is a browser number field — an English browser refuses "1,5" there before it is sent', function () {
+    // a number input with a decimal step is the shape that refused a comma; the server reads a comma (LocalNumber) only if the
+    // browser lets it through — every decimal field is text + a decimal keypad, like the payment, charge and refund fields
+    $found = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS)) as $f) {
+        if (! str_ends_with($f->getFilename(), '.blade.php')) {
+            continue;
+        }
+        if (preg_match_all('/<input\b[^>]*type="number"[^>]*>/s', (string) file_get_contents($f->getPathname()), $m)) {
+            foreach ($m[0] as $tag) {
+                if (preg_match('/step="(?:0\.|\{\{[^"]*0\.)|step="any"/', $tag)) {
+                    $found[] = str_replace(resource_path('views').'/', '', $f->getPathname());
+                }
+            }
+        }
+    }
+    expect($found)->toBe([]);
+});

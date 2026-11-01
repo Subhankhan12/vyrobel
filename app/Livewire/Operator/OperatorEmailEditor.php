@@ -10,6 +10,7 @@ use App\Models\EmailTemplate;
 use App\Models\Scopes\OrganizationScope;
 use App\Support\Email\EmailPreviewSample;
 use App\Support\Email\EmailTemplateCatalog;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -159,7 +160,7 @@ class OperatorEmailEditor extends Component
         }
 
         $who = $stored->updatedBy?->name;
-        $when = Carbon::parse($stored->updated_at)->translatedFormat('j M Y');
+        $when = Carbon::parse($stored->updated_at)->translatedFormat(LocalDate::pattern('j M Y'));
 
         return $who !== null
             ? __('php/livewire/operator/operator_email_editor.last_edited_by', ['name' => $who, 'date' => $when])

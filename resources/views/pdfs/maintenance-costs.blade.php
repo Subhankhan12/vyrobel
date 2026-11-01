@@ -29,7 +29,7 @@
     <span class="brand-mark">V</span>
     <span class="eyebrow" style="margin-left: 8px;">{{ __('pdfs/maintenance-costs.eyebrow') }}</span>
     <h1>{{ __('pdfs/maintenance-costs.heading') }}</h1>
-    <div class="muted" style="margin-top: 4px;">{{ __('pdfs/maintenance-costs.subheading', ['date' => now()->translatedFormat('j M Y')]) }}</div>
+    <div class="muted" style="margin-top: 4px;">{{ __('pdfs/maintenance-costs.subheading', ['date' => now()->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y'))]) }}</div>
 
     <table class="kpi" style="margin-top: 20px;">
         <tr>

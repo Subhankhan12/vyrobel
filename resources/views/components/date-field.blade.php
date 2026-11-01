@@ -85,12 +85,12 @@
                     return d.getFullYear() + '-' + m + '-' + day;
                 },
                 get monthName() {
-                    return @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('F'))->all())[this.viewMonth];
+                    return @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat(\App\Support\I18n\LocalDate::pattern('F')))->all())[this.viewMonth];
                 },
                 get pretty() {
                     if (! this.iso) { return ''; }
                     var d = this.parse(this.iso);
-                    var mo = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat('M'))->all())[d.getMonth()];
+                    var mo = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat(\App\Support\I18n\LocalDate::pattern('M')))->all())[d.getMonth()];
                     return d.getDate() + ' ' + mo + ' ' + d.getFullYear();
                 },
                 get prettyFull() {

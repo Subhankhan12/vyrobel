@@ -109,7 +109,7 @@
         $detailReasonHtml = '<span x-text="detail.reason"></span>';
         $selDateHtml = '<strong x-text="sel"></strong>';
         $calendarUrl = route('owner.calendar', ['unit' => $unit['id']]);
-        $weekendPriceHtml = '<strong style="color:var(--vy-accent-text)" x-text="'.\Illuminate\Support\Js::from($currencySymbol)->toHtml().' + Math.round(rate * (1 + weekend/100))"></strong>';
+        $weekendPriceHtml = '<strong style="color:var(--vy-accent-text)" x-text="'.\Illuminate\Support\Js::from($currencySymbol)->toHtml().' + Math.round(num(rate) * (1 + weekend/100))"></strong>';
         $weekdayPriceHtml = '<span x-text="'.\Illuminate\Support\Js::from($currencySymbol)->toHtml().' + rate"></span>';
     @endphp
     <div class="vy-ud-top">
@@ -132,7 +132,7 @@
                 {{-- A day's STATE reaches assistive tech as a word, never as a fill colour alone; the two
                      interactive states are <button>s so the block/detail actions are keyboard-operable. --}}
                 @foreach ($calendar['days'] as $c)
-                    @php $dayLabel = \Illuminate\Support\Carbon::parse($c['date'])->translatedFormat('j F Y'); @endphp
+                    @php $dayLabel = \Illuminate\Support\Carbon::parse($c['date'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j F Y')); @endphp
                     @if ($c['state'] === 'open')
                         <button type="button" class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date'])); detail = null" aria-label="{{ __('livewire/owner/unit-detail.day_open_aria', ['date' => $dayLabel]) }}">{{ $c['day'] }}</button>
                     @elseif ($c['state'] === 'booked' || $c['state'] === 'blocked')
@@ -186,7 +186,8 @@
         </section>
 
         {{-- Pricing & availability — REAL nightly + min-stay + weekend uplift (OwnerRateService, Wave-A/B) --}}
-        <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false, rate: {{ $pricing['rate_units'] ?? 0 }}, weekend: {{ $pricing['weekend_pct'] !== null ? (float) $pricing['weekend_pct'] : 0 }} }">
+        @once @include('partials.local-number-script') @endonce
+        <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false, rate: {{ $pricing['rate_units'] ?? 0 }}, weekend: {{ $pricing['weekend_pct'] !== null ? (float) $pricing['weekend_pct'] : 0 }}, num(v) { const n = window.vyLocalNumber ? window.vyLocalNumber.normalize(String(v), 2) : String(v); return n === null || isNaN(Number(n)) ? 0 : Number(n); } }">
             <div class="vy-eyebrow" style="margin-bottom:12px">{{ __('livewire/owner/unit-detail.pricing_heading') }}</div>
 
             {{-- Wave C · GATE 3 — a REAL owner pause/resume. Pausing removes the unit's capacity (certified availability
@@ -240,7 +241,7 @@
                         <input type="hidden" name="start_date" value="{{ now()->toDateString() }}">
                         <input type="hidden" name="end_date" value="{{ now()->addYear()->subDay()->toDateString() }}">
                         <label class="vy-field-label" for="ud_rate">{{ __('livewire/owner/unit-detail.nightly_rate_label', ['symbol' => $currencySymbol]) }}</label>
-                        <input id="ud_rate" type="number" name="rate" step="0.01" min="0" x-model="rate" class="vy-input" style="width:100%;margin-bottom:11px" required>
+                        <input id="ud_rate" type="text" inputmode="decimal" autocomplete="off" name="rate" x-model="rate" class="vy-input" style="width:100%;margin-bottom:11px" required>
                         <label class="vy-field-label" for="ud_weekend">{{ __('livewire/owner/unit-detail.weekend_uplift_label') }}</label>
                         <input id="ud_weekend" type="number" name="weekend_uplift" step="1" min="0" max="200" x-model="weekend" class="vy-input" style="width:100%;margin-bottom:11px" placeholder="{{ __('livewire/owner/unit-detail.weekend_uplift_placeholder') }}">
                         <label class="vy-field-label" for="ud_min">{{ __('livewire/owner/unit-detail.minimum_stay_label') }}</label>

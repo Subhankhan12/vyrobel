@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Services\PeriodLockGuard;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\CommissionChange;
 use App\Support\Owner\OwnerCommissionRate;
@@ -210,7 +211,7 @@ class OperatorOwnerDetail extends Component
             $breakdown = OwnerLedgerAttribution::breakdown($stmtLedger);
             $netToOwner = $breakdown[0] ?? null;
             if ($netToOwner !== null) {
-                $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->translatedFormat('M Y');
+                $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->translatedFormat(LocalDate::pattern('M Y'));
                 // ⚠️ the rate of the agreement that covered THAT period — today's rate mislabels a past statement once a change
                 //    has taken effect (the review, 2026-10-03)
                 $netToOwner['commission_pct'] = OwnerCommissionRate::trim(CommissionChange::governing($ownerId, CarbonImmutable::parse($latestFinal->period_start))?->commission_pct);
@@ -245,10 +246,10 @@ class OperatorOwnerDetail extends Component
         $commission = [
             'now' => OwnerCommissionRate::display($nowRate?->commission_pct),
             'next' => $waiting !== null && OwnerCommissionRate::trim($waiting->commission_pct) !== OwnerCommissionRate::trim($nowRate?->commission_pct)
-                ? ['display' => OwnerCommissionRate::display($waiting->commission_pct) ?? __('php/livewire/operator/operator_owner_detail.no_rate'), 'from' => $waiting->effective_from->translatedFormat('j M Y'),
+                ? ['display' => OwnerCommissionRate::display($waiting->commission_pct) ?? __('php/livewire/operator/operator_owner_detail.no_rate'), 'from' => $waiting->effective_from->translatedFormat(LocalDate::pattern('j M Y')),
                     'replaced_by_save' => $waiting->effective_from->toDateString() === $startsOn->toDateString()]
                 : null,
-            'starts_on' => $startsOn->translatedFormat('j M Y'),
+            'starts_on' => $startsOn->translatedFormat(LocalDate::pattern('j M Y')),
             // no agreement in effect today → a change starts today, not on the 1st (CommissionChange::startsOn)
             'starts_today' => $nowRate === null,
             'prefill' => CommissionChange::rateOn($ownerId, $startsOn) ?? OwnerCommissionRate::trim($nowRate?->commission_pct) ?? '',
@@ -364,7 +365,7 @@ class OperatorOwnerDetail extends Component
             'end' => $start->copy()->endOfMonth()->toDateString(),
             'lockedThrough' => $lockedThrough,
             // ⚠️ the dialog printed the database date ("2026-09-30"); people read "30 Sep 2026" (2026-10-03)
-            'lockedThroughWords' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->translatedFormat('j M Y') : null,
+            'lockedThroughWords' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->translatedFormat(LocalDate::pattern('j M Y')) : null,
             // Bounds the picker so a sealed date cannot be chosen in the first place.
             'minStart' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->addDay()->toDateString() : null,
         ];
@@ -677,11 +678,11 @@ class OperatorOwnerDetail extends Component
         }
 
         if ($from !== null && $from->gt($today)) {
-            return __('php/livewire/operator/operator_owner_detail.timing_starts', ['date' => $from->translatedFormat('j M Y')]);
+            return __('php/livewire/operator/operator_owner_detail.timing_starts', ['date' => $from->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
         if ($to !== null && $to->lt($today)) {
-            return __('php/livewire/operator/operator_owner_detail.timing_ran_to', ['date' => $to->translatedFormat('j M Y')]);
+            return __('php/livewire/operator/operator_owner_detail.timing_ran_to', ['date' => $to->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
         return null;
@@ -715,7 +716,7 @@ class OperatorOwnerDetail extends Component
 
             return [
                 'sequence_no' => $s->sequence_no !== null ? (int) $s->sequence_no : null,
-                'period' => __('php/livewire/operator/operator_owner_detail.period_range', ['start' => $s->period_start->translatedFormat('j M Y'), 'end' => $s->period_end->translatedFormat('j M Y')]),
+                'period' => __('php/livewire/operator/operator_owner_detail.period_range', ['start' => $s->period_start->translatedFormat(LocalDate::pattern('j M Y')), 'end' => $s->period_end->translatedFormat(LocalDate::pattern('j M Y'))]),
                 'gross' => $this->money((int) $s->gross_minor, $source),
                 'commission' => $this->money((int) $s->commission_minor, $source),
                 'net' => $this->money((int) $s->net_payable_minor, $payout),
@@ -838,7 +839,7 @@ class OperatorOwnerDetail extends Component
 
         if ($invite !== null) {
             return match ((string) $invite->status) {
-                'accepted' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_accepted'), 'detail' => $invite->accepted_at?->translatedFormat('j M Y'), 'tone' => 'departed'],
+                'accepted' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_accepted'), 'detail' => $invite->accepted_at?->translatedFormat(LocalDate::pattern('j M Y')), 'tone' => 'departed'],
                 'expired' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_expired'), 'detail' => $this->inviteExpiryNote($invite), 'tone' => 'departed'],
                 'revoked' => ['label' => __('php/livewire/operator/operator_owner_detail.portal_invite_revoked'), 'detail' => null, 'tone' => 'cancelled'],
                 default => ['label' => ucfirst((string) $invite->status), 'detail' => null, 'tone' => 'departed'],
@@ -862,15 +863,15 @@ class OperatorOwnerDetail extends Component
         }
 
         return $expires->isFuture()
-            ? __('php/livewire/operator/operator_owner_detail.invite_expires', ['date' => $expires->translatedFormat('j M Y')])
-            : __('php/livewire/operator/operator_owner_detail.invite_expired', ['date' => $expires->translatedFormat('j M Y')]);
+            ? __('php/livewire/operator/operator_owner_detail.invite_expires', ['date' => $expires->translatedFormat(LocalDate::pattern('j M Y'))])
+            : __('php/livewire/operator/operator_owner_detail.invite_expired', ['date' => $expires->translatedFormat(LocalDate::pattern('j M Y'))]);
     }
 
     // ── Small shared helpers ─────────────────────────────────────────────────────────────────────
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $this->asDate($value)?->translatedFormat('j M Y');
+        return $this->asDate($value)?->translatedFormat(LocalDate::pattern('j M Y'));
     }
 
     /**

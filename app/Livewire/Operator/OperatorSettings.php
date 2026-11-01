@@ -24,6 +24,7 @@ use App\Support\Authorization\RoleLabel;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
@@ -489,7 +490,7 @@ class OperatorSettings extends Component
 
         return [
             'scheduled' => $property->removal_scheduled_at !== null,
-            'effective' => $property->removal_effective_at?->translatedFormat('j M Y') ?? '',
+            'effective' => $property->removal_effective_at?->translatedFormat(LocalDate::pattern('j M Y')) ?? '',
             'in_house' => $inHouse,
             'name' => (string) $property->name,
             'units' => Unit::query()->where('property_id', $property->id)->count(),

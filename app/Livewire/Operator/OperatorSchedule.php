@@ -10,6 +10,7 @@ use App\Models\OpenShift;
 use App\Models\Property;
 use App\Models\SchedulePublication;
 use App\Services\LeaveService;
+use App\Support\I18n\LocalDate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\RosterWeek;
 use App\Support\Schedule\ShiftType;
@@ -172,7 +173,7 @@ class OperatorSchedule extends Component
             ->map(fn (OpenShift $o): array => [
                 'id' => (string) $o->getKey(),
                 'date' => $o->date->toDateString(),
-                'day_label' => $o->date->translatedFormat('D j M'),
+                'day_label' => $o->date->translatedFormat(LocalDate::pattern('D j M')),
                 'shift_label' => ShiftType::label((string) $o->shift_type),
                 'department' => $o->department,
             ])->all();

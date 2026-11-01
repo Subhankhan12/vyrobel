@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\RefundEta;
 use Illuminate\Bus\Queueable;
@@ -66,7 +67,7 @@ class CancellationMail extends Mailable
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
                 'propertyName' => (string) ($r->property->name ?? __('php/mail/cancellation_mail.your_stay')),
-                'stay' => $checkIn->translatedFormat('j M').' – '.$checkOut->translatedFormat('j M Y'),
+                'stay' => $checkIn->translatedFormat(LocalDate::pattern('j M')).' – '.$checkOut->translatedFormat(LocalDate::pattern('j M Y')),
                 'nights' => $nights,
                 'guests' => $this->guestsLabel($r),
                 'reason' => $this->reason !== null && $this->reason !== '' ? $this->reason : null,

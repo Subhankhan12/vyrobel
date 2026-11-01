@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\FrontDesk;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -273,8 +274,8 @@ class ReservationsList extends Component
             'reference' => (string) $reservation->reference,
             'guest' => $name,
             'initials' => $this->initials($name),
-            'check_in' => $checkIn->translatedFormat('j M Y'),
-            'check_out' => $checkOut->translatedFormat('j M Y'),
+            'check_in' => $checkIn->translatedFormat(LocalDate::pattern('j M Y')),
+            'check_out' => $checkOut->translatedFormat(LocalDate::pattern('j M Y')),
             // Half-open [check_in, check_out) — the same arithmetic as the folio's room nights.
             'nights' => (int) $checkIn->diffInDays($checkOut),
             'guests' => (int) $reservation->adults + (int) $reservation->children,

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Services\LeaveService;
+use App\Support\I18n\LocalDate;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -77,10 +78,10 @@ class LeaveRequest extends Model
         $end = $this->end_date;
 
         if ($start->isSameDay($end)) {
-            return $start->translatedFormat('D j M');
+            return $start->translatedFormat(LocalDate::pattern('D j M'));
         }
 
-        return $start->translatedFormat('D j').'–'.$end->translatedFormat('D j M');
+        return $start->translatedFormat(LocalDate::pattern('D j')).'–'.$end->translatedFormat(LocalDate::pattern('D j M'));
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
 use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Payouts\RailLabel;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class OwnerPayoutsExportController extends Controller
         $months = OwnerStatement::query()
             ->whereIn('id', $payouts->pluck('owner_statement_id')->filter()->unique()->all())
             ->get()
-            ->mapWithKeys(fn (OwnerStatement $s): array => [(string) $s->id => $s->period_start->translatedFormat('M Y')]);
+            ->mapWithKeys(fn (OwnerStatement $s): array => [(string) $s->id => $s->period_start->translatedFormat(LocalDate::pattern('M Y'))]);
 
         $filename = 'payout-history-'.Carbon::now()->format('Y-m-d').'.csv';
 
@@ -57,7 +58,7 @@ class OwnerPayoutsExportController extends Controller
                 fputcsv($out, CsvSafe::row([
                     $months[(string) $p->owner_statement_id] ?? '—',
                     RailLabel::for((string) $p->rail),
-                    $when !== null ? Carbon::parse($when)->translatedFormat('j M Y') : __('php/http/controllers/owner/owner_payouts_export_controller.date_pending'),
+                    $when !== null ? Carbon::parse($when)->translatedFormat(LocalDate::pattern('j M Y')) : __('php/http/controllers/owner/owner_payouts_export_controller.date_pending'),
                     match ((string) $p->status) {
                         'pending' => __('php/http/controllers/owner/owner_payouts_export_controller.status_pending'),
                         'processing' => __('php/http/controllers/owner/owner_payouts_export_controller.status_processing'),

@@ -22,6 +22,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\FolioService;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -206,8 +207,8 @@ class ReservationDetail extends Component
                 'status' => $status,
                 'status_label' => $meta['label'],
                 'tone' => $meta['tone'],
-                'check_in' => $checkIn->translatedFormat('j M Y'),
-                'check_out' => $checkOut->translatedFormat('j M Y'),
+                'check_in' => $checkIn->translatedFormat(LocalDate::pattern('j M Y')),
+                'check_out' => $checkOut->translatedFormat(LocalDate::pattern('j M Y')),
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'currency' => $currency,
@@ -220,8 +221,8 @@ class ReservationDetail extends Component
                 'id' => (string) $line->id,
                 'room_type' => (string) $line->roomType->name,
                 'unit' => $line->unit?->code,
-                'check_in' => CarbonImmutable::parse($line->check_in)->translatedFormat('j M'),
-                'check_out' => CarbonImmutable::parse($line->check_out)->translatedFormat('j M'),
+                'check_in' => CarbonImmutable::parse($line->check_in)->translatedFormat(LocalDate::pattern('j M')),
+                'check_out' => CarbonImmutable::parse($line->check_out)->translatedFormat(LocalDate::pattern('j M')),
                 'status' => (string) $line->status,
                 'status_label' => $this->unitStatusLabel((string) $line->status),
                 'price' => $this->money((int) $line->price_minor, $currency),
@@ -323,7 +324,7 @@ class ReservationDetail extends Component
             'is_no_show' => $isNoShow,
             'at_label' => $isNoShow ? __('php/livewire/reservation_detail.marked_no_show_at') : __('php/livewire/reservation_detail.cancelled_at'),
             'at' => $reservation->cancelled_at !== null
-                ? CarbonImmutable::parse($reservation->cancelled_at)->translatedFormat('j M Y · H:i')
+                ? CarbonImmutable::parse($reservation->cancelled_at)->translatedFormat(LocalDate::pattern('j M Y · H:i'))
                 : null,
             'reason' => $reason !== '' ? $reason : null,
             // The ONE consequence that is real and automatic — terminate() → releaseLine() → sold−−.
@@ -412,7 +413,7 @@ class ReservationDetail extends Component
 
         return array_map(fn (array $e): array => [
             'label' => $e['label'],
-            'at' => $e['ts']->translatedFormat('j M Y · H:i'),
+            'at' => $e['ts']->translatedFormat(LocalDate::pattern('j M Y · H:i')),
             'actor' => $e['actor'],
             'reason' => $e['reason'],
             'is_money' => $e['is_money'],
@@ -533,7 +534,7 @@ class ReservationDetail extends Component
                 'entry' => [
                     'label' => $this->folioItemLabel((string) $item->type),
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat(LocalDate::pattern('j M')),
                     'amount' => ($amount < 0 ? '' : '+').$this->money($amount, $currency),
                     'tone' => $amount < 0 ? 'refund' : 'charge',
                     'flag' => null,
@@ -577,7 +578,7 @@ class ReservationDetail extends Component
         $amount = (int) $payment->amount_minor;
         $type = (string) $payment->type;
         $status = (string) $payment->status;
-        $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat('j M');
+        $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->translatedFormat(LocalDate::pattern('j M'));
 
         // Settled inbound money — reduces the balance. Refundable ONLY while un-refunded headroom remains:
         // `refundable => true` for any settled payment is what kept the button on screen after a full refund

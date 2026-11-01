@@ -12,6 +12,7 @@ use App\Support\Analytics\BookingCadence;
 use App\Support\Analytics\CustomRange;
 use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -382,7 +383,7 @@ class OperatorInsights extends Component
         }
 
         // The full weekday name in the reader's language (2023-01-01 was a Sunday, so day 0 = Sunday … 6 = Saturday).
-        $name = fn (int $d): string => CarbonImmutable::create(2023, 1, 1)->addDays($d)->translatedFormat('l');
+        $name = fn (int $d): string => CarbonImmutable::create(2023, 1, 1)->addDays($d)->translatedFormat(LocalDate::pattern('l'));
 
         return ['label' => $name($bestStart), 'next' => $name(($bestStart + 1) % 7), 'pct' => $pct];
     }

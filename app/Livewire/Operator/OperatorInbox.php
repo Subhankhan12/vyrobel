@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Guest\GuestHistory;
+use App\Support\I18n\LocalDate;
 use App\Support\Inbox\MessageAttachments;
 use App\Support\Inbox\MessageTemplate;
 use App\Support\Inbox\ThreadName;
@@ -473,7 +474,7 @@ class OperatorInbox extends Component
                     'id' => (string) $r->getKey(),
                     'label' => (string) $r->reference
                         .($unit !== null ? ' · '.($unit->name ?? $unit->code) : '')
-                        .' · '.CarbonImmutable::parse($r->check_in)->translatedFormat('j M').'–'.CarbonImmutable::parse($r->check_out)->translatedFormat('j M'),
+                        .' · '.CarbonImmutable::parse($r->check_in)->translatedFormat(LocalDate::pattern('j M')).'–'.CarbonImmutable::parse($r->check_out)->translatedFormat(LocalDate::pattern('j M')),
                     'linked' => (string) $thread->reservation_id === (string) $r->getKey(),
                 ];
             })
@@ -573,8 +574,8 @@ class OperatorInbox extends Component
             'reference' => (string) $reservation->reference,
             'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : null,
             'dates' => __('php/livewire/operator/operator_inbox.reservation_dates', [
-                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M'),
-                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M'),
+                'check_in' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M')),
+                'check_out' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M')),
             ]),
             'status' => (string) $reservation->status,
             /*
@@ -701,7 +702,7 @@ class OperatorInbox extends Component
             return __('php/livewire/operator/operator_inbox.yesterday');
         }
 
-        return $at->translatedFormat('j M Y');
+        return $at->translatedFormat(LocalDate::pattern('j M Y'));
     }
 
     private function shortTime(?\DateTimeInterface $at): string
@@ -716,10 +717,10 @@ class OperatorInbox extends Component
             return $at->format('H:i');
         }
         if ($at->greaterThan($now->subDays(6))) {
-            return $at->translatedFormat('D');
+            return $at->translatedFormat(LocalDate::pattern('D'));
         }
 
-        return $at->translatedFormat('j M');
+        return $at->translatedFormat(LocalDate::pattern('j M'));
     }
 
     private function resolveFilter(): ?string

@@ -13,6 +13,7 @@ use App\Models\OwnerExpense;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerAttributionService;
+use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerAgreementTerms;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
@@ -188,9 +189,9 @@ class OwnerAgreement extends Component
             'version' => (string) $amendment->version,
             'title' => (string) $amendment->title,
             'summary' => $amendment->summary !== null ? (string) $amendment->summary : null,
-            'effective_display' => $amendment->effective_date->translatedFormat('j M Y'),
+            'effective_display' => $amendment->effective_date->translatedFormat(LocalDate::pattern('j M Y')),
             'acknowledged_by' => $ack?->acknowledgedBy?->name,
-            'acknowledged_display' => $ack?->acknowledged_at?->translatedFormat('j M Y'),
+            'acknowledged_display' => $ack?->acknowledged_at?->translatedFormat(LocalDate::pattern('j M Y')),
             'changes' => $this->amendmentChanges(is_array($amendment->new_terms) ? $amendment->new_terms : []),
         ];
     }
@@ -318,7 +319,7 @@ class OwnerAgreement extends Component
                     'id' => (string) $m->id,
                     'label' => __('php/livewire/owner/owner_agreement.amendment_label', ['version' => (string) $m->version]),
                     'meta' => $m->acknowledgment !== null
-                        ? __('php/livewire/owner/owner_agreement.acknowledged_on', ['date' => (string) $m->acknowledgment->acknowledged_at?->translatedFormat('j M Y')])
+                        ? __('php/livewire/owner/owner_agreement.acknowledged_on', ['date' => (string) $m->acknowledgment->acknowledged_at?->translatedFormat(LocalDate::pattern('j M Y'))])
                         : __('php/livewire/owner/owner_agreement.awaiting_acknowledgment'),
                 ])
                 ->all();
@@ -568,11 +569,11 @@ class OwnerAgreement extends Component
         $to = $this->asDate($a->effective_to);
 
         if ($from !== null && $from->gt($today)) {
-            return __('php/livewire/owner/owner_agreement.starts', ['date' => $from->translatedFormat('j M Y')]);
+            return __('php/livewire/owner/owner_agreement.starts', ['date' => $from->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
         if ($to !== null && $to->lt($today)) {
-            return __('php/livewire/owner/owner_agreement.ran_to', ['date' => $to->translatedFormat('j M Y')]);
+            return __('php/livewire/owner/owner_agreement.ran_to', ['date' => $to->translatedFormat(LocalDate::pattern('j M Y'))]);
         }
 
         return null;
@@ -642,7 +643,7 @@ class OwnerAgreement extends Component
 
     private function dateDisplay(mixed $value): ?string
     {
-        return $this->asDate($value)?->translatedFormat('j M Y');
+        return $this->asDate($value)?->translatedFormat(LocalDate::pattern('j M Y'));
     }
 
     /**

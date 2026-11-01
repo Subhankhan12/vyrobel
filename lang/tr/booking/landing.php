@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Konaklama yerleri',
+    'book_direct' => 'Doğrudan rezervasyon',
+    'nav_stays' => 'Konaklama yerleri',
+    'my_account' => 'Hesabım',
+    'sign_in' => 'Oturum aç',
+    'rating_across' => '{1} :average puan · :count değerlendirme|[0,*] :average puan · :count değerlendirme',
+    'heading' => ':org ile<br>doğrudan rezervasyon yapın.',
+    'subheading' => 'Özenle bakılan konaklama yerleri, doğrudan tesis üzerinden rezervasyon — ek ücret yok, en iyi fiyatımız ve karşınızda gerçek bir insan.',
+    'where' => 'Nereye',
+    'check_in' => 'Giriş',
+    'check_out' => 'Çıkış',
+    'adults' => 'Yetişkin',
+    'children' => 'Çocuk',
+    'where_to_stay' => 'Nerede kalmalı',
+    'towns_lede' => '{1} Ana üssümüz.|[0,*] :count farklı yer, her biri kendi temposunda.',
+    'from_price' => 'en düşük :price',
+    'featured_stays' => 'Öne çıkan konaklama yerleri',
+    'featured_lede' => 'Koleksiyonun tamamından misafirlerin favorileri.',
+    'per_night' => '/ gece',
+    'see_dates_for_pricing' => 'Fiyatlar için tarih seçin',
+    'browse_by_what_matters' => 'Sizin için önemli olana göre göz atın',
+    'why_book_direct' => 'Neden doğrudan rezervasyon',
+    'recent_guests' => 'Son misafirler',
+    'rating_short' => '{1} :average · :count değerlendirme|[0,*] :average · :count değerlendirme',
+    'stars_aria' => '5 üzerinden :rating yıldız',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'Henüz değerlendirme yok — ilk konaklayan siz olun ve deneyiminizi paylaşın.',
+    'cta_heading' => 'Size uygun yeri bulun',
+    'cta_sub' => 'Gerçek tarihler, güncel fiyatlar, anında onay.',
+    'browse_all_stays' => 'Tüm konaklama yerlerini gör',
+];

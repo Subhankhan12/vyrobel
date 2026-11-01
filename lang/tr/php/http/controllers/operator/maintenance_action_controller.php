@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => '“:title” bakım kaydı açıldı — birim: :unit.',
+    'not_assignable_staff' => 'Bu kullanıcı bu kuruluşta atanabilir bir personel değil.',
+    'cannot_reassign_closed' => 'Bu bakım kaydı yeniden atanamaz — zaten kapatılmış.',
+    'assignment_updated' => 'Bakım kaydının ataması güncellendi.',
+    'work_order_closed' => 'Bu iş emri kapatılmış — ayrıntıları değiştirilemez.',
+    'work_order_updated' => 'İş emri güncellendi.',
+    'col_title' => 'Başlık',
+    'col_unit' => 'Birim',
+    'col_category' => 'Kategori',
+    'col_priority' => 'Öncelik',
+    'col_status' => 'Durum',
+    'col_assignee' => 'Atanan kişi',
+    'col_reported' => 'Bildirilme',
+    'col_cost' => 'Maliyet',
+    'bulk_assigned_skipped' => '{1} Atanan iş emri: :count · atlanan: :skipped (zaten kapatılmış)|[0,*] Atanan iş emri: :count · atlanan: :skipped (zaten kapatılmış)',
+    'bulk_assigned' => '{1} Atanan iş emri: :count.|[0,*] Atanan iş emri: :count.',
+    'bulk_resolved_skipped' => '{1} Çözülen iş emri: :count · atlanan: :skipped (zaten kapatılmış)|[0,*] Çözülen iş emri: :count · atlanan: :skipped (zaten kapatılmış)',
+    'bulk_resolved' => '{1} Çözülen iş emri: :count.|[0,*] Çözülen iş emri: :count.',
+    'cannot_start' => 'Bu bakım kaydında çalışma başlatılamaz — kayıt artık açık değil.',
+    'work_started' => 'Bu bakım kaydında çalışma başladı.',
+    'cannot_resolve_closed' => 'Bu iş emri çözülemez — zaten kapatılmış.',
+    'ticket_resolved' => 'Bakım kaydı çözüldü.',
+    'cannot_cancel_closed' => 'Bu bakım kaydı iptal edilemez — zaten kapatılmış.',
+    'ticket_cancelled' => 'Bakım kaydı iptal edildi.',
+    'parts_closed' => 'Bu bakım kaydı kapatılmış — parça bilgisi güncellenemez.',
+    'awaiting_parts' => 'Parça bekleniyor olarak işaretlendi.',
+    'parts_arrived' => 'Parçalar geldi olarak işaretlendi.',
+    'update_posted_waiting_part' => 'Güncelleme eklendi — parça bekleniyor olarak işaretlendi.',
+    'update_posted' => 'Güncelleme eklendi.',
+    'photo_added' => 'Fotoğraf eklendi.',
+    'photo_removed' => 'Fotoğraf kaldırıldı.',
+    'workspace_paused' => 'Kuruluşunuz duraklatıldı (salt okunur) — siz sürdürene kadar bakım değişiklikleri kapalı.',
+];

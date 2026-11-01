@@ -12,7 +12,7 @@
     ]));
     // The wired rail (founder decision D1): 'stripe' → test-mode hosted Checkout; else pay-on-arrival.
     $payByCard = (string) config('services.payments.gateway') === 'stripe';
-    $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat('D j M') : '';
+    $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat(\App\Support\I18n\LocalDate::pattern('D j M')) : '';
     $guests = (int) $search['adults'] + (int) $search['children'];
 @endphp
 <x-public.shell :property="$property" :title="__('booking/checkout.page_title')" :seo="$seo">

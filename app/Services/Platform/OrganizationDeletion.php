@@ -7,6 +7,7 @@ namespace App\Services\Platform;
 use App\Models\CheckoutSession;
 use App\Models\Organization;
 use App\Models\PaymentDispute;
+use App\Support\I18n\LocalDate;
 use App\Support\Platform\TenantLifecycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -883,7 +884,7 @@ final class OrganizationDeletion
     {
         return $at === null
             ? __('php/services/platform/organization_deletion.unknown_time')
-            : __('php/services/platform/organization_deletion.time_utc', ['time' => CarbonImmutable::parse((string) $at)->utc()->translatedFormat('j M Y, H:i')]);
+            : __('php/services/platform/organization_deletion.time_utc', ['time' => CarbonImmutable::parse((string) $at)->utc()->translatedFormat(LocalDate::pattern('j M Y, H:i'))]);
     }
 
     private function stale(mixed $at): bool

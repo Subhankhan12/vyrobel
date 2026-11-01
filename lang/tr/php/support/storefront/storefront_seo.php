@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — tr translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Otel',
+    'type_aparthotel' => 'Apart otel',
+    'type_serviced_apartment' => 'Hizmetli daireler',
+    'type_apartment_building' => 'Daireler',
+    'type_apartment' => 'Daire',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pansiyon',
+    'type_resort' => 'Tatil köyü',
+    'type_mixed' => 'Otel ve daireler',
+    'type_portfolio' => 'Konaklama yerleri',
+    'title_town' => ':name, :town — Doğrudan rezervasyon',
+    'title' => ':name — Doğrudan rezervasyon',
+    'title_room' => ':room, :property — Doğrudan rezervasyon',
+    'org_description_towns' => '{1} :towns bölgesindeki :count tesise göz atın. Müsaitliği kontrol edin ve doğrudan :org üzerinden rezervasyon yapın.|[0,*] :towns bölgesindeki :count tesise göz atın. Müsaitliği kontrol edin ve doğrudan :org üzerinden rezervasyon yapın.',
+    'org_description' => '{1} :count tesise göz atın. Müsaitliği kontrol edin ve doğrudan :org üzerinden rezervasyon yapın.|[0,*] :count tesise göz atın. Müsaitliği kontrol edin ve doğrudan :org üzerinden rezervasyon yapın.',
+    'org_description_empty' => 'Müsaitliği kontrol edin ve doğrudan :org üzerinden rezervasyon yapın.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1} :name için doğrudan rezervasyon yapın. :type · :place. :count oda tipi. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.|[0,*] :name için doğrudan rezervasyon yapın. :type · :place. :count oda tipi. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.',
+    'description_place' => ':name için doğrudan rezervasyon yapın. :type · :place. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.',
+    'description_rooms' => '{1} :name için doğrudan rezervasyon yapın. :type. :count oda tipi. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.|[0,*] :name için doğrudan rezervasyon yapın. :type. :count oda tipi. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.',
+    'description' => ':name için doğrudan rezervasyon yapın. :type. Anlık müsaitliği kontrol edin ve bir rezervasyon sitesine gitmeden rezervasyon yapın.',
+    'detail_sleeps' => 'en fazla :guests kişi',
+    'detail_bedrooms' => '{1} :count yatak odası|[0,*] :count yatak odası',
+    'room_description_town_details' => ':room · :property, :town — :details. Anlık müsaitliği kontrol edin ve doğrudan rezervasyon yapın.',
+    'room_description_town' => ':room · :property, :town. Anlık müsaitliği kontrol edin ve doğrudan rezervasyon yapın.',
+    'room_description_details' => ':room · :property — :details. Anlık müsaitliği kontrol edin ve doğrudan rezervasyon yapın.',
+    'room_description' => ':room · :property. Anlık müsaitliği kontrol edin ve doğrudan rezervasyon yapın.',
+    'list_and' => ':items ve :last',
+];

@@ -12,6 +12,7 @@ use App\Models\Group;
 use App\Models\Payment;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -120,7 +121,7 @@ class GroupBooking extends Component
             'sub' => $tentative ? __('php/livewire/operator/group_booking.sub_held') : __('php/livewire/operator/group_booking.sub_confirmed'),
             'organiser' => (string) (data_get($group->contact, 'name') ?: __('php/livewire/operator/group_booking.organiser_fallback')),   // NAME only (#28)
             'units' => $group->reservations->count(),
-            'dates' => CarbonImmutable::parse($first->check_in)->translatedFormat('j M').' – '.CarbonImmutable::parse($first->check_out)->translatedFormat('j M Y'),
+            'dates' => CarbonImmutable::parse($first->check_in)->translatedFormat(LocalDate::pattern('j M')).' – '.CarbonImmutable::parse($first->check_out)->translatedFormat(LocalDate::pattern('j M Y')),
             'total' => $this->money($totalMinor, $currency),
             'deposit' => $depositMinor > 0 ? $this->money($depositMinor, $currency) : null,
             'rack_url' => route('app.rack'),

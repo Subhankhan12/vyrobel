@@ -26,7 +26,7 @@
         <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.past_date_not_erased') }}</span><span class="ad-row-v">{{ number_format($live['overdue']) }}</span></div>
         {{-- ⚠️ ADMIN 03 · F3 — `?->format(…).' UTC' ?? '—'` printed a lone "UTC" when nothing was due: the null-safe call
              returns null, the concatenation turns it into " UTC", and `??` never fires. --}}
-        <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.next_due') }}</span><span class="ad-row-v">{{ $live['next_due'] ? __('admin/privacy/index.next_due_utc', ['datetime' => $live['next_due']->translatedFormat('j M Y, H:i')]) : __('admin/privacy/index.nothing_scheduled') }}</span></div>
+        <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.next_due') }}</span><span class="ad-row-v">{{ $live['next_due'] ? __('admin/privacy/index.next_due_utc', ['datetime' => $live['next_due']->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y, H:i'))]) : __('admin/privacy/index.nothing_scheduled') }}</span></div>
         <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.erased_last_30_days') }}</span><span class="ad-row-v">{{ number_format($live['erased_30d']) }}</span></div>
         @foreach ($live['by_org'] as $o)
             <div class="ad-row"><span class="ad-row-k">{{ $o['internal'] ? __('admin/privacy/index.org_internal', ['organization' => $o['organization']]) : $o['organization'] }}</span><span class="ad-row-v">{{ $o['overdue'] ? __('admin/privacy/index.org_pending_overdue', ['pending' => $o['pending'], 'overdue' => $o['overdue']]) : __('admin/privacy/index.org_pending', ['pending' => $o['pending']]) }}</span></div>

@@ -477,7 +477,7 @@
                                 <label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-mt-time">{{ __('livewire/maintenance-ticket-detail.time_spent') }}</label>
                                 <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                                    <input type="number" inputmode="decimal" step="0.25" min="0" name="time_spent" id="vy-mt-time" placeholder="{{ __('livewire/maintenance-ticket-detail.time_spent_placeholder') }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                    <input type="text" inputmode="decimal" autocomplete="off" name="time_spent" id="vy-mt-time" placeholder="{{ __('livewire/maintenance-ticket-detail.time_spent_placeholder') }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
                                     <span style="color:var(--vy-faint);font-size:12px;flex-shrink:0;">{{ __('livewire/maintenance-ticket-detail.hours_unit') }}</span>
                                 </div>
                             </div>
@@ -485,7 +485,7 @@
                                 <label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-mt-parts">{{ __('livewire/maintenance-ticket-detail.parts_cost') }}</label>
                                 <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
                                     <span style="color:var(--vy-faint);font-size:13.5px;flex-shrink:0;">{{ $currencySymbol }}</span>
-                                    <input type="number" inputmode="decimal" step="0.01" min="0" name="parts" id="vy-mt-parts" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                    <input type="text" inputmode="decimal" autocomplete="off" name="parts" id="vy-mt-parts" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
                                 </div>
                             </div>
                         </div>

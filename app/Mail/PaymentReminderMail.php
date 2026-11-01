@@ -12,6 +12,7 @@ use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -70,7 +71,7 @@ class PaymentReminderMail extends Mailable
                 'reference' => (string) $r->reference,
                 'propertyName' => (string) ($r->property->name ?? __('php/mail/payment_reminder_mail.your_stay')),
                 'unitName' => $unitName,
-                'arriving' => Carbon::parse($r->check_in)->translatedFormat('D, j M Y'),
+                'arriving' => Carbon::parse($r->check_in)->translatedFormat(LocalDate::pattern('D, j M Y')),
                 'total' => $totals !== null ? MoneyFormatter::display($totals['charges_minor'], $currency) : null,
                 'paid' => $totals !== null ? MoneyFormatter::display($totals['paid_minor'], $currency) : null,
                 'balance' => $balanceDisplay,

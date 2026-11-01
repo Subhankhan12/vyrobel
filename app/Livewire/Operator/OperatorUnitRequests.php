@@ -12,6 +12,7 @@ use App\Models\RoomType;
 use App\Models\UnitRequest;
 use App\Models\User;
 use App\Services\OwnerUnitRequestService;
+use App\Support\I18n\LocalDate;
 use App\Support\Property\PropertyContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -112,8 +113,8 @@ class OperatorUnitRequests extends Component
                 'status' => (string) $r->status,
                 'review_note' => (string) ($r->review_note ?? ''),
                 'created_unit' => $r->createdUnit !== null ? (string) ($r->createdUnit->name ?: $r->createdUnit->code) : null,
-                'when' => $r->created_at?->translatedFormat('j M Y'),
-                'reviewed' => $r->reviewed_at !== null ? CarbonImmutable::parse($r->reviewed_at)->translatedFormat('j M Y') : null,
+                'when' => $r->created_at?->translatedFormat(LocalDate::pattern('j M Y')),
+                'reviewed' => $r->reviewed_at !== null ? CarbonImmutable::parse($r->reviewed_at)->translatedFormat(LocalDate::pattern('j M Y')) : null,
             ])->all(),
         ]);
     }

@@ -26,8 +26,8 @@ return [
         'id' => 'A03-M3',
         'name' => 'F3 lone UTC',
         'file' => 'resources/views/admin/privacy/index.blade.php',
-        'old' => '{{ $live[\'next_due\'] ? __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']->translatedFormat(\'j M Y, H:i\')]) : __(\'admin/privacy/index.nothing_scheduled\') }}',
-        'new' => '{{ __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']?->translatedFormat(\'j M Y, H:i\')]) }}',
+        'old' => '{{ $live[\'next_due\'] ? __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']->translatedFormat(\\App\\Support\\I18n\\LocalDate::pattern(\'j M Y, H:i\'))]) : __(\'admin/privacy/index.nothing_scheduled\') }}',
+        'new' => '{{ __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']?->translatedFormat(\\App\\Support\\I18n\\LocalDate::pattern(\'j M Y, H:i\'))]) }}',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F3']],
     ],
     [
@@ -75,8 +75,8 @@ return [
         'id' => 'A03-M9',
         'name' => 'F7 no zone',
         'file' => 'resources/views/components/admin/time.blade.php',
-        'old' => ': __(\'components/admin/time.utc\', [\'time\' => $utc->translatedFormat(\'j M Y, H:i\')]) }}</time>',
-        'new' => ': $utc->translatedFormat(\'j M Y, H:i\') }}</time>',
+        'old' => ': __(\'components/admin/time.utc\', [\'time\' => $utc->translatedFormat(\\App\\Support\\I18n\\LocalDate::pattern(\'j M Y, H:i\'))]) }}</time>',
+        'new' => ': $utc->translatedFormat(\\App\\Support\\I18n\\LocalDate::pattern(\'j M Y, H:i\')) }}</time>',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F6']],
     ],
     [

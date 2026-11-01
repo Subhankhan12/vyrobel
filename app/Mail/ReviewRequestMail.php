@@ -10,6 +10,7 @@ use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\LocalDate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -68,7 +69,7 @@ class ReviewRequestMail extends Mailable
                 'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
-                'stay' => trans_choice('php/mail/review_request_mail.stay_line', $nights, ['count' => $nights, 'dates' => $checkIn->format('j').'–'.$checkOut->translatedFormat('j M')]),
+                'stay' => trans_choice('php/mail/review_request_mail.stay_line', $nights, ['count' => $nights, 'dates' => $checkIn->format('j').'–'.$checkOut->translatedFormat(LocalDate::pattern('j M'))]),
                 'reviewUrl' => $this->reviewUrl,
                 'starUrls' => $starUrls,
                 // ── Operator-customizable template (#86) — the store drives these; default == the strings above ──

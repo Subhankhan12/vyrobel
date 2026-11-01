@@ -7,6 +7,7 @@ namespace App\Support\Pdf;
 use App\Models\Folio;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 
@@ -45,7 +46,7 @@ final class GuestInvoiceDocument
                 $lines[] = [
                     'label' => FolioDocument::itemTypeLabel((string) $item->type),   // the ONE folio item-type label (shared)
                     'desc' => (string) $item->description,
-                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat('j M'),
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat(LocalDate::pattern('j M')),
                     'amount' => MoneyFormatter::display($amount, $currency),
                 ];
             }
@@ -87,9 +88,9 @@ final class GuestInvoiceDocument
             'property' => (string) ($reservation->property->name ?? ''),
             'buyer' => $guestName !== '' ? $guestName : null,
             'invoice_no' => 'INV-'.$reservation->reference,
-            'invoice_date' => CarbonImmutable::parse($reservation->booked_at ?? $reservation->created_at)->translatedFormat('j M Y'),
+            'invoice_date' => CarbonImmutable::parse($reservation->booked_at ?? $reservation->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
             'reference' => (string) $reservation->reference,
-            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat('j M Y'),
+            'stay' => CarbonImmutable::parse($reservation->check_in)->translatedFormat(LocalDate::pattern('j M Y')).' – '.CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern('j M Y')),
             'currency' => $currency,
             'lines' => $lines,
             'net' => MoneyFormatter::display($netMinor, $currency),

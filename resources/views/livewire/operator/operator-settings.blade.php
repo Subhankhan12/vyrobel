@@ -586,7 +586,7 @@
                                                 {{ __('livewire/operator/operator-settings.included_in_price') }}
                                             </label>
                                         @endif
-                                        <input class="vy-input" type="number" step="{{ $row['percentage'] ? '0.1' : '0.01' }}" min="0" style="width: 92px; text-align: right;"
+                                        <input class="vy-input" type="text" inputmode="decimal" autocomplete="off" style="width: 92px; text-align: right;"
                                                name="{{ $row['field'] }}[{{ $row['id'] }}]"
                                                value="{{ $row['percentage'] ? $row['rate'] : $row['amount'] }}"
                                                aria-label="{{ __('livewire/operator/operator-settings.row_value_aria', ['name' => $row['name']]) }}">
@@ -617,7 +617,7 @@
                                     </div>
                                     <div class="vy-field" style="margin: 0;">
                                         <label class="vy-field-label" for="fee_amount">{{ __('livewire/operator/operator-settings.fee_amount', ['currency' => $sample['currency'] ?? 'EUR']) }}</label>
-                                        <input id="fee_amount" type="number" step="0.01" min="0" name="amount" class="vy-input" required>
+                                        <input id="fee_amount" type="text" inputmode="decimal" autocomplete="off" name="amount" class="vy-input" required>
                                     </div>
                                     <div class="vy-field" style="margin: 0;">
                                         <label class="vy-field-label" for="fee_basis">{{ __('livewire/operator/operator-settings.fee_charged') }}</label>

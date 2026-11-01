@@ -10,6 +10,7 @@ use App\Models\Guest;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Services\InboxService;
+use App\Support\I18n\LocalDate;
 use App\Support\Inbox\MessageAttachments;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -43,7 +44,7 @@ class GuestMessagesController extends Controller
             ->map(fn (MessageThread $t): array => [
                 'id' => (string) $t->getKey(),
                 'subject' => (string) ($t->subject ?? __('php/http/controllers/guest/guest_messages_controller.your_conversation')),
-                'at' => $t->last_message_at !== null ? CarbonImmutable::parse($t->last_message_at)->translatedFormat('j M Y · H:i') : '',
+                'at' => $t->last_message_at !== null ? CarbonImmutable::parse($t->last_message_at)->translatedFormat(LocalDate::pattern('j M Y · H:i')) : '',
                 'unread' => $t->last_message_at !== null && ($t->guest_last_read_at === null || $t->last_message_at->greaterThan($t->guest_last_read_at)),
             ])
             ->all();
@@ -64,7 +65,7 @@ class GuestMessagesController extends Controller
                 'mine' => (string) $m->direction === 'inbound',
                 'author' => (string) $m->direction === 'inbound' ? __('php/http/controllers/guest/guest_messages_controller.author_you') : (($m->sender_label !== null && $m->sender_label !== '') ? (string) $m->sender_label : __('php/http/controllers/guest/guest_messages_controller.author_property')),
                 'body' => (string) $m->body,
-                'at' => CarbonImmutable::parse($m->created_at)->translatedFormat('j M · H:i'),
+                'at' => CarbonImmutable::parse($m->created_at)->translatedFormat(LocalDate::pattern('j M · H:i')),
                 // pictures, documents and voice notes the property sent (2026-10-06) — through this guest's own door
                 'files' => app(MessageAttachments::class)->rows($m, 'guest.messages.attachment'),
             ])->all(),

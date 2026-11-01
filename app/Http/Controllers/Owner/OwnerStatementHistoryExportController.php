@@ -11,6 +11,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Services\PdfService;
 use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
+use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pdf\OwnerStatementHistoryDocument;
 use Illuminate\Http\Request;
@@ -54,8 +55,8 @@ class OwnerStatementHistoryExportController extends Controller
 
             foreach ($rows as $s) {
                 fputcsv($out, CsvSafe::row([
-                    $s->period_start->translatedFormat('F Y'),
-                    __('php/http/controllers/owner/owner_statement_history_export_controller.period_range', ['start' => $s->period_start->translatedFormat('j M Y'), 'end' => $s->period_end->translatedFormat('j M Y')]),
+                    $s->period_start->translatedFormat(LocalDate::pattern('F Y')),
+                    __('php/http/controllers/owner/owner_statement_history_export_controller.period_range', ['start' => $s->period_start->translatedFormat(LocalDate::pattern('j M Y')), 'end' => $s->period_end->translatedFormat(LocalDate::pattern('j M Y'))]),
                     MoneyFormatter::display((int) $s->gross_minor, (string) $s->source_currency),
                     MoneyFormatter::display((int) $s->net_payable_minor, (string) $s->currency),
                     $this->statusMeta((string) $s->status)['label'],
