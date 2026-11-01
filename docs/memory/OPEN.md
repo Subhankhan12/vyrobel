@@ -335,7 +335,14 @@ change is said.** Briefs live in `briefs/`.
 - **D-MONEY-DISPLAY (2026-10-29, V by reading — HIS CALL, not a defect under I18N-01):** money SHOWN on screen is English-style in
   every language ("€150.50"; `MoneyFormatter::display`, which the brief says not to change). So the readout under a typed amount
   says "Records €150.50" right under the hint "write it like 150,50" on a German/Turkish page. Consistent with every other figure
-  on the page; a locale money display would be its own pass (every screen, PDF and CSV-adjacent figure).
+  on the page; a locale money display would be its own pass (every screen, PDF and CSV-adjacent figure). The same holds for other
+  shown numbers (the star rating's "4.5").
+- **D-OWNER-VILLA-COLUMN (2026-11-02, V by reading — HIS CALL, English copy):** the owner Rates and Agreement tables head their
+  unit column "Villa" (`livewire/owner/rates.col_villa`, `agreement.col_villa`) and owner Insights says "How your villas are
+  filling…" whatever the unit kind — a wireframe leftover. Translations say "unit"; the English is unchanged until he rules.
+- **D-I18N-CONSOLE-REGISTER (2026-11-02, V — english-left.php):** the console privacy page's sub-processor register
+  (`App\Support\Privacy\SubProcessors`) is typed English (purposes, data shared, "Not connected", "None on file") in every language.
+  Founder-only console and a legal register (cf. D-I18N-LAWYER) — recorded, not keyed.
 - **D-GUEST-TILE-NARROW (2026-10-29, V — low, pre-existing in English too):** the guest reservation's four stat tiles on a 390px
   phone are 73px wide; a money figure ("€369.00") now shrinks (min(19px, 3.7vw)) but still overhangs its tile by ~5px. A layout
   change (2 + 2 tiles on a phone) is the real fix — his look first.

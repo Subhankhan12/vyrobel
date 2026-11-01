@@ -1678,6 +1678,19 @@ MariaDB 4,587/4,587 (36,212) · PHPStan 0 · Pint · lang:check 0 · money gate 
 Deploy: stage → host preflight → swap (4 ms) → public checks 12/0/0 → live tr sign-in page checked. Open from it: D-MONEY-DISPLAY
 (his). French (reviewed + consistency, 67 fixes) and Spanish (translated, in review) follow. Not pushed.
 
+**I18N-01 — French LIVE on `rel_CA` (2026-11-02), with what its render found.** French: 32 batches translated → reviewed →
+one consistency editor (67 fixes). **The French render found three things keys alone could not (V):** (1) the owner welcome
+page (/owner/welcome) was entirely typed English — `lang:todo`'s out-of-scope pattern `welcome\.blade` (meant for the marketing
+root `welcome.blade.php`) also matched `livewire/owner/welcome.blade.php`, so the instrument never counted it; anchored, the page
+keyed (24 texts, DELTA 033). (2) The star-rating accessible name was built in English inside the component's `@php` block — keyed
+(DELTA 034); a sweep of every view `@php` block found no other. (3) Older bell rows "New message from …" stayed English in every
+language: `StoredEnglish` skipped plural values; it now tries each form (count from the row, or the form's own `{1}`) —
+mutation-shaped test in German. DELTA 033/034 translated into de, ar, tr, fr (and es, pt). **Gates (V):** MySQL and MariaDB
+4,588/4,588 (36,216) · PHPStan 0 · Pint · lang:check 0 · money gate FULL. Deploy: stage → preflight → swap 22:25:40 UTC (4 ms) →
+public checks 12/0/0 → live fr sign-in page. **Found for later (OPEN):** D-OWNER-VILLA-COLUMN (his), D-I18N-CONSOLE-REGISTER;
+Turkish and Portuguese had given the two unit conditions (out_of_order / out_of_service — different-coloured chips) one word —
+fixed in the pipeline for the next release. Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
