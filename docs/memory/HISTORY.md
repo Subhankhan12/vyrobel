@@ -1666,6 +1666,18 @@ live de/ar sign-in and booking pages checked, cache-busted → 0 errors. Screens
 a statement, /owner/balance, the statement PDF (owner); the guest's trips and a reservation on a phone; /admin/account (pick a
 language). Open from it: D-AGREEMENT-BEARER-WORD (his), D-GUEST-TILE-NARROW, D-I18N-DATE-ORDER, D-I18N-STORED-RECORDS. Not pushed.
 
+**I18N-01 — Turkish LIVE on `rel_BZ` (2026-10-29 → 11-02), with the date order and the number fields.** Turkish: 32 batches
+translated → reviewed → one consistency editor. **D-I18N-DATE-ORDER closed:** `LocalDate::pattern()` turns each English pattern into
+the language's order with ICU (English identical; an unplanned code unchanged; a UTF-8 bug — `ctype_alpha` took a lead byte for a
+letter — caught by the Japanese test); 395 call sites. **D-NUMBER-FIELDS closed** (8 fields). Stored bell text is now matched through
+the notification's parent classes too. **What the gates caught (V):** the first MySQL run had 2 failures, both real — my own date
+test used a negated two-argument `toContain` (always true; the guard test found it), and four saved mutations no longer found their
+target after the date wrapping (re-anchored, 4/4 caught; the harness needs PAO on to read results). Reverting an unrelated ordinal
+change in `OperatorOwners.php` had also undone its date wrapping — the "no bare pattern" test caught it. **Gates (V):** MySQL and
+MariaDB 4,587/4,587 (36,212) · PHPStan 0 · Pint · lang:check 0 · money gate FULL. **Production (read-only):** nobody had tr saved.
+Deploy: stage → host preflight → swap (4 ms) → public checks 12/0/0 → live tr sign-in page checked. Open from it: D-MONEY-DISPLAY
+(his). French (reviewed + consistency, 67 fixes) and Spanish (translated, in review) follow. Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

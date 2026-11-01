@@ -320,15 +320,22 @@ change is said.** Briefs live in `briefs/`.
   (essential; set only when a visitor chooses a language), so the privacy page's cookie table gains a row. Lawyer list.
 - **D-I18N-LAWYER (2026-10-27 — the lawyer's):** translations of: the owner agreement page's "portal acknowledgment, not a
   legally-binding e-signature" note; the VAT invoice footer (kept English); the cookie row above. Legal PDFs stay English.
-- **D-I18N-DATE-ORDER (2026-10-29, V — the German render and mails; low, mine before more languages):** dates are translated
-  (month and day names) but keep the English ORDER of the shared patterns: German reads "Di., 1 Sep 2026" where it writes
-  "Di., 1. Sep. 2026". ~395 `format()` patterns are shared code; the fix is one named-format helper per locale. Readable as is.
+- ✅ **D-I18N-DATE-ORDER — CLOSED 2026-11-02, live `rel_BZ @ 974b28b2`:** `App\Support\I18n\LocalDate::pattern()` gives a date
+  the language's own order (ICU's best pattern for the same fields; English byte for byte unchanged); 395 call sites; a test bans a
+  bare literal pattern in `translatedFormat()`. V on the host: "27. Okt 2026" (de), "27 Eki 2026" (tr), "2026年10月27日" (ja).
 - **D-I18N-STORED-RECORDS (2026-10-29, V — english-left.php):** text the system wrote into a RECORD in English stays English
   in every language: folio line descriptions ("Room · Double Room", "Room (R-…)", "Group discount (10%)", the seeders' "Room stay
   …") on the folio, invoice and receipt, and owner-expense query subjects. Bell notifications, owner statement lines and owner
   ledger lines ARE said in the reader's language now (`App\Support\I18n\StoredEnglish`, the rows untouched). Folio lines are an
   invoice record — said by type would change what an invoice prints; recorded, not done. Names an operator typed (room types,
   rate plans, amenities, taxes, fees, extras) are their content and show as typed — by design.
+- ✅ **D-NUMBER-FIELDS — CLOSED 2026-11-02, live `rel_BZ @ 974b28b2`:** the 8 decimal fields are text + `inputmode="decimal"`,
+  read by LocalNumber (the owner rate's preview through `window.vyLocalNumber`); `MoneyCommaTest` bans a number input with a
+  decimal step.
+- **D-MONEY-DISPLAY (2026-10-29, V by reading — HIS CALL, not a defect under I18N-01):** money SHOWN on screen is English-style in
+  every language ("€150.50"; `MoneyFormatter::display`, which the brief says not to change). So the readout under a typed amount
+  says "Records €150.50" right under the hint "write it like 150,50" on a German/Turkish page. Consistent with every other figure
+  on the page; a locale money display would be its own pass (every screen, PDF and CSV-adjacent figure).
 - **D-GUEST-TILE-NARROW (2026-10-29, V — low, pre-existing in English too):** the guest reservation's four stat tiles on a 390px
   phone are 73px wide; a money figure ("€369.00") now shrinks (min(19px, 3.7vw)) but still overhangs its tile by ~5px. A layout
   change (2 + 2 tiles on a phone) is the real fix — his look first.
