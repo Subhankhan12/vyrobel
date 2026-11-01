@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Séjour',
+    'step_guest' => 'Client',
+    'step_extras' => 'Extras',
+    'step_confirm' => 'Confirmation',
+    'source_direct' => 'Direct',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Entreprise',
+    'source_agent' => 'Agence de voyages',
+    'the_guest' => 'le client',
+    'a_night' => ':amount par nuit',
+    'a_night_range' => ':low–:high par nuit',
+    'dates_label' => '{1} :from → :to · :count nuit|[0,*] :from → :to · :count nuits',
+    'restrict_min_stay' => '{1} Arrivée : :date — séjour d’au moins :count nuit|[0,*] Arrivée : :date — séjour d’au moins :count nuits',
+    'restrict_max_stay' => '{1} Arrivée : :date — séjour de :count nuit au maximum|[0,*] Arrivée : :date — séjour de :count nuits au maximum',
+    'restrict_no_arrivals' => 'Aucune arrivée possible : :date',
+    'restrict_no_departures' => 'Aucun départ possible : :date',
+    'restrict_stop_sell' => ':date : fermé aux nouvelles réservations',
+    'restrict_other' => ':restriction : :date',
+    'arrival_mail_off' => 'Vyrobel n’envoie pas encore d’e-mails — donnez vous-même l’itinéraire et le code d’accès au client.',
+    'arrival_pre_arrival_off' => 'L’e-mail avant l’arrivée est désactivé pour vos établissements — donnez vous-même l’itinéraire et le code d’accès au client.',
+    'arrival_too_soon' => 'Ce séjour commence trop tôt pour l’e-mail avant l’arrivée, envoyé à J-:count du check-in — donnez vous-même l’itinéraire et le code d’accès au client.',
+    'arrival_by_email' => 'L’itinéraire, et le code d’accès si l’unité en a un, sont envoyés au client par e-mail à J-:count du check-in — s’il a une adresse e-mail. Le code d’accès n’est jamais affiché ici.',
+    'cancel_not_free' => 'Non gratuite pour ce séjour — délai écoulé le :date',
+    'cancel_free_until_check_in' => 'Gratuite jusqu’au check-in',
+    'cancel_free_until_date' => 'Gratuite jusqu’au :date',
+    'cancel_free_until_days' => '{1} Gratuite jusqu’à :count jour avant le check-in|[0,*] Gratuite jusqu’à :count jours avant le check-in',
+    'min_stay_none' => 'Aucun minimum',
+    'min_stay_nights' => '{1} :count nuit|[0,*] :count nuits',
+    'guest_no_name' => 'Client',
+    'no_stays_yet' => 'Aucun séjour pour l’instant',
+];

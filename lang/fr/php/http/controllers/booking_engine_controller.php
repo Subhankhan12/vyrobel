@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Vous',
+    'total_part' => ':amount :name',
+    'total_includes' => 'dont :items',
+    'nightly_excludes' => 'hors :tax',
+    'sleeps' => 'Capacité : :count',
+    'studio' => 'Studio',
+    'bedrooms' => '{1} :count chambre|[0,*] :count chambres',
+    'checkout_title' => 'Paiement — :property',
+    'room_just_taken' => 'Cette chambre vient d’être réservée par quelqu’un d’autre — veuillez choisir une autre chambre ou d’autres dates.',
+    'payment_received' => 'Paiement reçu',
+    'payment_received_note' => 'Payé intégralement.',
+    'payment_processing' => 'Paiement en cours',
+    'payment_processing_note' => 'Nous confirmons votre paiement par carte. Actualisez cette page dans un instant pour le voir apparaître.',
+    'pay_on_arrival' => 'Payer à l’arrivée',
+    'pay_on_arrival_note' => 'Réglez sur place, à l’établissement, lors du check-in.',
+    'confirmed_title' => 'Réservation confirmée — :property',
+    'kind_room' => 'Chambre',
+    'kind_apartment' => 'Appartement',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dortoir',
+    'type_hotel' => 'Hôtel',
+    'type_aparthotel' => 'Appart’hôtel',
+    'type_serviced_apartment' => 'Appartement avec services',
+    'type_apartment_building' => 'Immeuble d’appartements',
+    'type_apartment' => 'Appartement',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Auberge de jeunesse',
+    'type_guest_house' => 'Maison d’hôtes',
+    'type_resort' => 'Complexe hôtelier',
+    'type_mixed' => 'Mixte',
+    'type_portfolio' => 'Portfolio',
+];

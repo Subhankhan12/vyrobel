@@ -82,6 +82,18 @@ it('says an older bell notification (stored as English) in the reader\'s languag
         ->and($legacy->invoke(null, 'Some\\Other\\Type', 'Awaiting moderation'))->toBeNull();
 });
 
+it('says an older PLURAL bell row in the reader\'s language — the count read from the row, or from the form that names one', function () {
+    $legacy = new ReflectionMethod(NotificationFeed::class, 'legacy');
+    $type = 'App\\Notifications\\Operator\\InboxMessageNotification';
+
+    expect($legacy->invoke(null, $type, 'New message from Demo Owner'))->toBeNull();   // English reader: as stored
+
+    app()->setLocale('de');
+    expect($legacy->invoke(null, $type, 'New message from Demo Owner'))->toBe('Neue Nachricht von Demo Owner')
+        ->and($legacy->invoke(null, $type, '3 new messages from Demo Owner'))->toBe('3 neue Nachrichten von Demo Owner')
+        ->and($legacy->invoke(null, $type, 'New messages from Demo Owner'))->toBeNull();   // no form says it — shown as stored
+});
+
 it('says review tags in the reader\'s language on every list — English is the stored code', function () {
     expect(ReviewTag::labels(['Comfy beds', 'Noise', 'unknown tag']))->toBe(['Comfy beds', 'Noise', 'unknown tag']);
 

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'géré avec Vyrobel',
+    'eyebrow' => 'Relevé propriétaire',
+    'unit_count' => '{1} :count unité|[0,*] :count unités',
+    'issued' => 'émis le :date',
+    'prepared_for' => 'Préparé pour',
+    'net_payable_to_owner' => 'Net à verser au propriétaire',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Occupation',
+    'nights_sold' => 'Nuits vendues',
+    'avg_nightly_rate' => 'Tarif moyen par nuit',
+    'breakdown' => 'Détail',
+    'item' => 'Libellé',
+    'detail' => 'Détail',
+    'amount' => 'Montant',
+    'provisional' => '(provisoire)',
+    'performance_by_unit' => 'Performance par unité',
+    'unit' => 'Unité',
+    'nights' => 'Nuits',
+    'revenue' => 'Revenus',
+    'total_gross_room_revenue' => 'Total des revenus bruts hébergement',
+    'callout_heading' => 'Versement.',
+    'settles_to_iban' => 'Le montant net de :amount est réglé par virement bancaire sur l’IBAN :iban.',
+    'settles' => 'Le montant net de :amount est réglé par virement bancaire.',
+    'fees_with_commission' => 'La commission de gestion s’élève à :pct % des revenus bruts hébergement ; les frais de paiement et de plateforme sont refacturés au prix coûtant. Tous les montants sont en :currency et incluent les taxes applicables perçues pour votre compte.',
+    'fees' => 'Les frais de paiement et de plateforme sont refacturés au prix coûtant. Tous les montants sont en :currency et incluent les taxes applicables perçues pour votre compte.',
+    'fx_note' => 'Converti depuis :source au taux de :rate (source : :src).',
+    'provisional_note' => 'Certaines lignes sont provisoires, en attente du rapprochement avec les canaux.',
+    'statement_ref' => 'relevé :ref',
+    'sequence_no' => 'n° :number',
+    'generated' => 'généré le <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Des questions ? :email',
+];

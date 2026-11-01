@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Hébergements',
+    'book_direct' => 'Réserver en direct',
+    'nav_stays' => 'Hébergements',
+    'my_account' => 'Mon compte',
+    'sign_in' => 'Se connecter',
+    'rating_across' => '{1} :average sur :count avis|[0,*] :average sur :count avis',
+    'heading' => 'Réservez en direct auprès de<br>:org.',
+    'subheading' => 'Des hébergements soignés, réservés directement auprès de nous — sans frais, à notre meilleur tarif, et avec une vraie personne pour vous répondre.',
+    'where' => 'Destination',
+    'check_in' => 'Arrivée',
+    'check_out' => 'Départ',
+    'adults' => 'Adultes',
+    'children' => 'Enfants',
+    'where_to_stay' => 'Où séjourner',
+    'towns_lede' => '{1} Notre point d’attache.|[0,*] :count villes, chacune à son rythme.',
+    'from_price' => 'à partir de :price',
+    'featured_stays' => 'Hébergements à la une',
+    'featured_lede' => 'Les favoris de nos clients dans toute la collection.',
+    'per_night' => '/ nuit',
+    'see_dates_for_pricing' => 'Prix selon vos dates',
+    'browse_by_what_matters' => 'Parcourez selon vos envies',
+    'why_book_direct' => 'Pourquoi réserver en direct',
+    'recent_guests' => 'Clients récents',
+    'rating_short' => '{1} :average · :count avis|[0,*] :average · :count avis',
+    'stars_aria' => ':rating étoiles sur 5',
+    'review_quote' => '« :body »',
+    'no_reviews_yet' => 'Pas encore d’avis — séjournez chez nous et partagez votre expérience en premier.',
+    'cta_heading' => 'Trouvez votre lieu de séjour',
+    'cta_sub' => 'De vraies dates, des prix en temps réel, une confirmation immédiate.',
+    'browse_all_stays' => 'Voir tous les hébergements',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Archives des relevés',
+    'history_summary' => 'Votre historique finalisé · :years · :statements',
+    'years' => '{1} :count an|[0,*] :count ans',
+    'statements' => '{1} :count relevé|[0,*] :count relevés',
+    'archived_on_finalize' => 'Les relevés sont archivés ici dès leur finalisation.',
+    'net_earned_lifetime' => 'Revenus nets · depuis le début',
+    'since' => 'depuis :date',
+    'per_currency_note' => 'Totalisé par devise de versement — les soldes dans des devises différentes ne sont jamais additionnés.',
+    'lifetime_empty' => 'Aucun relevé finalisé pour l’instant — votre premier relevé apparaîtra ici.',
+    'search_placeholder' => 'Recherchez dans vos relevés — mois, année, statut ou numéro',
+    'search_label' => 'Rechercher des relevés',
+    'no_match' => 'Aucun relevé ne correspond à « :query ».',
+    'no_match_hint' => 'Essayez un mois (« septembre »), une année (« 2026 »), un statut (« Payé ») ou un numéro de relevé (« N° 1 »).',
+    'group_summary' => ':statements · net : :nets',
+    'per_payout_currency' => '(par devise de versement)',
+    'tax_summary_title' => 'Télécharger le récapitulatif fiscal annuel :year au format PDF',
+    'tax_summary' => 'Récapitulatif fiscal',
+    'col_statement' => 'Relevé',
+    'col_net_payable' => 'Net à verser',
+    'col_links' => 'Liens',
+    'unverified_title' => 'Certaines lignes sont encore en attente de rapprochement avec le canal',
+    'unverified' => 'Contient des lignes non vérifiées',
+    'pdf_title' => 'Télécharger ce relevé au format PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Télécharger au format PDF les réservations de ce relevé',
+    'bookings' => 'Réservations',
+    'empty' => 'Aucun relevé finalisé pour l’instant. Un relevé est archivé ici dès qu’il est finalisé.',
+    'zip_heading' => 'Télécharger toutes les archives',
+    'zip_sub' => '{1} Un ZIP contenant :count relevé au format PDF. Chaque relevé ci-dessus peut déjà être téléchargé séparément.|[0,*] Un ZIP contenant :count relevés au format PDF. Chaque relevé ci-dessus peut déjà être téléchargé séparément.',
+    'download_zip' => 'Télécharger le ZIP',
+];

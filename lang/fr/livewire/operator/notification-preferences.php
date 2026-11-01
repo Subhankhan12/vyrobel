@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Préférences de notification',
+    'subtitle' => 'Comment Vyrobel vous contacte',
+    'breadcrumb_label' => 'Fil d’Ariane',
+    'crumb_settings' => 'Paramètres',
+    'crumb_notifications' => 'Notifications',
+    'channel_email' => 'E-mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Aucun e-mail enregistré',
+    'email_verified_title' => 'Votre e-mail de connexion est confirmé',
+    'email_verified' => 'Confirmé',
+    'push_not_set_up_title' => 'Les notifications push ne sont pas encore configurées',
+    'not_set_up_tag' => 'non configuré',
+    'push_not_available' => 'Les notifications push sur navigateur et appareil ne sont pas encore disponibles',
+    'channel_off' => 'Désactivé',
+    'sms_not_set_up_title' => 'Les SMS ne sont pas encore configurés',
+    'sms_no_provider' => 'Aucun fournisseur SMS connecté pour l’instant',
+    'notify_me_when' => 'Me prévenir quand',
+    'always_on' => 'Toujours activée',
+    'email_always_on_sr' => 'E-mail toujours activé pour :event',
+    'email_me_when_aria' => 'M’envoyer un e-mail : :event',
+    'push_not_set_up_sr' => 'Notifications push non configurées',
+    'sms_not_set_up_sr' => 'SMS non configurés',
+    'quiet_hours' => 'Heures de silence',
+    'quiet_hours_help' => 'Retenir les e-mails courants pendant ces heures — les alertes de sécurité urgentes passent toujours ; le fil de notifications dans l’application n’est pas concerné.',
+    'quiet_from' => 'De',
+    'quiet_to' => 'À',
+    'digest_heading' => 'E-mail récapitulatif quotidien',
+    'digest_help' => 'Un résumé de la journée, envoyé le matin. <span class="vy-np-soon">pas encore envoyé</span> — la préférence est enregistrée pour le jour où l’envoi du récapitulatif sera disponible.',
+    'digest_off' => 'Désactivé',
+    'digest_morning' => 'Matin · 08:00',
+];

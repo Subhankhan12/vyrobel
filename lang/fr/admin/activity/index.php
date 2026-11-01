@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Exploitant/Propriétaire',
+    'realm_guest' => 'Client',
+    'realm_admin' => 'Admin plateforme',
+    'event_login' => 'Connexion',
+    'event_failed' => 'Échec',
+    'event_lockout' => 'Blocage',
+    'subject_user' => 'Utilisateur',
+    'subject_guest' => 'Client',
+    'subject_platform_admin' => 'Admin plateforme',
+    'subject_unknown' => 'Inconnu',
+    'actor_user' => 'Utilisateur',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'Système',
+    'page_title' => 'Sécurité et activité',
+    'page_subtitle' => 'Activité de connexion et événements de compte sur toute la plateforme — conservés :days jours, puis purgés.',
+    'kpi_failures' => 'Échecs / blocages · 24 h',
+    'kpi_failures_help' => 'Des échecs répétés peuvent signaler une tentative d’intrusion.',
+    'privacy' => 'Confidentialité',
+    'privacy_body' => 'L’activité de connexion (IP comprise) est enregistrée uniquement comme <strong style="color: var(--ad-ink);">signal de sécurité</strong> — pour repérer les connexions suspectes et assurer le support —, jamais comme suivi généralisé. Conservée :days jours, puis purgée automatiquement ; l’accès est limité à cette console.',
+    'recent_sign_ins' => 'Activité de connexion récente',
+    'col_event' => 'Événement',
+    'col_realm' => 'Espace',
+    'col_account' => 'Compte',
+    'col_ip' => 'IP',
+    'col_when' => 'Date',
+    'no_sign_ins' => 'Aucune activité de connexion enregistrée pour l’instant.',
+    'recent_account_events' => 'Événements de compte récents <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· toutes organisations clientes confondues</span>',
+    'col_customer' => 'Organisation',
+    'col_actor' => 'Auteur',
+    'no_account_events' => 'Aucun événement de compte pour l’instant.',
+];

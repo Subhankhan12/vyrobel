@@ -277,7 +277,7 @@ class LangTodo extends Command
 
     private static function outOfScope(string $rel): bool
     {
-        return (bool) preg_match('#/marketing/|Marketing|welcome\.blade|pdfs/owner-agreement|pdfs/owner-annual-tax|app/Console/|app/Support/I18n/|app/Providers/#', $rel);
+        return (bool) preg_match('#/marketing/|Marketing|^resources/views/welcome\.blade|pdfs/owner-agreement|pdfs/owner-annual-tax|app/Console/|app/Support/I18n/|app/Providers/#', $rel);
     }
 
     /** @return list<string> */

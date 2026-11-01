@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Équipe et accès',
+    'subtitle' => 'Donnez à un copropriétaire ou à votre comptable son propre accès — limité à ce dont il a besoin.',
+    'people_with_access' => 'Personnes ayant accès',
+    'account_owner' => 'Titulaire du compte',
+    'thats_you' => 'c’est vous',
+    'owner_access' => 'Accès complet à tout, y compris à cette page.',
+    'active_now' => 'Actif en ce moment',
+    'role_for' => 'Rôle pour :name',
+    'your_password' => 'Votre mot de passe',
+    'confirm_password' => 'Confirmer avec votre mot de passe',
+    'remove_confirm' => 'Retirer :name ? Cette personne ne pourra plus se connecter.',
+    'no_members' => 'Personne d’autre que vous pour l’instant — invitez un copropriétaire ou un comptable ci-dessous.',
+    'invite_heading' => 'Inviter une personne',
+    'invite_sub' => 'Chaque personne dispose de son propre accès — vous pouvez le retirer à tout moment.',
+    'invite_email_label' => 'Adresse e-mail de la personne à inviter',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Envoyer l’invitation',
+    'pending_invites' => 'Invitations en attente',
+    'resend' => 'Renvoyer',
+    'revoke' => 'Révoquer',
+    'matrix_heading' => 'Ce que chaque rôle peut voir',
+    'matrix_note' => 'Seul le titulaire du compte — vous — peut gérer l’équipe et le compte de versement.',
+    'recent_activity' => 'Activité récente',
+    'no_activity' => 'Rien pour l’instant — les invitations et les connexions apparaîtront ici.',
+    'download_log' => 'Journal des téléchargements d’exports',
+    'download_log_sub' => 'Chaque relevé, réservation, versement ou document fiscal téléchargé par votre équipe porte le nom de la personne qui l’a téléchargé — et est consigné ici.',
+    'no_downloads' => 'Aucun export téléchargé pour l’instant — ils apparaîtront ici, avec le nom de la personne qui les a téléchargés.',
+    'security_heading' => 'À chacun sa propre clé',
+    'security_body' => 'Aucun mot de passe partagé — chaque personne se connecte avec son propre compte, et son accès est limité à son rôle. Les exports financiers portent en filigrane le nom de la personne qui les a téléchargés et sont consignés dans le journal ci-dessus. Pour votre propre compte, activez la vérification en deux étapes.',
+    'security_settings' => 'Paramètres de sécurité',
+];

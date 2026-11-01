@@ -51,7 +51,7 @@
     // rating that is not perfect — the same overstatement this component was written to remove, just
     // smaller. Flooring can only ever understate, and the exact figure is always printed beside the row.
     $filled = (int) floor($value);
-    $label = rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.').' out of '.$max.' stars';
+    $label = __('components/star-rating.label', ['rating' => rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.'), 'max' => $max]);
 @endphp
 <span role="img" aria-label="{{ $label }}" {{ $attributes->merge(['style' => 'display:inline-flex;align-items:center;gap:'.$gap.';font-size:'.$size.';line-height:1']) }}>
     @for ($i = 1; $i <= $max; $i++)

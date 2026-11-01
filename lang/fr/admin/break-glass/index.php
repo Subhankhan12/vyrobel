@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Accès d’urgence',
+    'subtitle' => 'Un accès en lecture seule et limité dans le temps à une organisation — motif, 2FA, et l’organisation est prévenue.',
+    'back_label' => 'Support',
+    'open_heading' => 'Votre session est ouverte',
+    'open_summary' => '{1} :organization · se termine à :time UTC · :count page consultée.|[0,*] :organization · se termine à :time UTC · :count pages consultées.',
+    'go_to_back_office' => 'Accéder à son back-office',
+    'end_now' => 'Terminer la session maintenant',
+    'start_heading' => 'Ouvrir une session',
+    'rule_read_only' => '<strong>Lecture seule.</strong> Toute modification est refusée — formulaires, boutons, tout ce qui enregistre.',
+    'rule_minutes' => '{1} <strong>:count minute</strong>, puis elle se termine d’elle-même.|[0,*] <strong>:count minutes</strong>, puis elle se termine d’elle-même.',
+    'rule_senior_user' => 'Vous voyez ce que voit l’utilisateur vérifié du back-office ayant le rôle le plus élevé — clients compris. Ne consultez que ce que le motif exige.',
+    'rule_recorded' => 'Chaque page que vous ouvrez est enregistrée, et son équipe en est informée ensuite : votre nom, l’heure et ce motif.',
+    'organisation_label' => 'Organisation',
+    'choose_option' => 'Choisir…',
+    'code_label' => 'Votre code 2FA (actuel)',
+    'reason_label' => 'Motif — l’organisation le lira',
+    'reason_placeholder' => 'ex. Ticket #123 — le propriétaire signale une réservation manquante',
+    'open_button' => 'Ouvrir une session en lecture seule',
+    'recent_heading' => 'Sessions récentes',
+    'empty_state' => 'Aucune session d’accès d’urgence n’a jamais été ouverte.',
+    'col_admin' => 'Administrateur',
+    'col_organisation' => 'Organisation',
+    'col_reason' => 'Motif',
+    'col_started' => 'Début',
+    'col_ended' => 'Fin',
+    'col_pages' => 'Pages',
+    'col_told' => 'Prévenue',
+    'ended_open' => 'ouverte',
+    'ended_due' => 'échue — pas encore clôturée',
+    'told_yes' => 'Oui',
+    'told_not_yet' => 'Pas encore',
+];

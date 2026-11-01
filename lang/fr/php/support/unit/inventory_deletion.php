@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1} :count réservation|[0,*] :count réservations',
+    'room_moves' => '{1} :count changement de chambre|[0,*] :count changements de chambre',
+    'cleaning_tasks' => '{1} :count tâche de ménage|[0,*] :count tâches de ménage',
+    'work_orders' => '{1} :count bon d’intervention|[0,*] :count bons d’intervention',
+    'status_changes' => '{1} :count changement d’état|[0,*] :count changements d’état',
+    'blocks' => '{1} :count blocage|[0,*] :count blocages',
+    'owner_agreements' => '{1} :count contrat de gestion|[0,*] :count contrats de gestion',
+    'owner_statement_lines' => '{1} :count ligne de relevé propriétaire|[0,*] :count lignes de relevé propriétaire',
+    'owner_expenses' => '{1} :count dépense propriétaire|[0,*] :count dépenses propriétaire',
+    'reviews' => '{1} :count avis|[0,*] :count avis',
+    'owner_requests' => '{1} :count demande d’unité|[0,*] :count demandes d’unité',
+    'notes' => '{1} :count note|[0,*] :count notes',
+    'documents' => '{1} :count document|[0,*] :count documents',
+    'files' => '{1} :count fichier|[0,*] :count fichiers',
+    'units' => '{1} :count unité|[0,*] :count unités',
+    'rate_proposals' => '{1} :count proposition tarifaire|[0,*] :count propositions tarifaires',
+    'overbooking_records' => '{1} :count enregistrement de surréservation|[0,*] :count enregistrements de surréservation',
+    'guest_waitlist_entries' => '{1} :count inscription client en liste d’attente|[0,*] :count inscriptions clients en liste d’attente',
+    'guest_wishlist_saves' => '{1} :count ajout aux favoris par un client|[0,*] :count ajouts aux favoris par des clients',
+    'derived_room_types' => '{1} :count type de chambre basé sur celui-ci|[0,*] :count types de chambre basés sur celui-ci',
+    'derived_rate_plans' => '{1} :count plan tarifaire d’un autre type de chambre calculé à partir des siens|[0,*] :count plans tarifaires d’autres types de chambre calculés à partir des siens',
+    'corporate_default_rates' => '{1} :count compte entreprise qui l’utilise comme tarif par défaut|[0,*] :count comptes entreprise qui l’utilisent comme tarif par défaut',
+    'channel_connections' => '{1} :count connexion de canal|[0,*] :count connexions de canal',
+    'an_owner' => 'un propriétaire',
+    'pending_owner_invitation' => 'une invitation propriétaire en attente',
+    'list_and' => ':items et :last',
+    'kind_rooms' => 'chambres',
+    'kind_apartments' => 'appartements',
+    'kind_villas' => 'villas',
+    'kind_dorm_beds' => 'lits en dortoir',
+];

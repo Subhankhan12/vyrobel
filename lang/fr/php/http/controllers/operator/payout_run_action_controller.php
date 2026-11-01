@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Le moteur de versement est désactivé (PAYOUT_ENGINE_ENABLED). Activez-le avant de lancer un versement.',
+    'nothing_to_run' => 'Rien à lancer — aucun propriétaire ici n’a de relevé à verser ni de versement retenu:paused_note.',
+    'run_complete' => 'Lot de versements terminé (mode :mode) — Créés : :created · Versés : :paid · Retenus : :held:paused_note.',
+    'create_failed' => 'Impossible de créer le versement — :reason',
+    'already_has_payout' => 'Ce relevé a déjà un versement — rien n’a été créé.',
+    'one_payout_created' => '1 versement créé.',
+    'pay_failed' => 'Impossible de verser — :reason',
+    'one_payout_paid' => '1 versement marqué comme versé.',
+    'payout_failed_reason' => 'Le versement a échoué — :reason',
+    'payout_failed_no_reason' => 'Le versement a échoué — le mode de transfert n’a donné aucun motif.',
+    'create_all_failed' => 'Impossible de créer les versements — :reason',
+    'no_payout_created_paused' => 'Aucun versement créé:paused_note — reprenez-les sur la page du propriétaire.',
+    'nothing_ready' => 'Rien n’est prêt à être versé — aucun relevé finalisé n’a de net à verser positif:paused_note.',
+    'no_new_payouts' => 'Aucun nouveau versement — chaque relevé prêt en a déjà un:paused_note.',
+    'payouts_created' => '{1} :count versement créé:paused_note.|[0,*] :count versements créés:paused_note.',
+    'some_not_created' => ':message Certains n’ont pas pu être créés — :reason',
+    'nothing_paid_paused' => 'Rien n’a été versé:paused_note — reprenez-les sur la page du propriétaire.',
+    'no_pending_payouts' => 'Aucun versement en attente à verser.',
+    'paid_only' => '{1} :count versement marqué comme versé:paused_note.|[0,*] :count versements marqués comme versés:paused_note.',
+    'failed_only' => '[0,*] Échecs sur le mode de transfert : :count:paused_note.',
+    'paid_and_failed' => '{1} :count versement marqué comme versé · échecs sur le mode de transfert : :failed:paused_note.|[0,*] :count versements marqués comme versés · échecs sur le mode de transfert : :failed:paused_note.',
+    'some_not_attempted' => ':message Certains n’ont pas pu être tentés — :reason',
+    'nothing_payable_negative' => 'Rien à verser — le net de ce relevé est négatif : le solde est donc reporté et viendra en déduction du prochain relevé du propriétaire.',
+    'nothing_payable_zero' => 'Rien à verser — le net de ce relevé est nul : rien n’est dû.',
+    'workspace_paused_until' => 'Organisation en pause — les versements sont en lecture seule jusqu’au :date.',
+    'workspace_paused_for_now' => 'Organisation en pause — les versements sont en lecture seule pour le moment.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1} :count propriétaire ignoré (versements suspendus)|[0,*] :count propriétaires ignorés (versements suspendus)',
+];

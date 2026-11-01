@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Vue d’ensemble',
+    'subtitle_all' => 'Toutes les organisations, y compris celles internes à Vyrobel.',
+    'subtitle_customers' => 'Clientes uniquement — les organisations internes de Vyrobel sont exclues.',
+    'showing_all' => 'Affichage de <strong>toutes</strong> les organisations — dont :internal internes.',
+    'internal_excluded' => '{1} :count organisation interne exclue de tous les chiffres ci-dessous.|[0,*] :count organisations internes exclues de tous les chiffres ci-dessous.',
+    'customers_only' => 'Clientes uniquement',
+    'include_internal' => 'Inclure les internes',
+    'no_customers_heading' => 'Aucune organisation cliente pour l’instant',
+    'no_customers_body' => 'Toutes les organisations de la plateforme appartiennent à Vyrobel (internes : :internal). La première vraie inscription apparaîtra ici.',
+    'kpi_organisations' => 'Organisations',
+    'kpi_customers' => 'Clientes',
+    'kpi_account_status' => 'Actives : :active · suspendues : :suspended',
+    'kpi_subscriptions' => 'Abonnements',
+    'kpi_subscriptions_sub' => 'actifs · :trial en essai gratuit',
+    'kpi_revenue' => 'Chiffre d’affaires',
+    'no_live_billing' => 'Pas encore de facturation réelle',
+    'no_live_billing_sub' => 'Aucun abonnement n’est facturé via Stripe. Le prix catalogue d’un essai n’est pas du chiffre d’affaires.',
+    'billed_live' => '{1} :count facturé en réel|[0,*] :count facturés en réel',
+    'billed_live_sub' => 'Calculé à partir de ce que Stripe a réellement débité, jamais de la grille tarifaire — voir <a class="ad-cell-link" href=":url">Chiffre d’affaires</a>.',
+    'kpi_properties' => 'Établissements',
+    'kpi_reservations' => '{1} :count réservation|[0,*] :count réservations',
+    'new_organisations_heading' => 'Nouvelles organisations · 6 derniers mois',
+    'new_customers_heading' => 'Nouvelles organisations clientes · 6 derniers mois',
+    'no_signups' => 'Aucune inscription au cours des 6 derniers mois.',
+    'account_status_heading' => 'Statut du compte',
+    'status_active' => 'Actif',
+    'status_suspended' => 'Suspendu',
+    'status_cancelled' => 'Résilié',
+    'status_trialing' => 'En essai (compte)',
+    'free_trial_hint' => 'Un essai gratuit est un état d’abonnement, pas un statut de compte — en essai gratuit actuellement : :trial.',
+    'plans_in_use' => 'Formules utilisées <span class="ad-stat-sub" style="font-weight: 400;">· actives ou en essai</span>',
+    'no_plans' => 'Aucune formule utilisée pour l’instant.',
+];

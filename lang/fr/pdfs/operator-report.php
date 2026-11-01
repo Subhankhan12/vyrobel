@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Rapports',
+    'arrivals_in' => 'Arrivées : :period',
+    'arrivals_count' => '{1} :count arrivée|[0,*] :count arrivées',
+    'pp_delta' => ':delta pts',
+    'occupancy' => 'Occupation',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Chiffre d’affaires brut',
+    'basis_note' => 'Occupation · ADR · RevPAR sont calculés par nuit de séjour, comparés à la même période l’an dernier lorsque des données de l’année précédente existent. Le chiffre d’affaires ci-dessous est calculé sur la base du folio (date d’arrivée).',
+    'revenue' => 'Chiffre d’affaires',
+    'room' => 'Chambres',
+    'ancillary' => 'Prestations annexes <span class="muted">· extras, produits, frais</span>',
+    'tax_collected' => 'Taxes collectées · reversées',
+    'costs_heading' => 'Coûts <span class="muted" style="font-size:9px">· données réelles uniquement</span>',
+    'maintenance' => 'Maintenance <span class="muted">· bons d’intervention résolus</span>',
+    'not_tracked' => 'pas encore suivi',
+    'net' => 'Net (chiffre d’affaires − coûts suivis)',
+    'revenue_by_channel' => 'Chiffre d’affaires par canal',
+    'channel' => 'Canal',
+    'bookings' => 'Réservations',
+    'share' => 'Part',
+    'no_channel_revenue' => 'Aucun chiffre d’affaires par canal sur cette période.',
+    'top_units' => 'Meilleures unités',
+    'unit' => 'Unité',
+    'nights' => 'Nuits',
+    'room_revenue' => 'CA chambres',
+    'no_unit_revenue' => 'Aucun chiffre d’affaires par unité sur cette période.',
+    'revenue_by_month' => 'Chiffre d’affaires par mois',
+    'month' => 'Mois',
+    'footer' => 'Calculé à partir des données réelles de folio et de maintenance pour :scope · :period. Occupation, ADR et RevPAR sur la base des nuits de séjour ; chiffre d’affaires sur la base du folio (date d’arrivée). Les chiffres concordent avec la page « Rapports ». Vyrobel.',
+];

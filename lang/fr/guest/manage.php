@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Gérer la réservation :reference',
+    'back_to_booking' => '← Retour à la réservation',
+    'heading' => 'Gérer votre réservation',
+    'subheading' => ':property · :check_in → :check_out. Les modifications sont confirmées par l’établissement — nous vous écrirons dès qu’elles le seront.',
+    'pending_requests' => 'Demandes en attente',
+    'pending_badge' => 'En attente',
+    'pending_note' => 'Rien n’a encore changé sur votre réservation — une demande doit d’abord être confirmée par l’établissement.',
+    'pick_new_dates' => 'Choisir de nouvelles dates',
+    'currently' => 'Actuellement : :check_in → :check_out. Choisissez de nouvelles dates pour voir la différence de prix, puis demandez la modification.',
+    'new_check_in' => 'Nouvelle arrivée',
+    'new_check_out' => 'Nouveau départ',
+    'see_price_difference' => 'Voir la différence de prix',
+    'new_stay' => 'Nouveau séjour',
+    'current' => 'Actuel',
+    'difference' => 'Différence',
+    'estimate_note' => 'Estimation uniquement — sous réserve de confirmation par l’établissement. Tout paiement est traité après sa confirmation.',
+    'unpriced_note' => 'Aucun prix n’est encore publié pour ces dates — demandez la modification et l’établissement confirmera le prix.',
+    'request_date_change' => 'Demander un changement de dates',
+    'add_to_your_stay' => 'Ajouter à votre séjour',
+    'add_to_your_stay_sub' => 'Ajoutez petit-déjeuner, transferts et plus encore — tout est ajouté à votre réservation après confirmation.',
+    'browse_extras' => 'Voir les extras',
+    'cancellation_policy' => 'Conditions d’annulation',
+    'free_until' => 'Annulation gratuite jusqu’au <strong>:date</strong> — toute annulation demandée avant cette date est remboursée intégralement.',
+    'policy_by_property' => 'L’établissement confirme votre annulation et traite tout remboursement selon ses conditions.',
+    'cancel_confirm' => 'Envoyer une demande d’annulation pour cette réservation ? L’établissement l’examine et traite tout remboursement selon ses conditions.',
+    'reason' => 'Motif',
+    'choose_reason' => 'Choisir un motif…',
+    'request_cancellation' => 'Demander l’annulation',
+    'closed_heading' => 'Cette réservation est clôturée',
+    'closed_body' => 'Il n’y a plus rien à y modifier — mais vos dates, les détails de votre séjour et tout ce que vous avez payé restent disponibles ici quand vous en avez besoin.',
+];

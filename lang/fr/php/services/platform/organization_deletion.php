@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Elle a des enregistrements financiers en mode réel (:records). La loi peut imposer de les conserver pendant des années ; leur suppression est donc suspendue jusqu’à la décision juridique sur cette durée — l’organisation ne peut pas être supprimée avant.',
+    'uncounted_cascades' => 'La base de données relie des enregistrements d’une manière que la suppression ne peut pas compter exactement (:links) ; la confirmation n’a donc pas pu indiquer ce qui serait supprimé. Rien ne peut être supprimé tant que ce n’est pas corrigé.',
+    'stripe_billing_live' => 'La facturation réelle Stripe est active pour cette organisation. Résiliez d’abord l’abonnement dans Stripe, sinon il continuera de débiter une organisation cliente qui n’existe plus. S’il est déjà résilié dans Stripe, le rapport de Stripe n’a pas été appliqué ici — réglez la situation manuellement.',
+    'checkout_open_subscription' => 'Une page de paiement Stripe pour son abonnement a été ouverte (:opened) ; elle peut encore être payée jusqu’à sa fermeture (:closes). Réessayez une fois qu’elle aura été payée ou aura expiré.',
+    'checkout_open_card' => 'Une page de paiement Stripe pour le paiement par carte d’un client a été ouverte (:opened) ; elle peut encore être payée jusqu’à sa fermeture (:closes). Réessayez une fois qu’elle aura été payée ou aura expiré.',
+    'checkout_unreported_subscription' => 'Une page de paiement Stripe en mode réel pour son abonnement a été ouverte (:opened) puis fermée (:closed), mais aucun rapport indiquant si elle a été payée n’a été appliqué ici. Vérifiez la page dans le tableau de bord Stripe ; si elle a été payée, annulez d’abord dans Stripe ce qu’elle a déclenché. Stripe renvoie pendant 3 jours au maximum un rapport qu’il n’a pas pu transmettre — réessayez une fois qu’il aura été appliqué. Si Stripe l’a déjà transmis et que le rapport n’a pas pu être appliqué, réglez la situation manuellement.',
+    'checkout_unreported_card' => 'Une page de paiement Stripe en mode réel pour le paiement par carte d’un client a été ouverte (:opened) puis fermée (:closed), mais aucun rapport indiquant si elle a été payée n’a été appliqué ici. Vérifiez la page dans le tableau de bord Stripe ; si elle a été payée, annulez d’abord dans Stripe ce qu’elle a déclenché. Stripe renvoie pendant 3 jours au maximum un rapport qu’il n’a pas pu transmettre — réessayez une fois qu’il aura été appliqué. Si Stripe l’a déjà transmis et que le rapport n’a pas pu être appliqué, réglez la situation manuellement.',
+    'refund_processing' => 'Un remboursement par carte est encore en cours de traitement chez Stripe. Attendez la confirmation de Stripe, puis réessayez.',
+    'card_payment_open' => 'Un paiement par carte ou une empreinte bancaire est encore en cours. Laissez d’abord l’opération aboutir, ou libérez-la.',
+    'dispute_open' => 'Un paiement par carte fait l’objet d’un litige chez Stripe (début : :since). Répondez-y dans Stripe, puis réessayez une fois que Stripe aura signalé la clôture du litige. Si le tableau de bord Stripe l’indique déjà comme clos, le rapport n’est jamais arrivé — réglez la situation manuellement.',
+    'payouts_in_transit' => '{1} Un versement à un propriétaire est en cours de virement chez Stripe (début : :since).|[0,*] :count versements à des propriétaires sont en cours de virement chez Stripe (début : :since).',
+    'payout_transit_stale' => 'C’est plus long que prévu — réglez d’abord la situation manuellement avec Stripe.',
+    'payout_transit_wait' => 'Attendez la confirmation de Stripe, puis réessayez.',
+    'payouts_owed' => '{1} Un versement est encore dû à un propriétaire (en attente ou retenu). Effectuez-le d’abord — la suppression laisserait les propriétaires impayés, sans aucune trace.|[0,*] :count versements sont encore dus à des propriétaires (en attente ou retenus). Effectuez-les d’abord — la suppression laisserait les propriétaires impayés, sans aucune trace.',
+    'payout_run_running' => 'Un lot de versements est en cours d’exécution (début : :since).',
+    'looks_stuck' => 'Il semble bloqué — réglez la situation manuellement avant la suppression.',
+    'payout_run_wait' => 'Réessayez lorsqu’il sera terminé.',
+    'webhook_unprocessed' => 'Une notification :source concernant cette organisation (réception : :received) n’a pas encore été traitée.',
+    'webhook_wait' => 'Réessayez dans quelques minutes.',
+    'cross_tenant_references' => 'Une autre organisation a des enregistrements qui pointent vers celle-ci (:links). La suppression les supprimerait aussi.',
+    'schema_unreadable' => 'Le schéma de la base de données n’a pas pu être lu entièrement (introuvables : :tables).',
+    'already_deleted' => 'Cette organisation n’existe plus — elle a déjà été supprimée.',
+    'protected' => 'Cette organisation est protégée et ne pourra jamais être supprimée.',
+    'not_suspended' => 'Suspendez-la d’abord — seule une organisation suspendue ou archivée peut être supprimée.',
+    'record_survived' => 'Un enregistrement de cette organisation a subsisté après la suppression (dans :tables) ; tout a donc été annulé.',
+    'organization_survived' => 'L’organisation ou l’un de ses membres a subsisté après la suppression ; tout a donc été annulé.',
+    'live_card_payments' => '{1} :count paiement par carte|[0,*] :count paiements par carte',
+    'live_refunds' => '{1} :count remboursement|[0,*] :count remboursements',
+    'live_payouts' => '{1} :count versement|[0,*] :count versements',
+    'live_stripe_billing' => 'facturation réelle Stripe, avec ses factures',
+    'unknown_time' => 'heure inconnue',
+    'time_utc' => ':time UTC',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'À verser',
+    'chip_hold' => 'Retenus',
+    'chip_review' => 'À vérifier',
+    'chip_paused' => 'Versements suspendus',
+    'chip_invited' => 'Invités',
+    'sorted_name_asc' => 'par propriétaire, A–Z',
+    'sorted_name_desc' => 'par propriétaire, Z–A',
+    'sorted_units_desc' => 'le plus d’unités d’abord',
+    'sorted_units_asc' => 'le moins d’unités d’abord',
+    'sorted_net_desc' => 'net à verser le plus élevé d’abord',
+    'sorted_net_asc' => 'net à verser le plus faible d’abord',
+    'sorted_status_asc' => 'à traiter en premier',
+    'sorted_status_desc' => 'à traiter en dernier',
+    'kpi_invited' => 'Invités : :number',
+    'kpi_units' => '{1} :count unité|[0,*] :count unités',
+    'kpi_owners_ready' => '{1} :count propriétaire prêt|[0,*] :count propriétaires prêts',
+    'kpi_paused_not_counted' => 'Suspendus : :number, non comptés',
+    'kpi_hold_none' => 'rien en attente',
+    'kpi_hold_waiting' => ':amounts en attente',
+    'kpi_review_sub' => 'Avec des lignes non confirmées par le canal de réservation : :number',
+    'schedule' => 'jour ouvré n° :day du mois',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'Gestionnaire d’établissement',
+    'role_accountant' => 'Comptable',
+    'role_owner' => 'Propriétaire',
+    'another_owner' => 'un autre propriétaire',
+];

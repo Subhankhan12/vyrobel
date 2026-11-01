@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Vue d’ensemble',
+    'breadcrumb_bookings' => 'Réservations',
+    'guest_fallback' => 'Client',
+    'reservation' => 'Réservation',
+    'check_in' => 'Arrivée',
+    'nights_count' => '{1} :count nuit|[0,*] :count nuits',
+    'check_out' => 'Départ',
+    'unit' => 'Unité',
+    'guests' => 'Personnes',
+    'nights' => 'Nuits',
+    'nightly_rate' => 'Tarif par nuit',
+    'your_earnings' => 'Vos revenus',
+    'gross_to_net' => 'brut → net',
+    'gross_booking_value' => 'Montant brut de la réservation',
+    'net_to_you' => 'Net pour vous',
+    'refunds_we_covered' => 'Remboursements à notre charge',
+    'refunds_we_covered_note' => 'Remboursés au client et pris en charge par nous, pas par vous. Vos revenus ci-dessus restent inchangés.',
+    'not_yet_attributed' => 'Pas encore attribué.',
+    'not_yet_attributed_note' => 'Vos revenus apparaissent ici dès que cette réservation est attribuée à votre compte propriétaire — généralement après le check-out.',
+    'guest_heading' => 'Client',
+    'guest_contact_note' => 'Les coordonnées du client sont gérées par votre équipe de gestion — vous voyez la réservation et vos revenus.',
+    'message_your_team' => 'Écrire à votre équipe',
+    'timeline' => 'Historique',
+    'for_night_stay' => 'pour ce séjour (nuits : :nights)',
+    'booking_details' => 'Détails de la réservation',
+    'confirmation' => 'N° de confirmation',
+    'source' => 'Source',
+    'channel' => 'Canal',
+    'booked_on' => 'Réservée le',
+    'download_confirmation' => 'Télécharger la confirmation',
+    'download_unavailable' => 'Réservé aux copropriétaires et aux comptables',
+    'view_unit' => 'Afficher :unit',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Réservations',
+    'arrivals_this_month' => 'Arrivées ce mois-ci',
+    'arrivals_this_month_sub' => 'check-in au cours de ce mois civil · hors annulations et no-shows',
+    'booked_value' => 'Valeur réservée · arrivées ce mois-ci',
+    'booked_value_sub' => 'facturé sur les arrivées de ce mois',
+    'booked_value_sub_multi' => 'facturé sur les arrivées de ce mois · par devise (jamais additionné)',
+    'balances_due' => 'Soldes dus · arrivées ce mois-ci',
+    'folios_owing' => '{0} rien à régler|{1} :count folio avec un solde dû|[2,*] :count folios avec un solde dû',
+    'search_placeholder' => 'Rechercher par client ou référence…',
+    'search_label' => 'Rechercher des réservations',
+    'group_booking' => 'Réservation de groupe',
+    'new_reservation' => 'Nouvelle réservation',
+    'empty_heading' => 'Aucune réservation pour l’instant',
+    'empty_body' => 'Chaque réservation — directe, walk-in ou importée — apparaît ici dès qu’elle est prise.',
+    'no_match_query' => 'Aucune réservation ne correspond à « :query »',
+    'no_match_view' => 'Aucune réservation dans cette vue',
+    'no_match_hint' => '{1} Essayez un nom de client ou une référence de réservation. Total : :count réservation.|[0,*] Essayez un nom de client ou une référence de réservation. Total : :count réservations.',
+    'no_match_hint_filter' => '{1} Essayez un nom de client ou une référence de réservation, ou effacez le filtre. Total : :count réservation.|[0,*] Essayez un nom de client ou une référence de réservation, ou effacez le filtre. Total : :count réservations.',
+    'clear_search_filters' => 'Effacer la recherche et les filtres',
+    'col_guest' => 'Client',
+    'col_stay' => 'Séjour',
+    'col_unit' => 'Unité',
+    'col_source' => 'Source',
+    'col_stage' => 'Étape',
+    'col_balance_due' => 'Solde dû',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count nuit|[0,*] :count nuits',
+    'guests' => '{1} :count personne|[0,*] :count personnes',
+    'unassigned' => 'Sans unité',
+    'refunded' => 'Remboursée',
+    'pager_label' => 'réservations',
+];

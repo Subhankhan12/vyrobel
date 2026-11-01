@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Chiffre d’affaires',
+    'subtitle' => 'D’après ce que Stripe a réellement débité — jamais d’après les prix catalogue. Organisations clientes uniquement, sauf si vous incluez celles de Vyrobel.',
+    'including_internal' => 'Y compris les organisations internes de Vyrobel.',
+    'customers_only_note' => 'Clientes uniquement.',
+    'customers_only_link' => 'Clientes uniquement',
+    'include_internal_link' => 'Inclure les internes',
+    'no_live_billing_pill' => 'Pas encore de facturation réelle',
+    'no_customer_charged' => 'Aucune organisation cliente n’a encore été débitée.',
+    'not_live_explainer' => 'Stripe n’est pas en mode réel, il n’y a donc aucune facture payée à compter. Ce n’est pas un mauvais mois — il n’y a pas encore de mois. Le chiffre d’affaires est ici calculé uniquement à partir des <strong>factures Stripe payées</strong> (le débit lui-même, enregistré quand Stripe nous en informe), jamais du prix catalogue d’une formule.',
+    'live_billed_subscriptions' => 'Abonnements facturés en réel',
+    'trialing_unbilled' => 'Abonnements en essai, non facturés',
+    'failed_payments_30d' => 'Paiements échoués, 30 derniers jours',
+    'when_first_paid' => 'Dès que la première facture est payée, cette page affiche : MRR et ARR par devise · MRR nouveau, d’expansion, de contraction et perdu · conversion des essais en abonnements payants · paiements échoués.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Abonnements valorisés',
+    'no_live_subscription_charged' => 'Aucun abonnement actif facturé en réel n’a été débité.',
+    'mrr_hint' => 'Chaque abonnement réel actif ou en retard de paiement, à sa dernière facture payée, ramené à une base mensuelle selon la période de facturation de cette facture.',
+    'this_month_vs_last' => 'Ce mois-ci vs le mois dernier',
+    'movement_new' => 'Nouveau · :currency',
+    'movement_expansion' => 'Expansion · :currency',
+    'movement_contraction' => 'Contraction · :currency',
+    'movement_churned' => 'Perdu · :currency',
+    'nothing_charged' => 'Rien n’a été débité le mois dernier ni ce mois-ci.',
+    'movements_hint' => 'Par organisation, d’après ce qui a été débité chaque mois. Perdu = débité le mois dernier, rien ce mois-ci, et l’abonnement est résilié.',
+    'trial_to_paid' => 'Conversion des essais',
+    'trial_to_paid_value' => ':converted sur :ended essais terminés ont été débités',
+    'past_due_now' => 'En retard de paiement',
+    'paid_invoices_counted' => 'Factures payées comptées',
+    'never_moves_money' => 'Cette console ne débite, ne rembourse ni ne déplace jamais d’argent. Chaque chiffre est par devise et n’est jamais additionné entre devises.',
+];

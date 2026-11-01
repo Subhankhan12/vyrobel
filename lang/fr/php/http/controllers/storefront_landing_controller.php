@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Nos hébergements',
+    'properties_count' => ':count établissements',
+    'stays_count' => '{1} :count hébergement|[0,*] :count hébergements',
+    'stays_sleeps' => ':stays · capacité : :max',
+    'stays_sleeps_range' => ':stays · capacité : :min–:max',
+    'perk_free_cancel_days' => '{1} Remboursement intégral jusqu’à :count jour avant l’arrivée.|[0,*] Remboursement intégral jusqu’à :count jours avant l’arrivée.',
+    'perk_free_cancel_window' => 'Remboursement intégral pendant le délai d’annulation.',
+    'perk_no_fees' => 'Pas de frais de réservation',
+    'perk_no_fees_sub' => 'Le prix affiché est le prix que vous payez.',
+    'perk_best_rate' => 'Meilleur tarif en direct',
+    'perk_best_rate_sub' => 'Réservez en direct pour bénéficier de notre meilleur tarif — sans intermédiaire.',
+    'perk_free_cancel' => 'Annulation gratuite',
+    'perk_host_support' => 'Contact direct avec l’établissement',
+    'perk_host_support_sub' => 'Écrivez à une vraie personne au sujet de votre réservation.',
+    'kind_room' => 'Chambre',
+    'kind_apartment' => 'Appartement',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dortoir',
+    'type_hotel' => 'Hôtel',
+    'type_aparthotel' => 'Appart’hôtel',
+    'type_serviced_apartment' => 'Appartement avec services',
+    'type_apartment_building' => 'Immeuble d’appartements',
+    'type_apartment' => 'Appartement',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Auberge de jeunesse',
+    'type_guest_house' => 'Maison d’hôtes',
+    'type_resort' => 'Complexe hôtelier',
+    'type_mixed' => 'Mixte',
+    'type_portfolio' => 'Portfolio',
+];

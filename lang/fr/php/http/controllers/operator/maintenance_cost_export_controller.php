@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fr translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Montants',
+    'csv_amounts_note' => 'unité monétaire principale, point décimal, sans séparateur de milliers',
+    'col_date' => 'Date',
+    'col_work_order' => 'Bon d’intervention',
+    'col_unit' => 'Unité',
+    'col_category' => 'Catégorie',
+    'col_labor' => 'Main-d’œuvre',
+    'col_parts' => 'Pièces',
+    'col_total' => 'Total',
+    'col_currency' => 'Devise',
+    'total_row' => 'Total',
+    'sheet_summary' => 'Synthèse',
+    'col_measure' => 'Indicateur',
+    'col_value' => 'Valeur',
+    'total_spend' => 'Dépenses totales',
+    'measure_labour' => 'Main-d’œuvre',
+    'measure_parts' => 'Pièces',
+    'orders_closed' => 'Bons clôturés',
+    'owner_billed' => 'Facturé au propriétaire',
+    'operator_borne' => 'À la charge de l’exploitant',
+    'parts_on_order' => 'Pièces commandées',
+    'average_per_order' => 'Moyenne par bon',
+    'by_category' => 'Par catégorie',
+    'col_orders' => 'Bons',
+    'by_month' => 'Par mois',
+    'top_units' => 'Unités les plus coûteuses',
+    'sheet_line_items' => 'Lignes détaillées',
+    'col_labour' => 'Main-d’œuvre',
+    'no_email' => 'Votre compte n’a pas d’adresse e-mail.',
+    'report_emailed' => 'Rapport des coûts envoyé par e-mail à :email.',
+];
