@@ -1,0 +1,7 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/support/platform/platform_admin_password_policy.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'hint' => 'Al menos :min caracteres, con mayúsculas y minúsculas, un número y un símbolo.',
+];

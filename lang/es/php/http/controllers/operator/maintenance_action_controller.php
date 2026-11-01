@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Se abrió la incidencia “:title” en la unidad :unit.',
+    'not_assignable_staff' => 'Ese usuario no forma parte del personal asignable de esta organización.',
+    'cannot_reassign_closed' => 'Esa incidencia no se puede reasignar: ya está cerrada.',
+    'assignment_updated' => 'Se actualizó la asignación de la incidencia.',
+    'work_order_closed' => 'Esa orden de trabajo está cerrada: sus datos no se pueden cambiar.',
+    'work_order_updated' => 'Se actualizó la orden de trabajo.',
+    'col_title' => 'Título',
+    'col_unit' => 'Unidad',
+    'col_category' => 'Categoría',
+    'col_priority' => 'Prioridad',
+    'col_status' => 'Estado',
+    'col_assignee' => 'Responsable',
+    'col_reported' => 'Notificada',
+    'col_cost' => 'Coste',
+    'bulk_assigned_skipped' => '{1} Se asignó :count orden de trabajo · omitidas: :skipped (ya cerradas)|[0,*] Se asignaron :count órdenes de trabajo · omitidas: :skipped (ya cerradas)',
+    'bulk_assigned' => '{1} Se asignó :count orden de trabajo.|[0,*] Se asignaron :count órdenes de trabajo.',
+    'bulk_resolved_skipped' => '{1} Se resolvió :count orden de trabajo · omitidas: :skipped (ya cerradas)|[0,*] Se resolvieron :count órdenes de trabajo · omitidas: :skipped (ya cerradas)',
+    'bulk_resolved' => '{1} Se resolvió :count orden de trabajo.|[0,*] Se resolvieron :count órdenes de trabajo.',
+    'cannot_start' => 'Esa incidencia no se puede iniciar: ya no está abierta.',
+    'work_started' => 'Se inició el trabajo en esta incidencia.',
+    'cannot_resolve_closed' => 'Esa orden de trabajo no se puede resolver: ya está cerrada.',
+    'ticket_resolved' => 'Incidencia resuelta.',
+    'cannot_cancel_closed' => 'Esa incidencia no se puede cancelar: ya está cerrada.',
+    'ticket_cancelled' => 'Incidencia cancelada.',
+    'parts_closed' => 'Esa incidencia está cerrada: no se pueden actualizar las piezas.',
+    'awaiting_parts' => 'Se marcó como “Esperando piezas”.',
+    'parts_arrived' => 'Se marcaron las piezas como recibidas.',
+    'update_posted_waiting_part' => 'Se publicó la actualización y se marcó como “Esperando piezas”.',
+    'update_posted' => 'Se publicó la actualización.',
+    'photo_added' => 'Se agregó la foto.',
+    'photo_removed' => 'Se quitó la foto.',
+    'workspace_paused' => 'Su organización está en pausa (solo lectura): los cambios de mantenimiento están desactivados hasta que la reanude.',
+];

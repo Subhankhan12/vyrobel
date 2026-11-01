@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Usted',
+    'total_part' => ':name: :amount',
+    'total_includes' => 'incluye :items',
+    'nightly_excludes' => 'sin :tax',
+    'sleeps' => 'Capacidad: :count',
+    'studio' => 'Estudio',
+    'bedrooms' => '{1} :count dormitorio|[0,*] :count dormitorios',
+    'checkout_title' => 'Pago — :property',
+    'room_just_taken' => 'Otra persona acaba de reservar esa habitación. Elija otra habitación u otras fechas.',
+    'payment_received' => 'Pago recibido',
+    'payment_received_note' => 'Pagado en su totalidad.',
+    'payment_processing' => 'Pago en proceso',
+    'payment_processing_note' => 'Estamos confirmando el pago con tarjeta. Actualice esta página en un momento para verlo reflejado.',
+    'pay_on_arrival' => 'Pagar a la llegada',
+    'pay_on_arrival_note' => 'Pague en el alojamiento al hacer el check-in.',
+    'confirmed_title' => 'Reserva confirmada — :property',
+    'kind_room' => 'Habitación',
+    'kind_apartment' => 'Apartamento',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dormitorio compartido',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Apartahotel',
+    'type_serviced_apartment' => 'Apartamento con servicios',
+    'type_apartment_building' => 'Edificio de apartamentos',
+    'type_apartment' => 'Apartamento',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Albergue',
+    'type_guest_house' => 'Casa de huéspedes',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Mixto',
+    'type_portfolio' => 'Cartera',
+];

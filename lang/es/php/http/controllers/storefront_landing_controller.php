@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Nuestros alojamientos',
+    'properties_count' => ':count establecimientos',
+    'stays_count' => '{1} :count alojamiento|[0,*] :count alojamientos',
+    'stays_sleeps' => ':stays · hasta :max personas',
+    'stays_sleeps_range' => ':stays · de :min a :max personas',
+    'perk_free_cancel_days' => '{1} Reembolso íntegro hasta :count día antes de la llegada.|[0,*] Reembolso íntegro hasta :count días antes de la llegada.',
+    'perk_free_cancel_window' => 'Reembolso íntegro dentro del plazo de cancelación.',
+    'perk_no_fees' => 'Sin gastos de reserva',
+    'perk_no_fees_sub' => 'El precio que ve es el precio que paga.',
+    'perk_best_rate' => 'Mejor tarifa directa',
+    'perk_best_rate_sub' => 'Reserve directamente y obtenga nuestra mejor tarifa, sin intermediarios.',
+    'perk_free_cancel' => 'Cancelación gratuita',
+    'perk_host_support' => 'Atención directa del anfitrión',
+    'perk_host_support_sub' => 'Escriba a una persona real sobre su reserva.',
+    'kind_room' => 'Habitación',
+    'kind_apartment' => 'Apartamento',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dormitorio compartido',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Apartahotel',
+    'type_serviced_apartment' => 'Apartamento con servicios',
+    'type_apartment_building' => 'Edificio de apartamentos',
+    'type_apartment' => 'Apartamento',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Albergue',
+    'type_guest_house' => 'Casa de huéspedes',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Mixto',
+    'type_portfolio' => 'Cartera',
+];

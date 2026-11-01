@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'desde las :time',
+    'by_time' => 'hasta las :time',
+    'repeat_guest' => '{1} Huésped que repite · :count estancia|[0,*] Huésped que repite · :count estancias',
+    'new_guest' => 'Huésped nuevo',
+    'guests_count' => '{1} :count huésped|[0,*] :count huéspedes',
+    'nights_count' => '{1} :count noche|[0,*] :count noches',
+    'channel_direct' => 'Directo de Vyrobel',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'Canal OTA',
+    'event_booking_received' => 'Reserva recibida',
+    'event_cancelled' => 'Cancelada',
+    'event_payment_received' => 'Pago recibido',
+    'when_paid_in_full' => 'Pago completo',
+    'event_part_payment_received' => 'Pago parcial recibido',
+    'when_balance_due' => 'Saldo pendiente',
+    'event_payment' => 'Pago',
+    'when_not_yet_received' => 'Todavía no recibido',
+    'event_checked_in' => 'Check-in realizado',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out realizado',
+    'event_payout_released' => 'Liquidación abonada',
+    'event_payout' => 'Liquidación',
+    'when_next_payout' => 'Con su próxima liquidación',
+    'payout_not_attributed' => 'Todavía sin asignar',
+    'payout_not_attributed_note' => 'Esta reserva todavía no se ha asignado a su libro de cuentas.',
+    'payout_scheduled' => 'Programada',
+    'payout_scheduled_note' => 'Se incluirá en su próximo extracto y se abonará con esa liquidación.',
+    'payout_pending' => 'Liquidación pendiente',
+    'payout_pending_note' => 'En un extracto finalizado: se abonará con esa liquidación.',
+    'payout_paid' => 'Pagada',
+    'payout_paid_note' => 'Abonada con una liquidación completada.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Estancia',
+    'step_guest' => 'Huésped',
+    'step_extras' => 'Extras',
+    'step_confirm' => 'Confirmar',
+    'source_direct' => 'Directo',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Empresa',
+    'source_agent' => 'Agencia de viajes',
+    'the_guest' => 'el huésped',
+    'a_night' => ':amount por noche',
+    'a_night_range' => ':low–:high por noche',
+    'dates_label' => '{1} :from → :to · :count noche|[0,*] :from → :to · :count noches',
+    'restrict_min_stay' => '{1} Con llegada el :date, la estancia debe ser de al menos :count noche|[0,*] Con llegada el :date, la estancia debe ser de al menos :count noches',
+    'restrict_max_stay' => '{1} Con llegada el :date, la estancia puede ser como máximo de :count noche|[0,*] Con llegada el :date, la estancia puede ser como máximo de :count noches',
+    'restrict_no_arrivals' => 'No se admiten llegadas el :date',
+    'restrict_no_departures' => 'No se admiten salidas el :date',
+    'restrict_stop_sell' => 'El :date está cerrado a nuevas reservas',
+    'restrict_other' => ':restriction el :date',
+    'arrival_mail_off' => 'Vyrobel todavía no envía correos electrónicos: proporcione directamente al huésped las indicaciones y el código de la puerta.',
+    'arrival_pre_arrival_off' => 'El correo previo a la llegada está desactivado para sus alojamientos: proporcione directamente al huésped las indicaciones y el código de la puerta.',
+    'arrival_too_soon' => 'Esta estancia empieza demasiado pronto para el correo previo a la llegada, que se envía :count días antes del check-in: proporcione directamente al huésped las indicaciones y el código de la puerta.',
+    'arrival_by_email' => 'Las indicaciones, y el código de la puerta si la unidad tiene uno, llegan al huésped por correo electrónico :count días antes del check-in, siempre que tenga una dirección de correo electrónico. El código de la puerta nunca se muestra aquí.',
+    'cancel_not_free' => 'No gratuita para esta estancia: el plazo terminó el :date',
+    'cancel_free_until_check_in' => 'Gratuita hasta el check-in',
+    'cancel_free_until_date' => 'Gratuita hasta el :date',
+    'cancel_free_until_days' => '{1} Gratuita hasta :count día antes del check-in|[0,*] Gratuita hasta :count días antes del check-in',
+    'min_stay_none' => 'Sin mínimo',
+    'min_stay_nights' => '{1} :count noche|[0,*] :count noches',
+    'guest_no_name' => 'Huésped',
+    'no_stays_yet' => 'Todavía no hay estancias',
+];

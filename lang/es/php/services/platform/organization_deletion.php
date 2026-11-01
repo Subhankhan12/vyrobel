@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Tiene registros de dinero reales (:records). Es posible que la ley exija conservarlos durante años, por lo que su eliminación queda en suspenso hasta que haya una resolución jurídica sobre el plazo: no se puede eliminar antes.',
+    'uncounted_cascades' => 'La base de datos vincula registros de una forma que la eliminación no puede contar con exactitud (:links), así que la confirmación no pudo indicar qué se elimina. No se puede eliminar nada hasta que se corrija.',
+    'stripe_billing_live' => 'La facturación de Stripe está en modo real para esta organización. Cancele primero la suscripción en Stripe; de lo contrario, seguirá cobrando a un cliente que ya no existe. Si ya está cancelada allí, el aviso de Stripe todavía no se ha aplicado aquí: resuélvalo manualmente.',
+    'checkout_open_subscription' => 'Se abrió una página de pago de Stripe para la suscripción de esta organización (apertura: :opened) y todavía puede pagarse hasta su cierre (:closes). Vuelva a intentarlo cuando se haya pagado o haya caducado.',
+    'checkout_open_card' => 'Se abrió una página de pago de Stripe para el pago con tarjeta de un huésped (apertura: :opened) y todavía puede pagarse hasta su cierre (:closes). Vuelva a intentarlo cuando se haya pagado o haya caducado.',
+    'checkout_unreported_subscription' => 'Se abrió una página de pago de Stripe en modo real para la suscripción de esta organización (apertura: :opened; cierre: :closed), pero aquí no se ha aplicado ningún aviso que indique si se pagó. Compruebe la página en el panel de Stripe; si se pagó, cancele primero allí lo que puso en marcha. Stripe reintenta durante un máximo de 3 días un aviso que no pudo entregar: vuelva a intentarlo cuando se haya aplicado. Si Stripe ya lo notificó y el aviso no pudo aplicarse, resuélvalo manualmente.',
+    'checkout_unreported_card' => 'Se abrió una página de pago de Stripe en modo real para el pago con tarjeta de un huésped (apertura: :opened; cierre: :closed), pero aquí no se ha aplicado ningún aviso que indique si se pagó. Compruebe la página en el panel de Stripe; si se pagó, cancele primero allí lo que puso en marcha. Stripe reintenta durante un máximo de 3 días un aviso que no pudo entregar: vuelva a intentarlo cuando se haya aplicado. Si Stripe ya lo notificó y el aviso no pudo aplicarse, resuélvalo manualmente.',
+    'refund_processing' => 'Todavía se está procesando un reembolso con tarjeta en Stripe. Espere a que Stripe lo confirme y vuelva a intentarlo.',
+    'card_payment_open' => 'Todavía hay un pago con tarjeta o una preautorización abiertos. Primero deje que se completen o libérelos.',
+    'dispute_open' => 'Un pago con tarjeta está en disputa en Stripe (desde: :since). Responda a la disputa en Stripe y vuelva a intentarlo cuando Stripe notifique que se ha cerrado. Si el panel de Stripe ya la muestra cerrada, el aviso nunca llegó: resuélvalo manualmente.',
+    'payouts_in_transit' => '{1} Una liquidación a un propietario está en tránsito en Stripe (desde: :since).|[0,*] :count liquidaciones a propietarios están en tránsito en Stripe (desde: :since).',
+    'payout_transit_stale' => 'Es más de lo que debería tardar: resuélvalo primero manualmente con Stripe.',
+    'payout_transit_wait' => 'Espere a que Stripe lo confirme y vuelva a intentarlo.',
+    'payouts_owed' => '{1} Todavía se debe una liquidación a un propietario (en espera o retenida). Liquídela primero: eliminar dejaría a los propietarios sin cobrar y sin ningún registro de ello.|[0,*] Todavía se deben :count liquidaciones a propietarios (en espera o retenidas). Liquídelas primero: eliminar dejaría a los propietarios sin cobrar y sin ningún registro de ello.',
+    'payout_run_running' => 'Hay un proceso de liquidación en curso (inicio: :since).',
+    'looks_stuck' => 'Parece que no avanza: resuélvalo manualmente antes de eliminar.',
+    'payout_run_wait' => 'Vuelva a intentarlo cuando haya terminado.',
+    'webhook_unprocessed' => 'Todavía no se ha procesado una notificación de :source para esta organización (recibida: :received).',
+    'webhook_wait' => 'Vuelva a intentarlo en unos minutos.',
+    'cross_tenant_references' => 'Otra organización tiene registros que apuntan a esta (:links). Eliminarla también los eliminaría.',
+    'schema_unreadable' => 'No se pudo leer por completo el esquema de la base de datos (no se encontró: :tables).',
+    'already_deleted' => 'Esta organización ya no existe: ya se ha eliminado.',
+    'protected' => 'Esta organización está protegida y nunca se puede eliminar.',
+    'not_suspended' => 'Suspéndala primero: solo se puede eliminar una organización suspendida o archivada.',
+    'record_survived' => 'Un registro de esta organización sobrevivió a la eliminación (en: :tables), así que se revirtió todo.',
+    'organization_survived' => 'La organización o una de sus personas sobrevivió a la eliminación, así que se revirtió todo.',
+    'live_card_payments' => '{1} :count pago con tarjeta|[0,*] :count pagos con tarjeta',
+    'live_refunds' => '{1} :count reembolso|[0,*] :count reembolsos',
+    'live_payouts' => '{1} :count liquidación|[0,*] :count liquidaciones',
+    'live_stripe_billing' => 'facturación real de Stripe, con sus facturas',
+    'unknown_time' => 'hora desconocida',
+    'time_utc' => ':time UTC',
+];

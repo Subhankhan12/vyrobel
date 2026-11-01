@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Listos para liquidar',
+    'chip_hold' => 'Retenidos',
+    'chip_review' => 'Requieren revisión',
+    'chip_paused' => 'Liquidaciones en pausa',
+    'chip_invited' => 'Invitados',
+    'sorted_name_asc' => 'por propietario, A–Z',
+    'sorted_name_desc' => 'por propietario, Z–A',
+    'sorted_units_desc' => 'más unidades primero',
+    'sorted_units_asc' => 'menos unidades primero',
+    'sorted_net_desc' => 'mayor neto a liquidar primero',
+    'sorted_net_asc' => 'menor neto a liquidar primero',
+    'sorted_status_asc' => 'lo que requiere su atención primero',
+    'sorted_status_desc' => 'lo que requiere su atención al final',
+    'kpi_invited' => 'Invitados: :number',
+    'kpi_units' => '{1} :count unidad|[0,*] :count unidades',
+    'kpi_owners_ready' => '{1} :count propietario listo|[0,*] :count propietarios listos',
+    'kpi_paused_not_counted' => 'En pausa, sin contar: :number',
+    'kpi_hold_none' => 'nada en espera',
+    'kpi_hold_waiting' => 'En espera: :amounts',
+    'kpi_review_sub' => 'Con líneas que el canal de reserva no ha confirmado: :number',
+    'schedule' => ':day día hábil del mes',
+    'ordinal_st' => ':number.º',
+    'ordinal_nd' => ':number.º',
+    'ordinal_rd' => ':number.º',
+    'ordinal_th' => ':number.º',
+    'role_manager' => 'Responsable del alojamiento',
+    'role_accountant' => 'Contable',
+    'role_owner' => 'Propietario',
+    'another_owner' => 'otro propietario',
+];

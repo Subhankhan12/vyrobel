@@ -15,7 +15,7 @@ return [
     'no_rooms_line' => 'Birimler eklendiğinde odalar burada görünür.',
     'season_offer' => ':name (gecelik :price, :from → :to)',
     'names_and' => ':names ve :last',
-    'block_out_of_order' => 'Kullanım dışı',
+    'block_out_of_order' => 'Bakım',
     'block_owner' => 'Mülk sahibi blokesi',
     'block_held' => 'Ayırma',
     'block_blocked' => 'Bloke',

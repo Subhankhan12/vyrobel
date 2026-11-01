@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Huésped',
+    'nights' => '{1} :count noche|[0,*] :count noches',
+    'block_reason_none' => 'Bloqueado',
+    'block_reason_maintenance' => 'Mantenimiento',
+    'block_reason_owner' => 'Propietario',
+    'block_reason_manual' => 'Manual',
+    'block_reason_overbooking_protection' => 'Protección contra sobreventa',
+    'cleaning_departure' => 'Limpieza de salida',
+    'cleaning_stayover' => 'Servicio durante la estancia',
+    'cleaning_deep' => 'Limpieza a fondo',
+    'cleaning_arrival_prep' => 'Preparación para la llegada',
+    'cleaning_status_pending' => 'Programada',
+    'cleaning_status_in_progress' => 'En curso',
+    'cleaning_status_clean' => 'Realizada',
+    'cleaning_status_inspected' => 'Inspeccionada',
+    'kind_room' => 'Habitación',
+    'kind_apartment' => 'Apartamento',
+    'kind_villa' => 'Villa',
+    'kind_dorm_bed' => 'Cama en dormitorio',
+    'condition_out_of_order' => 'Fuera de servicio',
+    'condition_out_of_service' => 'Retirada de la venta',
+    'status_enquiry' => 'Consulta',
+    'status_tentative' => 'Provisional',
+    'status_confirmed' => 'Confirmada',
+    'status_checked_in' => 'Check-in realizado',
+    'status_checked_out' => 'Check-out realizado',
+    'status_cancelled' => 'Cancelada',
+    'status_no_show' => 'No show',
+    'terms_portfolio' => 'Condiciones para toda la cartera',
+    'terms_unit' => 'Condiciones de esta unidad',
+];

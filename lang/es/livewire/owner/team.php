@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Equipo y acceso',
+    'subtitle' => 'Dé a un copropietario o a su contable su propio acceso, limitado a lo que necesita.',
+    'people_with_access' => 'Personas con acceso',
+    'account_owner' => 'Titular de la cuenta',
+    'thats_you' => 'es usted',
+    'owner_access' => 'Acceso completo a todo, incluida esta página.',
+    'active_now' => 'Activo ahora',
+    'role_for' => 'Rol de :name',
+    'your_password' => 'Su contraseña',
+    'confirm_password' => 'Confirmar con su contraseña',
+    'remove_confirm' => '¿Quitar a :name? Ya no podrá iniciar sesión.',
+    'no_members' => 'Por ahora solo usted: invite a continuación a un copropietario o a un contable.',
+    'invite_heading' => 'Invitar a alguien',
+    'invite_sub' => 'Tendrá su propio acceso; puede retirárselo en cualquier momento.',
+    'invite_email_label' => 'Correo de la persona invitada',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Enviar invitación',
+    'pending_invites' => 'Invitaciones pendientes',
+    'resend' => 'Reenviar',
+    'revoke' => 'Revocar',
+    'matrix_heading' => 'Qué puede ver cada rol',
+    'matrix_note' => 'Solo usted, como titular de la cuenta, puede gestionar el equipo y la cuenta de liquidación.',
+    'recent_activity' => 'Actividad reciente',
+    'no_activity' => 'Todavía nada: aquí aparecerán las invitaciones y los inicios de sesión.',
+    'download_log' => 'Registro de descargas de exportaciones',
+    'download_log_sub' => 'Cada extracto, reserva, liquidación o archivo fiscal que descarga su equipo queda marcado con el nombre de quien lo descargó y se registra aquí.',
+    'no_downloads' => 'Todavía no se ha descargado ninguna exportación: aparecerán aquí, marcadas con el nombre de quien las descargó.',
+    'security_heading' => 'Cada persona tiene su propia llave',
+    'security_body' => 'Sin contraseñas compartidas: cada persona inicia sesión con su propia cuenta y su acceso se limita a su rol. Las exportaciones financieras llevan una marca de agua con el nombre de quien las descargó y se registran arriba. Para su propia cuenta, active la verificación en dos pasos.',
+    'security_settings' => 'Configuración de seguridad',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Alojamientos',
+    'book_direct' => 'Reserve directamente',
+    'nav_stays' => 'Alojamientos',
+    'my_account' => 'Mi cuenta',
+    'sign_in' => 'Iniciar sesión',
+    'rating_across' => '{1} :average según :count reseña|[0,*] :average según :count reseñas',
+    'heading' => 'Reserve directamente con<br>:org.',
+    'subheading' => 'Alojamientos cuidados con esmero, reservados directamente con el anfitrión: sin comisiones, con nuestra mejor tarifa y una persona real al otro lado.',
+    'where' => 'Destino',
+    'check_in' => 'Llegada',
+    'check_out' => 'Salida',
+    'adults' => 'Adultos',
+    'children' => 'Niños',
+    'where_to_stay' => 'Dónde alojarse',
+    'towns_lede' => '{1} Nuestro hogar.|[0,*] :count localidades, cada una con su propio ritmo.',
+    'from_price' => 'desde :price',
+    'featured_stays' => 'Alojamientos destacados',
+    'featured_lede' => 'Los favoritos de los huéspedes en toda la colección.',
+    'per_night' => '/ noche',
+    'see_dates_for_pricing' => 'Elija fechas para ver los precios',
+    'browse_by_what_matters' => 'Explore según lo que le importa',
+    'why_book_direct' => 'Por qué reservar directamente',
+    'recent_guests' => 'Huéspedes recientes',
+    'rating_short' => '{1} :average · :count reseña|[0,*] :average · :count reseñas',
+    'stars_aria' => ':rating de 5 estrellas',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'Todavía no hay reseñas: sea el primero en alojarse y compartir su experiencia.',
+    'cta_heading' => 'Encuentre su lugar',
+    'cta_sub' => 'Fechas reales, precios en tiempo real, confirmación inmediata.',
+    'browse_all_stays' => 'Ver todos los alojamientos',
+];

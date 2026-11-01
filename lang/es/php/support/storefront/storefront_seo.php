@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Apartahotel',
+    'type_serviced_apartment' => 'Apartamentos con servicios',
+    'type_apartment_building' => 'Apartamentos',
+    'type_apartment' => 'Apartamento',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Albergue',
+    'type_guest_house' => 'Casa de huéspedes',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel y apartamentos',
+    'type_portfolio' => 'Alojamientos',
+    'title_town' => ':name, :town — Reserve directamente',
+    'title' => ':name — Reserve directamente',
+    'title_room' => ':room en :property — Reserve directamente',
+    'org_description_towns' => '{1} Descubra :count alojamiento en :towns. Consulte la disponibilidad y reserve directamente con :org.|[0,*] Descubra :count alojamientos en :towns. Consulte la disponibilidad y reserve directamente con :org.',
+    'org_description' => '{1} Descubra :count alojamiento. Consulte la disponibilidad y reserve directamente con :org.|[0,*] Descubra :count alojamientos. Consulte la disponibilidad y reserve directamente con :org.',
+    'org_description_empty' => 'Consulte la disponibilidad y reserve directamente con :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1} Reserve directamente en :name. :type en :place. :count tipo de habitación. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.|[0,*] Reserve directamente en :name. :type en :place. :count tipos de habitación. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.',
+    'description_place' => 'Reserve directamente en :name. :type en :place. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.',
+    'description_rooms' => '{1} Reserve directamente en :name. :type. :count tipo de habitación. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.|[0,*] Reserve directamente en :name. :type. :count tipos de habitación. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.',
+    'description' => 'Reserve directamente en :name. :type. Consulte la disponibilidad en tiempo real y reserve sin pasar por una web de reservas.',
+    'detail_sleeps' => 'hasta :guests personas',
+    'detail_bedrooms' => '{1} :count dormitorio|[0,*] :count dormitorios',
+    'room_description_town_details' => ':room en :property, en :town — :details. Consulte la disponibilidad en tiempo real y reserve directamente.',
+    'room_description_town' => ':room en :property, en :town. Consulte la disponibilidad en tiempo real y reserve directamente.',
+    'room_description_details' => ':room en :property — :details. Consulte la disponibilidad en tiempo real y reserve directamente.',
+    'room_description' => ':room en :property. Consulte la disponibilidad en tiempo real y reserve directamente.',
+    'list_and' => ':items y :last',
+];

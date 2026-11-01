@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'El motor de liquidaciones está desactivado (PAYOUT_ENGINE_ENABLED). Actívelo antes de ejecutar una liquidación.',
+    'nothing_to_run' => 'No hay nada que ejecutar: ningún propietario tiene un extracto a liquidar ni una liquidación retenida:paused_note.',
+    'run_complete' => 'Proceso de liquidación completado (modo: :mode) — creadas: :created · pagadas: :paid · retenidas: :held:paused_note.',
+    'create_failed' => 'No se pudo crear la liquidación: :reason',
+    'already_has_payout' => 'Ese extracto ya tiene una liquidación: no se creó nada.',
+    'one_payout_created' => 'Se creó 1 liquidación.',
+    'pay_failed' => 'No se pudo pagar: :reason',
+    'one_payout_paid' => 'Se marcó 1 liquidación como pagada.',
+    'payout_failed_reason' => 'La liquidación falló: :reason',
+    'payout_failed_no_reason' => 'La liquidación falló: la vía de liquidación no indicó ningún motivo.',
+    'create_all_failed' => 'No se pudieron crear las liquidaciones: :reason',
+    'no_payout_created_paused' => 'No se creó ninguna liquidación:paused_note. Reanude sus liquidaciones en la ficha del propietario.',
+    'nothing_ready' => 'No hay nada listo para liquidar: ningún extracto finalizado tiene un neto a liquidar positivo:paused_note.',
+    'no_new_payouts' => 'No hay liquidaciones nuevas: cada extracto listo ya tiene la suya:paused_note.',
+    'payouts_created' => '{1} Se creó :count liquidación:paused_note.|[0,*] Se crearon :count liquidaciones:paused_note.',
+    'some_not_created' => ':message No se pudieron crear algunas: :reason',
+    'nothing_paid_paused' => 'No se pagó nada:paused_note. Reanude sus liquidaciones en la ficha del propietario.',
+    'no_pending_payouts' => 'No hay liquidaciones pendientes de pago.',
+    'paid_only' => '{1} Se marcó :count liquidación como pagada:paused_note.|[0,*] Se marcaron :count liquidaciones como pagadas:paused_note.',
+    'failed_only' => '[0,*] Fallidas en la vía de liquidación: :count:paused_note.',
+    'paid_and_failed' => '{1} Se marcó :count liquidación como pagada · fallidas en la vía de liquidación: :failed:paused_note.|[0,*] Se marcaron :count liquidaciones como pagadas · fallidas en la vía de liquidación: :failed:paused_note.',
+    'some_not_attempted' => ':message No se pudieron intentar algunas: :reason',
+    'nothing_payable_negative' => 'No hay nada que liquidar: el neto de este extracto es negativo, así que el saldo se traslada para compensar el siguiente extracto del propietario.',
+    'nothing_payable_zero' => 'No hay nada que liquidar: el neto de este extracto es cero, así que no se debe nada.',
+    'workspace_paused_until' => 'Organización en pausa: las liquidaciones están en modo de solo lectura hasta el :date.',
+    'workspace_paused_for_now' => 'Organización en pausa: por ahora, las liquidaciones están en modo de solo lectura.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1} propietarios en pausa omitidos: :count|[0,*] propietarios en pausa omitidos: :count',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Informes',
+    'arrivals_in' => 'Llegadas en :period',
+    'arrivals_count' => '{1} :count llegada|[0,*] :count llegadas',
+    'pp_delta' => ':delta p. p.',
+    'occupancy' => 'Ocupación',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Ingresos brutos',
+    'basis_note' => 'Ocupación · ADR · RevPAR se calculan por noche de estancia, frente al mismo periodo del año anterior cuando hay datos de ese año. Los ingresos de abajo se calculan según el folio (por fecha de llegada).',
+    'revenue' => 'Ingresos',
+    'room' => 'Habitaciones',
+    'ancillary' => 'Complementarios <span class="muted">· extras, productos, gastos</span>',
+    'tax_collected' => 'Impuestos recaudados · repercutidos',
+    'costs_heading' => 'Costes <span class="muted" style="font-size:9px">· solo datos reales</span>',
+    'maintenance' => 'Mantenimiento <span class="muted">· órdenes de trabajo resueltas</span>',
+    'not_tracked' => 'todavía no se registra',
+    'net' => 'Neto (ingresos − costes registrados)',
+    'revenue_by_channel' => 'Ingresos por canal',
+    'channel' => 'Canal',
+    'bookings' => 'Reservas',
+    'share' => '% del total',
+    'no_channel_revenue' => 'No hay ingresos de canales en este periodo.',
+    'top_units' => 'Mejores unidades',
+    'unit' => 'Unidad',
+    'nights' => 'Noches',
+    'room_revenue' => 'Ingresos por habitaciones',
+    'no_unit_revenue' => 'No hay ingresos de unidades en este periodo.',
+    'revenue_by_month' => 'Ingresos por mes',
+    'month' => 'Mes',
+    'footer' => 'Calculado con datos reales del folio y de mantenimiento para :scope · :period. Ocupación/ADR/RevPAR se calculan por noche de estancia; los ingresos, según el folio (por fecha de llegada). Las cifras cuadran con la pantalla “Informes”. Vyrobel.',
+];

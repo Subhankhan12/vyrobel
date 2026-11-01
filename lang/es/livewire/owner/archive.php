@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Archivo de extractos',
+    'history_summary' => 'Historial de extractos finalizados · :years · :statements',
+    'years' => '{1} :count año|[0,*] :count años',
+    'statements' => '{1} :count extracto|[0,*] :count extractos',
+    'archived_on_finalize' => 'Los extractos se archivan aquí en cuanto se finalizan.',
+    'net_earned_lifetime' => 'Neto ganado · total histórico',
+    'since' => 'desde el :date',
+    'per_currency_note' => 'Totales por moneda de liquidación: los saldos en monedas distintas nunca se combinan.',
+    'lifetime_empty' => 'Todavía no hay extractos finalizados: el primero aparecerá aquí.',
+    'search_placeholder' => 'Busque en sus extractos: mes, año, estado o número',
+    'search_label' => 'Buscar extractos',
+    'no_match' => 'Ningún extracto coincide con “:query”.',
+    'no_match_hint' => 'Pruebe con un mes (“septiembre”), un año (“2026”), un estado (“Pagado”) o un número de extracto (“N.º 1”).',
+    'group_summary' => ':statements · neto: :nets',
+    'per_payout_currency' => '(por moneda de liquidación)',
+    'tax_summary_title' => 'Descargar el resumen fiscal anual de :year en PDF',
+    'tax_summary' => 'Resumen fiscal',
+    'col_statement' => 'Extracto',
+    'col_net_payable' => 'Neto a liquidar',
+    'col_links' => 'Enlaces',
+    'unverified_title' => 'Algunas líneas siguen pendientes de conciliación con el canal',
+    'unverified' => 'Contiene líneas sin verificar',
+    'pdf_title' => 'Descargar este extracto en PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Descargar en PDF las reservas de este extracto',
+    'bookings' => 'Reservas',
+    'empty' => 'Todavía no hay extractos finalizados. Un extracto se archiva aquí cuando se finaliza.',
+    'zip_heading' => 'Descargar el archivo completo',
+    'zip_sub' => '{1} Un ZIP con :count PDF de extracto. Cada extracto de arriba ya se puede descargar por separado.|[0,*] Un ZIP con :count PDF de extractos. Cada extracto de arriba ya se puede descargar por separado.',
+    'download_zip' => 'Descargar ZIP',
+];

@@ -9,7 +9,7 @@ return [
     'chip_inprog' => 'Devam ediyor',
     'chip_urgent' => 'Acil',
     'chip_parts' => 'Parça bekleniyor',
-    'chip_ooo' => 'Kullanım dışı',
+    'chip_ooo' => 'Bakımda',
     'chip_done' => 'Çözüldü',
     'sorted_priority_asc' => 'en acil olanlar önce',
     'sorted_priority_desc' => 'en az acil olanlar önce',

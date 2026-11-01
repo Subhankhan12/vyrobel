@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — es translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Resumen',
+    'breadcrumb_bookings' => 'Reservas',
+    'guest_fallback' => 'Huésped',
+    'reservation' => 'Reserva',
+    'check_in' => 'Llegada',
+    'nights_count' => '{1} :count noche|[0,*] :count noches',
+    'check_out' => 'Salida',
+    'unit' => 'Unidad',
+    'guests' => 'Huéspedes',
+    'nights' => 'Noches',
+    'nightly_rate' => 'Tarifa por noche',
+    'your_earnings' => 'Sus ingresos',
+    'gross_to_net' => 'bruto → neto',
+    'gross_booking_value' => 'Valor bruto de la reserva',
+    'net_to_you' => 'Neto para usted',
+    'refunds_we_covered' => 'Reembolsos a nuestro cargo',
+    'refunds_we_covered_note' => 'Se reembolsó al huésped y corrió a nuestro cargo, no al suyo. Sus ingresos indicados arriba no cambian.',
+    'not_yet_attributed' => 'Todavía sin asignar.',
+    'not_yet_attributed_note' => 'Sus ingresos aparecerán aquí cuando esta reserva se asigne a su libro de cuentas, normalmente después del check-out.',
+    'guest_heading' => 'Huésped',
+    'guest_contact_note' => 'Su equipo de gestión se encarga de los datos de contacto del huésped; usted ve la reserva y sus ingresos.',
+    'message_your_team' => 'Escribir a su equipo',
+    'timeline' => 'Cronología',
+    'for_night_stay' => 'por esta estancia (noches: :nights)',
+    'booking_details' => 'Detalles de la reserva',
+    'confirmation' => 'Confirmación',
+    'source' => 'Origen',
+    'channel' => 'Canal',
+    'booked_on' => 'Fecha de reserva',
+    'download_confirmation' => 'Descargar confirmación',
+    'download_unavailable' => 'Disponible para copropietarios y contables',
+    'view_unit' => 'Ver :unit',
+];

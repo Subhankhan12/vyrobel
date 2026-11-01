@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Reservas',
+    'arrivals_this_month' => 'Llegadas de este mes',
+    'arrivals_this_month_sub' => 'con check-in en este mes natural · sin cancelaciones ni no shows',
+    'booked_value' => 'Valor reservado · llegadas de este mes',
+    'booked_value_sub' => 'facturado en las llegadas de este mes',
+    'booked_value_sub_multi' => 'facturado en las llegadas de este mes · por moneda (nunca sumado entre monedas)',
+    'balances_due' => 'Saldos pendientes · llegadas de este mes',
+    'folios_owing' => '{0} nada pendiente|{1} :count folio con saldo pendiente|[2,*] :count folios con saldo pendiente',
+    'search_placeholder' => 'Buscar por huésped o referencia…',
+    'search_label' => 'Buscar reservas',
+    'group_booking' => 'Reserva de grupo',
+    'new_reservation' => 'Nueva reserva',
+    'empty_heading' => 'Todavía no hay reservas',
+    'empty_body' => 'Cada reserva, sea directa, walk-in o importada, aparece aquí en cuanto se realiza.',
+    'no_match_query' => 'Ninguna reserva coincide con “:query”',
+    'no_match_view' => 'No hay reservas en esta vista',
+    'no_match_hint' => '{1} Pruebe con el nombre de un huésped o una referencia de reserva. :count reserva en total.|[0,*] Pruebe con el nombre de un huésped o una referencia de reserva. :count reservas en total.',
+    'no_match_hint_filter' => '{1} Pruebe con el nombre de un huésped o una referencia de reserva, o borre el filtro. :count reserva en total.|[0,*] Pruebe con el nombre de un huésped o una referencia de reserva, o borre el filtro. :count reservas en total.',
+    'clear_search_filters' => 'Borrar búsqueda y filtros',
+    'col_guest' => 'Huésped',
+    'col_stay' => 'Estancia',
+    'col_unit' => 'Unidad',
+    'col_source' => 'Origen',
+    'col_stage' => 'Fase',
+    'col_balance_due' => 'Saldo pendiente',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count noche|[0,*] :count noches',
+    'guests' => '{1} :count huésped|[0,*] :count huéspedes',
+    'unassigned' => 'Sin asignar',
+    'refunded' => 'Reembolsada',
+    'pager_label' => 'reservas',
+];

@@ -5,5 +5,5 @@
 return [
     'title' => 'İş emri çözüldü · :title',
     'context_back_online' => 'Birim: :unit — onarıldı ve yeniden kullanımda',
-    'context_still_out' => 'Birim: :unit — çözüldü (hâlâ kullanım dışı)',
+    'context_still_out' => 'Birim: :unit — çözüldü (hâlâ bakımda)',
 ];

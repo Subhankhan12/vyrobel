@@ -1,0 +1,13 @@
+<?php
+
+// I18N-01 — es translation of lang/en/php/support/reservations/reservation_stage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'in_house' => 'En curso',
+    'upcoming' => 'Próxima',
+    'past' => 'Pasada',
+    'arrival_due' => 'Llegada pendiente',
+    'tentative' => 'Provisional',
+    'cancelled' => 'Cancelada',
+    'unknown' => 'Desconocida',
+];

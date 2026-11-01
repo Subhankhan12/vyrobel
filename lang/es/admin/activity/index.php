@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Gestor/Propietario',
+    'realm_guest' => 'Huésped',
+    'realm_admin' => 'Administrador de la plataforma',
+    'event_login' => 'Inicio de sesión',
+    'event_failed' => 'Fallido',
+    'event_lockout' => 'Bloqueo',
+    'subject_user' => 'Usuario',
+    'subject_guest' => 'Huésped',
+    'subject_platform_admin' => 'Administrador de la plataforma',
+    'subject_unknown' => 'Desconocido',
+    'actor_user' => 'Usuario',
+    'actor_agent' => 'Agente',
+    'actor_system' => 'Sistema',
+    'page_title' => 'Seguridad y actividad',
+    'page_subtitle' => 'Actividad de inicio de sesión y eventos de cuenta en toda la plataforma; se conservan :days días y después se eliminan.',
+    'kpi_failures' => 'Fallidos / bloqueos · 24 h',
+    'kpi_failures_help' => 'Los fallos repetidos pueden indicar un intento de sondeo.',
+    'privacy' => 'Privacidad',
+    'privacy_body' => 'La actividad de inicio de sesión (incl. la IP) se registra solo como <strong style="color: var(--ad-ink);">señal de seguridad</strong>, para detectar inicios de sesión sospechosos y dar soporte, nunca como seguimiento general. Se conserva :days días y después se elimina automáticamente; el acceso está limitado a esta consola.',
+    'recent_sign_ins' => 'Actividad reciente de inicio de sesión',
+    'col_event' => 'Evento',
+    'col_realm' => 'Ámbito',
+    'col_account' => 'Cuenta',
+    'col_ip' => 'IP',
+    'col_when' => 'Fecha',
+    'no_sign_ins' => 'Todavía no se ha registrado actividad de inicio de sesión.',
+    'recent_account_events' => 'Eventos de cuenta recientes <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· de todos los clientes</span>',
+    'col_customer' => 'Cliente',
+    'col_actor' => 'Autor',
+    'no_account_events' => 'Todavía no hay eventos de cuenta.',
+];

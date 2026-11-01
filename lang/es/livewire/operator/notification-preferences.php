@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Preferencias de notificaciones',
+    'subtitle' => 'Cómo le avisa Vyrobel',
+    'breadcrumb_label' => 'Ruta de navegación',
+    'crumb_settings' => 'Configuración',
+    'crumb_notifications' => 'Notificaciones',
+    'channel_email' => 'Correo electrónico',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Sin correo electrónico registrado',
+    'email_verified_title' => 'Su correo de acceso está verificado',
+    'email_verified' => 'Verificado',
+    'push_not_set_up_title' => 'Las notificaciones push todavía no están configuradas',
+    'not_set_up_tag' => 'sin configurar',
+    'push_not_available' => 'Las notificaciones push en el navegador y el dispositivo todavía no están disponibles',
+    'channel_off' => 'Desactivado',
+    'sms_not_set_up_title' => 'Los SMS todavía no están configurados',
+    'sms_no_provider' => 'Todavía no hay ningún proveedor de SMS conectado',
+    'notify_me_when' => 'Avisarme cuando',
+    'always_on' => 'Siempre activado',
+    'email_always_on_sr' => 'Correo electrónico siempre activado para: :event',
+    'email_me_when_aria' => 'Enviarme un correo cuando: :event',
+    'push_not_set_up_sr' => 'Push sin configurar',
+    'sms_not_set_up_sr' => 'SMS sin configurar',
+    'quiet_hours' => 'Horas de silencio',
+    'quiet_hours_help' => 'Retener el correo electrónico rutinario entre estas horas. Las alertas de seguridad urgentes siempre llegan; las notificaciones dentro de la aplicación no se ven afectadas.',
+    'quiet_from' => 'Desde',
+    'quiet_to' => 'Hasta',
+    'digest_heading' => 'Correo de resumen diario',
+    'digest_help' => 'Un resumen matutino del día. <span class="vy-np-soon">todavía no se envía</span>: la preferencia se guarda para cuando el envío del resumen esté disponible.',
+    'digest_off' => 'Desactivado',
+    'digest_morning' => 'Por la mañana · 08:00',
+];

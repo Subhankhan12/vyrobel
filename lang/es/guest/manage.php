@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — es translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Gestionar :reference',
+    'back_to_booking' => '← Volver a la reserva',
+    'heading' => 'Gestionar su reserva',
+    'subheading' => ':property · :check_in → :check_out. Los cambios los confirma el alojamiento: le avisaremos en cuanto lo haga.',
+    'pending_requests' => 'Solicitudes pendientes',
+    'pending_badge' => 'Pendiente',
+    'pending_note' => 'Todavía no ha cambiado nada en su reserva: el alojamiento confirma primero cada solicitud.',
+    'pick_new_dates' => 'Elija nuevas fechas',
+    'currently' => 'Actualmente: :check_in → :check_out. Elija nuevas fechas para ver la diferencia de precio y luego solicite el cambio.',
+    'new_check_in' => 'Nueva fecha de llegada',
+    'new_check_out' => 'Nueva fecha de salida',
+    'see_price_difference' => 'Ver diferencia de precio',
+    'new_stay' => 'Nueva estancia',
+    'current' => 'Actual',
+    'difference' => 'Diferencia',
+    'estimate_note' => 'Solo es una estimación, sujeta a la confirmación del alojamiento. Cualquier pago se gestiona después de que lo confirme.',
+    'unpriced_note' => 'Esas fechas todavía no tienen un precio publicado: solicite el cambio y el alojamiento le confirmará el precio.',
+    'request_date_change' => 'Solicitar cambio de fechas',
+    'add_to_your_stay' => 'Agregar a su estancia',
+    'add_to_your_stay_sub' => 'Agregue desayuno, traslados y más: todo se carga a su reserva al confirmarse.',
+    'browse_extras' => 'Ver extras',
+    'cancellation_policy' => 'Política de cancelación',
+    'free_until' => 'Cancelación gratuita hasta el <strong>:date</strong>: si cancela antes de esa fecha, se le reembolsa el importe íntegro.',
+    'policy_by_property' => 'El alojamiento confirma su cancelación y gestiona cualquier reembolso según su política.',
+    'cancel_confirm' => '¿Desea enviar una solicitud de cancelación para esta reserva? El alojamiento la revisa y gestiona cualquier reembolso según su política.',
+    'reason' => 'Motivo',
+    'choose_reason' => 'Seleccione un motivo…',
+    'request_cancellation' => 'Solicitar cancelación',
+    'closed_heading' => 'Esta reserva está cerrada',
+    'closed_body' => 'Ya no queda nada que cambiar en ella, pero sus fechas, los detalles de su estancia y todo lo que pagó siguen aquí siempre que los necesite.',
+];

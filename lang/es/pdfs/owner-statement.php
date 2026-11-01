@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — es translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'gestionado con Vyrobel',
+    'eyebrow' => 'Extracto del propietario',
+    'unit_count' => '{1} :count unidad|[0,*] :count unidades',
+    'issued' => 'emitido el :date',
+    'prepared_for' => 'Preparado para',
+    'net_payable_to_owner' => 'Neto a liquidar al propietario',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Ocupación',
+    'nights_sold' => 'Noches vendidas',
+    'avg_nightly_rate' => 'Tarifa media por noche',
+    'breakdown' => 'Desglose',
+    'item' => 'Concepto',
+    'detail' => 'Detalle',
+    'amount' => 'Importe',
+    'provisional' => '(provisional)',
+    'performance_by_unit' => 'Rendimiento por unidad',
+    'unit' => 'Unidad',
+    'nights' => 'Noches',
+    'revenue' => 'Ingresos',
+    'total_gross_room_revenue' => 'Total de ingresos brutos por habitaciones',
+    'callout_heading' => 'Liquidación.',
+    'settles_to_iban' => 'El importe neto de :amount se abona por transferencia bancaria al IBAN :iban.',
+    'settles' => 'El importe neto de :amount se abona por transferencia bancaria.',
+    'fees_with_commission' => 'La comisión de gestión se cobra al :pct % de los ingresos brutos por habitaciones; las comisiones de pago y de plataforma se repercuten a precio de coste. Todos los importes están en :currency e incluyen los impuestos aplicables recaudados en su nombre.',
+    'fees' => 'Las comisiones de pago y de plataforma se repercuten a precio de coste. Todos los importes están en :currency e incluyen los impuestos aplicables recaudados en su nombre.',
+    'fx_note' => 'Convertido desde :source al tipo :rate (fuente: :src).',
+    'provisional_note' => 'Algunas líneas son provisionales, pendientes de la conciliación con el canal.',
+    'statement_ref' => 'extracto :ref',
+    'sequence_no' => 'n.º :number',
+    'generated' => 'generado el <span style="white-space:nowrap;">:date</span>',
+    'questions' => '¿Preguntas? :email',
+];
