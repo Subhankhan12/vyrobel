@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — th translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'ห้องพักทั้งหมด',
+    'kind_sleeps_up_to' => ':kind · รองรับได้สูงสุด :capacity คน',
+    'reviews_count' => '{1}รีวิว :count รายการ|[0,*]รีวิว :count รายการ',
+    'no_reviews_yet' => 'ยังไม่มีรีวิว',
+    'save_to_wishlist' => 'บันทึกในรายการโปรด',
+    'sleeps' => 'รองรับ',
+    'adults' => 'ผู้ใหญ่',
+    'children' => 'เด็ก',
+    'bedrooms' => 'ห้องนอน',
+    'standard_occupancy' => 'จำนวนผู้เข้าพักมาตรฐาน',
+    'amenities' => 'สิ่งอำนวยความสะดวก',
+    'not_yet_listed' => 'ยังไม่ได้ระบุ',
+    'amenities_not_published' => 'ยังไม่ได้เผยแพร่สิ่งอำนวยความสะดวกของห้องพักนี้',
+    'guest_reviews' => 'รีวิวจากผู้เข้าพัก',
+    'stars_aria' => ':rating จาก 5 ดาว',
+    'response_label' => 'การตอบกลับ:',
+    'no_reviews_be_first' => 'ยังไม่มีรีวิว — มาเป็นผู้เข้าพักคนแรกและแบ่งปันประสบการณ์ของคุณ',
+    'coming_soon' => 'เร็ว ๆ นี้',
+    'description_soon' => 'คำอธิบายฉบับเต็มและแผนที่ตั้งกำลังจะตามมา — ข้อมูลห้องพัก ห้องว่าง ราคา และรีวิวด้านบนเป็นข้อมูลจริง',
+    'per_night' => '/ คืน',
+    'per_night_with_note' => '/ คืน · :note',
+    'total_nights' => '{1}รวม :amount · :count คืน|[0,*]รวม :amount · :count คืน',
+    'left_for_your_dates' => 'เหลือ :count ห้องสำหรับวันที่ของคุณ',
+    'book_this_room' => 'จองห้องพักนี้',
+    'nothing_reserved' => 'ยังไม่มีการจองใดจนกว่าคุณจะยืนยันในขั้นตอนชำระเงิน',
+    'your_dates' => 'วันที่ของคุณ',
+    'not_available' => 'ไม่ว่างในวันที่เหล่านี้ — ลองเลือกวันที่อื่น',
+    'check_in' => 'เช็กอิน',
+    'check_out' => 'เช็กเอาต์',
+    'check_dates' => 'ตรวจสอบวันที่',
+    'check_availability' => 'ตรวจสอบห้องว่างและราคา',
+    'see_price' => 'ดูราคา',
+];

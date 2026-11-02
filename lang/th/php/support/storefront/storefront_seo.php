@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'โรงแรม',
+    'type_aparthotel' => 'อพาร์ตโฮเทล',
+    'type_serviced_apartment' => 'เซอร์วิสอพาร์ตเมนต์',
+    'type_apartment_building' => 'อาคารอพาร์ตเมนต์',
+    'type_apartment' => 'อพาร์ตเมนต์',
+    'type_villa' => 'วิลล่า',
+    'type_hostel' => 'โฮสเทล',
+    'type_guest_house' => 'เกสต์เฮาส์',
+    'type_resort' => 'รีสอร์ต',
+    'type_mixed' => 'โรงแรมและอพาร์ตเมนต์',
+    'type_portfolio' => 'ตัวเลือกการเข้าพัก',
+    'title_town' => ':name, :town — จองโดยตรง',
+    'title' => ':name — จองโดยตรง',
+    'title_room' => ':room ที่ :property — จองโดยตรง',
+    'org_description_towns' => '{1}ดูที่พัก :count แห่งใน :towns ตรวจสอบห้องว่างและจองโดยตรงกับ :org|[0,*]ดูที่พัก :count แห่งใน :towns ตรวจสอบห้องว่างและจองโดยตรงกับ :org',
+    'org_description' => '{1}ดูที่พัก :count แห่ง ตรวจสอบห้องว่างและจองโดยตรงกับ :org|[0,*]ดูที่พัก :count แห่ง ตรวจสอบห้องว่างและจองโดยตรงกับ :org',
+    'org_description_empty' => 'ตรวจสอบห้องว่างและจองโดยตรงกับ :org',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}จอง :name โดยตรง :type ใน :place ประเภทห้องพัก :count ประเภท ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก|[0,*]จอง :name โดยตรง :type ใน :place ประเภทห้องพัก :count ประเภท ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก',
+    'description_place' => 'จอง :name โดยตรง :type ใน :place ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก',
+    'description_rooms' => '{1}จอง :name โดยตรง :type ประเภทห้องพัก :count ประเภท ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก|[0,*]จอง :name โดยตรง :type ประเภทห้องพัก :count ประเภท ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก',
+    'description' => 'จอง :name โดยตรง :type ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยไม่ต้องผ่านเว็บไซต์จองที่พัก',
+    'detail_sleeps' => 'รองรับได้สูงสุด :guests คน',
+    'detail_bedrooms' => '{1}ห้องนอน :count ห้อง|[0,*]ห้องนอน :count ห้อง',
+    'room_description_town_details' => ':room ที่ :property ใน :town — :details ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยตรง',
+    'room_description_town' => ':room ที่ :property ใน :town ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยตรง',
+    'room_description_details' => ':room ที่ :property — :details ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยตรง',
+    'room_description' => ':room ที่ :property ตรวจสอบห้องว่างแบบเรียลไทม์และจองโดยตรง',
+    'list_and' => ':items และ :last',
+];

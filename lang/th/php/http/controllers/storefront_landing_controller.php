@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'ตัวเลือกการเข้าพักของเรา',
+    'properties_count' => 'ที่พัก :count แห่ง',
+    'stays_count' => '{1}ตัวเลือกการเข้าพัก :count รายการ|[0,*]ตัวเลือกการเข้าพัก :count รายการ',
+    'stays_sleeps' => ':stays · รองรับ :max คน',
+    'stays_sleeps_range' => ':stays · รองรับ :min–:max คน',
+    'perk_free_cancel_days' => '{1}คืนเงินเต็มจำนวนหากยกเลิกอย่างน้อย :count วันก่อนวันมาถึง|[0,*]คืนเงินเต็มจำนวนหากยกเลิกอย่างน้อย :count วันก่อนวันมาถึง',
+    'perk_free_cancel_window' => 'คืนเงินเต็มจำนวนภายในช่วงเวลาที่ยกเลิกได้',
+    'perk_no_fees' => 'ไม่มีค่าธรรมเนียมการจอง',
+    'perk_no_fees_sub' => 'ราคาที่เห็นคือราคาที่คุณจ่าย',
+    'perk_best_rate' => 'จองตรง ราคาดีที่สุด',
+    'perk_best_rate_sub' => 'จองตรงเพื่อรับราคาดีที่สุดของเรา — ไม่ผ่านตัวกลาง',
+    'perk_free_cancel' => 'ยกเลิกได้ฟรี',
+    'perk_host_support' => 'ติดต่อที่พักโดยตรง',
+    'perk_host_support_sub' => 'ส่งข้อความถึงเจ้าหน้าที่ตัวจริงเกี่ยวกับการจองของคุณ',
+    'kind_room' => 'ห้องพัก',
+    'kind_apartment' => 'อพาร์ตเมนต์',
+    'kind_villa' => 'วิลล่า',
+    'kind_dorm' => 'เตียงในห้องพักรวม',
+    'type_hotel' => 'โรงแรม',
+    'type_aparthotel' => 'อพาร์ตโฮเทล',
+    'type_serviced_apartment' => 'เซอร์วิสอพาร์ตเมนต์',
+    'type_apartment_building' => 'อาคารอพาร์ตเมนต์',
+    'type_apartment' => 'อพาร์ตเมนต์',
+    'type_villa' => 'วิลล่า',
+    'type_hostel' => 'โฮสเทล',
+    'type_guest_house' => 'เกสต์เฮาส์',
+    'type_resort' => 'รีสอร์ต',
+    'type_mixed' => 'แบบผสม',
+    'type_portfolio' => 'พอร์ตโฟลิโอ',
+];

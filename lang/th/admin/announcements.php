@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'ประกาศ',
+    'subtitle' => 'ประกาศที่แสดงในระบบหลังบ้านและพอร์ทัลเจ้าของห้องพักของทุกพื้นที่ทำงาน — หรือเฉพาะที่เลือก เป็นข้อความธรรมดา ไม่มีการส่งอีเมล',
+    'empty_state' => 'ยังไม่เคยเผยแพร่ประกาศใดเลย',
+    'col_announcement' => 'ประกาศ',
+    'col_to' => 'ผู้รับ',
+    'col_from_until' => 'ตั้งแต่ → ถึง',
+    'col_state' => 'สถานะ',
+    'audience_all' => 'ทุกพื้นที่ทำงาน',
+    'audience_chosen_count' => 'เลือก :number แห่ง',
+    'no_end' => 'ไม่มีกำหนดสิ้นสุด',
+    'state_withdrawn' => 'ถอนประกาศแล้ว',
+    'state_showing' => 'กำลังแสดง',
+    'state_scheduled' => 'ตั้งเวลาไว้',
+    'state_ended' => 'สิ้นสุดแล้ว',
+    'reason_aria' => 'เหตุผล',
+    'withdraw_placeholder' => 'เหตุใดจึงถอนประกาศ?',
+    'withdraw_button' => 'ถอนประกาศ',
+    'publish_heading' => 'เผยแพร่ประกาศ',
+    'title_label' => 'หัวข้อ',
+    'message_label' => 'ข้อความ (ตัวอักษรธรรมดา)',
+    'kind_label' => 'ประเภท',
+    'show_from_label' => 'แสดงตั้งแต่ (UTC)',
+    'until_label' => 'ถึง (UTC · ไม่บังคับ)',
+    'to_label' => 'ผู้รับ',
+    'option_every_organisation' => 'ทุกพื้นที่ทำงาน',
+    'option_chosen_organisations' => 'พื้นที่ทำงานที่เลือก',
+    'chosen_organisations_label' => 'พื้นที่ทำงานที่เลือก (เมื่อเลือก “พื้นที่ทำงานที่เลือก”)',
+    'no_organisation_chosen' => 'ยังไม่ได้เลือกพื้นที่ทำงาน',
+    'reason_label' => 'เหตุผล',
+    'publish_reason_placeholder' => 'เหตุใดจึงเผยแพร่ประกาศนี้?',
+    'publish_button' => 'เผยแพร่',
+];

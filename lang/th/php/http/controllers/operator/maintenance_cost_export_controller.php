@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'จำนวนเงิน',
+    'csv_amounts_note' => 'หน่วยหลัก ใช้จุดเป็นทศนิยม ไม่มีตัวคั่นหลักพัน',
+    'col_date' => 'วันที่',
+    'col_work_order' => 'ใบสั่งงาน',
+    'col_unit' => 'ห้องพัก',
+    'col_category' => 'หมวดหมู่',
+    'col_labor' => 'ค่าแรง',
+    'col_parts' => 'ค่าอะไหล่',
+    'col_total' => 'ยอดรวม',
+    'col_currency' => 'สกุลเงิน',
+    'total_row' => 'ยอดรวม',
+    'sheet_summary' => 'สรุป',
+    'col_measure' => 'ตัวชี้วัด',
+    'col_value' => 'ค่า',
+    'total_spend' => 'ยอดใช้จ่ายรวม',
+    'measure_labour' => 'ค่าแรง',
+    'measure_parts' => 'ค่าอะไหล่',
+    'orders_closed' => 'ใบสั่งงานที่ปิดงานแล้ว',
+    'owner_billed' => 'เรียกเก็บจากเจ้าของห้องพัก',
+    'operator_borne' => 'ผู้ประกอบการรับผิดชอบ',
+    'parts_on_order' => 'อะไหล่ที่สั่งซื้อ',
+    'average_per_order' => 'เฉลี่ยต่อใบสั่งงาน',
+    'by_category' => 'ตามหมวดหมู่',
+    'col_orders' => 'ใบสั่งงาน',
+    'by_month' => 'ตามเดือน',
+    'top_units' => 'ห้องพักอันดับต้น',
+    'sheet_line_items' => 'รายการละเอียด',
+    'col_labour' => 'ค่าแรง',
+    'no_email' => 'บัญชีของคุณไม่มีที่อยู่อีเมล',
+    'report_emailed' => 'ส่งรายงานค่าใช้จ่ายงานซ่อมบำรุงไปที่ :email แล้ว',
+];

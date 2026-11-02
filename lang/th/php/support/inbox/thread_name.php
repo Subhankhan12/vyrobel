@@ -1,0 +1,7 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/support/inbox/thread_name.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'unknown_sender' => 'ผู้ส่งที่ไม่ทราบชื่อ',
+];

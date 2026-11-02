@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'ผู้เข้าพัก',
+    'nights' => '{1}:count คืน|[0,*]:count คืน',
+    'block_reason_none' => 'บล็อกไว้',
+    'block_reason_maintenance' => 'งานซ่อมบำรุง',
+    'block_reason_owner' => 'เจ้าของห้องพัก',
+    'block_reason_manual' => 'ด้วยตนเอง',
+    'block_reason_overbooking_protection' => 'กันห้องสำรอง',
+    'cleaning_departure' => 'ทำความสะอาดหลังเช็กเอาต์',
+    'cleaning_stayover' => 'ทำความสะอาดระหว่างเข้าพัก',
+    'cleaning_deep' => 'ทำความสะอาดครั้งใหญ่',
+    'cleaning_arrival_prep' => 'เตรียมห้องก่อนเข้าพัก',
+    'cleaning_status_pending' => 'กำหนดไว้แล้ว',
+    'cleaning_status_in_progress' => 'กำลังดำเนินการ',
+    'cleaning_status_clean' => 'ทำความสะอาดแล้ว',
+    'cleaning_status_inspected' => 'ตรวจแล้ว',
+    'kind_room' => 'ห้องพัก',
+    'kind_apartment' => 'อพาร์ตเมนต์',
+    'kind_villa' => 'วิลล่า',
+    'kind_dorm_bed' => 'เตียงในห้องพักรวม',
+    'condition_out_of_order' => 'ชำรุด',
+    'condition_out_of_service' => 'ปิดซ่อมบำรุง',
+    'status_enquiry' => 'สอบถาม',
+    'status_tentative' => 'กันห้องไว้',
+    'status_confirmed' => 'ยืนยันแล้ว',
+    'status_checked_in' => 'เช็กอินแล้ว',
+    'status_checked_out' => 'เช็กเอาต์แล้ว',
+    'status_cancelled' => 'ยกเลิกแล้ว',
+    'status_no_show' => 'ไม่มาเข้าพัก',
+    'terms_portfolio' => 'เงื่อนไขทั้งพอร์ตโฟลิโอ',
+    'terms_unit' => 'เงื่อนไขของห้องพักนี้',
+];

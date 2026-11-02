@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'บริหารจัดการด้วย Vyrobel',
+    'eyebrow' => 'ใบแจ้งยอดเจ้าของห้องพัก',
+    'unit_count' => '{1}ห้องพัก :count ห้อง|[0,*]ห้องพัก :count ห้อง',
+    'issued' => 'ออกเมื่อ :date',
+    'prepared_for' => 'จัดทำสำหรับ',
+    'net_payable_to_owner' => 'ยอดสุทธิที่ต้องจ่ายให้เจ้าของห้องพัก',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'อัตราการเข้าพัก',
+    'nights_sold' => 'คืนที่ขายได้',
+    'avg_nightly_rate' => 'ราคาเฉลี่ยต่อคืน',
+    'breakdown' => 'รายละเอียด',
+    'item' => 'รายการ',
+    'detail' => 'ข้อมูลประกอบ',
+    'amount' => 'จำนวนเงิน',
+    'provisional' => '(ชั่วคราว)',
+    'performance_by_unit' => 'ผลการดำเนินงานแยกตามห้องพัก',
+    'unit' => 'ห้องพัก',
+    'nights' => 'จำนวนคืน',
+    'revenue' => 'รายได้',
+    'total_gross_room_revenue' => 'รายได้ห้องพักรวม',
+    'callout_heading' => 'การจ่ายเงิน',
+    'settles_to_iban' => 'ยอดสุทธิ :amount จะจ่ายโดยโอนเงินผ่านธนาคารไปยัง IBAN :iban',
+    'settles' => 'ยอดสุทธิ :amount จะจ่ายโดยโอนเงินผ่านธนาคาร',
+    'fees_with_commission' => 'ค่าคอมมิชชันบริหารจัดการคิดที่ :pct% ของรายได้ห้องพักรวม ส่วนค่าธรรมเนียมการชำระเงินและค่าธรรมเนียมแพลตฟอร์มคิดตามต้นทุนจริง ยอดทั้งหมดเป็นสกุลเงิน :currency และรวมภาษีที่เรียกเก็บแทนคุณตามที่เกี่ยวข้อง',
+    'fees' => 'ค่าธรรมเนียมการชำระเงินและค่าธรรมเนียมแพลตฟอร์มคิดตามต้นทุนจริง ยอดทั้งหมดเป็นสกุลเงิน :currency และรวมภาษีที่เรียกเก็บแทนคุณตามที่เกี่ยวข้อง',
+    'fx_note' => 'แปลงจาก :source ที่อัตรา :rate (แหล่งที่มา: :src)',
+    'provisional_note' => 'บางรายการเป็นรายการชั่วคราว รอการกระทบยอดกับช่องทางขาย',
+    'statement_ref' => 'ใบแจ้งยอด :ref',
+    'sequence_no' => 'หมายเลข :number',
+    'generated' => 'สร้างเมื่อ <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'หากมีคำถาม ติดต่อ :email',
+];

@@ -1,0 +1,9 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/notifications/operator/support_access_notification.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'ฝ่ายช่วยเหลือของ Vyrobel เข้าดูพื้นที่ทำงานของคุณ (อ่านอย่างเดียว)',
+    'context_one_page' => ':admin · :from–:to UTC · ดู :pages หน้า · เหตุผล: :reason',
+    'context_pages' => ':admin · :from–:to UTC · ดู :pages หน้า · เหตุผล: :reason',
+];

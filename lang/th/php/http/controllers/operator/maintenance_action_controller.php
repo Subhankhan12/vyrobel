@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'เปิดใบแจ้งซ่อม “:title” ที่ห้อง :unit แล้ว',
+    'not_assignable_staff' => 'ผู้ใช้รายนี้ไม่ใช่พนักงานที่มอบหมายงานให้ได้ในพื้นที่ทำงานนี้',
+    'cannot_reassign_closed' => 'มอบหมายใบแจ้งซ่อมนี้ใหม่ไม่ได้ — ปิดงานแล้ว',
+    'assignment_updated' => 'อัปเดตการมอบหมายใบแจ้งซ่อมแล้ว',
+    'work_order_closed' => 'ใบสั่งงานนี้ปิดงานแล้ว — แก้ไขรายละเอียดไม่ได้',
+    'work_order_updated' => 'อัปเดตใบสั่งงานแล้ว',
+    'col_title' => 'หัวข้อ',
+    'col_unit' => 'ห้องพัก',
+    'col_category' => 'หมวดหมู่',
+    'col_priority' => 'ความสำคัญ',
+    'col_status' => 'สถานะ',
+    'col_assignee' => 'ผู้รับผิดชอบ',
+    'col_reported' => 'แจ้งเมื่อ',
+    'col_cost' => 'ค่าใช้จ่าย',
+    'bulk_assigned_skipped' => '{1}มอบหมายใบสั่งงาน :count รายการแล้ว · ข้าม :skipped รายการ (ปิดงานแล้ว)|[0,*]มอบหมายใบสั่งงาน :count รายการแล้ว · ข้าม :skipped รายการ (ปิดงานแล้ว)',
+    'bulk_assigned' => '{1}มอบหมายใบสั่งงาน :count รายการแล้ว|[0,*]มอบหมายใบสั่งงาน :count รายการแล้ว',
+    'bulk_resolved_skipped' => '{1}ปิดงานใบสั่งงาน :count รายการแล้ว · ข้าม :skipped รายการ (ปิดงานแล้ว)|[0,*]ปิดงานใบสั่งงาน :count รายการแล้ว · ข้าม :skipped รายการ (ปิดงานแล้ว)',
+    'bulk_resolved' => '{1}ปิดงานใบสั่งงาน :count รายการแล้ว|[0,*]ปิดงานใบสั่งงาน :count รายการแล้ว',
+    'cannot_start' => 'เริ่มงานใบแจ้งซ่อมนี้ไม่ได้ — ไม่ได้อยู่ในสถานะเปิดอีกต่อไป',
+    'work_started' => 'เริ่มงานในใบแจ้งซ่อมนี้แล้ว',
+    'cannot_resolve_closed' => 'ปิดงานใบสั่งงานนี้ไม่ได้ — ปิดงานไปแล้ว',
+    'ticket_resolved' => 'ปิดงานใบแจ้งซ่อมแล้ว',
+    'cannot_cancel_closed' => 'ยกเลิกใบแจ้งซ่อมนี้ไม่ได้ — ปิดงานแล้ว',
+    'ticket_cancelled' => 'ยกเลิกใบแจ้งซ่อมแล้ว',
+    'parts_closed' => 'ใบแจ้งซ่อมนี้ปิดงานแล้ว — อัปเดตอะไหล่ไม่ได้',
+    'awaiting_parts' => 'ระบุว่ารออะไหล่แล้ว',
+    'parts_arrived' => 'ระบุว่าอะไหล่มาถึงแล้ว',
+    'update_posted_waiting_part' => 'ส่งข้อมูลอัปเดตแล้ว — ระบุว่ารออะไหล่',
+    'update_posted' => 'ส่งข้อมูลอัปเดตแล้ว',
+    'photo_added' => 'เพิ่มรูปภาพแล้ว',
+    'photo_removed' => 'ลบรูปภาพแล้ว',
+    'workspace_paused' => 'พื้นที่ทำงานของคุณหยุดชั่วคราว (อ่านอย่างเดียว) — เปลี่ยนแปลงงานซ่อมบำรุงไม่ได้จนกว่าจะดำเนินการต่อ',
+];

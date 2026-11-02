@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — th translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'ภาพรวม',
+    'subtitle_all' => 'พื้นที่ทำงานทั้งหมด รวมถึงพื้นที่ทำงานภายในของ Vyrobel เอง',
+    'subtitle_customers' => 'เฉพาะลูกค้า — ไม่รวมพื้นที่ทำงานภายในของ Vyrobel เอง',
+    'showing_all' => 'แสดงพื้นที่ทำงาน<strong>ทั้งหมด</strong> — เป็นพื้นที่ทำงานภายใน :internal แห่ง',
+    'internal_excluded' => '{1}ไม่นับพื้นที่ทำงานภายใน :count แห่งในตัวเลขทั้งหมดด้านล่าง|[0,*]ไม่นับพื้นที่ทำงานภายใน :count แห่งในตัวเลขทั้งหมดด้านล่าง',
+    'customers_only' => 'เฉพาะลูกค้า',
+    'include_internal' => 'รวมพื้นที่ทำงานภายใน',
+    'no_customers_heading' => 'ยังไม่มีลูกค้า',
+    'no_customers_body' => 'พื้นที่ทำงานทุกแห่งบนแพลตฟอร์มเป็นของ Vyrobel เอง (ภายใน :internal แห่ง) การสมัครจริงครั้งแรกจะแสดงที่นี่',
+    'kpi_organisations' => 'พื้นที่ทำงาน',
+    'kpi_customers' => 'ลูกค้า',
+    'kpi_account_status' => 'ใช้งานอยู่ :active · ระงับการใช้งานแล้ว :suspended',
+    'kpi_subscriptions' => 'การสมัครใช้งาน',
+    'kpi_subscriptions_sub' => 'ใช้งานอยู่ · อยู่ในช่วงทดลองใช้ฟรี :trial',
+    'kpi_revenue' => 'รายได้',
+    'no_live_billing' => 'ยังไม่มีการเรียกเก็บเงินจริง',
+    'no_live_billing_sub' => 'ยังไม่มีการสมัครใช้งานใดที่เรียกเก็บเงินผ่าน Stripe ราคาตามรายการของช่วงทดลองใช้ไม่ใช่รายได้',
+    'billed_live' => '{1}เรียกเก็บเงินจริง :count รายการ|[0,*]เรียกเก็บเงินจริง :count รายการ',
+    'billed_live_sub' => 'คำนวณจากยอดที่ Stripe เรียกเก็บจริง ไม่ใช่จากรายการราคา — ดู <a class="ad-cell-link" href=":url">รายได้</a>',
+    'kpi_properties' => 'ที่พัก',
+    'kpi_reservations' => '{1}การจอง :count รายการ|[0,*]การจอง :count รายการ',
+    'new_organisations_heading' => 'พื้นที่ทำงานใหม่ · 6 เดือนที่ผ่านมา',
+    'new_customers_heading' => 'ลูกค้าใหม่ · 6 เดือนที่ผ่านมา',
+    'no_signups' => 'ไม่มีการสมัครในช่วง 6 เดือนที่ผ่านมา',
+    'account_status_heading' => 'สถานะบัญชี',
+    'status_active' => 'ใช้งานอยู่',
+    'status_suspended' => 'ระงับการใช้งานแล้ว',
+    'status_cancelled' => 'ยกเลิกแล้ว',
+    'status_trialing' => 'ช่วงทดลองใช้ (บัญชี)',
+    'free_trial_hint' => 'ช่วงทดลองใช้ฟรีเป็นสถานะของการสมัครใช้งาน ไม่ใช่สถานะบัญชี — ขณะนี้อยู่ในช่วงทดลองใช้ฟรี :trial แห่ง',
+    'plans_in_use' => 'แผนที่ใช้อยู่ <span class="ad-stat-sub" style="font-weight: 400;">· ใช้งานอยู่หรือทดลองใช้</span>',
+    'no_plans' => 'ยังไม่มีแผนที่ใช้อยู่',
+];

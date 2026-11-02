@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'การเข้าพัก',
+    'step_guest' => 'ผู้เข้าพัก',
+    'step_extras' => 'บริการเสริม',
+    'step_confirm' => 'ยืนยัน',
+    'source_direct' => 'จองตรง',
+    'source_walk_in' => 'วอล์กอิน',
+    'source_corporate' => 'ลูกค้าองค์กร',
+    'source_agent' => 'บริษัทนำเที่ยว',
+    'the_guest' => 'ผู้เข้าพัก',
+    'a_night' => ':amount ต่อคืน',
+    'a_night_range' => ':low–:high ต่อคืน',
+    'dates_label' => '{1}:from → :to · :count คืน|[0,*]:from → :to · :count คืน',
+    'restrict_min_stay' => '{1}เมื่อมาถึง :date ต้องเข้าพักอย่างน้อย :count คืน|[0,*]เมื่อมาถึง :date ต้องเข้าพักอย่างน้อย :count คืน',
+    'restrict_max_stay' => '{1}เมื่อมาถึง :date เข้าพักได้สูงสุด :count คืน|[0,*]เมื่อมาถึง :date เข้าพักได้สูงสุด :count คืน',
+    'restrict_no_arrivals' => 'ปิดรับเช็กอิน :date',
+    'restrict_no_departures' => 'ปิดรับเช็กเอาต์ :date',
+    'restrict_stop_sell' => ':date ปิดขาย ไม่รับการจองใหม่',
+    'restrict_other' => ':date: :restriction',
+    'arrival_mail_off' => 'Vyrobel ยังไม่ได้ส่งอีเมลออก — โปรดแจ้งเส้นทางและรหัสประตูให้ผู้เข้าพักด้วยตนเอง',
+    'arrival_pre_arrival_off' => 'อีเมลก่อนเข้าพักปิดอยู่สำหรับที่พักของคุณ — โปรดแจ้งเส้นทางและรหัสประตูให้ผู้เข้าพักด้วยตนเอง',
+    'arrival_too_soon' => 'การเข้าพักนี้เริ่มเร็วเกินกว่าอีเมลก่อนเข้าพักที่ส่ง :count วันก่อนเช็กอิน — โปรดแจ้งเส้นทางและรหัสประตูให้ผู้เข้าพักด้วยตนเอง',
+    'arrival_by_email' => 'เส้นทางและรหัสประตู (หากห้องพักมี) จะส่งถึงผู้เข้าพักทางอีเมล :count วันก่อนเช็กอิน — เมื่อผู้เข้าพักมีที่อยู่อีเมล รหัสประตูจะไม่แสดงที่นี่',
+    'cancel_not_free' => 'ยกเลิกฟรีไม่ได้สำหรับการเข้าพักนี้ — สิ้นสุดเมื่อ :date',
+    'cancel_free_until_check_in' => 'ยกเลิกได้ฟรีจนถึงเช็กอิน',
+    'cancel_free_until_date' => 'ยกเลิกได้ฟรีจนถึง :date',
+    'cancel_free_until_days' => '{1}ยกเลิกได้ฟรีจนถึง :count วันก่อนเช็กอิน|[0,*]ยกเลิกได้ฟรีจนถึง :count วันก่อนเช็กอิน',
+    'min_stay_none' => 'ไม่มีขั้นต่ำ',
+    'min_stay_nights' => '{1}:count คืน|[0,*]:count คืน',
+    'guest_no_name' => 'ผู้เข้าพัก',
+    'no_stays_yet' => 'ยังไม่มีการเข้าพัก',
+];

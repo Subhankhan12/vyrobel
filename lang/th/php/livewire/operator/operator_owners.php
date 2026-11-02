@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'พร้อมจ่าย',
+    'chip_hold' => 'พักไว้',
+    'chip_review' => 'ต้องตรวจสอบ',
+    'chip_paused' => 'การจ่ายเงินหยุดชั่วคราว',
+    'chip_invited' => 'เชิญแล้ว',
+    'sorted_name_asc' => 'ตามเจ้าของห้องพัก A–Z',
+    'sorted_name_desc' => 'ตามเจ้าของห้องพัก Z–A',
+    'sorted_units_desc' => 'มีห้องพักมากที่สุดก่อน',
+    'sorted_units_asc' => 'มีห้องพักน้อยที่สุดก่อน',
+    'sorted_net_desc' => 'ยอดสุทธิที่ต้องจ่ายมากที่สุดก่อน',
+    'sorted_net_asc' => 'ยอดสุทธิที่ต้องจ่ายน้อยที่สุดก่อน',
+    'sorted_status_asc' => 'รายการที่ต้องดำเนินการขึ้นก่อน',
+    'sorted_status_desc' => 'รายการที่ต้องดำเนินการไว้ท้ายสุด',
+    'kpi_invited' => 'เชิญแล้ว :number คน',
+    'kpi_units' => '{1}ห้องพัก :count ห้อง|[0,*]ห้องพัก :count ห้อง',
+    'kpi_owners_ready' => '{1}เจ้าของห้องพักพร้อมจ่าย :count คน|[0,*]เจ้าของห้องพักพร้อมจ่าย :count คน',
+    'kpi_paused_not_counted' => 'หยุดชั่วคราว :number คน ไม่นับรวม',
+    'kpi_hold_none' => 'ไม่มีรายการที่รออยู่',
+    'kpi_hold_waiting' => 'รออยู่ :amounts',
+    'kpi_review_sub' => 'เจ้าของห้องพัก :number คนที่มีรายการซึ่งช่องทางขายยังไม่ยืนยัน',
+    'schedule' => 'วันทำการที่ :day ของเดือน',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'ผู้จัดการที่พัก',
+    'role_accountant' => 'นักบัญชี',
+    'role_owner' => 'เจ้าของห้องพัก',
+    'another_owner' => 'เจ้าของห้องพักรายอื่น',
+];

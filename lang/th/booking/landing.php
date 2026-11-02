@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'ตัวเลือกการเข้าพัก',
+    'book_direct' => 'จองโดยตรง',
+    'nav_stays' => 'ตัวเลือกการเข้าพัก',
+    'my_account' => 'บัญชีของฉัน',
+    'sign_in' => 'เข้าสู่ระบบ',
+    'rating_across' => '{1}:average จากรีวิว :count รายการ|[0,*]:average จากรีวิว :count รายการ',
+    'heading' => 'จองโดยตรงกับ<br>:org',
+    'subheading' => 'การเข้าพักที่ดูแลอย่างใส่ใจ จองตรงกับที่พัก — ไม่มีค่าธรรมเนียม ราคาดีที่สุดของเรา และมีคนจริงคอยดูแลคุณ',
+    'where' => 'สถานที่',
+    'check_in' => 'เช็กอิน',
+    'check_out' => 'เช็กเอาต์',
+    'adults' => 'ผู้ใหญ่',
+    'children' => 'เด็ก',
+    'where_to_stay' => 'พักที่ไหนดี',
+    'towns_lede' => '{1}ฐานหลักของเรา|[0,*]เมือง :count แห่ง แต่ละแห่งมีจังหวะชีวิตของตัวเอง',
+    'from_price' => 'เริ่มต้น :price',
+    'featured_stays' => 'ห้องพักแนะนำ',
+    'featured_lede' => 'ห้องพักที่ผู้เข้าพักชื่นชอบจากทั้งคอลเลกชัน',
+    'per_night' => '/ คืน',
+    'see_dates_for_pricing' => 'เลือกวันที่เพื่อดูราคา',
+    'browse_by_what_matters' => 'เลือกดูตามสิ่งที่สำคัญสำหรับคุณ',
+    'why_book_direct' => 'ทำไมต้องจองโดยตรง',
+    'recent_guests' => 'ผู้เข้าพักล่าสุด',
+    'rating_short' => '{1}:average · รีวิว :count รายการ|[0,*]:average · รีวิว :count รายการ',
+    'stars_aria' => ':rating จาก 5 ดาว',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'ยังไม่มีรีวิว — มาเป็นผู้เข้าพักคนแรกและแบ่งปันประสบการณ์ของคุณ',
+    'cta_heading' => 'ค้นหาห้องพักที่ใช่สำหรับคุณ',
+    'cta_sub' => 'วันที่จริง ราคาล่าสุด ยืนยันทันที',
+    'browse_all_stays' => 'ดูตัวเลือกการเข้าพักทั้งหมด',
+];

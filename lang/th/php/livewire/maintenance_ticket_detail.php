@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'หมายเหตุ',
+    'kind_progress' => 'ความคืบหน้า',
+    'kind_part' => 'สั่งซื้ออะไหล่แล้ว',
+    'elapsed_minutes' => ':minutes นาที',
+    'elapsed_hours' => ':hours ชม. :minutes นาที',
+    'elapsed_days' => ':days วัน :hours ชม.',
+    'hours_short' => ':hours ชม.',
+    'timeline_opened' => 'แจ้งปัญหาแล้ว',
+    'timeline_assigned_to' => 'มอบหมายให้ :name',
+    'a_technician' => 'ช่าง',
+    'timeline_unassigned' => 'ยกเลิกการมอบหมาย',
+    'timeline_started' => 'เริ่มงานแล้ว',
+    'timeline_resolved' => 'ปิดงานแล้ว',
+    'timeline_cancelled' => 'ยกเลิกแล้ว',
+    'timeline_parts_updated' => 'อัปเดตอะไหล่แล้ว',
+    'timeline_cost_corrected' => 'แก้ไขค่าใช้จ่ายแล้ว',
+    'timeline_updated' => 'แก้ไขรายละเอียดแล้ว',
+    'note_progress' => 'ข้อมูลอัปเดตความคืบหน้า',
+    'note_part' => 'สั่งซื้ออะไหล่แล้ว',
+    'note_added' => 'เพิ่มหมายเหตุแล้ว',
+    'a_team_member' => 'สมาชิกทีม',
+    'system' => 'ระบบ',
+    'photo_alt' => 'รูปงานซ่อมบำรุง',
+    'the_owner' => 'เจ้าของห้องพัก',
+    'load_none' => 'ไม่มีใบสั่งงานที่เปิดอยู่',
+    'load_open' => 'เปิดอยู่ :open',
+    'load_open_urgent' => 'เปิดอยู่ :open · ด่วน :urgent',
+    'impact_arrivals' => '{1}ต้องจัดห้องให้การจองที่มาถึงคืนนี้ :count รายการ|[0,*]ต้องจัดห้องให้การจองที่มาถึงคืนนี้ :count รายการ',
+    'impact_bookings' => '{1}ต้องย้ายการจอง :count รายการ|[0,*]ต้องย้ายการจอง :count รายการ',
+    'impact_none' => 'ไม่มีการจองที่ได้รับผลกระทบ',
+];

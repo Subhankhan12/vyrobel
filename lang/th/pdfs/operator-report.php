@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'รายงาน',
+    'arrivals_in' => 'มาถึงใน :period',
+    'arrivals_count' => '{1}มาถึง :count รายการ|[0,*]มาถึง :count รายการ',
+    'pp_delta' => ':delta จุด',
+    'occupancy' => 'อัตราการเข้าพัก',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'รายได้รวม',
+    'basis_note' => 'อัตราการเข้าพัก · ADR · RevPAR คำนวณตามคืนที่เข้าพัก เทียบกับช่วงเดียวกันของปีที่แล้วเมื่อมีข้อมูลของปีก่อนหน้า ส่วนรายได้ด้านล่างคำนวณตามโฟลิโอ (วันมาถึง)',
+    'revenue' => 'รายได้',
+    'room' => 'ห้องพัก',
+    'ancillary' => 'รายได้เสริม <span class="muted">· บริการเสริม สินค้า และค่าธรรมเนียม</span>',
+    'tax_collected' => 'ภาษีที่เรียกเก็บ · เก็บแทน',
+    'costs_heading' => 'ต้นทุน <span class="muted" style="font-size:9px">· ข้อมูลจริงเท่านั้น</span>',
+    'maintenance' => 'งานซ่อมบำรุง <span class="muted">· ใบสั่งงานที่ปิดงานแล้ว</span>',
+    'not_tracked' => 'ยังไม่ได้ติดตาม',
+    'net' => 'สุทธิ (รายได้ − ต้นทุนที่ติดตามไว้)',
+    'revenue_by_channel' => 'รายได้ตามช่องทางขาย',
+    'channel' => 'ช่องทางขาย',
+    'bookings' => 'การจอง',
+    'share' => 'สัดส่วน',
+    'no_channel_revenue' => 'ไม่มีรายได้จากช่องทางขายในช่วงนี้',
+    'top_units' => 'ห้องพักอันดับต้น',
+    'unit' => 'ห้องพัก',
+    'nights' => 'จำนวนคืน',
+    'room_revenue' => 'รายได้ห้องพัก',
+    'no_unit_revenue' => 'ไม่มีรายได้ห้องพักในช่วงนี้',
+    'revenue_by_month' => 'รายได้รายเดือน',
+    'month' => 'เดือน',
+    'footer' => 'คำนวณจากข้อมูลโฟลิโอและงานซ่อมบำรุงจริงสำหรับ :scope · :period อัตราการเข้าพัก/ADR/RevPAR คำนวณตามคืนที่เข้าพัก ส่วนรายได้คำนวณตามโฟลิโอ (วันมาถึง) ตัวเลขตรงกับหน้า “รายงาน” Vyrobel',
+];

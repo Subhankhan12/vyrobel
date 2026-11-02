@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — th translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'ภาพรวม',
+    'breadcrumb_bookings' => 'การจอง',
+    'guest_fallback' => 'ผู้เข้าพัก',
+    'reservation' => 'การจอง',
+    'check_in' => 'เช็กอิน',
+    'nights_count' => '{1}:count คืน|[0,*]:count คืน',
+    'check_out' => 'เช็กเอาต์',
+    'unit' => 'ห้องพัก',
+    'guests' => 'ผู้เข้าพัก',
+    'nights' => 'จำนวนคืน',
+    'nightly_rate' => 'ราคาต่อคืน',
+    'your_earnings' => 'รายได้ของคุณ',
+    'gross_to_net' => 'ยอดรวมก่อนหัก → สุทธิ',
+    'gross_booking_value' => 'มูลค่าการจองรวม',
+    'net_to_you' => 'ยอดสุทธิที่คุณได้รับ',
+    'refunds_we_covered' => 'การคืนเงินที่เรารับภาระ',
+    'refunds_we_covered_note' => 'คืนเงินให้ผู้เข้าพักและเรียกเก็บจากเรา ไม่ใช่จากคุณ รายได้ของคุณด้านบนไม่เปลี่ยนแปลง',
+    'not_yet_attributed' => 'ยังไม่ได้ปันส่วน',
+    'not_yet_attributed_note' => 'รายได้ของคุณจะปรากฏที่นี่เมื่อการจองนี้ลงบัญชีแยกประเภทของคุณแล้ว — โดยปกติหลังเช็กเอาต์',
+    'guest_heading' => 'ผู้เข้าพัก',
+    'guest_contact_note' => 'ข้อมูลติดต่อของผู้เข้าพักอยู่ในความดูแลของผู้บริหารจัดการ — คุณดูการจองและรายได้ของคุณได้',
+    'message_your_team' => 'ส่งข้อความถึงผู้บริหารจัดการ',
+    'timeline' => 'ไทม์ไลน์',
+    'for_night_stay' => 'สำหรับการเข้าพัก :nights คืนนี้',
+    'booking_details' => 'รายละเอียดการจอง',
+    'confirmation' => 'หมายเลขยืนยัน',
+    'source' => 'แหล่งที่มา',
+    'channel' => 'ช่องทางขาย',
+    'booked_on' => 'จองเมื่อ',
+    'download_confirmation' => 'ดาวน์โหลดใบยืนยันการจอง',
+    'download_unavailable' => 'ใช้ได้เฉพาะเจ้าของร่วมและผู้ทำบัญชี',
+    'view_unit' => 'ดูห้อง :unit',
+];

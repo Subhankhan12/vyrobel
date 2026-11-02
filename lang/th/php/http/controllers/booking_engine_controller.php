@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'คุณ',
+    'total_part' => ':amount :name',
+    'total_includes' => 'รวม :items',
+    'nightly_excludes' => 'ไม่รวม :tax',
+    'sleeps' => 'รองรับ :count คน',
+    'studio' => 'สตูดิโอ',
+    'bedrooms' => '{1}ห้องนอน :count ห้อง|[0,*]ห้องนอน :count ห้อง',
+    'checkout_title' => 'ชำระเงิน — :property',
+    'room_just_taken' => 'ห้องพักนี้เพิ่งมีผู้อื่นจองไป — โปรดเลือกห้องพักหรือวันที่อื่น',
+    'payment_received' => 'ได้รับการชำระเงินแล้ว',
+    'payment_received_note' => 'ชำระครบแล้ว',
+    'payment_processing' => 'กำลังดำเนินการชำระเงิน',
+    'payment_processing_note' => 'เรากำลังยืนยันการชำระเงินด้วยบัตรของคุณ โปรดรีเฟรชหน้านี้อีกสักครู่เพื่อดูว่าการชำระเงินเข้ามาแล้ว',
+    'pay_on_arrival' => 'ชำระเงินเมื่อมาถึง',
+    'pay_on_arrival_note' => 'ชำระเงินกับที่พักเมื่อเช็กอิน',
+    'confirmed_title' => 'ยืนยันการจองแล้ว — :property',
+    'kind_room' => 'ห้องพัก',
+    'kind_apartment' => 'อพาร์ตเมนต์',
+    'kind_villa' => 'วิลล่า',
+    'kind_dorm' => 'เตียงในห้องพักรวม',
+    'type_hotel' => 'โรงแรม',
+    'type_aparthotel' => 'อพาร์ตโฮเทล',
+    'type_serviced_apartment' => 'เซอร์วิสอพาร์ตเมนต์',
+    'type_apartment_building' => 'อาคารอพาร์ตเมนต์',
+    'type_apartment' => 'อพาร์ตเมนต์',
+    'type_villa' => 'วิลล่า',
+    'type_hostel' => 'โฮสเทล',
+    'type_guest_house' => 'เกสต์เฮาส์',
+    'type_resort' => 'รีสอร์ต',
+    'type_mixed' => 'แบบผสม',
+    'type_portfolio' => 'พอร์ตโฟลิโอ',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'การตั้งค่าการแจ้งเตือน',
+    'subtitle' => 'ช่องทางที่ Vyrobel ใช้ติดต่อคุณ',
+    'breadcrumb_label' => 'เส้นทางนำทาง',
+    'crumb_settings' => 'การตั้งค่า',
+    'crumb_notifications' => 'การแจ้งเตือน',
+    'channel_email' => 'อีเมล',
+    'channel_push' => 'พุช',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'ไม่มีอีเมลในระบบ',
+    'email_verified_title' => 'อีเมลเข้าสู่ระบบของคุณยืนยันแล้ว',
+    'email_verified' => 'ยืนยันแล้ว',
+    'push_not_set_up_title' => 'ยังไม่ได้ตั้งค่าการแจ้งเตือนแบบพุช',
+    'not_set_up_tag' => 'ยังไม่ได้ตั้งค่า',
+    'push_not_available' => 'การแจ้งเตือนแบบพุชบนเบราว์เซอร์และอุปกรณ์ยังไม่พร้อมใช้งาน',
+    'channel_off' => 'ปิด',
+    'sms_not_set_up_title' => 'ยังไม่ได้ตั้งค่า SMS',
+    'sms_no_provider' => 'ยังไม่ได้เชื่อมต่อผู้ให้บริการ SMS',
+    'notify_me_when' => 'แจ้งเตือนเมื่อ',
+    'always_on' => 'เปิดตลอดเวลา',
+    'email_always_on_sr' => 'อีเมลเปิดตลอดเวลาสำหรับ :event',
+    'email_me_when_aria' => 'ส่งอีเมลเมื่อ: :event',
+    'push_not_set_up_sr' => 'ยังไม่ได้ตั้งค่าการแจ้งเตือนแบบพุช',
+    'sms_not_set_up_sr' => 'ยังไม่ได้ตั้งค่า SMS',
+    'quiet_hours' => 'ช่วงเวลาห้ามรบกวน',
+    'quiet_hours_help' => 'พักอีเมลทั่วไปไว้ในช่วงเวลานี้ — การแจ้งเตือนด้านความปลอดภัยที่เร่งด่วนจะส่งถึงเสมอ และไม่มีผลกับการแจ้งเตือนในแอป',
+    'quiet_from' => 'ตั้งแต่',
+    'quiet_to' => 'ถึง',
+    'digest_heading' => 'อีเมลสรุปรายวัน',
+    'digest_help' => 'สรุปภาพรวมของวันในตอนเช้า <span class="vy-np-soon">ยังไม่ได้ส่ง</span> — ระบบบันทึกการตั้งค่านี้ไว้สำหรับเมื่อเปิดใช้งานอีเมลสรุป',
+    'digest_off' => 'ปิด',
+    'digest_morning' => 'ตอนเช้า · 08:00',
+];

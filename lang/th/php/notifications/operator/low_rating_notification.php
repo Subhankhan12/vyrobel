@@ -1,0 +1,8 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/notifications/operator/low_rating_notification.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'คะแนนต่ำ · :stars',
+    'context' => 'ผู้เข้าพักให้คะแนนการเข้าพักต่ำกว่า 4 ดาว',
+];

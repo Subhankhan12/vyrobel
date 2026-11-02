@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — th translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'ตั้งแต่ :time',
+    'by_time' => 'ภายใน :time',
+    'repeat_guest' => '{1}กลับมาพักซ้ำ · การเข้าพัก :count ครั้ง|[0,*]กลับมาพักซ้ำ · การเข้าพัก :count ครั้ง',
+    'new_guest' => 'ผู้เข้าพักใหม่',
+    'guests_count' => '{1}ผู้เข้าพัก :count คน|[0,*]ผู้เข้าพัก :count คน',
+    'nights_count' => '{1}:count คืน|[0,*]:count คืน',
+    'channel_direct' => 'จองตรงผ่าน Vyrobel',
+    'channel_walk_in' => 'วอล์กอิน',
+    'channel_ota' => 'ช่องทางขาย OTA',
+    'event_booking_received' => 'รับการจองแล้ว',
+    'event_cancelled' => 'ยกเลิกแล้ว',
+    'event_payment_received' => 'ได้รับการชำระเงินแล้ว',
+    'when_paid_in_full' => 'ชำระครบแล้ว',
+    'event_part_payment_received' => 'รับชำระบางส่วนแล้ว',
+    'when_balance_due' => 'ยอดค้างชำระ',
+    'event_payment' => 'การชำระเงิน',
+    'when_not_yet_received' => 'ยังไม่ได้รับ',
+    'event_checked_in' => 'เช็กอินแล้ว',
+    'event_check_in' => 'เช็กอิน',
+    'event_checked_out' => 'เช็กเอาต์แล้ว',
+    'event_payout_released' => 'ส่งการจ่ายเงินแล้ว',
+    'event_payout' => 'การจ่ายเงิน',
+    'when_next_payout' => 'พร้อมการจ่ายเงินครั้งถัดไปของคุณ',
+    'payout_not_attributed' => 'ยังไม่ได้ปันส่วน',
+    'payout_not_attributed_note' => 'การจองนี้ยังไม่ได้ปันส่วนเข้าบัญชีแยกประเภทของคุณ',
+    'payout_scheduled' => 'กำหนดไว้แล้ว',
+    'payout_scheduled_note' => 'รวมอยู่ในใบแจ้งยอดฉบับถัดไปของคุณ แล้วจ่ายพร้อมกับการจ่ายเงินนั้น',
+    'payout_pending' => 'การจ่ายเงินรอดำเนินการ',
+    'payout_pending_note' => 'อยู่ในใบแจ้งยอดที่ปิดงวดแล้ว — จะจ่ายพร้อมกับการจ่ายเงินนั้น',
+    'payout_paid' => 'จ่ายแล้ว',
+    'payout_paid_note' => 'จ่ายพร้อมกับการจ่ายเงินที่เสร็จสมบูรณ์แล้ว',
+];

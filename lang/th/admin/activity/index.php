@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — th translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'ผู้ประกอบการ/เจ้าของห้องพัก',
+    'realm_guest' => 'ผู้เข้าพัก',
+    'realm_admin' => 'ผู้ดูแลแพลตฟอร์ม',
+    'event_login' => 'เข้าสู่ระบบ',
+    'event_failed' => 'ล้มเหลว',
+    'event_lockout' => 'ล็อกบัญชี',
+    'subject_user' => 'ผู้ใช้',
+    'subject_guest' => 'ผู้เข้าพัก',
+    'subject_platform_admin' => 'ผู้ดูแลแพลตฟอร์ม',
+    'subject_unknown' => 'ไม่ทราบ',
+    'actor_user' => 'ผู้ใช้',
+    'actor_agent' => 'เอเจนต์',
+    'actor_system' => 'ระบบ',
+    'page_title' => 'ความปลอดภัยและกิจกรรม',
+    'page_subtitle' => 'กิจกรรมการเข้าสู่ระบบและเหตุการณ์ของบัญชีทั่วทั้งแพลตฟอร์ม — เก็บไว้ :days วัน แล้วลบทิ้ง',
+    'kpi_failures' => 'ล้มเหลว / ล็อกบัญชี · 24 ชม.',
+    'kpi_failures_help' => 'ล้มเหลวซ้ำหลายครั้งอาจเป็นสัญญาณของการพยายามเจาะระบบ',
+    'privacy' => 'ความเป็นส่วนตัว',
+    'privacy_body' => 'กิจกรรมการเข้าสู่ระบบ (รวม IP) บันทึกไว้เป็น<strong style="color: var(--ad-ink);">สัญญาณด้านความปลอดภัย</strong>เท่านั้น — เพื่อตรวจจับการเข้าสู่ระบบที่น่าสงสัยและเพื่อการช่วยเหลือ — ไม่ใช่การติดตามทั่วไป เก็บไว้ :days วัน แล้วลบโดยอัตโนมัติ และเข้าถึงได้เฉพาะในคอนโซลนี้',
+    'recent_sign_ins' => 'กิจกรรมการเข้าสู่ระบบล่าสุด',
+    'col_event' => 'เหตุการณ์',
+    'col_realm' => 'ส่วนระบบ',
+    'col_account' => 'บัญชี',
+    'col_ip' => 'IP',
+    'col_when' => 'เวลา',
+    'no_sign_ins' => 'ยังไม่มีกิจกรรมการเข้าสู่ระบบที่บันทึกไว้',
+    'recent_account_events' => 'เหตุการณ์ของบัญชีล่าสุด <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· จากลูกค้าทั้งหมด</span>',
+    'col_customer' => 'ลูกค้า',
+    'col_actor' => 'ผู้ดำเนินการ',
+    'no_account_events' => 'ยังไม่มีเหตุการณ์ของบัญชี',
+];
