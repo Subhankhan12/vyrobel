@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Ela tem registros financeiros reais (:records). A lei pode exigir que sejam mantidos por anos, por isso a exclusão está suspensa até a decisão jurídica sobre o prazo — ela não pode ser excluída antes disso.',
+    'uncounted_cascades' => 'O banco de dados vincula registros de uma forma que a exclusão não consegue contar com exatidão (:links), então a confirmação não pôde dizer o que será apagado. Nada pode ser excluído até que isso seja corrigido.',
+    'stripe_billing_live' => 'O faturamento da Stripe está em produção para esta organização. Cancele primeiro a assinatura na Stripe, ou ela continuará cobrando um cliente que não existe mais. Se ela já foi cancelada lá, o aviso da Stripe sobre isso não foi aplicado aqui — resolva manualmente.',
+    'checkout_open_subscription' => 'Uma página de pagamento da Stripe para a assinatura dela foi aberta em :opened e ainda pode ser paga até :closes. Tente novamente depois que ela for paga ou expirar.',
+    'checkout_open_card' => 'Uma página de pagamento da Stripe para o pagamento com cartão de um hóspede foi aberta em :opened e ainda pode ser paga até :closes. Tente novamente depois que ela for paga ou expirar.',
+    'checkout_unreported_subscription' => 'Uma página de pagamento da Stripe em produção para a assinatura dela foi aberta em :opened e fechada em :closed, mas nenhum aviso sobre se foi paga foi aplicado aqui. Verifique a página no painel da Stripe; se foi paga, cancele primeiro lá o que ela iniciou. A Stripe tenta reenviar por até 3 dias um aviso que não conseguiu entregar — tente novamente depois que ele for aplicado. Se a Stripe já enviou o aviso e ele não pôde ser aplicado, resolva manualmente.',
+    'checkout_unreported_card' => 'Uma página de pagamento da Stripe em produção para o pagamento com cartão de um hóspede foi aberta em :opened e fechada em :closed, mas nenhum aviso sobre se foi paga foi aplicado aqui. Verifique a página no painel da Stripe; se foi paga, cancele primeiro lá o que ela iniciou. A Stripe tenta reenviar por até 3 dias um aviso que não conseguiu entregar — tente novamente depois que ele for aplicado. Se a Stripe já enviou o aviso e ele não pôde ser aplicado, resolva manualmente.',
+    'refund_processing' => 'Um reembolso no cartão ainda está sendo processado na Stripe. Aguarde a confirmação da Stripe e tente novamente.',
+    'card_payment_open' => 'Um pagamento ou uma pré-autorização no cartão ainda está em aberto. Aguarde a liquidação ou faça a liberação primeiro.',
+    'dispute_open' => 'Um pagamento com cartão está sendo contestado na Stripe (desde :since). Responda à contestação na Stripe e tente novamente quando a Stripe informar que ela foi encerrada. Se o painel da Stripe já mostra a contestação encerrada, o aviso nunca chegou — resolva manualmente.',
+    'payouts_in_transit' => '{1} Um repasse para um proprietário está em trânsito na Stripe (desde :since).|[0,*] :count repasses para proprietários estão em trânsito na Stripe (desde :since).',
+    'payout_transit_stale' => 'Isso está demorando mais do que deveria — resolva primeiro manualmente com a Stripe.',
+    'payout_transit_wait' => 'Aguarde a confirmação da Stripe e tente novamente.',
+    'payouts_owed' => '{1} Ainda há um repasse devido a um proprietário (aguardando ou retido). Pague-o primeiro — a exclusão deixaria os proprietários sem receber, sem nenhum registro disso.|[0,*] :count repasses ainda são devidos a proprietários (aguardando ou retidos). Pague-os primeiro — a exclusão deixaria os proprietários sem receber, sem nenhum registro disso.',
+    'payout_run_running' => 'Um lote de repasses está em execução desde :since.',
+    'looks_stuck' => 'Parece travado — resolva manualmente antes de excluir.',
+    'payout_run_wait' => 'Tente novamente quando ele terminar.',
+    'webhook_unprocessed' => 'Uma notificação de :source para esta organização, recebida em :received, ainda não foi processada.',
+    'webhook_wait' => 'Tente novamente em alguns minutos.',
+    'cross_tenant_references' => 'Outra organização tem registros que apontam para esta (:links). A exclusão apagaria esses registros também.',
+    'schema_unreadable' => 'Não foi possível ler o esquema do banco de dados por completo (:tables não encontradas).',
+    'already_deleted' => 'Esta organização não existe mais — ela já foi excluída.',
+    'protected' => 'Esta organização é protegida e nunca pode ser excluída.',
+    'not_suspended' => 'Suspenda-a primeiro — somente uma organização suspensa ou arquivada pode ser excluída.',
+    'record_survived' => 'Um registro desta organização permaneceu após a exclusão (em :tables), então tudo foi revertido.',
+    'organization_survived' => 'A organização ou uma das pessoas dela permaneceu após a exclusão, então tudo foi revertido.',
+    'live_card_payments' => '{1} :count pagamento com cartão|[0,*] :count pagamentos com cartão',
+    'live_refunds' => '{1} :count reembolso|[0,*] :count reembolsos',
+    'live_payouts' => '{1} :count repasse|[0,*] :count repasses',
+    'live_stripe_billing' => 'faturamento real da Stripe, com suas faturas',
+    'unknown_time' => 'um horário desconhecido',
+    'time_utc' => ':time UTC',
+];

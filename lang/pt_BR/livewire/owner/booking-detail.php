@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Visão geral',
+    'breadcrumb_bookings' => 'Reservas',
+    'guest_fallback' => 'Hóspede',
+    'reservation' => 'Reserva',
+    'check_in' => 'Check-in',
+    'nights_count' => '{1} :count noite|[0,*] :count noites',
+    'check_out' => 'Check-out',
+    'unit' => 'Unidade',
+    'guests' => 'Hóspedes',
+    'nights' => 'Noites',
+    'nightly_rate' => 'Diária',
+    'your_earnings' => 'Seus ganhos',
+    'gross_to_net' => 'bruto → líquido',
+    'gross_booking_value' => 'Valor bruto da reserva',
+    'net_to_you' => 'Líquido para você',
+    'refunds_we_covered' => 'Reembolsos custeados por nós',
+    'refunds_we_covered_note' => 'Reembolsado ao hóspede e custeado por nós, não por você. Seus ganhos acima não mudam.',
+    'not_yet_attributed' => 'Ainda não atribuído.',
+    'not_yet_attributed_note' => 'Seus ganhos aparecem aqui assim que esta reserva for atribuída ao razão do proprietário — normalmente após o check-out.',
+    'guest_heading' => 'Hóspede',
+    'guest_contact_note' => 'Os dados de contato do hóspede ficam com sua administradora — você vê a reserva e seus ganhos.',
+    'message_your_team' => 'Enviar mensagem à administradora',
+    'timeline' => 'Linha do tempo',
+    'for_night_stay' => 'referente a esta estadia (noites: :nights)',
+    'booking_details' => 'Detalhes da reserva',
+    'confirmation' => 'Nº de confirmação',
+    'source' => 'Origem',
+    'channel' => 'Canal',
+    'booked_on' => 'Reservada em',
+    'download_confirmation' => 'Baixar confirmação',
+    'download_unavailable' => 'Disponível para coproprietários e contadores',
+    'view_unit' => 'Ver :unit',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Chamado “:title” aberto na unidade :unit.',
+    'not_assignable_staff' => 'Este usuário não é um colaborador que possa receber atribuições nesta organização.',
+    'cannot_reassign_closed' => 'Não é possível reatribuir este chamado — ele já está encerrado.',
+    'assignment_updated' => 'Responsável pelo chamado atualizado.',
+    'work_order_closed' => 'Esta ordem de serviço está encerrada — os detalhes dela não podem ser alterados.',
+    'work_order_updated' => 'Ordem de serviço atualizada.',
+    'col_title' => 'Título',
+    'col_unit' => 'Unidade',
+    'col_category' => 'Categoria',
+    'col_priority' => 'Prioridade',
+    'col_status' => 'Status',
+    'col_assignee' => 'Responsável',
+    'col_reported' => 'Registrada',
+    'col_cost' => 'Custo',
+    'bulk_assigned_skipped' => '{1} :count ordem de serviço atribuída · ignoradas: :skipped (já encerradas)|[0,*] :count ordens de serviço atribuídas · ignoradas: :skipped (já encerradas)',
+    'bulk_assigned' => '{1} :count ordem de serviço atribuída.|[0,*] :count ordens de serviço atribuídas.',
+    'bulk_resolved_skipped' => '{1} :count ordem de serviço resolvida · ignoradas: :skipped (já encerradas)|[0,*] :count ordens de serviço resolvidas · ignoradas: :skipped (já encerradas)',
+    'bulk_resolved' => '{1} :count ordem de serviço resolvida.|[0,*] :count ordens de serviço resolvidas.',
+    'cannot_start' => 'Não é possível iniciar este chamado — ele não está mais aberto.',
+    'work_started' => 'Trabalho iniciado neste chamado.',
+    'cannot_resolve_closed' => 'Não é possível resolver esta ordem de serviço — ela já está encerrada.',
+    'ticket_resolved' => 'Chamado resolvido.',
+    'cannot_cancel_closed' => 'Não é possível cancelar este chamado — ele já está encerrado.',
+    'ticket_cancelled' => 'Chamado cancelado.',
+    'parts_closed' => 'Este chamado está encerrado — não é possível atualizar as peças.',
+    'awaiting_parts' => 'Marcado como aguardando peças.',
+    'parts_arrived' => 'Peças marcadas como recebidas.',
+    'update_posted_waiting_part' => 'Atualização publicada — marcado como aguardando a peça.',
+    'update_posted' => 'Atualização publicada.',
+    'photo_added' => 'Foto adicionada.',
+    'photo_removed' => 'Foto removida.',
+    'workspace_paused' => 'Sua organização está em pausa (somente leitura) — as alterações de manutenção ficam desativadas até você retomá-la.',
+];

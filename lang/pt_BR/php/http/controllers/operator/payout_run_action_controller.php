@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'O mecanismo de repasses está desativado (PAYOUT_ENGINE_ENABLED). Ative-o antes de processar um repasse.',
+    'nothing_to_run' => 'Nada a processar — nenhum proprietário daqui tem um extrato a pagar ou um repasse retido:paused_note.',
+    'run_complete' => 'Lote de repasses concluído (modo :mode) — Criados: :created · Pagos: :paid · Retidos: :held:paused_note.',
+    'create_failed' => 'Não foi possível criar o repasse — :reason',
+    'already_has_payout' => 'Este extrato já tem um repasse — nada foi criado.',
+    'one_payout_created' => '1 repasse criado.',
+    'pay_failed' => 'Não foi possível pagar — :reason',
+    'one_payout_paid' => '1 repasse marcado como pago.',
+    'payout_failed_reason' => 'O repasse falhou — :reason',
+    'payout_failed_no_reason' => 'O repasse falhou — a via não informou o motivo.',
+    'create_all_failed' => 'Não foi possível criar os repasses — :reason',
+    'no_payout_created_paused' => 'Nenhum repasse criado:paused_note — retome os repasses na página do proprietário.',
+    'nothing_ready' => 'Nada pronto para pagamento — nenhum extrato finalizado tem valor líquido a pagar positivo:paused_note.',
+    'no_new_payouts' => 'Nenhum repasse novo — todo extrato pronto já tem um:paused_note.',
+    'payouts_created' => '{1} :count repasse criado:paused_note.|[0,*] :count repasses criados:paused_note.',
+    'some_not_created' => ':message Alguns não puderam ser criados — :reason',
+    'nothing_paid_paused' => 'Nada pago:paused_note — retome os repasses na página do proprietário.',
+    'no_pending_payouts' => 'Nenhum repasse pendente para pagar.',
+    'paid_only' => '{1} :count repasse marcado como pago:paused_note.|[0,*] :count repasses marcados como pagos:paused_note.',
+    'failed_only' => '[0,*] Falhas na via: :count:paused_note.',
+    'paid_and_failed' => '{1} :count repasse marcado como pago · falhas na via: :failed:paused_note.|[0,*] :count repasses marcados como pagos · falhas na via: :failed:paused_note.',
+    'some_not_attempted' => ':message Não foi possível tentar pagar alguns — :reason',
+    'nothing_payable_negative' => 'Nada a pagar — o líquido deste extrato é negativo, então o saldo passa para o próximo extrato do proprietário e é compensado nele.',
+    'nothing_payable_zero' => 'Nada a pagar — o líquido deste extrato é zero, então nada é devido.',
+    'workspace_paused_until' => 'Organização em pausa — os repasses ficam em modo somente leitura até :date.',
+    'workspace_paused_for_now' => 'Organização em pausa — os repasses ficam em modo somente leitura por enquanto.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1} :count proprietário com repasses em pausa ignorado|[0,*] :count proprietários com repasses em pausa ignorados',
+];

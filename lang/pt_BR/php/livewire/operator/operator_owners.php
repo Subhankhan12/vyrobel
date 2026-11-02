@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Prontos para pagar',
+    'chip_hold' => 'Retidos',
+    'chip_review' => 'Para revisar',
+    'chip_paused' => 'Repasses em pausa',
+    'chip_invited' => 'Convidados',
+    'sorted_name_asc' => 'por proprietário, A–Z',
+    'sorted_name_desc' => 'por proprietário, Z–A',
+    'sorted_units_desc' => 'mais unidades primeiro',
+    'sorted_units_asc' => 'menos unidades primeiro',
+    'sorted_net_desc' => 'maior líquido a pagar primeiro',
+    'sorted_net_asc' => 'menor líquido a pagar primeiro',
+    'sorted_status_asc' => 'o que precisa de você primeiro',
+    'sorted_status_desc' => 'o que precisa de você por último',
+    'kpi_invited' => 'convidados: :number',
+    'kpi_units' => '{1} :count unidade|[0,*] :count unidades',
+    'kpi_owners_ready' => '{1} :count proprietário pronto|[0,*] :count proprietários prontos',
+    'kpi_paused_not_counted' => 'em pausa, não contabilizados: :number',
+    'kpi_hold_none' => 'nada aguardando',
+    'kpi_hold_waiting' => 'aguardando: :amounts',
+    'kpi_review_sub' => 'com linhas não confirmadas pelo canal de reserva: :number',
+    'schedule' => ':day dia útil do mês',
+    'ordinal_st' => ':numberº',
+    'ordinal_nd' => ':numberº',
+    'ordinal_rd' => ':numberº',
+    'ordinal_th' => ':numberº',
+    'role_manager' => 'Gerente de propriedade',
+    'role_accountant' => 'Contador',
+    'role_owner' => 'Proprietário',
+    'another_owner' => 'outro proprietário',
+];

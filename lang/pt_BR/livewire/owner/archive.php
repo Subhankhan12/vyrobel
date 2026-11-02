@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Arquivo de extratos',
+    'history_summary' => 'Seu histórico finalizado · :years · :statements',
+    'years' => '{1} :count ano|[0,*] :count anos',
+    'statements' => '{1} :count extrato|[0,*] :count extratos',
+    'archived_on_finalize' => 'Os extratos são arquivados aqui assim que são finalizados.',
+    'net_earned_lifetime' => 'Ganho líquido · desde o início',
+    'since' => 'desde :date',
+    'per_currency_note' => 'Totalizado por moeda de repasse — saldos em moedas diferentes nunca são somados.',
+    'lifetime_empty' => 'Ainda não há extratos finalizados — o primeiro vai aparecer aqui.',
+    'search_placeholder' => 'Pesquise seus extratos — mês, ano, status ou número',
+    'search_label' => 'Pesquisar extratos',
+    'no_match' => 'Nenhum extrato corresponde a “:query”.',
+    'no_match_hint' => 'Tente um mês (“setembro”), um ano (“2026”), um status (“Pago”) ou um número de extrato (“Nº 1”).',
+    'group_summary' => ':statements · líquido: :nets',
+    'per_payout_currency' => '(por moeda de repasse)',
+    'tax_summary_title' => 'Baixar em PDF o resumo fiscal anual de :year',
+    'tax_summary' => 'Resumo fiscal',
+    'col_statement' => 'Extrato',
+    'col_net_payable' => 'Valor líquido a receber',
+    'col_links' => 'Links',
+    'unverified_title' => 'Algumas linhas ainda aguardam conciliação com o canal',
+    'unverified' => 'Contém linhas não verificadas',
+    'pdf_title' => 'Baixar este extrato em PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Baixar em PDF as reservas deste extrato',
+    'bookings' => 'Reservas',
+    'empty' => 'Ainda não há extratos finalizados. Um extrato é arquivado aqui assim que é finalizado.',
+    'zip_heading' => 'Baixar o arquivo completo',
+    'zip_sub' => '{1} Um ZIP com :count PDF de extrato. Cada extrato acima também pode ser baixado separadamente.|[0,*] Um ZIP com :count PDFs de extratos. Cada extrato acima também pode ser baixado separadamente.',
+    'download_zip' => 'Baixar ZIP',
+];

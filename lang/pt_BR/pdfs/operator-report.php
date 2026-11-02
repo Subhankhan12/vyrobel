@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Relatórios',
+    'arrivals_in' => 'Chegadas em :period',
+    'arrivals_count' => '{1} :count chegada|[0,*] :count chegadas',
+    'pp_delta' => ':delta p.p.',
+    'occupancy' => 'Ocupação',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Receita bruta',
+    'basis_note' => 'Ocupação · ADR · RevPAR seguem a base de noites de estadia, comparados ao mesmo período do ano anterior quando há dados desse ano. A receita abaixo segue a base do fólio (chegada).',
+    'revenue' => 'Receita',
+    'room' => 'Hospedagem',
+    'ancillary' => 'Outras receitas <span class="muted">· extras, produtos, taxas</span>',
+    'tax_collected' => 'Impostos arrecadados · valores de terceiros',
+    'costs_heading' => 'Custos <span class="muted" style="font-size:9px">· somente dados reais</span>',
+    'maintenance' => 'Manutenção <span class="muted">· ordens de serviço resolvidas</span>',
+    'not_tracked' => 'ainda não registrado',
+    'net' => 'Líquido (receita − custos registrados)',
+    'revenue_by_channel' => 'Receita por canal',
+    'channel' => 'Canal',
+    'bookings' => 'Reservas',
+    'share' => 'Participação',
+    'no_channel_revenue' => 'Nenhuma receita de canal neste período.',
+    'top_units' => 'Principais unidades',
+    'unit' => 'Unidade',
+    'nights' => 'Noites',
+    'room_revenue' => 'Receita de hospedagem',
+    'no_unit_revenue' => 'Nenhuma receita de unidade neste período.',
+    'revenue_by_month' => 'Receita por mês',
+    'month' => 'Mês',
+    'footer' => 'Calculado com dados reais de fólio e de manutenção para :scope · :period. Ocupação/ADR/RevPAR seguem a base de noites de estadia; a receita segue a base do fólio (chegada). Os valores conferem com a tela “Relatórios”. Vyrobel.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Administradora/Proprietário',
+    'realm_guest' => 'Hóspede',
+    'realm_admin' => 'Administrador da plataforma',
+    'event_login' => 'Login',
+    'event_failed' => 'Falha',
+    'event_lockout' => 'Bloqueio',
+    'subject_user' => 'Usuário',
+    'subject_guest' => 'Hóspede',
+    'subject_platform_admin' => 'Administrador da plataforma',
+    'subject_unknown' => 'Desconhecido',
+    'actor_user' => 'Usuário',
+    'actor_agent' => 'Agente',
+    'actor_system' => 'Sistema',
+    'page_title' => 'Segurança e atividade',
+    'page_subtitle' => 'Atividade de login e eventos de conta em toda a plataforma — mantidos por :days dias e depois apagados.',
+    'kpi_failures' => 'Falhas / bloqueios · 24 h',
+    'kpi_failures_help' => 'Falhas repetidas podem indicar tentativas de invasão.',
+    'privacy' => 'Privacidade',
+    'privacy_body' => 'A atividade de login (IP incluído) é coletada apenas como <strong style="color: var(--ad-ink);">sinal de segurança</strong> — para identificar logins suspeitos e prestar suporte —, nunca como monitoramento geral. Mantida por :days dias e depois apagada automaticamente; o acesso é restrito a este console.',
+    'recent_sign_ins' => 'Atividade de login recente',
+    'col_event' => 'Evento',
+    'col_realm' => 'Área',
+    'col_account' => 'Conta',
+    'col_ip' => 'IP',
+    'col_when' => 'Data',
+    'no_sign_ins' => 'Nenhuma atividade de login registrada ainda.',
+    'recent_account_events' => 'Eventos de conta recentes <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· em todos os clientes</span>',
+    'col_customer' => 'Cliente',
+    'col_actor' => 'Autor',
+    'no_account_events' => 'Ainda não há eventos de conta.',
+];

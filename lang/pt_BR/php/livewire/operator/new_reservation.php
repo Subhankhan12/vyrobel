@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Estadia',
+    'step_guest' => 'Hóspede',
+    'step_extras' => 'Extras',
+    'step_confirm' => 'Confirmar',
+    'source_direct' => 'Direta',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Corporativa',
+    'source_agent' => 'Agência de viagens',
+    'the_guest' => 'o hóspede',
+    'a_night' => ':amount por noite',
+    'a_night_range' => ':low–:high por noite',
+    'dates_label' => '{1} :from → :to · :count noite|[0,*] :from → :to · :count noites',
+    'restrict_min_stay' => '{1} Chegada: :date — a estadia deve ter no mínimo :count noite|[0,*] Chegada: :date — a estadia deve ter no mínimo :count noites',
+    'restrict_max_stay' => '{1} Chegada: :date — a estadia pode ter no máximo :count noite|[0,*] Chegada: :date — a estadia pode ter no máximo :count noites',
+    'restrict_no_arrivals' => 'Sem chegadas: :date',
+    'restrict_no_departures' => 'Sem saídas: :date',
+    'restrict_stop_sell' => 'Fechado para novas reservas: :date',
+    'restrict_other' => ':restriction · :date',
+    'arrival_mail_off' => 'A Vyrobel ainda não está enviando e-mails — passe você mesmo ao hóspede as instruções de chegada e o código da porta.',
+    'arrival_pre_arrival_off' => 'O e-mail de pré-chegada está desativado para suas propriedades — passe você mesmo ao hóspede as instruções de chegada e o código da porta.',
+    'arrival_too_soon' => 'Esta estadia começa cedo demais para o e-mail de pré-chegada, que é enviado :count dias antes do check-in — passe você mesmo ao hóspede as instruções de chegada e o código da porta.',
+    'arrival_by_email' => 'As instruções de chegada, e o código da porta quando a unidade tiver um, chegam ao hóspede por e-mail :count dias antes do check-in — se ele tiver um endereço de e-mail. O código da porta nunca aparece aqui.',
+    'cancel_not_free' => 'Sem cancelamento gratuito para esta estadia — o prazo terminou em :date',
+    'cancel_free_until_check_in' => 'Gratuito até o check-in',
+    'cancel_free_until_date' => 'Gratuito até :date',
+    'cancel_free_until_days' => '{1} Gratuito até :count dia antes do check-in|[0,*] Gratuito até :count dias antes do check-in',
+    'min_stay_none' => 'Sem mínimo',
+    'min_stay_nights' => '{1} :count noite|[0,*] :count noites',
+    'guest_no_name' => 'Hóspede',
+    'no_stays_yet' => 'Ainda sem estadias',
+];

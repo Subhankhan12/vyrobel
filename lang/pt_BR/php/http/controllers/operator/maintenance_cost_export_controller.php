@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Valores',
+    'csv_amounts_note' => 'na unidade principal da moeda, ponto como separador decimal, sem separador de milhar',
+    'col_date' => 'Data',
+    'col_work_order' => 'Ordem de serviço',
+    'col_unit' => 'Unidade',
+    'col_category' => 'Categoria',
+    'col_labor' => 'Mão de obra',
+    'col_parts' => 'Peças',
+    'col_total' => 'Total',
+    'col_currency' => 'Moeda',
+    'total_row' => 'Total',
+    'sheet_summary' => 'Resumo',
+    'col_measure' => 'Indicador',
+    'col_value' => 'Valor',
+    'total_spend' => 'Gasto total',
+    'measure_labour' => 'Mão de obra',
+    'measure_parts' => 'Peças',
+    'orders_closed' => 'Ordens concluídas',
+    'owner_billed' => 'Faturado ao proprietário',
+    'operator_borne' => 'Custeado pela administradora',
+    'parts_on_order' => 'Peças encomendadas',
+    'average_per_order' => 'Média por ordem',
+    'by_category' => 'Por categoria',
+    'col_orders' => 'Ordens',
+    'by_month' => 'Por mês',
+    'top_units' => 'Principais unidades',
+    'sheet_line_items' => 'Itens detalhados',
+    'col_labour' => 'Mão de obra',
+    'no_email' => 'Sua conta não tem endereço de e-mail.',
+    'report_emailed' => 'Relatório de custos enviado para :email.',
+];

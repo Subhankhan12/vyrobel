@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Você',
+    'total_part' => ':name :amount',
+    'total_includes' => 'inclui :items',
+    'nightly_excludes' => '+ :tax',
+    'sleeps' => 'Capacidade: :count',
+    'studio' => 'Estúdio',
+    'bedrooms' => '{1} :count quarto|[0,*] :count quartos',
+    'checkout_title' => 'Finalizar reserva — :property',
+    'room_just_taken' => 'Esse quarto acabou de ser reservado por outra pessoa — escolha outro quarto ou outras datas.',
+    'payment_received' => 'Pagamento recebido',
+    'payment_received_note' => 'Pago integralmente.',
+    'payment_processing' => 'Pagamento em processamento',
+    'payment_processing_note' => 'Estamos confirmando seu pagamento com cartão. Atualize esta página em instantes para vê-lo registrado.',
+    'pay_on_arrival' => 'Pagar na chegada',
+    'pay_on_arrival_note' => 'Pague na propriedade ao fazer o check-in.',
+    'confirmed_title' => 'Reserva confirmada — :property',
+    'kind_room' => 'Quarto',
+    'kind_apartment' => 'Apartamento',
+    'kind_villa' => 'Vila',
+    'kind_dorm' => 'Dormitório',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Apart-hotel',
+    'type_serviced_apartment' => 'Apartamento com serviços',
+    'type_apartment_building' => 'Prédio de apartamentos',
+    'type_apartment' => 'Apartamento',
+    'type_villa' => 'Vila',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pousada',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Misto',
+    'type_portfolio' => 'Portfólio',
+];

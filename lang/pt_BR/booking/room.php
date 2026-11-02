@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Todos os quartos',
+    'kind_sleeps_up_to' => ':kind · até :capacity pessoas',
+    'reviews_count' => '{1} :count avaliação|[0,*] :count avaliações',
+    'no_reviews_yet' => 'Ainda não há avaliações',
+    'save_to_wishlist' => 'Salvar nos favoritos',
+    'sleeps' => 'Capacidade',
+    'adults' => 'Adultos',
+    'children' => 'Crianças',
+    'bedrooms' => 'Quartos',
+    'standard_occupancy' => 'Ocupação padrão',
+    'amenities' => 'Comodidades',
+    'not_yet_listed' => 'Ainda não informado',
+    'amenities_not_published' => 'As comodidades deste quarto ainda não foram publicadas.',
+    'guest_reviews' => 'Avaliações dos hóspedes',
+    'stars_aria' => ':rating de 5 estrelas',
+    'response_label' => 'Resposta:',
+    'no_reviews_be_first' => 'Ainda não há avaliações — hospede-se aqui e seja a primeira pessoa a compartilhar sua experiência.',
+    'coming_soon' => 'Em breve',
+    'description_soon' => 'Uma descrição completa e o mapa da localização estão a caminho — as características, a disponibilidade, o preço e as avaliações acima são reais.',
+    'per_night' => '/ noite',
+    'per_night_with_note' => '/ noite · :note',
+    'total_nights' => '{1} :amount no total · :count noite|[0,*] :amount no total · :count noites',
+    'left_for_your_dates' => '{1} Resta :count para suas datas|[0,*] Restam :count para suas datas',
+    'book_this_room' => 'Reservar este quarto',
+    'nothing_reserved' => 'Nada fica reservado até você confirmar ao finalizar a reserva.',
+    'your_dates' => 'Suas datas',
+    'not_available' => 'Indisponível nessas datas — tente outras datas.',
+    'check_in' => 'Chegada',
+    'check_out' => 'Saída',
+    'check_dates' => 'Verificar datas',
+    'check_availability' => 'Ver disponibilidade e preço',
+    'see_price' => 'Ver preço',
+];

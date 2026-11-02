@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Equipe e acessos',
+    'subtitle' => 'Dê a um coproprietário ou ao seu contador um login próprio — limitado ao que a pessoa precisa.',
+    'people_with_access' => 'Pessoas com acesso',
+    'account_owner' => 'Titular da conta',
+    'thats_you' => 'você',
+    'owner_access' => 'Acesso total a tudo, inclusive a esta página.',
+    'active_now' => 'Online agora',
+    'role_for' => 'Perfil de acesso de :name',
+    'your_password' => 'Sua senha',
+    'confirm_password' => 'Confirmar com sua senha',
+    'remove_confirm' => 'Remover :name? Essa pessoa não poderá mais entrar.',
+    'no_members' => 'Por enquanto, só você — convide um coproprietário ou contador abaixo.',
+    'invite_heading' => 'Convidar alguém',
+    'invite_sub' => 'Cada pessoa recebe um login próprio — você pode remover o acesso quando quiser.',
+    'invite_email_label' => 'E-mail da pessoa a convidar',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Enviar convite',
+    'pending_invites' => 'Convites pendentes',
+    'resend' => 'Reenviar',
+    'revoke' => 'Revogar',
+    'matrix_heading' => 'O que cada perfil pode ver',
+    'matrix_note' => 'Somente você, titular da conta, pode gerenciar a equipe e a conta de recebimento.',
+    'recent_activity' => 'Atividade recente',
+    'no_activity' => 'Nada ainda — convites e logins aparecerão aqui.',
+    'download_log' => 'Registro de downloads de exportações',
+    'download_log_sub' => 'Cada extrato, reserva, repasse ou arquivo fiscal que sua equipe baixa recebe a marca de quem o baixou — e fica registrado aqui.',
+    'no_downloads' => 'Nenhuma exportação baixada ainda — elas aparecerão aqui, com a marca de quem as baixou.',
+    'security_heading' => 'Cada pessoa tem sua própria chave',
+    'security_body' => 'Nada de senhas compartilhadas — cada pessoa entra com a própria conta, e o acesso é limitado ao seu perfil. As exportações financeiras recebem uma marca-d’água com o nome de quem as baixou e constam no registro acima. Na sua própria conta, ative a verificação em duas etapas.',
+    'security_settings' => 'Configurações de segurança',
+];

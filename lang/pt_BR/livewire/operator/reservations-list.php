@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt_BR translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Reservas',
+    'arrivals_this_month' => 'Chegadas neste mês',
+    'arrivals_this_month_sub' => 'com check-in neste mês · exceto cancelamentos e no-shows',
+    'booked_value' => 'Valor reservado · chegadas neste mês',
+    'booked_value_sub' => 'faturado nas chegadas deste mês',
+    'booked_value_sub_multi' => 'faturado nas chegadas deste mês · por moeda (nunca somado entre moedas)',
+    'balances_due' => 'Saldos a pagar · chegadas neste mês',
+    'folios_owing' => '{0} nada a pagar|{1} :count fólio ainda com saldo|[2,*] :count fólios ainda com saldo',
+    'search_placeholder' => 'Pesquisar por hóspede ou código da reserva…',
+    'search_label' => 'Pesquisar reservas',
+    'group_booking' => 'Reserva de grupo',
+    'new_reservation' => 'Nova reserva',
+    'empty_heading' => 'Ainda não há reservas',
+    'empty_body' => 'Toda reserva — direta, walk-in ou importada — aparece aqui assim que é feita.',
+    'no_match_query' => 'Nenhuma reserva corresponde a “:query”',
+    'no_match_view' => 'Nenhuma reserva nesta visualização',
+    'no_match_hint' => '{1} Tente o nome de um hóspede ou o código de uma reserva. Total: :count reserva.|[0,*] Tente o nome de um hóspede ou o código de uma reserva. Total: :count reservas.',
+    'no_match_hint_filter' => '{1} Tente o nome de um hóspede ou o código de uma reserva, ou limpe o filtro. Total: :count reserva.|[0,*] Tente o nome de um hóspede ou o código de uma reserva, ou limpe o filtro. Total: :count reservas.',
+    'clear_search_filters' => 'Limpar pesquisa e filtros',
+    'col_guest' => 'Hóspede',
+    'col_stay' => 'Estadia',
+    'col_unit' => 'Unidade',
+    'col_source' => 'Origem',
+    'col_stage' => 'Etapa',
+    'col_balance_due' => 'Saldo a pagar',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count noite|[0,*] :count noites',
+    'guests' => '{1} :count hóspede|[0,*] :count hóspedes',
+    'unassigned' => 'Sem unidade',
+    'refunded' => 'Reembolsada',
+    'pager_label' => 'reservas',
+];

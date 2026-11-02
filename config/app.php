@@ -83,7 +83,7 @@ return [
     // ⚠️ I18N-01 — the FINISHED languages only: a code here is APPLIED to screens, so adding one is what turns a language
     //    on (one release per language, after every gate). The full table and the pickable list: App\Support\I18n\Locales.
     //    de + ar: the G3 pilot pair (2026-10-29); tr (2026-10-29) — machine-translated with AI review, no native speaker has checked them.
-    'available_locales' => ['en', 'de', 'ar', 'tr', 'fr', 'es', 'nl', 'pt', 'it'],
+    'available_locales' => ['en', 'de', 'ar', 'tr', 'fr', 'es', 'nl', 'pt', 'it', 'pt_BR'],
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
