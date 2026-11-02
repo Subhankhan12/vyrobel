@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Visão geral',
+    'subtitle_all' => 'Todas as organizações, incluindo as internas da própria Vyrobel.',
+    'subtitle_customers' => 'Só clientes — as organizações internas da própria Vyrobel estão excluídas.',
+    'showing_all' => 'A mostrar <strong>todas</strong> as organizações — das quais :internal são internas.',
+    'internal_excluded' => '{1} :count organização interna excluída de todos os valores abaixo.|[0,*] :count organizações internas excluídas de todos os valores abaixo.',
+    'customers_only' => 'Só clientes',
+    'include_internal' => 'Incluir internas',
+    'no_customers_heading' => 'Ainda não há clientes',
+    'no_customers_body' => 'Todas as organizações da plataforma são da própria Vyrobel (internas: :internal). O primeiro registo real aparecerá aqui.',
+    'kpi_organisations' => 'Organizações',
+    'kpi_customers' => 'Clientes',
+    'kpi_account_status' => 'Ativas: :active · Suspensas: :suspended',
+    'kpi_subscriptions' => 'Subscrições',
+    'kpi_subscriptions_sub' => 'ativas · em período de teste gratuito: :trial',
+    'kpi_revenue' => 'Receita',
+    'no_live_billing' => 'Ainda sem faturação real',
+    'no_live_billing_sub' => 'Nenhuma subscrição é faturada através da Stripe. O preço de tabela de um período de teste não é receita.',
+    'billed_live' => '{1} :count com faturação real|[0,*] :count com faturação real',
+    'billed_live_sub' => 'Calculado a partir do que a Stripe cobrou, nunca da tabela de preços — consulte <a class="ad-cell-link" href=":url">Receita</a>.',
+    'kpi_properties' => 'Alojamentos',
+    'kpi_reservations' => '{1} :count reserva|[0,*] :count reservas',
+    'new_organisations_heading' => 'Novas organizações · últimos 6 meses',
+    'new_customers_heading' => 'Novos clientes · últimos 6 meses',
+    'no_signups' => 'Sem registos nos últimos 6 meses.',
+    'account_status_heading' => 'Estado da conta',
+    'status_active' => 'Ativa',
+    'status_suspended' => 'Suspensa',
+    'status_cancelled' => 'Cancelada',
+    'status_trialing' => 'Em período de teste (conta)',
+    'free_trial_hint' => 'Um período de teste gratuito é um estado da subscrição, não um estado da conta — em período de teste gratuito neste momento: :trial.',
+    'plans_in_use' => 'Planos em uso <span class="ad-stat-sub" style="font-weight: 400;">· ativos ou em período de teste</span>',
+    'no_plans' => 'Ainda não há planos em uso.',
+];

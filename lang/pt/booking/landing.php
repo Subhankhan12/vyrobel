@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Estadias',
+    'book_direct' => 'Reservar diretamente',
+    'nav_stays' => 'Estadias',
+    'my_account' => 'A minha conta',
+    'sign_in' => 'Iniciar sessão',
+    'rating_across' => '{1} :average em :count avaliação|[0,*] :average em :count avaliações',
+    'heading' => 'Reserve diretamente com<br>:org.',
+    'subheading' => 'Estadias cuidadas ao pormenor, reservadas diretamente com o alojamento — sem comissões, a nossa melhor tarifa e uma pessoa real do outro lado.',
+    'where' => 'Destino',
+    'check_in' => 'Chegada',
+    'check_out' => 'Partida',
+    'adults' => 'Adultos',
+    'children' => 'Crianças',
+    'where_to_stay' => 'Onde ficar',
+    'towns_lede' => '{1} A nossa base.|[0,*] :count localidades, cada uma com o seu ritmo.',
+    'from_price' => 'a partir de :price',
+    'featured_stays' => 'Estadias em destaque',
+    'featured_lede' => 'As preferidas dos hóspedes em toda a coleção.',
+    'per_night' => '/ noite',
+    'see_dates_for_pricing' => 'Indique as datas para ver o preço',
+    'browse_by_what_matters' => 'Pesquise pelo que mais importa',
+    'why_book_direct' => 'Porquê reservar diretamente',
+    'recent_guests' => 'Hóspedes recentes',
+    'rating_short' => '{1} :average · :count avaliação|[0,*] :average · :count avaliações',
+    'stars_aria' => ':rating de 5 estrelas',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'Ainda sem avaliações — fique connosco e seja o primeiro a partilhar a sua experiência.',
+    'cta_heading' => 'Encontre o seu lugar',
+    'cta_sub' => 'Datas reais, preços em tempo real, confirmação imediata.',
+    'browse_all_stays' => 'Ver todas as estadias',
+];

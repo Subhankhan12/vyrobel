@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Gerir :reference',
+    'back_to_booking' => '← Voltar à reserva',
+    'heading' => 'Gerir a sua reserva',
+    'subheading' => ':property · :check_in → :check_out. As alterações são confirmadas pelo alojamento — enviamos-lhe uma mensagem assim que o forem.',
+    'pending_requests' => 'Pedidos pendentes',
+    'pending_badge' => 'Pendente',
+    'pending_note' => 'Ainda nada mudou na sua reserva — um pedido é primeiro confirmado pelo alojamento.',
+    'pick_new_dates' => 'Escolher novas datas',
+    'currently' => 'Atualmente: :check_in → :check_out. Escolha novas datas para ver a diferença de preço e depois peça a alteração.',
+    'new_check_in' => 'Novo check-in',
+    'new_check_out' => 'Novo check-out',
+    'see_price_difference' => 'Ver diferença de preço',
+    'new_stay' => 'Nova estadia',
+    'current' => 'Atual',
+    'difference' => 'Diferença',
+    'estimate_note' => 'Apenas uma estimativa — sujeita à confirmação do alojamento. Qualquer pagamento é tratado depois da confirmação.',
+    'unpriced_note' => 'Essas datas ainda não têm um preço publicado — peça a alteração e o alojamento confirmará o preço.',
+    'request_date_change' => 'Pedir alteração de datas',
+    'add_to_your_stay' => 'Adicionar à sua estadia',
+    'add_to_your_stay_sub' => 'Adicione pequeno-almoço, transferes e muito mais — tudo é lançado na sua reserva após a confirmação.',
+    'browse_extras' => 'Ver extras',
+    'cancellation_policy' => 'Política de cancelamento',
+    'free_until' => 'Cancelamento gratuito até <strong>:date</strong> — um pedido de cancelamento feito antes dessa data é reembolsado na totalidade.',
+    'policy_by_property' => 'O alojamento confirma o seu cancelamento e trata de qualquer reembolso segundo a política de cancelamento.',
+    'cancel_confirm' => 'Enviar um pedido de cancelamento desta reserva? O alojamento analisa-o e trata de qualquer reembolso segundo a política de cancelamento.',
+    'reason' => 'Motivo',
+    'choose_reason' => 'Escolha um motivo…',
+    'request_cancellation' => 'Pedir cancelamento',
+    'closed_heading' => 'Esta reserva está encerrada',
+    'closed_body' => 'Já não há nada a alterar nesta reserva — mas as suas datas, os detalhes da estadia e tudo o que pagou continuam aqui sempre que precisar.',
+];

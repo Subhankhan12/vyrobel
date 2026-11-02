@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'a partir das :time',
+    'by_time' => 'até às :time',
+    'repeat_guest' => '{1} Hóspede recorrente · :count estadia|[0,*] Hóspede recorrente · :count estadias',
+    'new_guest' => 'Novo hóspede',
+    'guests_count' => '{1} :count hóspede|[0,*] :count hóspedes',
+    'nights_count' => '{1} :count noite|[0,*] :count noites',
+    'channel_direct' => 'Direto Vyrobel',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'Canal OTA',
+    'event_booking_received' => 'Reserva recebida',
+    'event_cancelled' => 'Cancelada',
+    'event_payment_received' => 'Pagamento recebido',
+    'when_paid_in_full' => 'Pago na totalidade',
+    'event_part_payment_received' => 'Pagamento parcial recebido',
+    'when_balance_due' => 'Valor em dívida',
+    'event_payment' => 'Pagamento',
+    'when_not_yet_received' => 'Ainda não recebido',
+    'event_checked_in' => 'Check-in feito',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out feito',
+    'event_payout_released' => 'Transferência efetuada',
+    'event_payout' => 'Transferência',
+    'when_next_payout' => 'Com a sua próxima transferência',
+    'payout_not_attributed' => 'Ainda não atribuído',
+    'payout_not_attributed_note' => 'Esta reserva ainda não foi atribuída à sua conta corrente.',
+    'payout_scheduled' => 'Agendado',
+    'payout_scheduled_note' => 'Incluída no seu próximo extrato e paga com a respetiva transferência.',
+    'payout_pending' => 'Transferência pendente',
+    'payout_pending_note' => 'Num extrato finalizado — é paga com essa transferência.',
+    'payout_paid' => 'Pago',
+    'payout_paid_note' => 'Paga numa transferência concluída.',
+];

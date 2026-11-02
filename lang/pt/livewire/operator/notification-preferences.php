@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Preferências de notificação',
+    'subtitle' => 'Como a Vyrobel entra em contacto consigo',
+    'breadcrumb_label' => 'Navegação estrutural',
+    'crumb_settings' => 'Definições',
+    'crumb_notifications' => 'Notificações',
+    'channel_email' => 'E-mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Sem e-mail registado',
+    'email_verified_title' => 'O seu e-mail de acesso está confirmado',
+    'email_verified' => 'Confirmado',
+    'push_not_set_up_title' => 'As notificações push ainda não estão configuradas',
+    'not_set_up_tag' => 'por configurar',
+    'push_not_available' => 'As notificações push no navegador e no dispositivo ainda não estão disponíveis',
+    'channel_off' => 'Desativado',
+    'sms_not_set_up_title' => 'O SMS ainda não está configurado',
+    'sms_no_provider' => 'Ainda não há nenhum fornecedor de SMS ligado',
+    'notify_me_when' => 'Notificar-me quando',
+    'always_on' => 'Sempre ativo',
+    'email_always_on_sr' => 'E-mail sempre ativo para: :event',
+    'email_me_when_aria' => 'Enviar-me um e-mail quando: :event',
+    'push_not_set_up_sr' => 'Notificações push não configuradas',
+    'sms_not_set_up_sr' => 'SMS não configurado',
+    'quiet_hours' => 'Horas de silêncio',
+    'quiet_hours_help' => 'Os e-mails de rotina ficam retidos entre estas horas — os alertas de segurança urgentes chegam sempre; as notificações na aplicação não são afetadas.',
+    'quiet_from' => 'De',
+    'quiet_to' => 'Até',
+    'digest_heading' => 'E-mail de resumo diário',
+    'digest_help' => 'Um resumo matinal do dia. <span class="vy-np-soon">ainda não enviado</span> — a preferência fica guardada para quando o envio do resumo estiver disponível.',
+    'digest_off' => 'Desativado',
+    'digest_morning' => 'Manhã · 08:00',
+];

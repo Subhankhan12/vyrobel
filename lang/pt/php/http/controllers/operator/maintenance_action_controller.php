@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Pedido «:title» aberto na unidade :unit.',
+    'not_assignable_staff' => 'Esse utilizador não é um funcionário a quem se possam atribuir tarefas nesta organização.',
+    'cannot_reassign_closed' => 'Não é possível reatribuir esse pedido — já está fechado.',
+    'assignment_updated' => 'Atribuição do pedido atualizada.',
+    'work_order_closed' => 'Essa ordem de trabalho está fechada — os detalhes já não podem ser alterados.',
+    'work_order_updated' => 'Ordem de trabalho atualizada.',
+    'col_title' => 'Título',
+    'col_unit' => 'Unidade',
+    'col_category' => 'Categoria',
+    'col_priority' => 'Prioridade',
+    'col_status' => 'Estado',
+    'col_assignee' => 'Responsável',
+    'col_reported' => 'Comunicada',
+    'col_cost' => 'Custo',
+    'bulk_assigned_skipped' => '{1} Ordens de trabalho atribuídas: :count · ignoradas: :skipped (já fechadas)|[0,*] Ordens de trabalho atribuídas: :count · ignoradas: :skipped (já fechadas)',
+    'bulk_assigned' => '{1} Ordens de trabalho atribuídas: :count.|[0,*] Ordens de trabalho atribuídas: :count.',
+    'bulk_resolved_skipped' => '{1} Ordens de trabalho resolvidas: :count · ignoradas: :skipped (já fechadas)|[0,*] Ordens de trabalho resolvidas: :count · ignoradas: :skipped (já fechadas)',
+    'bulk_resolved' => '{1} Ordens de trabalho resolvidas: :count.|[0,*] Ordens de trabalho resolvidas: :count.',
+    'cannot_start' => 'Não é possível iniciar esse pedido — já não está em aberto.',
+    'work_started' => 'Trabalho iniciado neste pedido.',
+    'cannot_resolve_closed' => 'Não é possível resolver essa ordem de trabalho — já está fechada.',
+    'ticket_resolved' => 'Pedido resolvido.',
+    'cannot_cancel_closed' => 'Não é possível cancelar esse pedido — já está fechado.',
+    'ticket_cancelled' => 'Pedido cancelado.',
+    'parts_closed' => 'Esse pedido está fechado — as peças não podem ser atualizadas.',
+    'awaiting_parts' => 'Marcado como a aguardar peças.',
+    'parts_arrived' => 'Peças marcadas como recebidas.',
+    'update_posted_waiting_part' => 'Atualização publicada — marcado como a aguardar a peça.',
+    'update_posted' => 'Atualização publicada.',
+    'photo_added' => 'Fotografia adicionada.',
+    'photo_removed' => 'Fotografia removida.',
+    'workspace_paused' => 'A sua organização está em pausa (em modo só de leitura) — as alterações na manutenção estão desativadas até a retomar.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Equipa e acessos',
+    'subtitle' => 'Dê a um coproprietário ou ao seu contabilista um acesso próprio — limitado ao que precisa.',
+    'people_with_access' => 'Pessoas com acesso',
+    'account_owner' => 'Titular da conta',
+    'thats_you' => 'é a sua conta',
+    'owner_access' => 'Acesso total a tudo, incluindo esta página.',
+    'active_now' => 'Sessão ativa',
+    'role_for' => 'Função de :name',
+    'your_password' => 'A sua palavra-passe',
+    'confirm_password' => 'Confirmar com a sua palavra-passe',
+    'remove_confirm' => 'Remover :name? Esta pessoa deixa de poder iniciar sessão.',
+    'no_members' => 'Por enquanto, só existe a sua conta — convide um coproprietário ou contabilista abaixo.',
+    'invite_heading' => 'Convidar alguém',
+    'invite_sub' => 'Cada pessoa recebe um acesso próprio — pode remover o acesso a qualquer momento.',
+    'invite_email_label' => 'E-mail da pessoa a convidar',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Enviar convite',
+    'pending_invites' => 'Convites pendentes',
+    'resend' => 'Reenviar',
+    'revoke' => 'Revogar',
+    'matrix_heading' => 'O que cada função pode ver',
+    'matrix_note' => 'Só a si, como titular da conta, cabe gerir a equipa e a conta para transferências.',
+    'recent_activity' => 'Atividade recente',
+    'no_activity' => 'Ainda nada — os convites e os inícios de sessão aparecem aqui.',
+    'download_log' => 'Registo de descargas',
+    'download_log_sub' => 'Cada extrato, reserva, transferência ou ficheiro fiscal que a sua equipa descarrega fica marcado com o nome de quem o descarregou — e registado aqui.',
+    'no_downloads' => 'Ainda não foram descarregadas exportações — vão aparecer aqui, marcadas com o nome de quem as descarregou.',
+    'security_heading' => 'Cada pessoa tem a sua própria chave',
+    'security_body' => 'Sem palavras-passe partilhadas — cada pessoa inicia sessão com a sua própria conta e o acesso fica limitado à sua função. As exportações financeiras levam uma marca de água com o nome de quem as descarregou e ficam registadas no registo acima. Na sua própria conta, ative a verificação em dois passos.',
+    'security_settings' => 'Definições de segurança',
+];

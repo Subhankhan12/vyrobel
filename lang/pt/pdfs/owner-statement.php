@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'com gestão através da Vyrobel',
+    'eyebrow' => 'Extrato do proprietário',
+    'unit_count' => '{1} :count unidade|[0,*] :count unidades',
+    'issued' => 'emitido em :date',
+    'prepared_for' => 'Preparado para',
+    'net_payable_to_owner' => 'Líquido a receber pelo proprietário',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Ocupação',
+    'nights_sold' => 'Noites vendidas',
+    'avg_nightly_rate' => 'Tarifa média por noite',
+    'breakdown' => 'Discriminação',
+    'item' => 'Rubrica',
+    'detail' => 'Detalhe',
+    'amount' => 'Valor',
+    'provisional' => '(provisório)',
+    'performance_by_unit' => 'Desempenho por unidade',
+    'unit' => 'Unidade',
+    'nights' => 'Noites',
+    'revenue' => 'Receita',
+    'total_gross_room_revenue' => 'Receita bruta total de quartos',
+    'callout_heading' => 'Transferência.',
+    'settles_to_iban' => 'O valor líquido de :amount é liquidado por transferência bancária para o IBAN :iban.',
+    'settles' => 'O valor líquido de :amount é liquidado por transferência bancária.',
+    'fees_with_commission' => 'A comissão de gestão corresponde a :pct% da receita bruta de quartos; as taxas de pagamento e de plataforma são repercutidas a preço de custo. Todos os valores estão em :currency e incluem os impostos aplicáveis cobrados em seu nome.',
+    'fees' => 'As taxas de pagamento e de plataforma são repercutidas a preço de custo. Todos os valores estão em :currency e incluem os impostos aplicáveis cobrados em seu nome.',
+    'fx_note' => 'Convertido de :source à taxa de :rate (fonte: :src).',
+    'provisional_note' => 'Algumas linhas são provisórias, a aguardar a conciliação com o canal.',
+    'statement_ref' => 'extrato :ref',
+    'sequence_no' => 'n.º :number',
+    'generated' => 'gerado em <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Dúvidas? :email',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Relatórios',
+    'arrivals_in' => 'Chegadas: :period',
+    'arrivals_count' => '{1} :count chegada|[0,*] :count chegadas',
+    'pp_delta' => ':delta p.p.',
+    'occupancy' => 'Ocupação',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Receita bruta',
+    'basis_note' => 'Ocupação · ADR · RevPAR calculados por noite de estadia, comparados com o mesmo período do ano anterior quando existem dados desse ano. A receita abaixo é calculada com base no folio (data de chegada).',
+    'revenue' => 'Receita',
+    'room' => 'Quartos',
+    'ancillary' => 'Outras receitas <span class="muted">· extras, produtos, taxas</span>',
+    'tax_collected' => 'Impostos cobrados · a entregar ao Estado',
+    'costs_heading' => 'Custos <span class="muted" style="font-size:9px">· apenas dados reais</span>',
+    'maintenance' => 'Manutenção <span class="muted">· ordens de trabalho resolvidas</span>',
+    'not_tracked' => 'ainda não registado',
+    'net' => 'Líquido (receita − custos registados)',
+    'revenue_by_channel' => 'Receita por canal',
+    'channel' => 'Canal',
+    'bookings' => 'Reservas',
+    'share' => 'Quota',
+    'no_channel_revenue' => 'Sem receita por canal neste período.',
+    'top_units' => 'Melhores unidades',
+    'unit' => 'Unidade',
+    'nights' => 'Noites',
+    'room_revenue' => 'Receita de quartos',
+    'no_unit_revenue' => 'Sem receita por unidade neste período.',
+    'revenue_by_month' => 'Receita por mês',
+    'month' => 'Mês',
+    'footer' => 'Calculado a partir de dados reais de folio e de manutenção para :scope · :period. Ocupação/ADR/RevPAR por noite de estadia; receita com base no folio (data de chegada). Os valores coincidem com o ecrã Relatórios. Vyrobel.',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Os nossos alojamentos',
+    'properties_count' => ':count alojamentos',
+    'stays_count' => '{1} :count unidade|[0,*] :count unidades',
+    'stays_sleeps' => ':stays · :max pessoas',
+    'stays_sleeps_range' => ':stays · :min–:max pessoas',
+    'perk_free_cancel_days' => '{1} Reembolso total até :count dia antes da chegada.|[0,*] Reembolso total até :count dias antes da chegada.',
+    'perk_free_cancel_window' => 'Reembolso total dentro do prazo de cancelamento.',
+    'perk_no_fees' => 'Sem taxas de reserva',
+    'perk_no_fees_sub' => 'O preço que vê é o preço que paga.',
+    'perk_best_rate' => 'Melhor tarifa direta',
+    'perk_best_rate_sub' => 'Reserve diretamente para obter a nossa melhor tarifa — sem intermediários.',
+    'perk_free_cancel' => 'Cancelamento gratuito',
+    'perk_host_support' => 'Apoio direto do alojamento',
+    'perk_host_support_sub' => 'Envie uma mensagem a uma pessoa real sobre a sua reserva.',
+    'kind_room' => 'Quarto',
+    'kind_apartment' => 'Apartamento',
+    'kind_villa' => 'Moradia',
+    'kind_dorm' => 'Dormitório',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Hotel-apartamento',
+    'type_serviced_apartment' => 'Apartamento com serviços',
+    'type_apartment_building' => 'Edifício de apartamentos',
+    'type_apartment' => 'Apartamento',
+    'type_villa' => 'Moradia',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Casa de hóspedes',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Misto',
+    'type_portfolio' => 'Portefólio',
+];

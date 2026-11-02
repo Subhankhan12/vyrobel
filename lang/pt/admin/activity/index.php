@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Entidade gestora/Proprietário',
+    'realm_guest' => 'Hóspede',
+    'realm_admin' => 'Administrador da plataforma',
+    'event_login' => 'Início de sessão',
+    'event_failed' => 'Falha',
+    'event_lockout' => 'Bloqueio',
+    'subject_user' => 'Utilizador',
+    'subject_guest' => 'Hóspede',
+    'subject_platform_admin' => 'Administrador da plataforma',
+    'subject_unknown' => 'Desconhecido',
+    'actor_user' => 'Utilizador',
+    'actor_agent' => 'Agente',
+    'actor_system' => 'Sistema',
+    'page_title' => 'Segurança e atividade',
+    'page_subtitle' => 'Atividade de início de sessão e eventos de conta em toda a plataforma — guardados durante :days dias e depois eliminados.',
+    'kpi_failures' => 'Falhas / bloqueios · 24 h',
+    'kpi_failures_help' => 'Falhas repetidas podem indicar tentativas de intrusão.',
+    'privacy' => 'Privacidade',
+    'privacy_body' => 'A atividade de início de sessão (inclui o IP) é recolhida apenas como <strong style="color: var(--ad-ink);">sinal de segurança</strong> — para detetar inícios de sessão suspeitos e prestar suporte —, nunca como monitorização geral. Guardada durante :days dias e depois eliminada automaticamente; o acesso está limitado a esta consola.',
+    'recent_sign_ins' => 'Atividade recente de início de sessão',
+    'col_event' => 'Evento',
+    'col_realm' => 'Área',
+    'col_account' => 'Conta',
+    'col_ip' => 'IP',
+    'col_when' => 'Data',
+    'no_sign_ins' => 'Ainda não há atividade de início de sessão registada.',
+    'recent_account_events' => 'Eventos de conta recentes <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· em todas as organizações cliente</span>',
+    'col_customer' => 'Organização',
+    'col_actor' => 'Autor',
+    'no_account_events' => 'Ainda não há eventos de conta.',
+];

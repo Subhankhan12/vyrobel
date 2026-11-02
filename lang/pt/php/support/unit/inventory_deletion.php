@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1} :count reserva|[0,*] :count reservas',
+    'room_moves' => '{1} :count mudança de quarto|[0,*] :count mudanças de quarto',
+    'cleaning_tasks' => '{1} :count tarefa de limpeza|[0,*] :count tarefas de limpeza',
+    'work_orders' => '{1} :count ordem de trabalho|[0,*] :count ordens de trabalho',
+    'status_changes' => '{1} :count alteração de estado|[0,*] :count alterações de estado',
+    'blocks' => '{1} :count bloqueio|[0,*] :count bloqueios',
+    'owner_agreements' => '{1} :count contrato de gestão|[0,*] :count contratos de gestão',
+    'owner_statement_lines' => '{1} :count linha de extrato do proprietário|[0,*] :count linhas de extrato do proprietário',
+    'owner_expenses' => '{1} :count despesa do proprietário|[0,*] :count despesas do proprietário',
+    'reviews' => '{1} :count avaliação|[0,*] :count avaliações',
+    'owner_requests' => '{1} :count pedido do proprietário|[0,*] :count pedidos do proprietário',
+    'notes' => '{1} :count nota|[0,*] :count notas',
+    'documents' => '{1} :count documento|[0,*] :count documentos',
+    'files' => '{1} :count ficheiro|[0,*] :count ficheiros',
+    'units' => '{1} :count unidade|[0,*] :count unidades',
+    'rate_proposals' => '{1} :count proposta de tarifa|[0,*] :count propostas de tarifa',
+    'overbooking_records' => '{1} :count registo de overbooking|[0,*] :count registos de overbooking',
+    'guest_waitlist_entries' => '{1} :count inscrição de hóspede na lista de espera|[0,*] :count inscrições de hóspedes na lista de espera',
+    'guest_wishlist_saves' => '{1} :count inclusão nos favoritos de um hóspede|[0,*] :count inclusões nos favoritos de hóspedes',
+    'derived_room_types' => '{1} :count tipo de quarto baseado nele|[0,*] :count tipos de quarto baseados nele',
+    'derived_rate_plans' => '{1} :count plano tarifário de outro tipo de quarto com preço derivado deste|[0,*] :count planos tarifários de outros tipos de quarto com preço derivado deste',
+    'corporate_default_rates' => '{1} tarifa predefinida de :count conta de empresa|[0,*] tarifa predefinida de :count contas de empresa',
+    'channel_connections' => '{1} :count ligação a canal|[0,*] :count ligações a canais',
+    'an_owner' => 'um proprietário',
+    'pending_owner_invitation' => 'um convite de proprietário pendente',
+    'list_and' => ':items e :last',
+    'kind_rooms' => 'quartos',
+    'kind_apartments' => 'apartamentos',
+    'kind_villas' => 'moradias',
+    'kind_dorm_beds' => 'camas em dormitório',
+];

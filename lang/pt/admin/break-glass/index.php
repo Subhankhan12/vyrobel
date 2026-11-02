@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Acesso de emergência',
+    'subtitle' => 'Uma consulta só de leitura e limitada no tempo a uma organização — com motivo, 2FA e aviso à organização.',
+    'back_label' => 'Suporte',
+    'open_heading' => 'A sua sessão está aberta',
+    'open_summary' => '{1} :organization · termina às :time UTC · :count página vista.|[0,*] :organization · termina às :time UTC · :count páginas vistas.',
+    'go_to_back_office' => 'Ir para o back office da organização',
+    'end_now' => 'Terminar a sessão agora',
+    'start_heading' => 'Abrir uma sessão',
+    'rule_read_only' => '<strong>Só de leitura.</strong> Todas as alterações são recusadas — formulários, botões, tudo o que guarda.',
+    'rule_minutes' => '{1} <strong>:count minuto</strong>, depois termina automaticamente.|[0,*] <strong>:count minutos</strong>, depois termina automaticamente.',
+    'rule_senior_user' => 'Vê o mesmo que o utilizador de back office verificado com mais permissões — incluindo os hóspedes. Consulte apenas o que o motivo exige.',
+    'rule_recorded' => 'Cada página que abrir fica registada, e a equipa da organização é informada depois: o seu nome, a hora e este motivo.',
+    'organisation_label' => 'Organização',
+    'choose_option' => 'Selecionar…',
+    'code_label' => 'O seu código 2FA (atual)',
+    'reason_label' => 'Motivo — a organização vai lê-lo',
+    'reason_placeholder' => 'p. ex. Ticket #123 — o proprietário indica que falta uma reserva',
+    'open_button' => 'Abrir sessão só de leitura',
+    'recent_heading' => 'Sessões recentes',
+    'empty_state' => 'Ainda não foi aberta nenhuma sessão de acesso de emergência.',
+    'col_admin' => 'Administrador',
+    'col_organisation' => 'Organização',
+    'col_reason' => 'Motivo',
+    'col_started' => 'Início',
+    'col_ended' => 'Fim',
+    'col_pages' => 'Páginas',
+    'col_told' => 'Informada',
+    'ended_open' => 'aberta',
+    'ended_due' => 'expirada — ainda não encerrada',
+    'told_yes' => 'Sim',
+    'told_not_yet' => 'Ainda não',
+];

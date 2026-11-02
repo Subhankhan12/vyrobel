@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Receita',
+    'subtitle' => 'A partir do que a Stripe efetivamente cobrou — nunca dos preços de tabela. Só clientes, a menos que inclua as organizações da própria Vyrobel.',
+    'including_internal' => 'Inclui as organizações internas da própria Vyrobel.',
+    'customers_only_note' => 'Só clientes.',
+    'customers_only_link' => 'Só clientes',
+    'include_internal_link' => 'Incluir internas',
+    'no_live_billing_pill' => 'Ainda sem faturação real',
+    'no_customer_charged' => 'Ainda não foi cobrado nenhum cliente.',
+    'not_live_explainer' => 'A Stripe não está em modo de produção, por isso não há faturas pagas para contar. Não é um mau mês — ainda não há nenhum mês. Aqui, a receita é calculada apenas a partir de <strong>faturas Stripe pagas</strong> (o valor efetivamente cobrado, registado quando a Stripe nos avisa), nunca a partir do preço de tabela de um plano.',
+    'live_billed_subscriptions' => 'Subscrições com faturação real',
+    'trialing_unbilled' => 'Subscrições em período de teste, não faturadas',
+    'failed_payments_30d' => 'Pagamentos falhados, últimos 30 dias',
+    'when_first_paid' => 'Quando a primeira fatura for paga, esta página mostra: MRR e ARR por moeda · MRR novo, de expansão, de contração e perdido · conversão de período de teste em pago · pagamentos falhados.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Subscrições contabilizadas',
+    'no_live_subscription_charged' => 'Ainda não foi cobrada nenhuma subscrição ativa com faturação real.',
+    'mrr_hint' => 'Cada subscrição real ativa ou com pagamento em atraso, pela sua fatura paga mais recente, convertida para base mensal segundo o período de faturação dessa fatura.',
+    'this_month_vs_last' => 'Este mês vs. o anterior',
+    'movement_new' => 'Novo · :currency',
+    'movement_expansion' => 'Expansão · :currency',
+    'movement_contraction' => 'Contração · :currency',
+    'movement_churned' => 'Perdido · :currency',
+    'nothing_charged' => 'Nada cobrado no mês passado nem neste mês.',
+    'movements_hint' => 'Por organização, a partir do que foi cobrado em cada mês. Perdido = cobrado no mês passado, nada neste mês, e a subscrição está cancelada.',
+    'trial_to_paid' => 'Conversão para pago',
+    'trial_to_paid_value' => ':converted de :ended períodos de teste terminados foram cobrados',
+    'past_due_now' => 'Em atraso agora',
+    'paid_invoices_counted' => 'Faturas pagas contabilizadas',
+    'never_moves_money' => 'Esta consola nunca cobra, reembolsa nem movimenta dinheiro. Cada valor é por moeda e nunca somado entre moedas.',
+];

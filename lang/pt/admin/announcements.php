@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Avisos',
+    'subtitle' => 'Um aviso no back office e no portal do proprietário de todas as organizações — ou só das selecionadas. Texto simples; não é enviado nenhum e-mail.',
+    'empty_state' => 'Ainda não foi publicado nenhum aviso.',
+    'col_announcement' => 'Aviso',
+    'col_to' => 'Destinatários',
+    'col_from_until' => 'De → até',
+    'col_state' => 'Estado',
+    'audience_all' => 'Todas as organizações',
+    'audience_chosen_count' => 'Selecionadas: :number',
+    'no_end' => 'sem fim',
+    'state_withdrawn' => 'Retirado',
+    'state_showing' => 'Visível',
+    'state_scheduled' => 'Agendado',
+    'state_ended' => 'Terminado',
+    'reason_aria' => 'Motivo',
+    'withdraw_placeholder' => 'Porquê retirar?',
+    'withdraw_button' => 'Retirar',
+    'publish_heading' => 'Publicar um aviso',
+    'title_label' => 'Título',
+    'message_label' => 'Mensagem (texto simples)',
+    'kind_label' => 'Tipo',
+    'show_from_label' => 'Mostrar a partir de (UTC)',
+    'until_label' => 'Até (UTC, opcional)',
+    'to_label' => 'Destinatários',
+    'option_every_organisation' => 'Todas as organizações',
+    'option_chosen_organisations' => 'Organizações selecionadas',
+    'chosen_organisations_label' => 'Organizações selecionadas (se escolher «Organizações selecionadas»)',
+    'no_organisation_chosen' => 'Ainda não foi selecionada nenhuma organização',
+    'reason_label' => 'Motivo',
+    'publish_reason_placeholder' => 'Porque é que este aviso vai ser publicado?',
+    'publish_button' => 'Publicar',
+];

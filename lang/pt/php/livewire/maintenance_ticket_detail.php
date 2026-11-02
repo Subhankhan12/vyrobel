@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pt translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Nota',
+    'kind_progress' => 'Progresso',
+    'kind_part' => 'Peça encomendada',
+    'elapsed_minutes' => ':minutes min',
+    'elapsed_hours' => ':hours h :minutes min',
+    'elapsed_days' => ':days d :hours h',
+    'hours_short' => ':hours h',
+    'timeline_opened' => 'Comunicada',
+    'timeline_assigned_to' => 'Atribuída a :name',
+    'a_technician' => 'um técnico',
+    'timeline_unassigned' => 'Atribuição removida',
+    'timeline_started' => 'Trabalho iniciado',
+    'timeline_resolved' => 'Resolvida',
+    'timeline_cancelled' => 'Cancelada',
+    'timeline_parts_updated' => 'Peças atualizadas',
+    'timeline_cost_corrected' => 'Custo corrigido',
+    'timeline_updated' => 'Detalhes editados',
+    'note_progress' => 'Atualização do progresso',
+    'note_part' => 'Peça encomendada',
+    'note_added' => 'Nota adicionada',
+    'a_team_member' => 'Um membro da equipa',
+    'system' => 'Sistema',
+    'photo_alt' => 'Fotografia da manutenção',
+    'the_owner' => 'proprietário',
+    'load_none' => 'Sem ordens de trabalho em aberto',
+    'load_open' => 'Em aberto: :open',
+    'load_open_urgent' => 'Em aberto: :open · urgentes: :urgent',
+    'impact_arrivals' => '{1} :count chegada esta noite precisa de um quarto|[0,*] :count chegadas esta noite precisam de um quarto',
+    'impact_bookings' => '{1} :count reserva tem de ser mudada|[0,*] :count reservas têm de ser mudadas',
+    'impact_none' => 'Nenhuma reserva afetada',
+];
