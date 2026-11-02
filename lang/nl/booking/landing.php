@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Accommodaties',
+    'book_direct' => 'Direct boeken',
+    'nav_stays' => 'Accommodaties',
+    'my_account' => 'Mijn account',
+    'sign_in' => 'Inloggen',
+    'rating_across' => '{1} :average op basis van :count beoordeling|[0,*] :average op basis van :count beoordelingen',
+    'heading' => 'Direct boeken bij<br>:org.',
+    'subheading' => 'Zorgvuldig onderhouden accommodaties, rechtstreeks bij ons geboekt — geen kosten, ons beste tarief en een echte persoon aan de andere kant.',
+    'where' => 'Bestemming',
+    'check_in' => 'Aankomst',
+    'check_out' => 'Vertrek',
+    'adults' => 'Volwassenen',
+    'children' => 'Kinderen',
+    'where_to_stay' => 'Waar u kunt verblijven',
+    'towns_lede' => '{1} Onze thuisbasis.|[0,*] :count plaatsen, elk met een eigen tempo.',
+    'from_price' => 'vanaf :price',
+    'featured_stays' => 'Uitgelichte accommodaties',
+    'featured_lede' => 'Favorieten van gasten uit de hele collectie.',
+    'per_night' => '/ nacht',
+    'see_dates_for_pricing' => 'Kies datums voor prijzen',
+    'browse_by_what_matters' => 'Zoek op wat voor u telt',
+    'why_book_direct' => 'Waarom direct boeken',
+    'recent_guests' => 'Recente gasten',
+    'rating_short' => '{1} :average · :count beoordeling|[0,*] :average · :count beoordelingen',
+    'stars_aria' => ':rating van 5 sterren',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'Nog geen beoordelingen — verblijf als eerste en deel uw ervaring.',
+    'cta_heading' => 'Vind uw plek',
+    'cta_sub' => 'Echte datums, actuele prijzen, directe bevestiging.',
+    'browse_all_stays' => 'Alle accommodaties bekijken',
+];

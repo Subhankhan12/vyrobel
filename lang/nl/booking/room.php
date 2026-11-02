@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Alle kamers',
+    'kind_sleeps_up_to' => ':kind · max. :capacity pers.',
+    'reviews_count' => '{1} :count beoordeling|[0,*] :count beoordelingen',
+    'no_reviews_yet' => 'Nog geen beoordelingen',
+    'save_to_wishlist' => 'Toevoegen aan favorieten',
+    'sleeps' => 'Max. personen',
+    'adults' => 'Volwassenen',
+    'children' => 'Kinderen',
+    'bedrooms' => 'Slaapkamers',
+    'standard_occupancy' => 'Standaardbezetting',
+    'amenities' => 'Voorzieningen',
+    'not_yet_listed' => 'Nog niet vermeld',
+    'amenities_not_published' => 'De voorzieningen van deze kamer zijn nog niet gepubliceerd.',
+    'guest_reviews' => 'Beoordelingen van gasten',
+    'stars_aria' => ':rating van 5 sterren',
+    'response_label' => 'Reactie:',
+    'no_reviews_be_first' => 'Nog geen beoordelingen — verblijf als eerste en deel uw ervaring.',
+    'coming_soon' => 'Binnenkort',
+    'description_soon' => 'Een volledige beschrijving en locatiekaart volgen nog — de specificaties, beschikbaarheid, prijs en beoordelingen hierboven zijn echt.',
+    'per_night' => '/ nacht',
+    'per_night_with_note' => '/ nacht · :note',
+    'total_nights' => '{1} :amount totaal · :count nacht|[0,*] :amount totaal · :count nachten',
+    'left_for_your_dates' => 'Nog :count over voor uw datums',
+    'book_this_room' => 'Deze kamer boeken',
+    'nothing_reserved' => 'Er wordt niets gereserveerd tot u bevestigt bij het afrekenen.',
+    'your_dates' => 'Uw datums',
+    'not_available' => 'Niet beschikbaar voor deze datums — probeer andere datums.',
+    'check_in' => 'Aankomst',
+    'check_out' => 'Vertrek',
+    'check_dates' => 'Datums controleren',
+    'check_availability' => 'Beschikbaarheid en prijs controleren',
+    'see_price' => 'Prijs bekijken',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Noodtoegang',
+    'subtitle' => 'Een tijdgebonden kijkje in één organisatie, alleen-lezen — met een reden en 2FA, en de organisatie wordt ingelicht.',
+    'back_label' => 'Support',
+    'open_heading' => 'Uw sessie is geopend',
+    'open_summary' => '{1} :organization · eindigt om :time UTC · :count pagina bekeken.|[0,*] :organization · eindigt om :time UTC · :count pagina’s bekeken.',
+    'go_to_back_office' => 'Naar hun backoffice',
+    'end_now' => 'Sessie nu beëindigen',
+    'start_heading' => 'Sessie openen',
+    'rule_read_only' => '<strong>Alleen-lezen.</strong> Elke wijziging wordt geweigerd — formulieren, knoppen, alles wat iets opslaat.',
+    'rule_minutes' => '{1} <strong>:count minuut</strong>, daarna eindigt de sessie vanzelf.|[0,*] <strong>:count minuten</strong>, daarna eindigt de sessie vanzelf.',
+    'rule_senior_user' => 'U ziet wat hun hoogste geverifieerde backofficegebruiker ziet — inclusief gasten. Bekijk alleen wat de reden vereist.',
+    'rule_recorded' => 'Elke pagina die u opent wordt vastgelegd, en hun team wordt achteraf ingelicht: uw naam, het tijdstip en deze reden.',
+    'organisation_label' => 'Organisatie',
+    'choose_option' => 'Kies…',
+    'code_label' => 'Uw 2FA-code (nu)',
+    'reason_label' => 'Reden — zij lezen dit',
+    'reason_placeholder' => 'bijv. Ticket #123 — de eigenaar meldt een ontbrekende reservering',
+    'open_button' => 'Sessie openen in alleen-lezen',
+    'recent_heading' => 'Recente sessies',
+    'empty_state' => 'Er is nog nooit een noodtoegangssessie geopend.',
+    'col_admin' => 'Beheerder',
+    'col_organisation' => 'Organisatie',
+    'col_reason' => 'Reden',
+    'col_started' => 'Gestart',
+    'col_ended' => 'Beëindigd',
+    'col_pages' => 'Pagina’s',
+    'col_told' => 'Ingelicht',
+    'ended_open' => 'open',
+    'ended_due' => 'verlopen — nog niet afgesloten',
+    'told_yes' => 'Ja',
+    'told_not_yet' => 'Nog niet',
+];

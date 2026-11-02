@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Meldingsvoorkeuren',
+    'subtitle' => 'Hoe Vyrobel u bereikt',
+    'breadcrumb_label' => 'Kruimelpad',
+    'crumb_settings' => 'Instellingen',
+    'crumb_notifications' => 'Meldingen',
+    'channel_email' => 'E-mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Geen e-mailadres bekend',
+    'email_verified_title' => 'Uw inlog-e-mailadres is geverifieerd',
+    'email_verified' => 'Geverifieerd',
+    'push_not_set_up_title' => 'Push is nog niet ingesteld',
+    'not_set_up_tag' => 'niet ingesteld',
+    'push_not_available' => 'Pushmeldingen voor browser en apparaat zijn nog niet beschikbaar',
+    'channel_off' => 'Uit',
+    'sms_not_set_up_title' => 'SMS is nog niet ingesteld',
+    'sms_no_provider' => 'Nog geen SMS-provider gekoppeld',
+    'notify_me_when' => 'Melding bij',
+    'always_on' => 'Altijd aan',
+    'email_always_on_sr' => 'E-mail altijd aan voor :event',
+    'email_me_when_aria' => 'Mij e-mailen bij: :event',
+    'push_not_set_up_sr' => 'Push niet ingesteld',
+    'sms_not_set_up_sr' => 'SMS niet ingesteld',
+    'quiet_hours' => 'Stille uren',
+    'quiet_hours_help' => 'Routine-e-mails worden tussen deze tijden vastgehouden — dringende beveiligingswaarschuwingen komen altijd door; de meldingen in de app werken gewoon door.',
+    'quiet_from' => 'Van',
+    'quiet_to' => 'Tot',
+    'digest_heading' => 'Dagelijkse e-mailsamenvatting',
+    'digest_help' => 'Een ochtendoverzicht van de dag. <span class="vy-np-soon">nog niet verzonden</span> — de voorkeur wordt bewaard voor wanneer de samenvatting beschikbaar komt.',
+    'digest_off' => 'Uit',
+    'digest_morning' => 'Ochtend · 08:00',
+];

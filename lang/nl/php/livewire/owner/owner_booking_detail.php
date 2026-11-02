@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'vanaf :time',
+    'by_time' => 'uiterlijk :time',
+    'repeat_guest' => '{1} Terugkerende gast · :count verblijf|[0,*] Terugkerende gast · :count verblijven',
+    'new_guest' => 'Nieuwe gast',
+    'guests_count' => '{1} :count gast|[0,*] :count gasten',
+    'nights_count' => '{1} :count nacht|[0,*] :count nachten',
+    'channel_direct' => 'Vyrobel direct',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'OTA-kanaal',
+    'event_booking_received' => 'Reservering ontvangen',
+    'event_cancelled' => 'Geannuleerd',
+    'event_payment_received' => 'Betaling ontvangen',
+    'when_paid_in_full' => 'Volledig betaald',
+    'event_part_payment_received' => 'Deelbetaling ontvangen',
+    'when_balance_due' => 'Openstaand bedrag',
+    'event_payment' => 'Betaling',
+    'when_not_yet_received' => 'Nog niet ontvangen',
+    'event_checked_in' => 'Ingecheckt',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Uitgecheckt',
+    'event_payout_released' => 'Uitbetaling vrijgegeven',
+    'event_payout' => 'Uitbetaling',
+    'when_next_payout' => 'Bij uw volgende uitbetaling',
+    'payout_not_attributed' => 'Nog niet toegerekend',
+    'payout_not_attributed_note' => 'Deze reservering is nog niet aan uw grootboek toegerekend.',
+    'payout_scheduled' => 'Gepland',
+    'payout_scheduled_note' => 'Wordt opgenomen in uw volgende afrekening en daarna met die uitbetaling vrijgegeven.',
+    'payout_pending' => 'Uitbetaling in afwachting',
+    'payout_pending_note' => 'Staat op een definitieve afrekening — wordt met die uitbetaling vrijgegeven.',
+    'payout_paid' => 'Betaald',
+    'payout_paid_note' => 'Vrijgegeven met een voltooide uitbetaling.',
+];

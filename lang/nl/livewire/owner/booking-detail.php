@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Overzicht',
+    'breadcrumb_bookings' => 'Reserveringen',
+    'guest_fallback' => 'Gast',
+    'reservation' => 'Reservering',
+    'check_in' => 'Check-in',
+    'nights_count' => '{1} :count nacht|[0,*] :count nachten',
+    'check_out' => 'Check-out',
+    'unit' => 'Eenheid',
+    'guests' => 'Gasten',
+    'nights' => 'Nachten',
+    'nightly_rate' => 'Tarief per nacht',
+    'your_earnings' => 'Uw opbrengst',
+    'gross_to_net' => 'bruto → netto',
+    'gross_booking_value' => 'Bruto reserveringswaarde',
+    'net_to_you' => 'Netto voor u',
+    'refunds_we_covered' => 'Terugbetaald door ons',
+    'refunds_we_covered_note' => 'Terugbetaald aan de gast en ten laste van ons, niet van u. Uw opbrengst hierboven blijft ongewijzigd.',
+    'not_yet_attributed' => 'Nog niet toegerekend.',
+    'not_yet_attributed_note' => 'Uw opbrengst verschijnt hier zodra deze reservering aan uw grootboek is toegerekend — meestal na de check-out.',
+    'guest_heading' => 'Gast',
+    'guest_contact_note' => 'Contactgegevens van gasten worden door uw beheerteam behandeld — u ziet de reservering en uw opbrengst.',
+    'message_your_team' => 'Bericht aan uw team',
+    'timeline' => 'Tijdlijn',
+    'for_night_stay' => 'voor dit verblijf · nachten: :nights',
+    'booking_details' => 'Reserveringsgegevens',
+    'confirmation' => 'Bevestiging',
+    'source' => 'Bron',
+    'channel' => 'Kanaal',
+    'booked_on' => 'Geboekt op',
+    'download_confirmation' => 'Bevestiging downloaden',
+    'download_unavailable' => 'Beschikbaar voor mede-eigenaren en boekhouders',
+    'view_unit' => ':unit bekijken',
+];

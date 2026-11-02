@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Exploitant/eigenaar',
+    'realm_guest' => 'Gast',
+    'realm_admin' => 'Platformbeheerder',
+    'event_login' => 'Inloggen',
+    'event_failed' => 'Mislukt',
+    'event_lockout' => 'Blokkering',
+    'subject_user' => 'Gebruiker',
+    'subject_guest' => 'Gast',
+    'subject_platform_admin' => 'Platformbeheerder',
+    'subject_unknown' => 'Onbekend',
+    'actor_user' => 'Gebruiker',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'Systeem',
+    'page_title' => 'Beveiliging en activiteit',
+    'page_subtitle' => 'Inlogactiviteit en accountgebeurtenissen op het hele platform. Bewaartermijn: :days dagen, daarna gewist.',
+    'kpi_failures' => 'Mislukt / blokkering · 24 u',
+    'kpi_failures_help' => 'Herhaalde mislukte pogingen kunnen op aftasten wijzen.',
+    'privacy' => 'Privacy',
+    'privacy_body' => 'Inlogactiviteit (incl. IP-adres) wordt alleen vastgelegd als <strong style="color: var(--ad-ink);">beveiligingssignaal</strong> — om verdachte inlogpogingen op te sporen en voor support — nooit om mensen te volgen. Bewaartermijn: :days dagen, daarna automatisch gewist; alleen toegankelijk via deze console.',
+    'recent_sign_ins' => 'Recente inlogactiviteit',
+    'col_event' => 'Gebeurtenis',
+    'col_realm' => 'Omgeving',
+    'col_account' => 'Account',
+    'col_ip' => 'IP',
+    'col_when' => 'Wanneer',
+    'no_sign_ins' => 'Nog geen inlogactiviteit vastgelegd.',
+    'recent_account_events' => 'Recente accountgebeurtenissen <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· bij alle klanten</span>',
+    'col_customer' => 'Klant',
+    'col_actor' => 'Uitvoerder',
+    'no_account_events' => 'Nog geen accountgebeurtenissen.',
+];

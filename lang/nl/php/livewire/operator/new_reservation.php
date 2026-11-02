@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Verblijf',
+    'step_guest' => 'Gast',
+    'step_extras' => 'Extra’s',
+    'step_confirm' => 'Bevestigen',
+    'source_direct' => 'Direct',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Zakelijk',
+    'source_agent' => 'Reisbureau',
+    'the_guest' => 'de gast',
+    'a_night' => ':amount per nacht',
+    'a_night_range' => ':low–:high per nacht',
+    'dates_label' => '{1} :from → :to · :count nacht|[0,*] :from → :to · :count nachten',
+    'restrict_min_stay' => '{1} Bij aankomst op :date moet een verblijf minstens :count nacht duren|[0,*] Bij aankomst op :date moet een verblijf minstens :count nachten duren',
+    'restrict_max_stay' => '{1} Bij aankomst op :date mag een verblijf maximaal :count nacht duren|[0,*] Bij aankomst op :date mag een verblijf maximaal :count nachten duren',
+    'restrict_no_arrivals' => 'Geen aankomsten op :date',
+    'restrict_no_departures' => 'Geen vertrekken op :date',
+    'restrict_stop_sell' => ':date is gesloten voor nieuwe reserveringen',
+    'restrict_other' => ':restriction op :date',
+    'arrival_mail_off' => 'Vyrobel verstuurt nog geen e-mails — geef de gast zelf de routebeschrijving en de deurcode.',
+    'arrival_pre_arrival_off' => 'De e-mail vóór aankomst staat uit voor uw accommodaties — geef de gast zelf de routebeschrijving en de deurcode.',
+    'arrival_too_soon' => '{1} Dit verblijf begint te snel voor de e-mail vóór aankomst, die :count dag vóór de check-in wordt verstuurd — geef de gast zelf de routebeschrijving en de deurcode.|[0,*] Dit verblijf begint te snel voor de e-mail vóór aankomst, die :count dagen vóór de check-in wordt verstuurd — geef de gast zelf de routebeschrijving en de deurcode.',
+    'arrival_by_email' => '{1} De routebeschrijving, en de deurcode als de eenheid er een heeft, ontvangt de gast :count dag vóór de check-in per e-mail — als er een e-mailadres bekend is. De deurcode wordt hier nooit getoond.|[0,*] De routebeschrijving, en de deurcode als de eenheid er een heeft, ontvangt de gast :count dagen vóór de check-in per e-mail — als er een e-mailadres bekend is. De deurcode wordt hier nooit getoond.',
+    'cancel_not_free' => 'Niet gratis voor dit verblijf — de termijn liep af op :date',
+    'cancel_free_until_check_in' => 'Gratis tot de check-in',
+    'cancel_free_until_date' => 'Gratis tot :date',
+    'cancel_free_until_days' => '{1} Gratis tot :count dag vóór de check-in|[0,*] Gratis tot :count dagen vóór de check-in',
+    'min_stay_none' => 'Geen minimum',
+    'min_stay_nights' => '{1} :count nacht|[0,*] :count nachten',
+    'guest_no_name' => 'Gast',
+    'no_stays_yet' => 'Nog geen verblijven',
+];

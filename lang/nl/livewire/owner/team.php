@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Team en toegang',
+    'subtitle' => 'Geef een mede-eigenaar of uw boekhouder eigen inloggegevens — beperkt tot wat die persoon nodig heeft.',
+    'people_with_access' => 'Personen met toegang',
+    'account_owner' => 'Accounthouder',
+    'thats_you' => 'dat bent u',
+    'owner_access' => 'Volledige toegang tot alles, ook tot deze pagina.',
+    'active_now' => 'Nu actief',
+    'role_for' => 'Rol voor :name',
+    'your_password' => 'Uw wachtwoord',
+    'confirm_password' => 'Bevestigen met uw wachtwoord',
+    'remove_confirm' => ':name weghalen? Deze persoon kan dan niet meer inloggen.',
+    'no_members' => 'Tot nu toe alleen u — nodig hieronder een mede-eigenaar of boekhouder uit.',
+    'invite_heading' => 'Iemand uitnodigen',
+    'invite_sub' => 'Diegene krijgt eigen inloggegevens — u kunt de toegang op elk moment intrekken.',
+    'invite_email_label' => 'E-mailadres om uit te nodigen',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Uitnodiging versturen',
+    'pending_invites' => 'Openstaande uitnodigingen',
+    'resend' => 'Opnieuw versturen',
+    'revoke' => 'Intrekken',
+    'matrix_heading' => 'Wat elke rol kan zien',
+    'matrix_note' => 'Alleen u, de accounthouder, kunt het team en de uitbetalingsrekening beheren.',
+    'recent_activity' => 'Recente activiteit',
+    'no_activity' => 'Nog niets — uitnodigingen en inlogs verschijnen hier.',
+    'download_log' => 'Downloadlogboek exporteren',
+    'download_log_sub' => 'Elk afrekenings-, reserverings-, uitbetalings- of belastingbestand dat uw team downloadt, krijgt een stempel met wie het heeft gedownload — en wordt hier vastgelegd.',
+    'no_downloads' => 'Nog geen exports gedownload — ze verschijnen hier, met een stempel van wie ze heeft gedownload.',
+    'security_heading' => 'Iedereen krijgt een eigen sleutel',
+    'security_body' => 'Geen gedeelde wachtwoorden — iedereen logt in met een eigen account, en de toegang is beperkt tot de eigen rol. Financiële exports krijgen een watermerk met wie ze heeft gedownload en worden vastgelegd in het logboek hierboven. Zet voor uw eigen account verificatie in twee stappen aan.',
+    'security_settings' => 'Beveiligingsinstellingen',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Mededelingen',
+    'subtitle' => 'Een mededeling in de backoffice en het eigenaarsportaal van elke organisatie — of van gekozen organisaties. Platte tekst; er wordt niets gemaild.',
+    'empty_state' => 'Er is nog nooit een mededeling gepubliceerd.',
+    'col_announcement' => 'Mededeling',
+    'col_to' => 'Aan',
+    'col_from_until' => 'Van → tot',
+    'col_state' => 'Status',
+    'audience_all' => 'Alle organisaties',
+    'audience_chosen_count' => ':number gekozen',
+    'no_end' => 'geen einde',
+    'state_withdrawn' => 'Ingetrokken',
+    'state_showing' => 'Zichtbaar',
+    'state_scheduled' => 'Gepland',
+    'state_ended' => 'Afgelopen',
+    'reason_aria' => 'Reden',
+    'withdraw_placeholder' => 'Waarom intrekken?',
+    'withdraw_button' => 'Intrekken',
+    'publish_heading' => 'Mededeling publiceren',
+    'title_label' => 'Titel',
+    'message_label' => 'Bericht (platte tekst)',
+    'kind_label' => 'Soort',
+    'show_from_label' => 'Tonen vanaf (UTC)',
+    'until_label' => 'Tot (UTC, optioneel)',
+    'to_label' => 'Aan',
+    'option_every_organisation' => 'Alle organisaties',
+    'option_chosen_organisations' => 'Gekozen organisaties',
+    'chosen_organisations_label' => 'Gekozen organisaties (bij “Gekozen organisaties”)',
+    'no_organisation_chosen' => 'Nog geen organisatie gekozen',
+    'reason_label' => 'Reden',
+    'publish_reason_placeholder' => 'Waarom wordt dit gepubliceerd?',
+    'publish_button' => 'Publiceren',
+];

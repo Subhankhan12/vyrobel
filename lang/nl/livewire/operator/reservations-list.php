@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Reserveringen',
+    'arrivals_this_month' => 'Aankomsten deze maand',
+    'arrivals_this_month_sub' => 'aankomst in deze kalendermaand · annuleringen en no-shows niet meegeteld',
+    'booked_value' => 'Geboekte waarde · aankomsten deze maand',
+    'booked_value_sub' => 'gefactureerd op de aankomsten van deze maand',
+    'booked_value_sub_multi' => 'gefactureerd op de aankomsten van deze maand · per valuta getoond (nooit bij elkaar opgeteld)',
+    'balances_due' => 'Openstaande bedragen · aankomsten deze maand',
+    'folios_owing' => '{0} niets openstaand|{1} :count folio staat nog open|[2,*] :count folio’s staan nog open',
+    'search_placeholder' => 'Zoeken op gast of referentie…',
+    'search_label' => 'Reserveringen zoeken',
+    'group_booking' => 'Groepsreservering',
+    'new_reservation' => 'Nieuwe reservering',
+    'empty_heading' => 'Nog geen reserveringen',
+    'empty_body' => 'Elke reservering — direct, walk-in of geïmporteerd — komt hier terecht zodra ze is gemaakt.',
+    'no_match_query' => 'Geen reserveringen die overeenkomen met “:query”',
+    'no_match_view' => 'Geen reserveringen in deze weergave',
+    'no_match_hint' => '{1} Probeer een gastnaam of reserveringsreferentie. In totaal :count reservering.|[0,*] Probeer een gastnaam of reserveringsreferentie. In totaal :count reserveringen.',
+    'no_match_hint_filter' => '{1} Probeer een gastnaam of reserveringsreferentie, of wis het filter. In totaal :count reservering.|[0,*] Probeer een gastnaam of reserveringsreferentie, of wis het filter. In totaal :count reserveringen.',
+    'clear_search_filters' => 'Zoekopdracht en filters wissen',
+    'col_guest' => 'Gast',
+    'col_stay' => 'Verblijf',
+    'col_unit' => 'Eenheid',
+    'col_source' => 'Bron',
+    'col_stage' => 'Fase',
+    'col_balance_due' => 'Openstaand bedrag',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count nacht|[0,*] :count nachten',
+    'guests' => '{1} :count gast|[0,*] :count gasten',
+    'unassigned' => 'Niet toegewezen',
+    'refunded' => 'Terugbetaald',
+    'pager_label' => 'reserveringen',
+];

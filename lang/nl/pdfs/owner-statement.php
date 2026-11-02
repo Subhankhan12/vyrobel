@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'beheerd met Vyrobel',
+    'eyebrow' => 'Eigenaarsafrekening',
+    'unit_count' => '{1} :count eenheid|[0,*] :count eenheden',
+    'issued' => 'uitgegeven op :date',
+    'prepared_for' => 'Opgesteld voor',
+    'net_payable_to_owner' => 'Netto uit te betalen aan eigenaar',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Bezettingsgraad',
+    'nights_sold' => 'Verkochte nachten',
+    'avg_nightly_rate' => 'Gem. tarief per nacht',
+    'breakdown' => 'Specificatie',
+    'item' => 'Omschrijving',
+    'detail' => 'Toelichting',
+    'amount' => 'Bedrag',
+    'provisional' => '(voorlopig)',
+    'performance_by_unit' => 'Prestaties per eenheid',
+    'unit' => 'Eenheid',
+    'nights' => 'Nachten',
+    'revenue' => 'Opbrengst',
+    'total_gross_room_revenue' => 'Totale bruto kameropbrengst',
+    'callout_heading' => 'Uitbetaling.',
+    'settles_to_iban' => 'Het nettobedrag van :amount wordt per bankoverschrijving overgemaakt naar IBAN :iban.',
+    'settles' => 'Het nettobedrag van :amount wordt per bankoverschrijving overgemaakt.',
+    'fees_with_commission' => 'De beheercommissie bedraagt :pct% van de bruto kameropbrengst; betalings- en platformkosten worden tegen kostprijs doorberekend. Alle bedragen zijn in :currency en inclusief toepasselijke belastingen die namens u zijn geïnd.',
+    'fees' => 'Betalings- en platformkosten worden tegen kostprijs doorberekend. Alle bedragen zijn in :currency en inclusief toepasselijke belastingen die namens u zijn geïnd.',
+    'fx_note' => 'Omgerekend van :source tegen :rate (bron: :src).',
+    'provisional_note' => 'Sommige regels zijn voorlopig, in afwachting van afstemming met het kanaal.',
+    'statement_ref' => 'afrekening :ref',
+    'sequence_no' => 'nr. :number',
+    'generated' => 'gegenereerd op <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Vragen? :email',
+];

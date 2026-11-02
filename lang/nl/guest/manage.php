@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => ':reference beheren',
+    'back_to_booking' => '← Terug naar reservering',
+    'heading' => 'Uw reservering beheren',
+    'subheading' => ':property · :check_in → :check_out. Wijzigingen worden door de accommodatie bevestigd — we sturen u een bericht zodra dat is gebeurd.',
+    'pending_requests' => 'Openstaande verzoeken',
+    'pending_badge' => 'In afwachting',
+    'pending_note' => 'Er is nog niets aan uw reservering veranderd — een verzoek wordt eerst door de accommodatie bevestigd.',
+    'pick_new_dates' => 'Kies nieuwe data',
+    'currently' => 'Nu :check_in → :check_out. Kies nieuwe data om het prijsverschil te zien en vraag daarna de wijziging aan.',
+    'new_check_in' => 'Nieuwe aankomstdatum',
+    'new_check_out' => 'Nieuwe vertrekdatum',
+    'see_price_difference' => 'Prijsverschil bekijken',
+    'new_stay' => 'Nieuw verblijf',
+    'current' => 'Huidig',
+    'difference' => 'Verschil',
+    'estimate_note' => 'Alleen een schatting — onder voorbehoud van bevestiging door de accommodatie. Een eventuele betaling wordt na die bevestiging afgehandeld.',
+    'unpriced_note' => 'Voor die data is nog geen prijs gepubliceerd — vraag de wijziging aan, dan bevestigt de accommodatie de prijs.',
+    'request_date_change' => 'Datumwijziging aanvragen',
+    'add_to_your_stay' => 'Toevoegen aan uw verblijf',
+    'add_to_your_stay_sub' => 'Voeg ontbijt, transfers en meer toe — na bevestiging wordt alles met uw reservering verrekend.',
+    'browse_extras' => 'Extra’s bekijken',
+    'cancellation_policy' => 'Annuleringsvoorwaarden',
+    'free_until' => 'Gratis annuleren tot <strong>:date</strong> — wordt uw verzoek vóór die datum ingediend, dan krijgt u het volledige bedrag terug.',
+    'policy_by_property' => 'De accommodatie bevestigt uw annulering en handelt een eventuele terugbetaling af volgens haar voorwaarden.',
+    'cancel_confirm' => 'Een annuleringsverzoek voor deze reservering sturen? De accommodatie beoordeelt het en handelt een eventuele terugbetaling af volgens haar voorwaarden.',
+    'reason' => 'Reden',
+    'choose_reason' => 'Kies een reden…',
+    'request_cancellation' => 'Annulering aanvragen',
+    'closed_heading' => 'Deze reservering is afgesloten',
+    'closed_body' => 'Er valt niets meer aan te wijzigen — maar uw data, verblijfsgegevens en alles wat u hebt betaald, blijven hier beschikbaar wanneer u ze nodig hebt.',
+];

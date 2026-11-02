@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Onze accommodaties',
+    'properties_count' => ':count accommodaties',
+    'stays_count' => '{1} :count accommodatie|[0,*] :count accommodaties',
+    'stays_sleeps' => ':stays · max. :max pers.',
+    'stays_sleeps_range' => ':stays · :min–:max pers.',
+    'perk_free_cancel_days' => '{1} Volledige terugbetaling tot :count dag vóór aankomst.|[0,*] Volledige terugbetaling tot :count dagen vóór aankomst.',
+    'perk_free_cancel_window' => 'Volledige terugbetaling binnen de annuleringstermijn.',
+    'perk_no_fees' => 'Geen reserveringskosten',
+    'perk_no_fees_sub' => 'De prijs die u ziet, is de prijs die u betaalt.',
+    'perk_best_rate' => 'Direct de beste prijs',
+    'perk_best_rate_sub' => 'Boek direct voor onze eigen beste prijs — zonder tussenpersoon.',
+    'perk_free_cancel' => 'Gratis annuleren',
+    'perk_host_support' => 'Direct contact met de accommodatie',
+    'perk_host_support_sub' => 'Stuur een bericht over uw reservering naar een echte persoon.',
+    'kind_room' => 'Kamer',
+    'kind_apartment' => 'Appartement',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Slaapzaal',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviceappartement',
+    'type_apartment_building' => 'Appartementencomplex',
+    'type_apartment' => 'Appartement',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pension',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Gemengd',
+    'type_portfolio' => 'Portfolio',
+];

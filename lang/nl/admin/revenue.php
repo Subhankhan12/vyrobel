@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Omzet',
+    'subtitle' => 'Op basis van wat Stripe echt heeft afgeschreven — nooit op basis van catalogusprijzen. Alleen klanten, tenzij u de eigen organisaties van Vyrobel meetelt.',
+    'including_internal' => 'Inclusief de eigen interne organisaties van Vyrobel.',
+    'customers_only_note' => 'Alleen klanten.',
+    'customers_only_link' => 'Alleen klanten',
+    'include_internal_link' => 'Interne meetellen',
+    'no_live_billing_pill' => 'Nog geen live facturatie',
+    'no_customer_charged' => 'Er is nog bij geen enkele klant iets afgeschreven.',
+    'not_live_explainer' => 'Stripe is niet live, dus er is geen betaalde factuur om te tellen. Dat is geen slechte maand — er is nog geen maand. De omzet hier wordt alleen berekend op basis van <strong>betaalde Stripe-facturen</strong> (de afschrijving zelf, vastgelegd zodra Stripe die doorgeeft), nooit op basis van de catalogusprijs van een pakket.',
+    'live_billed_subscriptions' => 'Live gefactureerde abonnementen',
+    'trialing_unbilled' => 'Abonnementen in proefperiode, niet gefactureerd',
+    'failed_payments_30d' => 'Mislukte betalingen, laatste 30 dagen',
+    'when_first_paid' => 'Zodra de eerste factuur is betaald, toont deze pagina: MRR en ARR per valuta · nieuwe MRR, uitbreidings-, inkrimpings- en verloren MRR · conversie van proefperiode naar betaald · mislukte betalingen.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Meegerekende abonnementen',
+    'no_live_subscription_charged' => 'Voor geen enkel actief, live gefactureerd abonnement is iets afgeschreven.',
+    'mrr_hint' => 'Elk actief of achterstallig live abonnement tegen zijn laatste betaalde factuur, omgerekend naar een maandbedrag op basis van de factuurperiode van die factuur.',
+    'this_month_vs_last' => 'Deze maand vs. vorige maand',
+    'movement_new' => 'Nieuw · :currency',
+    'movement_expansion' => 'Uitbreiding · :currency',
+    'movement_contraction' => 'Inkrimping · :currency',
+    'movement_churned' => 'Verloren · :currency',
+    'nothing_charged' => 'Vorige maand en deze maand niets afgeschreven.',
+    'movements_hint' => 'Per organisatie, op basis van wat er elke maand is afgeschreven. Verloren = vorige maand afgeschreven, deze maand niets, en het abonnement is opgezegd.',
+    'trial_to_paid' => 'Van proef naar betaald',
+    'trial_to_paid_value' => ':converted van :ended beëindigde proefperiodes leidden tot een afschrijving',
+    'past_due_now' => 'Nu achterstallig',
+    'paid_invoices_counted' => 'Getelde betaalde facturen',
+    'never_moves_money' => 'Deze console schrijft nooit geld af, betaalt nooit terug en verplaatst nooit geld. Elk cijfer is per valuta en wordt nooit over valuta’s heen opgeteld.',
+];

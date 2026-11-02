@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1} :count reservering|[0,*] :count reserveringen',
+    'room_moves' => '{1} :count kamerwissel|[0,*] :count kamerwissels',
+    'cleaning_tasks' => '{1} :count schoonmaaktaak|[0,*] :count schoonmaaktaken',
+    'work_orders' => '{1} :count werkorder|[0,*] :count werkorders',
+    'status_changes' => '{1} :count statuswijziging|[0,*] :count statuswijzigingen',
+    'blocks' => '{1} :count blokkade|[0,*] :count blokkades',
+    'owner_agreements' => '{1} :count beheerovereenkomst|[0,*] :count beheerovereenkomsten',
+    'owner_statement_lines' => '{1} :count regel op een eigenaarsafrekening|[0,*] :count regels op eigenaarsafrekeningen',
+    'owner_expenses' => '{1} :count eigenaarsuitgave|[0,*] :count eigenaarsuitgaven',
+    'reviews' => '{1} :count beoordeling|[0,*] :count beoordelingen',
+    'owner_requests' => '{1} :count eigenaarsaanvraag|[0,*] :count eigenaarsaanvragen',
+    'notes' => '{1} :count notitie|[0,*] :count notities',
+    'documents' => '{1} :count document|[0,*] :count documenten',
+    'files' => '{1} :count bestand|[0,*] :count bestanden',
+    'units' => '{1} :count eenheid|[0,*] :count eenheden',
+    'rate_proposals' => '{1} :count tariefvoorstel|[0,*] :count tariefvoorstellen',
+    'overbooking_records' => '{1} :count overboekingsregistratie|[0,*] :count overboekingsregistraties',
+    'guest_waitlist_entries' => '{1} :count wachtlijstinschrijving van een gast|[0,*] :count wachtlijstinschrijvingen van gasten',
+    'guest_wishlist_saves' => '{1} :count favoriet van een gast|[0,*] :count favorieten van gasten',
+    'derived_room_types' => '{1} :count kamertype dat erop is gebaseerd|[0,*] :count kamertypes die erop zijn gebaseerd',
+    'derived_rate_plans' => '{1} :count tariefplan elders dat ervan is afgeleid|[0,*] :count tariefplannen elders die ervan zijn afgeleid',
+    'corporate_default_rates' => '{1} :count standaardtarief van een bedrijfsrekening|[0,*] :count standaardtarieven van bedrijfsrekeningen',
+    'channel_connections' => '{1} :count kanaalkoppeling|[0,*] :count kanaalkoppelingen',
+    'an_owner' => 'een eigenaar',
+    'pending_owner_invitation' => 'een openstaande eigenaarsuitnodiging',
+    'list_and' => ':items en :last',
+    'kind_rooms' => 'kamers',
+    'kind_apartments' => 'appartementen',
+    'kind_villas' => 'villa’s',
+    'kind_dorm_beds' => 'slaapzaalbedden',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'U',
+    'total_part' => ':amount :name',
+    'total_includes' => 'incl. :items',
+    'nightly_excludes' => 'excl. :tax',
+    'sleeps' => 'Max. :count pers.',
+    'studio' => 'Studio',
+    'bedrooms' => '{1} :count slaapkamer|[0,*] :count slaapkamers',
+    'checkout_title' => 'Afrekenen — :property',
+    'room_just_taken' => 'Die kamer is net door iemand anders geboekt — kies een andere kamer of andere data.',
+    'payment_received' => 'Betaling ontvangen',
+    'payment_received_note' => 'Volledig betaald.',
+    'payment_processing' => 'Betaling wordt verwerkt',
+    'payment_processing_note' => 'We bevestigen uw kaartbetaling. Vernieuw deze pagina zo meteen om te zien dat de betaling binnen is.',
+    'pay_on_arrival' => 'Betalen bij aankomst',
+    'pay_on_arrival_note' => 'U betaalt bij de accommodatie wanneer u incheckt.',
+    'confirmed_title' => 'Reservering bevestigd — :property',
+    'kind_room' => 'Kamer',
+    'kind_apartment' => 'Appartement',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Slaapzaal',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviceappartement',
+    'type_apartment_building' => 'Appartementencomplex',
+    'type_apartment' => 'Appartement',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pension',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Gemengd',
+    'type_portfolio' => 'Portfolio',
+];

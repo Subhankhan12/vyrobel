@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Gast',
+    'nights' => '{1} :count nacht|[0,*] :count nachten',
+    'block_reason_none' => 'Geblokkeerd',
+    'block_reason_maintenance' => 'Onderhoud',
+    'block_reason_owner' => 'Eigenaar',
+    'block_reason_manual' => 'Handmatig',
+    'block_reason_overbooking_protection' => 'Bescherming tegen overboeking',
+    'cleaning_departure' => 'Vertrekschoonmaak',
+    'cleaning_stayover' => 'Tussenschoonmaak',
+    'cleaning_deep' => 'Grondige schoonmaak',
+    'cleaning_arrival_prep' => 'Aankomstvoorbereiding',
+    'cleaning_status_pending' => 'Gepland',
+    'cleaning_status_in_progress' => 'Bezig',
+    'cleaning_status_clean' => 'Schoon',
+    'cleaning_status_inspected' => 'Gecontroleerd',
+    'kind_room' => 'Kamer',
+    'kind_apartment' => 'Appartement',
+    'kind_villa' => 'Villa',
+    'kind_dorm_bed' => 'Slaapzaalbed',
+    'condition_out_of_order' => 'Defect',
+    'condition_out_of_service' => 'In onderhoud',
+    'status_enquiry' => 'Aanvraag',
+    'status_tentative' => 'Optie',
+    'status_confirmed' => 'Bevestigd',
+    'status_checked_in' => 'Ingecheckt',
+    'status_checked_out' => 'Uitgecheckt',
+    'status_cancelled' => 'Geannuleerd',
+    'status_no_show' => 'No-show',
+    'terms_portfolio' => 'Portfoliobrede voorwaarden',
+    'terms_unit' => 'Voorwaarden voor deze eenheid',
+];

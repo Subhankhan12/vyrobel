@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Overzicht',
+    'subtitle_all' => 'Alle organisaties, inclusief de eigen interne organisaties van Vyrobel.',
+    'subtitle_customers' => 'Alleen klanten — de eigen interne organisaties van Vyrobel tellen niet mee.',
+    'showing_all' => '<strong>Alle</strong> organisaties worden getoond — intern: :internal.',
+    'internal_excluded' => '{1} :count interne organisatie telt niet mee in de cijfers hieronder.|[0,*] :count interne organisaties tellen niet mee in de cijfers hieronder.',
+    'customers_only' => 'Alleen klanten',
+    'include_internal' => 'Interne meetellen',
+    'no_customers_heading' => 'Nog geen klanten',
+    'no_customers_body' => 'Elke organisatie op het platform is een eigen organisatie van Vyrobel (intern: :internal). De eerste echte registratie verschijnt hier.',
+    'kpi_organisations' => 'Organisaties',
+    'kpi_customers' => 'Klanten',
+    'kpi_account_status' => 'Actief: :active · opgeschort: :suspended',
+    'kpi_subscriptions' => 'Abonnementen',
+    'kpi_subscriptions_sub' => 'actief · in gratis proefperiode: :trial',
+    'kpi_revenue' => 'Omzet',
+    'no_live_billing' => 'Nog geen live facturatie',
+    'no_live_billing_sub' => 'Er wordt nog geen abonnement via Stripe gefactureerd. De catalogusprijs van een proefperiode is geen omzet.',
+    'billed_live' => '{1} :count live gefactureerd|[0,*] :count live gefactureerd',
+    'billed_live_sub' => 'Berekend op basis van wat Stripe heeft afgeschreven, nooit de prijslijst — zie <a class="ad-cell-link" href=":url">Omzet</a>.',
+    'kpi_properties' => 'Accommodaties',
+    'kpi_reservations' => '{1} :count reservering|[0,*] :count reserveringen',
+    'new_organisations_heading' => 'Nieuwe organisaties · laatste 6 maanden',
+    'new_customers_heading' => 'Nieuwe klanten · laatste 6 maanden',
+    'no_signups' => 'Geen registraties in de laatste 6 maanden.',
+    'account_status_heading' => 'Accountstatus',
+    'status_active' => 'Actief',
+    'status_suspended' => 'Opgeschort',
+    'status_cancelled' => 'Opgezegd',
+    'status_trialing' => 'Proefperiode (account)',
+    'free_trial_hint' => 'Een gratis proefperiode is een status van het abonnement, geen accountstatus — nu in gratis proefperiode: :trial.',
+    'plans_in_use' => 'Pakketten in gebruik <span class="ad-stat-sub" style="font-weight: 400;">· actief of proefperiode</span>',
+    'no_plans' => 'Nog geen pakketten in gebruik.',
+];

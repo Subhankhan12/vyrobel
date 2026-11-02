@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Melding “:title” geopend voor eenheid :unit.',
+    'not_assignable_staff' => 'Aan die gebruiker kan in deze organisatie geen werk worden toegewezen.',
+    'cannot_reassign_closed' => 'Die melding kan niet worden overgedragen — die is al gesloten.',
+    'assignment_updated' => 'Toewijzing van de melding bijgewerkt.',
+    'work_order_closed' => 'Die werkorder is gesloten — de gegevens kunnen niet meer worden gewijzigd.',
+    'work_order_updated' => 'Werkorder bijgewerkt.',
+    'col_title' => 'Titel',
+    'col_unit' => 'Eenheid',
+    'col_category' => 'Categorie',
+    'col_priority' => 'Prioriteit',
+    'col_status' => 'Status',
+    'col_assignee' => 'Behandelaar',
+    'col_reported' => 'Gemeld',
+    'col_cost' => 'Kosten',
+    'bulk_assigned_skipped' => '{1} :count werkorder toegewezen · :skipped overgeslagen (al gesloten)|[0,*] :count werkorders toegewezen · :skipped overgeslagen (al gesloten)',
+    'bulk_assigned' => '{1} :count werkorder toegewezen.|[0,*] :count werkorders toegewezen.',
+    'bulk_resolved_skipped' => '{1} :count werkorder afgehandeld · :skipped overgeslagen (al gesloten)|[0,*] :count werkorders afgehandeld · :skipped overgeslagen (al gesloten)',
+    'bulk_resolved' => '{1} :count werkorder afgehandeld.|[0,*] :count werkorders afgehandeld.',
+    'cannot_start' => 'Aan die melding kan niet worden begonnen — die staat niet meer open.',
+    'work_started' => 'Het werk aan deze melding is begonnen.',
+    'cannot_resolve_closed' => 'Die werkorder kan niet worden afgehandeld — die is al gesloten.',
+    'ticket_resolved' => 'Melding afgehandeld.',
+    'cannot_cancel_closed' => 'Die melding kan niet worden geannuleerd — die is al gesloten.',
+    'ticket_cancelled' => 'Melding geannuleerd.',
+    'parts_closed' => 'Die melding is gesloten — de onderdelen kunnen niet worden bijgewerkt.',
+    'awaiting_parts' => 'Status gezet op “Wacht op onderdelen”.',
+    'parts_arrived' => 'Onderdelen als binnengekomen gemarkeerd.',
+    'update_posted_waiting_part' => 'Update geplaatst — de werkorder wacht nu op het onderdeel.',
+    'update_posted' => 'Update geplaatst.',
+    'photo_added' => 'Foto toegevoegd.',
+    'photo_removed' => 'Foto verwijderd.',
+    'workspace_paused' => 'Uw organisatie is gepauzeerd (alleen-lezen) — onderhoudswijzigingen zijn niet mogelijk tot u de organisatie hervat.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Bedragen',
+    'csv_amounts_note' => 'hele valuta-eenheden, decimale punt, geen scheidingsteken voor duizendtallen',
+    'col_date' => 'Datum',
+    'col_work_order' => 'Werkorder',
+    'col_unit' => 'Eenheid',
+    'col_category' => 'Categorie',
+    'col_labor' => 'Arbeid',
+    'col_parts' => 'Onderdelen',
+    'col_total' => 'Totaal',
+    'col_currency' => 'Valuta',
+    'total_row' => 'Totaal',
+    'sheet_summary' => 'Overzicht',
+    'col_measure' => 'Kengetal',
+    'col_value' => 'Waarde',
+    'total_spend' => 'Totale uitgaven',
+    'measure_labour' => 'Arbeid',
+    'measure_parts' => 'Onderdelen',
+    'orders_closed' => 'Afgesloten werkorders',
+    'owner_billed' => 'Gefactureerd aan eigenaar',
+    'operator_borne' => 'Voor rekening van exploitant',
+    'parts_on_order' => 'Bestelde onderdelen',
+    'average_per_order' => 'Gemiddeld per werkorder',
+    'by_category' => 'Per categorie',
+    'col_orders' => 'Werkorders',
+    'by_month' => 'Per maand',
+    'top_units' => 'Hoogste uitgaven per eenheid',
+    'sheet_line_items' => 'Regels',
+    'col_labour' => 'Arbeid',
+    'no_email' => 'Uw account heeft geen e-mailadres.',
+    'report_emailed' => 'Kostenrapport naar :email gemaild.',
+];

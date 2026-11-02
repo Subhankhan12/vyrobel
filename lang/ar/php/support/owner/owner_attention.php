@@ -25,7 +25,7 @@ return [
     'room_type_fallback' => 'نوع الغرفة',
     'no_rate_set' => 'لم يتم تحديد سعر',
     'extra_weekends' => '+:pct% في نهاية الأسبوع',
-    'extra_min_stay' => 'الحد الأدنى للإقامة: :nights ليلة',
+    'extra_min_stay' => 'الحد الأدنى للإقامة بالليالي: :nights',
     'proposal_summary' => ':room_type: :from ← :to / ليلة',
     'proposal_summary_extra' => ':room_type: :from ← :to / ليلة (:extra)',
 ];

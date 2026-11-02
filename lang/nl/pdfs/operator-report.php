@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Rapporten',
+    'arrivals_in' => 'Aankomsten in :period',
+    'arrivals_count' => '{1} :count aankomst|[0,*] :count aankomsten',
+    'pp_delta' => ':delta %-punt',
+    'occupancy' => 'Bezettingsgraad',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Bruto-omzet',
+    'basis_note' => 'Bezettingsgraad · ADR · RevPAR zijn berekend per verblijfsnacht, vergeleken met dezelfde periode vorig jaar waar gegevens van vorig jaar bestaan. De omzet hieronder is gebaseerd op de folio (aankomst).',
+    'revenue' => 'Omzet',
+    'room' => 'Kameromzet',
+    'ancillary' => 'Overige omzet <span class="muted">· extra’s, producten, toeslagen</span>',
+    'tax_collected' => 'Geïnde belasting · af te dragen',
+    'costs_heading' => 'Kosten <span class="muted" style="font-size:9px">· alleen echte gegevens</span>',
+    'maintenance' => 'Onderhoud <span class="muted">· afgehandelde werkorders</span>',
+    'not_tracked' => 'nog niet bijgehouden',
+    'net' => 'Netto (omzet − bijgehouden kosten)',
+    'revenue_by_channel' => 'Omzet per kanaal',
+    'channel' => 'Kanaal',
+    'bookings' => 'Reserveringen',
+    'share' => 'Aandeel',
+    'no_channel_revenue' => 'Geen kanaalomzet in deze periode.',
+    'top_units' => 'Topeenheden',
+    'unit' => 'Eenheid',
+    'nights' => 'Nachten',
+    'room_revenue' => 'Kameromzet',
+    'no_unit_revenue' => 'Geen omzet per eenheid in deze periode.',
+    'revenue_by_month' => 'Omzet per maand',
+    'month' => 'Maand',
+    'footer' => 'Berekend uit echte folio- en onderhoudsgegevens voor :scope · :period. Bezettingsgraad/ADR/RevPAR zijn berekend per verblijfsnacht; de omzet is gebaseerd op de folio (aankomst). De cijfers sluiten aan op de pagina “Rapporten”. Vyrobel.',
+];

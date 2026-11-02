@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Serviced appartementen',
+    'type_apartment_building' => 'Appartementen',
+    'type_apartment' => 'Appartement',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pension',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel en appartementen',
+    'type_portfolio' => 'Accommodaties',
+    'title_town' => ':name, :town — Direct boeken',
+    'title' => ':name — Direct boeken',
+    'title_room' => ':room in :property — Direct boeken',
+    'org_description_towns' => '{1} Bekijk :count accommodatie in :towns. Controleer de beschikbaarheid en boek direct bij :org.|[0,*] Bekijk :count accommodaties in :towns. Controleer de beschikbaarheid en boek direct bij :org.',
+    'org_description' => '{1} Bekijk :count accommodatie. Controleer de beschikbaarheid en boek direct bij :org.|[0,*] Bekijk :count accommodaties. Controleer de beschikbaarheid en boek direct bij :org.',
+    'org_description_empty' => 'Controleer de beschikbaarheid en boek direct bij :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1} Boek :name direct. :type in :place. :count kamertype. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.|[0,*] Boek :name direct. :type in :place. :count kamertypes. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.',
+    'description_place' => 'Boek :name direct. :type in :place. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.',
+    'description_rooms' => '{1} Boek :name direct. :type. :count kamertype. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.|[0,*] Boek :name direct. :type. :count kamertypes. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.',
+    'description' => 'Boek :name direct. :type. Bekijk de actuele beschikbaarheid en reserveer zonder tussenkomst van een boekingssite.',
+    'detail_sleeps' => 'plaats voor maximaal :guests personen',
+    'detail_bedrooms' => '{1} :count slaapkamer|[0,*] :count slaapkamers',
+    'room_description_town_details' => ':room in :property in :town — :details. Bekijk de actuele beschikbaarheid en boek direct.',
+    'room_description_town' => ':room in :property in :town. Bekijk de actuele beschikbaarheid en boek direct.',
+    'room_description_details' => ':room in :property — :details. Bekijk de actuele beschikbaarheid en boek direct.',
+    'room_description' => ':room in :property. Bekijk de actuele beschikbaarheid en boek direct.',
+    'list_and' => ':items en :last',
+];

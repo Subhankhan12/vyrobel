@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Er zijn live financiële gegevens (:records). De wet kan voorschrijven dat die jarenlang worden bewaard, dus het verwijderen ervan staat in de wacht tot er een juridisch oordeel is over hoe lang — tot die tijd kan de organisatie niet worden verwijderd.',
+    'uncounted_cascades' => 'De database koppelt gegevens op een manier die de verwijdering niet exact kan tellen (:links), dus de bevestiging kon niet zeggen wat er verdwijnt. Er kan niets worden verwijderd totdat dat is opgelost.',
+    'stripe_billing_live' => 'Stripe-facturatie is live voor deze organisatie. Zeg eerst het abonnement op in Stripe, anders blijft Stripe kosten in rekening brengen bij een klant die niet meer bestaat. Is het daar al opgezegd, dan is de melding van Stripe hier niet verwerkt — los het handmatig op.',
+    'checkout_open_subscription' => 'Een Stripe-betaalpagina voor het abonnement is geopend op :opened en kan nog tot :closes worden betaald. Probeer het opnieuw zodra die is betaald of verlopen.',
+    'checkout_open_card' => 'Een Stripe-betaalpagina voor een kaartbetaling van een gast is geopend op :opened en kan nog tot :closes worden betaald. Probeer het opnieuw zodra die is betaald of verlopen.',
+    'checkout_unreported_subscription' => 'Een live Stripe-betaalpagina voor het abonnement is geopend op :opened en gesloten op :closed, maar hier is geen melding verwerkt of die is betaald. Controleer de pagina in het Stripe-dashboard; is die betaald, annuleer daar dan eerst wat die in gang heeft gezet. Stripe probeert een melding die niet kon worden afgeleverd tot 3 dagen lang opnieuw — probeer het opnieuw zodra die is verwerkt. Heeft Stripe het al gemeld en kon de melding niet worden verwerkt, los het dan handmatig op.',
+    'checkout_unreported_card' => 'Een live Stripe-betaalpagina voor een kaartbetaling van een gast is geopend op :opened en gesloten op :closed, maar hier is geen melding verwerkt of die is betaald. Controleer de pagina in het Stripe-dashboard; is die betaald, annuleer daar dan eerst wat die in gang heeft gezet. Stripe probeert een melding die niet kon worden afgeleverd tot 3 dagen lang opnieuw — probeer het opnieuw zodra die is verwerkt. Heeft Stripe het al gemeld en kon de melding niet worden verwerkt, los het dan handmatig op.',
+    'refund_processing' => 'Er wordt nog een terugbetaling op een kaart verwerkt bij Stripe. Wacht tot Stripe die bevestigt en probeer het dan opnieuw.',
+    'card_payment_open' => 'Er staat nog een kaartbetaling of pre-autorisatie open. Laat die eerst afronden, of geef die vrij.',
+    'dispute_open' => 'Een kaartbetaling wordt betwist bij Stripe (sinds :since). Reageer erop in Stripe en probeer het opnieuw zodra Stripe meldt dat het geschil is gesloten. Toont het Stripe-dashboard het al als gesloten, dan is de melding nooit aangekomen — los het handmatig op.',
+    'payouts_in_transit' => '{1} Er is een uitbetaling aan een eigenaar onderweg bij Stripe (sinds :since).|[0,*] Er zijn :count uitbetalingen aan eigenaren onderweg bij Stripe (sinds :since).',
+    'payout_transit_stale' => 'Dat duurt langer dan zou moeten — los het eerst handmatig op met Stripe.',
+    'payout_transit_wait' => 'Wacht tot Stripe bevestigt en probeer het dan opnieuw.',
+    'payouts_owed' => '{1} Er staat nog een uitbetaling aan een eigenaar open (in afwachting of ingehouden). Betaal die eerst uit — verwijderen zou de eigenaren onbetaald laten, zonder dat het ergens is vastgelegd.|[0,*] Er staan nog :count uitbetalingen aan eigenaren open (in afwachting of ingehouden). Betaal die eerst uit — verwijderen zou de eigenaren onbetaald laten, zonder dat het ergens is vastgelegd.',
+    'payout_run_running' => 'Er loopt al een uitbetalingsrun sinds :since.',
+    'looks_stuck' => 'Die lijkt vast te zitten — los het handmatig op voordat u verwijdert.',
+    'payout_run_wait' => 'Probeer het opnieuw als die klaar is.',
+    'webhook_unprocessed' => 'Een melding van :source voor deze organisatie, ontvangen op :received, is nog niet verwerkt.',
+    'webhook_wait' => 'Probeer het over een paar minuten opnieuw.',
+    'cross_tenant_references' => 'Een andere organisatie heeft gegevens die naar deze organisatie verwijzen (:links). Verwijderen zou die ook verwijderen.',
+    'schema_unreadable' => 'Het databaseschema kon niet volledig worden gelezen (:tables niet gevonden).',
+    'already_deleted' => 'Deze organisatie bestaat niet meer — ze is al verwijderd.',
+    'protected' => 'Deze organisatie is beschermd en kan nooit worden verwijderd.',
+    'not_suspended' => 'Schort de organisatie eerst op — alleen een opgeschorte of gearchiveerde organisatie kan worden verwijderd.',
+    'record_survived' => 'Er is na het verwijderen een record van deze organisatie blijven bestaan (in :tables), dus alles is teruggedraaid.',
+    'organization_survived' => 'De organisatie of een van haar gebruikers is na het verwijderen blijven bestaan, dus alles is teruggedraaid.',
+    'live_card_payments' => '{1} :count kaartbetaling|[0,*] :count kaartbetalingen',
+    'live_refunds' => '{1} :count terugbetaling|[0,*] :count terugbetalingen',
+    'live_payouts' => '{1} :count uitbetaling|[0,*] :count uitbetalingen',
+    'live_stripe_billing' => 'live Stripe-facturatie, met de bijbehorende facturen',
+    'unknown_time' => 'een onbekend tijdstip',
+    'time_utc' => ':time UTC',
+];

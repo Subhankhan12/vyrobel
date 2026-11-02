@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Archief van afrekeningen',
+    'history_summary' => 'Uw definitieve afrekeningen · :years · :statements',
+    'years' => '{1} :count jaar|[0,*] :count jaar',
+    'statements' => '{1} :count afrekening|[0,*] :count afrekeningen',
+    'archived_on_finalize' => 'Afrekeningen worden hier gearchiveerd zodra ze definitief zijn.',
+    'net_earned_lifetime' => 'Netto-opbrengst · totaal',
+    'since' => 'sinds :date',
+    'per_currency_note' => 'Opgeteld per uitbetalingsvaluta — saldi in verschillende valuta’s worden nooit samengevoegd.',
+    'lifetime_empty' => 'Nog geen definitieve afrekeningen — uw eerste verschijnt hier.',
+    'search_placeholder' => 'Zoek in uw afrekeningen — maand, jaar, status of nummer',
+    'search_label' => 'Afrekeningen doorzoeken',
+    'no_match' => 'Geen afrekeningen gevonden voor “:query”.',
+    'no_match_hint' => 'Probeer een maand (“september”), een jaar (“2026”), een status (“Betaald”) of een afrekeningsnummer (“nr. 1”).',
+    'group_summary' => ':statements · netto :nets',
+    'per_payout_currency' => '(per uitbetalingsvaluta)',
+    'tax_summary_title' => 'Het belastingoverzicht van :year als PDF downloaden',
+    'tax_summary' => 'Belastingoverzicht',
+    'col_statement' => 'Afrekening',
+    'col_net_payable' => 'Netto uit te betalen',
+    'col_links' => 'Links',
+    'unverified_title' => 'Sommige regels wachten nog op afstemming met het kanaal',
+    'unverified' => 'Bevat niet-geverifieerde regels',
+    'pdf_title' => 'Deze afrekening als PDF downloaden',
+    'pdf' => 'PDF',
+    'bookings_title' => 'De reserveringen achter deze afrekening als PDF downloaden',
+    'bookings' => 'Reserveringen',
+    'empty' => 'Nog geen definitieve afrekeningen. Een afrekening wordt hier gearchiveerd zodra ze definitief is.',
+    'zip_heading' => 'Het volledige archief downloaden',
+    'zip_sub' => '{1} Eén ZIP-bestand met :count afrekening als PDF. Elke afrekening hierboven kunt u ook afzonderlijk downloaden.|[0,*] Eén ZIP-bestand met :count afrekeningen als PDF. Elke afrekening hierboven kunt u ook afzonderlijk downloaden.',
+    'download_zip' => 'ZIP downloaden',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — nl translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Klaar voor betaling',
+    'chip_hold' => 'Ingehouden',
+    'chip_review' => 'Te controleren',
+    'chip_paused' => 'Uitbetalingen gepauzeerd',
+    'chip_invited' => 'Uitgenodigd',
+    'sorted_name_asc' => 'op eigenaar, A–Z',
+    'sorted_name_desc' => 'op eigenaar, Z–A',
+    'sorted_units_desc' => 'meeste eenheden eerst',
+    'sorted_units_asc' => 'minste eenheden eerst',
+    'sorted_net_desc' => 'hoogste netto uit te betalen eerst',
+    'sorted_net_asc' => 'laagste netto uit te betalen eerst',
+    'sorted_status_asc' => 'eerst wat uw aandacht vraagt',
+    'sorted_status_desc' => 'als laatste wat uw aandacht vraagt',
+    'kpi_invited' => 'Uitgenodigd: :number',
+    'kpi_units' => '{1} :count eenheid|[0,*] :count eenheden',
+    'kpi_owners_ready' => '{1} :count eigenaar klaar|[0,*] :count eigenaren klaar',
+    'kpi_paused_not_counted' => 'gepauzeerd: :number, niet meegeteld',
+    'kpi_hold_none' => 'niets in afwachting',
+    'kpi_hold_waiting' => 'In afwachting: :amounts',
+    'kpi_review_sub' => ':number met posten die het boekingskanaal nog niet heeft bevestigd',
+    'schedule' => 'werkdag :day van de maand',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'Accommodatiemanager',
+    'role_accountant' => 'Boekhouder',
+    'role_owner' => 'Eigenaar',
+    'another_owner' => 'een andere eigenaar',
+];
