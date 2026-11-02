@@ -342,18 +342,30 @@ change is said.** Briefs live in `briefs/`.
   filling…" whatever the unit kind — a wireframe leftover. Translations say "unit"; the English is unchanged until he rules.
 - **D-NOSHOW-REFUSAL-COPY (2026-11-02, V by reading — HIS CALL, English copy):** `check_in_reservation.refused_no_show` tells
   staff to "take a New reservation on the front desk", but the front desk offers only Walk-in. Translations follow the English.
-- **D-I18N-PAYOUT-MODE (2026-11-03, V by reading `PayoutRunActionController.php:93`):** the payout-run notice passes the raw code
+- **D-I18N-PAYOUT-MODE (2026-11-02, V by reading `PayoutRunActionController.php:93`):** the payout-run notice passes the raw code
   `$run->mode` ("test"/"live") into `run_complete`, so every language reads "(modo test)". Fix with the next code-carrying
   release: two keys (English "test"/"live", byte-identical), pass the word.
-- **D-I18N-SHARED-NAME (2026-11-03, V by reading):** `common.name` labels both a person's name and a room-type name
+- **D-I18N-SHARED-NAME (2026-11-02, V by reading):** `common.name` labels both a person's name and a room-type name
   (`units-list.blade.php`); Russian needs «Имя» vs «Название». Fix: a separate key for the room-type name (English "Name").
-- **D-I18N-ONE-UNITS (2026-11-03, V by the pt_BR reviewer reading `trans_choice` callers):** two owner CSV month totals
+- **D-I18N-ONE-UNITS (2026-11-02, V by the pt_BR reviewer reading `trans_choice` callers):** two owner CSV month totals
   (":count units" / ":count nights") are picked by `trans_choice` but have no singular in English ("1 units"). Translations
   carry the plural; the English singular is owed.
-- **D-OWNER-VILLA-COLUMN addendum (2026-11-03):** the guest review tag "Spotless villa" (`ReviewTag`) says villa at any property.
+- **D-OWNER-VILLA-COLUMN addendum (2026-11-02):** the guest review tag "Spotless villa" (`ReviewTag`) says villa at any property.
 - **D-I18N-CONSOLE-REGISTER (2026-11-02, V — english-left.php):** the console privacy page's sub-processor register
   (`App\Support\Privacy\SubProcessors`) is typed English (purposes, data shared, "Not connected", "None on file") in every language.
   Founder-only console and a legal register (cf. D-I18N-LAWYER) — recorded, not keyed.
+- **D-OWNER-MESSAGE-GUESTS (2026-11-02, V — `resources/views/livewire/owner/dashboard.blade.php:102-104`):** the owner Overview
+  button "Message guests" links to `route('owner.messages')`, the owner's thread with the management team, not with guests. English
+  copy — his call (rename the button, or it stays).
+- **D-CHECKIN-REFUSAL-STALE (2026-11-02, V — `lang/en/php/actions/reservations/check_in_reservation.php:8`, `routes/web.php:1474`):**
+  the refusal says "Reversing a checkout is not available", but `front-desk.reverse-checkout` exists. English copy — his call.
+- **D-AGREEMENT-DOUBLE-WORD (2026-11-02, V — `lang/en/livewire/owner/agreement.php:39`):** "Included in the management management
+  fee" — a doubled word in the English. Translations say it once.
+- **D-FD-COLLECT-JARGON (2026-11-02, V — `lang/en/livewire/partials/fd-collect-form.php:11`, `lang/en/livewire/front-desk.php:105`):**
+  front-desk hints say "the deferred Stripe seam" — developer words on a staff screen. English copy — his call.
+- **D-I18N-SHARED-PAUSED (2026-11-02, V — `resources/views/livewire/units-list.blade.php:62` and `:311`):** one key,
+  `livewire/units-list.paused`, labels both the plural KPI and a single unit's tag; gendered languages need two keys. Fix with the next
+  code-carrying release (English stays byte-identical).
 - **D-GUEST-TILE-NARROW (2026-10-29, V — low, pre-existing in English too):** the guest reservation's four stat tiles on a 390px
   phone are 73px wide; a money figure ("€369.00") now shrinks (min(19px, 3.7vw)) but still overhangs its tile by ~5px. A layout
   change (2 + 2 tiles on a phone) is the real fix — his look first.

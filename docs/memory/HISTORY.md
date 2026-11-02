@@ -1701,10 +1701,16 @@ French, Arabic and Dutch before the MariaDB run, which covers it. **Gates (V), e
 D-I18N-PAYOUT-MODE, D-I18N-SHARED-NAME, D-I18N-ONE-UNITS, the "Spotless villa" tag. In the pipeline meanwhile: Brazilian Portuguese
 translated, reviewed and consistent; Russian translated, under review. Not pushed.
 
-**I18N-01 — European Portuguese LIVE on `rel_CD` (2026-11-03).** 34 batches translated → reviewed → consistency (Faro is the first
+**I18N-01 — European Portuguese LIVE on `rel_CD` (2026-11-02).** 34 batches translated → reviewed → consistency (Faro is the first
 market, so Portuguese hotel software and Booking.com pt-PT were the reference). **Gates (V):** MySQL and MariaDB 4,588/4,588 (36,216)
 · lang:check 0 · lang:todo 0 · money gate FULL · render 929 pages 0 problems. Deploy: saved-language count (none) → stage → preflight →
 swap 00:43:39 UTC → public checks 12/0/0 → live sign-in page (`lang="pt-PT"`). Not pushed.
+
+**I18N-01 — Italian LIVE on `rel_CE` (2026-11-02).** 34 batches translated → reviewed → consistency. **Gates (V):** MySQL and
+MariaDB 4,588/4,588 (36,216) · lang:check 0 · lang:todo 0 · money gate FULL · render 929 pages 0 problems (English left = demo data
+and same-words only). Deploy: saved-language count (none) → stage → preflight → swap 01:25:29 UTC → public checks 12/0/0 → live
+sign-in page (`lang="it"`). Also: the es/nl/pt entries were dated 2026-11-03; git and the swap clock say 2026-11-02, corrected.
+Found for later (OPEN): D-AGREEMENT-DOUBLE-WORD, D-FD-COLLECT-JARGON. Not pushed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
