@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'ओवरव्यू',
+    'breadcrumb_bookings' => 'बुकिंग',
+    'guest_fallback' => 'मेहमान',
+    'reservation' => 'बुकिंग',
+    'check_in' => 'चेक-इन',
+    'nights_count' => '{1}:count रात|[2,*]:count रातें',
+    'check_out' => 'चेक-आउट',
+    'unit' => 'यूनिट',
+    'guests' => 'मेहमान',
+    'nights' => 'रातें',
+    'nightly_rate' => 'प्रति रात रेट',
+    'your_earnings' => 'आपकी कमाई',
+    'gross_to_net' => 'सकल → शुद्ध',
+    'gross_booking_value' => 'सकल बुकिंग मूल्य',
+    'net_to_you' => 'आपकी शुद्ध कमाई',
+    'refunds_we_covered' => 'हमारी ओर से वहन किए गए रिफ़ंड',
+    'refunds_we_covered_note' => 'मेहमान को रिफ़ंड किया गया और उसका खर्च हम पर लगाया गया, आप पर नहीं। ऊपर दी गई आपकी कमाई में कोई बदलाव नहीं हुआ है।',
+    'not_yet_attributed' => 'अभी लेजर में नहीं जुड़ा।',
+    'not_yet_attributed_note' => 'यह बुकिंग आपके लेजर में जुड़ते ही आपकी कमाई यहाँ दिखाई देगी — आम तौर पर चेक-आउट के बाद।',
+    'guest_heading' => 'मेहमान',
+    'guest_contact_note' => 'मेहमान की संपर्क जानकारी आपकी प्रबंधन कंपनी संभालती है — आपको बुकिंग और अपनी कमाई दिखाई देती है।',
+    'message_your_team' => 'प्रबंधन कंपनी को संदेश भेजें',
+    'timeline' => 'टाइमलाइन',
+    'for_night_stay' => 'इस :nights रात के ठहराव के लिए',
+    'booking_details' => 'बुकिंग का विवरण',
+    'confirmation' => 'बुकिंग नंबर',
+    'source' => 'स्रोत',
+    'channel' => 'चैनल',
+    'booked_on' => 'बुकिंग की तिथि',
+    'download_confirmation' => 'कन्फ़र्मेशन डाउनलोड करें',
+    'download_unavailable' => 'सह-मालिकों और अकाउंटेंट के लिए उपलब्ध',
+    'view_unit' => ':unit देखें',
+];

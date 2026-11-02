@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'आपातकालीन एक्सेस',
+    'subtitle' => 'किसी एक वर्कस्पेस के अंदर केवल देखने वाली, सीमित समय की पहुँच — कारण, 2FA, और वर्कस्पेस को इसकी सूचना दी जाती है।',
+    'back_label' => 'सपोर्ट',
+    'open_heading' => 'आपका सेशन खुला है',
+    'open_summary' => '{1}:organization · :time UTC पर समाप्त · :count पेज देखा गया।|[2,*]:organization · :time UTC पर समाप्त · :count पेज देखे गए।',
+    'go_to_back_office' => 'उनके बैक ऑफ़िस पर जाएँ',
+    'end_now' => 'सेशन अभी समाप्त करें',
+    'start_heading' => 'सेशन खोलें',
+    'rule_read_only' => '<strong>केवल देखने के लिए।</strong> हर बदलाव अस्वीकार किया जाता है — फ़ॉर्म, बटन, कुछ भी जो सहेजता है।',
+    'rule_minutes' => '{1}<strong>:count मिनट</strong>, फिर यह अपने आप समाप्त हो जाता है।|[0,*]<strong>:count मिनट</strong>, फिर यह अपने आप समाप्त हो जाता है।',
+    'rule_senior_user' => 'आप वही देखते हैं जो उनका सबसे वरिष्ठ सत्यापित बैक-ऑफ़िस यूज़र देखता है — मेहमानों सहित। केवल वही देखें जो इस कारण के लिए ज़रूरी है।',
+    'rule_recorded' => 'आपके खोले गए हर पेज का रिकॉर्ड रखा जाता है, और बाद में उनकी टीम को बताया जाता है: आपका नाम, समय और यह कारण।',
+    'organisation_label' => 'वर्कस्पेस',
+    'choose_option' => 'चुनें…',
+    'code_label' => 'आपका 2FA कोड (अभी का)',
+    'reason_label' => 'कारण — वे इसे पढ़ेंगे',
+    'reason_placeholder' => 'उदा. टिकट #123 — मालिक ने बताया कि एक बुकिंग गायब है',
+    'open_button' => 'केवल देखने वाला सेशन खोलें',
+    'recent_heading' => 'हाल के सेशन',
+    'empty_state' => 'अब तक कोई आपातकालीन एक्सेस सेशन नहीं खोला गया है।',
+    'col_admin' => 'एडमिन',
+    'col_organisation' => 'वर्कस्पेस',
+    'col_reason' => 'कारण',
+    'col_started' => 'शुरू हुआ',
+    'col_ended' => 'समाप्त हुआ',
+    'col_pages' => 'पेज',
+    'col_told' => 'सूचित',
+    'ended_open' => 'चालू',
+    'ended_due' => 'समय पूरा — अभी बंद नहीं हुआ',
+    'told_yes' => 'हाँ',
+    'told_not_yet' => 'अभी नहीं',
+];

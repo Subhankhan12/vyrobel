@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'आप',
+    'total_part' => ':amount :name',
+    'total_includes' => ':items सहित',
+    'nightly_excludes' => ':tax अलग से',
+    'sleeps' => 'अधिकतम मेहमान: :count',
+    'studio' => 'स्टूडियो',
+    'bedrooms' => '{1}:count बेडरूम|[0,*]:count बेडरूम',
+    'checkout_title' => 'भुगतान — :property',
+    'room_just_taken' => 'वह कमरा अभी-अभी किसी और ने बुक कर लिया — कृपया कोई दूसरा कमरा या दूसरी तिथियाँ चुनें।',
+    'payment_received' => 'भुगतान मिला',
+    'payment_received_note' => 'पूरा भुगतान हो गया।',
+    'payment_processing' => 'भुगतान प्रक्रिया में',
+    'payment_processing_note' => 'हम आपके कार्ड भुगतान की पुष्टि कर रहे हैं। थोड़ी देर में यह पेज रीफ़्रेश करें, ताकि भुगतान दिख जाए।',
+    'pay_on_arrival' => 'पहुँचने पर भुगतान करें',
+    'pay_on_arrival_note' => 'चेक-इन के समय प्रॉपर्टी पर भुगतान करें।',
+    'confirmed_title' => 'बुकिंग कन्फ़र्म हो गई — :property',
+    'kind_room' => 'कमरा',
+    'kind_apartment' => 'अपार्टमेंट',
+    'kind_villa' => 'विला',
+    'kind_dorm' => 'डॉर्म बेड',
+    'type_hotel' => 'होटल',
+    'type_aparthotel' => 'अपार्टहोटल',
+    'type_serviced_apartment' => 'सर्विस्ड अपार्टमेंट',
+    'type_apartment_building' => 'अपार्टमेंट बिल्डिंग',
+    'type_apartment' => 'अपार्टमेंट',
+    'type_villa' => 'विला',
+    'type_hostel' => 'हॉस्टल',
+    'type_guest_house' => 'गेस्ट हाउस',
+    'type_resort' => 'रिसॉर्ट',
+    'type_mixed' => 'मिश्रित',
+    'type_portfolio' => 'पोर्टफ़ोलियो',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'बुकिंग',
+    'arrivals_this_month' => 'इस माह के आगमन',
+    'arrivals_this_month_sub' => 'इस कैलेंडर माह में चेक-इन · रद्द और नो-शो शामिल नहीं',
+    'booked_value' => 'बुकिंग मूल्य · इस माह के आगमन',
+    'booked_value_sub' => 'इस माह के आगमन पर बिल की गई राशि',
+    'booked_value_sub_multi' => 'इस माह के आगमन पर बिल की गई राशि · हर मुद्रा अलग से दिखाई गई है (मुद्राओं को कभी जोड़ा नहीं जाता)',
+    'balances_due' => 'बकाया राशि · इस माह के आगमन',
+    'folios_owing' => '{0}कुछ बकाया नहीं|{1}:count फ़ोलियो पर अब भी बकाया|[2,*]:count फ़ोलियो पर अब भी बकाया',
+    'search_placeholder' => 'मेहमान या बुकिंग नंबर से खोजें…',
+    'search_label' => 'बुकिंग खोजें',
+    'group_booking' => 'ग्रुप बुकिंग',
+    'new_reservation' => 'नई बुकिंग',
+    'empty_heading' => 'अभी कोई बुकिंग नहीं',
+    'empty_body' => 'हर बुकिंग — डायरेक्ट, वॉक-इन या इंपोर्ट की गई — दर्ज होते ही यहाँ आ जाती है।',
+    'no_match_query' => '“:query” से मेल खाती कोई बुकिंग नहीं',
+    'no_match_view' => 'इस व्यू में कोई बुकिंग नहीं',
+    'no_match_hint' => '{1}मेहमान का नाम या बुकिंग नंबर आज़माएँ। कुल :count बुकिंग।|[0,*]मेहमान का नाम या बुकिंग नंबर आज़माएँ। कुल :count बुकिंग।',
+    'no_match_hint_filter' => '{1}मेहमान का नाम या बुकिंग नंबर आज़माएँ, या फ़िल्टर साफ़ करें। कुल :count बुकिंग।|[0,*]मेहमान का नाम या बुकिंग नंबर आज़माएँ, या फ़िल्टर साफ़ करें। कुल :count बुकिंग।',
+    'clear_search_filters' => 'खोज और फ़िल्टर साफ़ करें',
+    'col_guest' => 'मेहमान',
+    'col_stay' => 'ठहराव',
+    'col_unit' => 'कमरा',
+    'col_source' => 'स्रोत',
+    'col_stage' => 'चरण',
+    'col_balance_due' => 'बकाया राशि',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count रात|[2,*]:count रातें',
+    'guests' => '{1}:count मेहमान|[0,*]:count मेहमान',
+    'unassigned' => 'कमरा असाइन नहीं',
+    'refunded' => 'रिफ़ंड किया गया',
+    'pager_label' => 'बुकिंग',
+];

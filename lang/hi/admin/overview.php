@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'ओवरव्यू',
+    'subtitle_all' => 'हर वर्कस्पेस, Vyrobel के अपने आंतरिक वर्कस्पेस सहित।',
+    'subtitle_customers' => 'केवल ग्राहक — Vyrobel के अपने आंतरिक वर्कस्पेस शामिल नहीं हैं।',
+    'showing_all' => '<strong>सभी</strong> वर्कस्पेस दिखाए जा रहे हैं — इनमें से :internal आंतरिक हैं।',
+    'internal_excluded' => '{1}:count आंतरिक वर्कस्पेस नीचे के हर आँकड़े से बाहर रखा गया है।|[2,*]:count आंतरिक वर्कस्पेस नीचे के हर आँकड़े से बाहर रखे गए हैं।',
+    'customers_only' => 'केवल ग्राहक',
+    'include_internal' => 'आंतरिक भी शामिल करें',
+    'no_customers_heading' => 'अभी कोई ग्राहक नहीं',
+    'no_customers_body' => 'प्लेटफ़ॉर्म का हर वर्कस्पेस Vyrobel का अपना है (आंतरिक: :internal)। पहला असली साइन अप यहाँ दिखेगा।',
+    'kpi_organisations' => 'वर्कस्पेस',
+    'kpi_customers' => 'ग्राहक',
+    'kpi_account_status' => 'सक्रिय: :active · निलंबित: :suspended',
+    'kpi_subscriptions' => 'सदस्यताएँ',
+    'kpi_subscriptions_sub' => 'सक्रिय · निःशुल्क ट्रायल में: :trial',
+    'kpi_revenue' => 'राजस्व',
+    'no_live_billing' => 'अभी कोई लाइव बिलिंग नहीं',
+    'no_live_billing_sub' => 'किसी सदस्यता की बिलिंग Stripe से नहीं होती। ट्रायल की लिस्ट कीमत राजस्व नहीं है।',
+    'billed_live' => '{1}:count लाइव बिलिंग|[0,*]:count लाइव बिलिंग',
+    'billed_live_sub' => 'Stripe ने जो असल में वसूला, उसी से गणना — कभी लिस्ट कीमतों से नहीं — देखें <a class="ad-cell-link" href=":url">राजस्व</a>।',
+    'kpi_properties' => 'प्रॉपर्टी',
+    'kpi_reservations' => '{1}:count बुकिंग|[0,*]:count बुकिंग',
+    'new_organisations_heading' => 'नए वर्कस्पेस · पिछले 6 महीने',
+    'new_customers_heading' => 'नए ग्राहक · पिछले 6 महीने',
+    'no_signups' => 'पिछले 6 महीनों में कोई साइन अप नहीं।',
+    'account_status_heading' => 'अकाउंट की स्थिति',
+    'status_active' => 'सक्रिय',
+    'status_suspended' => 'निलंबित',
+    'status_cancelled' => 'रद्द',
+    'status_trialing' => 'ट्रायल पर (अकाउंट)',
+    'free_trial_hint' => 'निःशुल्क ट्रायल सदस्यता की स्थिति है, अकाउंट की नहीं — अभी निःशुल्क ट्रायल पर: :trial।',
+    'plans_in_use' => 'उपयोग में प्लान <span class="ad-stat-sub" style="font-weight: 400;">· सक्रिय या ट्रायल</span>',
+    'no_plans' => 'अभी कोई प्लान उपयोग में नहीं।',
+];

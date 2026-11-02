@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'हमारे ठहरने के विकल्प',
+    'properties_count' => ':count प्रॉपर्टी',
+    'stays_count' => '{1}:count विकल्प|[0,*]:count विकल्प',
+    'stays_sleeps' => ':stays · अधिकतम मेहमान: :max',
+    'stays_sleeps_range' => ':stays · अधिकतम मेहमान: :min–:max',
+    'perk_free_cancel_days' => '{1}आगमन से :count दिन पहले तक पूरा रिफ़ंड।|[0,*]आगमन से :count दिन पहले तक पूरा रिफ़ंड।',
+    'perk_free_cancel_window' => 'रद्दीकरण की अवधि के अंदर पूरा रिफ़ंड।',
+    'perk_no_fees' => 'कोई बुकिंग शुल्क नहीं',
+    'perk_no_fees_sub' => 'जो कीमत आप देखते हैं, वही आप चुकाते हैं।',
+    'perk_best_rate' => 'डायरेक्ट पर सबसे अच्छा रेट',
+    'perk_best_rate_sub' => 'हमारे अपने सबसे अच्छे रेट के लिए सीधे बुक करें — बीच में कोई बिचौलिया नहीं।',
+    'perk_free_cancel' => 'निःशुल्क रद्दीकरण',
+    'perk_host_support' => 'प्रॉपर्टी से सीधी सहायता',
+    'perk_host_support_sub' => 'अपनी बुकिंग पर किसी असली व्यक्ति को संदेश भेजें।',
+    'kind_room' => 'कमरा',
+    'kind_apartment' => 'अपार्टमेंट',
+    'kind_villa' => 'विला',
+    'kind_dorm' => 'डॉर्म बेड',
+    'type_hotel' => 'होटल',
+    'type_aparthotel' => 'अपार्टहोटल',
+    'type_serviced_apartment' => 'सर्विस्ड अपार्टमेंट',
+    'type_apartment_building' => 'अपार्टमेंट बिल्डिंग',
+    'type_apartment' => 'अपार्टमेंट',
+    'type_villa' => 'विला',
+    'type_hostel' => 'हॉस्टल',
+    'type_guest_house' => 'गेस्ट हाउस',
+    'type_resort' => 'रिसॉर्ट',
+    'type_mixed' => 'मिश्रित',
+    'type_portfolio' => 'पोर्टफ़ोलियो',
+];

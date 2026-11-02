@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'पेआउट के लिए तैयार',
+    'chip_hold' => 'होल्ड पर',
+    'chip_review' => 'समीक्षा ज़रूरी',
+    'chip_paused' => 'पेआउट स्थगित',
+    'chip_invited' => 'आमंत्रित',
+    'sorted_name_asc' => 'मालिक के अनुसार, A–Z',
+    'sorted_name_desc' => 'मालिक के अनुसार, Z–A',
+    'sorted_units_desc' => 'सबसे ज़्यादा कमरे पहले',
+    'sorted_units_asc' => 'सबसे कम कमरे पहले',
+    'sorted_net_desc' => 'सबसे बड़ी शुद्ध देय राशि पहले',
+    'sorted_net_asc' => 'सबसे छोटी शुद्ध देय राशि पहले',
+    'sorted_status_asc' => 'जहाँ आपकी ज़रूरत है, वह पहले',
+    'sorted_status_desc' => 'जहाँ आपकी ज़रूरत है, वह बाद में',
+    'kpi_invited' => 'आमंत्रित: :number',
+    'kpi_units' => '{1}:count कमरा|[2,*]:count कमरे',
+    'kpi_owners_ready' => '{1}:count मालिक तैयार|[0,*]:count मालिक तैयार',
+    'kpi_paused_not_counted' => 'स्थगित: :number, गिनती में नहीं',
+    'kpi_hold_none' => 'कुछ इंतज़ार में नहीं',
+    'kpi_hold_waiting' => ':amounts इंतज़ार में',
+    'kpi_review_sub' => 'बुकिंग चैनल से अपुष्ट एंट्री वाले: :number',
+    'schedule' => 'हर महीने का कार्यदिवस नंबर :day',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'प्रॉपर्टी मैनेजर',
+    'role_accountant' => 'अकाउंटेंट',
+    'role_owner' => 'मालिक',
+    'another_owner' => 'दूसरा मालिक',
+];

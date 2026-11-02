@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'घोषणाएँ',
+    'subtitle' => 'हर वर्कस्पेस के बैक ऑफ़िस और मालिक पोर्टल में — या केवल चुने हुए वर्कस्पेस में — दिखने वाली सूचना। सादा टेक्स्ट; कुछ भी ईमेल नहीं किया जाता।',
+    'empty_state' => 'अब तक कोई घोषणा प्रकाशित नहीं हुई है।',
+    'col_announcement' => 'घोषणा',
+    'col_to' => 'किसे',
+    'col_from_until' => 'कब से → कब तक',
+    'col_state' => 'स्थिति',
+    'audience_all' => 'हर वर्कस्पेस',
+    'audience_chosen_count' => 'चुने गए: :number',
+    'no_end' => 'समाप्ति नहीं',
+    'state_withdrawn' => 'वापस ली गई',
+    'state_showing' => 'दिख रही है',
+    'state_scheduled' => 'शेड्यूल की गई',
+    'state_ended' => 'समाप्त',
+    'reason_aria' => 'कारण',
+    'withdraw_placeholder' => 'वापस क्यों लें?',
+    'withdraw_button' => 'वापस लें',
+    'publish_heading' => 'घोषणा प्रकाशित करें',
+    'title_label' => 'शीर्षक',
+    'message_label' => 'संदेश (सादा टेक्स्ट)',
+    'kind_label' => 'प्रकार',
+    'show_from_label' => 'कब से दिखाएँ (UTC)',
+    'until_label' => 'कब तक (UTC, वैकल्पिक)',
+    'to_label' => 'किसे',
+    'option_every_organisation' => 'हर वर्कस्पेस',
+    'option_chosen_organisations' => 'चुने हुए वर्कस्पेस',
+    'chosen_organisations_label' => 'चुने हुए वर्कस्पेस (जब “चुने हुए वर्कस्पेस” चुना हो)',
+    'no_organisation_chosen' => 'अभी तक कोई वर्कस्पेस नहीं चुना गया',
+    'reason_label' => 'कारण',
+    'publish_reason_placeholder' => 'यह घोषणा क्यों भेजी जा रही है?',
+    'publish_button' => 'प्रकाशित करें',
+];

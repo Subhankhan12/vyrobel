@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'सभी कमरे',
+    'kind_sleeps_up_to' => ':kind · अधिकतम मेहमान: :capacity',
+    'reviews_count' => '{1}:count रिव्यू|[0,*]:count रिव्यू',
+    'no_reviews_yet' => 'अभी कोई रिव्यू नहीं',
+    'save_to_wishlist' => 'विशलिस्ट में सहेजें',
+    'sleeps' => 'अधिकतम मेहमान',
+    'adults' => 'वयस्क',
+    'children' => 'बच्चे',
+    'bedrooms' => 'बेडरूम',
+    'standard_occupancy' => 'सामान्य मेहमान संख्या',
+    'amenities' => 'सुविधाएँ',
+    'not_yet_listed' => 'अभी सूचीबद्ध नहीं',
+    'amenities_not_published' => 'इस कमरे की सुविधाएँ अभी प्रकाशित नहीं की गई हैं।',
+    'guest_reviews' => 'मेहमानों के रिव्यू',
+    'stars_aria' => '5 में से :rating स्टार',
+    'response_label' => 'जवाब:',
+    'no_reviews_be_first' => 'अभी कोई रिव्यू नहीं — सबसे पहले ठहरें और अपना अनुभव साझा करें।',
+    'coming_soon' => 'जल्द आ रहा है',
+    'description_soon' => 'पूरा विवरण और लोकेशन मैप जल्द आ रहे हैं — ऊपर दी गई जानकारी, उपलब्धता, कीमत और रिव्यू असली हैं।',
+    'per_night' => '/रात',
+    'per_night_with_note' => '/रात · :note',
+    'total_nights' => '{1}कुल :amount · :count रात|[2,*]कुल :amount · :count रातें',
+    'left_for_your_dates' => 'आपकी तिथियों के लिए :count बाकी',
+    'book_this_room' => 'यह कमरा बुक करें',
+    'nothing_reserved' => 'भुगतान पेज पर पुष्टि करने तक कुछ भी बुक नहीं होता।',
+    'your_dates' => 'आपकी तिथियाँ',
+    'not_available' => 'इन तिथियों के लिए उपलब्ध नहीं — दूसरी तिथियाँ आज़माएँ।',
+    'check_in' => 'चेक-इन',
+    'check_out' => 'चेक-आउट',
+    'check_dates' => 'तिथियाँ जाँचें',
+    'check_availability' => 'उपलब्धता और कीमत देखें',
+    'see_price' => 'कीमत देखें',
+];

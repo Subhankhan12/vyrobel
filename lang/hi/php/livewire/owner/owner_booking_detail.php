@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time बजे से',
+    'by_time' => ':time बजे तक',
+    'repeat_guest' => '{1}दोबारा आने वाले मेहमान · :count ठहराव|[0,*]दोबारा आने वाले मेहमान · :count ठहराव',
+    'new_guest' => 'नए मेहमान',
+    'guests_count' => '{1}:count मेहमान|[0,*]:count मेहमान',
+    'nights_count' => '{1}:count रात|[2,*]:count रातें',
+    'channel_direct' => 'Vyrobel डायरेक्ट',
+    'channel_walk_in' => 'वॉक-इन',
+    'channel_ota' => 'OTA चैनल',
+    'event_booking_received' => 'बुकिंग मिली',
+    'event_cancelled' => 'रद्द',
+    'event_payment_received' => 'भुगतान मिला',
+    'when_paid_in_full' => 'पूरा भुगतान हो गया',
+    'event_part_payment_received' => 'आंशिक भुगतान मिला',
+    'when_balance_due' => 'बकाया राशि',
+    'event_payment' => 'भुगतान',
+    'when_not_yet_received' => 'अभी मिला नहीं',
+    'event_checked_in' => 'चेक-इन पूरा',
+    'event_check_in' => 'चेक-इन',
+    'event_checked_out' => 'चेक-आउट पूरा',
+    'event_payout_released' => 'पेआउट जारी किया गया',
+    'event_payout' => 'पेआउट',
+    'when_next_payout' => 'आपके अगले पेआउट के साथ',
+    'payout_not_attributed' => 'अभी लेजर में नहीं जुड़ा',
+    'payout_not_attributed_note' => 'यह बुकिंग अभी आपके लेजर में नहीं जुड़ी है।',
+    'payout_scheduled' => 'शेड्यूल किया गया',
+    'payout_scheduled_note' => 'आपके अगले स्टेटमेंट में शामिल किया जाएगा, फिर उसी पेआउट के साथ जारी किया जाएगा।',
+    'payout_pending' => 'पेआउट लंबित',
+    'payout_pending_note' => 'फ़ाइनल स्टेटमेंट में शामिल है — उसी पेआउट के साथ जारी होगा।',
+    'payout_paid' => 'पेआउट किया गया',
+    'payout_paid_note' => 'पूरे हो चुके पेआउट के साथ जारी किया गया।',
+];

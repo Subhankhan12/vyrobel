@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'कमरा :unit पर टिकट “:title” खोला गया।',
+    'not_assignable_staff' => 'यह यूज़र इस वर्कस्पेस में असाइन किया जा सकने वाला स्टाफ़ नहीं है।',
+    'cannot_reassign_closed' => 'यह टिकट फिर से असाइन नहीं किया जा सकता — यह पहले ही बंद हो चुका है।',
+    'assignment_updated' => 'टिकट का असाइनमेंट अपडेट किया गया।',
+    'work_order_closed' => 'वह वर्क ऑर्डर बंद हो चुका है — उसका विवरण बदला नहीं जा सकता।',
+    'work_order_updated' => 'वर्क ऑर्डर अपडेट किया गया।',
+    'col_title' => 'शीर्षक',
+    'col_unit' => 'कमरा',
+    'col_category' => 'श्रेणी',
+    'col_priority' => 'प्राथमिकता',
+    'col_status' => 'स्थिति',
+    'col_assignee' => 'ज़िम्मेदार व्यक्ति',
+    'col_reported' => 'रिपोर्ट हुआ',
+    'col_cost' => 'लागत',
+    'bulk_assigned_skipped' => '{1}:count वर्क ऑर्डर असाइन किया गया · छोड़े गए (पहले से बंद): :skipped|[2,*]:count वर्क ऑर्डर असाइन किए गए · छोड़े गए (पहले से बंद): :skipped',
+    'bulk_assigned' => '{1}:count वर्क ऑर्डर असाइन किया गया।|[2,*]:count वर्क ऑर्डर असाइन किए गए।',
+    'bulk_resolved_skipped' => '{1}:count वर्क ऑर्डर हल किया गया · छोड़े गए (पहले से बंद): :skipped|[2,*]:count वर्क ऑर्डर हल किए गए · छोड़े गए (पहले से बंद): :skipped',
+    'bulk_resolved' => '{1}:count वर्क ऑर्डर हल किया गया।|[2,*]:count वर्क ऑर्डर हल किए गए।',
+    'cannot_start' => 'यह टिकट शुरू नहीं किया जा सकता — यह अब चालू नहीं है।',
+    'work_started' => 'इस टिकट पर काम शुरू हो गया है।',
+    'cannot_resolve_closed' => 'वह वर्क ऑर्डर हल नहीं किया जा सकता — वह पहले ही बंद हो चुका है।',
+    'ticket_resolved' => 'टिकट हल हो गया।',
+    'cannot_cancel_closed' => 'वह टिकट रद्द नहीं किया जा सकता — वह पहले ही बंद हो चुका है।',
+    'ticket_cancelled' => 'टिकट रद्द किया गया।',
+    'parts_closed' => 'वह टिकट बंद हो चुका है — पार्ट्स की जानकारी अपडेट नहीं की जा सकती।',
+    'awaiting_parts' => 'पार्ट्स के इंतज़ार में मार्क किया गया।',
+    'parts_arrived' => 'पार्ट्स आ गए, यह मार्क कर दिया गया है।',
+    'update_posted_waiting_part' => 'अपडेट दर्ज किया गया — पार्ट के इंतज़ार में मार्क किया गया।',
+    'update_posted' => 'अपडेट दर्ज किया गया।',
+    'photo_added' => 'फ़ोटो जोड़ी गई।',
+    'photo_removed' => 'फ़ोटो मिटा दी गई।',
+    'workspace_paused' => 'आपका वर्कस्पेस स्थगित है (केवल देखने के लिए) — जब तक आप इसे फिर से शुरू नहीं करते, मेंटेनेंस में बदलाव बंद हैं।',
+];

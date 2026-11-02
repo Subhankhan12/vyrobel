@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count बुकिंग|[0,*]:count बुकिंग',
+    'room_moves' => '{1}:count कमरा बदलाव|[0,*]:count कमरा बदलाव',
+    'cleaning_tasks' => '{1}:count सफ़ाई का काम|[2,*]:count सफ़ाई के काम',
+    'work_orders' => '{1}:count वर्क ऑर्डर|[0,*]:count वर्क ऑर्डर',
+    'status_changes' => '{1}:count स्थिति बदलाव|[0,*]:count स्थिति बदलाव',
+    'blocks' => '{1}:count ब्लॉक|[0,*]:count ब्लॉक',
+    'owner_agreements' => '{1}:count मालिक अनुबंध|[0,*]:count मालिक अनुबंध',
+    'owner_statement_lines' => '{1}:count मालिक स्टेटमेंट लाइन|[2,*]:count मालिक स्टेटमेंट लाइनें',
+    'owner_expenses' => '{1}:count मालिक खर्च|[0,*]:count मालिक खर्च',
+    'reviews' => '{1}:count रिव्यू|[0,*]:count रिव्यू',
+    'owner_requests' => '{1}:count मालिक का अनुरोध|[2,*]:count मालिक के अनुरोध',
+    'notes' => '{1}:count नोट|[0,*]:count नोट',
+    'documents' => '{1}:count दस्तावेज़|[0,*]:count दस्तावेज़',
+    'files' => '{1}:count फ़ाइल|[2,*]:count फ़ाइलें',
+    'units' => '{1}:count कमरा|[2,*]:count कमरे',
+    'rate_proposals' => '{1}:count रेट प्रस्ताव|[0,*]:count रेट प्रस्ताव',
+    'overbooking_records' => '{1}:count ओवरबुकिंग रिकॉर्ड|[0,*]:count ओवरबुकिंग रिकॉर्ड',
+    'guest_waitlist_entries' => '{1}:count मेहमान की प्रतीक्षा सूची एंट्री|[2,*]:count मेहमान की प्रतीक्षा सूची एंट्रियाँ',
+    'guest_wishlist_saves' => '{1}:count मेहमान की विशलिस्ट एंट्री|[2,*]:count मेहमान की विशलिस्ट एंट्रियाँ',
+    'derived_room_types' => '{1}इस पर आधारित :count कमरे का प्रकार|[2,*]इस पर आधारित :count कमरे के प्रकार',
+    'derived_rate_plans' => '{1}:count रेट प्लान, जिसकी कीमत कहीं और इसी से तय होती है|[2,*]:count रेट प्लान, जिनकी कीमत कहीं और इसी से तय होती है',
+    'corporate_default_rates' => '{1}:count कॉर्पोरेट अकाउंट का डिफ़ॉल्ट रेट|[2,*]:count कॉर्पोरेट अकाउंट के डिफ़ॉल्ट रेट',
+    'channel_connections' => '{1}:count चैनल कनेक्शन|[0,*]:count चैनल कनेक्शन',
+    'an_owner' => 'एक मालिक',
+    'pending_owner_invitation' => 'एक लंबित मालिक आमंत्रण',
+    'list_and' => ':items और :last',
+    'kind_rooms' => 'कमरे',
+    'kind_apartments' => 'अपार्टमेंट',
+    'kind_villas' => 'विला',
+    'kind_dorm_beds' => 'डॉर्म बेड',
+];

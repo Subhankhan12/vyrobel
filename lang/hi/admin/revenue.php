@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'राजस्व',
+    'subtitle' => 'Stripe ने जो असल में वसूला, उसी से — कभी लिस्ट कीमतों से नहीं। जब तक आप Vyrobel के अपने वर्कस्पेस शामिल न करें, केवल ग्राहक।',
+    'including_internal' => 'Vyrobel के अपने आंतरिक वर्कस्पेस सहित।',
+    'customers_only_note' => 'केवल ग्राहक।',
+    'customers_only_link' => 'केवल ग्राहक',
+    'include_internal_link' => 'आंतरिक भी शामिल करें',
+    'no_live_billing_pill' => 'अभी कोई लाइव बिलिंग नहीं',
+    'no_customer_charged' => 'अभी तक किसी ग्राहक से कोई राशि नहीं वसूली गई।',
+    'not_live_explainer' => 'Stripe अभी लाइव मोड में नहीं है, इसलिए गिनने के लिए कोई भुगतान किया गया इनवॉइस नहीं है। यह खराब महीना नहीं है — अभी कोई महीना है ही नहीं। यहाँ राजस्व की गणना केवल <strong>भुगतान किए गए Stripe इनवॉइस</strong> से होती है (वसूली गई राशि खुद, जो Stripe के बताने पर दर्ज होती है), कभी प्लान की लिस्ट कीमत से नहीं।',
+    'live_billed_subscriptions' => 'लाइव बिलिंग वाली सदस्यताएँ',
+    'trialing_unbilled' => 'ट्रायल पर सदस्यताएँ, बिलिंग नहीं हुई',
+    'failed_payments_30d' => 'विफल भुगतान, पिछले 30 दिन',
+    'when_first_paid' => 'पहला इनवॉइस भुगतान होने पर यह पेज दिखाएगा: हर मुद्रा के लिए MRR और ARR · नया, बढ़ोतरी, कमी और चर्न MRR · ट्रायल से पेड में बदलाव · विफल भुगतान।',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'गिनी गई सदस्यताएँ',
+    'no_live_subscription_charged' => 'किसी सक्रिय, लाइव बिलिंग वाली सदस्यता से कोई राशि नहीं वसूली गई।',
+    'mrr_hint' => 'हर सक्रिय या भुगतान बकाया लाइव सदस्यता, उसके सबसे हाल के भुगतान किए गए इनवॉइस पर, उस इनवॉइस की बिलिंग अवधि के हिसाब से मासिक आधार पर बदली गई।',
+    'this_month_vs_last' => 'यह महीना बनाम पिछला',
+    'movement_new' => 'नया · :currency',
+    'movement_expansion' => 'बढ़ोतरी · :currency',
+    'movement_contraction' => 'कमी · :currency',
+    'movement_churned' => 'चर्न · :currency',
+    'nothing_charged' => 'पिछले महीने या इस महीने कुछ नहीं वसूला गया।',
+    'movements_hint' => 'हर वर्कस्पेस के लिए, हर महीने में वसूली गई राशि से। चर्न = पिछले महीने वसूली हुई, इस महीने कुछ नहीं, और सदस्यता रद्द है।',
+    'trial_to_paid' => 'ट्रायल से पेड',
+    'trial_to_paid_value' => 'समाप्त हुए :ended ट्रायल में से :converted से भुगतान वसूला गया है',
+    'past_due_now' => 'अभी भुगतान बकाया',
+    'paid_invoices_counted' => 'गिने गए भुगतान किए गए इनवॉइस',
+    'never_moves_money' => 'यह कंसोल कभी कोई राशि नहीं वसूलता, रिफ़ंड नहीं करता और पैसा ट्रांसफ़र नहीं करता। हर आँकड़ा मुद्रा के हिसाब से है और अलग-अलग मुद्राओं को कभी जोड़ा नहीं जाता।',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'संग्रहीत स्टेटमेंट',
+    'history_summary' => 'आपका फ़ाइनल इतिहास · :years · :statements',
+    'years' => '{1}:count वर्ष|[0,*]:count वर्ष',
+    'statements' => '{1}:count स्टेटमेंट|[0,*]:count स्टेटमेंट',
+    'archived_on_finalize' => 'फ़ाइनल होते ही स्टेटमेंट यहाँ संग्रहीत हो जाते हैं।',
+    'net_earned_lifetime' => 'शुद्ध कमाई · अब तक कुल',
+    'since' => ':date से',
+    'per_currency_note' => 'पेआउट की हर मुद्रा के हिसाब से अलग-अलग जोड़ा गया — अलग-अलग मुद्राओं के बैलेंस कभी मिलाए नहीं जाते।',
+    'lifetime_empty' => 'अभी कोई फ़ाइनल स्टेटमेंट नहीं — आपका पहला स्टेटमेंट यहाँ दिखेगा।',
+    'search_placeholder' => 'अपने स्टेटमेंट खोजें — माह, वर्ष, स्थिति या नंबर',
+    'search_label' => 'स्टेटमेंट खोजें',
+    'no_match' => '“:query” से कोई स्टेटमेंट मेल नहीं खाता।',
+    'no_match_hint' => 'माह (“सितम्बर”), वर्ष (“2026”), स्थिति (“पेआउट किया गया”) या स्टेटमेंट नंबर (“नंबर 1”) आज़माएँ।',
+    'group_summary' => ':statements · शुद्ध :nets',
+    'per_payout_currency' => '(पेआउट की हर मुद्रा के अनुसार)',
+    'tax_summary_title' => ':year का वार्षिक कर सारांश PDF के रूप में डाउनलोड करें',
+    'tax_summary' => 'कर सारांश',
+    'col_statement' => 'स्टेटमेंट',
+    'col_net_payable' => 'शुद्ध देय राशि',
+    'col_links' => 'लिंक',
+    'unverified_title' => 'कुछ एंट्री अभी चैनल मिलान के इंतज़ार में हैं',
+    'unverified' => 'असत्यापित एंट्री शामिल हैं',
+    'pdf_title' => 'इस स्टेटमेंट को PDF में डाउनलोड करें',
+    'pdf' => 'PDF',
+    'bookings_title' => 'इस स्टेटमेंट की बुकिंग PDF में डाउनलोड करें',
+    'bookings' => 'बुकिंग',
+    'empty' => 'अभी कोई फ़ाइनल स्टेटमेंट नहीं है। स्टेटमेंट फ़ाइनल होते ही यहाँ संग्रहीत हो जाता है।',
+    'zip_heading' => 'सभी संग्रहीत स्टेटमेंट डाउनलोड करें',
+    'zip_sub' => '{1}:count स्टेटमेंट PDF की एक ZIP फ़ाइल। ऊपर का हर स्टेटमेंट पहले से अलग से भी डाउनलोड होता है।|[0,*]:count स्टेटमेंट PDF की एक ZIP फ़ाइल। ऊपर का हर स्टेटमेंट पहले से अलग से भी डाउनलोड होता है।',
+    'download_zip' => 'ZIP डाउनलोड करें',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'Vyrobel के साथ प्रबंधित',
+    'eyebrow' => 'मालिक स्टेटमेंट',
+    'unit_count' => '{1}:count यूनिट|[0,*]:count यूनिट',
+    'issued' => 'जारी: :date',
+    'prepared_for' => 'इनके लिए तैयार',
+    'net_payable_to_owner' => 'मालिक को देय शुद्ध राशि',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'ऑक्यूपेंसी',
+    'nights_sold' => 'बिकी रातें',
+    'avg_nightly_rate' => 'औसत प्रति रात रेट',
+    'breakdown' => 'ब्योरा',
+    'item' => 'आइटम',
+    'detail' => 'विवरण',
+    'amount' => 'राशि',
+    'provisional' => '(अस्थायी)',
+    'performance_by_unit' => 'यूनिट के अनुसार प्रदर्शन',
+    'unit' => 'यूनिट',
+    'nights' => 'रातें',
+    'revenue' => 'कमाई',
+    'total_gross_room_revenue' => 'कमरों की कुल सकल कमाई',
+    'callout_heading' => 'पेआउट।',
+    'settles_to_iban' => ':amount की शुद्ध राशि बैंक ट्रांसफ़र से IBAN :iban में पहुँचती है।',
+    'settles' => ':amount की शुद्ध राशि बैंक ट्रांसफ़र से पहुँचती है।',
+    'fees_with_commission' => 'प्रबंधन कमीशन कमरों की सकल कमाई का :pct% लिया जाता है; भुगतान और प्लेटफ़ॉर्म शुल्क लागत मूल्य पर आगे डाले जाते हैं। सभी राशियाँ :currency में हैं और इनमें आपकी ओर से वसूले गए लागू कर शामिल हैं।',
+    'fees' => 'भुगतान और प्लेटफ़ॉर्म शुल्क लागत मूल्य पर आगे डाले जाते हैं। सभी राशियाँ :currency में हैं और इनमें आपकी ओर से वसूले गए लागू कर शामिल हैं।',
+    'fx_note' => ':source से :rate की विनिमय दर पर बदला गया (स्रोत: :src)।',
+    'provisional_note' => 'कुछ एंट्री अस्थायी हैं, चैनल से मिलान बाकी है।',
+    'statement_ref' => 'स्टेटमेंट :ref',
+    'sequence_no' => 'नंबर :number',
+    'generated' => 'तैयार: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'सवाल हैं? :email',
+];

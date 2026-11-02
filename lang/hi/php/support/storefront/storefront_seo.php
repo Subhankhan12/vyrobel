@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'होटल',
+    'type_aparthotel' => 'अपार्टहोटल',
+    'type_serviced_apartment' => 'सर्विस्ड अपार्टमेंट',
+    'type_apartment_building' => 'अपार्टमेंट',
+    'type_apartment' => 'अपार्टमेंट',
+    'type_villa' => 'विला',
+    'type_hostel' => 'हॉस्टल',
+    'type_guest_house' => 'गेस्ट हाउस',
+    'type_resort' => 'रिसॉर्ट',
+    'type_mixed' => 'होटल और अपार्टमेंट',
+    'type_portfolio' => 'ठहरने के विकल्प',
+    'title_town' => ':name, :town — सीधे हमसे बुक करें',
+    'title' => ':name — सीधे हमसे बुक करें',
+    'title_room' => ':property में :room — सीधे हमसे बुक करें',
+    'org_description_towns' => '{1}:towns में :count प्रॉपर्टी देखें। उपलब्धता जाँचें और :org से सीधे बुक करें।|[0,*]:towns में :count प्रॉपर्टी देखें। उपलब्धता जाँचें और :org से सीधे बुक करें।',
+    'org_description' => '{1}:count प्रॉपर्टी देखें। उपलब्धता जाँचें और :org से सीधे बुक करें।|[0,*]:count प्रॉपर्टी देखें। उपलब्धता जाँचें और :org से सीधे बुक करें।',
+    'org_description_empty' => 'उपलब्धता जाँचें और :org से सीधे बुक करें।',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}:name को सीधे बुक करें। :place में :type। :count कमरे का प्रकार। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।|[2,*]:name को सीधे बुक करें। :place में :type। :count कमरे के प्रकार। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।',
+    'description_place' => ':name को सीधे बुक करें। :place में :type। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।',
+    'description_rooms' => '{1}:name को सीधे बुक करें। :type। :count कमरे का प्रकार। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।|[2,*]:name को सीधे बुक करें। :type। :count कमरे के प्रकार। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।',
+    'description' => ':name को सीधे बुक करें। :type। लाइव उपलब्धता देखें और बिना किसी बुकिंग साइट के बुक करें।',
+    'detail_sleeps' => 'अधिकतम मेहमान: :guests',
+    'detail_bedrooms' => '{1}:count बेडरूम|[0,*]:count बेडरूम',
+    'room_description_town_details' => ':property (:town) में :room — :details। लाइव उपलब्धता देखें और सीधे बुक करें।',
+    'room_description_town' => ':property (:town) में :room। लाइव उपलब्धता देखें और सीधे बुक करें।',
+    'room_description_details' => ':property में :room — :details। लाइव उपलब्धता देखें और सीधे बुक करें।',
+    'room_description' => ':property में :room। लाइव उपलब्धता देखें और सीधे बुक करें।',
+    'list_and' => ':items और :last',
+];

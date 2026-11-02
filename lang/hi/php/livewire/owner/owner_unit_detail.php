@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'मेहमान',
+    'nights' => '{1}:count रात|[2,*]:count रातें',
+    'block_reason_none' => 'ब्लॉक',
+    'block_reason_maintenance' => 'मेंटेनेंस',
+    'block_reason_owner' => 'मालिक',
+    'block_reason_manual' => 'मैनुअल',
+    'block_reason_overbooking_protection' => 'रिज़र्व',
+    'cleaning_departure' => 'प्रस्थान की सफ़ाई',
+    'cleaning_stayover' => 'ठहराव के दौरान सफ़ाई',
+    'cleaning_deep' => 'डीप क्लीनिंग',
+    'cleaning_arrival_prep' => 'आगमन की तैयारी',
+    'cleaning_status_pending' => 'शेड्यूल की गई',
+    'cleaning_status_in_progress' => 'प्रगति में',
+    'cleaning_status_clean' => 'साफ़',
+    'cleaning_status_inspected' => 'जाँच पूरी',
+    'kind_room' => 'कमरा',
+    'kind_apartment' => 'अपार्टमेंट',
+    'kind_villa' => 'विला',
+    'kind_dorm_bed' => 'डॉर्म बेड',
+    'condition_out_of_order' => 'खराब',
+    'condition_out_of_service' => 'मेंटेनेंस में',
+    'status_enquiry' => 'पूछताछ',
+    'status_tentative' => 'अस्थायी',
+    'status_confirmed' => 'कन्फ़र्म',
+    'status_checked_in' => 'चेक-इन पूरा',
+    'status_checked_out' => 'चेक-आउट पूरा',
+    'status_cancelled' => 'रद्द',
+    'status_no_show' => 'नो-शो',
+    'terms_portfolio' => 'सभी यूनिट पर लागू शर्तें',
+    'terms_unit' => 'इस यूनिट की शर्तें',
+];

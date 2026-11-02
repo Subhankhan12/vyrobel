@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'रिपोर्ट',
+    'arrivals_in' => ':period में आगमन',
+    'arrivals_count' => '{1}:count आगमन|[0,*]:count आगमन',
+    'pp_delta' => ':delta अंक',
+    'occupancy' => 'ऑक्यूपेंसी',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'सकल राजस्व',
+    'basis_note' => 'ऑक्यूपेंसी · ADR · RevPAR ठहराव की रातों के आधार पर हैं, और जहाँ पिछले साल का डेटा है वहाँ पिछले साल की इसी अवधि से तुलना की गई है। नीचे का राजस्व फ़ोलियो (आगमन) के आधार पर है।',
+    'revenue' => 'राजस्व',
+    'room' => 'कमरे का किराया',
+    'ancillary' => 'अन्य राजस्व <span class="muted">· अतिरिक्त सेवाएँ, उत्पाद, शुल्क</span>',
+    'tax_collected' => 'वसूला गया कर · आगे भेजी जाने वाली राशि',
+    'costs_heading' => 'लागत <span class="muted" style="font-size:9px">· सिर्फ़ असली डेटा</span>',
+    'maintenance' => 'मेंटेनेंस <span class="muted">· हल हुए वर्क ऑर्डर</span>',
+    'not_tracked' => 'अभी ट्रैक नहीं होता',
+    'net' => 'शुद्ध (राजस्व − ट्रैक की गई लागत)',
+    'revenue_by_channel' => 'चैनल के अनुसार राजस्व',
+    'channel' => 'चैनल',
+    'bookings' => 'बुकिंग',
+    'share' => 'हिस्सा',
+    'no_channel_revenue' => 'इस अवधि में चैनल का कोई राजस्व नहीं है।',
+    'top_units' => 'टॉप कमरे',
+    'unit' => 'कमरा',
+    'nights' => 'रातें',
+    'room_revenue' => 'कमरों का राजस्व',
+    'no_unit_revenue' => 'इस अवधि में कमरों का कोई राजस्व नहीं है।',
+    'revenue_by_month' => 'माह के अनुसार राजस्व',
+    'month' => 'माह',
+    'footer' => ':scope · :period के लिए असली फ़ोलियो और मेंटेनेंस डेटा से गणना की गई। ऑक्यूपेंसी/ADR/RevPAR ठहराव की रातों के आधार पर हैं; राजस्व फ़ोलियो (आगमन) के आधार पर है। आँकड़े रिपोर्ट स्क्रीन से मेल खाते हैं। Vyrobel।',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'ठहराव',
+    'step_guest' => 'मेहमान',
+    'step_extras' => 'अतिरिक्त सेवाएँ',
+    'step_confirm' => 'पुष्टि करें',
+    'source_direct' => 'डायरेक्ट',
+    'source_walk_in' => 'वॉक-इन',
+    'source_corporate' => 'कॉर्पोरेट',
+    'source_agent' => 'ट्रैवल एजेंट',
+    'the_guest' => 'मेहमान',
+    'a_night' => ':amount प्रति रात',
+    'a_night_range' => ':low–:high प्रति रात',
+    'dates_label' => '{1}:from → :to · :count रात|[2,*]:from → :to · :count रातें',
+    'restrict_min_stay' => '{1}:date को आगमन पर कम से कम :count रात का ठहराव ज़रूरी है|[2,*]:date को आगमन पर कम से कम :count रातों का ठहराव ज़रूरी है',
+    'restrict_max_stay' => '{1}:date को आगमन पर ज़्यादा से ज़्यादा :count रात का ठहराव हो सकता है|[2,*]:date को आगमन पर ज़्यादा से ज़्यादा :count रातों का ठहराव हो सकता है',
+    'restrict_no_arrivals' => ':date को कोई आगमन नहीं',
+    'restrict_no_departures' => ':date को कोई प्रस्थान नहीं',
+    'restrict_stop_sell' => ':date को नई बुकिंग के लिए बिक्री बंद है',
+    'restrict_other' => ':date को :restriction',
+    'arrival_mail_off' => 'Vyrobel से अभी ईमेल नहीं भेजे जा रहे — मेहमान को रास्ता और दरवाज़े का कोड खुद बताएँ।',
+    'arrival_pre_arrival_off' => 'आपकी प्रॉपर्टी के लिए आगमन से पहले का ईमेल बंद है — मेहमान को रास्ता और दरवाज़े का कोड खुद बताएँ।',
+    'arrival_too_soon' => 'यह ठहराव इतनी जल्दी शुरू हो रहा है कि आगमन से पहले वाला ईमेल नहीं जा पाएगा, जो चेक-इन से :count दिन पहले भेजा जाता है — मेहमान को रास्ता और दरवाज़े का कोड खुद बताएँ।',
+    'arrival_by_email' => 'रास्ता, और अगर कमरे में दरवाज़े का कोड है तो वह भी, चेक-इन से :count दिन पहले मेहमान को ईमेल से भेजा जाता है — अगर उनका ईमेल पता दर्ज है। दरवाज़े का कोड यहाँ कभी नहीं दिखाया जाता।',
+    'cancel_not_free' => 'इस ठहराव के लिए निःशुल्क नहीं — निःशुल्क रद्दीकरण :date को खत्म हो गया',
+    'cancel_free_until_check_in' => 'चेक-इन तक निःशुल्क',
+    'cancel_free_until_date' => ':date तक निःशुल्क',
+    'cancel_free_until_days' => '{1}चेक-इन से :count दिन पहले तक निःशुल्क|[0,*]चेक-इन से :count दिन पहले तक निःशुल्क',
+    'min_stay_none' => 'कोई न्यूनतम नहीं',
+    'min_stay_nights' => '{1}:count रात|[2,*]:count रातें',
+    'guest_no_name' => 'मेहमान',
+    'no_stays_yet' => 'अभी कोई ठहराव नहीं',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'नोट',
+    'kind_progress' => 'प्रगति',
+    'kind_part' => 'पार्ट ऑर्डर किया गया',
+    'elapsed_minutes' => ':minutes मि.',
+    'elapsed_hours' => ':hours घं. :minutes मि.',
+    'elapsed_days' => ':days दिन :hours घं.',
+    'hours_short' => ':hours घं.',
+    'timeline_opened' => 'रिपोर्ट हुआ',
+    'timeline_assigned_to' => ':name को असाइन किया गया',
+    'a_technician' => 'एक टेक्नीशियन',
+    'timeline_unassigned' => 'असाइनमेंट हटाया गया',
+    'timeline_started' => 'काम शुरू हुआ',
+    'timeline_resolved' => 'हल हुआ',
+    'timeline_cancelled' => 'रद्द',
+    'timeline_parts_updated' => 'पार्ट्स अपडेट किए गए',
+    'timeline_cost_corrected' => 'लागत में सुधार',
+    'timeline_updated' => 'विवरण बदला गया',
+    'note_progress' => 'प्रगति अपडेट',
+    'note_part' => 'पार्ट ऑर्डर किया गया',
+    'note_added' => 'नोट जोड़ा गया',
+    'a_team_member' => 'एक टीम सदस्य',
+    'system' => 'सिस्टम',
+    'photo_alt' => 'मेंटेनेंस की फ़ोटो',
+    'the_owner' => 'मालिक',
+    'load_none' => 'कोई चालू वर्क ऑर्डर नहीं',
+    'load_open' => 'चालू: :open',
+    'load_open_urgent' => 'चालू: :open · अर्जेंट: :urgent',
+    'impact_arrivals' => '{1}आज रात के :count आगमन को कमरा चाहिए|[0,*]आज रात के :count आगमन को कमरा चाहिए',
+    'impact_bookings' => '{1}:count बुकिंग का कमरा बदलना है|[0,*]:count बुकिंग का कमरा बदलना है',
+    'impact_none' => 'किसी बुकिंग पर असर नहीं',
+];

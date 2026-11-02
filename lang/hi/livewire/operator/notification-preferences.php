@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'सूचना प्राथमिकताएँ',
+    'subtitle' => 'Vyrobel आप तक कैसे पहुँचता है',
+    'breadcrumb_label' => 'नेविगेशन पथ',
+    'crumb_settings' => 'सेटिंग',
+    'crumb_notifications' => 'सूचनाएँ',
+    'channel_email' => 'ईमेल',
+    'channel_push' => 'पुश',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'कोई ईमेल दर्ज नहीं',
+    'email_verified_title' => 'आपका लॉग इन ईमेल सत्यापित है',
+    'email_verified' => 'सत्यापित',
+    'push_not_set_up_title' => 'पुश अभी सेट नहीं है',
+    'not_set_up_tag' => 'सेट नहीं है',
+    'push_not_available' => 'ब्राउज़र और डिवाइस पुश अभी उपलब्ध नहीं है',
+    'channel_off' => 'बंद',
+    'sms_not_set_up_title' => 'SMS अभी सेट नहीं है',
+    'sms_no_provider' => 'अभी कोई SMS प्रदाता कनेक्ट नहीं है',
+    'notify_me_when' => 'मुझे तब सूचित करें जब',
+    'always_on' => 'हमेशा चालू',
+    'email_always_on_sr' => ':event के लिए ईमेल हमेशा चालू',
+    'email_me_when_aria' => 'मुझे ईमेल करें, जब: :event',
+    'push_not_set_up_sr' => 'पुश सेट नहीं है',
+    'sms_not_set_up_sr' => 'SMS सेट नहीं है',
+    'quiet_hours' => 'शांत घंटे',
+    'quiet_hours_help' => 'इन घंटों के दौरान सामान्य ईमेल रोककर रखे जाते हैं — ज़रूरी सुरक्षा अलर्ट हमेशा पहुँचते हैं; ऐप के अंदर का फ़ीड इससे प्रभावित नहीं होता।',
+    'quiet_from' => 'शुरू',
+    'quiet_to' => 'समाप्त',
+    'digest_heading' => 'रोज़ाना डाइजेस्ट ईमेल',
+    'digest_help' => 'सुबह भेजा जाने वाला दिन का सारांश। <span class="vy-np-soon">अभी भेजा नहीं जाता</span> — डाइजेस्ट सुविधा शुरू होने पर काम आने के लिए यह प्राथमिकता सहेजी जाती है।',
+    'digest_off' => 'बंद',
+    'digest_morning' => 'सुबह · 08:00',
+];

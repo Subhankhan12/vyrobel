@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'ठहरने के विकल्प',
+    'book_direct' => 'सीधे हमसे बुक करें',
+    'nav_stays' => 'ठहरने के विकल्प',
+    'my_account' => 'मेरा अकाउंट',
+    'sign_in' => 'लॉग इन करें',
+    'rating_across' => '{1}:count रिव्यू के आधार पर :average|[0,*]:count रिव्यू के आधार पर :average',
+    'heading' => 'सीधे :org से<br>बुक करें।',
+    'subheading' => 'ध्यान से सँभाले गए ठहरने के विकल्प, सीधे प्रॉपर्टी से बुक करें — कोई अतिरिक्त शुल्क नहीं, हमारा सबसे अच्छा रेट, और जवाब देने के लिए एक असली इंसान।',
+    'where' => 'कहाँ',
+    'check_in' => 'चेक-इन',
+    'check_out' => 'चेक-आउट',
+    'adults' => 'वयस्क',
+    'children' => 'बच्चे',
+    'where_to_stay' => 'कहाँ ठहरें',
+    'towns_lede' => '{1}हमारा मुख्य ठिकाना।|[2,*]:count शहर, हर एक की अपनी रफ़्तार।',
+    'from_price' => ':price से',
+    'featured_stays' => 'चुनिंदा ठहरने के विकल्प',
+    'featured_lede' => 'पूरे कलेक्शन में मेहमानों की पसंद।',
+    'per_night' => '/रात',
+    'see_dates_for_pricing' => 'कीमत जानने के लिए तिथियाँ चुनें',
+    'browse_by_what_matters' => 'अपनी पसंद के हिसाब से देखें',
+    'why_book_direct' => 'सीधे बुक क्यों करें',
+    'recent_guests' => 'हाल के मेहमान',
+    'rating_short' => '{1}:average · :count रिव्यू|[0,*]:average · :count रिव्यू',
+    'stars_aria' => '5 में से :rating स्टार',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'अभी कोई रिव्यू नहीं — सबसे पहले ठहरें और अपना अनुभव साझा करें।',
+    'cta_heading' => 'अपनी जगह खोजें',
+    'cta_sub' => 'असली तिथियाँ, लाइव कीमतें, तुरंत पुष्टि।',
+    'browse_all_stays' => 'ठहरने के सभी विकल्प देखें',
+];

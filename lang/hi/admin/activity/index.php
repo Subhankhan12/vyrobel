@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'ऑपरेटर/मालिक',
+    'realm_guest' => 'मेहमान',
+    'realm_admin' => 'प्लेटफ़ॉर्म एडमिन',
+    'event_login' => 'लॉग इन',
+    'event_failed' => 'विफल',
+    'event_lockout' => 'अकाउंट लॉक',
+    'subject_user' => 'यूज़र',
+    'subject_guest' => 'मेहमान',
+    'subject_platform_admin' => 'प्लेटफ़ॉर्म एडमिन',
+    'subject_unknown' => 'अज्ञात',
+    'actor_user' => 'यूज़र',
+    'actor_agent' => 'एजेंट',
+    'actor_system' => 'सिस्टम',
+    'page_title' => 'सुरक्षा और गतिविधि',
+    'page_subtitle' => 'पूरे प्लेटफ़ॉर्म पर लॉग इन गतिविधि और अकाउंट इवेंट — :days दिन तक रखे जाते हैं, फिर मिटा दिए जाते हैं।',
+    'kpi_failures' => 'विफल / अकाउंट लॉक · 24 घं.',
+    'kpi_failures_help' => 'बार-बार विफल लॉग इन किसी के सेंध लगाने की कोशिश का संकेत हो सकते हैं।',
+    'privacy' => 'गोपनीयता',
+    'privacy_body' => 'लॉग इन गतिविधि (IP सहित) केवल <strong style="color: var(--ad-ink);">सुरक्षा संकेत</strong> के रूप में दर्ज की जाती है — संदिग्ध लॉग इन पहचानने और सपोर्ट के लिए — कभी सामान्य ट्रैकिंग के लिए नहीं। यह :days दिन तक रखी जाती है, फिर अपने आप मिटा दी जाती है; इसे केवल यही कंसोल देख सकता है।',
+    'recent_sign_ins' => 'हाल की लॉग इन गतिविधि',
+    'col_event' => 'इवेंट',
+    'col_realm' => 'अकाउंट प्रकार',
+    'col_account' => 'अकाउंट',
+    'col_ip' => 'IP',
+    'col_when' => 'कब',
+    'no_sign_ins' => 'अभी तक कोई लॉग इन गतिविधि दर्ज नहीं हुई।',
+    'recent_account_events' => 'हाल के अकाउंट इवेंट <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· सभी ग्राहकों के</span>',
+    'col_customer' => 'ग्राहक',
+    'col_actor' => 'किसने',
+    'no_account_events' => 'अभी तक कोई अकाउंट इवेंट नहीं।',
+];

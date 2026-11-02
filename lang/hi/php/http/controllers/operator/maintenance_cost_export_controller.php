@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — hi translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'राशियाँ',
+    'csv_amounts_note' => 'मुख्य मुद्रा इकाई में, दशमलव बिंदु के साथ, हज़ार का कोई विभाजक नहीं',
+    'col_date' => 'तिथि',
+    'col_work_order' => 'वर्क ऑर्डर',
+    'col_unit' => 'कमरा',
+    'col_category' => 'श्रेणी',
+    'col_labor' => 'मज़दूरी',
+    'col_parts' => 'पार्ट्स',
+    'col_total' => 'कुल',
+    'col_currency' => 'मुद्रा',
+    'total_row' => 'कुल',
+    'sheet_summary' => 'सारांश',
+    'col_measure' => 'मद',
+    'col_value' => 'मान',
+    'total_spend' => 'कुल खर्च',
+    'measure_labour' => 'मज़दूरी',
+    'measure_parts' => 'पार्ट्स',
+    'orders_closed' => 'हल हुए ऑर्डर',
+    'owner_billed' => 'मालिक को बिल',
+    'operator_borne' => 'ऑपरेटर ने वहन किया',
+    'parts_on_order' => 'ऑर्डर किए गए पार्ट्स',
+    'average_per_order' => 'प्रति ऑर्डर औसत',
+    'by_category' => 'श्रेणी के अनुसार',
+    'col_orders' => 'ऑर्डर',
+    'by_month' => 'माह के अनुसार',
+    'top_units' => 'टॉप कमरे',
+    'sheet_line_items' => 'लाइन आइटम',
+    'col_labour' => 'मज़दूरी',
+    'no_email' => 'आपके अकाउंट में कोई ईमेल पता नहीं है।',
+    'report_emailed' => 'लागत रिपोर्ट :email पर ईमेल की गई।',
+];
