@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Kwoty',
+    'csv_amounts_note' => 'jednostki główne waluty, kropka dziesiętna, bez separatora tysięcy',
+    'col_date' => 'Data',
+    'col_work_order' => 'Zlecenie naprawy',
+    'col_unit' => 'Jednostka',
+    'col_category' => 'Kategoria',
+    'col_labor' => 'Robocizna',
+    'col_parts' => 'Części',
+    'col_total' => 'Łącznie',
+    'col_currency' => 'Waluta',
+    'total_row' => 'Łącznie',
+    'sheet_summary' => 'Podsumowanie',
+    'col_measure' => 'Wskaźnik',
+    'col_value' => 'Wartość',
+    'total_spend' => 'Łączne wydatki',
+    'measure_labour' => 'Robocizna',
+    'measure_parts' => 'Części',
+    'orders_closed' => 'Zamknięte zlecenia',
+    'owner_billed' => 'Na koszt właściciela',
+    'operator_borne' => 'Na koszt operatora',
+    'parts_on_order' => 'Zamówione części',
+    'average_per_order' => 'Średnio na zlecenie',
+    'by_category' => 'Według kategorii',
+    'col_orders' => 'Zlecenia',
+    'by_month' => 'Według miesięcy',
+    'top_units' => 'Jednostki o najwyższych wydatkach',
+    'sheet_line_items' => 'Pozycje',
+    'col_labour' => 'Robocizna',
+    'no_email' => 'Do konta nie przypisano adresu e-mail.',
+    'report_emailed' => 'Raport kosztów wysłano na adres :email.',
+];

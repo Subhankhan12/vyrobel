@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Otwarto zgłoszenie „:title” dla jednostki :unit.',
+    'not_assignable_staff' => 'Tej osobie nie można przydzielać zgłoszeń w tej organizacji.',
+    'cannot_reassign_closed' => 'Nie można zmienić przypisania tego zgłoszenia – jest już zamknięte.',
+    'assignment_updated' => 'Zaktualizowano przypisanie zgłoszenia.',
+    'work_order_closed' => 'To zlecenie naprawy jest zamknięte – nie można zmienić jego szczegółów.',
+    'work_order_updated' => 'Zaktualizowano zlecenie naprawy.',
+    'col_title' => 'Tytuł',
+    'col_unit' => 'Jednostka',
+    'col_category' => 'Kategoria',
+    'col_priority' => 'Priorytet',
+    'col_status' => 'Status',
+    'col_assignee' => 'Przypisana osoba',
+    'col_reported' => 'Zgłoszono',
+    'col_cost' => 'Koszt',
+    'bulk_assigned_skipped' => '{1}Przydzielono :count zlecenie naprawy · pominięto (już zamknięte): :skipped|Przydzielono :count zlecenia naprawy · pominięto (już zamknięte): :skipped|Przydzielono :count zleceń naprawy · pominięto (już zamknięte): :skipped',
+    'bulk_assigned' => '{1}Przydzielono :count zlecenie naprawy.|Przydzielono :count zlecenia naprawy.|Przydzielono :count zleceń naprawy.',
+    'bulk_resolved_skipped' => '{1}Zakończono :count zlecenie naprawy · pominięto (już zamknięte): :skipped|Zakończono :count zlecenia naprawy · pominięto (już zamknięte): :skipped|Zakończono :count zleceń naprawy · pominięto (już zamknięte): :skipped',
+    'bulk_resolved' => '{1}Zakończono :count zlecenie naprawy.|Zakończono :count zlecenia naprawy.|Zakończono :count zleceń naprawy.',
+    'cannot_start' => 'Nie można rozpocząć pracy nad tym zgłoszeniem – nie jest już otwarte.',
+    'work_started' => 'Rozpoczęto pracę nad tym zgłoszeniem.',
+    'cannot_resolve_closed' => 'Nie można zakończyć tego zlecenia naprawy – jest już zamknięte.',
+    'ticket_resolved' => 'Zgłoszenie oznaczone jako wykonane.',
+    'cannot_cancel_closed' => 'Nie można anulować tego zgłoszenia – jest już zamknięte.',
+    'ticket_cancelled' => 'Zgłoszenie anulowane.',
+    'parts_closed' => 'To zgłoszenie jest zamknięte – nie można zaktualizować części.',
+    'awaiting_parts' => 'Oznaczono jako czekające na części.',
+    'parts_arrived' => 'Oznaczono, że części dotarły.',
+    'update_posted_waiting_part' => 'Dodano aktualizację – oznaczono jako czekające na część.',
+    'update_posted' => 'Dodano aktualizację.',
+    'photo_added' => 'Dodano zdjęcie.',
+    'photo_removed' => 'Usunięto zdjęcie.',
+    'workspace_paused' => 'Organizacja jest wstrzymana (tylko do odczytu) – zmiany w obsłudze technicznej są niedostępne do czasu jej wznowienia.',
+];

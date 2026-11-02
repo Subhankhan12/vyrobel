@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Przegląd',
+    'subtitle_all' => 'Wszystkie organizacje, łącznie z wewnętrznymi organizacjami firmy Vyrobel.',
+    'subtitle_customers' => 'Tylko klienci – wewnętrzne organizacje firmy Vyrobel są pominięte.',
+    'showing_all' => 'Wyświetlane są <strong>wszystkie</strong> organizacje – w tym wewnętrzne: :internal.',
+    'internal_excluded' => '{1}Pominięto :count organizację wewnętrzną we wszystkich poniższych danych.|Pominięto :count organizacje wewnętrzne we wszystkich poniższych danych.|Pominięto :count organizacji wewnętrznych we wszystkich poniższych danych.',
+    'customers_only' => 'Tylko klienci',
+    'include_internal' => 'Uwzględnij wewnętrzne',
+    'no_customers_heading' => 'Na razie brak klientów',
+    'no_customers_body' => 'Każda organizacja na platformie należy do firmy Vyrobel (wewnętrzne: :internal). Pierwsza prawdziwa rejestracja pojawi się tutaj.',
+    'kpi_organisations' => 'Organizacje',
+    'kpi_customers' => 'Klienci',
+    'kpi_account_status' => 'Aktywne: :active · zawieszone: :suspended',
+    'kpi_subscriptions' => 'Subskrypcje',
+    'kpi_subscriptions_sub' => 'aktywne · w okresie testowym: :trial',
+    'kpi_revenue' => 'Przychód',
+    'no_live_billing' => 'Na razie brak rozliczeń na żywo',
+    'no_live_billing_sub' => 'Żadna subskrypcja nie jest rozliczana przez Stripe. Cena katalogowa planu w okresie testowym nie jest przychodem.',
+    'billed_live' => '{1}:count subskrypcja rozliczana na żywo|:count subskrypcje rozliczane na żywo|:count subskrypcji rozliczanych na żywo',
+    'billed_live_sub' => 'Obliczane na podstawie kwot pobranych przez Stripe, nigdy z cennika – zob. <a class="ad-cell-link" href=":url">Przychody</a>.',
+    'kpi_properties' => 'Obiekty',
+    'kpi_reservations' => '{1}:count rezerwacja|:count rezerwacje|:count rezerwacji',
+    'new_organisations_heading' => 'Nowe organizacje · ostatnie 6 miesięcy',
+    'new_customers_heading' => 'Nowi klienci · ostatnie 6 miesięcy',
+    'no_signups' => 'Brak rejestracji w ostatnich 6 miesiącach.',
+    'account_status_heading' => 'Status konta',
+    'status_active' => 'Aktywne',
+    'status_suspended' => 'Zawieszone',
+    'status_cancelled' => 'Anulowane',
+    'status_trialing' => 'W okresie testowym (konto)',
+    'free_trial_hint' => 'Okres testowy to stan subskrypcji, a nie status konta – obecnie w okresie testowym: :trial.',
+    'plans_in_use' => 'Używane plany <span class="ad-stat-sub" style="font-weight: 400;">· aktywne lub w okresie testowym</span>',
+    'no_plans' => 'Brak używanych planów.',
+];

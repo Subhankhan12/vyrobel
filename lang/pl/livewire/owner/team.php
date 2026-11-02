@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Zespół i dostęp',
+    'subtitle' => 'Współwłaściciel lub księgowy może otrzymać własne dane logowania – z dostępem tylko do tego, czego potrzebuje.',
+    'people_with_access' => 'Osoby z dostępem',
+    'account_owner' => 'Główny właściciel',
+    'thats_you' => 'bieżący użytkownik',
+    'owner_access' => 'Pełny dostęp do wszystkiego, w tym do tej strony.',
+    'active_now' => 'Aktywność: teraz',
+    'role_for' => 'Rola użytkownika :name',
+    'your_password' => 'Państwa hasło',
+    'confirm_password' => 'Potwierdź hasłem',
+    'remove_confirm' => 'Usunąć osobę :name z zespołu? Nie będzie mogła się już zalogować.',
+    'no_members' => 'Na razie tylko Państwo – poniżej można zaprosić współwłaściciela lub księgowego.',
+    'invite_heading' => 'Zaproś osobę',
+    'invite_sub' => 'Zaproszona osoba otrzyma własne dane logowania – dostęp można odebrać w dowolnej chwili.',
+    'invite_email_label' => 'Adres e-mail zapraszanej osoby',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Wyślij zaproszenie',
+    'pending_invites' => 'Oczekujące zaproszenia',
+    'resend' => 'Wyślij ponownie',
+    'revoke' => 'Wycofaj',
+    'matrix_heading' => 'Co widzi każda rola',
+    'matrix_note' => 'Tylko Państwo jako główny właściciel mogą zarządzać zespołem i kontem do wypłat.',
+    'recent_activity' => 'Ostatnia aktywność',
+    'no_activity' => 'Jeszcze nic – tutaj pojawią się zaproszenia i logowania.',
+    'download_log' => 'Eksportuj rejestr pobrań',
+    'download_log_sub' => 'Każdy plik rozliczenia, rezerwacji, wypłaty lub podatkowy pobrany przez Państwa zespół jest oznaczany danymi osoby pobierającej – i zapisywany tutaj.',
+    'no_downloads' => 'Nie pobrano jeszcze żadnych eksportów – pojawią się tutaj wraz z oznaczeniem osoby pobierającej.',
+    'security_heading' => 'Każdy ma własny klucz',
+    'security_body' => 'Bez wspólnych haseł – każda osoba loguje się na własne konto, a dostęp jest ograniczony do jej roli. Eksporty finansowe mają znak wodny z danymi osoby pobierającej i są zapisywane w rejestrze powyżej. Na własnym koncie prosimy włączyć weryfikację dwuetapową.',
+    'security_settings' => 'Ustawienia bezpieczeństwa',
+];

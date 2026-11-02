@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Gotowe do wypłaty',
+    'chip_hold' => 'Zatrzymane',
+    'chip_review' => 'Do sprawdzenia',
+    'chip_paused' => 'Wypłaty wstrzymane',
+    'chip_invited' => 'Zaproszono',
+    'sorted_name_asc' => 'według właściciela, A–Z',
+    'sorted_name_desc' => 'według właściciela, Z–A',
+    'sorted_units_desc' => 'od największej liczby jednostek',
+    'sorted_units_asc' => 'od najmniejszej liczby jednostek',
+    'sorted_net_desc' => 'od najwyższej kwoty do wypłaty',
+    'sorted_net_asc' => 'od najniższej kwoty do wypłaty',
+    'sorted_status_asc' => 'najpierw wymagające uwagi',
+    'sorted_status_desc' => 'wymagające uwagi na końcu',
+    'kpi_invited' => 'zaproszono: :number',
+    'kpi_units' => '{1}:count jednostka|:count jednostki|:count jednostek',
+    'kpi_owners_ready' => '{1}:count właściciel gotowy|:count właściciele gotowi|:count właścicieli gotowych',
+    'kpi_paused_not_counted' => 'wstrzymani: :number, nieuwzględnieni',
+    'kpi_hold_none' => 'nic nie czeka',
+    'kpi_hold_waiting' => 'czeka: :amounts',
+    'kpi_review_sub' => 'z pozycjami niepotwierdzonymi przez kanał sprzedaży: :number',
+    'schedule' => ':day dzień roboczy miesiąca',
+    'ordinal_st' => ':number.',
+    'ordinal_nd' => ':number.',
+    'ordinal_rd' => ':number.',
+    'ordinal_th' => ':number.',
+    'role_manager' => 'Kierownik obiektu',
+    'role_accountant' => 'Księgowy',
+    'role_owner' => 'Właściciel',
+    'another_owner' => 'inny właściciel',
+];

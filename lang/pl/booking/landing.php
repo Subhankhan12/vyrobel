@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Oferty noclegowe',
+    'book_direct' => 'Rezerwuj bezpośrednio',
+    'nav_stays' => 'Oferty noclegowe',
+    'my_account' => 'Moje konto',
+    'sign_in' => 'Zaloguj się',
+    'rating_across' => '{1}:average na podstawie :count opinii|:average na podstawie :count opinii|:average na podstawie :count opinii',
+    'heading' => 'Rezerwuj bezpośrednio:<br>:org.',
+    'subheading' => 'Starannie prowadzone noclegi rezerwowane bezpośrednio w obiekcie – bez opłat, z naszą najlepszą ceną i prawdziwym człowiekiem po drugiej stronie.',
+    'where' => 'Gdzie',
+    'check_in' => 'Zameldowanie',
+    'check_out' => 'Wymeldowanie',
+    'adults' => 'Dorośli',
+    'children' => 'Dzieci',
+    'where_to_stay' => 'Gdzie się zatrzymać',
+    'towns_lede' => '{1}Nasza baza.|:count miejscowości, każda w swoim rytmie.|:count miejscowości, każda w swoim rytmie.',
+    'from_price' => 'od :price',
+    'featured_stays' => 'Wyróżnione oferty',
+    'featured_lede' => 'Ulubione miejsca naszych gości z całej oferty.',
+    'per_night' => '/ noc',
+    'see_dates_for_pricing' => 'Wybierz daty, aby zobaczyć ceny',
+    'browse_by_what_matters' => 'Szukaj według tego, co ważne',
+    'why_book_direct' => 'Dlaczego rezerwować bezpośrednio',
+    'recent_guests' => 'Ostatni goście',
+    'rating_short' => '{1}:average · :count opinia|:average · :count opinie|:average · :count opinii',
+    'stars_aria' => 'Ocena :rating na 5 gwiazdek',
+    'review_quote' => '„:body”',
+    'no_reviews_yet' => 'Brak opinii – Państwa opinia po pobycie może być pierwsza.',
+    'cta_heading' => 'Znajdź swoje miejsce',
+    'cta_sub' => 'Prawdziwe terminy, aktualne ceny, natychmiastowe potwierdzenie.',
+    'browse_all_stays' => 'Zobacz wszystkie oferty',
+];

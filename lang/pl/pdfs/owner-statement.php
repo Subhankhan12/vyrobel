@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'zarządzane w Vyrobel',
+    'eyebrow' => 'Rozliczenie właściciela',
+    'unit_count' => '{1}:count jednostka|:count jednostki|:count jednostek',
+    'issued' => 'wystawiono: :date',
+    'prepared_for' => 'Przygotowano dla',
+    'net_payable_to_owner' => 'Do wypłaty dla właściciela',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Obłożenie',
+    'nights_sold' => 'Sprzedane noce',
+    'avg_nightly_rate' => 'Śr. cena za noc',
+    'breakdown' => 'Zestawienie',
+    'item' => 'Pozycja',
+    'detail' => 'Szczegóły',
+    'amount' => 'Kwota',
+    'provisional' => '(wstępna)',
+    'performance_by_unit' => 'Wyniki według jednostek',
+    'unit' => 'Jednostka',
+    'nights' => 'Noce',
+    'revenue' => 'Przychód',
+    'total_gross_room_revenue' => 'Łączny przychód z noclegów',
+    'callout_heading' => 'Wypłata.',
+    'settles_to_iban' => 'Kwota do wypłaty :amount zostanie przekazana przelewem bankowym na konto IBAN :iban.',
+    'settles' => 'Kwota do wypłaty :amount zostanie przekazana przelewem bankowym.',
+    'fees_with_commission' => 'Prowizja za zarządzanie wynosi :pct% przychodu z noclegów; opłaty płatnicze i opłaty platformy są rozliczane według rzeczywistych kosztów. Wszystkie kwoty podano w walucie :currency i obejmują należne podatki pobrane w Państwa imieniu.',
+    'fees' => 'opłaty płatnicze i opłaty platformy są rozliczane według rzeczywistych kosztów. Wszystkie kwoty podano w walucie :currency i obejmują należne podatki pobrane w Państwa imieniu.',
+    'fx_note' => 'Przeliczono z waluty :source po kursie :rate (źródło: :src).',
+    'provisional_note' => 'Niektóre pozycje są wstępne i czekają na uzgodnienie z kanałem sprzedaży.',
+    'statement_ref' => 'rozliczenie :ref',
+    'sequence_no' => 'nr :number',
+    'generated' => 'wygenerowano: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Pytania? :email',
+];

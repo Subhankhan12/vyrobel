@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Gość',
+    'nights' => '{1}:count noc|:count noce|:count nocy',
+    'block_reason_none' => 'Zablokowane',
+    'block_reason_maintenance' => 'Obsługa techniczna',
+    'block_reason_owner' => 'Właściciel',
+    'block_reason_manual' => 'Ręczna',
+    'block_reason_overbooking_protection' => 'Ochrona przed nadrezerwacją',
+    'cleaning_departure' => 'Sprzątanie po wyjeździe',
+    'cleaning_stayover' => 'Sprzątanie w trakcie pobytu',
+    'cleaning_deep' => 'Gruntowne sprzątanie',
+    'cleaning_arrival_prep' => 'Przygotowanie na przyjazd',
+    'cleaning_status_pending' => 'Zaplanowane',
+    'cleaning_status_in_progress' => 'W trakcie',
+    'cleaning_status_clean' => 'Posprzątane',
+    'cleaning_status_inspected' => 'Sprawdzone',
+    'kind_room' => 'Pokój',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Willa',
+    'kind_dorm_bed' => 'Miejsce w pokoju wieloosobowym',
+    'condition_out_of_order' => 'Niesprawna',
+    'condition_out_of_service' => 'W naprawie',
+    'status_enquiry' => 'Zapytanie',
+    'status_tentative' => 'Wstępna',
+    'status_confirmed' => 'Potwierdzona',
+    'status_checked_in' => 'Zameldowana',
+    'status_checked_out' => 'Wymeldowana',
+    'status_cancelled' => 'Anulowana',
+    'status_no_show' => 'Niepojawienie się',
+    'terms_portfolio' => 'Warunki dla całego portfolio',
+    'terms_unit' => 'Warunki dla tej jednostki',
+];

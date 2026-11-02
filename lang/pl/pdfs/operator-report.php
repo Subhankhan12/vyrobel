@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Raporty',
+    'arrivals_in' => 'Przyjazdy w okresie: :period',
+    'arrivals_count' => '{1}:count przyjazd|:count przyjazdy|:count przyjazdów',
+    'pp_delta' => ':delta pkt proc.',
+    'occupancy' => 'Obłożenie',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Przychód łączny',
+    'basis_note' => 'Obłożenie · ADR · RevPAR liczone są według nocy pobytu, w porównaniu z tym samym okresem poprzedniego roku tam, gdzie istnieją dane z poprzedniego roku. Przychód poniżej liczony jest według folio (daty przyjazdu).',
+    'revenue' => 'Przychód',
+    'room' => 'Noclegi',
+    'ancillary' => 'Przychody dodatkowe <span class="muted">· dodatki, produkty, opłaty</span>',
+    'tax_collected' => 'Pobrane podatki · do przekazania',
+    'costs_heading' => 'Koszty <span class="muted" style="font-size:9px">· tylko rzeczywiste dane</span>',
+    'maintenance' => 'Obsługa techniczna <span class="muted">· wykonane zlecenia naprawy</span>',
+    'not_tracked' => 'jeszcze nieśledzone',
+    'net' => 'Dochód (przychód − śledzone koszty)',
+    'revenue_by_channel' => 'Przychód według kanałów',
+    'channel' => 'Kanał',
+    'bookings' => 'Rezerwacje',
+    'share' => 'Udział',
+    'no_channel_revenue' => 'Brak przychodu z kanałów w tym okresie.',
+    'top_units' => 'Najlepsze jednostki',
+    'unit' => 'Jednostka',
+    'nights' => 'Noce',
+    'room_revenue' => 'Przychód z noclegów',
+    'no_unit_revenue' => 'Brak przychodu z jednostek w tym okresie.',
+    'revenue_by_month' => 'Przychód według miesięcy',
+    'month' => 'Miesiąc',
+    'footer' => 'Obliczono na podstawie rzeczywistych danych folio i obsługi technicznej dla: :scope · :period. Obłożenie/ADR/RevPAR liczone są według nocy pobytu; przychód według folio (daty przyjazdu). Dane zgadzają się z ekranem „Raporty”. Vyrobel.',
+];

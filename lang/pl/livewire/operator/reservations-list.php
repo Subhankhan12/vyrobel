@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Rezerwacje',
+    'arrivals_this_month' => 'Przyjazdy w tym miesiącu',
+    'arrivals_this_month_sub' => 'zameldowania w tym miesiącu kalendarzowym · bez anulowań i niepojawień się',
+    'booked_value' => 'Wartość rezerwacji · przyjazdy w tym miesiącu',
+    'booked_value_sub' => 'naliczone dla przyjazdów w tym miesiącu',
+    'booked_value_sub_multi' => 'naliczone dla przyjazdów w tym miesiącu · osobno dla każdej waluty (nigdy nie sumowane)',
+    'balances_due' => 'Do zapłaty · przyjazdy w tym miesiącu',
+    'folios_owing' => '{1}:count folio z należnością|:count folio z należnością|:count folio z należnością|{0}nic do zapłaty',
+    'search_placeholder' => 'Szukaj gościa lub numeru rezerwacji…',
+    'search_label' => 'Szukaj rezerwacji',
+    'group_booking' => 'Rezerwacja grupowa',
+    'new_reservation' => 'Nowa rezerwacja',
+    'empty_heading' => 'Brak rezerwacji',
+    'empty_body' => 'Każda rezerwacja – bezpośrednia, zaimportowana lub założona dla gościa bez rezerwacji – pojawia się tutaj po przyjęciu.',
+    'no_match_query' => 'Brak rezerwacji pasujących do „:query”',
+    'no_match_view' => 'Brak rezerwacji w tym widoku',
+    'no_match_hint' => '{1}Spróbuj wpisać nazwisko gościa lub numer rezerwacji. Łącznie :count rezerwacja.|Spróbuj wpisać nazwisko gościa lub numer rezerwacji. Łącznie :count rezerwacje.|Spróbuj wpisać nazwisko gościa lub numer rezerwacji. Łącznie :count rezerwacji.',
+    'no_match_hint_filter' => '{1}Spróbuj wpisać nazwisko gościa lub numer rezerwacji albo wyczyść filtr. Łącznie :count rezerwacja.|Spróbuj wpisać nazwisko gościa lub numer rezerwacji albo wyczyść filtr. Łącznie :count rezerwacje.|Spróbuj wpisać nazwisko gościa lub numer rezerwacji albo wyczyść filtr. Łącznie :count rezerwacji.',
+    'clear_search_filters' => 'Wyczyść wyszukiwanie i filtry',
+    'col_guest' => 'Gość',
+    'col_stay' => 'Pobyt',
+    'col_unit' => 'Jednostka',
+    'col_source' => 'Źródło',
+    'col_stage' => 'Etap',
+    'col_balance_due' => 'Do zapłaty',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count noc|:count noce|:count nocy',
+    'guests' => '{1}:count gość|:count goście|:count gości',
+    'unassigned' => 'Bez jednostki',
+    'refunded' => 'Zwrócono',
+    'pager_label' => 'rezerwacji',
+];

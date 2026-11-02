@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Archiwum rozliczeń',
+    'history_summary' => 'Zamknięte rozliczenia · :years · :statements',
+    'years' => '{1}:count rok|:count lata|:count lat',
+    'statements' => '{1}:count rozliczenie|:count rozliczenia|:count rozliczeń',
+    'archived_on_finalize' => 'Rozliczenia trafiają tutaj do archiwum w chwili zamknięcia.',
+    'net_earned_lifetime' => 'Dochód · od początku',
+    'since' => 'od :date',
+    'per_currency_note' => 'Sumy osobno dla każdej waluty wypłaty – salda w różnych walutach nigdy nie są łączone.',
+    'lifetime_empty' => 'Brak zamkniętych rozliczeń – pierwsze pojawi się tutaj.',
+    'search_placeholder' => 'Szukaj rozliczeń – miesiąc, rok, status lub numer',
+    'search_label' => 'Szukaj rozliczeń',
+    'no_match' => 'Brak rozliczeń pasujących do „:query”.',
+    'no_match_hint' => 'Wpisz miesiąc („wrzesień”), rok („2026”), status („Wypłacone”) lub numer rozliczenia („nr 1”).',
+    'group_summary' => ':statements · dochód: :nets',
+    'per_payout_currency' => '(dla każdej waluty wypłaty)',
+    'tax_summary_title' => 'Pobierz roczne podsumowanie podatkowe za :year w formacie PDF',
+    'tax_summary' => 'Podsumowanie podatkowe',
+    'col_statement' => 'Rozliczenie',
+    'col_net_payable' => 'Do wypłaty',
+    'col_links' => 'Linki',
+    'unverified_title' => 'Niektóre pozycje czekają jeszcze na uzgodnienie z kanałem sprzedaży',
+    'unverified' => 'Zawiera niezweryfikowane pozycje',
+    'pdf_title' => 'Pobierz to rozliczenie w formacie PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Pobierz rezerwacje z tego rozliczenia w formacie PDF',
+    'bookings' => 'Rezerwacje',
+    'empty' => 'Brak zamkniętych rozliczeń. Rozliczenie trafia tutaj do archiwum po zamknięciu.',
+    'zip_heading' => 'Pobierz całe archiwum',
+    'zip_sub' => '{1}Jeden plik ZIP z :count rozliczeniem w formacie PDF. Każde rozliczenie powyżej można też pobrać osobno.|Jeden plik ZIP z :count rozliczeniami w formacie PDF. Każde rozliczenie powyżej można też pobrać osobno.|Jeden plik ZIP z :count rozliczeniami w formacie PDF. Każde rozliczenie powyżej można też pobrać osobno.',
+    'download_zip' => 'Pobierz plik ZIP',
+];

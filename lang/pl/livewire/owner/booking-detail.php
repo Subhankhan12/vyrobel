@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Przegląd',
+    'breadcrumb_bookings' => 'Rezerwacje',
+    'guest_fallback' => 'Gość',
+    'reservation' => 'Rezerwacja',
+    'check_in' => 'Przyjazd',
+    'nights_count' => '{1}:count noc|:count noce|:count nocy',
+    'check_out' => 'Wyjazd',
+    'unit' => 'Jednostka',
+    'guests' => 'Goście',
+    'nights' => 'Noce',
+    'nightly_rate' => 'Cena za noc',
+    'your_earnings' => 'Państwa dochód',
+    'gross_to_net' => 'przychód → dochód',
+    'gross_booking_value' => 'Przychód z rezerwacji',
+    'net_to_you' => 'Państwa dochód',
+    'refunds_we_covered' => 'Zwroty pokryte przez nas',
+    'refunds_we_covered_note' => 'Zwrócone gościowi i pokryte przez nas, nie przez Państwa. Państwa dochód podany powyżej się nie zmienia.',
+    'not_yet_attributed' => 'Jeszcze nie zaksięgowano.',
+    'not_yet_attributed_note' => 'Państwa dochód pojawi się tutaj, gdy rezerwacja zostanie zaksięgowana w księdze właściciela – zwykle po wymeldowaniu.',
+    'guest_heading' => 'Gość',
+    'guest_contact_note' => 'Danymi kontaktowymi gościa zajmuje się firma zarządzająca – Państwo widzą rezerwację i swój dochód.',
+    'message_your_team' => 'Napisz do firmy zarządzającej',
+    'timeline' => 'Historia',
+    'for_night_stay' => 'za ten pobyt (noce: :nights)',
+    'booking_details' => 'Szczegóły rezerwacji',
+    'confirmation' => 'Numer rezerwacji',
+    'source' => 'Źródło',
+    'channel' => 'Kanał',
+    'booked_on' => 'Data rezerwacji',
+    'download_confirmation' => 'Pobierz potwierdzenie',
+    'download_unavailable' => 'Dostępne dla współwłaścicieli i księgowych',
+    'view_unit' => 'Wyświetl jednostkę :unit',
+];

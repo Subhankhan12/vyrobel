@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Przychody',
+    'subtitle' => 'Na podstawie tego, co faktycznie pobrał Stripe – nigdy z cen katalogowych. Tylko klienci, chyba że uwzględni się organizacje firmy Vyrobel.',
+    'including_internal' => 'Łącznie z wewnętrznymi organizacjami firmy Vyrobel.',
+    'customers_only_note' => 'Tylko klienci.',
+    'customers_only_link' => 'Tylko klienci',
+    'include_internal_link' => 'Uwzględnij wewnętrzne',
+    'no_live_billing_pill' => 'Na razie brak rozliczeń na żywo',
+    'no_customer_charged' => 'Nie obciążono jeszcze żadnego klienta.',
+    'not_live_explainer' => 'Stripe nie działa w trybie na żywo, więc nie ma opłaconych faktur do zliczenia. To nie jest zły miesiąc – po prostu nie ma jeszcze żadnego miesiąca. Przychód jest tu obliczany wyłącznie na podstawie <strong>opłaconych faktur Stripe</strong> (samego obciążenia, zapisanego, gdy Stripe nas o nim powiadomi), nigdy z ceny katalogowej planu.',
+    'live_billed_subscriptions' => 'Subskrypcje rozliczane na żywo',
+    'trialing_unbilled' => 'Subskrypcje w okresie testowym, nierozliczane',
+    'failed_payments_30d' => 'Nieudane płatności, ostatnie 30 dni',
+    'when_first_paid' => 'Gdy zostanie opłacona pierwsza faktura, ta strona pokaże: MRR i ARR dla każdej waluty · nowy MRR, wzrost, spadek i utracony MRR · konwersję z okresu testowego na płatny · nieudane płatności.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Uwzględnione subskrypcje',
+    'no_live_subscription_charged' => 'Nie obciążono żadnej aktywnej subskrypcji rozliczanej na żywo.',
+    'mrr_hint' => 'Każda aktywna lub zalegająca z płatnością subskrypcja rozliczana na żywo według jej ostatniej opłaconej faktury, przeliczona na miesiąc według okresu rozliczeniowego tej faktury.',
+    'this_month_vs_last' => 'Ten miesiąc a poprzedni',
+    'movement_new' => 'Nowe · :currency',
+    'movement_expansion' => 'Wzrost · :currency',
+    'movement_contraction' => 'Spadek · :currency',
+    'movement_churned' => 'Utracone · :currency',
+    'nothing_charged' => 'Brak obciążeń w poprzednim ani w bieżącym miesiącu.',
+    'movements_hint' => 'Dla każdej organizacji, na podstawie obciążeń w danym miesiącu. Utracone = obciążenie w poprzednim miesiącu, brak obciążenia w bieżącym i anulowana subskrypcja.',
+    'trial_to_paid' => 'Okres testowy → płatny',
+    'trial_to_paid_value' => 'Obciążono po zakończonym okresie testowym: :converted z :ended',
+    'past_due_now' => 'Obecnie zaległe',
+    'paid_invoices_counted' => 'Zliczone opłacone faktury',
+    'never_moves_money' => 'Ta konsola nigdy nie obciąża, nie zwraca ani nie przesyła pieniędzy. Każda wartość jest podawana osobno dla każdej waluty i nigdy nie jest sumowana między walutami.',
+];

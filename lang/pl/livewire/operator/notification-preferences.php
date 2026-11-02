@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Ustawienia powiadomień',
+    'subtitle' => 'Jak Vyrobel się z Państwem kontaktuje',
+    'breadcrumb_label' => 'Ścieżka nawigacji',
+    'crumb_settings' => 'Ustawienia',
+    'crumb_notifications' => 'Powiadomienia',
+    'channel_email' => 'E-mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Brak adresu e-mail',
+    'email_verified_title' => 'Adres e-mail do logowania jest zweryfikowany',
+    'email_verified' => 'Zweryfikowany',
+    'push_not_set_up_title' => 'Powiadomienia push nie są jeszcze skonfigurowane',
+    'not_set_up_tag' => 'nie skonfigurowano',
+    'push_not_available' => 'Powiadomienia push w przeglądarce i na urządzeniu nie są jeszcze dostępne',
+    'channel_off' => 'Wyłączone',
+    'sms_not_set_up_title' => 'Powiadomienia SMS nie są jeszcze skonfigurowane',
+    'sms_no_provider' => 'Nie połączono jeszcze dostawcy SMS',
+    'notify_me_when' => 'Powiadom mnie, gdy',
+    'always_on' => 'Zawsze włączone',
+    'email_always_on_sr' => 'E-mail zawsze włączony: :event',
+    'email_me_when_aria' => 'Powiadamiaj e-mailem: :event',
+    'push_not_set_up_sr' => 'Powiadomienia push nie są skonfigurowane',
+    'sms_not_set_up_sr' => 'Powiadomienia SMS nie są skonfigurowane',
+    'quiet_hours' => 'Godziny ciszy',
+    'quiet_hours_help' => 'W tych godzinach rutynowe e-maile są wstrzymywane – pilne alerty bezpieczeństwa docierają zawsze; nie dotyczy to powiadomień w aplikacji.',
+    'quiet_from' => 'Od',
+    'quiet_to' => 'Do',
+    'digest_heading' => 'Codzienne podsumowanie e-mailem',
+    'digest_help' => 'Poranne podsumowanie dnia. <span class="vy-np-soon">jeszcze nie wysyłane</span> – ustawienie jest zapisywane i zacznie działać, gdy wysyłka podsumowań zostanie uruchomiona.',
+    'digest_off' => 'Wyłączone',
+    'digest_morning' => 'Rano · 08:00',
+];

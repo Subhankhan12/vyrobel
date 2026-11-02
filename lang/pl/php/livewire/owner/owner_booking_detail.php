@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'od :time',
+    'by_time' => 'do :time',
+    'repeat_guest' => '{1}Powracający gość · :count pobyt|Powracający gość · :count pobyty|Powracający gość · :count pobytów',
+    'new_guest' => 'Nowy gość',
+    'guests_count' => '{1}:count gość|:count goście|:count gości',
+    'nights_count' => '{1}:count noc|:count noce|:count nocy',
+    'channel_direct' => 'Bezpośrednio przez Vyrobel',
+    'channel_walk_in' => 'Bez rezerwacji',
+    'channel_ota' => 'Kanał OTA',
+    'event_booking_received' => 'Otrzymano rezerwację',
+    'event_cancelled' => 'Anulowana',
+    'event_payment_received' => 'Otrzymano płatność',
+    'when_paid_in_full' => 'Opłacona w całości',
+    'event_part_payment_received' => 'Otrzymano częściową płatność',
+    'when_balance_due' => 'Do zapłaty',
+    'event_payment' => 'Płatność',
+    'when_not_yet_received' => 'Jeszcze nie otrzymano',
+    'event_checked_in' => 'Zameldowano',
+    'event_check_in' => 'Przyjazd',
+    'event_checked_out' => 'Wymeldowano',
+    'event_payout_released' => 'Wypłata przekazana',
+    'event_payout' => 'Wypłata',
+    'when_next_payout' => 'Z najbliższą wypłatą',
+    'payout_not_attributed' => 'Jeszcze nie zaksięgowano',
+    'payout_not_attributed_note' => 'Ta rezerwacja nie została jeszcze zaksięgowana w księdze właściciela.',
+    'payout_scheduled' => 'Zaplanowana',
+    'payout_scheduled_note' => 'Zostanie ujęta w najbliższym rozliczeniu, a następnie przekazana wraz z tą wypłatą.',
+    'payout_pending' => 'Oczekuje na wypłatę',
+    'payout_pending_note' => 'W zamkniętym rozliczeniu – zostanie przekazana wraz z tą wypłatą.',
+    'payout_paid' => 'Wypłacono',
+    'payout_paid_note' => 'Przekazano w ramach zrealizowanej wypłaty.',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Pobyt',
+    'step_guest' => 'Gość',
+    'step_extras' => 'Dodatki',
+    'step_confirm' => 'Potwierdzenie',
+    'source_direct' => 'Bezpośrednia',
+    'source_walk_in' => 'Bez rezerwacji',
+    'source_corporate' => 'Firmowa',
+    'source_agent' => 'Biuro podróży',
+    'the_guest' => 'gość',
+    'a_night' => ':amount za noc',
+    'a_night_range' => ':low–:high za noc',
+    'dates_label' => '{1}:from → :to · :count noc|:from → :to · :count noce|:from → :to · :count nocy',
+    'restrict_min_stay' => '{1}Przy przyjeździe :date pobyt musi trwać co najmniej :count noc|Przy przyjeździe :date pobyt musi trwać co najmniej :count noce|Przy przyjeździe :date pobyt musi trwać co najmniej :count nocy',
+    'restrict_max_stay' => '{1}Przy przyjeździe :date pobyt może trwać najwyżej :count noc|Przy przyjeździe :date pobyt może trwać najwyżej :count noce|Przy przyjeździe :date pobyt może trwać najwyżej :count nocy',
+    'restrict_no_arrivals' => 'Zamknięte dla przyjazdów: :date',
+    'restrict_no_departures' => 'Zamknięte dla wyjazdów: :date',
+    'restrict_stop_sell' => 'Zamknięte dla nowych rezerwacji: :date',
+    'restrict_other' => ':restriction: :date',
+    'arrival_mail_off' => 'Vyrobel nie wysyła jeszcze e-maili – przekaż gościowi wskazówki dojazdu i kod do drzwi samodzielnie.',
+    'arrival_pre_arrival_off' => 'E-mail przed przyjazdem jest wyłączony w Państwa obiektach – przekaż gościowi wskazówki dojazdu i kod do drzwi samodzielnie.',
+    'arrival_too_soon' => '{1}Ten pobyt zaczyna się zbyt wcześnie na e-mail przed przyjazdem, który jest wysyłany :count dzień przed zameldowaniem – przekaż gościowi wskazówki dojazdu i kod do drzwi samodzielnie.|Ten pobyt zaczyna się zbyt wcześnie na e-mail przed przyjazdem, który jest wysyłany :count dni przed zameldowaniem – przekaż gościowi wskazówki dojazdu i kod do drzwi samodzielnie.|Ten pobyt zaczyna się zbyt wcześnie na e-mail przed przyjazdem, który jest wysyłany :count dni przed zameldowaniem – przekaż gościowi wskazówki dojazdu i kod do drzwi samodzielnie.',
+    'arrival_by_email' => '{1}Wskazówki dojazdu oraz kod do drzwi (jeśli jednostka go ma) trafiają do gościa e-mailem :count dzień przed zameldowaniem – o ile gość podał adres e-mail. Kod do drzwi nigdy nie jest tu wyświetlany.|Wskazówki dojazdu oraz kod do drzwi (jeśli jednostka go ma) trafiają do gościa e-mailem :count dni przed zameldowaniem – o ile gość podał adres e-mail. Kod do drzwi nigdy nie jest tu wyświetlany.|Wskazówki dojazdu oraz kod do drzwi (jeśli jednostka go ma) trafiają do gościa e-mailem :count dni przed zameldowaniem – o ile gość podał adres e-mail. Kod do drzwi nigdy nie jest tu wyświetlany.',
+    'cancel_not_free' => 'Bez bezpłatnego anulowania – termin minął :date',
+    'cancel_free_until_check_in' => 'Bezpłatnie do zameldowania',
+    'cancel_free_until_date' => 'Bezpłatnie do :date',
+    'cancel_free_until_days' => '{1}Bezpłatnie do :count dnia przed zameldowaniem|Bezpłatnie do :count dni przed zameldowaniem|Bezpłatnie do :count dni przed zameldowaniem',
+    'min_stay_none' => 'Brak minimum',
+    'min_stay_nights' => '{1}:count noc|:count noce|:count nocy',
+    'guest_no_name' => 'Gość',
+    'no_stays_yet' => 'Brak pobytów',
+];

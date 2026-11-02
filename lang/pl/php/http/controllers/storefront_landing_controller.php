@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Nasze oferty noclegowe',
+    'properties_count' => '{1}:count obiekt|:count obiekty|:count obiektów',
+    'stays_count' => '{1}:count oferta|:count oferty|:count ofert',
+    'stays_sleeps' => ':stays · maks. liczba osób: :max',
+    'stays_sleeps_range' => ':stays · liczba osób: :min–:max',
+    'perk_free_cancel_days' => '{1}Pełny zwrot do :count dnia przed przyjazdem.|Pełny zwrot do :count dni przed przyjazdem.|Pełny zwrot do :count dni przed przyjazdem.',
+    'perk_free_cancel_window' => 'Pełny zwrot w okresie bezpłatnego anulowania.',
+    'perk_no_fees' => 'Bez opłat rezerwacyjnych',
+    'perk_no_fees_sub' => 'Cena, którą widać, to cena do zapłaty.',
+    'perk_best_rate' => 'Najlepsza cena bezpośrednio',
+    'perk_best_rate_sub' => 'Rezerwuj bezpośrednio w naszej najlepszej cenie – bez pośredników.',
+    'perk_free_cancel' => 'Bezpłatne anulowanie',
+    'perk_host_support' => 'Bezpośredni kontakt z obiektem',
+    'perk_host_support_sub' => 'Kontakt z prawdziwą osobą w sprawie rezerwacji.',
+    'kind_room' => 'Pokój',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Willa',
+    'kind_dorm' => 'Pokój wieloosobowy',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament z obsługą',
+    'type_apartment_building' => 'Budynek apartamentowy',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Willa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensjonat',
+    'type_resort' => 'Ośrodek wypoczynkowy',
+    'type_mixed' => 'Mieszany',
+    'type_portfolio' => 'Portfolio',
+];

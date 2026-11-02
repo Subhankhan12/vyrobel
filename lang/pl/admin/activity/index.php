@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Operator/właściciel',
+    'realm_guest' => 'Gość',
+    'realm_admin' => 'Administrator platformy',
+    'event_login' => 'Logowanie',
+    'event_failed' => 'Nieudane',
+    'event_lockout' => 'Blokada',
+    'subject_user' => 'Użytkownik',
+    'subject_guest' => 'Gość',
+    'subject_platform_admin' => 'Administrator platformy',
+    'subject_unknown' => 'Nieznany',
+    'actor_user' => 'Użytkownik',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'System',
+    'page_title' => 'Bezpieczeństwo i aktywność',
+    'page_subtitle' => 'Aktywność logowania i zdarzenia kont na całej platformie – przechowywane (dni: :days), potem usuwane.',
+    'kpi_failures' => 'Nieudane / blokady · 24 h',
+    'kpi_failures_help' => 'Powtarzające się nieudane próby mogą oznaczać sondowanie.',
+    'privacy' => 'Prywatność',
+    'privacy_body' => 'Aktywność logowania (w tym adres IP) jest zapisywana wyłącznie jako <strong style="color: var(--ad-ink);">sygnał bezpieczeństwa</strong> – do wykrywania podejrzanych logowań i na potrzeby pomocy technicznej – nigdy do śledzenia w tle. Okres przechowywania (dni): :days, potem dane są automatycznie usuwane; dostęp ma wyłącznie ta konsola.',
+    'recent_sign_ins' => 'Ostatnia aktywność logowania',
+    'col_event' => 'Zdarzenie',
+    'col_realm' => 'Obszar',
+    'col_account' => 'Konto',
+    'col_ip' => 'IP',
+    'col_when' => 'Kiedy',
+    'no_sign_ins' => 'Nie zarejestrowano jeszcze żadnej aktywności logowania.',
+    'recent_account_events' => 'Ostatnie zdarzenia kont <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· wszyscy klienci</span>',
+    'col_customer' => 'Klient',
+    'col_actor' => 'Wykonawca',
+    'no_account_events' => 'Brak zdarzeń kont.',
+];

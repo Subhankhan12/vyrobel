@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ogłoszenia',
+    'subtitle' => 'Komunikat w panelu personelu i portalu właściciela każdej organizacji – lub tylko wybranych. Zwykły tekst; nic nie jest wysyłane e-mailem.',
+    'empty_state' => 'Nie opublikowano jeszcze żadnego ogłoszenia.',
+    'col_announcement' => 'Ogłoszenie',
+    'col_to' => 'Do kogo',
+    'col_from_until' => 'Od → do',
+    'col_state' => 'Stan',
+    'audience_all' => 'Wszystkie organizacje',
+    'audience_chosen_count' => 'Wybrane: :number',
+    'no_end' => 'bezterminowo',
+    'state_withdrawn' => 'Wycofane',
+    'state_showing' => 'Wyświetlane',
+    'state_scheduled' => 'Zaplanowane',
+    'state_ended' => 'Zakończone',
+    'reason_aria' => 'Powód',
+    'withdraw_placeholder' => 'Dlaczego wycofać?',
+    'withdraw_button' => 'Wycofaj',
+    'publish_heading' => 'Opublikuj ogłoszenie',
+    'title_label' => 'Tytuł',
+    'message_label' => 'Treść (zwykły tekst)',
+    'kind_label' => 'Rodzaj',
+    'show_from_label' => 'Wyświetlaj od (UTC)',
+    'until_label' => 'Do (UTC, opcjonalnie)',
+    'to_label' => 'Do kogo',
+    'option_every_organisation' => 'Wszystkie organizacje',
+    'option_chosen_organisations' => 'Wybrane organizacje',
+    'chosen_organisations_label' => 'Wybrane organizacje (przy opcji „Wybrane organizacje”)',
+    'no_organisation_chosen' => 'Nie wybrano jeszcze żadnej organizacji',
+    'reason_label' => 'Powód',
+    'publish_reason_placeholder' => 'Dlaczego to ogłoszenie jest publikowane?',
+    'publish_button' => 'Opublikuj',
+];

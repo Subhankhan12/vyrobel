@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartamenty z obsługą',
+    'type_apartment_building' => 'Apartamenty',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Willa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensjonat',
+    'type_resort' => 'Ośrodek wypoczynkowy',
+    'type_mixed' => 'Hotel i apartamenty',
+    'type_portfolio' => 'Oferty noclegowe',
+    'title_town' => ':name, :town – Rezerwuj bezpośrednio',
+    'title' => ':name – Rezerwuj bezpośrednio',
+    'title_room' => ':room w obiekcie :property – Rezerwuj bezpośrednio',
+    'org_description_towns' => '{1}Odkryj :count obiekt (:towns). Sprawdź dostępność i zarezerwuj bezpośrednio: :org.|Odkryj :count obiekty (:towns). Sprawdź dostępność i zarezerwuj bezpośrednio: :org.|Odkryj :count obiektów (:towns). Sprawdź dostępność i zarezerwuj bezpośrednio: :org.',
+    'org_description' => '{1}Odkryj :count obiekt. Sprawdź dostępność i zarezerwuj bezpośrednio: :org.|Odkryj :count obiekty. Sprawdź dostępność i zarezerwuj bezpośrednio: :org.|Odkryj :count obiektów. Sprawdź dostępność i zarezerwuj bezpośrednio: :org.',
+    'org_description_empty' => 'Sprawdź dostępność i zarezerwuj bezpośrednio: :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Zarezerwuj bezpośrednio w obiekcie :name. :type, :place. :count typ pokoju. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.|Zarezerwuj bezpośrednio w obiekcie :name. :type, :place. :count typy pokoi. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.|Zarezerwuj bezpośrednio w obiekcie :name. :type, :place. :count typów pokoi. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.',
+    'description_place' => 'Zarezerwuj bezpośrednio w obiekcie :name. :type, :place. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.',
+    'description_rooms' => '{1}Zarezerwuj bezpośrednio w obiekcie :name. :type. :count typ pokoju. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.|Zarezerwuj bezpośrednio w obiekcie :name. :type. :count typy pokoi. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.|Zarezerwuj bezpośrednio w obiekcie :name. :type. :count typów pokoi. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.',
+    'description' => 'Zarezerwuj bezpośrednio w obiekcie :name. :type. Sprawdź aktualną dostępność i rezerwuj bez pośrednictwa serwisów rezerwacyjnych.',
+    'detail_sleeps' => 'maks. liczba osób: :guests',
+    'detail_bedrooms' => '{1}:count sypialnia|:count sypialnie|:count sypialni',
+    'room_description_town_details' => ':room w obiekcie :property, :town – :details. Sprawdź aktualną dostępność i zarezerwuj bezpośrednio.',
+    'room_description_town' => ':room w obiekcie :property, :town. Sprawdź aktualną dostępność i zarezerwuj bezpośrednio.',
+    'room_description_details' => ':room w obiekcie :property – :details. Sprawdź aktualną dostępność i zarezerwuj bezpośrednio.',
+    'room_description' => ':room w obiekcie :property. Sprawdź aktualną dostępność i zarezerwuj bezpośrednio.',
+    'list_and' => ':items i :last',
+];

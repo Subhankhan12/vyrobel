@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Organizacja ma zapisy finansowe na żywo (:records). Prawo może wymagać ich przechowywania przez lata, dlatego ich usunięcie jest wstrzymane do czasu rozstrzygnięcia prawnego, jak długo trzeba je przechowywać – wcześniej organizacji nie można usunąć.',
+    'uncounted_cascades' => 'Baza danych łączy rekordy w sposób, którego mechanizm usuwania nie potrafi dokładnie policzyć (:links), więc potwierdzenie nie mogło określić, co zostanie usunięte. Dopóki nie zostanie to naprawione, nic nie można usunąć.',
+    'stripe_billing_live' => 'Rozliczenia Stripe na żywo są aktywne dla tej organizacji. Najpierw anuluj subskrypcję w Stripe – w przeciwnym razie klient, który już nie istnieje, nadal będzie obciążany. Jeśli subskrypcja jest tam już anulowana, powiadomienie Stripe o tym nie zostało tu przetworzone – rozwiąż to ręcznie.',
+    'checkout_open_subscription' => 'Strona płatności Stripe za subskrypcję organizacji została otwarta (data otwarcia: :opened) i nadal można ją opłacić (termin: :closes). Spróbuj ponownie, gdy zostanie opłacona lub wygaśnie.',
+    'checkout_open_card' => 'Strona płatności Stripe za płatność kartą gościa została otwarta (data otwarcia: :opened) i nadal można ją opłacić (termin: :closes). Spróbuj ponownie, gdy zostanie opłacona lub wygaśnie.',
+    'checkout_unreported_subscription' => 'Strona płatności Stripe na żywo za subskrypcję organizacji została otwarta (data otwarcia: :opened) i zamknięta (data zamknięcia: :closed), ale nie przetworzono tu żadnego powiadomienia o tym, czy została opłacona. Sprawdź tę stronę w panelu Stripe; jeśli została opłacona, najpierw anuluj tam to, co uruchomiła. Stripe ponawia niedostarczone powiadomienie przez maksymalnie 3 dni – spróbuj ponownie, gdy zostanie przetworzone. Jeśli powiadomienie Stripe już dotarło, ale nie dało się go przetworzyć, rozwiąż to ręcznie.',
+    'checkout_unreported_card' => 'Strona płatności Stripe na żywo za płatność kartą gościa została otwarta (data otwarcia: :opened) i zamknięta (data zamknięcia: :closed), ale nie przetworzono tu żadnego powiadomienia o tym, czy została opłacona. Sprawdź tę stronę w panelu Stripe; jeśli została opłacona, najpierw anuluj tam to, co uruchomiła. Stripe ponawia niedostarczone powiadomienie przez maksymalnie 3 dni – spróbuj ponownie, gdy zostanie przetworzone. Jeśli powiadomienie Stripe już dotarło, ale nie dało się go przetworzyć, rozwiąż to ręcznie.',
+    'refund_processing' => 'Zwrot na kartę jest nadal przetwarzany w Stripe. Poczekaj, aż Stripe go potwierdzi, a następnie spróbuj ponownie.',
+    'card_payment_open' => 'Płatność kartą lub preautoryzacja karty jest nadal otwarta. Najpierw poczekaj na jej rozliczenie albo ją zwolnij.',
+    'dispute_open' => 'Płatność kartą jest kwestionowana w Stripe (od: :since). Odpowiedz na spór w Stripe i spróbuj ponownie, gdy Stripe zgłosi jego zamknięcie. Jeśli panel Stripe już pokazuje spór jako zamknięty, powiadomienie nie dotarło – rozwiąż to ręcznie.',
+    'payouts_in_transit' => '{1}Wypłata dla właściciela jest w trakcie przelewu w Stripe (od: :since).|:count wypłaty dla właścicieli są w trakcie przelewu w Stripe (od: :since).|:count wypłat dla właścicieli jest w trakcie przelewu w Stripe (od: :since).',
+    'payout_transit_stale' => 'To trwa dłużej, niż powinno – najpierw wyjaśnij to ręcznie ze Stripe.',
+    'payout_transit_wait' => 'Poczekaj na potwierdzenie ze Stripe, a następnie spróbuj ponownie.',
+    'payouts_owed' => '{1}Właścicielowi nadal należy się wypłata (oczekująca lub zatrzymana). Najpierw ją wypłać – usunięcie pozostawiłoby właścicieli bez zapłaty i bez żadnego zapisu o tym.|:count wypłaty nadal należą się właścicielom (oczekujące lub zatrzymane). Najpierw je wypłać – usunięcie pozostawiłoby właścicieli bez zapłaty i bez żadnego zapisu o tym.|:count wypłat nadal należy się właścicielom (oczekujących lub zatrzymanych). Najpierw je wypłać – usunięcie pozostawiłoby właścicieli bez zapłaty i bez żadnego zapisu o tym.',
+    'payout_run_running' => 'Wypłata zbiorcza jest w toku (od: :since).',
+    'looks_stuck' => 'Wygląda na to, że utknęła – przed usunięciem rozwiąż to ręcznie.',
+    'payout_run_wait' => 'Spróbuj ponownie po jej zakończeniu.',
+    'webhook_unprocessed' => 'Powiadomienie ze źródła :source dla tej organizacji (odebrane: :received) nie zostało jeszcze przetworzone.',
+    'webhook_wait' => 'Spróbuj ponownie za kilka minut.',
+    'cross_tenant_references' => 'Inna organizacja ma rekordy wskazujące na tę organizację (:links). Usunięcie organizacji usunęłoby również te rekordy.',
+    'schema_unreadable' => 'Nie udało się w pełni odczytać schematu bazy danych (nie znaleziono: :tables).',
+    'already_deleted' => 'Ta organizacja już nie istnieje – została wcześniej usunięta.',
+    'protected' => 'Ta organizacja jest chroniona i nigdy nie może zostać usunięta.',
+    'not_suspended' => 'Najpierw ją zawieś – usunąć można tylko zawieszoną lub zarchiwizowaną organizację.',
+    'record_survived' => 'Po usunięciu nadal istnieje rekord tej organizacji (w tabelach: :tables), więc wszystko zostało wycofane.',
+    'organization_survived' => 'Po usunięciu nadal istnieje organizacja lub jeden z jej użytkowników, więc wszystko zostało wycofane.',
+    'live_card_payments' => '{1}:count płatność kartą|:count płatności kartą|:count płatności kartą',
+    'live_refunds' => '{1}:count zwrot|:count zwroty|:count zwrotów',
+    'live_payouts' => '{1}:count wypłata|:count wypłaty|:count wypłat',
+    'live_stripe_billing' => 'rozliczenia Stripe na żywo wraz z fakturami',
+    'unknown_time' => 'nieznana data',
+    'time_utc' => ':time UTC',
+];

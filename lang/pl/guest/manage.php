@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Zarządzaj rezerwacją :reference',
+    'back_to_booking' => '← Wróć do rezerwacji',
+    'heading' => 'Zarządzaj rezerwacją',
+    'subheading' => ':property · :check_in → :check_out. Zmiany potwierdza obiekt – damy znać, gdy tylko to nastąpi.',
+    'pending_requests' => 'Oczekujące prośby',
+    'pending_badge' => 'Oczekuje',
+    'pending_note' => 'W rezerwacji jeszcze nic się nie zmieniło – każdą prośbę najpierw potwierdza obiekt.',
+    'pick_new_dates' => 'Wybierz nowy termin',
+    'currently' => 'Obecnie :check_in → :check_out. Wybierz nowy termin, aby zobaczyć różnicę w cenie, a następnie poproś o zmianę.',
+    'new_check_in' => 'Nowa data przyjazdu',
+    'new_check_out' => 'Nowa data wyjazdu',
+    'see_price_difference' => 'Pokaż różnicę w cenie',
+    'new_stay' => 'Nowy pobyt',
+    'current' => 'Obecny',
+    'difference' => 'Różnica',
+    'estimate_note' => 'Cena szacunkowa – wymaga potwierdzenia przez obiekt. Ewentualna płatność nastąpi po potwierdzeniu.',
+    'unpriced_note' => 'Dla tych dat nie opublikowano jeszcze ceny – poproś o zmianę, a obiekt potwierdzi cenę.',
+    'request_date_change' => 'Poproś o zmianę terminu',
+    'add_to_your_stay' => 'Dodaj do pobytu',
+    'add_to_your_stay_sub' => 'Dodaj śniadanie, transfery i inne usługi – wszystko zostanie doliczone do rezerwacji po potwierdzeniu.',
+    'browse_extras' => 'Przeglądaj dodatki',
+    'cancellation_policy' => 'Zasady anulowania',
+    'free_until' => 'Bezpłatne anulowanie do <strong>:date</strong> – przy anulowaniu przed tym terminem zwracana jest cała kwota.',
+    'policy_by_property' => 'Obiekt potwierdza anulowanie i realizuje ewentualny zwrot zgodnie ze swoimi zasadami.',
+    'cancel_confirm' => 'Wysłać prośbę o anulowanie tej rezerwacji? Obiekt ją rozpatrzy i zrealizuje ewentualny zwrot zgodnie ze swoimi zasadami.',
+    'reason' => 'Powód',
+    'choose_reason' => 'Wybierz powód…',
+    'request_cancellation' => 'Poproś o anulowanie',
+    'closed_heading' => 'Ta rezerwacja jest zamknięta',
+    'closed_body' => 'Nie ma już w niej nic do zmiany – ale daty, szczegóły pobytu i wszystkie płatności są tu nadal dostępne, gdy tylko będą potrzebne.',
+];

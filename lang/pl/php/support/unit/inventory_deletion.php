@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count rezerwacja|:count rezerwacje|:count rezerwacji',
+    'room_moves' => '{1}:count przeniesienie|:count przeniesienia|:count przeniesień',
+    'cleaning_tasks' => '{1}:count zadanie sprzątania|:count zadania sprzątania|:count zadań sprzątania',
+    'work_orders' => '{1}:count zlecenie naprawy|:count zlecenia naprawy|:count zleceń naprawy',
+    'status_changes' => '{1}:count zmiana statusu|:count zmiany statusu|:count zmian statusu',
+    'blocks' => '{1}:count blokada|:count blokady|:count blokad',
+    'owner_agreements' => '{1}:count umowa o zarządzanie|:count umowy o zarządzanie|:count umów o zarządzanie',
+    'owner_statement_lines' => '{1}:count pozycja w rozliczeniach właściciela|:count pozycje w rozliczeniach właściciela|:count pozycji w rozliczeniach właściciela',
+    'owner_expenses' => '{1}:count wydatek właściciela|:count wydatki właściciela|:count wydatków właściciela',
+    'reviews' => '{1}:count opinia|:count opinie|:count opinii',
+    'owner_requests' => '{1}:count wniosek właściciela|:count wnioski właściciela|:count wniosków właściciela',
+    'notes' => '{1}:count notatka|:count notatki|:count notatek',
+    'documents' => '{1}:count dokument|:count dokumenty|:count dokumentów',
+    'files' => '{1}:count plik|:count pliki|:count plików',
+    'units' => '{1}:count jednostka|:count jednostki|:count jednostek',
+    'rate_proposals' => '{1}:count propozycja ceny|:count propozycje cen|:count propozycji cen',
+    'overbooking_records' => '{1}:count rekord nadrezerwacji|:count rekordy nadrezerwacji|:count rekordów nadrezerwacji',
+    'guest_waitlist_entries' => '{1}:count wpis na liście oczekujących|:count wpisy na listach oczekujących|:count wpisów na listach oczekujących',
+    'guest_wishlist_saves' => '{1}:count pozycja na liście ulubionych gościa|:count pozycje na listach ulubionych gości|:count pozycji na listach ulubionych gości',
+    'derived_room_types' => '{1}:count typ pokoju oparty na nim|:count typy pokoi oparte na nim|:count typów pokoi opartych na nim',
+    'derived_rate_plans' => '{1}:count plan cenowy innego typu pokoju wyceniany na jego podstawie|:count plany cenowe innych typów pokoi wyceniane na jego podstawie|:count planów cenowych innych typów pokoi wycenianych na jego podstawie',
+    'corporate_default_rates' => '{1}:count konto firmowe z jego planem cenowym jako domyślnym|:count konta firmowe z jego planem cenowym jako domyślnym|:count kont firmowych z jego planem cenowym jako domyślnym',
+    'channel_connections' => '{1}:count połączenie z kanałem sprzedaży|:count połączenia z kanałami sprzedaży|:count połączeń z kanałami sprzedaży',
+    'an_owner' => 'przypisany właściciel',
+    'pending_owner_invitation' => 'oczekujące zaproszenie właściciela',
+    'list_and' => ':items i :last',
+    'kind_rooms' => 'pokoje',
+    'kind_apartments' => 'apartamenty',
+    'kind_villas' => 'wille',
+    'kind_dorm_beds' => 'miejsca w pokojach wieloosobowych',
+];

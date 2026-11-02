@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Moje konto',
+    'total_part' => ':amount :name',
+    'total_includes' => 'W tym: :items',
+    'nightly_excludes' => 'Nie obejmuje: :tax',
+    'sleeps' => 'Maks. liczba osób: :count',
+    'studio' => 'Studio',
+    'bedrooms' => '{1}:count sypialnia|:count sypialnie|:count sypialni',
+    'checkout_title' => 'Finalizacja rezerwacji – :property',
+    'room_just_taken' => 'Ten pokój został właśnie zarezerwowany przez kogoś innego – wybierz inny pokój lub inne daty.',
+    'payment_received' => 'Płatność otrzymana',
+    'payment_received_note' => 'Opłacono w całości.',
+    'payment_processing' => 'Płatność w toku',
+    'payment_processing_note' => 'Potwierdzamy płatność kartą. Za chwilę odśwież stronę, aby ją zobaczyć.',
+    'pay_on_arrival' => 'Płatność przy przyjeździe',
+    'pay_on_arrival_note' => 'Płatność w obiekcie przy zameldowaniu.',
+    'confirmed_title' => 'Rezerwacja potwierdzona – :property',
+    'kind_room' => 'Pokój',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Willa',
+    'kind_dorm' => 'Pokój wieloosobowy',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament z obsługą',
+    'type_apartment_building' => 'Budynek apartamentowy',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Willa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensjonat',
+    'type_resort' => 'Ośrodek wypoczynkowy',
+    'type_mixed' => 'Mieszany',
+    'type_portfolio' => 'Portfolio',
+];

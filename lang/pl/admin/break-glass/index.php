@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — pl translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Dostęp awaryjny',
+    'subtitle' => 'Ograniczony czasowo wgląd w jedną organizację, tylko do odczytu – z podaniem powodu, 2FA i powiadomieniem organizacji.',
+    'back_label' => 'Pomoc techniczna',
+    'open_heading' => 'Sesja jest otwarta',
+    'open_summary' => '{1}:organization · koniec o :time UTC · wyświetlono :count stronę.|:organization · koniec o :time UTC · wyświetlono :count strony.|:organization · koniec o :time UTC · wyświetlono :count stron.',
+    'go_to_back_office' => 'Przejdź do panelu personelu organizacji',
+    'end_now' => 'Zakończ sesję teraz',
+    'start_heading' => 'Otwórz sesję',
+    'rule_read_only' => '<strong>Tylko do odczytu.</strong> Każda zmiana jest odrzucana – formularze, przyciski, wszystko, co zapisuje dane.',
+    'rule_minutes' => '{1}<strong>:count minuta</strong>, potem sesja kończy się sama.|<strong>:count minuty</strong>, potem sesja kończy się sama.|<strong>:count minut</strong>, potem sesja kończy się sama.',
+    'rule_senior_user' => 'Widoczne jest to, co widzi najwyższy rangą zweryfikowany użytkownik panelu personelu tej organizacji – łącznie z gośćmi. Należy przeglądać tylko to, czego wymaga podany powód.',
+    'rule_recorded' => 'Każda otwarta przez Państwa strona jest rejestrowana, a zespół organizacji zostaje potem powiadomiony: Państwa imię i nazwisko, czas i ten powód.',
+    'organisation_label' => 'Organizacja',
+    'choose_option' => 'Wybierz…',
+    'code_label' => 'Kod 2FA (bieżący)',
+    'reason_label' => 'Powód – organizacja go przeczyta',
+    'reason_placeholder' => 'np. Zgłoszenie nr 123 – właściciel zgłasza brakującą rezerwację',
+    'open_button' => 'Otwórz sesję tylko do odczytu',
+    'recent_heading' => 'Ostatnie sesje',
+    'empty_state' => 'Nie otwarto jeszcze żadnej sesji dostępu awaryjnego.',
+    'col_admin' => 'Administrator',
+    'col_organisation' => 'Organizacja',
+    'col_reason' => 'Powód',
+    'col_started' => 'Rozpoczęto',
+    'col_ended' => 'Zakończono',
+    'col_pages' => 'Strony',
+    'col_told' => 'Powiadomiono',
+    'ended_open' => 'otwarta',
+    'ended_due' => 'po terminie – jeszcze niezamknięta',
+    'told_yes' => 'Tak',
+    'told_not_yet' => 'Jeszcze nie',
+];
