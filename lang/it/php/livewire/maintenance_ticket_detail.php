@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Nota',
+    'kind_progress' => 'Avanzamento',
+    'kind_part' => 'Ricambio ordinato',
+    'elapsed_minutes' => ':minutes min',
+    'elapsed_hours' => ':hours h :minutes min',
+    'elapsed_days' => ':days g :hours h',
+    'hours_short' => ':hours h',
+    'timeline_opened' => 'Segnalato',
+    'timeline_assigned_to' => 'Assegnato a :name',
+    'a_technician' => 'un tecnico',
+    'timeline_unassigned' => 'Non assegnato',
+    'timeline_started' => 'Lavori avviati',
+    'timeline_resolved' => 'Risolto',
+    'timeline_cancelled' => 'Annullato',
+    'timeline_parts_updated' => 'Ricambi aggiornati',
+    'timeline_cost_corrected' => 'Costo corretto',
+    'timeline_updated' => 'Dettagli modificati',
+    'note_progress' => 'Aggiornamento lavori',
+    'note_part' => 'Ricambio ordinato',
+    'note_added' => 'Nota aggiunta',
+    'a_team_member' => 'Un membro del team',
+    'system' => 'Sistema',
+    'photo_alt' => 'Foto della manutenzione',
+    'the_owner' => 'il proprietario',
+    'load_none' => 'Nessun intervento aperto',
+    'load_open' => 'Aperti: :open',
+    'load_open_urgent' => 'Aperti: :open · urgenti: :urgent',
+    'impact_arrivals' => '{1} :count arrivo stasera richiede una camera|[0,*] :count arrivi stasera richiedono una camera',
+    'impact_bookings' => '{1} :count prenotazione da spostare|[0,*] :count prenotazioni da spostare',
+    'impact_none' => 'Nessuna prenotazione interessata',
+];

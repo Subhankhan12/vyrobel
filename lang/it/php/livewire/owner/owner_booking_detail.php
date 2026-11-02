@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'dalle ore :time',
+    'by_time' => 'entro le ore :time',
+    'repeat_guest' => '{1} Ospite abituale · :count soggiorno|[0,*] Ospite abituale · :count soggiorni',
+    'new_guest' => 'Nuovo ospite',
+    'guests_count' => '{1} :count ospite|[0,*] :count ospiti',
+    'nights_count' => '{1} :count notte|[0,*] :count notti',
+    'channel_direct' => 'Vyrobel diretto',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'Canale OTA',
+    'event_booking_received' => 'Prenotazione ricevuta',
+    'event_cancelled' => 'Cancellata',
+    'event_payment_received' => 'Pagamento ricevuto',
+    'when_paid_in_full' => 'Pagato per intero',
+    'event_part_payment_received' => 'Pagamento parziale ricevuto',
+    'when_balance_due' => 'Saldo dovuto',
+    'event_payment' => 'Pagamento',
+    'when_not_yet_received' => 'Non ancora ricevuto',
+    'event_checked_in' => 'Check-in effettuato',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out effettuato',
+    'event_payout_released' => 'Versamento effettuato',
+    'event_payout' => 'Versamento',
+    'when_next_payout' => 'Con il Suo prossimo versamento',
+    'payout_not_attributed' => 'Non ancora attribuito',
+    'payout_not_attributed_note' => 'Questa prenotazione non è ancora stata attribuita al Suo registro contabile.',
+    'payout_scheduled' => 'Programmato',
+    'payout_scheduled_note' => 'Sarà inclusa nel Suo prossimo rendiconto e poi liquidata con il relativo versamento.',
+    'payout_pending' => 'Versamento in attesa',
+    'payout_pending_note' => 'In un rendiconto definitivo — sarà liquidata con il relativo versamento.',
+    'payout_paid' => 'Pagato',
+    'payout_paid_note' => 'Liquidata con un versamento completato.',
+];

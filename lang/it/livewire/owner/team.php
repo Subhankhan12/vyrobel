@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Team e accessi',
+    'subtitle' => 'Dia a un comproprietario o al Suo commercialista un accesso personale, limitato a ciò di cui ha bisogno.',
+    'people_with_access' => 'Persone con accesso',
+    'account_owner' => 'Titolare dell’account',
+    'thats_you' => 'è Lei',
+    'owner_access' => 'Accesso completo a tutto, inclusa questa pagina.',
+    'active_now' => 'Online ora',
+    'role_for' => 'Ruolo di :name',
+    'your_password' => 'La Sua password',
+    'confirm_password' => 'Conferma con la password',
+    'remove_confirm' => 'Rimuovere :name? Questa persona non potrà più accedere.',
+    'no_members' => 'Per ora c’è solo Lei: inviti qui sotto un comproprietario o un commercialista.',
+    'invite_heading' => 'Invita una persona',
+    'invite_sub' => 'La persona riceverà un accesso personale, che Lei potrà revocare in qualsiasi momento.',
+    'invite_email_label' => 'Indirizzo e-mail da invitare',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Invia invito',
+    'pending_invites' => 'Inviti in attesa',
+    'resend' => 'Reinvia',
+    'revoke' => 'Revoca',
+    'matrix_heading' => 'Cosa vede ciascun ruolo',
+    'matrix_note' => 'Solo Lei, come titolare dell’account, può gestire il team e il conto per i versamenti.',
+    'recent_activity' => 'Attività recente',
+    'no_activity' => 'Ancora niente: qui compariranno gli inviti e gli accessi.',
+    'download_log' => 'Registro dei download',
+    'download_log_sub' => 'Ogni rendiconto, prenotazione, versamento o file fiscale scaricato dal Suo team riporta il nome di chi l’ha scaricato e viene registrato qui.',
+    'no_downloads' => 'Ancora nessuna esportazione scaricata: compariranno qui, con il nome di chi le ha scaricate.',
+    'security_heading' => 'Ognuno ha la propria chiave',
+    'security_body' => 'Nessuna password condivisa: ogni persona accede con il proprio account e l’accesso è limitato al suo ruolo. Le esportazioni finanziarie riportano una filigrana con il nome di chi le ha scaricate e vengono registrate nel registro qui sopra. Per il Suo account, attivi la verifica in due passaggi.',
+    'security_settings' => 'Impostazioni di sicurezza',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Gestisci :reference',
+    'back_to_booking' => '← Torna alla prenotazione',
+    'heading' => 'Gestisci la prenotazione',
+    'subheading' => ':property · :check_in → :check_out. Le modifiche vengono confermate dalla struttura: Le scriveremo non appena lo saranno.',
+    'pending_requests' => 'Richieste in attesa',
+    'pending_badge' => 'In attesa',
+    'pending_note' => 'Sulla Sua prenotazione non è ancora cambiato nulla: ogni richiesta deve prima essere confermata dalla struttura.',
+    'pick_new_dates' => 'Scegli nuove date',
+    'currently' => 'Date attuali: :check_in → :check_out. Scelga nuove date per vedere la differenza di prezzo, poi richieda la modifica.',
+    'new_check_in' => 'Nuova data di arrivo',
+    'new_check_out' => 'Nuova data di partenza',
+    'see_price_difference' => 'Vedi differenza di prezzo',
+    'new_stay' => 'Nuovo soggiorno',
+    'current' => 'Attuale',
+    'difference' => 'Differenza',
+    'estimate_note' => 'Solo una stima, soggetta alla conferma della struttura. L’eventuale pagamento viene gestito dopo la conferma.',
+    'unpriced_note' => 'Per queste date non c’è ancora un prezzo pubblicato: richieda la modifica e la struttura confermerà il prezzo.',
+    'request_date_change' => 'Richiedi modifica date',
+    'add_to_your_stay' => 'Aggiungi al soggiorno',
+    'add_to_your_stay_sub' => 'Aggiunga colazione, transfer e altro: alla conferma tutto viene aggiunto alla prenotazione.',
+    'browse_extras' => 'Sfoglia gli extra',
+    'cancellation_policy' => 'Condizioni di cancellazione',
+    'free_until' => 'Cancellazione gratuita entro la data <strong>:date</strong>: se la richiesta di cancellazione viene inviata entro tale data, il rimborso è totale.',
+    'policy_by_property' => 'La struttura conferma la cancellazione e gestisce l’eventuale rimborso secondo le proprie condizioni.',
+    'cancel_confirm' => 'Inviare una richiesta di cancellazione per questa prenotazione? La struttura la esaminerà e gestirà l’eventuale rimborso secondo le proprie condizioni.',
+    'reason' => 'Motivo',
+    'choose_reason' => 'Seleziona un motivo…',
+    'request_cancellation' => 'Richiedi cancellazione',
+    'closed_heading' => 'Questa prenotazione è chiusa',
+    'closed_body' => 'Non c’è più nulla da modificare, ma le date, i dettagli del soggiorno e quanto ha pagato restano disponibili qui ogni volta che servono.',
+];

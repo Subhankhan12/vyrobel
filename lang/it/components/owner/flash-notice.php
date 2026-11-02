@@ -1,0 +1,8 @@
+<?php
+
+// I18N-01 — it translation of lang/en/components/owner/flash-notice.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'action_needed_prefix' => 'Azione richiesta:',
+    'no_change_prefix' => 'Nessuna modifica:',
+];

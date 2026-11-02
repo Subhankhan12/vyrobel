@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Archivio rendiconti',
+    'history_summary' => 'Il Suo storico definitivo · :years · :statements',
+    'years' => '{1} :count anno|[0,*] :count anni',
+    'statements' => '{1} :count rendiconto|[0,*] :count rendiconti',
+    'archived_on_finalize' => 'I rendiconti vengono archiviati qui non appena diventano definitivi.',
+    'net_earned_lifetime' => 'Guadagno netto · da sempre',
+    'since' => 'dal: :date',
+    'per_currency_note' => 'Totali per valuta di versamento: i saldi in valute diverse non vengono mai sommati.',
+    'lifetime_empty' => 'Ancora nessun rendiconto definitivo: il primo comparirà qui.',
+    'search_placeholder' => 'Cerca nei rendiconti — mese, anno, stato o numero',
+    'search_label' => 'Cerca rendiconti',
+    'no_match' => 'Nessun rendiconto corrisponde a «:query».',
+    'no_match_hint' => 'Provi con un mese («settembre»), un anno («2026»), uno stato («Pagato») o un numero di rendiconto («N. 1»).',
+    'group_summary' => ':statements · netto: :nets',
+    'per_payout_currency' => '(per valuta di versamento)',
+    'tax_summary_title' => 'Scarica in PDF il riepilogo fiscale annuale (anno :year)',
+    'tax_summary' => 'Riepilogo fiscale',
+    'col_statement' => 'Rendiconto',
+    'col_net_payable' => 'Netto da versare',
+    'col_links' => 'Link',
+    'unverified_title' => 'Alcune righe sono ancora in attesa di riconciliazione con il canale',
+    'unverified' => 'Contiene righe non verificate',
+    'pdf_title' => 'Scarica questo rendiconto in PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Scarica in PDF le prenotazioni di questo rendiconto',
+    'bookings' => 'Prenotazioni',
+    'empty' => 'Ancora nessun rendiconto definitivo. Un rendiconto viene archiviato qui quando diventa definitivo.',
+    'zip_heading' => 'Scarica l’archivio completo',
+    'zip_sub' => '{1} Un unico ZIP con :count PDF di rendiconto. Ogni rendiconto qui sopra si può già scaricare singolarmente.|[0,*] Un unico ZIP con :count PDF di rendiconti. Ogni rendiconto qui sopra si può già scaricare singolarmente.',
+    'download_zip' => 'Scarica ZIP',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Soggiorno',
+    'step_guest' => 'Ospite',
+    'step_extras' => 'Extra',
+    'step_confirm' => 'Conferma',
+    'source_direct' => 'Diretta',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Azienda',
+    'source_agent' => 'Agenzia di viaggi',
+    'the_guest' => 'l’ospite',
+    'a_night' => ':amount a notte',
+    'a_night_range' => ':low–:high a notte',
+    'dates_label' => '{1} :from → :to · :count notte|[0,*] :from → :to · :count notti',
+    'restrict_min_stay' => '{1} Con arrivo in data :date, il soggiorno deve essere di almeno :count notte|[0,*] Con arrivo in data :date, il soggiorno deve essere di almeno :count notti',
+    'restrict_max_stay' => '{1} Con arrivo in data :date, il soggiorno può essere al massimo di :count notte|[0,*] Con arrivo in data :date, il soggiorno può essere al massimo di :count notti',
+    'restrict_no_arrivals' => 'Nessun arrivo in data :date',
+    'restrict_no_departures' => 'Nessuna partenza in data :date',
+    'restrict_stop_sell' => 'Data :date chiusa alle nuove prenotazioni',
+    'restrict_other' => ':restriction (data: :date)',
+    'arrival_mail_off' => 'L’invio di e-mail da Vyrobel non è ancora attivo — fornire all’ospite le indicazioni e il codice della porta.',
+    'arrival_pre_arrival_off' => 'L’e-mail pre-arrivo è disattivata per le Sue strutture — fornire all’ospite le indicazioni e il codice della porta.',
+    'arrival_too_soon' => 'Questo soggiorno inizia troppo presto per l’e-mail pre-arrivo, inviata :count g prima del check-in — fornire all’ospite le indicazioni e il codice della porta.',
+    'arrival_by_email' => 'Le indicazioni, e il codice della porta se l’unità ne ha uno, arrivano all’ospite via e-mail :count g prima del check-in — se ha un indirizzo e-mail. Il codice della porta non viene mai mostrato qui.',
+    'cancel_not_free' => 'Non gratuita per questo soggiorno — termine scaduto: :date',
+    'cancel_free_until_check_in' => 'Gratuita fino al check-in',
+    'cancel_free_until_date' => 'Gratuita fino alla data :date',
+    'cancel_free_until_days' => '{1} Gratuita fino a :count giorno prima del check-in|[0,*] Gratuita fino a :count giorni prima del check-in',
+    'min_stay_none' => 'Nessun minimo',
+    'min_stay_nights' => '{1} :count notte|[0,*] :count notti',
+    'guest_no_name' => 'Ospite',
+    'no_stays_yet' => 'Ancora nessun soggiorno',
+];

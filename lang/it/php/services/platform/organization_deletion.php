@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'L’organizzazione ha dati monetari reali (:records). La legge può imporne la conservazione per anni, quindi la loro eliminazione è sospesa in attesa del parere legale sulla durata: fino ad allora non è possibile eliminarla.',
+    'uncounted_cascades' => 'Il database collega i dati in un modo che l’eliminazione non può contare con esattezza (:links), quindi la conferma non potrebbe indicare cosa verrebbe rimosso. Non è possibile eliminare nulla finché questo non viene risolto.',
+    'stripe_billing_live' => 'La fatturazione Stripe è attiva per questa organizzazione. Disdire prima l’abbonamento in Stripe, altrimenti continuerà ad addebitare un cliente che non esiste più. Se è già stato disdetto in Stripe, la relativa notifica di Stripe non è stata applicata qui: risolvere manualmente.',
+    'checkout_open_subscription' => 'Una pagina di pagamento Stripe per l’abbonamento è ancora aperta (apertura: :opened) e può essere pagata fino a: :closes. Riprovare quando sarà stata pagata o sarà scaduta.',
+    'checkout_open_card' => 'Una pagina di pagamento Stripe per il pagamento con carta di un ospite è ancora aperta (apertura: :opened) e può essere pagata fino a: :closes. Riprovare quando sarà stata pagata o sarà scaduta.',
+    'checkout_unreported_subscription' => 'Una pagina di pagamento Stripe live per l’abbonamento è stata aperta (apertura: :opened; chiusura: :closed), ma qui non è stata applicata alcuna notifica che indichi se è stata pagata. Controllare la pagina nella dashboard di Stripe; se è stata pagata, annullare prima in Stripe ciò che ha avviato. Stripe ritenta per un massimo di 3 giorni l’invio di una notifica non recapitata: riprovare quando sarà stata applicata. Se Stripe l’ha già inviata e non è stato possibile applicarla, risolvere manualmente.',
+    'checkout_unreported_card' => 'Una pagina di pagamento Stripe live per il pagamento con carta di un ospite è stata aperta (apertura: :opened; chiusura: :closed), ma qui non è stata applicata alcuna notifica che indichi se è stata pagata. Controllare la pagina nella dashboard di Stripe; se è stata pagata, annullare prima in Stripe ciò che ha avviato. Stripe ritenta per un massimo di 3 giorni l’invio di una notifica non recapitata: riprovare quando sarà stata applicata. Se Stripe l’ha già inviata e non è stato possibile applicarla, risolvere manualmente.',
+    'refund_processing' => 'Un rimborso con carta è ancora in elaborazione presso Stripe. Attendere la conferma di Stripe, poi riprovare.',
+    'card_payment_open' => 'Un pagamento con carta o una preautorizzazione è ancora aperto. Attendere che venga completato oppure sbloccarlo prima.',
+    'dispute_open' => 'Un pagamento con carta è contestato presso Stripe (inizio: :since). Rispondere alla contestazione in Stripe e riprovare quando Stripe ne segnalerà la chiusura. Se la dashboard di Stripe la mostra già chiusa, la notifica non è mai arrivata: risolvere manualmente.',
+    'payouts_in_transit' => '{1} Un versamento a un proprietario è in transito presso Stripe (inizio: :since).|[0,*] :count versamenti a proprietari sono in transito presso Stripe (inizio: :since).',
+    'payout_transit_stale' => 'È più tempo del dovuto: risolvere prima la questione manualmente con Stripe.',
+    'payout_transit_wait' => 'Attendere la conferma di Stripe, poi riprovare.',
+    'payouts_owed' => '{1} Un versamento è ancora dovuto a un proprietario (in attesa o trattenuto). Effettuarlo prima: l’eliminazione lascerebbe i proprietari non pagati, senza alcuna traccia.|[0,*] :count versamenti sono ancora dovuti ai proprietari (in attesa o trattenuti). Effettuarli prima: l’eliminazione lascerebbe i proprietari non pagati, senza alcuna traccia.',
+    'payout_run_running' => 'Un ciclo di versamenti è in esecuzione (inizio: :since).',
+    'looks_stuck' => 'Sembra bloccato: risolvere manualmente prima di eliminare.',
+    'payout_run_wait' => 'Riprovare quando sarà terminato.',
+    'webhook_unprocessed' => 'Una notifica di :source per questa organizzazione (ricezione: :received) non è ancora stata elaborata.',
+    'webhook_wait' => 'Riprovare tra qualche minuto.',
+    'cross_tenant_references' => 'Un’altra organizzazione ha dati che rimandano a questa (:links). Eliminandola si eliminerebbero anche quelli.',
+    'schema_unreadable' => 'Non è stato possibile leggere per intero lo schema del database (tabelle non trovate: :tables).',
+    'already_deleted' => 'Questa organizzazione non esiste più: è già stata eliminata.',
+    'protected' => 'Questa organizzazione è protetta e non potrà mai essere eliminata.',
+    'not_suspended' => 'Sospenderla prima: è possibile eliminare solo un’organizzazione sospesa o archiviata.',
+    'record_survived' => 'Un dato di questa organizzazione è sopravvissuto all’eliminazione (tabelle: :tables), quindi è stato annullato tutto.',
+    'organization_survived' => 'L’organizzazione o una delle sue persone è sopravvissuta all’eliminazione, quindi è stato annullato tutto.',
+    'live_card_payments' => '{1} :count pagamento con carta|[0,*] :count pagamenti con carta',
+    'live_refunds' => '{1} :count rimborso|[0,*] :count rimborsi',
+    'live_payouts' => '{1} :count versamento|[0,*] :count versamenti',
+    'live_stripe_billing' => 'fatturazione Stripe live, con le relative fatture',
+    'unknown_time' => 'data sconosciuta',
+    'time_utc' => ':time UTC',
+];

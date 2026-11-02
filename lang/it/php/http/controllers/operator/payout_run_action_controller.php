@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Il motore dei versamenti è disattivato (PAYOUT_ENGINE_ENABLED). Attivarlo prima di eseguire un versamento.',
+    'nothing_to_run' => 'Nulla da eseguire: nessun proprietario qui ha un rendiconto con un importo da versare o un versamento trattenuto:paused_note.',
+    'run_complete' => 'Ciclo di versamenti completato (modalità :mode) — creati: :created · pagati: :paid · trattenuti: :held:paused_note.',
+    'create_failed' => 'Impossibile creare il versamento — :reason',
+    'already_has_payout' => 'Questo rendiconto ha già un versamento: non è stato creato nulla.',
+    'one_payout_created' => '1 versamento creato.',
+    'pay_failed' => 'Impossibile pagare — :reason',
+    'one_payout_paid' => '1 versamento segnato come pagato.',
+    'payout_failed_reason' => 'Il versamento non è riuscito — :reason',
+    'payout_failed_no_reason' => 'Il versamento non è riuscito: il canale di versamento non ha indicato alcun motivo.',
+    'create_all_failed' => 'Impossibile creare i versamenti — :reason',
+    'no_payout_created_paused' => 'Nessun versamento creato:paused_note — riprendere i versamenti nella pagina del proprietario.',
+    'nothing_ready' => 'Nulla da versare: nessun rendiconto finalizzato ha un netto da versare positivo:paused_note.',
+    'no_new_payouts' => 'Nessun nuovo versamento: ogni rendiconto pronto ne ha già uno:paused_note.',
+    'payouts_created' => '{1} :count versamento creato:paused_note.|[0,*] :count versamenti creati:paused_note.',
+    'some_not_created' => ':message Non è stato possibile crearne alcuni — :reason',
+    'nothing_paid_paused' => 'Nessun versamento pagato:paused_note — riprendere i versamenti nella pagina del proprietario.',
+    'no_pending_payouts' => 'Nessun versamento in attesa da pagare.',
+    'paid_only' => '{1} :count versamento segnato come pagato:paused_note.|[0,*] :count versamenti segnati come pagati:paused_note.',
+    'failed_only' => '[0,*] Non riusciti sul canale di versamento: :count:paused_note.',
+    'paid_and_failed' => '{1} :count versamento segnato come pagato · non riusciti sul canale: :failed:paused_note.|[0,*] :count versamenti segnati come pagati · non riusciti sul canale: :failed:paused_note.',
+    'some_not_attempted' => ':message Non è stato possibile tentarne alcuni — :reason',
+    'nothing_payable_negative' => 'Nulla da versare: il netto di questo rendiconto è negativo, quindi il saldo viene riportato per compensare il prossimo rendiconto del proprietario.',
+    'nothing_payable_zero' => 'Nulla da versare: il netto di questo rendiconto è zero, quindi non è dovuto nulla.',
+    'workspace_paused_until' => 'Organizzazione in pausa — i versamenti sono in sola lettura (ripresa: :date).',
+    'workspace_paused_for_now' => 'Organizzazione in pausa — per il momento i versamenti sono in sola lettura.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1} :count proprietario sospeso escluso|[0,*] :count proprietari sospesi esclusi',
+];

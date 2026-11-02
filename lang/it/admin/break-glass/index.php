@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Accesso di emergenza',
+    'subtitle' => 'Un accesso in sola lettura e a tempo all’interno di un’organizzazione — con motivo, 2FA e notifica all’organizzazione.',
+    'back_label' => 'Assistenza',
+    'open_heading' => 'La Sua sessione è aperta',
+    'open_summary' => '{1} :organization · termina alle ore :time UTC · :count pagina visualizzata.|[0,*] :organization · termina alle ore :time UTC · :count pagine visualizzate.',
+    'go_to_back_office' => 'Vai al loro back office',
+    'end_now' => 'Termina sessione ora',
+    'start_heading' => 'Apri una sessione',
+    'rule_read_only' => '<strong>Sola lettura.</strong> Ogni modifica viene rifiutata — moduli, pulsanti, qualsiasi cosa che salvi.',
+    'rule_minutes' => '{1} <strong>:count minuto</strong>, poi termina da sola.|[0,*] <strong>:count minuti</strong>, poi termina da sola.',
+    'rule_senior_user' => 'Vede ciò che vede il loro utente del back office verificato di livello più alto — ospiti inclusi. Guardi solo ciò che serve per il motivo indicato.',
+    'rule_recorded' => 'Ogni pagina aperta viene registrata e il loro team viene informato in seguito: il Suo nome, l’orario e questo motivo.',
+    'organisation_label' => 'Organizzazione',
+    'choose_option' => 'Seleziona…',
+    'code_label' => 'Il Suo codice 2FA (attuale)',
+    'reason_label' => 'Motivo — l’organizzazione lo leggerà',
+    'reason_placeholder' => 'es. Ticket #123 — il proprietario segnala una prenotazione mancante',
+    'open_button' => 'Apri sessione in sola lettura',
+    'recent_heading' => 'Sessioni recenti',
+    'empty_state' => 'Non è mai stata aperta alcuna sessione di accesso di emergenza.',
+    'col_admin' => 'Amministratore',
+    'col_organisation' => 'Organizzazione',
+    'col_reason' => 'Motivo',
+    'col_started' => 'Inizio',
+    'col_ended' => 'Fine',
+    'col_pages' => 'Pagine',
+    'col_told' => 'Informata',
+    'ended_open' => 'aperta',
+    'ended_due' => 'scaduta — non ancora chiusa',
+    'told_yes' => 'Sì',
+    'told_not_yet' => 'Non ancora',
+];

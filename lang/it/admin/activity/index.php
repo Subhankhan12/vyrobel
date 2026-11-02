@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Gestore/Proprietario',
+    'realm_guest' => 'Ospite',
+    'realm_admin' => 'Amministratore piattaforma',
+    'event_login' => 'Accesso',
+    'event_failed' => 'Non riuscito',
+    'event_lockout' => 'Blocco',
+    'subject_user' => 'Utente',
+    'subject_guest' => 'Ospite',
+    'subject_platform_admin' => 'Amministratore piattaforma',
+    'subject_unknown' => 'Sconosciuto',
+    'actor_user' => 'Utente',
+    'actor_agent' => 'Agente',
+    'actor_system' => 'Sistema',
+    'page_title' => 'Sicurezza e attività',
+    'page_subtitle' => 'Attività di accesso ed eventi degli account su tutta la piattaforma — giorni di conservazione: :days, poi eliminazione.',
+    'kpi_failures' => 'Non riusciti / blocchi · 24 h',
+    'kpi_failures_help' => 'Errori ripetuti possono indicare tentativi di intrusione.',
+    'privacy' => 'Privacy',
+    'privacy_body' => 'L’attività di accesso (IP incluso) viene registrata solo come <strong style="color: var(--ad-ink);">segnale di sicurezza</strong> — per individuare accessi sospetti e per l’assistenza — mai come tracciamento generalizzato. Giorni di conservazione: :days, poi eliminazione automatica; l’accesso è limitato a questa console.',
+    'recent_sign_ins' => 'Attività di accesso recente',
+    'col_event' => 'Evento',
+    'col_realm' => 'Area',
+    'col_account' => 'Account',
+    'col_ip' => 'IP',
+    'col_when' => 'Data',
+    'no_sign_ins' => 'Nessuna attività di accesso registrata finora.',
+    'recent_account_events' => 'Eventi recenti degli account <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· tutti i clienti</span>',
+    'col_customer' => 'Cliente',
+    'col_actor' => 'Autore',
+    'no_account_events' => 'Nessun evento degli account finora.',
+];

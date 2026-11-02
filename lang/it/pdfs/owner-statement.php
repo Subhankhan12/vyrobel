@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'gestito con Vyrobel',
+    'eyebrow' => 'Rendiconto del proprietario',
+    'unit_count' => '{1} :count unità|[0,*] :count unità',
+    'issued' => 'emesso: :date',
+    'prepared_for' => 'Preparato per',
+    'net_payable_to_owner' => 'Netto da versare al proprietario',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Occupazione',
+    'nights_sold' => 'Notti vendute',
+    'avg_nightly_rate' => 'Tariffa media per notte',
+    'breakdown' => 'Dettaglio',
+    'item' => 'Voce',
+    'detail' => 'Descrizione',
+    'amount' => 'Importo',
+    'provisional' => '(provvisorio)',
+    'performance_by_unit' => 'Prestazioni per unità',
+    'unit' => 'Unità',
+    'nights' => 'Notti',
+    'revenue' => 'Ricavi',
+    'total_gross_room_revenue' => 'Totale ricavi lordi camere',
+    'callout_heading' => 'Versamento.',
+    'settles_to_iban' => 'L’importo netto di :amount viene versato con bonifico bancario sull’IBAN :iban.',
+    'settles' => 'L’importo netto di :amount viene versato con bonifico bancario.',
+    'fees_with_commission' => 'La commissione di gestione è calcolata sui ricavi lordi camere (aliquota: :pct%); le commissioni di pagamento e della piattaforma sono riaddebitate al costo. Tutti gli importi sono in :currency e includono le imposte applicabili riscosse per Suo conto.',
+    'fees' => 'Le commissioni di pagamento e della piattaforma sono riaddebitate al costo. Tutti gli importi sono in :currency e includono le imposte applicabili riscosse per Suo conto.',
+    'fx_note' => 'Convertito da :source al tasso :rate (fonte: :src).',
+    'provisional_note' => 'Alcune righe sono provvisorie, in attesa di riconciliazione con il canale.',
+    'statement_ref' => 'rendiconto :ref',
+    'sequence_no' => 'n. :number',
+    'generated' => 'generato: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Domande? Scriva a :email',
+];

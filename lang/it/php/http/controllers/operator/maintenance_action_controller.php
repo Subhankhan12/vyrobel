@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Ticket «:title» aperto per l’unità :unit.',
+    'not_assignable_staff' => 'Questo utente non fa parte del personale assegnabile di questa organizzazione.',
+    'cannot_reassign_closed' => 'Impossibile riassegnare il ticket: è già chiuso.',
+    'assignment_updated' => 'Assegnazione del ticket aggiornata.',
+    'work_order_closed' => 'Questo intervento è chiuso: i suoi dettagli non possono essere modificati.',
+    'work_order_updated' => 'Intervento aggiornato.',
+    'col_title' => 'Titolo',
+    'col_unit' => 'Unità',
+    'col_category' => 'Categoria',
+    'col_priority' => 'Priorità',
+    'col_status' => 'Stato',
+    'col_assignee' => 'Assegnatario',
+    'col_reported' => 'Segnalazione',
+    'col_cost' => 'Costo',
+    'bulk_assigned_skipped' => '{1} :count intervento assegnato · esclusi (già chiusi): :skipped|[0,*] :count interventi assegnati · esclusi (già chiusi): :skipped',
+    'bulk_assigned' => '{1} :count intervento assegnato.|[0,*] :count interventi assegnati.',
+    'bulk_resolved_skipped' => '{1} :count intervento risolto · esclusi (già chiusi): :skipped|[0,*] :count interventi risolti · esclusi (già chiusi): :skipped',
+    'bulk_resolved' => '{1} :count intervento risolto.|[0,*] :count interventi risolti.',
+    'cannot_start' => 'Impossibile avviare il ticket: non è più aperto.',
+    'work_started' => 'Lavori avviati su questo ticket.',
+    'cannot_resolve_closed' => 'Impossibile risolvere l’intervento: è già chiuso.',
+    'ticket_resolved' => 'Ticket risolto.',
+    'cannot_cancel_closed' => 'Impossibile annullare il ticket: è già chiuso.',
+    'ticket_cancelled' => 'Ticket annullato.',
+    'parts_closed' => 'Questo ticket è chiuso: i ricambi non possono essere aggiornati.',
+    'awaiting_parts' => 'Segnato come in attesa di ricambi.',
+    'parts_arrived' => 'Ricambi segnati come arrivati.',
+    'update_posted_waiting_part' => 'Aggiornamento pubblicato — segnato come in attesa del ricambio.',
+    'update_posted' => 'Aggiornamento pubblicato.',
+    'photo_added' => 'Foto aggiunta.',
+    'photo_removed' => 'Foto eliminata.',
+    'workspace_paused' => 'La Sua organizzazione è in pausa (sola lettura): le modifiche alla manutenzione sono disattivate fino alla ripresa.',
+];

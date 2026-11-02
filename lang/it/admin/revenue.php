@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ricavi',
+    'subtitle' => 'Da ciò che Stripe ha effettivamente addebitato — mai dai prezzi di listino. Solo clienti, a meno di includere le organizzazioni di Vyrobel.',
+    'including_internal' => 'Incluse le organizzazioni interne di Vyrobel.',
+    'customers_only_note' => 'Solo clienti.',
+    'customers_only_link' => 'Solo clienti',
+    'include_internal_link' => 'Includi interne',
+    'no_live_billing_pill' => 'Nessuna fatturazione live',
+    'no_customer_charged' => 'A nessun cliente è stato ancora addebitato nulla.',
+    'not_live_explainer' => 'Stripe non è attivo in modalità live, quindi non ci sono fatture pagate da contare. Non è un mese negativo — non c’è ancora nessun mese. I ricavi qui sono calcolati solo da <strong>fatture Stripe pagate</strong> (l’addebito stesso, registrato quando Stripe ce lo comunica), mai dal prezzo di listino di un piano.',
+    'live_billed_subscriptions' => 'Abbonamenti con fatturazione live',
+    'trialing_unbilled' => 'Abbonamenti in prova, non fatturati',
+    'failed_payments_30d' => 'Pagamenti non riusciti, ultimi 30 giorni',
+    'when_first_paid' => 'Quando sarà pagata la prima fattura, questa pagina mostrerà: MRR e ARR per valuta · MRR nuovo, di espansione, di contrazione e perso · conversione da prova a pagamento · pagamenti non riusciti.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Abbonamenti valorizzati',
+    'no_live_subscription_charged' => 'Nessun abbonamento attivo con fatturazione live è stato addebitato.',
+    'mrr_hint' => 'Ogni abbonamento live attivo o insoluto, in base alla sua ultima fattura pagata, riportato su base mensile secondo il periodo di fatturazione di quella fattura.',
+    'this_month_vs_last' => 'Questo mese vs il precedente',
+    'movement_new' => 'Nuovo · :currency',
+    'movement_expansion' => 'Espansione · :currency',
+    'movement_contraction' => 'Contrazione · :currency',
+    'movement_churned' => 'Perso · :currency',
+    'nothing_charged' => 'Nessun addebito né il mese scorso né questo mese.',
+    'movements_hint' => 'Per organizzazione, da ciò che è stato addebitato in ciascun mese. Perso = addebitato il mese scorso, nulla questo mese e abbonamento disdetto.',
+    'trial_to_paid' => 'Da prova a pagamento',
+    'trial_to_paid_value' => 'Prove terminate con addebito: :converted su :ended',
+    'past_due_now' => 'Insoluti ora',
+    'paid_invoices_counted' => 'Fatture pagate contate',
+    'never_moves_money' => 'Questa console non addebita, non rimborsa e non sposta mai denaro. Ogni cifra è per valuta e non viene mai sommata tra valute diverse.',
+];

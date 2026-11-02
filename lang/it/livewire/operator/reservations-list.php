@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Prenotazioni',
+    'arrivals_this_month' => 'Arrivi di questo mese',
+    'arrivals_this_month_sub' => 'check-in in questo mese di calendario · esclusi cancellazioni e no-show',
+    'booked_value' => 'Valore prenotato · arrivi di questo mese',
+    'booked_value_sub' => 'addebitato sugli arrivi di questo mese',
+    'booked_value_sub_multi' => 'addebitato sugli arrivi di questo mese · mostrato per valuta (mai sommato tra valute)',
+    'balances_due' => 'Saldi dovuti · arrivi di questo mese',
+    'folios_owing' => '{0} nessun importo dovuto|{1} :count conto dell’ospite ancora da saldare|[2,*] :count conti degli ospiti ancora da saldare',
+    'search_placeholder' => 'Cerca per ospite o riferimento…',
+    'search_label' => 'Cerca prenotazioni',
+    'group_booking' => 'Prenotazione di gruppo',
+    'new_reservation' => 'Nuova prenotazione',
+    'empty_heading' => 'Ancora nessuna prenotazione',
+    'empty_body' => 'Ogni prenotazione — diretta, walk-in o importata — compare qui non appena viene registrata.',
+    'no_match_query' => 'Nessuna prenotazione corrisponde a «:query»',
+    'no_match_view' => 'Nessuna prenotazione in questa vista',
+    'no_match_hint' => '{1} Provare con il nome di un ospite o un riferimento di prenotazione. :count prenotazione in totale.|[0,*] Provare con il nome di un ospite o un riferimento di prenotazione. :count prenotazioni in totale.',
+    'no_match_hint_filter' => '{1} Provare con il nome di un ospite o un riferimento di prenotazione, oppure azzerare il filtro. :count prenotazione in totale.|[0,*] Provare con il nome di un ospite o un riferimento di prenotazione, oppure azzerare il filtro. :count prenotazioni in totale.',
+    'clear_search_filters' => 'Azzera ricerca e filtri',
+    'col_guest' => 'Ospite',
+    'col_stay' => 'Soggiorno',
+    'col_unit' => 'Unità',
+    'col_source' => 'Origine',
+    'col_stage' => 'Fase',
+    'col_balance_due' => 'Saldo dovuto',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1} :count notte|[0,*] :count notti',
+    'guests' => '{1} :count ospite|[0,*] :count ospiti',
+    'unassigned' => 'Non assegnata',
+    'refunded' => 'Rimborsata',
+    'pager_label' => 'prenotazioni',
+];

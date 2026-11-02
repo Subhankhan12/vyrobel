@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Importi',
+    'csv_amounts_note' => 'in unità monetarie intere, con punto decimale, senza separatore delle migliaia',
+    'col_date' => 'Data',
+    'col_work_order' => 'Intervento',
+    'col_unit' => 'Unità',
+    'col_category' => 'Categoria',
+    'col_labor' => 'Manodopera',
+    'col_parts' => 'Ricambi',
+    'col_total' => 'Totale',
+    'col_currency' => 'Valuta',
+    'total_row' => 'Totale',
+    'sheet_summary' => 'Riepilogo',
+    'col_measure' => 'Indicatore',
+    'col_value' => 'Valore',
+    'total_spend' => 'Spesa totale',
+    'measure_labour' => 'Manodopera',
+    'measure_parts' => 'Ricambi',
+    'orders_closed' => 'Interventi chiusi',
+    'owner_billed' => 'A carico del proprietario',
+    'operator_borne' => 'A carico del gestore',
+    'parts_on_order' => 'Ricambi ordinati',
+    'average_per_order' => 'Media per intervento',
+    'by_category' => 'Per categoria',
+    'col_orders' => 'Interventi',
+    'by_month' => 'Per mese',
+    'top_units' => 'Unità con più spese',
+    'sheet_line_items' => 'Voci di dettaglio',
+    'col_labour' => 'Manodopera',
+    'no_email' => 'Il Suo account non ha un indirizzo e-mail.',
+    'report_emailed' => 'Report dei costi inviato a :email.',
+];

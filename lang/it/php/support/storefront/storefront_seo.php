@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Appartamenti con servizi',
+    'type_apartment_building' => 'Appartamenti',
+    'type_apartment' => 'Appartamento',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Ostello',
+    'type_guest_house' => 'Affittacamere',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel e appartamenti',
+    'type_portfolio' => 'Alloggi',
+    'title_town' => ':name, :town — Prenotazione diretta',
+    'title' => ':name — Prenotazione diretta',
+    'title_room' => ':room presso :property — Prenotazione diretta',
+    'org_description_towns' => '{1} Scopra :count struttura a :towns. Verifichi la disponibilità e prenoti direttamente con :org.|[0,*] Scopra :count strutture a :towns. Verifichi la disponibilità e prenoti direttamente con :org.',
+    'org_description' => '{1} Scopra :count struttura. Verifichi la disponibilità e prenoti direttamente con :org.|[0,*] Scopra :count strutture. Verifichi la disponibilità e prenoti direttamente con :org.',
+    'org_description_empty' => 'Verifichi la disponibilità e prenoti direttamente con :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1} Prenoti :name direttamente. :type – :place. :count tipologia di camera. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.|[0,*] Prenoti :name direttamente. :type – :place. :count tipologie di camera. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.',
+    'description_place' => 'Prenoti :name direttamente. :type – :place. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.',
+    'description_rooms' => '{1} Prenoti :name direttamente. :type. :count tipologia di camera. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.|[0,*] Prenoti :name direttamente. :type. :count tipologie di camera. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.',
+    'description' => 'Prenoti :name direttamente. :type. Verifichi la disponibilità in tempo reale e prenoti senza passare da un sito di prenotazione.',
+    'detail_sleeps' => 'fino a :guests ospiti',
+    'detail_bedrooms' => '{1} :count camera da letto|[0,*] :count camere da letto',
+    'room_description_town_details' => ':room presso :property a :town — :details. Verifichi la disponibilità in tempo reale e prenoti direttamente.',
+    'room_description_town' => ':room presso :property a :town. Verifichi la disponibilità in tempo reale e prenoti direttamente.',
+    'room_description_details' => ':room presso :property — :details. Verifichi la disponibilità in tempo reale e prenoti direttamente.',
+    'room_description' => ':room presso :property. Verifichi la disponibilità in tempo reale e prenoti direttamente.',
+    'list_and' => ':items e :last',
+];

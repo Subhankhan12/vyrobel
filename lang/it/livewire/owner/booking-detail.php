@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — it translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Panoramica',
+    'breadcrumb_bookings' => 'Prenotazioni',
+    'guest_fallback' => 'Ospite',
+    'reservation' => 'Prenotazione',
+    'check_in' => 'Arrivo',
+    'nights_count' => '{1} :count notte|[0,*] :count notti',
+    'check_out' => 'Partenza',
+    'unit' => 'Unità',
+    'guests' => 'Ospiti',
+    'nights' => 'Notti',
+    'nightly_rate' => 'Tariffa per notte',
+    'your_earnings' => 'I Suoi guadagni',
+    'gross_to_net' => 'dal lordo al netto',
+    'gross_booking_value' => 'Valore lordo della prenotazione',
+    'net_to_you' => 'Netto per Lei',
+    'refunds_we_covered' => 'Rimborsi a nostro carico',
+    'refunds_we_covered_note' => 'Rimborsati all’ospite e addebitati a noi, non a Lei. I Suoi guadagni indicati sopra restano invariati.',
+    'not_yet_attributed' => 'Non ancora attribuito.',
+    'not_yet_attributed_note' => 'I Suoi guadagni compariranno qui non appena questa prenotazione sarà attribuita al Suo registro contabile — di solito dopo il check-out.',
+    'guest_heading' => 'Ospite',
+    'guest_contact_note' => 'I recapiti dell’ospite sono gestiti dal Suo team di gestione — Lei vede la prenotazione e i Suoi guadagni.',
+    'message_your_team' => 'Scriva al Suo team',
+    'timeline' => 'Cronologia',
+    'for_night_stay' => 'per questo soggiorno (notti: :nights)',
+    'booking_details' => 'Dettagli della prenotazione',
+    'confirmation' => 'N. di conferma',
+    'source' => 'Origine',
+    'channel' => 'Canale',
+    'booked_on' => 'Data di prenotazione',
+    'download_confirmation' => 'Scarica conferma',
+    'download_unavailable' => 'Disponibile per comproprietari e commercialisti',
+    'view_unit' => 'Visualizza :unit',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — it translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Tutte le camere',
+    'kind_sleeps_up_to' => ':kind · fino a :capacity ospiti',
+    'reviews_count' => '{1} :count recensione|[0,*] :count recensioni',
+    'no_reviews_yet' => 'Ancora nessuna recensione',
+    'save_to_wishlist' => 'Aggiungi ai preferiti',
+    'sleeps' => 'Capienza',
+    'adults' => 'Adulti',
+    'children' => 'Bambini',
+    'bedrooms' => 'Camere da letto',
+    'standard_occupancy' => 'Occupazione standard',
+    'amenities' => 'Servizi',
+    'not_yet_listed' => 'Non ancora indicati',
+    'amenities_not_published' => 'I servizi di questa camera non sono ancora pubblicati.',
+    'guest_reviews' => 'Recensioni degli ospiti',
+    'stars_aria' => ':rating stelle su 5',
+    'response_label' => 'Risposta:',
+    'no_reviews_be_first' => 'Ancora nessuna recensione — soggiorni da noi e la prima potrà essere la Sua.',
+    'coming_soon' => 'Presto disponibile',
+    'description_soon' => 'Una descrizione completa e la mappa della posizione sono in arrivo — caratteristiche, disponibilità, prezzo e recensioni qui sopra sono reali.',
+    'per_night' => '/ notte',
+    'per_night_with_note' => '/ notte · :note',
+    'total_nights' => '{1} Totale: :amount · :count notte|[0,*] Totale: :amount · :count notti',
+    'left_for_your_dates' => 'Disponibili per le Sue date: :count',
+    'book_this_room' => 'Prenota questa camera',
+    'nothing_reserved' => 'Nulla viene riservato finché non conferma al momento del pagamento.',
+    'your_dates' => 'Le Sue date',
+    'not_available' => 'Non disponibile per queste date — provi date diverse.',
+    'check_in' => 'Arrivo',
+    'check_out' => 'Partenza',
+    'check_dates' => 'Verifica le date',
+    'check_availability' => 'Verifica disponibilità e prezzo',
+    'see_price' => 'Vedi il prezzo',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — it translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Lei',
+    'total_part' => ':name :amount',
+    'total_includes' => 'compresi: :items',
+    'nightly_excludes' => 'escl. :tax',
+    'sleeps' => 'Capienza: :count',
+    'studio' => 'Monolocale',
+    'bedrooms' => '{1} :count camera da letto|[0,*] :count camere da letto',
+    'checkout_title' => 'Pagamento — :property',
+    'room_just_taken' => 'Questa camera è appena stata prenotata da un’altra persona: scelga un’altra camera o altre date.',
+    'payment_received' => 'Pagamento ricevuto',
+    'payment_received_note' => 'Pagato per intero.',
+    'payment_processing' => 'Pagamento in corso',
+    'payment_processing_note' => 'Stiamo confermando il pagamento con carta. Aggiorni la pagina tra un momento per vederlo registrato.',
+    'pay_on_arrival' => 'Pagamento all’arrivo',
+    'pay_on_arrival_note' => 'Pagherà direttamente presso la struttura al momento del check-in.',
+    'confirmed_title' => 'Prenotazione confermata — :property',
+    'kind_room' => 'Camera',
+    'kind_apartment' => 'Appartamento',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Dormitorio',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Appartamento con servizi',
+    'type_apartment_building' => 'Complesso di appartamenti',
+    'type_apartment' => 'Appartamento',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Ostello',
+    'type_guest_house' => 'Affittacamere',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Misto',
+    'type_portfolio' => 'Portfolio',
+];

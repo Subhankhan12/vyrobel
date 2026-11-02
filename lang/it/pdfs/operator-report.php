@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — it translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Report',
+    'arrivals_in' => 'Arrivi — periodo: :period',
+    'arrivals_count' => '{1} :count arrivo|[0,*] :count arrivi',
+    'pp_delta' => ':delta p.p.',
+    'occupancy' => 'Occupazione',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Ricavi lordi',
+    'basis_note' => 'Occupazione · ADR · RevPAR sono calcolati sulle notti di soggiorno, rispetto allo stesso periodo dell’anno precedente dove esistono dati. I ricavi qui sotto sono calcolati sui conti (data di arrivo).',
+    'revenue' => 'Ricavi',
+    'room' => 'Camere',
+    'ancillary' => 'Servizi accessori <span class="muted">· extra, prodotti, supplementi</span>',
+    'tax_collected' => 'Imposte riscosse · partita di giro',
+    'costs_heading' => 'Costi <span class="muted" style="font-size:9px">· solo dati reali</span>',
+    'maintenance' => 'Manutenzione <span class="muted">· interventi risolti</span>',
+    'not_tracked' => 'non ancora rilevato',
+    'net' => 'Netto (ricavi − costi rilevati)',
+    'revenue_by_channel' => 'Ricavi per canale',
+    'channel' => 'Canale',
+    'bookings' => 'Prenotazioni',
+    'share' => 'Quota',
+    'no_channel_revenue' => 'Nessun ricavo per canale in questo periodo.',
+    'top_units' => 'Unità migliori',
+    'unit' => 'Unità',
+    'nights' => 'Notti',
+    'room_revenue' => 'Ricavi camere',
+    'no_unit_revenue' => 'Nessun ricavo per unità in questo periodo.',
+    'revenue_by_month' => 'Ricavi per mese',
+    'month' => 'Mese',
+    'footer' => 'Calcolato da dati reali di conti e manutenzione — ambito: :scope · :period. Occupazione/ADR/RevPAR sono calcolati sulle notti di soggiorno; i ricavi sui conti (data di arrivo). Gli importi corrispondono alla pagina «Report». Vyrobel.',
+];
