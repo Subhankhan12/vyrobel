@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'на платформе Vyrobel',
+    'eyebrow' => 'Выписка собственника',
+    'unit_count' => '{1}:count номер|:count номера|:count номеров',
+    'issued' => 'от :date',
+    'prepared_for' => 'Подготовлено для',
+    'net_payable_to_owner' => 'К выплате собственнику',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Загрузка',
+    'nights_sold' => 'Продано ночей',
+    'avg_nightly_rate' => 'Средняя цена за ночь',
+    'breakdown' => 'Разбивка',
+    'item' => 'Позиция',
+    'detail' => 'Подробности',
+    'amount' => 'Сумма',
+    'provisional' => '(предварительно)',
+    'performance_by_unit' => 'Показатели по номерам',
+    'unit' => 'Номер',
+    'nights' => 'Ночи',
+    'revenue' => 'Доход',
+    'total_gross_room_revenue' => 'Итого валовой доход от номеров',
+    'callout_heading' => 'Выплата.',
+    'settles_to_iban' => 'Чистая сумма :amount перечисляется банковским переводом на IBAN :iban.',
+    'settles' => 'Чистая сумма :amount перечисляется банковским переводом.',
+    'fees_with_commission' => 'Комиссия за управление составляет :pct% от валового дохода от номеров; платёжные сборы и сборы платформы учитываются по фактической стоимости. Все суммы указаны в :currency и включают применимые налоги, собранные от вашего имени.',
+    'fees' => 'Платёжные сборы и сборы платформы учитываются по фактической стоимости. Все суммы указаны в :currency и включают применимые налоги, собранные от вашего имени.',
+    'fx_note' => 'Пересчитано из :source по курсу :rate (источник: :src).',
+    'provisional_note' => 'Некоторые строки предварительные — ожидается сверка с каналами.',
+    'statement_ref' => 'выписка :ref',
+    'sequence_no' => '№ :number',
+    'generated' => 'сформировано <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Вопросы? :email',
+];

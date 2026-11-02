@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Суммы',
+    'csv_amounts_note' => 'в основных единицах валюты, десятичная точка, без разделителя тысяч',
+    'col_date' => 'Дата',
+    'col_work_order' => 'Наряд',
+    'col_unit' => 'Номер',
+    'col_category' => 'Категория',
+    'col_labor' => 'Работы',
+    'col_parts' => 'Запчасти',
+    'col_total' => 'Итого',
+    'col_currency' => 'Валюта',
+    'total_row' => 'Итого',
+    'sheet_summary' => 'Сводка',
+    'col_measure' => 'Показатель',
+    'col_value' => 'Значение',
+    'total_spend' => 'Общие затраты',
+    'measure_labour' => 'Работы',
+    'measure_parts' => 'Запчасти',
+    'orders_closed' => 'Закрыто нарядов',
+    'owner_billed' => 'За счёт собственника',
+    'operator_borne' => 'За счёт управляющей компании',
+    'parts_on_order' => 'Запчасти в заказе',
+    'average_per_order' => 'В среднем на наряд',
+    'by_category' => 'По категориям',
+    'col_orders' => 'Наряды',
+    'by_month' => 'По месяцам',
+    'top_units' => 'Номера с наибольшими затратами',
+    'sheet_line_items' => 'Позиции',
+    'col_labour' => 'Работы',
+    'no_email' => 'В вашем аккаунте не указан адрес эл. почты.',
+    'report_emailed' => 'Отчёт о затратах отправлен на адрес :email.',
+];

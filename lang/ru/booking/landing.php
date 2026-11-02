@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Варианты размещения',
+    'book_direct' => 'Прямое бронирование',
+    'nav_stays' => 'Варианты размещения',
+    'my_account' => 'Мой аккаунт',
+    'sign_in' => 'Войти',
+    'rating_across' => '{1}:average на основе :count отзыва|:average на основе :count отзывов|:average на основе :count отзывов',
+    'heading' => 'Бронируйте напрямую:<br>:org.',
+    'subheading' => 'Ухоженные варианты размещения с прямым бронированием — без сборов, по нашей лучшей цене, и на связи всегда живой человек.',
+    'where' => 'Где',
+    'check_in' => 'Заезд',
+    'check_out' => 'Выезд',
+    'adults' => 'Взрослые',
+    'children' => 'Дети',
+    'where_to_stay' => 'Где остановиться',
+    'towns_lede' => '{21}:count город, и у каждого свой ритм.|:count города, и у каждого свой ритм.|:count городов, и у каждого свой ритм.|{1}Наша главная база.',
+    'from_price' => 'от :price',
+    'featured_stays' => 'Рекомендуемые варианты',
+    'featured_lede' => 'Любимые варианты гостей по всей коллекции.',
+    'per_night' => '/ ночь',
+    'see_dates_for_pricing' => 'Укажите даты, чтобы узнать цену',
+    'browse_by_what_matters' => 'Выбирайте по тому, что важно',
+    'why_book_direct' => 'Почему бронировать напрямую',
+    'recent_guests' => 'Недавние гости',
+    'rating_short' => '{1}:average · :count отзыв|:average · :count отзыва|:average · :count отзывов',
+    'stars_aria' => 'Оценка: :rating из 5',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'Пока нет отзывов — остановитесь у нас первыми и поделитесь впечатлениями.',
+    'cta_heading' => 'Найдите своё место',
+    'cta_sub' => 'Реальные даты, актуальные цены, мгновенное подтверждение.',
+    'browse_all_stays' => 'Все варианты размещения',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Оператор/собственник',
+    'realm_guest' => 'Гость',
+    'realm_admin' => 'Администратор платформы',
+    'event_login' => 'Вход',
+    'event_failed' => 'Ошибка входа',
+    'event_lockout' => 'Блокировка',
+    'subject_user' => 'Пользователь',
+    'subject_guest' => 'Гость',
+    'subject_platform_admin' => 'Администратор платформы',
+    'subject_unknown' => 'Неизвестно',
+    'actor_user' => 'Пользователь',
+    'actor_agent' => 'Агент',
+    'actor_system' => 'Система',
+    'page_title' => 'Безопасность и активность',
+    'page_subtitle' => 'Активность входа и события аккаунтов на всей платформе — хранятся :days дн., затем удаляются.',
+    'kpi_failures' => 'Ошибки / блокировки · 24 ч',
+    'kpi_failures_help' => 'Повторяющиеся ошибки могут означать попытки подбора.',
+    'privacy' => 'Конфиденциальность',
+    'privacy_body' => 'Активность входа (включая IP) записывается только как <strong style="color: var(--ad-ink);">сигнал безопасности</strong> — чтобы замечать подозрительные входы и помогать поддержке — и никогда не служит для фонового отслеживания. Хранится :days дн., затем удаляется автоматически; доступ есть только в этой консоли.',
+    'recent_sign_ins' => 'Последние входы',
+    'col_event' => 'Событие',
+    'col_realm' => 'Зона',
+    'col_account' => 'Аккаунт',
+    'col_ip' => 'IP',
+    'col_when' => 'Когда',
+    'no_sign_ins' => 'Активность входа пока не записана.',
+    'recent_account_events' => 'Последние события аккаунтов <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· по всем клиентам</span>',
+    'col_customer' => 'Клиент',
+    'col_actor' => 'Кто выполнил',
+    'no_account_events' => 'Событий аккаунтов пока нет.',
+];

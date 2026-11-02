@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Обзор',
+    'breadcrumb_bookings' => 'Бронирования',
+    'guest_fallback' => 'Гость',
+    'reservation' => 'Бронирование',
+    'check_in' => 'Заезд',
+    'nights_count' => '{1}:count ночь|:count ночи|:count ночей',
+    'check_out' => 'Выезд',
+    'unit' => 'Номер',
+    'guests' => 'Гости',
+    'nights' => 'Ночи',
+    'nightly_rate' => 'Цена за ночь',
+    'your_earnings' => 'Ваш доход',
+    'gross_to_net' => 'валовой → чистый',
+    'gross_booking_value' => 'Валовая стоимость бронирования',
+    'net_to_you' => 'Ваш чистый доход',
+    'refunds_we_covered' => 'Возвраты за наш счёт',
+    'refunds_we_covered_note' => 'Возвращено гостю за наш счёт, а не за ваш. Ваш доход выше не изменился.',
+    'not_yet_attributed' => 'Ещё не отражено.',
+    'not_yet_attributed_note' => 'Ваш доход появится здесь, как только бронирование будет отражено в вашем учёте, — обычно после выезда.',
+    'guest_heading' => 'Гость',
+    'guest_contact_note' => 'Контактные данные гостя находятся у управляющей компании — вы видите бронирование и свой доход.',
+    'message_your_team' => 'Написать управляющей компании',
+    'timeline' => 'Хронология',
+    'for_night_stay' => 'за это пребывание: :nights ноч.',
+    'booking_details' => 'Детали бронирования',
+    'confirmation' => 'Подтверждение',
+    'source' => 'Источник',
+    'channel' => 'Канал',
+    'booked_on' => 'Дата бронирования',
+    'download_confirmation' => 'Скачать подтверждение',
+    'download_unavailable' => 'Доступно совладельцам и бухгалтерам',
+    'view_unit' => 'Открыть номер :unit',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Вы',
+    'total_part' => ':name :amount',
+    'total_includes' => 'Включено: :items',
+    'nightly_excludes' => 'Не включено: :tax',
+    'sleeps' => 'Вместимость: :count',
+    'studio' => 'Студия',
+    'bedrooms' => '{1}:count спальня|:count спальни|:count спален',
+    'checkout_title' => 'Оформление бронирования — :property',
+    'room_just_taken' => 'Этот номер только что забронировал кто-то другой — выберите другой номер или даты.',
+    'payment_received' => 'Платёж получен',
+    'payment_received_note' => 'Оплачено полностью.',
+    'payment_processing' => 'Платёж обрабатывается',
+    'payment_processing_note' => 'Мы подтверждаем оплату картой. Обновите страницу через минуту, чтобы увидеть результат.',
+    'pay_on_arrival' => 'Оплата при заезде',
+    'pay_on_arrival_note' => 'Оплатите в объекте размещения при заезде.',
+    'confirmed_title' => 'Бронирование подтверждено — :property',
+    'kind_room' => 'Гостиничный номер',
+    'kind_apartment' => 'Апартаменты',
+    'kind_villa' => 'Вилла',
+    'kind_dorm' => 'Общий номер',
+    'type_hotel' => 'Отель',
+    'type_aparthotel' => 'Апарт-отель',
+    'type_serviced_apartment' => 'Сервисные апартаменты',
+    'type_apartment_building' => 'Апартаментный комплекс',
+    'type_apartment' => 'Апартаменты',
+    'type_villa' => 'Вилла',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Гостевой дом',
+    'type_resort' => 'Курортный отель',
+    'type_mixed' => 'Смешанный',
+    'type_portfolio' => 'Портфель',
+];

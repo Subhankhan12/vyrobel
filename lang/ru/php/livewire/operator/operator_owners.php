@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Готово к выплате',
+    'chip_hold' => 'Задержано',
+    'chip_review' => 'Требует проверки',
+    'chip_paused' => 'Выплаты приостановлены',
+    'chip_invited' => 'Приглашён',
+    'sorted_name_asc' => 'по собственнику, А–Я',
+    'sorted_name_desc' => 'по собственнику, Я–А',
+    'sorted_units_desc' => 'сначала больше номеров',
+    'sorted_units_asc' => 'сначала меньше номеров',
+    'sorted_net_desc' => 'сначала большие суммы к выплате',
+    'sorted_net_asc' => 'сначала меньшие суммы к выплате',
+    'sorted_status_asc' => 'сначала требующие вашего внимания',
+    'sorted_status_desc' => 'требующие внимания — в конце',
+    'kpi_invited' => 'Приглашено: :number',
+    'kpi_units' => '{1}:count номер|:count номера|:count номеров',
+    'kpi_owners_ready' => '{1}:count собственник готов|:count собственника готовы|:count собственников готовы',
+    'kpi_paused_not_counted' => 'приостановлено и не учтено: :number',
+    'kpi_hold_none' => 'ожидающих нет',
+    'kpi_hold_waiting' => 'ожидают: :amounts',
+    'kpi_review_sub' => 'со строками, не подтверждёнными каналом продаж: :number',
+    'schedule' => ':day рабочий день месяца',
+    'ordinal_st' => ':number-й',
+    'ordinal_nd' => ':number-й',
+    'ordinal_rd' => ':number-й',
+    'ordinal_th' => ':number-й',
+    'role_manager' => 'Управляющий объектом',
+    'role_accountant' => 'Бухгалтер',
+    'role_owner' => 'Собственник',
+    'another_owner' => 'другой собственник',
+];

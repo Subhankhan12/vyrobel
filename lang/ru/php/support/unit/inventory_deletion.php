@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count бронирование|:count бронирования|:count бронирований',
+    'room_moves' => '{1}:count переселение|:count переселения|:count переселений',
+    'cleaning_tasks' => '{1}:count задача по уборке|:count задачи по уборке|:count задач по уборке',
+    'work_orders' => '{1}:count наряд|:count наряда|:count нарядов',
+    'status_changes' => '{1}:count смена статуса|:count смены статуса|:count смен статуса',
+    'blocks' => '{1}:count блокировка|:count блокировки|:count блокировок',
+    'owner_agreements' => '{1}:count договор с собственником|:count договора с собственником|:count договоров с собственником',
+    'owner_statement_lines' => '{1}:count строка выписки собственника|:count строки выписки собственника|:count строк выписки собственника',
+    'owner_expenses' => '{1}:count расход собственника|:count расхода собственника|:count расходов собственника',
+    'reviews' => '{1}:count отзыв|:count отзыва|:count отзывов',
+    'owner_requests' => '{1}:count заявка собственника|:count заявки собственника|:count заявок собственника',
+    'notes' => '{1}:count заметка|:count заметки|:count заметок',
+    'documents' => '{1}:count документ|:count документа|:count документов',
+    'files' => '{1}:count файл|:count файла|:count файлов',
+    'units' => '{1}:count номер|:count номера|:count номеров',
+    'rate_proposals' => '{1}:count предложение по цене|:count предложения по цене|:count предложений по цене',
+    'overbooking_records' => '{1}:count запись об овербукинге|:count записи об овербукинге|:count записей об овербукинге',
+    'guest_waitlist_entries' => '{1}:count запись гостя в листе ожидания|:count записи гостей в листе ожидания|:count записей гостей в листе ожидания',
+    'guest_wishlist_saves' => '{1}:count запись в избранном гостя|:count записи в избранном гостей|:count записей в избранном гостей',
+    'derived_room_types' => '{1}:count производная категория номера|:count производные категории номера|:count производных категорий номера',
+    'derived_rate_plans' => '{1}:count тариф другой категории, рассчитанный от него|:count тарифа другой категории, рассчитанных от него|:count тарифов другой категории, рассчитанных от него',
+    'corporate_default_rates' => '{1}:count тариф по умолчанию корпоративного клиента|:count тарифа по умолчанию корпоративных клиентов|:count тарифов по умолчанию корпоративных клиентов',
+    'channel_connections' => '{1}:count подключение канала|:count подключения канала|:count подключений канала',
+    'an_owner' => 'собственник',
+    'pending_owner_invitation' => 'непринятое приглашение собственника',
+    'list_and' => ':items и :last',
+    'kind_rooms' => 'гостиничные номера',
+    'kind_apartments' => 'апартаменты',
+    'kind_villas' => 'виллы',
+    'kind_dorm_beds' => 'места в общем номере',
+];

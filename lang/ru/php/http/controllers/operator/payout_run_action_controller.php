@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Механизм выплат отключён (PAYOUT_ENGINE_ENABLED). Включите его перед запуском выплаты.',
+    'nothing_to_run' => 'Запускать нечего — ни у одного собственника здесь нет выписки к выплате или задержанной выплаты:paused_note.',
+    'run_complete' => 'Пакетная выплата завершена (режим: :mode) — создано: :created · выплачено: :paid · задержано: :held:paused_note.',
+    'create_failed' => 'Не удалось создать выплату — :reason',
+    'already_has_payout' => 'По этой выписке уже есть выплата — ничего не создано.',
+    'one_payout_created' => 'Создана 1 выплата.',
+    'pay_failed' => 'Не удалось выплатить — :reason',
+    'one_payout_paid' => '1 выплата отмечена как выплаченная.',
+    'payout_failed_reason' => 'Выплата не прошла — :reason',
+    'payout_failed_no_reason' => 'Выплата не прошла — канал выплаты не сообщил причину.',
+    'create_all_failed' => 'Не удалось создать выплаты — :reason',
+    'no_payout_created_paused' => 'Выплаты не созданы:paused_note — возобновите их на странице собственника.',
+    'nothing_ready' => 'Выплачивать нечего — ни у одной закрытой выписки нет положительной суммы к выплате:paused_note.',
+    'no_new_payouts' => 'Новых выплат нет — у каждой готовой выписки она уже есть:paused_note.',
+    'payouts_created' => '{1}Создана :count выплата:paused_note.|Создано :count выплаты:paused_note.|Создано :count выплат:paused_note.',
+    'some_not_created' => ':message Некоторые выплаты создать не удалось — :reason',
+    'nothing_paid_paused' => 'Ничего не выплачено:paused_note — возобновите выплаты на странице собственника.',
+    'no_pending_payouts' => 'Нет выплат в ожидании.',
+    'paid_only' => '{1}:count выплата отмечена как выплаченная:paused_note.|:count выплаты отмечены как выплаченные:paused_note.|:count выплат отмечены как выплаченные:paused_note.',
+    'failed_only' => '{1}:count выплата не прошла через канал выплаты:paused_note.|:count выплаты не прошли через канал выплаты:paused_note.|:count выплат не прошли через канал выплаты:paused_note.',
+    'paid_and_failed' => '{1}:count выплата отмечена как выплаченная · не прошли через канал выплаты: :failed:paused_note.|:count выплаты отмечены как выплаченные · не прошли через канал выплаты: :failed:paused_note.|:count выплат отмечены как выплаченные · не прошли через канал выплаты: :failed:paused_note.',
+    'some_not_attempted' => ':message Некоторые выплаты не удалось обработать — :reason',
+    'nothing_payable_negative' => 'Выплачивать нечего — чистая сумма этой выписки отрицательная, поэтому остаток переносится и будет зачтён в следующей выписке собственника.',
+    'nothing_payable_zero' => 'Выплачивать нечего — чистая сумма этой выписки равна нулю, задолженности нет.',
+    'workspace_paused_until' => 'Организация приостановлена — выплаты до :date доступны только для просмотра.',
+    'workspace_paused_for_now' => 'Организация приостановлена — выплаты пока доступны только для просмотра.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}пропущен :count приостановленный собственник|пропущено :count приостановленных собственника|пропущено :count приостановленных собственников',
+];

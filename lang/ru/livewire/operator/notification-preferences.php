@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Настройки уведомлений',
+    'subtitle' => 'Как Vyrobel связывается с вами',
+    'breadcrumb_label' => 'Навигационная цепочка',
+    'crumb_settings' => 'Настройки',
+    'crumb_notifications' => 'Уведомления',
+    'channel_email' => 'Эл. почта',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Адрес эл. почты не указан',
+    'email_verified_title' => 'Ваш адрес для входа подтверждён',
+    'email_verified' => 'Подтверждён',
+    'push_not_set_up_title' => 'Push-уведомления ещё не настроены',
+    'not_set_up_tag' => 'не настроено',
+    'push_not_available' => 'Push-уведомления в браузере и на устройствах пока недоступны',
+    'channel_off' => 'Выкл.',
+    'sms_not_set_up_title' => 'SMS-уведомления ещё не настроены',
+    'sms_no_provider' => 'SMS-провайдер пока не подключён',
+    'notify_me_when' => 'Уведомлять меня, когда',
+    'always_on' => 'Всегда включено',
+    'email_always_on_sr' => 'Уведомления по эл. почте всегда включены. Событие: :event',
+    'email_me_when_aria' => 'Уведомлять по эл. почте: :event',
+    'push_not_set_up_sr' => 'Push-уведомления не настроены',
+    'sms_not_set_up_sr' => 'SMS-уведомления не настроены',
+    'quiet_hours' => 'Тихие часы',
+    'quiet_hours_help' => 'В эти часы обычные письма задерживаются — срочные оповещения о безопасности приходят всегда; лента уведомлений в приложении работает как обычно.',
+    'quiet_from' => 'С',
+    'quiet_to' => 'До',
+    'digest_heading' => 'Ежедневная сводка по эл. почте',
+    'digest_help' => 'Утренняя сводка за день. <span class="vy-np-soon">пока не отправляется</span> — настройка сохраняется до запуска рассылки сводок.',
+    'digest_off' => 'Выкл.',
+    'digest_morning' => 'Утром · 08:00',
+];

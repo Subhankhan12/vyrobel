@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Все номера',
+    'kind_sleeps_up_to' => ':kind · до :capacity чел.',
+    'reviews_count' => '{1}:count отзыв|:count отзыва|:count отзывов',
+    'no_reviews_yet' => 'Пока нет отзывов',
+    'save_to_wishlist' => 'Добавить в избранное',
+    'sleeps' => 'Вместимость',
+    'adults' => 'Взрослые',
+    'children' => 'Дети',
+    'bedrooms' => 'Спальни',
+    'standard_occupancy' => 'Стандартное размещение',
+    'amenities' => 'Удобства',
+    'not_yet_listed' => 'Пока не указано',
+    'amenities_not_published' => 'Удобства этого номера пока не опубликованы.',
+    'guest_reviews' => 'Отзывы гостей',
+    'stars_aria' => 'Оценка: :rating из 5',
+    'response_label' => 'Ответ:',
+    'no_reviews_be_first' => 'Пока нет отзывов — остановитесь у нас первыми и поделитесь впечатлениями.',
+    'coming_soon' => 'Скоро',
+    'description_soon' => 'Полное описание и карта расположения скоро появятся. Характеристики, наличие мест, цена и отзывы выше — реальные.',
+    'per_night' => '/ ночь',
+    'per_night_with_note' => '/ ночь · :note',
+    'total_nights' => '{1}Итого: :amount · :count ночь|Итого: :amount · :count ночи|Итого: :amount · :count ночей',
+    'left_for_your_dates' => 'На ваши даты осталось: :count',
+    'book_this_room' => 'Забронировать номер',
+    'nothing_reserved' => 'Ничего не бронируется, пока вы не подтвердите бронирование при оформлении.',
+    'your_dates' => 'Ваши даты',
+    'not_available' => 'Нет мест на эти даты — попробуйте другие даты.',
+    'check_in' => 'Заезд',
+    'check_out' => 'Выезд',
+    'check_dates' => 'Проверить даты',
+    'check_availability' => 'Проверить наличие мест и цену',
+    'see_price' => 'Узнать цену',
+];

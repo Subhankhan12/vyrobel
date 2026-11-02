@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Пребывание',
+    'step_guest' => 'Гость',
+    'step_extras' => 'Доп. услуги',
+    'step_confirm' => 'Подтверждение',
+    'source_direct' => 'Прямое',
+    'source_walk_in' => 'Без бронирования',
+    'source_corporate' => 'Корпоративное',
+    'source_agent' => 'Турагент',
+    'the_guest' => 'без имени',
+    'a_night' => ':amount за ночь',
+    'a_night_range' => ':low–:high за ночь',
+    'dates_label' => '{1}:from → :to · :count ночь|:from → :to · :count ночи|:from → :to · :count ночей',
+    'restrict_min_stay' => '{1}При заезде :date — не менее :count ночи|При заезде :date — не менее :count ночей|При заезде :date — не менее :count ночей',
+    'restrict_max_stay' => '{1}При заезде :date — не более :count ночи|При заезде :date — не более :count ночей|При заезде :date — не более :count ночей',
+    'restrict_no_arrivals' => 'Закрыто на заезд: :date',
+    'restrict_no_departures' => 'Закрыто на выезд: :date',
+    'restrict_stop_sell' => 'Продажи закрыты: :date',
+    'restrict_other' => ':restriction: :date',
+    'arrival_mail_off' => 'Vyrobel пока не отправляет письма — сообщите гостю, как добраться, и код двери сами.',
+    'arrival_pre_arrival_off' => 'Письмо перед заездом отключено для ваших объектов — сообщите гостю, как добраться, и код двери сами.',
+    'arrival_too_soon' => 'Это пребывание начинается слишком скоро для письма перед заездом, которое отправляется за :count дн. до заезда, — сообщите гостю, как добраться, и код двери сами.',
+    'arrival_by_email' => 'Как добраться и код двери (если он есть у номера) гость получит по эл. почте за :count дн. до заезда — если у гостя есть адрес эл. почты. Код двери здесь никогда не показывается.',
+    'cancel_not_free' => 'Бесплатная отмена недоступна — срок истёк :date',
+    'cancel_free_until_check_in' => 'Бесплатно до заезда',
+    'cancel_free_until_date' => 'Бесплатно до :date',
+    'cancel_free_until_days' => '{1}Бесплатно не позднее чем за :count день до заезда|Бесплатно не позднее чем за :count дня до заезда|Бесплатно не позднее чем за :count дней до заезда',
+    'min_stay_none' => 'Без минимума',
+    'min_stay_nights' => '{1}:count ночь|:count ночи|:count ночей',
+    'guest_no_name' => 'Гость',
+    'no_stays_yet' => 'Пребываний пока нет',
+];

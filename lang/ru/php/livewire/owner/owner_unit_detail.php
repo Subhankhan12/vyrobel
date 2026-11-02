@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Гость',
+    'nights' => '{1}:count ночь|:count ночи|:count ночей',
+    'block_reason_none' => 'Заблокировано',
+    'block_reason_maintenance' => 'Техобслуживание',
+    'block_reason_owner' => 'Собственник',
+    'block_reason_manual' => 'Вручную',
+    'block_reason_overbooking_protection' => 'Защита от овербукинга',
+    'cleaning_departure' => 'Уборка после выезда',
+    'cleaning_stayover' => 'Текущая уборка',
+    'cleaning_deep' => 'Генеральная уборка',
+    'cleaning_arrival_prep' => 'Подготовка к заезду',
+    'cleaning_status_pending' => 'Запланирована',
+    'cleaning_status_in_progress' => 'В работе',
+    'cleaning_status_clean' => 'Выполнена',
+    'cleaning_status_inspected' => 'Проверена',
+    'kind_room' => 'Гостиничный номер',
+    'kind_apartment' => 'Апартаменты',
+    'kind_villa' => 'Вилла',
+    'kind_dorm_bed' => 'Место в общем номере',
+    'condition_out_of_order' => 'Неисправен',
+    'condition_out_of_service' => 'На ремонте',
+    'status_enquiry' => 'Запрос',
+    'status_tentative' => 'Предварительное',
+    'status_confirmed' => 'Подтверждено',
+    'status_checked_in' => 'Заселено',
+    'status_checked_out' => 'Выселено',
+    'status_cancelled' => 'Отменено',
+    'status_no_show' => 'Незаезд',
+    'terms_portfolio' => 'Условия для всего портфеля',
+    'terms_unit' => 'Условия для этого номера',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Заявка «:title» по номеру :unit открыта.',
+    'not_assignable_staff' => 'Этого пользователя нельзя назначить: он не входит в число сотрудников этой организации, которым можно поручать работу.',
+    'cannot_reassign_closed' => 'Эту заявку нельзя переназначить — она уже закрыта.',
+    'assignment_updated' => 'Исполнитель заявки изменён.',
+    'work_order_closed' => 'Этот наряд закрыт — его данные изменить нельзя.',
+    'work_order_updated' => 'Наряд обновлён.',
+    'col_title' => 'Название',
+    'col_unit' => 'Номер',
+    'col_category' => 'Категория',
+    'col_priority' => 'Приоритет',
+    'col_status' => 'Статус',
+    'col_assignee' => 'Исполнитель',
+    'col_reported' => 'Сообщено',
+    'col_cost' => 'Стоимость',
+    'bulk_assigned_skipped' => '{1}Назначен :count наряд · пропущено (уже закрыты): :skipped|Назначено :count наряда · пропущено (уже закрыты): :skipped|Назначено :count нарядов · пропущено (уже закрыты): :skipped',
+    'bulk_assigned' => '{1}Назначен :count наряд.|Назначено :count наряда.|Назначено :count нарядов.',
+    'bulk_resolved_skipped' => '{1}Завершён :count наряд · пропущено (уже закрыты): :skipped|Завершено :count наряда · пропущено (уже закрыты): :skipped|Завершено :count нарядов · пропущено (уже закрыты): :skipped',
+    'bulk_resolved' => '{1}Завершён :count наряд.|Завершено :count наряда.|Завершено :count нарядов.',
+    'cannot_start' => 'Эту заявку нельзя взять в работу — она больше не открыта.',
+    'work_started' => 'Работа по этой заявке начата.',
+    'cannot_resolve_closed' => 'Этот наряд нельзя завершить — он уже закрыт.',
+    'ticket_resolved' => 'Заявка завершена.',
+    'cannot_cancel_closed' => 'Эту заявку нельзя отменить — она уже закрыта.',
+    'ticket_cancelled' => 'Заявка отменена.',
+    'parts_closed' => 'Эта заявка закрыта — данные о запчастях изменить нельзя.',
+    'awaiting_parts' => 'Отмечено: ожидание запчастей.',
+    'parts_arrived' => 'Запчасти отмечены как полученные.',
+    'update_posted_waiting_part' => 'Обновление добавлено — отмечено ожидание запчасти.',
+    'update_posted' => 'Обновление добавлено.',
+    'photo_added' => 'Фото добавлено.',
+    'photo_removed' => 'Фото удалено.',
+    'workspace_paused' => 'Ваша организация приостановлена (только для просмотра) — изменения в техобслуживании недоступны, пока вы не возобновите её работу.',
+];

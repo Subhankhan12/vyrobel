@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Наши варианты размещения',
+    'properties_count' => '{1}:count объект|:count объекта|:count объектов',
+    'stays_count' => '{1}:count вариант|:count варианта|:count вариантов',
+    'stays_sleeps' => ':stays · до :max чел.',
+    'stays_sleeps_range' => ':stays · :min–:max чел.',
+    'perk_free_cancel_days' => '{1}Полный возврат при отмене не позднее чем за :count день до заезда.|Полный возврат при отмене не позднее чем за :count дня до заезда.|Полный возврат при отмене не позднее чем за :count дней до заезда.',
+    'perk_free_cancel_window' => 'Полный возврат при отмене в срок бесплатной отмены.',
+    'perk_no_fees' => 'Без сборов за бронирование',
+    'perk_no_fees_sub' => 'Цена, которую вы видите, — это цена, которую вы платите.',
+    'perk_best_rate' => 'Лучшая цена напрямую',
+    'perk_best_rate_sub' => 'Бронируйте напрямую по нашей лучшей цене — без посредников.',
+    'perk_free_cancel' => 'Бесплатная отмена',
+    'perk_host_support' => 'Прямая связь с объектом',
+    'perk_host_support_sub' => 'Пишите живому человеку по вашему бронированию.',
+    'kind_room' => 'Гостиничный номер',
+    'kind_apartment' => 'Апартаменты',
+    'kind_villa' => 'Вилла',
+    'kind_dorm' => 'Общий номер',
+    'type_hotel' => 'Отель',
+    'type_aparthotel' => 'Апарт-отель',
+    'type_serviced_apartment' => 'Сервисные апартаменты',
+    'type_apartment_building' => 'Апартаментный комплекс',
+    'type_apartment' => 'Апартаменты',
+    'type_villa' => 'Вилла',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Гостевой дом',
+    'type_resort' => 'Курортный отель',
+    'type_mixed' => 'Смешанный',
+    'type_portfolio' => 'Портфель',
+];

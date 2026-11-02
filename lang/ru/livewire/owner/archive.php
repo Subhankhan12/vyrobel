@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Архив выписок',
+    'history_summary' => 'Ваша история закрытых выписок · :years · :statements',
+    'years' => '{1}:count год|:count года|:count лет',
+    'statements' => '{1}:count выписка|:count выписки|:count выписок',
+    'archived_on_finalize' => 'Выписки попадают в архив сразу после закрытия.',
+    'net_earned_lifetime' => 'Чистый доход · за всё время',
+    'since' => 'с :date',
+    'per_currency_note' => 'Итоги по каждой валюте выплат — суммы в разных валютах никогда не складываются.',
+    'lifetime_empty' => 'Закрытых выписок пока нет — здесь появится ваша первая.',
+    'search_placeholder' => 'Поиск по выпискам: месяц, год, статус или номер',
+    'search_label' => 'Поиск выписок',
+    'no_match' => 'Нет выписок по запросу «:query».',
+    'no_match_hint' => 'Попробуйте месяц («сентябрь»), год («2026»), статус («Выплачена») или номер выписки («№ 1»).',
+    'group_summary' => ':statements · чистый доход: :nets',
+    'per_payout_currency' => '(по валютам выплат)',
+    'tax_summary_title' => 'Скачать годовую налоговую сводку за :year в PDF',
+    'tax_summary' => 'Налоговая сводка',
+    'col_statement' => 'Выписка',
+    'col_net_payable' => 'К выплате',
+    'col_links' => 'Ссылки',
+    'unverified_title' => 'Некоторые строки ещё ждут сверки с каналом продаж',
+    'unverified' => 'Есть непроверенные строки',
+    'pdf_title' => 'Скачать эту выписку в PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Скачать бронирования по этой выписке в PDF',
+    'bookings' => 'Бронирования',
+    'empty' => 'Закрытых выписок пока нет. Выписка попадает в архив сразу после закрытия.',
+    'zip_heading' => 'Скачать весь архив',
+    'zip_sub' => '{1}Один ZIP-архив с :count выпиской в PDF. Каждую выписку выше можно скачать и отдельно.|Один ZIP-архив с :count выписками в PDF. Каждую выписку выше можно скачать и отдельно.|Один ZIP-архив с :count выписками в PDF. Каждую выписку выше можно скачать и отдельно.',
+    'download_zip' => 'Скачать ZIP',
+];

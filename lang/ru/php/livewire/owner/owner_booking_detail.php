@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'с :time',
+    'by_time' => 'до :time',
+    'repeat_guest' => '{1}Повторный гость · :count пребывание|Повторный гость · :count пребывания|Повторный гость · :count пребываний',
+    'new_guest' => 'Новый гость',
+    'guests_count' => '{1}:count гость|:count гостя|:count гостей',
+    'nights_count' => '{1}:count ночь|:count ночи|:count ночей',
+    'channel_direct' => 'Напрямую через Vyrobel',
+    'channel_walk_in' => 'Без бронирования',
+    'channel_ota' => 'Канал OTA',
+    'event_booking_received' => 'Бронирование получено',
+    'event_cancelled' => 'Отменено',
+    'event_payment_received' => 'Платёж получен',
+    'when_paid_in_full' => 'Оплачено полностью',
+    'event_part_payment_received' => 'Получена частичная оплата',
+    'when_balance_due' => 'К оплате',
+    'event_payment' => 'Платёж',
+    'when_not_yet_received' => 'Ещё не получено',
+    'event_checked_in' => 'Гость заселился',
+    'event_check_in' => 'Заезд',
+    'event_checked_out' => 'Гость выехал',
+    'event_payout_released' => 'Выплата отправлена',
+    'event_payout' => 'Выплата',
+    'when_next_payout' => 'С вашей следующей выплатой',
+    'payout_not_attributed' => 'Ещё не отражено',
+    'payout_not_attributed_note' => 'Это бронирование ещё не отражено в вашем учёте.',
+    'payout_scheduled' => 'Запланировано',
+    'payout_scheduled_note' => 'Войдёт в вашу следующую выписку, затем будет выплачено по ней.',
+    'payout_pending' => 'Ожидает выплаты',
+    'payout_pending_note' => 'В закрытой выписке — будет выплачено по ней.',
+    'payout_paid' => 'Выплачено',
+    'payout_paid_note' => 'Выплачено в составе завершённой выплаты.',
+];

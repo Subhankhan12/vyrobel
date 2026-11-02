@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Заметка',
+    'kind_progress' => 'Ход работ',
+    'kind_part' => 'Запчасть заказана',
+    'elapsed_minutes' => ':minutes мин',
+    'elapsed_hours' => ':hours ч :minutes мин',
+    'elapsed_days' => ':days дн. :hours ч',
+    'hours_short' => ':hours ч',
+    'timeline_opened' => 'Создано',
+    'timeline_assigned_to' => 'Назначено: :name',
+    'a_technician' => 'техник',
+    'timeline_unassigned' => 'Исполнитель снят',
+    'timeline_started' => 'Работы начаты',
+    'timeline_resolved' => 'Завершено',
+    'timeline_cancelled' => 'Отменено',
+    'timeline_parts_updated' => 'Запчасти обновлены',
+    'timeline_cost_corrected' => 'Стоимость исправлена',
+    'timeline_updated' => 'Данные изменены',
+    'note_progress' => 'Ход работ',
+    'note_part' => 'Запчасть заказана',
+    'note_added' => 'Добавлена заметка',
+    'a_team_member' => 'Сотрудник',
+    'system' => 'Система',
+    'photo_alt' => 'Фото по наряду',
+    'the_owner' => 'без имени',
+    'load_none' => 'Нет открытых нарядов',
+    'load_open' => 'Открыто: :open',
+    'load_open_urgent' => 'Открыто: :open · срочных: :urgent',
+    'impact_arrivals' => '{1}:count гостю, заезжающему сегодня, нужен номер|:count гостям, заезжающим сегодня, нужен номер|:count гостям, заезжающим сегодня, нужен номер',
+    'impact_bookings' => '{1}:count бронирование нужно перенести|:count бронирования нужно перенести|:count бронирований нужно перенести',
+    'impact_none' => 'Бронирования не затронуты',
+];

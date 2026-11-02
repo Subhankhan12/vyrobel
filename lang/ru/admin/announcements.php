@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Объявления',
+    'subtitle' => 'Уведомление в бэк-офисе и портале собственника каждой организации — или только выбранных. Обычный текст; по эл. почте ничего не отправляется.',
+    'empty_state' => 'Ещё ни одно объявление не было опубликовано.',
+    'col_announcement' => 'Объявление',
+    'col_to' => 'Кому',
+    'col_from_until' => 'С → до',
+    'col_state' => 'Состояние',
+    'audience_all' => 'Все организации',
+    'audience_chosen_count' => 'Выбрано: :number',
+    'no_end' => 'без срока',
+    'state_withdrawn' => 'Снято с публикации',
+    'state_showing' => 'Показывается',
+    'state_scheduled' => 'Запланировано',
+    'state_ended' => 'Завершено',
+    'reason_aria' => 'Причина',
+    'withdraw_placeholder' => 'Почему снимаете?',
+    'withdraw_button' => 'Снять с публикации',
+    'publish_heading' => 'Опубликовать объявление',
+    'title_label' => 'Заголовок',
+    'message_label' => 'Сообщение (обычный текст)',
+    'kind_label' => 'Тип',
+    'show_from_label' => 'Показывать с (UTC)',
+    'until_label' => 'До (UTC, необязательно)',
+    'to_label' => 'Кому',
+    'option_every_organisation' => 'Все организации',
+    'option_chosen_organisations' => 'Выбранные организации',
+    'chosen_organisations_label' => 'Выбранные организации (если выбран вариант «Выбранные организации»)',
+    'no_organisation_chosen' => 'Организации пока не выбраны',
+    'reason_label' => 'Причина',
+    'publish_reason_placeholder' => 'Почему публикуется это объявление?',
+    'publish_button' => 'Опубликовать',
+];

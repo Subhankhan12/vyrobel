@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Отчёты',
+    'arrivals_in' => 'Заезды за :period',
+    'arrivals_count' => '{1}:count заезд|:count заезда|:count заездов',
+    'pp_delta' => ':delta п. п.',
+    'occupancy' => 'Загрузка',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Валовая выручка',
+    'basis_note' => 'Загрузка, ADR и RevPAR считаются по ночам проживания и сравниваются с тем же периодом прошлого года, если есть данные за прошлый год. Выручка ниже считается по фолио (по дате заезда).',
+    'revenue' => 'Выручка',
+    'room' => 'Номера',
+    'ancillary' => 'Доп. выручка <span class="muted">· доп. услуги, товары, сборы</span>',
+    'tax_collected' => 'Собранные налоги · к перечислению',
+    'costs_heading' => 'Расходы <span class="muted" style="font-size:9px">· только реальные данные</span>',
+    'maintenance' => 'Техобслуживание <span class="muted">· завершённые наряды</span>',
+    'not_tracked' => 'пока не учитывается',
+    'net' => 'Чистая сумма (выручка − учтённые расходы)',
+    'revenue_by_channel' => 'Выручка по каналам',
+    'channel' => 'Канал',
+    'bookings' => 'Бронирования',
+    'share' => 'Доля',
+    'no_channel_revenue' => 'За этот период нет выручки по каналам.',
+    'top_units' => 'Лучшие номера',
+    'unit' => 'Номер',
+    'nights' => 'Ночи',
+    'room_revenue' => 'Выручка от номеров',
+    'no_unit_revenue' => 'За этот период нет выручки по номерам.',
+    'revenue_by_month' => 'Выручка по месяцам',
+    'month' => 'Месяц',
+    'footer' => 'Рассчитано по реальным данным фолио и техобслуживания для :scope · :period. Загрузка, ADR и RevPAR — по ночам проживания; выручка — по фолио (по дате заезда). Цифры сходятся с экраном «Отчёты». Vyrobel.',
+];

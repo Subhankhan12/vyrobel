@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ru translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Обзор',
+    'subtitle_all' => 'Все организации, включая внутренние организации Vyrobel.',
+    'subtitle_customers' => 'Только клиенты — внутренние организации Vyrobel исключены.',
+    'showing_all' => 'Показаны <strong>все</strong> организации — из них внутренних: :internal.',
+    'internal_excluded' => '{1}:count внутренняя организация исключена из всех показателей ниже.|:count внутренние организации исключены из всех показателей ниже.|:count внутренних организаций исключено из всех показателей ниже.',
+    'customers_only' => 'Только клиенты',
+    'include_internal' => 'Включить внутренние',
+    'no_customers_heading' => 'Клиентов пока нет',
+    'no_customers_body' => 'Все организации на платформе принадлежат самой Vyrobel (внутренних: :internal). Первая настоящая регистрация появится здесь.',
+    'kpi_organisations' => 'Организации',
+    'kpi_customers' => 'Клиенты',
+    'kpi_account_status' => 'активных: :active · заблокированных: :suspended',
+    'kpi_subscriptions' => 'Подписки',
+    'kpi_subscriptions_sub' => 'активные · в пробном периоде: :trial',
+    'kpi_revenue' => 'Выручка',
+    'no_live_billing' => 'Реальной оплаты пока нет',
+    'no_live_billing_sub' => 'Ни одна подписка не оплачивается через Stripe. Цена по прайсу для пробного периода — это не выручка.',
+    'billed_live' => '{1}:count подписка с реальной оплатой|:count подписки с реальной оплатой|:count подписок с реальной оплатой',
+    'billed_live_sub' => 'Рассчитано по тому, что списал Stripe, а не по прайс-листу — см. страницу <a class="ad-cell-link" href=":url">«Выручка»</a>.',
+    'kpi_properties' => 'Объекты',
+    'kpi_reservations' => '{1}:count бронирование|:count бронирования|:count бронирований',
+    'new_organisations_heading' => 'Новые организации · последние 6 месяцев',
+    'new_customers_heading' => 'Новые клиенты · последние 6 месяцев',
+    'no_signups' => 'За последние 6 месяцев регистраций нет.',
+    'account_status_heading' => 'Статус аккаунта',
+    'status_active' => 'Активен',
+    'status_suspended' => 'Заблокирован',
+    'status_cancelled' => 'Отменён',
+    'status_trialing' => 'Пробный период (аккаунт)',
+    'free_trial_hint' => 'Пробный период — это состояние подписки, а не статус аккаунта. Сейчас в пробном периоде: :trial.',
+    'plans_in_use' => 'Используемые планы <span class="ad-stat-sub" style="font-weight: 400;">· активные или пробные</span>',
+    'no_plans' => 'Используемых планов пока нет.',
+];
