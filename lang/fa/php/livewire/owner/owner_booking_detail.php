@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'از ساعت :time',
+    'by_time' => 'تا ساعت :time',
+    'repeat_guest' => '{1}مهمان بازگشتی · :count اقامت|[0,*]مهمان بازگشتی · :count اقامت',
+    'new_guest' => 'مهمان جدید',
+    'guests_count' => '{1}:count مهمان|[0,*]:count مهمان',
+    'nights_count' => '{1}:count شب|[0,*]:count شب',
+    'channel_direct' => 'مستقیم از Vyrobel',
+    'channel_walk_in' => 'مراجعه حضوری',
+    'channel_ota' => 'کانال OTA',
+    'event_booking_received' => 'رزرو دریافت شد',
+    'event_cancelled' => 'لغو شد',
+    'event_payment_received' => 'پرداخت دریافت شد',
+    'when_paid_in_full' => 'کاملاً پرداخت‌شده',
+    'event_part_payment_received' => 'بخشی از پرداخت دریافت شد',
+    'when_balance_due' => 'مانده قابل پرداخت',
+    'event_payment' => 'پرداخت',
+    'when_not_yet_received' => 'هنوز دریافت نشده',
+    'event_checked_in' => 'پذیرش انجام شد',
+    'event_check_in' => 'پذیرش',
+    'event_checked_out' => 'تخلیه انجام شد',
+    'event_payout_released' => 'واریز انجام شد',
+    'event_payout' => 'واریز',
+    'when_next_payout' => 'همراه واریز بعدی شما',
+    'payout_not_attributed' => 'هنوز ثبت نشده',
+    'payout_not_attributed_note' => 'این رزرو هنوز در دفتر حساب شما ثبت نشده است.',
+    'payout_scheduled' => 'زمان‌بندی‌شده',
+    'payout_scheduled_note' => 'در صورتحساب بعدی شما لحاظ می‌شود و همراه همان واریز آزاد می‌شود.',
+    'payout_pending' => 'واریز در انتظار',
+    'payout_pending_note' => 'در یک صورتحساب نهایی‌شده قرار دارد — همراه واریز همان صورتحساب آزاد می‌شود.',
+    'payout_paid' => 'واریزشده',
+    'payout_paid_note' => 'همراه یک واریز تکمیل‌شده آزاد شد.',
+];

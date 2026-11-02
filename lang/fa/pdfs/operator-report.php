@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'گزارش‌ها',
+    'arrivals_in' => 'ورودها در :period',
+    'arrivals_count' => '{1}:count ورود|[0,*]:count ورود',
+    'pp_delta' => ':delta واحد درصد',
+    'occupancy' => 'ضریب اشغال',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'درآمد ناخالص',
+    'basis_note' => 'ضریب اشغال · ADR · RevPAR بر مبنای شب‌های اقامت محاسبه می‌شوند و در صورت وجود داده‌های سال قبل، با همین دوره در سال قبل مقایسه شده‌اند. درآمد زیر بر مبنای حساب اقامت (ورود) است.',
+    'revenue' => 'درآمد',
+    'room' => 'اتاق',
+    'ancillary' => 'خدمات اضافی <span class="muted">· افزودنی‌ها، محصولات، هزینه‌ها</span>',
+    'tax_collected' => 'مالیات دریافت‌شده · عبوری',
+    'costs_heading' => 'هزینه‌ها <span class="muted" style="font-size:9px">· فقط داده‌های واقعی</span>',
+    'maintenance' => 'تعمیر و نگهداری <span class="muted">· دستورهای کار رفع‌شده</span>',
+    'not_tracked' => 'هنوز ردیابی نمی‌شود',
+    'net' => 'خالص (درآمد − هزینه‌های ردیابی‌شده)',
+    'revenue_by_channel' => 'درآمد به تفکیک کانال',
+    'channel' => 'کانال',
+    'bookings' => 'رزروها',
+    'share' => 'سهم',
+    'no_channel_revenue' => 'در این دوره درآمدی از کانال‌ها وجود ندارد.',
+    'top_units' => 'واحدهای برتر',
+    'unit' => 'واحد',
+    'nights' => 'شب‌ها',
+    'room_revenue' => 'درآمد اتاق',
+    'no_unit_revenue' => 'در این دوره درآمدی برای واحدها وجود ندارد.',
+    'revenue_by_month' => 'درآمد به تفکیک ماه',
+    'month' => 'ماه',
+    'footer' => 'بر اساس داده‌های واقعی حساب اقامت و تعمیر و نگهداری برای :scope، دوره :period محاسبه شده است. ضریب اشغال/ADR/RevPAR بر مبنای شب‌های اقامت و درآمد بر مبنای حساب اقامت (ورود) است. ارقام با صفحه «گزارش‌ها» تطبیق دارند. Vyrobel.',
+];

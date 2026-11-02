@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'هتل',
+    'type_aparthotel' => 'هتل آپارتمان',
+    'type_serviced_apartment' => 'آپارتمان‌های سرویس‌دار',
+    'type_apartment_building' => 'آپارتمان‌ها',
+    'type_apartment' => 'آپارتمان',
+    'type_villa' => 'ویلا',
+    'type_hostel' => 'هاستل',
+    'type_guest_house' => 'مهمان‌پذیر',
+    'type_resort' => 'ریزورت',
+    'type_mixed' => 'هتل و آپارتمان',
+    'type_portfolio' => 'اقامتگاه‌ها',
+    'title_town' => 'رزرو مستقیم :name، :town',
+    'title' => 'رزرو مستقیم :name',
+    'title_room' => 'رزرو مستقیم :room در :property',
+    'org_description_towns' => '{1}:count اقامتگاه در :towns را ببینید. موجودی را بررسی کنید و مستقیم از :org رزرو کنید.|[0,*]:count اقامتگاه در :towns را ببینید. موجودی را بررسی کنید و مستقیم از :org رزرو کنید.',
+    'org_description' => '{1}:count اقامتگاه را ببینید. موجودی را بررسی کنید و مستقیم از :org رزرو کنید.|[0,*]:count اقامتگاه را ببینید. موجودی را بررسی کنید و مستقیم از :org رزرو کنید.',
+    'org_description_empty' => 'موجودی را بررسی کنید و مستقیم از :org رزرو کنید.',
+    'place_town_country' => ':town، :country',
+    'description_place_rooms' => '{1}رزرو مستقیم :name. :type در :place. :count نوع اتاق. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.|[0,*]رزرو مستقیم :name. :type در :place. :count نوع اتاق. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.',
+    'description_place' => 'رزرو مستقیم :name. :type در :place. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.',
+    'description_rooms' => '{1}رزرو مستقیم :name. :type. :count نوع اتاق. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.|[0,*]رزرو مستقیم :name. :type. :count نوع اتاق. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.',
+    'description' => 'رزرو مستقیم :name. :type. موجودی لحظه‌ای را ببینید و بدون واسطه سایت‌های رزرو، اقامت خود را رزرو کنید.',
+    'detail_sleeps' => 'ظرفیت تا :guests نفر',
+    'detail_bedrooms' => '{1}:count اتاق خواب|[0,*]:count اتاق خواب',
+    'room_description_town_details' => 'برای :room در :property واقع در :town (:details)، موجودی لحظه‌ای را ببینید و مستقیم رزرو کنید.',
+    'room_description_town' => 'برای :room در :property واقع در :town، موجودی لحظه‌ای را ببینید و مستقیم رزرو کنید.',
+    'room_description_details' => 'برای :room در :property (:details)، موجودی لحظه‌ای را ببینید و مستقیم رزرو کنید.',
+    'room_description' => 'برای :room در :property، موجودی لحظه‌ای را ببینید و مستقیم رزرو کنید.',
+    'list_and' => ':items و :last',
+];

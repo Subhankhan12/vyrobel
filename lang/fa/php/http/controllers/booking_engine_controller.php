@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'شما',
+    'total_part' => ':amount :name',
+    'total_includes' => 'شامل :items',
+    'nightly_excludes' => 'بدون :tax',
+    'sleeps' => 'ظرفیت :count نفر',
+    'studio' => 'استودیو',
+    'bedrooms' => '{1}:count اتاق خواب|[0,*]:count اتاق خواب',
+    'checkout_title' => 'تکمیل رزرو — :property',
+    'room_just_taken' => 'این اتاق همین الان توسط شخص دیگری رزرو شد — لطفاً اتاق یا تاریخ‌های دیگری انتخاب کنید.',
+    'payment_received' => 'پرداخت دریافت شد',
+    'payment_received_note' => 'کاملاً پرداخت‌شده.',
+    'payment_processing' => 'پرداخت در حال پردازش است',
+    'payment_processing_note' => 'در حال تأیید پرداخت کارتی شما هستیم. چند لحظه بعد این صفحه را بازخوانی کنید تا نتیجه را ببینید.',
+    'pay_on_arrival' => 'پرداخت هنگام ورود',
+    'pay_on_arrival_note' => 'هنگام پذیرش، در اقامتگاه تسویه کنید.',
+    'confirmed_title' => 'رزرو تأیید شد — :property',
+    'kind_room' => 'اتاق',
+    'kind_apartment' => 'آپارتمان',
+    'kind_villa' => 'ویلا',
+    'kind_dorm' => 'تخت خوابگاهی',
+    'type_hotel' => 'هتل',
+    'type_aparthotel' => 'هتل آپارتمان',
+    'type_serviced_apartment' => 'آپارتمان سرویس‌دار',
+    'type_apartment_building' => 'ساختمان آپارتمانی',
+    'type_apartment' => 'آپارتمان',
+    'type_villa' => 'ویلا',
+    'type_hostel' => 'هاستل',
+    'type_guest_house' => 'مهمان‌پذیر',
+    'type_resort' => 'ریزورت',
+    'type_mixed' => 'ترکیبی',
+    'type_portfolio' => 'مجموعه اقامتگاه‌ها',
+];

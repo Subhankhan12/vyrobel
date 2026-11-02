@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'رزروها',
+    'arrivals_this_month' => 'ورودهای این ماه',
+    'arrivals_this_month_sub' => 'ورود در این ماه تقویمی · رزروهای لغوشده و موارد عدم حضور احتساب نشده‌اند',
+    'booked_value' => 'ارزش رزروها · ورودهای این ماه',
+    'booked_value_sub' => 'مبلغ ثبت‌شده برای ورودهای این ماه',
+    'booked_value_sub_multi' => 'مبلغ ثبت‌شده برای ورودهای این ماه · به تفکیک ارز، هرگز بین ارزها جمع زده نمی‌شود',
+    'balances_due' => 'مانده‌های قابل پرداخت · ورودهای این ماه',
+    'folios_owing' => '{0}چیزی قابل پرداخت نیست|{1}:count حساب اقامت دارای مانده|[2,*]:count حساب اقامت دارای مانده',
+    'search_placeholder' => 'جستجو بر اساس مهمان یا کد رزرو…',
+    'search_label' => 'جستجوی رزروها',
+    'group_booking' => 'رزرو گروهی',
+    'new_reservation' => 'رزرو جدید',
+    'empty_heading' => 'هنوز رزروی وجود ندارد',
+    'empty_body' => 'هر رزرو — مستقیم، مراجعه حضوری یا واردشده — پس از ثبت در اینجا نمایش داده می‌شود.',
+    'no_match_query' => 'رزروی با «:query» مطابقت ندارد',
+    'no_match_view' => 'در این نما رزروی وجود ندارد',
+    'no_match_hint' => '{1}نام مهمان یا کد رزرو را امتحان کنید. در مجموع :count رزرو.|[0,*]نام مهمان یا کد رزرو را امتحان کنید. در مجموع :count رزرو.',
+    'no_match_hint_filter' => '{1}نام مهمان یا کد رزرو را امتحان کنید یا فیلتر را پاک کنید. در مجموع :count رزرو.|[0,*]نام مهمان یا کد رزرو را امتحان کنید یا فیلتر را پاک کنید. در مجموع :count رزرو.',
+    'clear_search_filters' => 'پاک کردن جستجو و فیلترها',
+    'col_guest' => 'مهمان',
+    'col_stay' => 'اقامت',
+    'col_unit' => 'واحد',
+    'col_source' => 'منبع',
+    'col_stage' => 'مرحله',
+    'col_balance_due' => 'مانده قابل پرداخت',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count شب|[0,*]:count شب',
+    'guests' => '{1}:count مهمان|[0,*]:count مهمان',
+    'unassigned' => 'بدون واحد',
+    'refunded' => 'مستردشده',
+    'pager_label' => 'رزرو',
+];

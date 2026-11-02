@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'اطلاعیه‌ها',
+    'subtitle' => 'اطلاعیه‌ای در پنل کارکنان و پرتال مالکان همه سازمان‌ها — یا سازمان‌های انتخاب‌شده. فقط متن ساده؛ هیچ ایمیلی ارسال نمی‌شود.',
+    'empty_state' => 'تاکنون هیچ اطلاعیه‌ای منتشر نشده است.',
+    'col_announcement' => 'اطلاعیه',
+    'col_to' => 'گیرندگان',
+    'col_from_until' => 'از ← تا',
+    'col_state' => 'وضعیت',
+    'audience_all' => 'همه سازمان‌ها',
+    'audience_chosen_count' => 'انتخاب‌شده: :number',
+    'no_end' => 'بدون پایان',
+    'state_withdrawn' => 'پس‌گرفته‌شده',
+    'state_showing' => 'در حال نمایش',
+    'state_scheduled' => 'زمان‌بندی‌شده',
+    'state_ended' => 'پایان‌یافته',
+    'reason_aria' => 'دلیل',
+    'withdraw_placeholder' => 'چرا پس گرفته می‌شود؟',
+    'withdraw_button' => 'پس گرفتن',
+    'publish_heading' => 'انتشار اطلاعیه',
+    'title_label' => 'عنوان',
+    'message_label' => 'پیام (متن ساده)',
+    'kind_label' => 'نوع',
+    'show_from_label' => 'نمایش از (UTC)',
+    'until_label' => 'تا (UTC، اختیاری)',
+    'to_label' => 'گیرندگان',
+    'option_every_organisation' => 'همه سازمان‌ها',
+    'option_chosen_organisations' => 'سازمان‌های انتخاب‌شده',
+    'chosen_organisations_label' => 'فهرست سازمان‌ها (برای گزینه «سازمان‌های انتخاب‌شده»)',
+    'no_organisation_chosen' => 'هنوز هیچ سازمانی انتخاب نشده است',
+    'reason_label' => 'دلیل',
+    'publish_reason_placeholder' => 'چرا این اطلاعیه منتشر می‌شود؟',
+    'publish_button' => 'انتشار',
+];

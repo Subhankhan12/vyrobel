@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'کارکنان/مالکان',
+    'realm_guest' => 'مهمان',
+    'realm_admin' => 'مدیر پلتفرم',
+    'event_login' => 'ورود',
+    'event_failed' => 'ناموفق',
+    'event_lockout' => 'قفل حساب',
+    'subject_user' => 'کاربر',
+    'subject_guest' => 'مهمان',
+    'subject_platform_admin' => 'مدیر پلتفرم',
+    'subject_unknown' => 'نامشخص',
+    'actor_user' => 'کاربر',
+    'actor_agent' => 'عامل هوشمند',
+    'actor_system' => 'سیستم',
+    'page_title' => 'امنیت و فعالیت',
+    'page_subtitle' => 'فعالیت ورود و رویدادهای حساب در کل پلتفرم — به مدت :days روز نگهداری و سپس پاک می‌شود.',
+    'kpi_failures' => 'ناموفق / قفل حساب · 24 ساعت',
+    'kpi_failures_help' => 'ورودهای ناموفق پیاپی می‌تواند نشانه تلاش برای نفوذ باشد.',
+    'privacy' => 'حریم خصوصی',
+    'privacy_body' => 'فعالیت ورود (شامل IP) فقط به‌عنوان یک <strong style="color: var(--ad-ink);">نشانه امنیتی</strong> ثبت می‌شود — برای شناسایی ورودهای مشکوک و پشتیبانی — و هرگز برای ردیابی عمومی. این اطلاعات :days روز نگهداری و سپس به‌طور خودکار پاک می‌شود؛ دسترسی به آن فقط از همین کنسول ممکن است.',
+    'recent_sign_ins' => 'فعالیت‌های اخیر ورود',
+    'col_event' => 'رویداد',
+    'col_realm' => 'حوزه',
+    'col_account' => 'حساب کاربری',
+    'col_ip' => 'نشانی IP',
+    'col_when' => 'زمان',
+    'no_sign_ins' => 'هنوز هیچ فعالیت ورودی ثبت نشده است.',
+    'recent_account_events' => 'رویدادهای اخیر حساب‌ها <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· در میان همه مشتریان</span>',
+    'col_customer' => 'مشتری',
+    'col_actor' => 'انجام‌دهنده',
+    'no_account_events' => 'هنوز هیچ رویداد حسابی ثبت نشده است.',
+];

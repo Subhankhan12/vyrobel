@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'نمای کلی',
+    'subtitle_all' => 'همه سازمان‌ها، از جمله سازمان‌های داخلی خود Vyrobel.',
+    'subtitle_customers' => 'فقط مشتریان — سازمان‌های داخلی خود Vyrobel کنار گذاشته شده‌اند.',
+    'showing_all' => 'نمایش <strong>همه</strong> سازمان‌ها — :internal مورد از آن‌ها داخلی است.',
+    'internal_excluded' => '{1}:count سازمان داخلی از همه ارقام زیر کنار گذاشته شده است.|[0,*]:count سازمان داخلی از همه ارقام زیر کنار گذاشته شده است.',
+    'customers_only' => 'فقط مشتریان',
+    'include_internal' => 'شامل سازمان‌های داخلی',
+    'no_customers_heading' => 'هنوز مشتری‌ای وجود ندارد',
+    'no_customers_body' => 'همه سازمان‌های پلتفرم از سازمان‌های خود Vyrobel هستند (:internal سازمان داخلی). اولین ثبت‌نام واقعی اینجا نمایش داده می‌شود.',
+    'kpi_organisations' => 'سازمان‌ها',
+    'kpi_customers' => 'مشتریان',
+    'kpi_account_status' => 'فعال: :active · مسدودشده: :suspended',
+    'kpi_subscriptions' => 'اشتراک‌ها',
+    'kpi_subscriptions_sub' => 'فعال · :trial در دوره آزمایشی رایگان',
+    'kpi_revenue' => 'درآمد',
+    'no_live_billing' => 'هنوز پرداخت واقعی وجود ندارد',
+    'no_live_billing_sub' => 'هیچ اشتراکی از طریق Stripe پرداخت نمی‌شود. قیمت فهرست اشتراک در دوره آزمایشی درآمد به حساب نمی‌آید.',
+    'billed_live' => '{1}:count اشتراک با پرداخت واقعی|[0,*]:count اشتراک با پرداخت واقعی',
+    'billed_live_sub' => 'محاسبه‌شده از مبالغی که Stripe واقعاً برداشت کرده است، هرگز از فهرست قیمت‌ها — صفحه <a class="ad-cell-link" href=":url">درآمد</a> را ببینید.',
+    'kpi_properties' => 'اقامتگاه‌ها',
+    'kpi_reservations' => '{1}:count رزرو|[0,*]:count رزرو',
+    'new_organisations_heading' => 'سازمان‌های جدید · 6 ماه گذشته',
+    'new_customers_heading' => 'مشتریان جدید · 6 ماه گذشته',
+    'no_signups' => 'در 6 ماه گذشته هیچ ثبت‌نامی انجام نشده است.',
+    'account_status_heading' => 'وضعیت حساب',
+    'status_active' => 'فعال',
+    'status_suspended' => 'مسدودشده',
+    'status_cancelled' => 'لغوشده',
+    'status_trialing' => 'در دوره آزمایشی (حساب)',
+    'free_trial_hint' => 'دوره آزمایشی رایگان یک وضعیت اشتراک است، نه وضعیت حساب — اکنون :trial اشتراک در دوره آزمایشی رایگان است.',
+    'plans_in_use' => 'طرح‌های در حال استفاده <span class="ad-stat-sub" style="font-weight: 400;">· فعال یا آزمایشی</span>',
+    'no_plans' => 'هنوز هیچ طرحی در حال استفاده نیست.',
+];

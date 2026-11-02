@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'مبالغ',
+    'csv_amounts_note' => 'واحد اصلی ارز، با نقطه اعشار، بدون جداکننده هزارگان',
+    'col_date' => 'تاریخ',
+    'col_work_order' => 'دستور کار',
+    'col_unit' => 'واحد',
+    'col_category' => 'دسته',
+    'col_labor' => 'دستمزد',
+    'col_parts' => 'قطعات',
+    'col_total' => 'مبلغ کل',
+    'col_currency' => 'ارز',
+    'total_row' => 'مبلغ کل',
+    'sheet_summary' => 'خلاصه',
+    'col_measure' => 'معیار',
+    'col_value' => 'مقدار',
+    'total_spend' => 'کل هزینه',
+    'measure_labour' => 'دستمزد',
+    'measure_parts' => 'قطعات',
+    'orders_closed' => 'دستورهای کار بسته‌شده',
+    'owner_billed' => 'به حساب مالک',
+    'operator_borne' => 'بر عهده مدیریت اقامتگاه',
+    'parts_on_order' => 'قطعات سفارش‌شده',
+    'average_per_order' => 'میانگین هر دستور کار',
+    'by_category' => 'به تفکیک دسته',
+    'col_orders' => 'دستورهای کار',
+    'by_month' => 'به تفکیک ماه',
+    'top_units' => 'واحدهای برتر',
+    'sheet_line_items' => 'اقلام',
+    'col_labour' => 'دستمزد',
+    'no_email' => 'حساب شما نشانی ایمیل ندارد.',
+    'report_emailed' => 'گزارش هزینه‌ها به :email ایمیل شد.',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'درآمد',
+    'subtitle' => 'از مبالغی که Stripe واقعاً برداشت کرده است — هرگز از فهرست قیمت‌ها. فقط مشتریان، مگر اینکه سازمان‌های خود Vyrobel را هم شامل کنید.',
+    'including_internal' => 'شامل سازمان‌های داخلی خود Vyrobel.',
+    'customers_only_note' => 'فقط مشتریان.',
+    'customers_only_link' => 'فقط مشتریان',
+    'include_internal_link' => 'شامل سازمان‌های داخلی',
+    'no_live_billing_pill' => 'هنوز پرداخت واقعی وجود ندارد',
+    'no_customer_charged' => 'هنوز از هیچ مشتری‌ای مبلغی برداشت نشده است.',
+    'not_live_explainer' => 'حساب Stripe هنوز در حالت واقعی نیست، بنابراین هیچ فاکتور پرداخت‌شده‌ای برای شمارش وجود ندارد. این یک ماه بد نیست — هنوز ماهی وجود ندارد. درآمد در اینجا فقط از <strong>فاکتورهای پرداخت‌شده Stripe</strong> محاسبه می‌شود (خود مبلغ برداشت‌شده، که هنگام اطلاع‌رسانی Stripe ثبت می‌شود)، هرگز از قیمت فهرست یک طرح.',
+    'live_billed_subscriptions' => 'اشتراک‌های با پرداخت واقعی',
+    'trialing_unbilled' => 'اشتراک‌های در دوره آزمایشی، بدون پرداخت',
+    'failed_payments_30d' => 'پرداخت‌های ناموفق، 30 روز گذشته',
+    'when_first_paid' => 'وقتی اولین فاکتور پرداخت شود، این صفحه نشان می‌دهد: MRR و ARR به تفکیک ارز · MRR جدید، افزایش، کاهش و ریزش · نرخ تبدیل دوره آزمایشی به پرداخت · پرداخت‌های ناموفق.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'اشتراک‌های ارزش‌گذاری‌شده',
+    'no_live_subscription_charged' => 'از هیچ اشتراک فعال با پرداخت واقعی هنوز مبلغی برداشت نشده است.',
+    'mrr_hint' => 'هر اشتراک واقعی فعال یا دارای پرداخت معوق، بر اساس آخرین فاکتور پرداخت‌شده‌اش، با دوره پرداخت همان فاکتور به مبنای ماهانه تبدیل می‌شود.',
+    'this_month_vs_last' => 'این ماه در برابر ماه گذشته',
+    'movement_new' => 'جدید · :currency',
+    'movement_expansion' => 'افزایش · :currency',
+    'movement_contraction' => 'کاهش · :currency',
+    'movement_churned' => 'ریزش · :currency',
+    'nothing_charged' => 'در ماه گذشته و این ماه مبلغی برداشت نشده است.',
+    'movements_hint' => 'به تفکیک سازمان، از مبالغ برداشت‌شده در هر ماه. ریزش = ماه گذشته برداشت شده، این ماه هیچ، و اشتراک لغو شده است.',
+    'trial_to_paid' => 'تبدیل آزمایشی به پرداخت',
+    'trial_to_paid_value' => ':converted مورد از :ended دوره آزمایشی پایان‌یافته به پرداخت رسیده است',
+    'past_due_now' => 'معوق در حال حاضر',
+    'paid_invoices_counted' => 'فاکتورهای پرداخت‌شده شمرده‌شده',
+    'never_moves_money' => 'این کنسول هرگز مبلغی برداشت یا مسترد نمی‌کند و پولی جابه‌جا نمی‌کند. هر رقم به تفکیک ارز است و هرگز بین ارزها جمع زده نمی‌شود.',
+];

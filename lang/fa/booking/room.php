@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'همه اتاق‌ها',
+    'kind_sleeps_up_to' => ':kind · ظرفیت تا :capacity نفر',
+    'reviews_count' => '{1}:count نظر|[0,*]:count نظر',
+    'no_reviews_yet' => 'هنوز نظری ثبت نشده است',
+    'save_to_wishlist' => 'افزودن به علاقه‌مندی‌ها',
+    'sleeps' => 'ظرفیت',
+    'adults' => 'بزرگسال',
+    'children' => 'کودک',
+    'bedrooms' => 'اتاق خواب',
+    'standard_occupancy' => 'ظرفیت استاندارد',
+    'amenities' => 'امکانات',
+    'not_yet_listed' => 'هنوز ثبت نشده',
+    'amenities_not_published' => 'امکانات این اتاق هنوز منتشر نشده است.',
+    'guest_reviews' => 'نظرات مهمانان',
+    'stars_aria' => 'امتیاز :rating از 5 ستاره',
+    'response_label' => 'پاسخ:',
+    'no_reviews_be_first' => 'هنوز نظری ثبت نشده است — نخستین نفری باشید که اقامت می‌کند و تجربه‌اش را به اشتراک می‌گذارد.',
+    'coming_soon' => 'به‌زودی',
+    'description_soon' => 'توضیحات کامل و نقشه موقعیت در راه است — مشخصات، موجودی، قیمت و نظرات بالا واقعی هستند.',
+    'per_night' => '/ شب',
+    'per_night_with_note' => '/ شب · :note',
+    'total_nights' => '{1}مبلغ کل :amount · :count شب|[0,*]مبلغ کل :amount · :count شب',
+    'left_for_your_dates' => 'برای تاریخ‌های شما: :count مورد باقی‌مانده',
+    'book_this_room' => 'رزرو این اتاق',
+    'nothing_reserved' => 'تا زمانی که رزرو را در مرحله پرداخت تأیید نکنید، چیزی رزرو نمی‌شود.',
+    'your_dates' => 'تاریخ‌های شما',
+    'not_available' => 'برای این تاریخ‌ها موجود نیست — تاریخ‌های دیگری را امتحان کنید.',
+    'check_in' => 'ورود',
+    'check_out' => 'خروج',
+    'check_dates' => 'بررسی تاریخ‌ها',
+    'check_availability' => 'بررسی موجودی و قیمت',
+    'see_price' => 'مشاهده قیمت',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'تیکت «:title» برای واحد :unit باز شد.',
+    'not_assignable_staff' => 'این کاربر در این سازمان جزو کارکنان قابل واگذاری نیست.',
+    'cannot_reassign_closed' => 'این تیکت را نمی‌توان دوباره واگذار کرد — از قبل بسته شده است.',
+    'assignment_updated' => 'واگذاری تیکت به‌روزرسانی شد.',
+    'work_order_closed' => 'این دستور کار بسته شده است — جزئیات آن قابل تغییر نیست.',
+    'work_order_updated' => 'دستور کار به‌روزرسانی شد.',
+    'col_title' => 'عنوان',
+    'col_unit' => 'واحد',
+    'col_category' => 'دسته',
+    'col_priority' => 'اولویت',
+    'col_status' => 'وضعیت',
+    'col_assignee' => 'مسئول',
+    'col_reported' => 'زمان گزارش',
+    'col_cost' => 'هزینه',
+    'bulk_assigned_skipped' => '{1}:count دستور کار واگذار شد · نادیده گرفته‌شده: :skipped (از قبل بسته‌شده)|[0,*]:count دستور کار واگذار شد · نادیده گرفته‌شده: :skipped (از قبل بسته‌شده)',
+    'bulk_assigned' => '{1}:count دستور کار واگذار شد.|[0,*]:count دستور کار واگذار شد.',
+    'bulk_resolved_skipped' => '{1}:count دستور کار رفع شد · نادیده گرفته‌شده: :skipped (از قبل بسته‌شده)|[0,*]:count دستور کار رفع شد · نادیده گرفته‌شده: :skipped (از قبل بسته‌شده)',
+    'bulk_resolved' => '{1}:count دستور کار رفع شد.|[0,*]:count دستور کار رفع شد.',
+    'cannot_start' => 'این تیکت قابل شروع نیست — دیگر باز نیست.',
+    'work_started' => 'کار روی این تیکت شروع شد.',
+    'cannot_resolve_closed' => 'ثبت رفع مشکل برای این دستور کار ممکن نیست — از قبل بسته شده است.',
+    'ticket_resolved' => 'تیکت رفع شد.',
+    'cannot_cancel_closed' => 'این تیکت قابل لغو نیست — از قبل بسته شده است.',
+    'ticket_cancelled' => 'تیکت لغو شد.',
+    'parts_closed' => 'این تیکت بسته است — قطعات قابل به‌روزرسانی نیست.',
+    'awaiting_parts' => 'به‌عنوان «در انتظار قطعه» ثبت شد.',
+    'parts_arrived' => 'قطعات به‌عنوان رسیده ثبت شد.',
+    'update_posted_waiting_part' => 'به‌روزرسانی ثبت شد — وضعیت به «در انتظار قطعه» تغییر کرد.',
+    'update_posted' => 'به‌روزرسانی ثبت شد.',
+    'photo_added' => 'عکس اضافه شد.',
+    'photo_removed' => 'عکس حذف شد.',
+    'workspace_paused' => 'فضای کاری شما متوقف است (فقط خواندنی) — تغییرات تعمیر و نگهداری تا ازسرگیری غیرفعال است.',
+];

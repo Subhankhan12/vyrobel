@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'اقامتگاه‌های ما',
+    'properties_count' => ':count اقامتگاه',
+    'stays_count' => '{1}:count اقامتگاه|[0,*]:count اقامتگاه',
+    'stays_sleeps' => ':stays · ظرفیت :max نفر',
+    'stays_sleeps_range' => ':stays · ظرفیت :min تا :max نفر',
+    'perk_free_cancel_days' => '{1}استرداد کامل وجه تا :count روز پیش از ورود.|[0,*]استرداد کامل وجه تا :count روز پیش از ورود.',
+    'perk_free_cancel_window' => 'استرداد کامل وجه در مهلت لغو رزرو.',
+    'perk_no_fees' => 'بدون کارمزد رزرو',
+    'perk_no_fees_sub' => 'قیمتی که می‌بینید، همان قیمتی است که می‌پردازید.',
+    'perk_best_rate' => 'بهترین نرخ، مستقیم',
+    'perk_best_rate_sub' => 'برای دریافت بهترین نرخ ما، مستقیم رزرو کنید — بدون واسطه.',
+    'perk_free_cancel' => 'لغو رایگان',
+    'perk_host_support' => 'پشتیبانی مستقیم میزبان',
+    'perk_host_support_sub' => 'درباره رزرو خود به یک انسان واقعی پیام بدهید.',
+    'kind_room' => 'اتاق',
+    'kind_apartment' => 'آپارتمان',
+    'kind_villa' => 'ویلا',
+    'kind_dorm' => 'تخت خوابگاهی',
+    'type_hotel' => 'هتل',
+    'type_aparthotel' => 'هتل آپارتمان',
+    'type_serviced_apartment' => 'آپارتمان سرویس‌دار',
+    'type_apartment_building' => 'ساختمان آپارتمانی',
+    'type_apartment' => 'آپارتمان',
+    'type_villa' => 'ویلا',
+    'type_hostel' => 'هاستل',
+    'type_guest_house' => 'مهمان‌پذیر',
+    'type_resort' => 'ریزورت',
+    'type_mixed' => 'ترکیبی',
+    'type_portfolio' => 'مجموعه اقامتگاه‌ها',
+];

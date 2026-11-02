@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'یادداشت',
+    'kind_progress' => 'پیشرفت',
+    'kind_part' => 'سفارش قطعه',
+    'elapsed_minutes' => ':minutes دقیقه',
+    'elapsed_hours' => ':hours ساعت و :minutes دقیقه',
+    'elapsed_days' => ':days روز و :hours ساعت',
+    'hours_short' => ':hours ساعت',
+    'timeline_opened' => 'گزارش شد',
+    'timeline_assigned_to' => 'واگذار شد به :name',
+    'a_technician' => 'یک تکنسین',
+    'timeline_unassigned' => 'واگذاری برداشته شد',
+    'timeline_started' => 'کار شروع شد',
+    'timeline_resolved' => 'رفع شد',
+    'timeline_cancelled' => 'لغو شد',
+    'timeline_parts_updated' => 'قطعات به‌روزرسانی شد',
+    'timeline_cost_corrected' => 'هزینه اصلاح شد',
+    'timeline_updated' => 'جزئیات ویرایش شد',
+    'note_progress' => 'به‌روزرسانی پیشرفت',
+    'note_part' => 'سفارش قطعه',
+    'note_added' => 'یادداشت اضافه شد',
+    'a_team_member' => 'یکی از اعضای تیم',
+    'system' => 'سیستم',
+    'photo_alt' => 'عکس تعمیر و نگهداری',
+    'the_owner' => 'مالک',
+    'load_none' => 'بدون دستور کار باز',
+    'load_open' => 'باز: :open',
+    'load_open_urgent' => 'باز: :open · فوری: :urgent',
+    'impact_arrivals' => '{1}:count ورود امشب به اتاق نیاز دارد|[0,*]:count ورود امشب به اتاق نیاز دارد',
+    'impact_bookings' => '{1}:count رزرو باید جابه‌جا شود|[0,*]:count رزرو باید جابه‌جا شود',
+    'impact_none' => 'هیچ رزروی تحت تأثیر نیست',
+];

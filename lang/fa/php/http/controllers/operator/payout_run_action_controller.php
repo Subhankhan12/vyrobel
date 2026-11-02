@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'موتور واریز خودکار غیرفعال است (PAYOUT_ENGINE_ENABLED). پیش از اجرای واریز، آن را فعال کنید.',
+    'nothing_to_run' => 'چیزی برای اجرا وجود ندارد — هیچ مالکی در اینجا صورتحساب قابل واریز یا واریز نگه‌داشته‌شده ندارد:paused_note.',
+    'run_complete' => 'اجرای واریز کامل شد (حالت :mode) — ایجادشده: :created · واریزشده: :paid · نگه‌داشته‌شده: :held:paused_note.',
+    'create_failed' => 'ایجاد واریز ممکن نشد — :reason',
+    'already_has_payout' => 'این صورتحساب از قبل واریز دارد — چیزی ایجاد نشد.',
+    'one_payout_created' => '1 واریز ایجاد شد.',
+    'pay_failed' => 'واریز ممکن نشد — :reason',
+    'one_payout_paid' => '1 واریز به‌عنوان واریزشده ثبت شد.',
+    'payout_failed_reason' => 'واریز ناموفق بود — :reason',
+    'payout_failed_no_reason' => 'واریز ناموفق بود — مسیر واریز دلیلی اعلام نکرد.',
+    'create_all_failed' => 'ایجاد واریزها ممکن نشد — :reason',
+    'no_payout_created_paused' => 'واریزی ایجاد نشد:paused_note — آن‌ها را در صفحه مالک از سر بگیرید.',
+    'nothing_ready' => 'چیزی برای واریز آماده نیست — هیچ صورتحساب نهایی‌شده‌ای خالص قابل واریز مثبت ندارد:paused_note.',
+    'no_new_payouts' => 'واریز جدیدی ایجاد نشد — هر صورتحساب آماده از قبل یک واریز دارد:paused_note.',
+    'payouts_created' => '{1}:count واریز ایجاد شد:paused_note.|[0,*]:count واریز ایجاد شد:paused_note.',
+    'some_not_created' => ':message ایجاد برخی از واریزها ممکن نشد — :reason',
+    'nothing_paid_paused' => 'چیزی واریز نشد:paused_note — آن‌ها را در صفحه مالک از سر بگیرید.',
+    'no_pending_payouts' => 'واریز در انتظاری برای انجام وجود ندارد.',
+    'paid_only' => '{1}:count واریز به‌عنوان واریزشده ثبت شد:paused_note.|[0,*]:count واریز به‌عنوان واریزشده ثبت شد:paused_note.',
+    'failed_only' => '[0,*]:count واریز در مسیر واریز ناموفق بود:paused_note.',
+    'paid_and_failed' => '{1}:count واریز به‌عنوان واریزشده ثبت شد · :failed واریز در مسیر واریز ناموفق بود:paused_note.|[0,*]:count واریز به‌عنوان واریزشده ثبت شد · :failed واریز در مسیر واریز ناموفق بود:paused_note.',
+    'some_not_attempted' => ':message برای برخی از واریزها تلاشی انجام نشد — :reason',
+    'nothing_payable_negative' => 'مبلغی قابل واریز نیست — خالص این صورتحساب منفی است، بنابراین مانده به صورتحساب بعدی مالک منتقل می‌شود تا با آن تهاتر شود.',
+    'nothing_payable_zero' => 'مبلغی قابل واریز نیست — خالص این صورتحساب صفر است، بنابراین بدهی‌ای وجود ندارد.',
+    'workspace_paused_until' => 'فضای کاری متوقف است — واریزها تا :date فقط خواندنی است.',
+    'workspace_paused_for_now' => 'فضای کاری متوقف است — واریزها فعلاً فقط خواندنی است.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}:count مالک با واریز متوقف نادیده گرفته شد|[0,*]:count مالک با واریز متوقف نادیده گرفته شد',
+];

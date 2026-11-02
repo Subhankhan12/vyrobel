@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'دسترسی اضطراری پشتیبانی',
+    'subtitle' => 'نگاهی فقط خواندنی و محدود به زمان به درون یک سازمان — با ذکر دلیل، 2FA و اطلاع‌رسانی به همان سازمان.',
+    'back_label' => 'پشتیبانی',
+    'open_heading' => 'نشست شما باز است',
+    'open_summary' => '{1}سازمان :organization · پایان در ساعت :time به وقت UTC · :count صفحه مشاهده شده.|[0,*]سازمان :organization · پایان در ساعت :time به وقت UTC · :count صفحه مشاهده شده.',
+    'go_to_back_office' => 'رفتن به پنل کارکنان آن‌ها',
+    'end_now' => 'پایان فوری نشست',
+    'start_heading' => 'باز کردن نشست',
+    'rule_read_only' => '<strong>فقط خواندنی.</strong> هر تغییری رد می‌شود — فرم‌ها، دکمه‌ها و هر چیزی که ذخیره می‌کند.',
+    'rule_minutes' => '{1}مدت <strong>:count دقیقه</strong>؛ سپس خودبه‌خود پایان می‌یابد.|[0,*]مدت <strong>:count دقیقه</strong>؛ سپس خودبه‌خود پایان می‌یابد.',
+    'rule_senior_user' => 'شما همان چیزی را می‌بینید که ارشدترین کاربر تأییدشده پنل کارکنان آن‌ها می‌بیند — از جمله مهمانان. فقط به چیزی نگاه کنید که دلیل شما نیاز دارد.',
+    'rule_recorded' => 'هر صفحه‌ای که باز می‌کنید ثبت می‌شود و پس از آن به تیم آن‌ها اطلاع داده می‌شود: نام شما، زمان و همین دلیل.',
+    'organisation_label' => 'سازمان',
+    'choose_option' => 'انتخاب کنید…',
+    'code_label' => 'کد 2FA شما (همین حالا)',
+    'reason_label' => 'دلیل — آن‌ها این را می‌خوانند',
+    'reason_placeholder' => 'مثلاً تیکت شماره 123 — مالک گزارش داده که یک رزرو گم شده است',
+    'open_button' => 'باز کردن نشست فقط خواندنی',
+    'recent_heading' => 'نشست‌های اخیر',
+    'empty_state' => 'تاکنون هیچ نشست دسترسی اضطراری باز نشده است.',
+    'col_admin' => 'مدیر',
+    'col_organisation' => 'سازمان',
+    'col_reason' => 'دلیل',
+    'col_started' => 'شروع',
+    'col_ended' => 'پایان',
+    'col_pages' => 'صفحه‌ها',
+    'col_told' => 'اطلاع‌رسانی',
+    'ended_open' => 'باز',
+    'ended_due' => 'موعد گذشته — هنوز بسته نشده',
+    'told_yes' => 'بله',
+    'told_not_yet' => 'هنوز نه',
+];

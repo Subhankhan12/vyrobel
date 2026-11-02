@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count رزرو|[0,*]:count رزرو',
+    'room_moves' => '{1}:count جابه‌جایی واحد|[0,*]:count جابه‌جایی واحد',
+    'cleaning_tasks' => '{1}:count کار نظافت|[0,*]:count کار نظافت',
+    'work_orders' => '{1}:count دستور کار|[0,*]:count دستور کار',
+    'status_changes' => '{1}:count تغییر وضعیت|[0,*]:count تغییر وضعیت',
+    'blocks' => '{1}:count بازه مسدود|[0,*]:count بازه مسدود',
+    'owner_agreements' => '{1}:count قرارداد مالک|[0,*]:count قرارداد مالک',
+    'owner_statement_lines' => '{1}:count ردیف صورتحساب مالک|[0,*]:count ردیف صورتحساب مالک',
+    'owner_expenses' => '{1}:count هزینه مالک|[0,*]:count هزینه مالک',
+    'reviews' => '{1}:count نظر|[0,*]:count نظر',
+    'owner_requests' => '{1}:count درخواست مالک|[0,*]:count درخواست مالک',
+    'notes' => '{1}:count یادداشت|[0,*]:count یادداشت',
+    'documents' => '{1}:count سند|[0,*]:count سند',
+    'files' => '{1}:count فایل|[0,*]:count فایل',
+    'units' => '{1}:count واحد|[0,*]:count واحد',
+    'rate_proposals' => '{1}:count پیشنهاد نرخ|[0,*]:count پیشنهاد نرخ',
+    'overbooking_records' => '{1}:count سابقه رزرو بیش از ظرفیت|[0,*]:count سابقه رزرو بیش از ظرفیت',
+    'guest_waitlist_entries' => '{1}:count مورد در فهرست انتظار مهمان|[0,*]:count مورد در فهرست انتظار مهمان',
+    'guest_wishlist_saves' => '{1}:count مورد ذخیره‌شده در علاقه‌مندی‌های مهمان|[0,*]:count مورد ذخیره‌شده در علاقه‌مندی‌های مهمان',
+    'derived_room_types' => '{1}:count نوع اتاق وابسته به آن|[0,*]:count نوع اتاق وابسته به آن',
+    'derived_rate_plans' => '{1}:count طرح نرخ دیگر که قیمتش از آن محاسبه می‌شود|[0,*]:count طرح نرخ دیگر که قیمتش از آن محاسبه می‌شود',
+    'corporate_default_rates' => '{1}نرخ پیش‌فرض :count حساب شرکتی|[0,*]نرخ پیش‌فرض :count حساب شرکتی',
+    'channel_connections' => '{1}:count اتصال کانال|[0,*]:count اتصال کانال',
+    'an_owner' => 'یک مالک',
+    'pending_owner_invitation' => 'یک دعوت در انتظار برای مالک',
+    'list_and' => ':items و :last',
+    'kind_rooms' => 'اتاق‌ها',
+    'kind_apartments' => 'آپارتمان‌ها',
+    'kind_villas' => 'ویلاها',
+    'kind_dorm_beds' => 'تخت‌های خوابگاهی',
+];

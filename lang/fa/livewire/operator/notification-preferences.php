@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'تنظیمات اعلان‌ها',
+    'subtitle' => 'روش‌های اطلاع‌رسانی Vyrobel به شما',
+    'breadcrumb_label' => 'مسیر صفحه',
+    'crumb_settings' => 'تنظیمات',
+    'crumb_notifications' => 'اعلان‌ها',
+    'channel_email' => 'ایمیل',
+    'channel_push' => 'اعلان فوری',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'ایمیلی ثبت نشده است',
+    'email_verified_title' => 'ایمیل ورود شما تأیید شده است',
+    'email_verified' => 'تأییدشده',
+    'push_not_set_up_title' => 'اعلان فوری هنوز راه‌اندازی نشده است',
+    'not_set_up_tag' => 'راه‌اندازی نشده',
+    'push_not_available' => 'اعلان فوری مرورگر و دستگاه هنوز در دسترس نیست',
+    'channel_off' => 'غیرفعال',
+    'sms_not_set_up_title' => 'ارسال SMS هنوز راه‌اندازی نشده است',
+    'sms_no_provider' => 'هنوز هیچ سرویس‌دهنده SMS متصل نشده است',
+    'notify_me_when' => 'اطلاع‌رسانی در این موارد',
+    'always_on' => 'همیشه فعال',
+    'email_always_on_sr' => 'ایمیل برای «:event» همیشه فعال است',
+    'email_me_when_aria' => 'ارسال ایمیل به من هنگام: :event',
+    'push_not_set_up_sr' => 'اعلان فوری راه‌اندازی نشده',
+    'sms_not_set_up_sr' => 'ارسال SMS راه‌اندازی نشده',
+    'quiet_hours' => 'ساعات سکوت',
+    'quiet_hours_help' => 'ایمیل‌های عادی در این ساعت‌ها نگه داشته می‌شوند — هشدارهای فوری امنیتی همیشه ارسال می‌شوند؛ اعلان‌های داخل برنامه تغییری نمی‌کنند.',
+    'quiet_from' => 'از',
+    'quiet_to' => 'تا',
+    'digest_heading' => 'ایمیل خلاصه روزانه',
+    'digest_help' => 'خلاصه‌ای صبحگاهی از روز. <span class="vy-np-soon">هنوز ارسال نمی‌شود</span> — این تنظیم برای زمانی ذخیره می‌شود که ارسال خلاصه روزانه راه‌اندازی شود.',
+    'digest_off' => 'غیرفعال',
+    'digest_morning' => 'صبح · 08:00',
+];

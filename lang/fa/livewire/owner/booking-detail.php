@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'نمای کلی',
+    'breadcrumb_bookings' => 'رزروها',
+    'guest_fallback' => 'مهمان',
+    'reservation' => 'رزرو',
+    'check_in' => 'تاریخ ورود',
+    'nights_count' => '{1}:count شب|[0,*]:count شب',
+    'check_out' => 'تاریخ خروج',
+    'unit' => 'واحد',
+    'guests' => 'مهمانان',
+    'nights' => 'شب‌ها',
+    'nightly_rate' => 'نرخ هر شب',
+    'your_earnings' => 'درآمد شما',
+    'gross_to_net' => 'ناخالص ← خالص',
+    'gross_booking_value' => 'ارزش ناخالص رزرو',
+    'net_to_you' => 'خالص دریافتی شما',
+    'refunds_we_covered' => 'استردادهای بر عهده ما',
+    'refunds_we_covered_note' => 'به مهمان مسترد شده و به حساب ما منظور شده است، نه شما. درآمد شما در بالا بدون تغییر است.',
+    'not_yet_attributed' => 'هنوز ثبت نشده است.',
+    'not_yet_attributed_note' => 'درآمد شما پس از ثبت این رزرو در دفتر حساب شما اینجا نمایش داده می‌شود — معمولاً پس از تخلیه.',
+    'guest_heading' => 'مهمان',
+    'guest_contact_note' => 'اطلاعات تماس مهمان نزد مدیریت اقامتگاه است — شما رزرو و درآمد خود را می‌بینید.',
+    'message_your_team' => 'پیام به مدیریت اقامتگاه',
+    'timeline' => 'خط زمانی',
+    'for_night_stay' => 'برای این اقامت :nights شب',
+    'booking_details' => 'جزئیات رزرو',
+    'confirmation' => 'کد رزرو',
+    'source' => 'منبع',
+    'channel' => 'کانال',
+    'booked_on' => 'تاریخ رزرو',
+    'download_confirmation' => 'بارگیری تأییدیه رزرو',
+    'download_unavailable' => 'در دسترس مالکان مشترک و حسابداران',
+    'view_unit' => 'مشاهده :unit',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'اقامت',
+    'step_guest' => 'مهمان',
+    'step_extras' => 'خدمات اضافی',
+    'step_confirm' => 'تأیید',
+    'source_direct' => 'مستقیم',
+    'source_walk_in' => 'مراجعه حضوری',
+    'source_corporate' => 'شرکتی',
+    'source_agent' => 'آژانس مسافرتی',
+    'the_guest' => 'مهمان',
+    'a_night' => 'هر شب :amount',
+    'a_night_range' => 'هر شب :low تا :high',
+    'dates_label' => '{1}از :from تا :to · :count شب|[0,*]از :from تا :to · :count شب',
+    'restrict_min_stay' => '{1}برای ورود در :date، اقامت باید حداقل :count شب باشد|[0,*]برای ورود در :date، اقامت باید حداقل :count شب باشد',
+    'restrict_max_stay' => '{1}برای ورود در :date، مدت اقامت حداکثر :count شب است|[0,*]برای ورود در :date، مدت اقامت حداکثر :count شب است',
+    'restrict_no_arrivals' => 'بدون ورود در :date',
+    'restrict_no_departures' => 'بدون خروج در :date',
+    'restrict_stop_sell' => 'تاریخ :date برای رزرو جدید بسته است',
+    'restrict_other' => 'محدودیت :restriction در :date',
+    'arrival_mail_off' => 'ایمیل هنوز از Vyrobel ارسال نمی‌شود — مسیر رسیدن و کد در را خودتان به مهمان اعلام کنید.',
+    'arrival_pre_arrival_off' => 'ایمیل پیش از ورود برای اقامتگاه‌های شما خاموش است — مسیر رسیدن و کد در را خودتان به مهمان اعلام کنید.',
+    'arrival_too_soon' => 'این اقامت برای ایمیل پیش از ورود خیلی زود شروع می‌شود (این ایمیل :count روز قبل از ورود ارسال می‌شود) — مسیر رسیدن و کد در را خودتان به مهمان اعلام کنید.',
+    'arrival_by_email' => 'مسیر رسیدن و کد در (برای واحدهایی که کد در دارند) :count روز پیش از ورود با ایمیل برای مهمان ارسال می‌شود — در صورتی که مهمان نشانی ایمیل داشته باشد. کد در هرگز در اینجا نمایش داده نمی‌شود.',
+    'cancel_not_free' => 'برای این اقامت رایگان نیست — در :date به پایان رسید',
+    'cancel_free_until_check_in' => 'رایگان تا زمان ورود',
+    'cancel_free_until_date' => 'رایگان تا :date',
+    'cancel_free_until_days' => '{1}رایگان تا :count روز پیش از ورود|[0,*]رایگان تا :count روز پیش از ورود',
+    'min_stay_none' => 'بدون حداقل',
+    'min_stay_nights' => '{1}:count شب|[0,*]:count شب',
+    'guest_no_name' => 'مهمان',
+    'no_stays_yet' => 'هنوز اقامتی ثبت نشده است',
+];

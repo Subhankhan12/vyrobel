@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'مدیریت‌شده با Vyrobel',
+    'eyebrow' => 'صورتحساب مالک',
+    'unit_count' => '{1}:count واحد|[0,*]:count واحد',
+    'issued' => 'تاریخ صدور: :date',
+    'prepared_for' => 'تهیه‌شده برای',
+    'net_payable_to_owner' => 'خالص قابل واریز به مالک',
+    'iban' => 'شماره IBAN: :iban',
+    'occupancy' => 'اشغال',
+    'nights_sold' => 'شب‌های فروخته‌شده',
+    'avg_nightly_rate' => 'میانگین نرخ هر شب',
+    'breakdown' => 'ریز مبالغ',
+    'item' => 'مورد',
+    'detail' => 'جزئیات',
+    'amount' => 'مبلغ',
+    'provisional' => '(موقت)',
+    'performance_by_unit' => 'عملکرد به تفکیک واحد',
+    'unit' => 'واحد',
+    'nights' => 'شب‌ها',
+    'revenue' => 'درآمد',
+    'total_gross_room_revenue' => 'کل درآمد ناخالص اتاق',
+    'callout_heading' => 'واریز.',
+    'settles_to_iban' => 'مبلغ خالص :amount با انتقال بانکی به IBAN :iban واریز می‌شود.',
+    'settles' => 'مبلغ خالص :amount با انتقال بانکی واریز می‌شود.',
+    'fees_with_commission' => 'کمیسیون مدیریت به میزان :pct% از درآمد ناخالص اتاق محاسبه می‌شود؛ کارمزدهای پرداخت و پلتفرم به قیمت تمام‌شده منتقل می‌شوند. همه مبالغ به :currency است و شامل مالیات‌های مربوطه است که از طرف شما دریافت شده است.',
+    'fees' => 'کارمزدهای پرداخت و پلتفرم به قیمت تمام‌شده منتقل می‌شوند. همه مبالغ به :currency است و شامل مالیات‌های مربوطه است که از طرف شما دریافت شده است.',
+    'fx_note' => 'تبدیل‌شده از :source با نرخ :rate (منبع: :src).',
+    'provisional_note' => 'برخی ردیف‌ها موقت‌اند و منتظر تطبیق با کانال‌ها هستند.',
+    'statement_ref' => 'صورتحساب :ref',
+    'sequence_no' => 'شماره :number',
+    'generated' => 'تولیدشده در <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'سؤالی دارید؟ :email',
+];

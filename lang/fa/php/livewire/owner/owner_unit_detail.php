@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start تا :end',
+    'guest_fallback' => 'مهمان',
+    'nights' => '{1}:count شب|[0,*]:count شب',
+    'block_reason_none' => 'مسدود',
+    'block_reason_maintenance' => 'تعمیرات',
+    'block_reason_owner' => 'مالک',
+    'block_reason_manual' => 'دستی',
+    'block_reason_overbooking_protection' => 'محافظت در برابر رزرو بیش از ظرفیت',
+    'cleaning_departure' => 'نظافت پس از تخلیه',
+    'cleaning_stayover' => 'نظافت حین اقامت',
+    'cleaning_deep' => 'نظافت عمیق',
+    'cleaning_arrival_prep' => 'آماده‌سازی برای ورود',
+    'cleaning_status_pending' => 'زمان‌بندی‌شده',
+    'cleaning_status_in_progress' => 'در حال انجام',
+    'cleaning_status_clean' => 'تمیزشده',
+    'cleaning_status_inspected' => 'بازرسی‌شده',
+    'kind_room' => 'اتاق',
+    'kind_apartment' => 'آپارتمان',
+    'kind_villa' => 'ویلا',
+    'kind_dorm_bed' => 'تخت خوابگاهی',
+    'condition_out_of_order' => 'معیوب',
+    'condition_out_of_service' => 'در تعمیر',
+    'status_enquiry' => 'استعلام',
+    'status_tentative' => 'موقت',
+    'status_confirmed' => 'تأییدشده',
+    'status_checked_in' => 'پذیرش‌شده',
+    'status_checked_out' => 'تخلیه‌شده',
+    'status_cancelled' => 'لغوشده',
+    'status_no_show' => 'عدم حضور',
+    'terms_portfolio' => 'شرایط کل مجموعه',
+    'terms_unit' => 'شرایط این واحد',
+];

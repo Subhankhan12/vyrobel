@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'اقامتگاه‌ها',
+    'book_direct' => 'رزرو مستقیم',
+    'nav_stays' => 'اقامتگاه‌ها',
+    'my_account' => 'حساب من',
+    'sign_in' => 'ورود',
+    'rating_across' => '{1}امتیاز :average بر اساس :count نظر|[0,*]امتیاز :average بر اساس :count نظر',
+    'heading' => 'رزرو مستقیم از<br>:org.',
+    'subheading' => 'اقامتگاه‌هایی با رسیدگی دقیق، رزرو مستقیم با میزبان — بدون کارمزد، با بهترین نرخ ما و یک انسان واقعی در آن سوی خط.',
+    'where' => 'مقصد',
+    'check_in' => 'ورود',
+    'check_out' => 'خروج',
+    'adults' => 'بزرگسال',
+    'children' => 'کودک',
+    'where_to_stay' => 'کجا اقامت کنید',
+    'towns_lede' => '[0,*]:count شهر، هر کدام با حال‌وهوای خودش.|{1}پایگاه اصلی ما.',
+    'from_price' => 'از :price',
+    'featured_stays' => 'اقامتگاه‌های منتخب',
+    'featured_lede' => 'محبوب‌ترین‌های مهمانان در سراسر این مجموعه.',
+    'per_night' => '/ شب',
+    'see_dates_for_pricing' => 'قیمت پس از انتخاب تاریخ',
+    'browse_by_what_matters' => 'جستجو بر اساس آنچه برایتان مهم است',
+    'why_book_direct' => 'چرا رزرو مستقیم',
+    'recent_guests' => 'مهمانان اخیر',
+    'rating_short' => '{1}امتیاز :average · :count نظر|[0,*]امتیاز :average · :count نظر',
+    'stars_aria' => 'امتیاز :rating از 5 ستاره',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'هنوز نظری ثبت نشده است — نخستین نفری باشید که اقامت می‌کند و تجربه‌اش را به اشتراک می‌گذارد.',
+    'cta_heading' => 'جای خود را پیدا کنید',
+    'cta_sub' => 'تاریخ‌های واقعی، قیمت‌های لحظه‌ای، تأیید فوری.',
+    'browse_all_stays' => 'مشاهده همه اقامتگاه‌ها',
+];

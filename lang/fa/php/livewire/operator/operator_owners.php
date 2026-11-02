@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — fa translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'آماده واریز',
+    'chip_hold' => 'معلق',
+    'chip_review' => 'نیازمند بررسی',
+    'chip_paused' => 'واریزها متوقف است',
+    'chip_invited' => 'دعوت‌شده',
+    'sorted_name_asc' => 'بر اساس مالک، الف تا ی',
+    'sorted_name_desc' => 'بر اساس مالک، ی تا الف',
+    'sorted_units_desc' => 'بیشترین تعداد واحد ابتدا',
+    'sorted_units_asc' => 'کمترین تعداد واحد ابتدا',
+    'sorted_net_desc' => 'بیشترین خالص قابل واریز ابتدا',
+    'sorted_net_asc' => 'کمترین خالص قابل واریز ابتدا',
+    'sorted_status_asc' => 'موارد نیازمند اقدام ابتدا',
+    'sorted_status_desc' => 'موارد نیازمند اقدام در انتها',
+    'kpi_invited' => 'دعوت‌شده: :number',
+    'kpi_units' => '{1}:count واحد|[0,*]:count واحد',
+    'kpi_owners_ready' => '{1}:count مالک آماده واریز|[0,*]:count مالک آماده واریز',
+    'kpi_paused_not_counted' => 'متوقف و شمارش‌نشده: :number',
+    'kpi_hold_none' => 'موردی در انتظار نیست',
+    'kpi_hold_waiting' => 'در انتظار: :amounts',
+    'kpi_review_sub' => ':number مورد با ردیف‌هایی که کانال رزرو هنوز تأیید نکرده است',
+    'schedule' => 'روز کاری :day از هر ماه',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'مدیر اقامتگاه',
+    'role_accountant' => 'حسابدار',
+    'role_owner' => 'مالک',
+    'another_owner' => 'مالک دیگر',
+];
