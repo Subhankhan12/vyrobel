@@ -1701,6 +1701,11 @@ French, Arabic and Dutch before the MariaDB run, which covers it. **Gates (V), e
 D-I18N-PAYOUT-MODE, D-I18N-SHARED-NAME, D-I18N-ONE-UNITS, the "Spotless villa" tag. In the pipeline meanwhile: Brazilian Portuguese
 translated, reviewed and consistent; Russian translated, under review. Not pushed.
 
+**I18N-01 — European Portuguese LIVE on `rel_CD` (2026-11-03).** 34 batches translated → reviewed → consistency (Faro is the first
+market, so Portuguese hotel software and Booking.com pt-PT were the reference). **Gates (V):** MySQL and MariaDB 4,588/4,588 (36,216)
+· lang:check 0 · lang:todo 0 · money gate FULL · render 929 pages 0 problems. Deploy: saved-language count (none) → stage → preflight →
+swap 00:43:39 UTC → public checks 12/0/0 → live sign-in page (`lang="pt-PT"`). Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
