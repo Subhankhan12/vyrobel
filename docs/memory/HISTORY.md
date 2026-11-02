@@ -1717,6 +1717,11 @@ European Portuguese: «você», Brazilian hotel and booking-site words). **Gates
 0 · lang:todo 0 · money gate FULL · render 929 pages 0 problems. Deploy: saved-language count (none) → stage → preflight → swap
 02:08:45 UTC → public checks 12/0/0 → live sign-in page (`lang="pt-BR"`; `pt` still `pt-PT`). Not pushed.
 
+**I18N-01 — Russian LIVE on `rel_CG` (2026-11-02).** 34 batches translated → reviewed → consistency (three Slavic plural forms in every
+count string). **Gates (V):** MySQL and MariaDB 4,588/4,588 (36,216) · lang:check 0 · lang:todo 0 · money gate FULL · render 929 pages
+0 problems. Deploy: saved-language count (none) → stage → preflight → swap 02:56:33 UTC → public checks 12/0/0 → live sign-in page
+(`lang="ru"`). Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
