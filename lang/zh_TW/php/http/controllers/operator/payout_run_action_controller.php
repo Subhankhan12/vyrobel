@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => '撥款引擎已停用（PAYOUT_ENGINE_ENABLED）。請先啟用，再執行撥款。',
+    'nothing_to_run' => '沒有可執行的項目——此處沒有業主有可撥款的結算單或已暫扣的撥款:paused_note。',
+    'run_complete' => '撥款批次已完成（「:mode」模式）——已建立 :created 筆 · 已撥款 :paid 筆 · 已暫扣 :held 筆:paused_note。',
+    'create_failed' => '無法建立撥款——:reason',
+    'already_has_payout' => '該結算單已有撥款——未建立任何撥款。',
+    'one_payout_created' => '已建立 1 筆撥款。',
+    'pay_failed' => '無法撥款——:reason',
+    'one_payout_paid' => '已將 1 筆撥款標記為已撥款。',
+    'payout_failed_reason' => '撥款失敗——:reason',
+    'payout_failed_no_reason' => '撥款失敗——撥款管道未提供原因。',
+    'create_all_failed' => '無法建立撥款——:reason',
+    'no_payout_created_paused' => '未建立任何撥款:paused_note——請在業主頁面恢復撥款。',
+    'nothing_ready' => '沒有可撥款的項目——沒有任何已定稿結算單的應付淨額為正數:paused_note。',
+    'no_new_payouts' => '沒有新的撥款——每份可撥款的結算單都已有撥款:paused_note。',
+    'payouts_created' => '{1}已建立 :count 筆撥款:paused_note。|[0,*]已建立 :count 筆撥款:paused_note。',
+    'some_not_created' => ':message部分撥款無法建立——:reason',
+    'nothing_paid_paused' => '未撥出任何款項:paused_note——請在業主頁面恢復撥款。',
+    'no_pending_payouts' => '沒有待撥款的項目。',
+    'paid_only' => '{1}已將 :count 筆撥款標記為已撥款:paused_note。|[0,*]已將 :count 筆撥款標記為已撥款:paused_note。',
+    'failed_only' => '[0,*]:count 筆撥款在撥款管道上失敗:paused_note。',
+    'paid_and_failed' => '{1}已將 :count 筆撥款標記為已撥款 · :failed 筆在撥款管道上失敗:paused_note。|[0,*]已將 :count 筆撥款標記為已撥款 · :failed 筆在撥款管道上失敗:paused_note。',
+    'some_not_attempted' => ':message部分撥款無法執行——:reason',
+    'nothing_payable_negative' => '無應付款項——此結算單的淨額為負數，餘額將結轉，用於抵銷該業主下一份結算單。',
+    'nothing_payable_zero' => '無應付款項——此結算單的淨額為零，沒有任何應付金額。',
+    'workspace_paused_until' => '組織已暫停——至 :date 前，撥款功能為唯讀。',
+    'workspace_paused_for_now' => '組織已暫停——目前撥款功能為唯讀。',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}已略過 :count 位撥款已暫停的業主|[0,*]已略過 :count 位撥款已暫停的業主',
+];

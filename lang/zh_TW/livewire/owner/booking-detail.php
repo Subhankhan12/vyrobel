@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => '總覽',
+    'breadcrumb_bookings' => '訂房',
+    'guest_fallback' => '房客',
+    'reservation' => '訂房',
+    'check_in' => '入住日期',
+    'nights_count' => '{1}:count 晚|[0,*]:count 晚',
+    'check_out' => '退房日期',
+    'unit' => '房源',
+    'guests' => '房客',
+    'nights' => '晚數',
+    'nightly_rate' => '每晚房價',
+    'your_earnings' => '您的收入',
+    'gross_to_net' => '總收入 → 淨收入',
+    'gross_booking_value' => '訂房總額',
+    'net_to_you' => '您的淨收入',
+    'refunds_we_covered' => '由我們負擔的退款',
+    'refunds_we_covered_note' => '已退款給房客，並由我們負擔，而非由您負擔。上方您的收入不受影響。',
+    'not_yet_attributed' => '尚未計入分類帳。',
+    'not_yet_attributed_note' => '此訂房計入您的分類帳後，您的收入就會顯示在這裡——通常在退房後。',
+    'guest_heading' => '房客',
+    'guest_contact_note' => '房客聯絡資料由您的代管方處理——您可以查看訂房與您的收入。',
+    'message_your_team' => '傳送訊息給代管方',
+    'timeline' => '時間軸',
+    'for_night_stay' => '此次 :nights 晚的住宿',
+    'booking_details' => '訂房詳細資料',
+    'confirmation' => '訂房編號',
+    'source' => '來源',
+    'channel' => '通路',
+    'booked_on' => '訂房日期',
+    'download_confirmation' => '下載訂房確認單',
+    'download_unavailable' => '僅限共同業主與會計',
+    'view_unit' => '檢視 :unit',
+];

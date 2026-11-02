@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '訂房',
+    'arrivals_this_month' => '本月抵達',
+    'arrivals_this_month_sub' => '本日曆月內入住 · 不含取消與未抵達',
+    'booked_value' => '訂房金額 · 本月抵達',
+    'booked_value_sub' => '依本月抵達的訂房計費',
+    'booked_value_sub_multi' => '依本月抵達的訂房計費 · 依幣別分別顯示（不跨幣別加總）',
+    'balances_due' => '待付金額 · 本月抵達',
+    'folios_owing' => '{0}無待付款項|{1}:count 份帳單尚未付清|[2,*]:count 份帳單尚未付清',
+    'search_placeholder' => '搜尋房客或訂房編號…',
+    'search_label' => '搜尋訂房',
+    'group_booking' => '團體訂房',
+    'new_reservation' => '新增訂房',
+    'empty_heading' => '尚無訂房',
+    'empty_body' => '所有訂房——無論是官網、現場散客或匯入的——成立後都會顯示在這裡。',
+    'no_match_query' => '沒有符合「:query」的訂房',
+    'no_match_view' => '此檢視中沒有訂房',
+    'no_match_hint' => '{1}請嘗試輸入房客姓名或訂房編號。共 :count 筆訂房。|[0,*]請嘗試輸入房客姓名或訂房編號。共 :count 筆訂房。',
+    'no_match_hint_filter' => '{1}請嘗試輸入房客姓名或訂房編號，或清除篩選條件。共 :count 筆訂房。|[0,*]請嘗試輸入房客姓名或訂房編號，或清除篩選條件。共 :count 筆訂房。',
+    'clear_search_filters' => '清除搜尋與篩選',
+    'col_guest' => '房客',
+    'col_stay' => '住宿',
+    'col_unit' => '房間',
+    'col_source' => '來源',
+    'col_stage' => '階段',
+    'col_balance_due' => '待付金額',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count 晚|[0,*]:count 晚',
+    'guests' => '{1}:count 位房客|[0,*]:count 位房客',
+    'unassigned' => '未排房',
+    'refunded' => '已退款',
+    'pager_label' => '訂房',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => '已在房間 :unit 開立工單「:title」。',
+    'not_assignable_staff' => '該使用者不是此組織中可指派的員工。',
+    'cannot_reassign_closed' => '無法重新指派此工單——它已結案。',
+    'assignment_updated' => '工單指派已更新。',
+    'work_order_closed' => '此工單已結案——無法變更其詳細資料。',
+    'work_order_updated' => '工單已更新。',
+    'col_title' => '標題',
+    'col_unit' => '房間',
+    'col_category' => '類別',
+    'col_priority' => '優先等級',
+    'col_status' => '狀態',
+    'col_assignee' => '負責人',
+    'col_reported' => '報修時間',
+    'col_cost' => '費用',
+    'bulk_assigned_skipped' => '{1}已指派 :count 張工單 · 略過 :skipped 張（已結案）|[0,*]已指派 :count 張工單 · 略過 :skipped 張（已結案）',
+    'bulk_assigned' => '{1}已指派 :count 張工單。|[0,*]已指派 :count 張工單。',
+    'bulk_resolved_skipped' => '{1}已結案 :count 張工單 · 略過 :skipped 張（原本就已結案）|[0,*]已結案 :count 張工單 · 略過 :skipped 張（原本就已結案）',
+    'bulk_resolved' => '{1}已結案 :count 張工單。|[0,*]已結案 :count 張工單。',
+    'cannot_start' => '無法開始處理此工單——它已不是尚未開始的狀態。',
+    'work_started' => '此工單已開始處理。',
+    'cannot_resolve_closed' => '無法將此工單結案——它已結案。',
+    'ticket_resolved' => '工單已結案。',
+    'cannot_cancel_closed' => '無法取消此工單——它已結案。',
+    'ticket_cancelled' => '工單已取消。',
+    'parts_closed' => '此工單已結案——無法更新零件資訊。',
+    'awaiting_parts' => '已標記為等待零件。',
+    'parts_arrived' => '零件已標記為到貨。',
+    'update_posted_waiting_part' => '已發布進度——已標記為等待零件。',
+    'update_posted' => '已發布進度。',
+    'photo_added' => '已新增照片。',
+    'photo_removed' => '已刪除照片。',
+    'workspace_paused' => '您的組織已暫停（唯讀）——恢復之前，無法變更維修資料。',
+];

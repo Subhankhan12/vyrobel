@@ -1,0 +1,29 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/http/controllers/operator/owner_manage_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'commission_required' => '請輸入佣金，以百分比表示。',
+    'commission_range' => '佣金必須是 0 到 100 之間的數字。',
+    'commission_unchanged' => '未變更任何內容——自 :date 起，:name 的佣金本來就是 :rate。',
+    'commission_from_today' => '自今天起，:name 的佣金為 :rate——先前沒有生效中的合約。',
+    'commission_waiting_cancelled' => ':name 維持 :rate——原定 :date 生效的變更不會執行。',
+    'commission_from_date' => '自 :date 起，:name 的佣金為 :rate——適用於此後才計算收入的訂房。已計算的訂房維持原佣金比例。',
+    'payouts_paused' => '已暫停對 :name 撥款——恢復之前，不會對其撥出任何款項。',
+    'payouts_resumed' => '已恢復對 :name 撥款。',
+    'period_start_required' => '請選擇期間的第一天。',
+    'period_end_required' => '請選擇期間的最後一天。',
+    'period_end_after_start' => '期間的結束日不得早於開始日。',
+    'period_not_closed' => '該期間無法關帳：:reason請選擇從最近一次已關帳期間之後開始的期間。',
+    'period_closed' => '已關帳——結算單編號 :number 已定稿，應付金額為 :amount。尚未向房客收款的收入不會列入本次結算，將出現在之後的結算單。',
+    'note_required' => '請先寫下備註。',
+    'note_max' => '備註最多 2,000 個字元。',
+    'note_added' => '已新增備註。',
+    'remove_password_required' => '請輸入密碼以封存此業主。',
+    'password_wrong' => '密碼不正確——請輸入您登入時使用的密碼。',
+    'confirm_name_required' => '請輸入業主名稱以確認。',
+    'confirm_name_mismatch' => '您輸入的名稱不相符——未封存此業主。',
+    'owner_removed' => '已封存 :name——房間已取消業主指派，所有結算單與撥款均保留供會計使用。',
+    'workspace_paused_until' => '組織已暫停——至 :date 前，業主相關變更為唯讀。',
+    'workspace_paused_for_now' => '組織已暫停——目前業主相關變更為唯讀。',
+];

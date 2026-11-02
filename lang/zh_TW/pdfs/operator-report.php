@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => '報表',
+    'arrivals_in' => '抵達期間：:period',
+    'arrivals_count' => '{1}:count 筆抵達|[0,*]:count 筆抵達',
+    'pp_delta' => ':delta 個百分點',
+    'occupancy' => '住房率',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => '總營收',
+    'basis_note' => '住房率 · ADR · RevPAR 以住宿晚為計算基準，並在有去年資料時與去年同期比較。下方營收以帳單（抵達日）為計算基準。',
+    'revenue' => '營收',
+    'room' => '客房',
+    'ancillary' => '附加營收 <span class="muted">· 加購項目、商品、附加費</span>',
+    'tax_collected' => '代收稅金 · 代收代付',
+    'costs_heading' => '費用 <span class="muted" style="font-size:9px">· 僅限真實資料</span>',
+    'maintenance' => '維修 <span class="muted">· 已結案工單</span>',
+    'not_tracked' => '尚未追蹤',
+    'net' => '淨額（營收 − 已追蹤費用）',
+    'revenue_by_channel' => '各通路營收',
+    'channel' => '通路',
+    'bookings' => '訂房',
+    'share' => '占比',
+    'no_channel_revenue' => '此期間尚無通路營收。',
+    'top_units' => '營收最高的房間',
+    'unit' => '房間',
+    'nights' => '晚數',
+    'room_revenue' => '客房營收',
+    'no_unit_revenue' => '此期間尚無房間營收。',
+    'revenue_by_month' => '各月營收',
+    'month' => '月份',
+    'footer' => '依真實的帳單與維修資料計算（:scope · :period）。住房率／ADR／RevPAR 以住宿晚為計算基準；營收以帳單（抵達日）為計算基準。數字與「報表」頁面一致。Vyrobel。',
+];

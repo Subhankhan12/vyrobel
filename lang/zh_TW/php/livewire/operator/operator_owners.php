@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => '可撥款',
+    'chip_hold' => '暫緩',
+    'chip_review' => '待審核',
+    'chip_paused' => '已暫停撥款',
+    'chip_invited' => '已邀請',
+    'sorted_name_asc' => '依業主 A–Z 排序',
+    'sorted_name_desc' => '依業主 Z–A 排序',
+    'sorted_units_desc' => '房間數最多優先',
+    'sorted_units_asc' => '房間數最少優先',
+    'sorted_net_desc' => '應付淨額最高優先',
+    'sorted_net_asc' => '應付淨額最低優先',
+    'sorted_status_asc' => '需要您處理的優先',
+    'sorted_status_desc' => '需要您處理的排最後',
+    'kpi_invited' => ':number 位已邀請',
+    'kpi_units' => '{1}:count 間房|[0,*]:count 間房',
+    'kpi_owners_ready' => '{1}:count 位業主可撥款|[0,*]:count 位業主可撥款',
+    'kpi_paused_not_counted' => ':number 位已暫停，未計入',
+    'kpi_hold_none' => '沒有等待中的款項',
+    'kpi_hold_waiting' => ':amounts 等待中',
+    'kpi_review_sub' => ':number 位含有訂房通路尚未確認的明細',
+    'schedule' => '每月:day工作日',
+    'ordinal_st' => '第 :number 個',
+    'ordinal_nd' => '第 :number 個',
+    'ordinal_rd' => '第 :number 個',
+    'ordinal_th' => '第 :number 個',
+    'role_manager' => '館別經理',
+    'role_accountant' => '會計',
+    'role_owner' => '業主',
+    'another_owner' => '其他業主',
+];

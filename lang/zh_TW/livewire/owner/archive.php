@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '結算單封存',
+    'history_summary' => '已定稿紀錄 · :years · :statements',
+    'years' => '{1}:count 年|[0,*]:count 年',
+    'statements' => '{1}:count 份結算單|[0,*]:count 份結算單',
+    'archived_on_finalize' => '結算單一經定稿，就會封存在這裡。',
+    'net_earned_lifetime' => '淨收入 · 累計',
+    'since' => '自 :date 起',
+    'per_currency_note' => '依撥款幣別分別加總——不同幣別的餘額絕不合併計算。',
+    'lifetime_empty' => '尚無已定稿的結算單——您的第一份結算單將顯示在這裡。',
+    'search_placeholder' => '搜尋結算單——月份、年份、狀態或編號',
+    'search_label' => '搜尋結算單',
+    'no_match' => '沒有符合「:query」的結算單。',
+    'no_match_hint' => '試試月份（「9月」）、年份（「2026」）、狀態（「已撥款」）或結算單編號（「編號 1」）。',
+    'group_summary' => ':statements · 淨收入 :nets',
+    'per_payout_currency' => '（依撥款幣別）',
+    'tax_summary_title' => '下載 :year 年度稅務摘要 PDF',
+    'tax_summary' => '稅務摘要',
+    'col_statement' => '結算單',
+    'col_net_payable' => '應付淨額',
+    'col_links' => '連結',
+    'unverified_title' => '部分明細仍待通路對帳',
+    'unverified' => '含未核實明細',
+    'pdf_title' => '下載此結算單 PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => '下載此結算單所含訂房的 PDF',
+    'bookings' => '訂房',
+    'empty' => '尚無已定稿的結算單。結算單定稿後就會封存在這裡。',
+    'zip_heading' => '下載完整封存資料',
+    'zip_sub' => '{1}一個 ZIP 檔，含 :count 份結算單 PDF。上方每份結算單也可個別下載。|[0,*]一個 ZIP 檔，含 :count 份結算單 PDF。上方每份結算單也可個別下載。',
+    'download_zip' => '下載 ZIP',
+];

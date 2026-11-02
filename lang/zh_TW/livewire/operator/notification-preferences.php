@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '通知偏好設定',
+    'subtitle' => 'Vyrobel 如何通知您',
+    'breadcrumb_label' => '導覽路徑',
+    'crumb_settings' => '設定',
+    'crumb_notifications' => '通知',
+    'channel_email' => '電子郵件',
+    'channel_push' => '推播',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => '尚未登錄電子郵件',
+    'email_verified_title' => '您的登入電子郵件已驗證',
+    'email_verified' => '已驗證',
+    'push_not_set_up_title' => '尚未設定推播',
+    'not_set_up_tag' => '未設定',
+    'push_not_available' => '目前尚未支援瀏覽器與裝置推播',
+    'channel_off' => '關閉',
+    'sms_not_set_up_title' => '尚未設定 SMS',
+    'sms_no_provider' => '尚未連結任何 SMS 服務供應商',
+    'notify_me_when' => '在以下情況通知我',
+    'always_on' => '一律開啟',
+    'email_always_on_sr' => '「:event」一律寄送電子郵件',
+    'email_me_when_aria' => '在以下情況寄送電子郵件給我：:event',
+    'push_not_set_up_sr' => '尚未設定推播',
+    'sms_not_set_up_sr' => '尚未設定 SMS',
+    'quiet_hours' => '勿擾時段',
+    'quiet_hours_help' => '在這段時間內暫緩寄送一般電子郵件——緊急安全警示仍會照常送達；應用程式內的通知不受影響。',
+    'quiet_from' => '開始時間',
+    'quiet_to' => '結束時間',
+    'digest_heading' => '每日摘要電子郵件',
+    'digest_help' => '每天早上寄送當日摘要。<span class="vy-np-soon">尚未發送</span>——此偏好已儲存，待摘要功能上線後即會生效。',
+    'digest_off' => '關閉',
+    'digest_morning' => '早上 · 08:00',
+];

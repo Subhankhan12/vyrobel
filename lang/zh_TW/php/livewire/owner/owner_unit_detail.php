@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start 至 :end',
+    'guest_fallback' => '房客',
+    'nights' => '{1}:count 晚|[0,*]:count 晚',
+    'block_reason_none' => '已封房',
+    'block_reason_maintenance' => '維修',
+    'block_reason_owner' => '業主',
+    'block_reason_manual' => '手動',
+    'block_reason_overbooking_protection' => '防止超額訂房',
+    'cleaning_departure' => '離店清潔',
+    'cleaning_stayover' => '續住清潔',
+    'cleaning_deep' => '深度清潔',
+    'cleaning_arrival_prep' => '抵達前準備',
+    'cleaning_status_pending' => '已排定',
+    'cleaning_status_in_progress' => '進行中',
+    'cleaning_status_clean' => '已清潔',
+    'cleaning_status_inspected' => '已檢查',
+    'kind_room' => '客房',
+    'kind_apartment' => '公寓',
+    'kind_villa' => '別墅',
+    'kind_dorm_bed' => '床位',
+    'condition_out_of_order' => '故障',
+    'condition_out_of_service' => '維修中',
+    'status_enquiry' => '詢問',
+    'status_tentative' => '暫定',
+    'status_confirmed' => '已確認',
+    'status_checked_in' => '已入住',
+    'status_checked_out' => '已退房',
+    'status_cancelled' => '已取消',
+    'status_no_show' => '未抵達',
+    'terms_portfolio' => '適用全部房源的條款',
+    'terms_unit' => '此房源的條款',
+];

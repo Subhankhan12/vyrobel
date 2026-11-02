@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time 起',
+    'by_time' => ':time 前',
+    'repeat_guest' => '{1}回頭客 · :count 次住宿|[0,*]回頭客 · :count 次住宿',
+    'new_guest' => '新房客',
+    'guests_count' => '{1}:count 位房客|[0,*]:count 位房客',
+    'nights_count' => '{1}:count 晚|[0,*]:count 晚',
+    'channel_direct' => 'Vyrobel 官網直訂',
+    'channel_walk_in' => '現場散客',
+    'channel_ota' => 'OTA 通路',
+    'event_booking_received' => '已收到訂房',
+    'event_cancelled' => '已取消',
+    'event_payment_received' => '已收到付款',
+    'when_paid_in_full' => '已全額付清',
+    'event_part_payment_received' => '已收到部分付款',
+    'when_balance_due' => '待付金額',
+    'event_payment' => '付款',
+    'when_not_yet_received' => '尚未收到',
+    'event_checked_in' => '已入住',
+    'event_check_in' => '入住',
+    'event_checked_out' => '已退房',
+    'event_payout_released' => '撥款已發放',
+    'event_payout' => '撥款',
+    'when_next_payout' => '隨您的下次撥款',
+    'payout_not_attributed' => '尚未計入分類帳',
+    'payout_not_attributed_note' => '此訂房尚未計入您的分類帳。',
+    'payout_scheduled' => '已排定',
+    'payout_scheduled_note' => '將列入您的下一份結算單，並隨該筆撥款發放。',
+    'payout_pending' => '待撥款',
+    'payout_pending_note' => '已列入定稿結算單——將隨該筆撥款發放。',
+    'payout_paid' => '已撥款',
+    'payout_paid_note' => '已隨完成的撥款發放。',
+];

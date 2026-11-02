@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '緊急存取',
+    'subtitle' => '在單一組織內進行唯讀、限時的檢視——需要原因與 2FA，並會通知該組織。',
+    'back_label' => '技術支援',
+    'open_heading' => '您的工作階段已開啟',
+    'open_summary' => '{1}:organization · :time UTC 結束 · 已檢視 :count 個頁面。|[0,*]:organization · :time UTC 結束 · 已檢視 :count 個頁面。',
+    'go_to_back_office' => '前往其後台',
+    'end_now' => '立即結束工作階段',
+    'start_heading' => '開啟工作階段',
+    'rule_read_only' => '<strong>唯讀。</strong>任何變更都會被拒絕——表單、按鈕，以及任何會儲存的操作。',
+    'rule_minutes' => '{1}<strong>:count 分鐘</strong>後自動結束。|[0,*]<strong>:count 分鐘</strong>後自動結束。',
+    'rule_senior_user' => '您看到的是其最高層級、已驗證的後台使用者所看到的內容——包括房客。請只檢視原因所需的內容。',
+    'rule_recorded' => '您開啟的每個頁面都會被記錄，事後也會告知其團隊：您的姓名、時間及此原因。',
+    'organisation_label' => '組織',
+    'choose_option' => '請選擇…',
+    'code_label' => '您的 2FA 驗證碼（目前）',
+    'reason_label' => '原因——對方會看到',
+    'reason_placeholder' => '例如：服務單 #123——業主反映少了一筆訂房',
+    'open_button' => '開啟唯讀工作階段',
+    'recent_heading' => '最近的工作階段',
+    'empty_state' => '從未開啟過緊急存取工作階段。',
+    'col_admin' => '管理員',
+    'col_organisation' => '組織',
+    'col_reason' => '原因',
+    'col_started' => '開始',
+    'col_ended' => '結束',
+    'col_pages' => '頁面',
+    'col_told' => '已告知',
+    'ended_open' => '進行中',
+    'ended_due' => '已到期——尚未清理',
+    'told_yes' => '是',
+    'told_not_yet' => '尚未',
+];

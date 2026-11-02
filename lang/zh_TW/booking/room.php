@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => '所有房間',
+    'kind_sleeps_up_to' => ':kind · 最多可住 :capacity 人',
+    'reviews_count' => '{1}:count 則評價|[0,*]:count 則評價',
+    'no_reviews_yet' => '尚無評價',
+    'save_to_wishlist' => '加入收藏',
+    'sleeps' => '可住人數',
+    'adults' => '成人',
+    'children' => '兒童',
+    'bedrooms' => '臥室',
+    'standard_occupancy' => '標準入住人數',
+    'amenities' => '設施',
+    'not_yet_listed' => '尚未列出',
+    'amenities_not_published' => '此房間的設施尚未發布。',
+    'guest_reviews' => '房客評價',
+    'stars_aria' => ':rating 顆星（滿分 5 顆星）',
+    'response_label' => '回覆：',
+    'no_reviews_be_first' => '尚無評價——成為第一位入住並分享體驗的房客吧。',
+    'coming_soon' => '即將推出',
+    'description_soon' => '完整介紹與位置地圖即將推出——上方的規格、空房、價格與評價皆為真實資料。',
+    'per_night' => '/晚',
+    'per_night_with_note' => '/晚 · :note',
+    'total_nights' => '{1}總計 :amount · :count 晚|[0,*]總計 :amount · :count 晚',
+    'left_for_your_dates' => '您選的日期剩 :count 間',
+    'book_this_room' => '預訂此房間',
+    'nothing_reserved' => '在結帳時確認之前，不會為您保留任何房間。',
+    'your_dates' => '您的日期',
+    'not_available' => '這些日期無法預訂——請嘗試其他日期。',
+    'check_in' => '入住日期',
+    'check_out' => '退房日期',
+    'check_dates' => '查看日期',
+    'check_availability' => '查詢空房與價格',
+    'see_price' => '查看價格',
+];

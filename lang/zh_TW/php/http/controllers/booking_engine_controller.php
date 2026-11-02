@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => '您',
+    'total_part' => ':amount :name',
+    'total_includes' => '含 :items',
+    'nightly_excludes' => '不含 :tax',
+    'sleeps' => '可住 :count 人',
+    'studio' => '套房',
+    'bedrooms' => '{1}:count 間臥室|[0,*]:count 間臥室',
+    'checkout_title' => '結帳付款——:property',
+    'room_just_taken' => '該房間剛被其他人訂走——請選擇其他房間或日期。',
+    'payment_received' => '已收到付款',
+    'payment_received_note' => '已全額付清。',
+    'payment_processing' => '付款處理中',
+    'payment_processing_note' => '我們正在確認您的信用卡付款。請稍候重新整理此頁面，查看付款結果。',
+    'pay_on_arrival' => '抵達時付款',
+    'pay_on_arrival_note' => '請於辦理入住時，在住宿現場結清。',
+    'confirmed_title' => '訂房已確認——:property',
+    'kind_room' => '客房',
+    'kind_apartment' => '公寓',
+    'kind_villa' => '別墅',
+    'kind_dorm' => '床位',
+    'type_hotel' => '飯店',
+    'type_aparthotel' => '公寓式飯店',
+    'type_serviced_apartment' => '服務式公寓',
+    'type_apartment_building' => '公寓大樓',
+    'type_apartment' => '公寓',
+    'type_villa' => '別墅',
+    'type_hostel' => '青年旅館',
+    'type_guest_house' => '民宿',
+    'type_resort' => '度假村',
+    'type_mixed' => '混合型',
+    'type_portfolio' => '住宿組合',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => '此組織有正式模式款項紀錄（:records）。法律可能要求將這些紀錄保存多年，因此刪除作業暫緩，待法律意見確定保存年限後才能進行——在此之前無法刪除。',
+    'uncounted_cascades' => '資料庫中有些紀錄的連結方式，讓刪除作業無法精確計算（:links），因此確認畫面無法說明將移除哪些內容。在此問題修正之前，無法刪除任何內容。',
+    'stripe_billing_live' => '此組織的 Stripe 計費為正式模式。請先在 Stripe 終止訂閱，否則系統會繼續向一個已不存在的客戶收款。如果已在 Stripe 終止，表示 Stripe 的相關回報尚未在此套用——請手動處理。',
+    'checkout_open_subscription' => '其訂閱的 Stripe 付款頁面已於 :opened 開啟，在 :closes 前仍可付款。請在付款完成或頁面過期後再試。',
+    'checkout_open_card' => '房客信用卡付款的 Stripe 付款頁面已於 :opened 開啟，在 :closes 前仍可付款。請在付款完成或頁面過期後再試。',
+    'checkout_unreported_subscription' => '其訂閱的正式模式 Stripe 付款頁面已於 :opened 開啟、於 :closed 關閉，但此處尚未套用任何有關是否已付款的回報。請在 Stripe 管理平台查看該頁面；如果已付款，請先在 Stripe 取消由此頁面啟動的項目。Stripe 對無法送達的回報最多會重試 3 天——待回報套用後再試一次。如果 Stripe 已回報、但回報無法套用，請手動處理。',
+    'checkout_unreported_card' => '房客信用卡付款的正式模式 Stripe 付款頁面已於 :opened 開啟、於 :closed 關閉，但此處尚未套用任何有關是否已付款的回報。請在 Stripe 管理平台查看該頁面；如果已付款，請先在 Stripe 取消由此頁面啟動的項目。Stripe 對無法送達的回報最多會重試 3 天——待回報套用後再試一次。如果 Stripe 已回報、但回報無法套用，請手動處理。',
+    'refund_processing' => '有一筆信用卡退款仍在 Stripe 處理中。請等到 Stripe 確認後再試。',
+    'card_payment_open' => '仍有未完成的信用卡付款或預先授權。請先等待其結算完成，或將其釋放。',
+    'dispute_open' => '有一筆信用卡付款在 Stripe 被提出爭議（自 :since 起）。請在 Stripe 回應，待 Stripe 回報爭議已結束後再試。如果 Stripe 管理平台已顯示爭議結束，表示該回報從未送達——請手動處理。',
+    'payouts_in_transit' => '{1}有一筆撥款給業主，正在 Stripe 轉帳中（自 :since 起）。|[0,*]有 :count 筆撥款給業主，正在 Stripe 轉帳中（自 :since 起）。',
+    'payout_transit_stale' => '這比正常所需的時間更久——請先與 Stripe 手動處理。',
+    'payout_transit_wait' => '請等到 Stripe 確認後再試。',
+    'payouts_owed' => '{1}仍有一筆撥款尚未付給業主（待撥款或已暫扣）。請先撥款——刪除後，業主將拿不到款項，且不會留下任何紀錄。|[0,*]仍有 :count 筆撥款尚未付給業主（待撥款或已暫扣）。請先撥款——刪除後，業主將拿不到款項，且不會留下任何紀錄。',
+    'payout_run_running' => '撥款批次自 :since 起一直在執行中。',
+    'looks_stuck' => '看起來卡住了——請先手動處理，再進行刪除。',
+    'payout_run_wait' => '請等其完成後再試。',
+    'webhook_unprocessed' => '此組織有一則 :source 通知（收到時間：:received）尚未處理。',
+    'webhook_wait' => '請幾分鐘後再試。',
+    'cross_tenant_references' => '另一個組織有指向此組織的紀錄（:links）。刪除此組織時，也會一併刪除那些紀錄。',
+    'schema_unreadable' => '無法完整讀取資料庫結構（找不到資料表 :tables）。',
+    'already_deleted' => '此組織已不存在——已經刪除。',
+    'protected' => '此組織受保護，永遠無法刪除。',
+    'not_suspended' => '請先停權——只有已停權或已封存的組織才能刪除。',
+    'record_survived' => '此組織仍有紀錄在刪除後留存（位於 :tables），因此所有變更都已回復原狀。',
+    'organization_survived' => '此組織或其中一位人員在刪除後仍然存在，因此所有變更都已回復原狀。',
+    'live_card_payments' => '{1}:count 筆信用卡付款|[0,*]:count 筆信用卡付款',
+    'live_refunds' => '{1}:count 筆退款|[0,*]:count 筆退款',
+    'live_payouts' => '{1}:count 筆撥款|[0,*]:count 筆撥款',
+    'live_stripe_billing' => 'Stripe 正式計費及其發票',
+    'unknown_time' => '不明時間',
+    'time_utc' => ':time UTC',
+];

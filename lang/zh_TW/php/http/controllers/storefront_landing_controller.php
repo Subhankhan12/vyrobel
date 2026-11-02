@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => '我們的住宿選擇',
+    'properties_count' => ':count 間住宿',
+    'stays_count' => '{1}:count 個住宿選擇|[0,*]:count 個住宿選擇',
+    'stays_sleeps' => ':stays · 可住 :max 人',
+    'stays_sleeps_range' => ':stays · 可住 :min–:max 人',
+    'perk_free_cancel_days' => '{1}抵達前 :count 天（含）以前可獲全額退款。|[0,*]抵達前 :count 天（含）以前可獲全額退款。',
+    'perk_free_cancel_window' => '在取消期限內可獲全額退款。',
+    'perk_no_fees' => '無訂房手續費',
+    'perk_no_fees_sub' => '您看到的價格，就是您要付的價格。',
+    'perk_best_rate' => '官網最優惠價',
+    'perk_best_rate_sub' => '官網直訂享我們提供的最優惠房價，不經中間商。',
+    'perk_free_cancel' => '免費取消',
+    'perk_host_support' => '住宿方直接支援',
+    'perk_host_support_sub' => '就您的訂房，直接傳訊給真人。',
+    'kind_room' => '客房',
+    'kind_apartment' => '公寓',
+    'kind_villa' => '別墅',
+    'kind_dorm' => '床位',
+    'type_hotel' => '飯店',
+    'type_aparthotel' => '公寓式飯店',
+    'type_serviced_apartment' => '服務式公寓',
+    'type_apartment_building' => '公寓大樓',
+    'type_apartment' => '公寓',
+    'type_villa' => '別墅',
+    'type_hostel' => '青年旅館',
+    'type_guest_house' => '民宿',
+    'type_resort' => '度假村',
+    'type_mixed' => '混合型',
+    'type_portfolio' => '住宿組合',
+];

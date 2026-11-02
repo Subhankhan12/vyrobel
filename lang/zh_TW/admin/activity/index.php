@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => '營運方/業主',
+    'realm_guest' => '房客',
+    'realm_admin' => '平台管理員',
+    'event_login' => '登入',
+    'event_failed' => '失敗',
+    'event_lockout' => '鎖定',
+    'subject_user' => '使用者',
+    'subject_guest' => '房客',
+    'subject_platform_admin' => '平台管理員',
+    'subject_unknown' => '不明',
+    'actor_user' => '使用者',
+    'actor_agent' => '代理程式',
+    'actor_system' => '系統',
+    'page_title' => '安全性與活動',
+    'page_subtitle' => '整個平台的登入活動與帳號事件——保留 :days 天，之後清除。',
+    'kpi_failures' => '失敗/鎖定 · 24 小時',
+    'kpi_failures_help' => '多次失敗可能代表有人在試探。',
+    'privacy' => '隱私權',
+    'privacy_body' => '登入活動（含 IP）僅作為<strong style="color: var(--ad-ink);">安全訊號</strong>擷取——用於發現可疑登入與提供支援——絕不用於日常追蹤。保留 :days 天後自動清除；僅限本主控台存取。',
+    'recent_sign_ins' => '最近登入活動',
+    'col_event' => '事件',
+    'col_realm' => '帳號類型',
+    'col_account' => '帳號',
+    'col_ip' => 'IP',
+    'col_when' => '時間',
+    'no_sign_ins' => '尚無登入活動紀錄。',
+    'recent_account_events' => '最近帳號事件 <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· 涵蓋所有客戶</span>',
+    'col_customer' => '客戶',
+    'col_actor' => '操作者',
+    'no_account_events' => '尚無帳號事件。',
+];

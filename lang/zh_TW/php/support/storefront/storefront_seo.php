@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => '飯店',
+    'type_aparthotel' => '公寓式飯店',
+    'type_serviced_apartment' => '服務式公寓',
+    'type_apartment_building' => '公寓大樓',
+    'type_apartment' => '公寓',
+    'type_villa' => '別墅',
+    'type_hostel' => '青年旅館',
+    'type_guest_house' => '民宿',
+    'type_resort' => '度假村',
+    'type_mixed' => '飯店與公寓',
+    'type_portfolio' => '住宿選擇',
+    'title_town' => ':name，:town——官網直訂',
+    'title' => ':name——官網直訂',
+    'title_room' => ':property 的 :room——官網直訂',
+    'org_description_towns' => '{1}瀏覽位於 :towns 的 :count 間住宿。查看空房，直接向 :org 訂房。|[0,*]瀏覽位於 :towns 的 :count 間住宿。查看空房，直接向 :org 訂房。',
+    'org_description' => '{1}瀏覽 :count 間住宿。查看空房，直接向 :org 訂房。|[0,*]瀏覽 :count 間住宿。查看空房，直接向 :org 訂房。',
+    'org_description_empty' => '查看空房，直接向 :org 訂房。',
+    'place_town_country' => ':town，:country',
+    'description_place_rooms' => '{1}官網直訂 :name。位於 :place 的:type。共 :count 個房型。查看即時空房，無須透過訂房網站即可預訂。|[0,*]官網直訂 :name。位於 :place 的:type。共 :count 個房型。查看即時空房，無須透過訂房網站即可預訂。',
+    'description_place' => '官網直訂 :name。位於 :place 的:type。查看即時空房，無須透過訂房網站即可預訂。',
+    'description_rooms' => '{1}官網直訂 :name。:type。共 :count 個房型。查看即時空房，無須透過訂房網站即可預訂。|[0,*]官網直訂 :name。:type。共 :count 個房型。查看即時空房，無須透過訂房網站即可預訂。',
+    'description' => '官網直訂 :name。:type。查看即時空房，無須透過訂房網站即可預訂。',
+    'detail_sleeps' => '最多可住 :guests 人',
+    'detail_bedrooms' => '{1}:count 間臥室|[0,*]:count 間臥室',
+    'room_description_town_details' => ':property（:town）的 :room——:details。查看即時空房，官網直訂。',
+    'room_description_town' => ':property（:town）的 :room。查看即時空房，官網直訂。',
+    'room_description_details' => ':property 的 :room——:details。查看即時空房，官網直訂。',
+    'room_description' => ':property 的 :room。查看即時空房，官網直訂。',
+    'list_and' => ':items和:last',
+];

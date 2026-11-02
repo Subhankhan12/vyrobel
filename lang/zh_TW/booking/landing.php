@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '住宿選擇',
+    'book_direct' => '官網直訂',
+    'nav_stays' => '住宿選擇',
+    'my_account' => '我的帳號',
+    'sign_in' => '登入',
+    'rating_across' => '{1}:average 分，共 :count 則評價|[0,*]:average 分，共 :count 則評價',
+    'heading' => '直接向<br>:org 訂房。',
+    'subheading' => '用心打理的住宿，直接向住宿方預訂——免手續費、最優惠房價，還有真人為您服務。',
+    'where' => '目的地',
+    'check_in' => '入住日期',
+    'check_out' => '退房日期',
+    'adults' => '成人',
+    'children' => '兒童',
+    'where_to_stay' => '住宿地點',
+    'towns_lede' => '{1}我們的大本營。|[0,*]:count 個城鎮，各有各的步調。',
+    'from_price' => ':price 起',
+    'featured_stays' => '精選住宿',
+    'featured_lede' => '整個系列中最受房客喜愛的住宿。',
+    'per_night' => '/晚',
+    'see_dates_for_pricing' => '選擇日期以查看價格',
+    'browse_by_what_matters' => '依您在意的條件瀏覽',
+    'why_book_direct' => '為什麼要官網直訂',
+    'recent_guests' => '近期房客',
+    'rating_short' => '{1}:average · :count 則評價|[0,*]:average · :count 則評價',
+    'stars_aria' => ':rating 顆星（滿分 5 顆星）',
+    'review_quote' => '「:body」',
+    'no_reviews_yet' => '尚無評價——成為第一位入住並分享體驗的房客吧。',
+    'cta_heading' => '找到您的理想住處',
+    'cta_sub' => '真實日期、即時價格、立即確認。',
+    'browse_all_stays' => '瀏覽所有住宿',
+];

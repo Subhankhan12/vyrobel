@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '團隊與權限',
+    'subtitle' => '為共同業主或您的會計建立專屬登入帳號——權限僅限所需範圍。',
+    'people_with_access' => '擁有存取權的人員',
+    'account_owner' => '主要業主',
+    'thats_you' => '這是您',
+    'owner_access' => '擁有所有權限，包括此頁面。',
+    'active_now' => '目前在線上',
+    'role_for' => ':name 的角色',
+    'your_password' => '您的密碼',
+    'confirm_password' => '以您的密碼確認',
+    'remove_confirm' => '要移除 :name 嗎？對方將無法再登入。',
+    'no_members' => '目前只有您——可在下方邀請共同業主或會計。',
+    'invite_heading' => '邀請成員',
+    'invite_sub' => '對方會有自己的登入帳號——您可以隨時移除存取權。',
+    'invite_email_label' => '受邀者的電子郵件地址',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => '寄送邀請',
+    'pending_invites' => '待接受的邀請',
+    'resend' => '重新寄送',
+    'revoke' => '收回',
+    'matrix_heading' => '各角色可檢視的內容',
+    'matrix_note' => '只有您（主要業主）可以管理團隊與撥款帳戶。',
+    'recent_activity' => '最近活動',
+    'no_activity' => '尚無活動——邀請與登入紀錄會顯示在這裡。',
+    'download_log' => '匯出下載紀錄',
+    'download_log_sub' => '您的團隊下載的每份結算單、訂房、撥款或稅務檔案，都會標註下載者——並記錄在這裡。',
+    'no_downloads' => '尚無下載的匯出檔案——下載後會顯示在這裡，並標註下載者。',
+    'security_heading' => '每個人都有自己的鑰匙',
+    'security_body' => '不共用密碼——每個人都以自己的帳號登入，存取權依角色限定。財務匯出檔案會加上下載者的浮水印，並記錄在上方的紀錄中。請為您自己的帳號開啟兩步驟驗證。',
+    'security_settings' => '安全性設定',
+];

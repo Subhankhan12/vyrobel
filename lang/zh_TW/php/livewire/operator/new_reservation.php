@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => '住宿',
+    'step_guest' => '房客',
+    'step_extras' => '加購項目',
+    'step_confirm' => '確認',
+    'source_direct' => '官網',
+    'source_walk_in' => '現場散客',
+    'source_corporate' => '企業客戶',
+    'source_agent' => '旅行社',
+    'the_guest' => '房客',
+    'a_night' => '每晚 :amount',
+    'a_night_range' => '每晚 :low–:high',
+    'dates_label' => '{1}:from → :to · :count 晚|[0,*]:from → :to · :count 晚',
+    'restrict_min_stay' => '{1}於 :date 抵達時，至少須住 :count 晚|[0,*]於 :date 抵達時，至少須住 :count 晚',
+    'restrict_max_stay' => '{1}於 :date 抵達時，最多可住 :count 晚|[0,*]於 :date 抵達時，最多可住 :count 晚',
+    'restrict_no_arrivals' => ':date 禁止抵達',
+    'restrict_no_departures' => ':date 禁止離店',
+    'restrict_stop_sell' => ':date 不接受新訂房',
+    'restrict_other' => ':date：:restriction',
+    'arrival_mail_off' => 'Vyrobel 目前尚未寄送電子郵件——請自行向房客提供交通指引與門鎖密碼。',
+    'arrival_pre_arrival_off' => '您的館別已關閉抵達前須知郵件——請自行向房客提供交通指引與門鎖密碼。',
+    'arrival_too_soon' => '此住宿的開始日期太近，來不及寄送抵達前須知郵件（於入住前 :count 天寄出）——請自行向房客提供交通指引與門鎖密碼。',
+    'arrival_by_email' => '交通指引，以及房間設有的門鎖密碼，會在入住前 :count 天以電子郵件寄給房客——前提是房客有電子郵件地址。此處不會顯示門鎖密碼。',
+    'cancel_not_free' => '此住宿已無法免費取消——期限已於 :date 結束',
+    'cancel_free_until_check_in' => '入住前可免費取消',
+    'cancel_free_until_date' => ':date 前可免費取消',
+    'cancel_free_until_days' => '{1}至入住前 :count 天可免費取消|[0,*]至入住前 :count 天可免費取消',
+    'min_stay_none' => '無最低限制',
+    'min_stay_nights' => '{1}:count 晚|[0,*]:count 晚',
+    'guest_no_name' => '房客',
+    'no_stays_yet' => '尚無住宿紀錄',
+];

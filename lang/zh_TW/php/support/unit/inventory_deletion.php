@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count 筆訂房|[0,*]:count 筆訂房',
+    'room_moves' => '{1}:count 次換房|[0,*]:count 次換房',
+    'cleaning_tasks' => '{1}:count 項清潔任務|[0,*]:count 項清潔任務',
+    'work_orders' => '{1}:count 張工單|[0,*]:count 張工單',
+    'status_changes' => '{1}:count 次狀態變更|[0,*]:count 次狀態變更',
+    'blocks' => '{1}:count 次封房|[0,*]:count 次封房',
+    'owner_agreements' => '{1}:count 份代管合約|[0,*]:count 份代管合約',
+    'owner_statement_lines' => '{1}:count 筆業主結算單明細|[0,*]:count 筆業主結算單明細',
+    'owner_expenses' => '{1}:count 筆業主費用|[0,*]:count 筆業主費用',
+    'reviews' => '{1}:count 則評價|[0,*]:count 則評價',
+    'owner_requests' => '{1}:count 筆業主申請|[0,*]:count 筆業主申請',
+    'notes' => '{1}:count 則備註|[0,*]:count 則備註',
+    'documents' => '{1}:count 份文件|[0,*]:count 份文件',
+    'files' => '{1}:count 個檔案|[0,*]:count 個檔案',
+    'units' => '{1}:count 間房|[0,*]:count 間房',
+    'rate_proposals' => '{1}:count 筆調價提議|[0,*]:count 筆調價提議',
+    'overbooking_records' => '{1}:count 筆超額訂房紀錄|[0,*]:count 筆超額訂房紀錄',
+    'guest_waitlist_entries' => '{1}:count 筆房客候補紀錄|[0,*]:count 筆房客候補紀錄',
+    'guest_wishlist_saves' => '{1}:count 筆房客收藏|[0,*]:count 筆房客收藏',
+    'derived_room_types' => '{1}:count 個以其為基礎的房型|[0,*]:count 個以其為基礎的房型',
+    'derived_rate_plans' => '{1}:count 個依其定價的其他房價方案|[0,*]:count 個依其定價的其他房價方案',
+    'corporate_default_rates' => '{1}:count 個企業客戶帳戶的預設房價|[0,*]:count 個企業客戶帳戶的預設房價',
+    'channel_connections' => '{1}:count 個通路串接|[0,*]:count 個通路串接',
+    'an_owner' => '1 位業主',
+    'pending_owner_invitation' => '1 個待接受的業主邀請',
+    'list_and' => ':items和 :last',
+    'kind_rooms' => '客房',
+    'kind_apartments' => '公寓',
+    'kind_villas' => '別墅',
+    'kind_dorm_beds' => '床位',
+];

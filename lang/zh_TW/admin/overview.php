@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '總覽',
+    'subtitle_all' => '所有組織，包含 Vyrobel 自有的內部組織。',
+    'subtitle_customers' => '僅客戶——不含 Vyrobel 自有的內部組織。',
+    'showing_all' => '顯示<strong>全部</strong>組織——其中 :internal 個為內部組織。',
+    'internal_excluded' => '{1}以下所有數字均不含 :count 個內部組織。|[0,*]以下所有數字均不含 :count 個內部組織。',
+    'customers_only' => '僅客戶',
+    'include_internal' => '包含內部組織',
+    'no_customers_heading' => '尚無客戶',
+    'no_customers_body' => '平台上的所有組織都是 Vyrobel 自有的組織（:internal 個內部組織）。第一筆真正的註冊會顯示在這裡。',
+    'kpi_organisations' => '組織',
+    'kpi_customers' => '客戶',
+    'kpi_account_status' => '正常 :active 個 · 已停權 :suspended 個',
+    'kpi_subscriptions' => '訂閱',
+    'kpi_subscriptions_sub' => '有效 · 免費試用中 :trial 個',
+    'kpi_revenue' => '營收',
+    'no_live_billing' => '尚無正式計費',
+    'no_live_billing_sub' => '沒有任何訂閱透過 Stripe 計費。免費試用的定價不算營收。',
+    'billed_live' => '{1}正式計費 :count 個|[0,*]正式計費 :count 個',
+    'billed_live_sub' => '依 Stripe 實際收取的款項計算，絕不依據價目表——請參閱<a class="ad-cell-link" href=":url">營收</a>。',
+    'kpi_properties' => '館別',
+    'kpi_reservations' => '{1}:count 筆訂房|[0,*]:count 筆訂房',
+    'new_organisations_heading' => '新組織 · 近 6 個月',
+    'new_customers_heading' => '新客戶 · 近 6 個月',
+    'no_signups' => '近 6 個月沒有新註冊。',
+    'account_status_heading' => '帳號狀態',
+    'status_active' => '正常',
+    'status_suspended' => '已停權',
+    'status_cancelled' => '已取消',
+    'status_trialing' => '免費試用中（帳號）',
+    'free_trial_hint' => '免費試用是訂閱狀態，而不是帳號狀態——目前有 :trial 個處於免費試用。',
+    'plans_in_use' => '使用中的方案 <span class="ad-stat-sub" style="font-weight: 400;">· 有效或免費試用</span>',
+    'no_plans' => '尚無使用中的方案。',
+];

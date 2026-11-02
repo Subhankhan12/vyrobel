@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '公告',
+    'subtitle' => '顯示在每個組織（或所選組織）後台與業主專區中的公告。僅限純文字；不會寄送電子郵件。',
+    'empty_state' => '從未發布過公告。',
+    'col_announcement' => '公告',
+    'col_to' => '發送對象',
+    'col_from_until' => '開始 → 結束',
+    'col_state' => '狀態',
+    'audience_all' => '所有組織',
+    'audience_chosen_count' => '已選 :number 個組織',
+    'no_end' => '不限期',
+    'state_withdrawn' => '已撤回',
+    'state_showing' => '顯示中',
+    'state_scheduled' => '已排程',
+    'state_ended' => '已結束',
+    'reason_aria' => '原因',
+    'withdraw_placeholder' => '為什麼撤回？',
+    'withdraw_button' => '撤回',
+    'publish_heading' => '發布公告',
+    'title_label' => '標題',
+    'message_label' => '訊息（純文字）',
+    'kind_label' => '類型',
+    'show_from_label' => '開始顯示（UTC）',
+    'until_label' => '結束顯示（UTC，選填）',
+    'to_label' => '發送對象',
+    'option_every_organisation' => '所有組織',
+    'option_chosen_organisations' => '所選組織',
+    'chosen_organisations_label' => '所選組織（選擇「所選組織」時）',
+    'no_organisation_chosen' => '尚未選擇組織',
+    'reason_label' => '原因',
+    'publish_reason_placeholder' => '為什麼發布此公告？',
+    'publish_button' => '發布',
+];

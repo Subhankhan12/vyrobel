@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_TW translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '管理 :reference',
+    'back_to_booking' => '← 返回訂房',
+    'heading' => '管理您的訂房',
+    'subheading' => ':property · :check_in → :check_out。變更需經住宿方確認——確認後我們會立即傳送訊息通知您。',
+    'pending_requests' => '待處理的申請',
+    'pending_badge' => '待處理',
+    'pending_note' => '您的訂房尚未有任何變更——申請須先經住宿方確認。',
+    'pick_new_dates' => '選擇新日期',
+    'currently' => '目前為 :check_in → :check_out。選擇新日期即可查看價差，再送出變更申請。',
+    'new_check_in' => '新的入住日期',
+    'new_check_out' => '新的退房日期',
+    'see_price_difference' => '查看價差',
+    'new_stay' => '新的住宿',
+    'current' => '目前',
+    'difference' => '差額',
+    'estimate_note' => '僅為估算——以住宿方確認為準。住宿方確認後才會處理任何付款。',
+    'unpriced_note' => '這些日期尚未公布價格——請送出變更申請，住宿方將確認價格。',
+    'request_date_change' => '申請變更日期',
+    'add_to_your_stay' => '為住宿加購項目',
+    'add_to_your_stay_sub' => '加購早餐、接送等服務——確認後，所有項目都會計入您的訂房。',
+    'browse_extras' => '瀏覽加購項目',
+    'cancellation_policy' => '取消政策',
+    'free_until' => '<strong>:date</strong> 前可免費取消——在此之前提出取消申請，可獲全額退款。',
+    'policy_by_property' => '住宿方會確認您的取消，並依其政策處理退款。',
+    'cancel_confirm' => '要為此訂房送出取消申請嗎？住宿方會審核申請，並依其政策處理退款。',
+    'reason' => '原因',
+    'choose_reason' => '請選擇原因…',
+    'request_cancellation' => '申請取消',
+    'closed_heading' => '此訂房已結束',
+    'closed_body' => '已無可變更的項目——但您的日期、住宿詳細資料與付款紀錄都會保留在這裡，隨時供您查看。',
+];
