@@ -1691,6 +1691,16 @@ public checks 12/0/0 → live fr sign-in page. **Found for later (OPEN):** D-OWN
 Turkish and Portuguese had given the two unit conditions (out_of_order / out_of_service — different-coloured chips) one word —
 fixed in the pipeline for the next release. Not pushed.
 
+**I18N-01 — Spanish LIVE on `rel_CB`, Dutch LIVE on `rel_CC` (2026-11-02/03).** Spanish: 33 batches translated → reviewed →
+consistency; with it Turkish's two unit conditions were split (« Arızalı » / « Bakımda », 13 files). Dutch: 34 batches translated →
+34 independent reviews → one consistency editor (60 fixes; rulings recorded in TODO-nl: Systeemstatus, « de folio », Accounthouder,
+Defect / In onderhoud, Reisbureau). A reviewer-found one-night label ("min stay :nightsn" → "1 nuits" / "1 nachten") was fixed in
+French, Arabic and Dutch before the MariaDB run, which covers it. **Gates (V), each release:** MySQL and MariaDB 4,588/4,588
+(36,216) · lang:check 0 · lang:todo 0 · money gate FULL · render 929 pages 0 problems. Deploy each: read-only saved-language count
+(none) → stage → preflight → swap → public checks → live sign-in page. **Found for later (OPEN):** D-NOSHOW-REFUSAL-COPY (his),
+D-I18N-PAYOUT-MODE, D-I18N-SHARED-NAME, D-I18N-ONE-UNITS, the "Spotless villa" tag. In the pipeline meanwhile: Brazilian Portuguese
+translated, reviewed and consistent; Russian translated, under review. Not pushed.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

@@ -340,6 +340,17 @@ change is said.** Briefs live in `briefs/`.
 - **D-OWNER-VILLA-COLUMN (2026-11-02, V by reading — HIS CALL, English copy):** the owner Rates and Agreement tables head their
   unit column "Villa" (`livewire/owner/rates.col_villa`, `agreement.col_villa`) and owner Insights says "How your villas are
   filling…" whatever the unit kind — a wireframe leftover. Translations say "unit"; the English is unchanged until he rules.
+- **D-NOSHOW-REFUSAL-COPY (2026-11-02, V by reading — HIS CALL, English copy):** `check_in_reservation.refused_no_show` tells
+  staff to "take a New reservation on the front desk", but the front desk offers only Walk-in. Translations follow the English.
+- **D-I18N-PAYOUT-MODE (2026-11-03, V by reading `PayoutRunActionController.php:93`):** the payout-run notice passes the raw code
+  `$run->mode` ("test"/"live") into `run_complete`, so every language reads "(modo test)". Fix with the next code-carrying
+  release: two keys (English "test"/"live", byte-identical), pass the word.
+- **D-I18N-SHARED-NAME (2026-11-03, V by reading):** `common.name` labels both a person's name and a room-type name
+  (`units-list.blade.php`); Russian needs «Имя» vs «Название». Fix: a separate key for the room-type name (English "Name").
+- **D-I18N-ONE-UNITS (2026-11-03, V by the pt_BR reviewer reading `trans_choice` callers):** two owner CSV month totals
+  (":count units" / ":count nights") are picked by `trans_choice` but have no singular in English ("1 units"). Translations
+  carry the plural; the English singular is owed.
+- **D-OWNER-VILLA-COLUMN addendum (2026-11-03):** the guest review tag "Spotless villa" (`ReviewTag`) says villa at any property.
 - **D-I18N-CONSOLE-REGISTER (2026-11-02, V — english-left.php):** the console privacy page's sub-processor register
   (`App\Support\Privacy\SubProcessors`) is typed English (purposes, data shared, "Not connected", "None on file") in every language.
   Founder-only console and a legal register (cf. D-I18N-LAWYER) — recorded, not keyed.
