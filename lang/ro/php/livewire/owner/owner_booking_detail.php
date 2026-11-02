@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'de la ora :time',
+    'by_time' => 'până la ora :time',
+    'repeat_guest' => '{1}Oaspete recurent · :count sejur|Oaspete recurent · :count sejururi|Oaspete recurent · :count de sejururi',
+    'new_guest' => 'Oaspete nou',
+    'guests_count' => '{1}:count oaspete|:count oaspeți|:count de oaspeți',
+    'nights_count' => '{1}:count noapte|:count nopți|:count de nopți',
+    'channel_direct' => 'Direct prin Vyrobel',
+    'channel_walk_in' => 'Fără rezervare',
+    'channel_ota' => 'Canal OTA',
+    'event_booking_received' => 'Rezervare primită',
+    'event_cancelled' => 'Anulată',
+    'event_payment_received' => 'Plată primită',
+    'when_paid_in_full' => 'Achitat integral',
+    'event_part_payment_received' => 'Plată parțială primită',
+    'when_balance_due' => 'Rest de plată',
+    'event_payment' => 'Plată',
+    'when_not_yet_received' => 'Neprimită încă',
+    'event_checked_in' => 'Check-in efectuat',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out efectuat',
+    'event_payout_released' => 'Virament efectuat',
+    'event_payout' => 'Virament',
+    'when_next_payout' => 'Odată cu următorul virament',
+    'payout_not_attributed' => 'Neatribuit încă',
+    'payout_not_attributed_note' => 'Această rezervare nu a fost încă atribuită registrului dumneavoastră.',
+    'payout_scheduled' => 'Programat',
+    'payout_scheduled_note' => 'Va fi inclusă în următorul decont, apoi virată odată cu acel virament.',
+    'payout_pending' => 'Virament în așteptare',
+    'payout_pending_note' => 'Pe un decont finalizat — se virează odată cu acel virament.',
+    'payout_paid' => 'Plătit',
+    'payout_paid_note' => 'Virată printr-un virament finalizat.',
+];

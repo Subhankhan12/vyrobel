@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Notă',
+    'kind_progress' => 'Progres',
+    'kind_part' => 'Piesă comandată',
+    'elapsed_minutes' => ':minutes min',
+    'elapsed_hours' => ':hours h :minutes min',
+    'elapsed_days' => ':days z :hours h',
+    'hours_short' => ':hours h',
+    'timeline_opened' => 'Raportată',
+    'timeline_assigned_to' => 'Atribuită către :name',
+    'a_technician' => 'un tehnician',
+    'timeline_unassigned' => 'Neatribuită',
+    'timeline_started' => 'Lucrare începută',
+    'timeline_resolved' => 'Rezolvată',
+    'timeline_cancelled' => 'Anulată',
+    'timeline_parts_updated' => 'Piese actualizate',
+    'timeline_cost_corrected' => 'Cost corectat',
+    'timeline_updated' => 'Detalii editate',
+    'note_progress' => 'Actualizare progres',
+    'note_part' => 'Piesă comandată',
+    'note_added' => 'Notă adăugată',
+    'a_team_member' => 'Un membru al echipei',
+    'system' => 'Sistem',
+    'photo_alt' => 'Fotografie mentenanță',
+    'the_owner' => 'proprietarul',
+    'load_none' => 'Nicio comandă de lucru deschisă',
+    'load_open' => 'Deschise: :open',
+    'load_open_urgent' => 'Deschise: :open · urgente: :urgent',
+    'impact_arrivals' => '{1}:count sosire diseară are nevoie de o cameră|:count sosiri diseară au nevoie de o cameră|:count de sosiri diseară au nevoie de o cameră',
+    'impact_bookings' => '{1}:count rezervare trebuie mutată|:count rezervări trebuie mutate|:count de rezervări trebuie mutate',
+    'impact_none' => 'Nicio rezervare afectată',
+];

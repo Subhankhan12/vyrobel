@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Opțiunile noastre de cazare',
+    'properties_count' => '{1}:count proprietate|:count proprietăți|:count de proprietăți',
+    'stays_count' => '{1}:count opțiune de cazare|:count opțiuni de cazare|:count de opțiuni de cazare',
+    'stays_sleeps' => ':stays · capacitate: :max',
+    'stays_sleeps_range' => ':stays · capacitate: :min–:max',
+    'perk_free_cancel_days' => '{1}Rambursare integrală cu până la :count zi înainte de sosire.|Rambursare integrală cu până la :count zile înainte de sosire.|Rambursare integrală cu până la :count de zile înainte de sosire.',
+    'perk_free_cancel_window' => 'Rambursare integrală în termenul de anulare.',
+    'perk_no_fees' => 'Fără taxe de rezervare',
+    'perk_no_fees_sub' => 'Prețul pe care îl vedeți este prețul pe care îl plătiți.',
+    'perk_best_rate' => 'Cel mai bun tarif direct',
+    'perk_best_rate_sub' => 'Rezervați direct pentru cel mai bun tarif al nostru — fără intermediari.',
+    'perk_free_cancel' => 'Anulare gratuită',
+    'perk_host_support' => 'Asistență directă de la gazdă',
+    'perk_host_support_sub' => 'Scrieți unei persoane reale despre rezervarea dumneavoastră.',
+    'kind_room' => 'Cameră',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilă',
+    'kind_dorm' => 'Pat în dormitor',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament cu servicii',
+    'type_apartment_building' => 'Bloc de apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilă',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensiune',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Mixtă',
+    'type_portfolio' => 'Portofoliu',
+];

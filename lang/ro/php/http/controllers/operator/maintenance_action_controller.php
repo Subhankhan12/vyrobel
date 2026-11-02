@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Tichetul „:title” a fost deschis pentru unitatea :unit.',
+    'not_assignable_staff' => 'Acest utilizator nu face parte din personalul căruia i se pot atribui sarcini în această organizație.',
+    'cannot_reassign_closed' => 'Acest tichet nu poate fi reatribuit — este deja închis.',
+    'assignment_updated' => 'Atribuirea tichetului a fost actualizată.',
+    'work_order_closed' => 'Această comandă de lucru este închisă — detaliile ei nu mai pot fi modificate.',
+    'work_order_updated' => 'Comanda de lucru a fost actualizată.',
+    'col_title' => 'Titlu',
+    'col_unit' => 'Unitate',
+    'col_category' => 'Categorie',
+    'col_priority' => 'Prioritate',
+    'col_status' => 'Status',
+    'col_assignee' => 'Responsabil',
+    'col_reported' => 'Raportat',
+    'col_cost' => 'Cost',
+    'bulk_assigned_skipped' => '{1}A fost atribuită :count comandă de lucru · omise: :skipped (deja închise)|Au fost atribuite :count comenzi de lucru · omise: :skipped (deja închise)|Au fost atribuite :count de comenzi de lucru · omise: :skipped (deja închise)',
+    'bulk_assigned' => '{1}A fost atribuită :count comandă de lucru.|Au fost atribuite :count comenzi de lucru.|Au fost atribuite :count de comenzi de lucru.',
+    'bulk_resolved_skipped' => '{1}A fost rezolvată :count comandă de lucru · omise: :skipped (deja închise)|Au fost rezolvate :count comenzi de lucru · omise: :skipped (deja închise)|Au fost rezolvate :count de comenzi de lucru · omise: :skipped (deja închise)',
+    'bulk_resolved' => '{1}A fost rezolvată :count comandă de lucru.|Au fost rezolvate :count comenzi de lucru.|Au fost rezolvate :count de comenzi de lucru.',
+    'cannot_start' => 'Lucrul la acest tichet nu poate începe — nu mai este deschis.',
+    'work_started' => 'Lucrul la acest tichet a început.',
+    'cannot_resolve_closed' => 'Această comandă de lucru nu poate fi rezolvată — este deja închisă.',
+    'ticket_resolved' => 'Tichet rezolvat.',
+    'cannot_cancel_closed' => 'Acest tichet nu poate fi anulat — este deja închis.',
+    'ticket_cancelled' => 'Tichet anulat.',
+    'parts_closed' => 'Acest tichet este închis — piesele nu mai pot fi actualizate.',
+    'awaiting_parts' => 'Marcat ca în așteptarea pieselor.',
+    'parts_arrived' => 'Piesele au fost marcate ca sosite.',
+    'update_posted_waiting_part' => 'Actualizare adăugată — marcat ca în așteptarea piesei.',
+    'update_posted' => 'Actualizare adăugată.',
+    'photo_added' => 'Fotografie adăugată.',
+    'photo_removed' => 'Fotografia a fost ștearsă.',
+    'workspace_paused' => 'Organizația dumneavoastră este în pauză (doar în citire) — modificările din mentenanță sunt oprite până la reluare.',
+];

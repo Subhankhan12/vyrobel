@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Venituri',
+    'subtitle' => 'Din ce a debitat efectiv Stripe — niciodată din prețurile de listă. Doar clienți, dacă nu includeți organizațiile Vyrobel.',
+    'including_internal' => 'Inclusiv organizațiile interne Vyrobel.',
+    'customers_only_note' => 'Doar clienți.',
+    'customers_only_link' => 'Doar clienți',
+    'include_internal_link' => 'Inclusiv interne',
+    'no_live_billing_pill' => 'Încă nu există facturare efectivă',
+    'no_customer_charged' => 'Încă nu a fost debitat niciun client.',
+    'not_live_explainer' => 'Stripe nu este în mod real, deci nu există nicio factură plătită de numărat. Nu este o lună proastă — încă nu există nicio lună. Veniturile de aici se calculează doar din <strong>facturile Stripe plătite</strong> (debitul în sine, înregistrat când ne anunță Stripe), niciodată din prețul de listă al unui plan.',
+    'live_billed_subscriptions' => 'Abonamente cu facturare efectivă',
+    'trialing_unbilled' => 'Abonamente în perioada de încercare, nefacturate',
+    'failed_payments_30d' => 'Plăți eșuate, ultimele 30 de zile',
+    'when_first_paid' => 'După plata primei facturi, această pagină afișează: MRR și ARR pe monedă · MRR nou, din extindere, din reducere și pierdut · conversia din perioada de încercare în abonament plătit · plățile eșuate.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Abonamente evaluate',
+    'no_live_subscription_charged' => 'Niciun abonament activ cu facturare efectivă nu a fost debitat.',
+    'mrr_hint' => 'Fiecare abonament activ sau restant cu facturare efectivă, la ultima sa factură plătită, adus la o bază lunară după perioada de facturare a acelei facturi.',
+    'this_month_vs_last' => 'Luna aceasta față de luna trecută',
+    'movement_new' => 'Nou · :currency',
+    'movement_expansion' => 'Extindere · :currency',
+    'movement_contraction' => 'Reducere · :currency',
+    'movement_churned' => 'Pierdut · :currency',
+    'nothing_charged' => 'Nimic debitat luna trecută sau luna aceasta.',
+    'movements_hint' => 'Pe organizație, din ce s-a debitat în fiecare lună. Pierdut = debitat luna trecută, nimic luna aceasta, iar abonamentul este anulat.',
+    'trial_to_paid' => 'Conversie din încercare',
+    'trial_to_paid_value' => 'Perioade de încercare încheiate: :ended · cu plată: :converted',
+    'past_due_now' => 'Restante acum',
+    'paid_invoices_counted' => 'Facturi plătite numărate',
+    'never_moves_money' => 'Această consolă nu debitează, nu rambursează și nu mută niciodată bani. Fiecare cifră este pe monedă și nu se adună niciodată între monede.',
+];

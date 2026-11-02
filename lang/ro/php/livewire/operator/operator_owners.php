@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Gata de plată',
+    'chip_hold' => 'Viramente reținute',
+    'chip_review' => 'De verificat',
+    'chip_paused' => 'Viramente în pauză',
+    'chip_invited' => 'Invitați',
+    'sorted_name_asc' => 'după proprietar, A–Z',
+    'sorted_name_desc' => 'după proprietar, Z–A',
+    'sorted_units_desc' => 'cele mai multe unități întâi',
+    'sorted_units_asc' => 'cele mai puține unități întâi',
+    'sorted_net_desc' => 'cel mai mare net de virat întâi',
+    'sorted_net_asc' => 'cel mai mic net de virat întâi',
+    'sorted_status_asc' => 'ce necesită atenție întâi',
+    'sorted_status_desc' => 'ce necesită atenție la final',
+    'kpi_invited' => 'Invitați: :number',
+    'kpi_units' => '{1}:count unitate|:count unități|:count de unități',
+    'kpi_owners_ready' => '{1}:count proprietar gata de plată|:count proprietari gata de plată|:count de proprietari gata de plată',
+    'kpi_paused_not_counted' => 'în pauză: :number, neincluși',
+    'kpi_hold_none' => 'nimic în așteptare',
+    'kpi_hold_waiting' => 'în așteptare: :amounts',
+    'kpi_review_sub' => 'cu linii neconfirmate de canalul de vânzare: :number',
+    'schedule' => 'ziua lucrătoare nr. :day a lunii',
+    'ordinal_st' => 'nr. :number',
+    'ordinal_nd' => 'nr. :number',
+    'ordinal_rd' => 'nr. :number',
+    'ordinal_th' => 'nr. :number',
+    'role_manager' => 'Administrator de proprietate',
+    'role_accountant' => 'Contabil',
+    'role_owner' => 'Proprietar',
+    'another_owner' => 'alt proprietar',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Arhivă deconturi',
+    'history_summary' => 'Istoricul finalizat · :years · :statements',
+    'years' => '{1}:count an|:count ani|:count de ani',
+    'statements' => '{1}:count decont|:count deconturi|:count de deconturi',
+    'archived_on_finalize' => 'Deconturile sunt arhivate aici imediat ce sunt finalizate.',
+    'net_earned_lifetime' => 'Câștig net · de la început',
+    'since' => 'din :date',
+    'per_currency_note' => 'Totaluri pe moneda viramentelor — soldurile în monede diferite nu se combină niciodată.',
+    'lifetime_empty' => 'Încă nu există deconturi finalizate — primul va apărea aici.',
+    'search_placeholder' => 'Căutați în deconturi — lună, an, status sau număr',
+    'search_label' => 'Căutare deconturi',
+    'no_match' => 'Niciun decont nu corespunde căutării „:query”.',
+    'no_match_hint' => 'Încercați o lună („septembrie”), un an („2026”), un status („Plătit”) sau un număr de decont („Nr. 1”).',
+    'group_summary' => ':statements · net: :nets',
+    'per_payout_currency' => '(pe moneda viramentelor)',
+    'tax_summary_title' => 'Descărcați în format PDF rezumatul fiscal anual pentru :year',
+    'tax_summary' => 'Rezumat fiscal',
+    'col_statement' => 'Decont',
+    'col_net_payable' => 'Net de virat',
+    'col_links' => 'Linkuri',
+    'unverified_title' => 'Unele linii așteaptă încă reconcilierea cu canalul de vânzare',
+    'unverified' => 'Conține linii neverificate',
+    'pdf_title' => 'Descărcați acest decont în format PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Descărcați în format PDF rezervările din acest decont',
+    'bookings' => 'Rezervări',
+    'empty' => 'Încă nu există deconturi finalizate. Un decont este arhivat aici după ce este finalizat.',
+    'zip_heading' => 'Descărcare arhivă completă',
+    'zip_sub' => '{1}O arhivă ZIP cu :count decont în PDF. Fiecare decont de mai sus se poate descărca și separat.|O arhivă ZIP cu :count deconturi în PDF. Fiecare decont de mai sus se poate descărca și separat.|O arhivă ZIP cu :count de deconturi în PDF. Fiecare decont de mai sus se poate descărca și separat.',
+    'download_zip' => 'Descărcare ZIP',
+];

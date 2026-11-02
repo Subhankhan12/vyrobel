@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Oaspete',
+    'nights' => '{1}:count noapte|:count nopți|:count de nopți',
+    'block_reason_none' => 'Blocat',
+    'block_reason_maintenance' => 'Mentenanță',
+    'block_reason_owner' => 'Proprietar',
+    'block_reason_manual' => 'Manuală',
+    'block_reason_overbooking_protection' => 'Protecție la suprarezervare',
+    'cleaning_departure' => 'Curățenie la plecare',
+    'cleaning_stayover' => 'Curățenie în timpul sejurului',
+    'cleaning_deep' => 'Curățenie generală',
+    'cleaning_arrival_prep' => 'Pregătire pentru sosire',
+    'cleaning_status_pending' => 'Programată',
+    'cleaning_status_in_progress' => 'În curs',
+    'cleaning_status_clean' => 'Efectuată',
+    'cleaning_status_inspected' => 'Verificată',
+    'kind_room' => 'Cameră',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilă',
+    'kind_dorm_bed' => 'Pat în dormitor',
+    'condition_out_of_order' => 'Defectă',
+    'condition_out_of_service' => 'În reparație',
+    'status_enquiry' => 'Cerere de ofertă',
+    'status_tentative' => 'Opțională',
+    'status_confirmed' => 'Confirmată',
+    'status_checked_in' => 'Check-in efectuat',
+    'status_checked_out' => 'Check-out efectuat',
+    'status_cancelled' => 'Anulată',
+    'status_no_show' => 'Neprezentare',
+    'terms_portfolio' => 'Condiții pentru tot portofoliul',
+    'terms_unit' => 'Condiții pentru această unitate',
+];

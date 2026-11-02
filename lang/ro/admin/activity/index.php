@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Operator/Proprietar',
+    'realm_guest' => 'Oaspete',
+    'realm_admin' => 'Administrator platformă',
+    'event_login' => 'Conectare',
+    'event_failed' => 'Eșec',
+    'event_lockout' => 'Blocare',
+    'subject_user' => 'Utilizator',
+    'subject_guest' => 'Oaspete',
+    'subject_platform_admin' => 'Administrator platformă',
+    'subject_unknown' => 'Necunoscut',
+    'actor_user' => 'Utilizator',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'Sistem',
+    'page_title' => 'Securitate și activitate',
+    'page_subtitle' => 'Activitatea de conectare și evenimentele de cont de pe întreaga platformă — perioadă de păstrare: :days z, apoi sunt șterse.',
+    'kpi_failures' => 'Eșecuri / blocări · 24 h',
+    'kpi_failures_help' => 'Eșecurile repetate pot indica o sondare a conturilor.',
+    'privacy' => 'Confidențialitate',
+    'privacy_body' => 'Activitatea de conectare (inclusiv IP-ul) este înregistrată doar ca <strong style="color: var(--ad-ink);">semnal de securitate</strong> — pentru depistarea conectărilor suspecte și pentru asistență — niciodată pentru urmărire generală. Perioadă de păstrare: :days z, apoi este ștearsă automat. Accesul este limitat la această consolă.',
+    'recent_sign_ins' => 'Activitate recentă de conectare',
+    'col_event' => 'Eveniment',
+    'col_realm' => 'Zonă',
+    'col_account' => 'Cont',
+    'col_ip' => 'IP',
+    'col_when' => 'Când',
+    'no_sign_ins' => 'Încă nu a fost înregistrată nicio activitate de conectare.',
+    'recent_account_events' => 'Evenimente recente de cont <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· pentru toți clienții</span>',
+    'col_customer' => 'Client',
+    'col_actor' => 'Autor',
+    'no_account_events' => 'Încă nu există evenimente de cont.',
+];

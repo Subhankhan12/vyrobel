@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Rapoarte',
+    'arrivals_in' => 'Sosiri în perioada :period',
+    'arrivals_count' => '{1}:count sosire|:count sosiri|:count de sosiri',
+    'pp_delta' => ':delta p.p.',
+    'occupancy' => 'Grad de ocupare',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Venituri brute',
+    'basis_note' => 'Gradul de ocupare · ADR · RevPAR sunt calculate pe baza nopților de sejur, comparativ cu aceeași perioadă de anul trecut, acolo unde există date din anul anterior. Veniturile de mai jos sunt calculate pe baza notelor de plată (la sosire).',
+    'revenue' => 'Venituri',
+    'room' => 'Cameră',
+    'ancillary' => 'Servicii suplimentare <span class="muted">· suplimente, produse, costuri suplimentare</span>',
+    'tax_collected' => 'Taxe colectate · pentru terți',
+    'costs_heading' => 'Costuri <span class="muted" style="font-size:9px">· doar date reale</span>',
+    'maintenance' => 'Mentenanță <span class="muted">· comenzi de lucru rezolvate</span>',
+    'not_tracked' => 'încă neînregistrat',
+    'net' => 'Net (venituri − costuri înregistrate)',
+    'revenue_by_channel' => 'Venituri pe canale',
+    'channel' => 'Canal',
+    'bookings' => 'Rezervări',
+    'share' => 'Pondere',
+    'no_channel_revenue' => 'Nu există venituri pe canale în această perioadă.',
+    'top_units' => 'Unități de top',
+    'unit' => 'Unitate',
+    'nights' => 'Nopți',
+    'room_revenue' => 'Venituri din cazare',
+    'no_unit_revenue' => 'Nu există venituri pe unități în această perioadă.',
+    'revenue_by_month' => 'Venituri pe luni',
+    'month' => 'Lună',
+    'footer' => 'Calculat din date reale ale notelor de plată și ale mentenanței pentru :scope · :period. Gradul de ocupare, ADR și RevPAR sunt calculate pe baza nopților de sejur; veniturile, pe baza notelor de plată (la sosire). Cifrele se reconciliază cu ecranul „Rapoarte”. Vyrobel.',
+];

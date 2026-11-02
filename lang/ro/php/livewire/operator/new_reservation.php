@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Sejur',
+    'step_guest' => 'Oaspete',
+    'step_extras' => 'Suplimente',
+    'step_confirm' => 'Confirmare',
+    'source_direct' => 'Directă',
+    'source_walk_in' => 'Fără rezervare',
+    'source_corporate' => 'Companie',
+    'source_agent' => 'Agenție de turism',
+    'the_guest' => 'oaspetele',
+    'a_night' => ':amount / noapte',
+    'a_night_range' => ':low–:high / noapte',
+    'dates_label' => '{1}:from → :to · :count noapte|:from → :to · :count nopți|:from → :to · :count de nopți',
+    'restrict_min_stay' => '{1}Cu sosire pe :date, sejurul trebuie să fie de cel puțin :count noapte|Cu sosire pe :date, sejurul trebuie să fie de cel puțin :count nopți|Cu sosire pe :date, sejurul trebuie să fie de cel puțin :count de nopți',
+    'restrict_max_stay' => '{1}Cu sosire pe :date, sejurul poate fi de cel mult :count noapte|Cu sosire pe :date, sejurul poate fi de cel mult :count nopți|Cu sosire pe :date, sejurul poate fi de cel mult :count de nopți',
+    'restrict_no_arrivals' => 'Fără sosiri pe :date',
+    'restrict_no_departures' => 'Fără plecări pe :date',
+    'restrict_stop_sell' => 'Închis pentru rezervări noi pe :date',
+    'restrict_other' => ':restriction pe :date',
+    'arrival_mail_off' => 'Vyrobel nu trimite încă e-mailuri — oferiți-i dumneavoastră oaspetelui indicațiile și codul ușii.',
+    'arrival_pre_arrival_off' => 'E-mailul dinainte de sosire este dezactivat pentru proprietățile dumneavoastră — oferiți-i dumneavoastră oaspetelui indicațiile și codul ușii.',
+    'arrival_too_soon' => 'Acest sejur începe prea curând pentru e-mailul dinainte de sosire, care se trimite înainte de check-in (zile: :count) — oferiți-i dumneavoastră oaspetelui indicațiile și codul ușii.',
+    'arrival_by_email' => 'Indicațiile și codul ușii, dacă unitatea are unul, ajung la oaspete prin e-mail înainte de check-in (zile: :count) — dacă oaspetele are o adresă de e-mail. Codul ușii nu este afișat niciodată aici.',
+    'cancel_not_free' => 'Nu este gratuită pentru acest sejur — perioada s-a încheiat pe :date',
+    'cancel_free_until_check_in' => 'Gratuită până la check-in',
+    'cancel_free_until_date' => 'Gratuită până la :date',
+    'cancel_free_until_days' => '{1}Gratuită până cu :count zi înainte de check-in|Gratuită până cu :count zile înainte de check-in|Gratuită până cu :count de zile înainte de check-in',
+    'min_stay_none' => 'Fără minim',
+    'min_stay_nights' => '{1}:count noapte|:count nopți|:count de nopți',
+    'guest_no_name' => 'Oaspete',
+    'no_stays_yet' => 'Încă nu există sejururi',
+];

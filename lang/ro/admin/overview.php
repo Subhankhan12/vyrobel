@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Prezentare generală',
+    'subtitle_all' => 'Toate organizațiile, inclusiv cele interne Vyrobel.',
+    'subtitle_customers' => 'Doar clienți — organizațiile interne Vyrobel sunt excluse.',
+    'showing_all' => 'Se afișează <strong>toate</strong> organizațiile — interne: :internal.',
+    'internal_excluded' => '{1}:count organizație internă exclusă din toate cifrele de mai jos.|:count organizații interne excluse din toate cifrele de mai jos.|:count de organizații interne excluse din toate cifrele de mai jos.',
+    'customers_only' => 'Doar clienți',
+    'include_internal' => 'Inclusiv interne',
+    'no_customers_heading' => 'Încă nu există clienți',
+    'no_customers_body' => 'Toate organizațiile de pe platformă aparțin Vyrobel (interne: :internal). Prima înregistrare reală va apărea aici.',
+    'kpi_organisations' => 'Organizații',
+    'kpi_customers' => 'Clienți',
+    'kpi_account_status' => 'Active: :active · Suspendate: :suspended',
+    'kpi_subscriptions' => 'Abonamente',
+    'kpi_subscriptions_sub' => 'active · în perioada gratuită de încercare: :trial',
+    'kpi_revenue' => 'Venituri',
+    'no_live_billing' => 'Încă nu există facturare efectivă',
+    'no_live_billing_sub' => 'Niciun abonament nu este facturat prin Stripe. Prețul de listă al unei perioade de încercare nu este venit.',
+    'billed_live' => '{1}:count abonament cu facturare efectivă|:count abonamente cu facturare efectivă|:count de abonamente cu facturare efectivă',
+    'billed_live_sub' => 'Calculat din ce a debitat Stripe, niciodată din lista de prețuri — vedeți <a class="ad-cell-link" href=":url">Venituri</a>.',
+    'kpi_properties' => 'Proprietăți',
+    'kpi_reservations' => '{1}:count rezervare|:count rezervări|:count de rezervări',
+    'new_organisations_heading' => 'Organizații noi · ultimele 6 luni',
+    'new_customers_heading' => 'Clienți noi · ultimele 6 luni',
+    'no_signups' => 'Nicio înregistrare în ultimele 6 luni.',
+    'account_status_heading' => 'Starea contului',
+    'status_active' => 'Activă',
+    'status_suspended' => 'Suspendată',
+    'status_cancelled' => 'Anulată',
+    'status_trialing' => 'În perioada de încercare (cont)',
+    'free_trial_hint' => 'Perioada gratuită de încercare este o stare a abonamentului, nu a contului — în perioada gratuită de încercare acum: :trial.',
+    'plans_in_use' => 'Planuri utilizate <span class="ad-stat-sub" style="font-weight: 400;">· active sau în perioada de încercare</span>',
+    'no_plans' => 'Încă nu se utilizează niciun plan.',
+];

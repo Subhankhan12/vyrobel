@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Echipă și acces',
+    'subtitle' => 'Oferiți unui coproprietar sau contabilului dumneavoastră propriile date de conectare — limitate la ceea ce le este necesar.',
+    'people_with_access' => 'Persoane cu acces',
+    'account_owner' => 'Titularul contului',
+    'thats_you' => 'dumneavoastră',
+    'owner_access' => 'Acces complet la tot, inclusiv la această pagină.',
+    'active_now' => 'Activ acum',
+    'role_for' => 'Rolul pentru :name',
+    'your_password' => 'Parola dumneavoastră',
+    'confirm_password' => 'Confirmare cu parola',
+    'remove_confirm' => 'Eliminați accesul pentru :name? Această persoană nu se va mai putea conecta.',
+    'no_members' => 'Deocamdată doar dumneavoastră — invitați mai jos un coproprietar sau un contabil.',
+    'invite_heading' => 'Invitare persoană',
+    'invite_sub' => 'Persoana primește propriile date de conectare — puteți elimina accesul oricând.',
+    'invite_email_label' => 'Adresa de e-mail a persoanei invitate',
+    'email_placeholder' => 'nume@email.com',
+    'send_invite' => 'Trimitere invitație',
+    'pending_invites' => 'Invitații în așteptare',
+    'resend' => 'Retrimitere',
+    'revoke' => 'Revocare',
+    'matrix_heading' => 'Ce poate vedea fiecare rol',
+    'matrix_note' => 'Doar dumneavoastră, titularul contului, puteți gestiona echipa și contul pentru viramente.',
+    'recent_activity' => 'Activitate recentă',
+    'no_activity' => 'Încă nimic — invitațiile și conectările vor apărea aici.',
+    'download_log' => 'Jurnal descărcări exporturi',
+    'download_log_sub' => 'Fiecare fișier de decont, rezervare, virament sau fiscal descărcat de echipa dumneavoastră este marcat cu numele celui care l-a descărcat — și înregistrat aici.',
+    'no_downloads' => 'Încă nu s-a descărcat niciun export — exporturile vor apărea aici, marcate cu numele celui care le-a descărcat.',
+    'security_heading' => 'Fiecare are propria cheie',
+    'security_body' => 'Fără parole comune — fiecare persoană se conectează cu propriul cont, iar accesul este limitat la rolul său. Exporturile financiare poartă un filigran cu numele celui care le-a descărcat și sunt înregistrate în jurnalul de mai sus. Pentru propriul cont, activați verificarea în doi pași.',
+    'security_settings' => 'Setări de securitate',
+];

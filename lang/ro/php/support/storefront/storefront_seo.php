@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartamente cu servicii',
+    'type_apartment_building' => 'Apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilă',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensiune',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel și apartamente',
+    'type_portfolio' => 'Opțiuni de cazare',
+    'title_town' => ':name, :town — Rezervare directă',
+    'title' => ':name — Rezervare directă',
+    'title_room' => ':room la :property — Rezervare directă',
+    'org_description_towns' => '{1}Descoperiți :count proprietate în :towns. Verificați disponibilitatea și rezervați direct la :org.|Descoperiți :count proprietăți în :towns. Verificați disponibilitatea și rezervați direct la :org.|Descoperiți :count de proprietăți în :towns. Verificați disponibilitatea și rezervați direct la :org.',
+    'org_description' => '{1}Descoperiți :count proprietate. Verificați disponibilitatea și rezervați direct la :org.|Descoperiți :count proprietăți. Verificați disponibilitatea și rezervați direct la :org.|Descoperiți :count de proprietăți. Verificați disponibilitatea și rezervați direct la :org.',
+    'org_description_empty' => 'Verificați disponibilitatea și rezervați direct la :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Rezervați direct la :name. :type în :place. :count tip de cameră. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.|Rezervați direct la :name. :type în :place. :count tipuri de camere. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.|Rezervați direct la :name. :type în :place. :count de tipuri de camere. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.',
+    'description_place' => 'Rezervați direct la :name. :type în :place. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.',
+    'description_rooms' => '{1}Rezervați direct la :name. :type. :count tip de cameră. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.|Rezervați direct la :name. :type. :count tipuri de camere. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.|Rezervați direct la :name. :type. :count de tipuri de camere. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.',
+    'description' => 'Rezervați direct la :name. :type. Verificați disponibilitatea în timp real și rezervați fără să treceți printr-un site de rezervări.',
+    'detail_sleeps' => 'capacitate maximă: :guests',
+    'detail_bedrooms' => '{1}:count dormitor|:count dormitoare|:count de dormitoare',
+    'room_description_town_details' => ':room la :property din :town — :details. Verificați disponibilitatea în timp real și rezervați direct.',
+    'room_description_town' => ':room la :property din :town. Verificați disponibilitatea în timp real și rezervați direct.',
+    'room_description_details' => ':room la :property — :details. Verificați disponibilitatea în timp real și rezervați direct.',
+    'room_description' => ':room la :property. Verificați disponibilitatea în timp real și rezervați direct.',
+    'list_and' => ':items și :last',
+];

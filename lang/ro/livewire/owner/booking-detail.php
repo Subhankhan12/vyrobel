@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Prezentare generală',
+    'breadcrumb_bookings' => 'Rezervări',
+    'guest_fallback' => 'Oaspete',
+    'reservation' => 'Rezervare',
+    'check_in' => 'Sosire',
+    'nights_count' => '{1}:count noapte|:count nopți|:count de nopți',
+    'check_out' => 'Plecare',
+    'unit' => 'Unitate',
+    'guests' => 'Oaspeți',
+    'nights' => 'Nopți',
+    'nightly_rate' => 'Tarif pe noapte',
+    'your_earnings' => 'Câștigurile dumneavoastră',
+    'gross_to_net' => 'brut → net',
+    'gross_booking_value' => 'Valoarea brută a rezervării',
+    'net_to_you' => 'Câștigul dumneavoastră net',
+    'refunds_we_covered' => 'Rambursări suportate de noi',
+    'refunds_we_covered_note' => 'Rambursate oaspetelui și suportate de noi, nu de dumneavoastră. Câștigurile de mai sus rămân neschimbate.',
+    'not_yet_attributed' => 'Neatribuit încă.',
+    'not_yet_attributed_note' => 'Câștigurile apar aici după ce rezervarea este atribuită registrului dumneavoastră — de obicei după check-out.',
+    'guest_heading' => 'Oaspete',
+    'guest_contact_note' => 'Datele de contact ale oaspetelui sunt gestionate de administrator — dumneavoastră vedeți rezervarea și câștigurile.',
+    'message_your_team' => 'Trimitere mesaj administratorului',
+    'timeline' => 'Cronologie',
+    'for_night_stay' => 'pentru acest sejur (nopți: :nights)',
+    'booking_details' => 'Detalii rezervare',
+    'confirmation' => 'Cod rezervare',
+    'source' => 'Sursă',
+    'channel' => 'Canal',
+    'booked_on' => 'Data rezervării',
+    'download_confirmation' => 'Descărcare confirmare',
+    'download_unavailable' => 'Disponibil pentru coproprietari și contabili',
+    'view_unit' => 'Vizualizare unitate :unit',
+];

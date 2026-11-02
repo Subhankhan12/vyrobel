@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Acces de urgență',
+    'subtitle' => 'Acces doar în citire și limitat în timp la o singură organizație — cu motiv, cod 2FA și informarea organizației.',
+    'back_label' => 'Asistență',
+    'open_heading' => 'Sesiunea este deschisă',
+    'open_summary' => '{1}:organization · se încheie la ora :time UTC · :count pagină vizualizată.|:organization · se încheie la ora :time UTC · :count pagini vizualizate.|:organization · se încheie la ora :time UTC · :count de pagini vizualizate.',
+    'go_to_back_office' => 'Accesați back office-ul organizației',
+    'end_now' => 'Încheiere sesiune acum',
+    'start_heading' => 'Deschidere sesiune',
+    'rule_read_only' => '<strong>Doar în citire.</strong> Orice modificare este refuzată — formulare, butoane, orice salvează ceva.',
+    'rule_minutes' => '{1}<strong>:count minut</strong>, apoi se încheie de la sine.|<strong>:count minute</strong>, apoi se încheie de la sine.|<strong>:count de minute</strong>, apoi se încheie de la sine.',
+    'rule_senior_user' => 'Vedeți ce vede utilizatorul verificat cu cel mai înalt rang din back office-ul organizației — inclusiv oaspeții. Consultați doar ce este necesar pentru motivul indicat.',
+    'rule_recorded' => 'Fiecare pagină pe care o deschideți este înregistrată, iar echipa organizației este informată ulterior: numele dumneavoastră, ora și acest motiv.',
+    'organisation_label' => 'Organizație',
+    'choose_option' => 'Selectați…',
+    'code_label' => 'Codul 2FA (acum)',
+    'reason_label' => 'Motiv — organizația îl va citi',
+    'reason_placeholder' => 'de ex. Tichet #123 — proprietarul raportează o rezervare lipsă',
+    'open_button' => 'Deschidere sesiune doar în citire',
+    'recent_heading' => 'Sesiuni recente',
+    'empty_state' => 'Nu a fost deschisă niciodată nicio sesiune de acces de urgență.',
+    'col_admin' => 'Administrator',
+    'col_organisation' => 'Organizație',
+    'col_reason' => 'Motiv',
+    'col_started' => 'Începută',
+    'col_ended' => 'Încheiată',
+    'col_pages' => 'Pagini',
+    'col_told' => 'Informată',
+    'ended_open' => 'deschisă',
+    'ended_due' => 'expirată — încă neînchisă',
+    'told_yes' => 'Da',
+    'told_not_yet' => 'Încă nu',
+];

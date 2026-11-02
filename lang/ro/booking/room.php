@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Toate camerele',
+    'kind_sleeps_up_to' => ':kind · capacitate maximă: :capacity',
+    'reviews_count' => '{1}:count recenzie|:count recenzii|:count de recenzii',
+    'no_reviews_yet' => 'Încă nu există recenzii',
+    'save_to_wishlist' => 'Adăugare la favorite',
+    'sleeps' => 'Capacitate',
+    'adults' => 'Adulți',
+    'children' => 'Copii',
+    'bedrooms' => 'Dormitoare',
+    'standard_occupancy' => 'Ocupare standard',
+    'amenities' => 'Facilități',
+    'not_yet_listed' => 'Încă nepublicate',
+    'amenities_not_published' => 'Facilitățile acestei camere nu sunt încă publicate.',
+    'guest_reviews' => 'Recenziile oaspeților',
+    'stars_aria' => ':rating din 5 stele',
+    'response_label' => 'Răspuns:',
+    'no_reviews_be_first' => 'Încă nu există recenzii — fiți primul care se cazează aici și își împărtășește experiența.',
+    'coming_soon' => 'În curând',
+    'description_soon' => 'O descriere completă și o hartă a locației sunt în pregătire — specificațiile, disponibilitatea, prețul și recenziile de mai sus sunt reale.',
+    'per_night' => '/ noapte',
+    'per_night_with_note' => '/ noapte · :note',
+    'total_nights' => '{1}Total: :amount · :count noapte|Total: :amount · :count nopți|Total: :amount · :count de nopți',
+    'left_for_your_dates' => 'Disponibile pentru datele alese: :count',
+    'book_this_room' => 'Rezervare cameră',
+    'nothing_reserved' => 'Nimic nu este rezervat până nu confirmați la finalizarea rezervării.',
+    'your_dates' => 'Datele sejurului',
+    'not_available' => 'Indisponibilă pentru aceste date — încercați alte date.',
+    'check_in' => 'Sosire',
+    'check_out' => 'Plecare',
+    'check_dates' => 'Verificare date',
+    'check_availability' => 'Verificare disponibilitate și preț',
+    'see_price' => 'Afișare preț',
+];

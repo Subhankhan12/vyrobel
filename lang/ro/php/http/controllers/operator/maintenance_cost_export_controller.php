@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Sume',
+    'csv_amounts_note' => 'în unitatea monetară principală, cu punct zecimal, fără separator de mii',
+    'col_date' => 'Data',
+    'col_work_order' => 'Comandă de lucru',
+    'col_unit' => 'Unitate',
+    'col_category' => 'Categorie',
+    'col_labor' => 'Manoperă',
+    'col_parts' => 'Piese',
+    'col_total' => 'Total',
+    'col_currency' => 'Monedă',
+    'total_row' => 'Total',
+    'sheet_summary' => 'Rezumat',
+    'col_measure' => 'Indicator',
+    'col_value' => 'Valoare',
+    'total_spend' => 'Cheltuieli totale',
+    'measure_labour' => 'Manoperă',
+    'measure_parts' => 'Piese',
+    'orders_closed' => 'Comenzi închise',
+    'owner_billed' => 'Facturat proprietarului',
+    'operator_borne' => 'Suportat de operator',
+    'parts_on_order' => 'Piese comandate',
+    'average_per_order' => 'Medie pe comandă',
+    'by_category' => 'Pe categorii',
+    'col_orders' => 'Comenzi',
+    'by_month' => 'Pe luni',
+    'top_units' => 'Unități cu cele mai mari costuri',
+    'sheet_line_items' => 'Poziții',
+    'col_labour' => 'Manoperă',
+    'no_email' => 'Contul dumneavoastră nu are o adresă de e-mail.',
+    'report_emailed' => 'Raportul de costuri a fost trimis pe e-mail la :email.',
+];

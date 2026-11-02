@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Dumneavoastră',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Inclus: :items',
+    'nightly_excludes' => 'Neinclus: :tax',
+    'sleeps' => 'Capacitate: :count',
+    'studio' => 'Garsonieră',
+    'bedrooms' => '{1}:count dormitor|:count dormitoare|:count de dormitoare',
+    'checkout_title' => 'Finalizare rezervare — :property',
+    'room_just_taken' => 'Camera tocmai a fost rezervată de altcineva — alegeți altă cameră sau alte date.',
+    'payment_received' => 'Plată primită',
+    'payment_received_note' => 'Achitat integral.',
+    'payment_processing' => 'Plată în curs de procesare',
+    'payment_processing_note' => 'Confirmăm plata cu cardul. Reîmprospătați pagina în câteva momente pentru a o vedea înregistrată.',
+    'pay_on_arrival' => 'Plată la sosire',
+    'pay_on_arrival_note' => 'Achitați la proprietate, la check-in.',
+    'confirmed_title' => 'Rezervare confirmată — :property',
+    'kind_room' => 'Cameră',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilă',
+    'kind_dorm' => 'Pat în dormitor',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament cu servicii',
+    'type_apartment_building' => 'Bloc de apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilă',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Pensiune',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Mixtă',
+    'type_portfolio' => 'Portofoliu',
+];

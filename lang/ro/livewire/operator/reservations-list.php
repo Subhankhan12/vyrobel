@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Rezervări',
+    'arrivals_this_month' => 'Sosiri luna aceasta',
+    'arrivals_this_month_sub' => 'cu sosirea în această lună calendaristică · fără anulări și neprezentări',
+    'booked_value' => 'Valoare rezervată · sosiri luna aceasta',
+    'booked_value_sub' => 'facturat pentru sosirile din această lună',
+    'booked_value_sub_multi' => 'facturat pentru sosirile din această lună · afișat pe monedă (niciodată însumat)',
+    'balances_due' => 'Rest de plată · sosiri luna aceasta',
+    'folios_owing' => '{1}:count notă de plată încă neachitată|:count note de plată încă neachitate|:count de note de plată încă neachitate|{0}nimic de plată',
+    'search_placeholder' => 'Căutare după oaspete sau cod de rezervare…',
+    'search_label' => 'Căutare rezervări',
+    'group_booking' => 'Rezervare de grup',
+    'new_reservation' => 'Rezervare nouă',
+    'empty_heading' => 'Încă nu există rezervări',
+    'empty_body' => 'Fiecare rezervare — directă, pentru un oaspete fără rezervare sau importată — apare aici după ce este înregistrată.',
+    'no_match_query' => 'Nicio rezervare nu corespunde căutării „:query”',
+    'no_match_view' => 'Nicio rezervare în această vizualizare',
+    'no_match_hint' => '{1}Încercați un nume de oaspete sau un cod de rezervare. :count rezervare în total.|Încercați un nume de oaspete sau un cod de rezervare. :count rezervări în total.|Încercați un nume de oaspete sau un cod de rezervare. :count de rezervări în total.',
+    'no_match_hint_filter' => '{1}Încercați un nume de oaspete sau un cod de rezervare, ori goliți filtrul. :count rezervare în total.|Încercați un nume de oaspete sau un cod de rezervare, ori goliți filtrul. :count rezervări în total.|Încercați un nume de oaspete sau un cod de rezervare, ori goliți filtrul. :count de rezervări în total.',
+    'clear_search_filters' => 'Golire căutare și filtre',
+    'col_guest' => 'Oaspete',
+    'col_stay' => 'Sejur',
+    'col_unit' => 'Unitate',
+    'col_source' => 'Sursă',
+    'col_stage' => 'Etapă',
+    'col_balance_due' => 'Rest de plată',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count noapte|:count nopți|:count de nopți',
+    'guests' => '{1}:count oaspete|:count oaspeți|:count de oaspeți',
+    'unassigned' => 'Fără unitate',
+    'refunded' => 'Rambursată',
+    'pager_label' => 'rezervări',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Organizația are înregistrări financiare în mod real (:records). Legea poate impune păstrarea lor timp de mai mulți ani, așa că ștergerea lor este în așteptare până la decizia juridică privind durata — până atunci, organizația nu poate fi ștearsă.',
+    'uncounted_cascades' => 'Baza de date leagă înregistrările într-un mod pe care ștergerea nu îl poate număra exact (:links), așa că în confirmare nu s-a putut spune ce se șterge. Nu se poate șterge nimic până când acest lucru nu este remediat.',
+    'stripe_billing_live' => 'Facturarea Stripe este în mod real pentru această organizație. Anulați mai întâi abonamentul în Stripe, altfel acesta va continua să debiteze un client care nu mai există. Dacă abonamentul este deja anulat acolo, raportul Stripe despre anulare nu a fost aplicat aici — rezolvați manual.',
+    'checkout_open_subscription' => 'O pagină de plată Stripe pentru abonamentul organizației a fost deschisă la :opened și poate fi plătită până la :closes. Încercați din nou după ce a fost plătită sau a expirat.',
+    'checkout_open_card' => 'O pagină de plată Stripe pentru plata cu cardul a unui oaspete a fost deschisă la :opened și poate fi plătită până la :closes. Încercați din nou după ce a fost plătită sau a expirat.',
+    'checkout_unreported_subscription' => 'O pagină de plată Stripe în mod real pentru abonamentul organizației a fost deschisă la :opened și închisă la :closed, dar aici nu a fost aplicat niciun raport care să arate dacă a fost plătită. Verificați pagina în tabloul de bord Stripe; dacă a fost plătită, anulați mai întâi acolo ce a declanșat. Stripe reîncearcă timp de până la 3 zile livrarea unui raport pe care nu l-a putut livra — încercați din nou după ce raportul este aplicat. Dacă Stripe a raportat deja, dar raportul nu a putut fi aplicat, rezolvați manual.',
+    'checkout_unreported_card' => 'O pagină de plată Stripe în mod real pentru plata cu cardul a unui oaspete a fost deschisă la :opened și închisă la :closed, dar aici nu a fost aplicat niciun raport care să arate dacă a fost plătită. Verificați pagina în tabloul de bord Stripe; dacă a fost plătită, anulați mai întâi acolo ce a declanșat. Stripe reîncearcă timp de până la 3 zile livrarea unui raport pe care nu l-a putut livra — încercați din nou după ce raportul este aplicat. Dacă Stripe a raportat deja, dar raportul nu a putut fi aplicat, rezolvați manual.',
+    'refund_processing' => 'O rambursare pe card este încă în curs de procesare la Stripe. Așteptați confirmarea de la Stripe, apoi încercați din nou.',
+    'card_payment_open' => 'O plată cu cardul sau o preautorizare pe card este încă deschisă. Lăsați-o mai întâi să se finalizeze sau eliberați-o.',
+    'dispute_open' => 'O plată cu cardul este contestată la Stripe (deschisă: :since). Răspundeți la contestație în Stripe și încercați din nou după ce Stripe raportează contestația ca închisă. Dacă tabloul de bord Stripe o arată deja închisă, raportul nu a ajuns — rezolvați manual.',
+    'payouts_in_transit' => '{1}Un virament către un proprietar este în tranzit la Stripe (început: :since).|:count viramente către proprietari sunt în tranzit la Stripe (început: :since).|:count de viramente către proprietari sunt în tranzit la Stripe (început: :since).',
+    'payout_transit_stale' => 'Durează mai mult decât ar trebui — rezolvați mai întâi situația manual, împreună cu Stripe.',
+    'payout_transit_wait' => 'Așteptați confirmarea de la Stripe, apoi încercați din nou.',
+    'payouts_owed' => '{1}Încă se datorează un virament unui proprietar (în așteptare sau reținut). Efectuați-l mai întâi — ștergerea i-ar lăsa pe proprietari neplătiți, fără nicio evidență a acestui lucru.|Încă se datorează :count viramente proprietarilor (în așteptare sau reținute). Efectuați-le mai întâi — ștergerea i-ar lăsa pe proprietari neplătiți, fără nicio evidență a acestui lucru.|Încă se datorează :count de viramente proprietarilor (în așteptare sau reținute). Efectuați-le mai întâi — ștergerea i-ar lăsa pe proprietari neplătiți, fără nicio evidență a acestui lucru.',
+    'payout_run_running' => 'Un ciclu de viramente este în curs (început: :since).',
+    'looks_stuck' => 'Pare blocat — rezolvați manual înainte de ștergere.',
+    'payout_run_wait' => 'Încercați din nou după ce se încheie.',
+    'webhook_unprocessed' => 'O notificare de la :source pentru această organizație (primită: :received) nu a fost procesată încă.',
+    'webhook_wait' => 'Încercați din nou peste câteva minute.',
+    'cross_tenant_references' => 'O altă organizație are înregistrări care trimit către aceasta (:links). Ștergerea le-ar șterge și pe acelea.',
+    'schema_unreadable' => 'Schema bazei de date nu a putut fi citită integral (tabele negăsite: :tables).',
+    'already_deleted' => 'Această organizație nu mai există — a fost deja ștearsă.',
+    'protected' => 'Această organizație este protejată și nu poate fi ștearsă niciodată.',
+    'not_suspended' => 'Suspendați-o mai întâi — doar o organizație suspendată sau arhivată poate fi ștearsă.',
+    'record_survived' => 'O înregistrare a acestei organizații a rămas după ștergere (în :tables), așa că toate modificările au fost anulate.',
+    'organization_survived' => 'Organizația sau una dintre persoanele ei a rămas după ștergere, așa că toate modificările au fost anulate.',
+    'live_card_payments' => '{1}:count plată cu cardul|:count plăți cu cardul|:count de plăți cu cardul',
+    'live_refunds' => '{1}:count rambursare|:count rambursări|:count de rambursări',
+    'live_payouts' => '{1}:count virament|:count viramente|:count de viramente',
+    'live_stripe_billing' => 'facturare Stripe în mod real, cu facturile ei',
+    'unknown_time' => 'o dată necunoscută',
+    'time_utc' => ':time UTC',
+];

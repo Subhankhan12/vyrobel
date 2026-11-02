@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'administrat cu Vyrobel',
+    'eyebrow' => 'Decont proprietar',
+    'unit_count' => '{1}:count unitate|:count unități|:count de unități',
+    'issued' => 'finalizat pe :date',
+    'prepared_for' => 'Întocmit pentru',
+    'net_payable_to_owner' => 'Net de virat proprietarului',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Grad de ocupare',
+    'nights_sold' => 'Nopți vândute',
+    'avg_nightly_rate' => 'Tarif mediu pe noapte',
+    'breakdown' => 'Detaliere',
+    'item' => 'Articol',
+    'detail' => 'Detalii',
+    'amount' => 'Sumă',
+    'provisional' => '(provizoriu)',
+    'performance_by_unit' => 'Performanță pe unitate',
+    'unit' => 'Unitate',
+    'nights' => 'Nopți',
+    'revenue' => 'Venituri',
+    'total_gross_room_revenue' => 'Total venituri brute din cazare',
+    'callout_heading' => 'Virament.',
+    'settles_to_iban' => 'Suma netă de :amount se virează prin transfer bancar în contul cu IBAN :iban.',
+    'settles' => 'Suma netă de :amount se virează prin transfer bancar.',
+    'fees_with_commission' => 'Comisionul de administrare este de :pct% din veniturile brute din cazare; comisioanele de plată și de platformă sunt refacturate la prețul de cost. Toate sumele sunt în :currency și includ taxele aplicabile colectate în numele dumneavoastră.',
+    'fees' => 'comisioanele de plată și de platformă sunt refacturate la prețul de cost. Toate sumele sunt în :currency și includ taxele aplicabile colectate în numele dumneavoastră.',
+    'fx_note' => 'Convertit din :source la cursul :rate (sursă: :src).',
+    'provisional_note' => 'Unele linii sunt provizorii, în așteptarea reconcilierii cu canalele.',
+    'statement_ref' => 'decont :ref',
+    'sequence_no' => 'nr. :number',
+    'generated' => 'generat pe <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Întrebări? :email',
+];

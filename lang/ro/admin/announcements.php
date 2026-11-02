@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Anunțuri',
+    'subtitle' => 'Un anunț afișat în back office-ul și în portalul proprietarilor fiecărei organizații — sau doar ale organizațiilor alese. Text simplu; nu se trimite niciun e-mail.',
+    'empty_state' => 'Nu a fost publicat niciodată niciun anunț.',
+    'col_announcement' => 'Anunț',
+    'col_to' => 'Către',
+    'col_from_until' => 'De la → până la',
+    'col_state' => 'Stare',
+    'audience_all' => 'Toate organizațiile',
+    'audience_chosen_count' => 'Alese: :number',
+    'no_end' => 'fără sfârșit',
+    'state_withdrawn' => 'Retras',
+    'state_showing' => 'Afișat',
+    'state_scheduled' => 'Programat',
+    'state_ended' => 'Încheiat',
+    'reason_aria' => 'Motiv',
+    'withdraw_placeholder' => 'De ce îl retrageți?',
+    'withdraw_button' => 'Retragere',
+    'publish_heading' => 'Publicare anunț',
+    'title_label' => 'Titlu',
+    'message_label' => 'Mesaj (text simplu)',
+    'kind_label' => 'Tip',
+    'show_from_label' => 'Afișare de la (UTC)',
+    'until_label' => 'Până la (UTC, opțional)',
+    'to_label' => 'Către',
+    'option_every_organisation' => 'Toate organizațiile',
+    'option_chosen_organisations' => 'Organizații alese',
+    'chosen_organisations_label' => 'Organizații alese (pentru opțiunea „Organizații alese”)',
+    'no_organisation_chosen' => 'Nicio organizație aleasă încă',
+    'reason_label' => 'Motiv',
+    'publish_reason_placeholder' => 'De ce se publică acest anunț?',
+    'publish_button' => 'Publicare',
+];

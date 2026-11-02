@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Opțiuni de cazare',
+    'book_direct' => 'Rezervare directă',
+    'nav_stays' => 'Opțiuni de cazare',
+    'my_account' => 'Contul meu',
+    'sign_in' => 'Conectare',
+    'rating_across' => '{1}:average pe baza a :count recenzie|:average pe baza a :count recenzii|:average pe baza a :count de recenzii',
+    'heading' => 'Rezervați direct la<br>:org.',
+    'subheading' => 'Locuri de cazare îngrijite cu atenție, rezervate direct cu gazda — fără comisioane, cel mai bun tarif și o persoană reală cu care vorbiți.',
+    'where' => 'Destinație',
+    'check_in' => 'Sosire',
+    'check_out' => 'Plecare',
+    'adults' => 'Adulți',
+    'children' => 'Copii',
+    'where_to_stay' => 'Unde vă puteți caza',
+    'towns_lede' => '{1}Baza noastră.|:count orașe, fiecare cu ritmul său.|:count de orașe, fiecare cu ritmul său.',
+    'from_price' => 'de la :price',
+    'featured_stays' => 'Opțiuni de cazare recomandate',
+    'featured_lede' => 'Preferatele oaspeților din întreaga colecție.',
+    'per_night' => '/ noapte',
+    'see_dates_for_pricing' => 'Alegeți datele pentru prețuri',
+    'browse_by_what_matters' => 'Căutați după ce contează',
+    'why_book_direct' => 'De ce să rezervați direct',
+    'recent_guests' => 'Oaspeți recenți',
+    'rating_short' => '{1}:average · :count recenzie|:average · :count recenzii|:average · :count de recenzii',
+    'stars_aria' => ':rating din 5 stele',
+    'review_quote' => '„:body”',
+    'no_reviews_yet' => 'Încă nu există recenzii — fiți primul care se cazează aici și își împărtășește experiența.',
+    'cta_heading' => 'Găsiți-vă locul',
+    'cta_sub' => 'Date reale, prețuri actualizate, confirmare instantanee.',
+    'browse_all_stays' => 'Toate opțiunile de cazare',
+];

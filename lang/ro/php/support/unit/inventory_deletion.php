@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count rezervare|:count rezervări|:count de rezervări',
+    'room_moves' => '{1}:count mutare de cameră|:count mutări de cameră|:count de mutări de cameră',
+    'cleaning_tasks' => '{1}:count sarcină de curățenie|:count sarcini de curățenie|:count de sarcini de curățenie',
+    'work_orders' => '{1}:count comandă de lucru|:count comenzi de lucru|:count de comenzi de lucru',
+    'status_changes' => '{1}:count schimbare de status|:count schimbări de status|:count de schimbări de status',
+    'blocks' => '{1}:count blocare|:count blocări|:count de blocări',
+    'owner_agreements' => '{1}:count contract de administrare|:count contracte de administrare|:count de contracte de administrare',
+    'owner_statement_lines' => '{1}:count linie de decont|:count linii de decont|:count de linii de decont',
+    'owner_expenses' => '{1}:count cheltuială de proprietar|:count cheltuieli de proprietar|:count de cheltuieli de proprietar',
+    'reviews' => '{1}:count recenzie|:count recenzii|:count de recenzii',
+    'owner_requests' => '{1}:count solicitare de proprietar|:count solicitări de proprietar|:count de solicitări de proprietar',
+    'notes' => '{1}:count notă|:count note|:count de note',
+    'documents' => '{1}:count document|:count documente|:count de documente',
+    'files' => '{1}:count fișier|:count fișiere|:count de fișiere',
+    'units' => '{1}:count unitate|:count unități|:count de unități',
+    'rate_proposals' => '{1}:count propunere tarifară|:count propuneri tarifare|:count de propuneri tarifare',
+    'overbooking_records' => '{1}:count înregistrare de suprarezervare|:count înregistrări de suprarezervare|:count de înregistrări de suprarezervare',
+    'guest_waitlist_entries' => '{1}:count înscriere pe lista de așteptare|:count înscrieri pe lista de așteptare|:count de înscrieri pe lista de așteptare',
+    'guest_wishlist_saves' => '{1}:count adăugare la favorite|:count adăugări la favorite|:count de adăugări la favorite',
+    'derived_room_types' => '{1}:count tip de cameră derivat din acesta|:count tipuri de camere derivate din acesta|:count de tipuri de camere derivate din acesta',
+    'derived_rate_plans' => '{1}:count plan tarifar al altui tip de cameră, derivat din acesta|:count planuri tarifare ale altor tipuri de camere, derivate din acesta|:count de planuri tarifare ale altor tipuri de camere, derivate din acesta',
+    'corporate_default_rates' => '{1}:count cont de companie care îl folosește ca tarif implicit|:count conturi de companie care îl folosesc ca tarif implicit|:count de conturi de companie care îl folosesc ca tarif implicit',
+    'channel_connections' => '{1}:count conexiune de canal|:count conexiuni de canal|:count de conexiuni de canal',
+    'an_owner' => 'un proprietar',
+    'pending_owner_invitation' => 'o invitație de proprietar în așteptare',
+    'list_and' => ':items și :last',
+    'kind_rooms' => 'camere',
+    'kind_apartments' => 'apartamente',
+    'kind_villas' => 'vile',
+    'kind_dorm_beds' => 'paturi în dormitor',
+];

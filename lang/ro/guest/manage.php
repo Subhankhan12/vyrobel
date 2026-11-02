@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Gestionare :reference',
+    'back_to_booking' => '← Înapoi la rezervare',
+    'heading' => 'Gestionați rezervarea',
+    'subheading' => ':property · :check_in → :check_out. Modificările sunt confirmate de proprietate — vă trimitem un mesaj imediat ce sunt confirmate.',
+    'pending_requests' => 'Solicitări în așteptare',
+    'pending_badge' => 'În așteptare',
+    'pending_note' => 'Încă nu s-a schimbat nimic în rezervare — o solicitare este confirmată mai întâi de proprietate.',
+    'pick_new_dates' => 'Alegeți date noi',
+    'currently' => 'În prezent: :check_in → :check_out. Alegeți date noi pentru a vedea diferența de preț, apoi solicitați modificarea.',
+    'new_check_in' => 'Data nouă de sosire',
+    'new_check_out' => 'Data nouă de plecare',
+    'see_price_difference' => 'Afișare diferență de preț',
+    'new_stay' => 'Sejur nou',
+    'current' => 'Actual',
+    'difference' => 'Diferență',
+    'estimate_note' => 'Doar o estimare — sub rezerva confirmării de către proprietate. Orice plată se face după confirmare.',
+    'unpriced_note' => 'Pentru aceste date nu există încă un preț publicat — solicitați modificarea, iar proprietatea va confirma prețul.',
+    'request_date_change' => 'Solicitare modificare date',
+    'add_to_your_stay' => 'Adăugare la sejur',
+    'add_to_your_stay_sub' => 'Adăugați micul dejun, transferuri și altele — totul se trece pe rezervare la confirmare.',
+    'browse_extras' => 'Vizualizare suplimente',
+    'cancellation_policy' => 'Politică de anulare',
+    'free_until' => 'Anulare gratuită până la <strong>:date</strong> — dacă solicitați anularea înainte de această dată, primiți rambursarea integrală.',
+    'policy_by_property' => 'Proprietatea confirmă anularea și gestionează orice rambursare conform politicii sale.',
+    'cancel_confirm' => 'Trimiteți o solicitare de anulare pentru această rezervare? Proprietatea o analizează și gestionează orice rambursare conform politicii sale.',
+    'reason' => 'Motiv',
+    'choose_reason' => 'Alegeți un motiv…',
+    'request_cancellation' => 'Solicitare anulare',
+    'closed_heading' => 'Această rezervare s-a încheiat',
+    'closed_body' => 'Nu mai este nimic de modificat — dar datele, detaliile sejurului și tot ce ați plătit rămân aici oricând aveți nevoie de ele.',
+];

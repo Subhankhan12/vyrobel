@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ro translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Preferințe de notificare',
+    'subtitle' => 'Cum vă contactează Vyrobel',
+    'breadcrumb_label' => 'Cale de navigare',
+    'crumb_settings' => 'Setări',
+    'crumb_notifications' => 'Notificări',
+    'channel_email' => 'E-mail',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Nicio adresă de e-mail înregistrată',
+    'email_verified_title' => 'Adresa de e-mail de conectare este verificată',
+    'email_verified' => 'Verificată',
+    'push_not_set_up_title' => 'Notificările push nu sunt încă configurate',
+    'not_set_up_tag' => 'neconfigurat',
+    'push_not_available' => 'Notificările push în browser și pe dispozitiv nu sunt încă disponibile',
+    'channel_off' => 'Dezactivat',
+    'sms_not_set_up_title' => 'SMS-urile nu sunt încă configurate',
+    'sms_no_provider' => 'Încă nu este conectat niciun furnizor de SMS',
+    'notify_me_when' => 'Notificați-mă când',
+    'always_on' => 'Mereu activ',
+    'email_always_on_sr' => 'E-mail mereu activ pentru :event',
+    'email_me_when_aria' => 'Trimiteți-mi un e-mail când: :event',
+    'push_not_set_up_sr' => 'Notificări push neconfigurate',
+    'sms_not_set_up_sr' => 'SMS neconfigurat',
+    'quiet_hours' => 'Ore de liniște',
+    'quiet_hours_help' => 'E-mailurile de rutină sunt reținute în acest interval — alertele urgente de securitate ajung întotdeauna; notificările din aplicație nu sunt afectate.',
+    'quiet_from' => 'De la',
+    'quiet_to' => 'Până la',
+    'digest_heading' => 'Rezumat zilnic prin e-mail',
+    'digest_help' => 'Un rezumat al zilei, trimis dimineața. <span class="vy-np-soon">încă nu se trimite</span> — preferința este salvată pentru momentul în care rezumatul va fi lansat.',
+    'digest_off' => 'Dezactivat',
+    'digest_morning' => 'Dimineața · 08:00',
+];
