@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Настройки за известията',
+    'subtitle' => 'Как Vyrobel стига до вас',
+    'breadcrumb_label' => 'Навигационна пътека',
+    'crumb_settings' => 'Настройки',
+    'crumb_notifications' => 'Известия',
+    'channel_email' => 'Имейл',
+    'channel_push' => 'Насочени известия',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Няма имейл в профила',
+    'email_verified_title' => 'Имейлът ви за вход е потвърден',
+    'email_verified' => 'Потвърден',
+    'push_not_set_up_title' => 'Насочените известия още не са настроени',
+    'not_set_up_tag' => 'не е настроено',
+    'push_not_available' => 'Насочените известия в браузъра и на устройството още не са налични',
+    'channel_off' => 'Изключено',
+    'sms_not_set_up_title' => 'SMS известията още не са настроени',
+    'sms_no_provider' => 'Още няма свързан доставчик на SMS',
+    'notify_me_when' => 'Уведомявайте ме, когато',
+    'always_on' => 'Винаги включено',
+    'email_always_on_sr' => 'Имейлът е винаги включен за: :event',
+    'email_me_when_aria' => 'Имейл, когато: :event',
+    'push_not_set_up_sr' => 'Насочените известия не са настроени',
+    'sms_not_set_up_sr' => 'SMS известията не са настроени',
+    'quiet_hours' => 'Тихи часове',
+    'quiet_hours_help' => 'Задържайте рутинните имейли между тези часове – спешните предупреждения за сигурност винаги стигат до вас; известията в приложението не се променят.',
+    'quiet_from' => 'От',
+    'quiet_to' => 'До',
+    'digest_heading' => 'Ежедневно обобщение по имейл',
+    'digest_help' => 'Сутрешно обобщение на деня. <span class="vy-np-soon">още не се изпраща</span> – настройката се запазва за момента, в който обобщението започне да се изпраща.',
+    'digest_off' => 'Изключено',
+    'digest_morning' => 'Сутрин · 08:00',
+];

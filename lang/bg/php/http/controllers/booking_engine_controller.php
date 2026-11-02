@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Вие',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Включено: :items',
+    'nightly_excludes' => 'Без: :tax',
+    'sleeps' => 'Капацитет: :count',
+    'studio' => 'Студио',
+    'bedrooms' => '{1}:count спалня|[0,*]:count спални',
+    'checkout_title' => 'Завършване на резервацията – :property',
+    'room_just_taken' => 'Тази стая току-що беше резервирана от друг гост – изберете друга стая или други дати.',
+    'payment_received' => 'Плащането е получено',
+    'payment_received_note' => 'Платено изцяло.',
+    'payment_processing' => 'Плащането се обработва',
+    'payment_processing_note' => 'Потвърждаваме плащането ви с карта. След малко опреснете страницата, за да го видите отразено.',
+    'pay_on_arrival' => 'Плащане при пристигане',
+    'pay_on_arrival_note' => 'Уредете сумата в обекта при настаняване.',
+    'confirmed_title' => 'Резервацията е потвърдена – :property',
+    'kind_room' => 'Стая',
+    'kind_apartment' => 'Апартамент',
+    'kind_villa' => 'Вила',
+    'kind_dorm' => 'Общо помещение',
+    'type_hotel' => 'Хотел',
+    'type_aparthotel' => 'Апартхотел',
+    'type_serviced_apartment' => 'Апартамент с обслужване',
+    'type_apartment_building' => 'Сграда с апартаменти',
+    'type_apartment' => 'Апартамент',
+    'type_villa' => 'Вила',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Къща за гости',
+    'type_resort' => 'Курортен комплекс',
+    'type_mixed' => 'Смесен',
+    'type_portfolio' => 'Портфолио',
+];

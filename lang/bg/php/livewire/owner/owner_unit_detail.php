@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Гост',
+    'nights' => '{1}:count нощувка|[0,*]:count нощувки',
+    'block_reason_none' => 'Блокирано',
+    'block_reason_maintenance' => 'Ремонт',
+    'block_reason_owner' => 'Собственик',
+    'block_reason_manual' => 'Ръчно',
+    'block_reason_overbooking_protection' => 'Защита от свръхрезервации',
+    'cleaning_departure' => 'Почистване след напускане',
+    'cleaning_stayover' => 'Обслужване по време на престоя',
+    'cleaning_deep' => 'Основно почистване',
+    'cleaning_arrival_prep' => 'Подготовка за пристигане',
+    'cleaning_status_pending' => 'Планирано',
+    'cleaning_status_in_progress' => 'Почиства се',
+    'cleaning_status_clean' => 'Почистено',
+    'cleaning_status_inspected' => 'Проверено',
+    'kind_room' => 'Стая',
+    'kind_apartment' => 'Апартамент',
+    'kind_villa' => 'Вила',
+    'kind_dorm_bed' => 'Легло в общо помещение',
+    'condition_out_of_order' => 'Неизправна',
+    'condition_out_of_service' => 'В ремонт',
+    'status_enquiry' => 'Запитване',
+    'status_tentative' => 'Предварителна',
+    'status_confirmed' => 'Потвърдена',
+    'status_checked_in' => 'Настанена',
+    'status_checked_out' => 'Напуснала',
+    'status_cancelled' => 'Анулирана',
+    'status_no_show' => 'Неявяване',
+    'terms_portfolio' => 'Условия за цялото портфолио',
+    'terms_unit' => 'Условия за тази единица',
+];

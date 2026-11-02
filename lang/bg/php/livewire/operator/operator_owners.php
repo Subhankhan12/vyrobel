@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Готови за изплащане',
+    'chip_hold' => 'Спрени',
+    'chip_review' => 'За преглед',
+    'chip_paused' => 'Изплащанията са на пауза',
+    'chip_invited' => 'Поканени',
+    'sorted_name_asc' => 'по собственик, А–Я',
+    'sorted_name_desc' => 'по собственик, Я–А',
+    'sorted_units_desc' => 'първо с най-много единици',
+    'sorted_units_asc' => 'първо с най-малко единици',
+    'sorted_net_desc' => 'първо с най-голяма сума за изплащане',
+    'sorted_net_asc' => 'първо с най-малка сума за изплащане',
+    'sorted_status_asc' => 'първо изискващите внимание',
+    'sorted_status_desc' => 'последно изискващите внимание',
+    'kpi_invited' => 'Поканени: :number',
+    'kpi_units' => '{1}:count единица|[0,*]:count единици',
+    'kpi_owners_ready' => '{1}:count собственик е готов|[0,*]:count собственици са готови',
+    'kpi_paused_not_counted' => 'на пауза, без да се броят: :number',
+    'kpi_hold_none' => 'няма чакащи',
+    'kpi_hold_waiting' => 'чакат: :amounts',
+    'kpi_review_sub' => 'собственици с редове, които каналът за резервации не е потвърдил: :number',
+    'schedule' => 'работен ден № :day от месеца',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'Управител на обект',
+    'role_accountant' => 'Счетоводител',
+    'role_owner' => 'Собственик',
+    'another_owner' => 'друг собственик',
+];

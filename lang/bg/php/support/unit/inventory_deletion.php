@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count резервация|[0,*]:count резервации',
+    'room_moves' => '{1}:count преместване|[0,*]:count премествания',
+    'cleaning_tasks' => '{1}:count задача за почистване|[0,*]:count задачи за почистване',
+    'work_orders' => '{1}:count работна поръчка|[0,*]:count работни поръчки',
+    'status_changes' => '{1}:count промяна на състоянието|[0,*]:count промени на състоянието',
+    'blocks' => '{1}:count блокиране|[0,*]:count блокирания',
+    'owner_agreements' => '{1}:count договор за управление|[0,*]:count договора за управление',
+    'owner_statement_lines' => '{1}:count ред в отчет на собственик|[0,*]:count реда в отчети на собственици',
+    'owner_expenses' => '{1}:count разход на собственик|[0,*]:count разхода на собственици',
+    'reviews' => '{1}:count отзив|[0,*]:count отзива',
+    'owner_requests' => '{1}:count заявка от собственик|[0,*]:count заявки от собственици',
+    'notes' => '{1}:count бележка|[0,*]:count бележки',
+    'documents' => '{1}:count документ|[0,*]:count документа',
+    'files' => '{1}:count файл|[0,*]:count файла',
+    'units' => '{1}:count единица|[0,*]:count единици',
+    'rate_proposals' => '{1}:count предложение за цена|[0,*]:count предложения за цена',
+    'overbooking_records' => '{1}:count запис за свръхрезервация|[0,*]:count записа за свръхрезервации',
+    'guest_waitlist_entries' => '{1}:count запис на гост в списък с чакащи|[0,*]:count записа на гости в списък с чакащи',
+    'guest_wishlist_saves' => '{1}:count добавяне в любими от гост|[0,*]:count добавяния в любими от гости',
+    'derived_room_types' => '{1}:count тип настаняване, създаден на негова основа|[0,*]:count типа настаняване, създадени на негова основа',
+    'derived_rate_plans' => '{1}:count ценови план другаде, изчислен на негова база|[0,*]:count ценови плана другаде, изчислени на негова база',
+    'corporate_default_rates' => '{1}:count цена по подразбиране на фирмена сметка|[0,*]:count цени по подразбиране на фирмени сметки',
+    'channel_connections' => '{1}:count връзка с канал|[0,*]:count връзки с канали',
+    'an_owner' => 'собственик',
+    'pending_owner_invitation' => 'чакаща покана за собственик',
+    'list_and' => ':items и :last',
+    'kind_rooms' => 'стаи',
+    'kind_apartments' => 'апартаменти',
+    'kind_villas' => 'вили',
+    'kind_dorm_beds' => 'легла в общо помещение',
+];

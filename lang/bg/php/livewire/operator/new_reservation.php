@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Престой',
+    'step_guest' => 'Гост',
+    'step_extras' => 'Допълнения',
+    'step_confirm' => 'Потвърждаване',
+    'source_direct' => 'Директно',
+    'source_walk_in' => 'Без резервация',
+    'source_corporate' => 'Корпоративна',
+    'source_agent' => 'Туристическа агенция',
+    'the_guest' => 'Гостът',
+    'a_night' => ':amount на нощувка',
+    'a_night_range' => ':low–:high / нощувка',
+    'dates_label' => '{1}:from → :to · :count нощувка|[0,*]:from → :to · :count нощувки',
+    'restrict_min_stay' => '{1}При пристигане на :date престоят трябва да е поне :count нощувка|[0,*]При пристигане на :date престоят трябва да е поне :count нощувки',
+    'restrict_max_stay' => '{1}При пристигане на :date престоят може да е най-много :count нощувка|[0,*]При пристигане на :date престоят може да е най-много :count нощувки',
+    'restrict_no_arrivals' => 'Без пристигания на :date',
+    'restrict_no_departures' => 'Без заминавания на :date',
+    'restrict_stop_sell' => 'Датата :date е затворена за нови резервации',
+    'restrict_other' => ':restriction на :date',
+    'arrival_mail_off' => 'Vyrobel още не изпраща имейли – предайте указанията и кода за вратата на госта лично.',
+    'arrival_pre_arrival_off' => 'Имейлът преди пристигане е изключен за вашите обекти – предайте указанията и кода за вратата на госта лично.',
+    'arrival_too_soon' => 'Този престой започва твърде скоро за имейла преди пристигане (дни преди настаняването: :count) – предайте указанията и кода за вратата на госта лично.',
+    'arrival_by_email' => 'Указанията и кодът за вратата (когато единицата има такъв) стигат до госта по имейл (дни преди настаняването: :count), ако има имейл адрес. Кодът за вратата никога не се показва тук.',
+    'cancel_not_free' => 'Не е безплатно за този престой – срокът изтече на :date',
+    'cancel_free_until_check_in' => 'Безплатно до настаняването',
+    'cancel_free_until_date' => 'Безплатно до :date',
+    'cancel_free_until_days' => '{1}Безплатно до :count ден преди настаняването|[0,*]Безплатно до :count дни преди настаняването',
+    'min_stay_none' => 'Няма минимум',
+    'min_stay_nights' => '{1}:count нощувка|[0,*]:count нощувки',
+    'guest_no_name' => 'Гост',
+    'no_stays_yet' => 'Все още няма престои',
+];

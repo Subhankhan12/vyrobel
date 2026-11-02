@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Оператор/собственик',
+    'realm_guest' => 'Гост',
+    'realm_admin' => 'Администратор на платформата',
+    'event_login' => 'Вход',
+    'event_failed' => 'Неуспешен вход',
+    'event_lockout' => 'Заключване',
+    'subject_user' => 'Потребител',
+    'subject_guest' => 'Гост',
+    'subject_platform_admin' => 'Администратор на платформата',
+    'subject_unknown' => 'Неизвестно',
+    'actor_user' => 'Потребител',
+    'actor_agent' => 'Агент',
+    'actor_system' => 'Система',
+    'page_title' => 'Сигурност и активност',
+    'page_subtitle' => 'Активност при вход и събития в акаунтите в цялата платформа – пазят се ограничен срок (дни: :days), след което се изтриват.',
+    'kpi_failures' => 'Неуспешни входове / заключвания · 24 ч.',
+    'kpi_failures_help' => 'Повтарящите се неуспешни опити може да означават проучване на системата.',
+    'privacy' => 'Поверителност',
+    'privacy_body' => 'Активността при вход (вкл. IP адреса) се записва само като <strong style="color: var(--ad-ink);">сигнал за сигурност</strong> – за откриване на подозрителни входове и за поддръжка, никога за общо проследяване. Пази се ограничен срок (дни: :days), след което се изтрива автоматично; достъп има само тази конзола.',
+    'recent_sign_ins' => 'Последна активност при вход',
+    'col_event' => 'Събитие',
+    'col_realm' => 'Зона',
+    'col_account' => 'Акаунт',
+    'col_ip' => 'IP',
+    'col_when' => 'Кога',
+    'no_sign_ins' => 'Все още няма записана активност при вход.',
+    'recent_account_events' => 'Последни събития в акаунтите <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· при всички клиенти</span>',
+    'col_customer' => 'Клиент',
+    'col_actor' => 'Извършител',
+    'no_account_events' => 'Все още няма събития в акаунтите.',
+];

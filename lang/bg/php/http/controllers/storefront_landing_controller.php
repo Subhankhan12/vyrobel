@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Нашите места за настаняване',
+    'properties_count' => 'Обекти: :count',
+    'stays_count' => '{1}:count място за настаняване|[0,*]:count места за настаняване',
+    'stays_sleeps' => ':stays · капацитет: :max',
+    'stays_sleeps_range' => ':stays · капацитет: :min–:max',
+    'perk_free_cancel_days' => '{1}Пълно възстановяване на сумата до :count ден преди пристигането.|[0,*]Пълно възстановяване на сумата до :count дни преди пристигането.',
+    'perk_free_cancel_window' => 'Пълно възстановяване на сумата в рамките на срока за анулиране.',
+    'perk_no_fees' => 'Без такси за резервация',
+    'perk_no_fees_sub' => 'Цената, която виждате, е цената, която плащате.',
+    'perk_best_rate' => 'Най-добра цена директно',
+    'perk_best_rate_sub' => 'Резервирайте директно за най-добрата ни цена – без посредници.',
+    'perk_free_cancel' => 'Безплатно анулиране',
+    'perk_host_support' => 'Директна връзка с домакина',
+    'perk_host_support_sub' => 'Пишете на реален човек по вашата резервация.',
+    'kind_room' => 'Стая',
+    'kind_apartment' => 'Апартамент',
+    'kind_villa' => 'Вила',
+    'kind_dorm' => 'Общо помещение',
+    'type_hotel' => 'Хотел',
+    'type_aparthotel' => 'Апартхотел',
+    'type_serviced_apartment' => 'Апартамент с обслужване',
+    'type_apartment_building' => 'Сграда с апартаменти',
+    'type_apartment' => 'Апартамент',
+    'type_villa' => 'Вила',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Къща за гости',
+    'type_resort' => 'Курортен комплекс',
+    'type_mixed' => 'Смесен',
+    'type_portfolio' => 'Портфолио',
+];

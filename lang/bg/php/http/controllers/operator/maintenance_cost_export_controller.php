@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Суми',
+    'csv_amounts_note' => 'основни парични единици, десетична точка, без разделител за хилядите',
+    'col_date' => 'Дата',
+    'col_work_order' => 'Работна поръчка',
+    'col_unit' => 'Единица',
+    'col_category' => 'Категория',
+    'col_labor' => 'Труд',
+    'col_parts' => 'Части',
+    'col_total' => 'Общо',
+    'col_currency' => 'Валута',
+    'total_row' => 'Общо',
+    'sheet_summary' => 'Обобщение',
+    'col_measure' => 'Показател',
+    'col_value' => 'Стойност',
+    'total_spend' => 'Общи разходи',
+    'measure_labour' => 'Труд',
+    'measure_parts' => 'Части',
+    'orders_closed' => 'Завършени поръчки',
+    'owner_billed' => 'За сметка на собственика',
+    'operator_borne' => 'За сметка на организацията',
+    'parts_on_order' => 'Поръчани части',
+    'average_per_order' => 'Средно на поръчка',
+    'by_category' => 'По категории',
+    'col_orders' => 'Поръчки',
+    'by_month' => 'По месеци',
+    'top_units' => 'Водещи единици',
+    'sheet_line_items' => 'Редове',
+    'col_labour' => 'Труд',
+    'no_email' => 'Акаунтът ви няма имейл адрес.',
+    'report_emailed' => 'Справката за разходите е изпратена по имейл до :email.',
+];

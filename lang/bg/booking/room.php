@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Всички стаи',
+    'kind_sleeps_up_to' => ':kind · гости: до :capacity',
+    'reviews_count' => '{1}:count отзив|[0,*]:count отзива',
+    'no_reviews_yet' => 'Все още няма отзиви',
+    'save_to_wishlist' => 'Добавяне в любими',
+    'sleeps' => 'Капацитет',
+    'adults' => 'Възрастни',
+    'children' => 'Деца',
+    'bedrooms' => 'Спални',
+    'standard_occupancy' => 'Стандартен брой гости',
+    'amenities' => 'Удобства',
+    'not_yet_listed' => 'Все още не са посочени',
+    'amenities_not_published' => 'Удобствата за тази стая все още не са публикувани.',
+    'guest_reviews' => 'Отзиви от гости',
+    'stars_aria' => ':rating от 5 звезди',
+    'response_label' => 'Отговор:',
+    'no_reviews_be_first' => 'Все още няма отзиви – отседнете първи и споделете впечатленията си.',
+    'coming_soon' => 'Очаквайте скоро',
+    'description_soon' => 'Пълното описание и картата с местоположението предстоят – характеристиките, наличността, цената и отзивите по-горе са реални.',
+    'per_night' => '/ нощувка',
+    'per_night_with_note' => '/ нощувка · :note',
+    'total_nights' => '{1}Общо: :amount · :count нощувка|[0,*]Общо: :amount · :count нощувки',
+    'left_for_your_dates' => 'Остават за вашите дати: :count',
+    'book_this_room' => 'Резервиране на тази стая',
+    'nothing_reserved' => 'Нищо не се резервира, докато не потвърдите при завършването на резервацията.',
+    'your_dates' => 'Вашите дати',
+    'not_available' => 'Няма наличност за тези дати – опитайте с други дати.',
+    'check_in' => 'Пристигане',
+    'check_out' => 'Заминаване',
+    'check_dates' => 'Проверка на датите',
+    'check_availability' => 'Проверка на наличността и цената',
+    'see_price' => 'Показване на цената',
+];

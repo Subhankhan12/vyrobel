@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'управлява се с Vyrobel',
+    'eyebrow' => 'Отчет на собственика',
+    'unit_count' => '{1}:count единица|[0,*]:count единици',
+    'issued' => 'издадено: :date',
+    'prepared_for' => 'Изготвено за',
+    'net_payable_to_owner' => 'За изплащане към собственика',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Заетост',
+    'nights_sold' => 'Продадени нощувки',
+    'avg_nightly_rate' => 'Средна цена за нощувка',
+    'breakdown' => 'Разбивка',
+    'item' => 'Позиция',
+    'detail' => 'Подробности',
+    'amount' => 'Сума',
+    'provisional' => '(предварителен)',
+    'performance_by_unit' => 'Ефективност по единици',
+    'unit' => 'Единица',
+    'nights' => 'Нощувки',
+    'revenue' => 'Приход',
+    'total_gross_room_revenue' => 'Общ брутен приход от нощувки',
+    'callout_heading' => 'Изплащане.',
+    'settles_to_iban' => 'Нетната сума от :amount се превежда по банков път към IBAN :iban.',
+    'settles' => 'Нетната сума от :amount се превежда по банков път.',
+    'fees_with_commission' => 'Комисионната за управление се начислява в размер на :pct% от брутния приход от нощувки; таксите за плащания и платформата се прехвърлят по себестойност. Всички суми са в :currency и включват приложимите данъци, събрани от ваше име.',
+    'fees' => 'таксите за плащания и платформата се прехвърлят по себестойност. Всички суми са в :currency и включват приложимите данъци, събрани от ваше име.',
+    'fx_note' => 'Преобразувано от :source по курс :rate (източник: :src).',
+    'provisional_note' => 'Някои редове са предварителни – чакат съпоставяне с каналите.',
+    'statement_ref' => 'отчет :ref',
+    'sequence_no' => '№ :number',
+    'generated' => 'изготвено: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Въпроси? :email',
+];

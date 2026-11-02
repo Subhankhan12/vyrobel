@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Обявления',
+    'subtitle' => 'Известие в панела за персонала и в портала на собствениците на всяка организация – или само на избрани. Обикновен текст; не се изпраща имейл.',
+    'empty_state' => 'Досега не е публикувано нито едно обявление.',
+    'col_announcement' => 'Обявление',
+    'col_to' => 'До',
+    'col_from_until' => 'От → до',
+    'col_state' => 'Състояние',
+    'audience_all' => 'Всички организации',
+    'audience_chosen_count' => 'Избрани: :number',
+    'no_end' => 'без край',
+    'state_withdrawn' => 'Оттеглено',
+    'state_showing' => 'Показва се',
+    'state_scheduled' => 'Насрочено',
+    'state_ended' => 'Приключило',
+    'reason_aria' => 'Причина',
+    'withdraw_placeholder' => 'Защо се оттегля?',
+    'withdraw_button' => 'Оттегляне',
+    'publish_heading' => 'Публикуване на обявление',
+    'title_label' => 'Заглавие',
+    'message_label' => 'Съобщение (обикновен текст)',
+    'kind_label' => 'Вид',
+    'show_from_label' => 'Показване от (UTC)',
+    'until_label' => 'До (UTC, по избор)',
+    'to_label' => 'До',
+    'option_every_organisation' => 'Всички организации',
+    'option_chosen_organisations' => 'Избрани организации',
+    'chosen_organisations_label' => 'Избрани организации (при „Избрани“)',
+    'no_organisation_chosen' => 'Все още не е избрана организация',
+    'reason_label' => 'Причина',
+    'publish_reason_placeholder' => 'Защо се публикува?',
+    'publish_button' => 'Публикуване',
+];

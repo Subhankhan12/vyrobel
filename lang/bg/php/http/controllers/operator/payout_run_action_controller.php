@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Механизмът за изплащане е изключен (PAYOUT_ENGINE_ENABLED). Включете го, преди да стартирате изплащане.',
+    'nothing_to_run' => 'Няма какво да се изпълни – никой собственик тук няма отчет за изплащане или задържано изплащане:paused_note.',
+    'run_complete' => 'Груповото изплащане е изпълнено (режим „:mode“) – създадени: :created · изплатени: :paid · задържани: :held:paused_note.',
+    'create_failed' => 'Изплащането не можа да бъде създадено – :reason',
+    'already_has_payout' => 'Този отчет вече има изплащане – не е създадено нищо.',
+    'one_payout_created' => 'Създадено е 1 изплащане.',
+    'pay_failed' => 'Не можа да се изплати – :reason',
+    'one_payout_paid' => '1 изплащане е отбелязано като изплатено.',
+    'payout_failed_reason' => 'Изплащането е неуспешно – :reason',
+    'payout_failed_no_reason' => 'Изплащането е неуспешно – каналът за изплащане не посочи причина.',
+    'create_all_failed' => 'Изплащанията не можаха да бъдат създадени – :reason',
+    'no_payout_created_paused' => 'Не е създадено изплащане:paused_note – възобновете изплащанията на страницата на собственика.',
+    'nothing_ready' => 'Нищо не е готово за изплащане – няма приключен отчет с положителна сума за изплащане:paused_note.',
+    'no_new_payouts' => 'Няма нови изплащания – всеки готов отчет вече има изплащане:paused_note.',
+    'payouts_created' => '{1}Създадено е :count изплащане:paused_note.|[0,*]Създадени са :count изплащания:paused_note.',
+    'some_not_created' => ':message Някои не можаха да бъдат създадени – :reason',
+    'nothing_paid_paused' => 'Нищо не е изплатено:paused_note – възобновете изплащанията на страницата на собственика.',
+    'no_pending_payouts' => 'Няма изплащания в изчакване, които да бъдат изплатени.',
+    'paid_only' => '{1}:count изплащане е отбелязано като изплатено:paused_note.|[0,*]:count изплащания са отбелязани като изплатени:paused_note.',
+    'failed_only' => '[0,*]Неуспешни по канала за изплащане: :count:paused_note.',
+    'paid_and_failed' => '{1}:count изплащане е отбелязано като изплатено · неуспешни по канала за изплащане: :failed:paused_note.|[0,*]:count изплащания са отбелязани като изплатени · неуспешни по канала за изплащане: :failed:paused_note.',
+    'some_not_attempted' => ':message За някои не можа да бъде направен опит – :reason',
+    'nothing_payable_negative' => 'Няма какво да се изплати – нетният приход по този отчет е отрицателен, затова салдото се пренася и се приспада от следващия отчет на собственика.',
+    'nothing_payable_zero' => 'Няма какво да се изплати – нетният приход по този отчет е нула, затова не се дължи нищо.',
+    'workspace_paused_until' => 'Организацията е на пауза – изплащанията са само за четене до :date.',
+    'workspace_paused_for_now' => 'Организацията е на пауза – изплащанията засега са само за четене.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}пропуснат е :count собственик на пауза|[0,*]пропуснати са :count собственици на пауза',
+];

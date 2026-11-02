@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Бележка',
+    'kind_progress' => 'Напредък',
+    'kind_part' => 'Поръчана част',
+    'elapsed_minutes' => ':minutes мин',
+    'elapsed_hours' => ':hours ч. :minutes мин',
+    'elapsed_days' => ':days дн. :hours ч.',
+    'hours_short' => ':hours ч.',
+    'timeline_opened' => 'Подадена',
+    'timeline_assigned_to' => 'Възложена на :name',
+    'a_technician' => 'техник',
+    'timeline_unassigned' => 'Без техник',
+    'timeline_started' => 'Работата е започната',
+    'timeline_resolved' => 'Завършена',
+    'timeline_cancelled' => 'Отменена',
+    'timeline_parts_updated' => 'Обновени части',
+    'timeline_cost_corrected' => 'Коригиран разход',
+    'timeline_updated' => 'Редактирани данни',
+    'note_progress' => 'Актуализация на напредъка',
+    'note_part' => 'Поръчана част',
+    'note_added' => 'Добавена бележка',
+    'a_team_member' => 'Член на екипа',
+    'system' => 'Система',
+    'photo_alt' => 'Снимка от ремонта',
+    'the_owner' => 'собственика',
+    'load_none' => 'Няма отворени работни поръчки',
+    'load_open' => 'Отворени: :open',
+    'load_open_urgent' => 'Отворени: :open · спешни: :urgent',
+    'impact_arrivals' => '{1}:count пристигане тази вечер има нужда от стая|[0,*]:count пристигания тази вечер имат нужда от стая',
+    'impact_bookings' => '{1}:count резервация трябва да бъде преместена|[0,*]:count резервации трябва да бъдат преместени',
+    'impact_none' => 'Няма засегнати резервации',
+];

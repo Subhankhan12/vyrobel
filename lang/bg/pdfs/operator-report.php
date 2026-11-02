@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Справки',
+    'arrivals_in' => 'Пристигания: :period',
+    'arrivals_count' => '{1}:count пристигане|[0,*]:count пристигания',
+    'pp_delta' => ':delta пр. п.',
+    'occupancy' => 'Заетост',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Брутен приход',
+    'basis_note' => 'Заетост · ADR · RevPAR са на база нощувките от престоя, спрямо същия период миналата година, където има данни за предходната година. Приходите по-долу са на база фолио (по дата на пристигане).',
+    'revenue' => 'Приходи',
+    'room' => 'Нощувки',
+    'ancillary' => 'Допълнителни приходи <span class="muted">· допълнения, продукти, такси</span>',
+    'tax_collected' => 'Събрани данъци · транзитна сума',
+    'costs_heading' => 'Разходи <span class="muted" style="font-size:9px">· само реални данни</span>',
+    'maintenance' => 'Ремонти <span class="muted">· завършени работни поръчки</span>',
+    'not_tracked' => 'Още не се проследява',
+    'net' => 'Нетен резултат (приходи − проследявани разходи)',
+    'revenue_by_channel' => 'Приходи по канали',
+    'channel' => 'Канал',
+    'bookings' => 'Резервации',
+    'share' => 'Дял',
+    'no_channel_revenue' => 'Няма приходи по канали за този период.',
+    'top_units' => 'Водещи единици',
+    'unit' => 'Единица',
+    'nights' => 'Нощувки',
+    'room_revenue' => 'Приход от нощувки',
+    'no_unit_revenue' => 'Няма приходи по единици за този период.',
+    'revenue_by_month' => 'Приходи по месеци',
+    'month' => 'Месец',
+    'footer' => 'Изчислено от реални данни за фолиата и ремонтите – :scope · :period. Заетостта, ADR и RevPAR са на база нощувките от престоя; приходите са на база фолио (по дата на пристигане). Сумите съвпадат с екрана „Справки“. Vyrobel.',
+];

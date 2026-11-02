@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'от :time',
+    'by_time' => 'до :time',
+    'repeat_guest' => '{1}Връщащ се гост · :count престой|[0,*]Връщащ се гост · :count престоя',
+    'new_guest' => 'Нов гост',
+    'guests_count' => '{1}:count гост|[0,*]:count гости',
+    'nights_count' => '{1}:count нощувка|[0,*]:count нощувки',
+    'channel_direct' => 'Директно през Vyrobel',
+    'channel_walk_in' => 'Без резервация',
+    'channel_ota' => 'Канал OTA',
+    'event_booking_received' => 'Резервацията е получена',
+    'event_cancelled' => 'Анулирана',
+    'event_payment_received' => 'Плащането е получено',
+    'when_paid_in_full' => 'Платено изцяло',
+    'event_part_payment_received' => 'Частичното плащане е получено',
+    'when_balance_due' => 'Дължима сума',
+    'event_payment' => 'Плащане',
+    'when_not_yet_received' => 'Още не е получено',
+    'event_checked_in' => 'Настанена',
+    'event_check_in' => 'Настаняване',
+    'event_checked_out' => 'Напуснала',
+    'event_payout_released' => 'Изплащането е освободено',
+    'event_payout' => 'Изплащане',
+    'when_next_payout' => 'С вашето следващо изплащане',
+    'payout_not_attributed' => 'Още не е отнесено',
+    'payout_not_attributed_note' => 'Тази резервация още не е отнесена към сметката ви.',
+    'payout_scheduled' => 'Планирано',
+    'payout_scheduled_note' => 'Включена е в следващия ви отчет, после се освобождава с това изплащане.',
+    'payout_pending' => 'Изплащане в изчакване',
+    'payout_pending_note' => 'В приключен отчет – освобождава се с това изплащане.',
+    'payout_paid' => 'Изплатено',
+    'payout_paid_note' => 'Освободена с приключено изплащане.',
+];

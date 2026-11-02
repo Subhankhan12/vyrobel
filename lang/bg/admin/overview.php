@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Общ преглед',
+    'subtitle_all' => 'Всички организации, включително собствените вътрешни организации на Vyrobel.',
+    'subtitle_customers' => 'Само клиенти – собствените вътрешни организации на Vyrobel са изключени.',
+    'showing_all' => 'Показани са <strong>всички</strong> организации – от тях вътрешни: :internal.',
+    'internal_excluded' => '{1}:count вътрешна организация е изключена от всички стойности по-долу.|[0,*]:count вътрешни организации са изключени от всички стойности по-долу.',
+    'customers_only' => 'Само клиенти',
+    'include_internal' => 'Включване на вътрешните',
+    'no_customers_heading' => 'Все още няма клиенти',
+    'no_customers_body' => 'Всички организации в платформата са собствени на Vyrobel (вътрешни: :internal). Първата реална регистрация ще се появи тук.',
+    'kpi_organisations' => 'Организации',
+    'kpi_customers' => 'Клиенти',
+    'kpi_account_status' => 'Активни: :active · Блокирани: :suspended',
+    'kpi_subscriptions' => 'Абонаменти',
+    'kpi_subscriptions_sub' => 'активни · с безплатен пробен период: :trial',
+    'kpi_revenue' => 'Приходи',
+    'no_live_billing' => 'Все още няма реално фактуриране',
+    'no_live_billing_sub' => 'Нито един абонамент не се фактурира чрез Stripe. Цената по ценоразпис на пробен период не е приход.',
+    'billed_live' => '{1}:count абонамент с реално фактуриране|[0,*]:count абонамента с реално фактуриране',
+    'billed_live_sub' => 'Изчислено от реално таксуваното от Stripe, никога от ценоразписа – вижте <a class="ad-cell-link" href=":url">Приходи</a>.',
+    'kpi_properties' => 'Обекти',
+    'kpi_reservations' => '{1}:count резервация|[0,*]:count резервации',
+    'new_organisations_heading' => 'Нови организации · последните 6 месеца',
+    'new_customers_heading' => 'Нови клиенти · последните 6 месеца',
+    'no_signups' => 'Няма регистрации през последните 6 месеца.',
+    'account_status_heading' => 'Статус на акаунта',
+    'status_active' => 'Активна',
+    'status_suspended' => 'Блокирана',
+    'status_cancelled' => 'Прекратена',
+    'status_trialing' => 'В пробен период (акаунт)',
+    'free_trial_hint' => 'Безплатният пробен период е състояние на абонамента, а не статус на акаунта – в момента с безплатен пробен период: :trial.',
+    'plans_in_use' => 'Използвани планове <span class="ad-stat-sub" style="font-weight: 400;">· активни или в пробен период</span>',
+    'no_plans' => 'Все още няма използвани планове.',
+];

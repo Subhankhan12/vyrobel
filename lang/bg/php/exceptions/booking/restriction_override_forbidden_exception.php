@@ -1,0 +1,7 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/exceptions/booking/restriction_override_forbidden_exception.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'message' => 'Нямате право да правите изключение от ограничение при резервация.',
+];

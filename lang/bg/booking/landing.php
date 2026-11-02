@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Места за настаняване',
+    'book_direct' => 'Резервирайте директно',
+    'nav_stays' => 'Места за настаняване',
+    'my_account' => 'Моят акаунт',
+    'sign_in' => 'Вход',
+    'rating_across' => '{1}Средна оценка :average от :count отзив|[0,*]Средна оценка :average от :count отзива',
+    'heading' => 'Резервирайте директно при<br>:org.',
+    'subheading' => 'Грижливо поддържани места за настаняване, резервирани директно при домакина – без такси, с най-добрата ни цена и истински човек от другата страна.',
+    'where' => 'Къде',
+    'check_in' => 'Пристигане',
+    'check_out' => 'Заминаване',
+    'adults' => 'Възрастни',
+    'children' => 'Деца',
+    'where_to_stay' => 'Къде да отседнете',
+    'towns_lede' => '{1}Нашата база.|[0,*]:count града, всеки със свое темпо.',
+    'from_price' => 'от :price',
+    'featured_stays' => 'Избрани места за настаняване',
+    'featured_lede' => 'Любими на гостите в цялата колекция.',
+    'per_night' => '/ нощувка',
+    'see_dates_for_pricing' => 'Изберете дати, за да видите цените',
+    'browse_by_what_matters' => 'Търсете по това, което е важно за вас',
+    'why_book_direct' => 'Защо да резервирате директно',
+    'recent_guests' => 'Скорошни гости',
+    'rating_short' => '{1}:average · :count отзив|[0,*]:average · :count отзива',
+    'stars_aria' => ':rating от 5 звезди',
+    'review_quote' => '„:body“',
+    'no_reviews_yet' => 'Все още няма отзиви – отседнете първи и споделете впечатленията си.',
+    'cta_heading' => 'Намерете своето място',
+    'cta_sub' => 'Реални дати, актуални цени, незабавно потвърждение.',
+    'browse_all_stays' => 'Всички места за настаняване',
+];

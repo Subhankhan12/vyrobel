@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Общ преглед',
+    'breadcrumb_bookings' => 'Резервации',
+    'guest_fallback' => 'Гост',
+    'reservation' => 'Резервация',
+    'check_in' => 'Пристигане',
+    'nights_count' => '{1}:count нощувка|[0,*]:count нощувки',
+    'check_out' => 'Заминаване',
+    'unit' => 'Единица',
+    'guests' => 'Гости',
+    'nights' => 'Нощувки',
+    'nightly_rate' => 'Цена за нощувка',
+    'your_earnings' => 'Вашият приход',
+    'gross_to_net' => 'брутен → нетен',
+    'gross_booking_value' => 'Брутна стойност на резервацията',
+    'net_to_you' => 'Вашият нетен приход',
+    'refunds_we_covered' => 'Възстановени суми за наша сметка',
+    'refunds_we_covered_note' => 'Възстановени на госта и начислени на нас, а не на вас. Приходът ви по-горе не се променя.',
+    'not_yet_attributed' => 'Още не е отнесено.',
+    'not_yet_attributed_note' => 'Приходът ви се показва тук, след като резервацията бъде отнесена към сметката ви – обикновено след напускането.',
+    'guest_heading' => 'Гост',
+    'guest_contact_note' => 'Данните за контакт на госта се обработват от управляващата компания – вие виждате резервацията и приходите си.',
+    'message_your_team' => 'Съобщение до управляващата компания',
+    'timeline' => 'Хронология',
+    'for_night_stay' => 'за този престой (нощувки: :nights)',
+    'booking_details' => 'Данни за резервацията',
+    'confirmation' => 'Потвърждение',
+    'source' => 'Източник',
+    'channel' => 'Канал',
+    'booked_on' => 'Дата на резервиране',
+    'download_confirmation' => 'Изтегляне на потвърждението',
+    'download_unavailable' => 'Достъпно за съсобственици и счетоводители',
+    'view_unit' => 'Преглед на единица :unit',
+];

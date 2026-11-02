@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — bg translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Хотел',
+    'type_aparthotel' => 'Апартхотел',
+    'type_serviced_apartment' => 'Апартаменти с обслужване',
+    'type_apartment_building' => 'Апартаменти',
+    'type_apartment' => 'Апартамент',
+    'type_villa' => 'Вила',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Къща за гости',
+    'type_resort' => 'Курортен комплекс',
+    'type_mixed' => 'Хотел и апартаменти',
+    'type_portfolio' => 'Места за настаняване',
+    'title_town' => ':name, :town – Резервирайте директно',
+    'title' => ':name – Резервирайте директно',
+    'title_room' => ':room в :property – Резервирайте директно',
+    'org_description_towns' => '{1}Разгледайте :count обект в :towns. Проверете наличността и резервирайте директно при :org.|[0,*]Разгледайте :count обекта в :towns. Проверете наличността и резервирайте директно при :org.',
+    'org_description' => '{1}Разгледайте :count обект. Проверете наличността и резервирайте директно при :org.|[0,*]Разгледайте :count обекта. Проверете наличността и резервирайте директно при :org.',
+    'org_description_empty' => 'Проверете наличността и резервирайте директно при :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Резервирайте :name директно. :type в :place. :count тип настаняване. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.|[0,*]Резервирайте :name директно. :type в :place. :count типа настаняване. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.',
+    'description_place' => 'Резервирайте :name директно. :type в :place. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.',
+    'description_rooms' => '{1}Резервирайте :name директно. :type. :count тип настаняване. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.|[0,*]Резервирайте :name директно. :type. :count типа настаняване. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.',
+    'description' => 'Резервирайте :name директно. :type. Проверете наличността на живо и резервирайте, без да минавате през сайт за резервации.',
+    'detail_sleeps' => 'гости: до :guests',
+    'detail_bedrooms' => '{1}:count спалня|[0,*]:count спални',
+    'room_description_town_details' => ':room в :property, :town – :details. Проверете наличността на живо и резервирайте директно.',
+    'room_description_town' => ':room в :property, :town. Проверете наличността на живо и резервирайте директно.',
+    'room_description_details' => ':room в :property – :details. Проверете наличността на живо и резервирайте директно.',
+    'room_description' => ':room в :property. Проверете наличността на живо и резервирайте директно.',
+    'list_and' => ':items и :last',
+];
