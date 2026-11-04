@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Боравак',
+    'step_guest' => 'Гост',
+    'step_extras' => 'Додатне услуге',
+    'step_confirm' => 'Потврда',
+    'source_direct' => 'Директно',
+    'source_walk_in' => 'Без резервације',
+    'source_corporate' => 'Корпоративна',
+    'source_agent' => 'Туристичка агенција',
+    'the_guest' => 'без имена',
+    'a_night' => ':amount по ноћењу',
+    'a_night_range' => ':low–:high по ноћењу',
+    'dates_label' => '{1}:from → :to · :count ноћ|:from → :to · :count ноћи|:from → :to · :count ноћи',
+    'restrict_min_stay' => '{1}За долазак :date, боравак мора да траје најмање :count ноћ|За долазак :date, боравак мора да траје најмање :count ноћи|За долазак :date, боравак мора да траје најмање :count ноћи',
+    'restrict_max_stay' => '{1}За долазак :date, боравак може да траје највише :count ноћ|За долазак :date, боравак може да траје највише :count ноћи|За долазак :date, боравак може да траје највише :count ноћи',
+    'restrict_no_arrivals' => 'Долазак није могућ на дан :date',
+    'restrict_no_departures' => 'Одлазак није могућ на дан :date',
+    'restrict_stop_sell' => 'Нове резервације за :date нису могуће',
+    'restrict_other' => ':restriction на дан :date',
+    'arrival_mail_off' => 'Систем Vyrobel још не шаље е-пошту – упутства за долазак и шифру за врата дајте госту сами.',
+    'arrival_pre_arrival_off' => 'Е-порука пре доласка је искључена за ваше објекте – упутства за долазак и шифру за врата дајте госту сами.',
+    'arrival_too_soon' => 'Овај боравак почиње пре рока за слање е-поруке пре доласка (дана пре пријаве: :count) – упутства за долазак и шифру за врата дајте госту сами.',
+    'arrival_by_email' => 'Упутства за долазак, као и шифра за врата ако је јединица има, стижу госту е-поштом (дана пре пријаве: :count) – ако гост има адресу е-поште. Шифра за врата се овде никада не приказује.',
+    'cancel_not_free' => 'Није бесплатно за овај боравак – рок је истекао (:date)',
+    'cancel_free_until_check_in' => 'Бесплатно до пријаве',
+    'cancel_free_until_date' => 'Бесплатно до :date',
+    'cancel_free_until_days' => '{1}Бесплатно до :count дана пре пријаве|Бесплатно до :count дана пре пријаве|Бесплатно до :count дана пре пријаве',
+    'min_stay_none' => 'Без минимума',
+    'min_stay_nights' => '{1}:count ноћ|:count ноћи|:count ноћи',
+    'guest_no_name' => 'Гост',
+    'no_stays_yet' => 'Још нема боравака',
+];

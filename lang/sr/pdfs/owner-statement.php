@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'управљање уз Vyrobel',
+    'eyebrow' => 'Обрачун власника',
+    'unit_count' => '{1}:count јединица|:count јединице|:count јединица',
+    'issued' => 'издато: :date',
+    'prepared_for' => 'Припремљено за',
+    'net_payable_to_owner' => 'За исплату власнику',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Попуњеност',
+    'nights_sold' => 'Продате ноћи',
+    'avg_nightly_rate' => 'Просечна цена по ноћењу',
+    'breakdown' => 'Преглед по ставкама',
+    'item' => 'Ставка',
+    'detail' => 'Детаљи',
+    'amount' => 'Износ',
+    'provisional' => '(привремено)',
+    'performance_by_unit' => 'Учинак по јединицама',
+    'unit' => 'Јединица',
+    'nights' => 'Ноћи',
+    'revenue' => 'Приход',
+    'total_gross_room_revenue' => 'Укупан бруто приход од смештаја',
+    'callout_heading' => 'Исплата.',
+    'settles_to_iban' => 'Нето износ од :amount исплаћује се банковним трансфером на IBAN :iban.',
+    'settles' => 'Нето износ од :amount исплаћује се банковним трансфером.',
+    'fees_with_commission' => 'Провизија за управљање обрачунава се у износу од :pct% бруто прихода од смештаја; накнаде за плаћање и платформу преносе се по стварном трошку. Сви износи су у валути :currency и укључују примењиве порезе наплаћене у ваше име.',
+    'fees' => 'Накнаде за плаћање и платформу преносе се по стварном трошку. Сви износи су у валути :currency и укључују примењиве порезе наплаћене у ваше име.',
+    'fx_note' => 'Прерачунато из валуте :source по курсу :rate (извор: :src).',
+    'provisional_note' => 'Неке ставке су привремене и чекају усклађивање са каналима.',
+    'statement_ref' => 'обрачун :ref',
+    'sequence_no' => 'бр. :number',
+    'generated' => 'направљено <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Питања? :email',
+];

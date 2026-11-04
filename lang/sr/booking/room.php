@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Све собе',
+    'kind_sleeps_up_to' => ':kind · макс. број гостију: :capacity',
+    'reviews_count' => '{1}:count рецензија|:count рецензије|:count рецензија',
+    'no_reviews_yet' => 'Још нема рецензија',
+    'save_to_wishlist' => 'Додај у омиљено',
+    'sleeps' => 'Капацитет',
+    'adults' => 'Одрасли',
+    'children' => 'Деца',
+    'bedrooms' => 'Спаваће собе',
+    'standard_occupancy' => 'Основни број гостију',
+    'amenities' => 'Садржаји',
+    'not_yet_listed' => 'Још није објављено',
+    'amenities_not_published' => 'Садржаји за ову собу још нису објављени.',
+    'guest_reviews' => 'Рецензије гостију',
+    'stars_aria' => 'Оцена :rating од 5 звездица',
+    'response_label' => 'Одговор:',
+    'no_reviews_be_first' => 'Још нема рецензија – будите први који ће боравити код нас и поделити своје искуство.',
+    'coming_soon' => 'Ускоро',
+    'description_soon' => 'Потпун опис и мапа локације стижу ускоро – подаци, доступност, цена и рецензије изнад су стварни.',
+    'per_night' => '/ ноћ',
+    'per_night_with_note' => '/ ноћ · :note',
+    'total_nights' => '{1}Укупно :amount · :count ноћ|Укупно :amount · :count ноћи|Укупно :amount · :count ноћи',
+    'left_for_your_dates' => 'Преостало за ваше датуме: :count',
+    'book_this_room' => 'Резервиши ову собу',
+    'nothing_reserved' => 'Ништа није резервисано док не потврдите на завршетку резервације.',
+    'your_dates' => 'Ваши датуми',
+    'not_available' => 'Није доступно за ове датуме – покушајте са другим датумима.',
+    'check_in' => 'Долазак',
+    'check_out' => 'Одлазак',
+    'check_dates' => 'Провери датуме',
+    'check_availability' => 'Провери доступност и цену',
+    'see_price' => 'Погледај цену',
+];

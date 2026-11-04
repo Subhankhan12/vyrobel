@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count резервација|:count резервације|:count резервација',
+    'room_moves' => '{1}:count премештање|:count премештања|:count премештања',
+    'cleaning_tasks' => '{1}:count задатак чишћења|:count задатка чишћења|:count задатака чишћења',
+    'work_orders' => '{1}:count радни налог|:count радна налога|:count радних налога',
+    'status_changes' => '{1}:count промена статуса|:count промене статуса|:count промена статуса',
+    'blocks' => '{1}:count блокада|:count блокаде|:count блокада',
+    'owner_agreements' => '{1}:count уговор о управљању|:count уговора о управљању|:count уговора о управљању',
+    'owner_statement_lines' => '{1}:count ставка обрачуна власника|:count ставке обрачуна власника|:count ставки обрачуна власника',
+    'owner_expenses' => '{1}:count трошак власника|:count трошка власника|:count трошкова власника',
+    'reviews' => '{1}:count рецензија|:count рецензије|:count рецензија',
+    'owner_requests' => '{1}:count захтев власника|:count захтева власника|:count захтева власника',
+    'notes' => '{1}:count белешка|:count белешке|:count белешки',
+    'documents' => '{1}:count документ|:count документа|:count докумената',
+    'files' => '{1}:count датотека|:count датотеке|:count датотека',
+    'units' => '{1}:count јединица|:count јединице|:count јединица',
+    'rate_proposals' => '{1}:count предлог цене|:count предлога цене|:count предлога цене',
+    'overbooking_records' => '{1}:count запис о прекомерном резервисању|:count записа о прекомерном резервисању|:count записа о прекомерном резервисању',
+    'guest_waitlist_entries' => '{1}:count ставка на листи чекања гостију|:count ставке на листи чекања гостију|:count ставки на листи чекања гостију',
+    'guest_wishlist_saves' => '{1}:count ставка у омиљеном код гостију|:count ставке у омиљеном код гостију|:count ставки у омиљеном код гостију',
+    'derived_room_types' => '{1}:count тип смештаја изведен из њега|:count типа смештаја изведена из њега|:count типова смештаја изведених из њега',
+    'derived_rate_plans' => '{1}:count ценовни план у другом типу смештаја са ценом изведеном из њега|:count ценовна плана у другом типу смештаја са ценом изведеном из њега|:count ценовних планова у другом типу смештаја са ценом изведеном из њега',
+    'corporate_default_rates' => '{1}:count подразумевана цена корпоративног клијента|:count подразумеване цене корпоративних клијената|:count подразумеваних цена корпоративних клијената',
+    'channel_connections' => '{1}:count веза са каналом|:count везе са каналом|:count веза са каналом',
+    'an_owner' => 'власник',
+    'pending_owner_invitation' => 'позивница за власника на чекању',
+    'list_and' => ':items и :last',
+    'kind_rooms' => 'собе',
+    'kind_apartments' => 'апартмани',
+    'kind_villas' => 'виле',
+    'kind_dorm_beds' => 'лежајеви у заједничкој соби',
+];

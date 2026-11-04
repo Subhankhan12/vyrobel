@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Архива обрачуна',
+    'history_summary' => 'Ваша закључена историја · :years · :statements',
+    'years' => '{1}:count година|:count године|:count година',
+    'statements' => '{1}:count обрачун|:count обрачуна|:count обрачуна',
+    'archived_on_finalize' => 'Обрачуни се овде архивирају чим буду закључени.',
+    'net_earned_lifetime' => 'Нето приход · укупно',
+    'since' => 'од :date',
+    'per_currency_note' => 'Збројено по валути исплате – стања у различитим валутама се никада не комбинују.',
+    'lifetime_empty' => 'Још нема закључених обрачуна – први ће се појавити овде.',
+    'search_placeholder' => 'Претражите обрачуне – по месецу, години, статусу или броју',
+    'search_label' => 'Претражи обрачуне',
+    'no_match' => 'Ниједан обрачун не одговара упиту „:query“.',
+    'no_match_hint' => 'Покушајте са месецом („септембар“), годином („2026“), статусом („Исплаћен“) или бројем обрачуна („Бр. 1“).',
+    'group_summary' => ':statements · нето: :nets',
+    'per_payout_currency' => '(по валути исплате)',
+    'tax_summary_title' => 'Преузми годишњи порески сажетак (:year) као PDF',
+    'tax_summary' => 'Порески сажетак',
+    'col_statement' => 'Обрачун',
+    'col_net_payable' => 'За исплату',
+    'col_links' => 'Линкови',
+    'unverified_title' => 'Неке ставке још чекају усаглашавање са каналима',
+    'unverified' => 'Садржи непотврђене ставке',
+    'pdf_title' => 'Преузми овај обрачун као PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Преузми резервације на којима се заснива овај обрачун као PDF',
+    'bookings' => 'Резервације',
+    'empty' => 'Још нема закључених обрачуна. Обрачун се овде архивира када буде закључен.',
+    'zip_heading' => 'Преузми целу архиву',
+    'zip_sub' => '{1}Један ZIP са :count PDF обрачуном. Сваки обрачун изнад се већ преузима засебно.|Један ZIP са :count PDF обрачуна. Сваки обрачун изнад се већ преузима засебно.|Један ZIP са :count PDF обрачуна. Сваки обрачун изнад се већ преузима засебно.',
+    'download_zip' => 'Преузми ZIP',
+];

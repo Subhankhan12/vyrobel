@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Извештаји',
+    'arrivals_in' => 'Доласци: :period',
+    'arrivals_count' => '{1}:count долазак|:count доласка|:count долазака',
+    'pp_delta' => ':delta п. п.',
+    'occupancy' => 'Попуњеност',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Бруто приход',
+    'basis_note' => 'Попуњеност · ADR · RevPAR рачунају се по ноћењима боравка, у односу на исти период прошле године ако постоје подаци за прошлу годину. Приход испод је приказан по фолио (по датуму доласка).',
+    'revenue' => 'Приход',
+    'room' => 'Смештај',
+    'ancillary' => 'Додатни приходи <span class="muted">· додатне услуге, производи, накнаде</span>',
+    'tax_collected' => 'Наплаћени порези · пролазна ставка',
+    'costs_heading' => 'Трошкови <span class="muted" style="font-size:9px">· само стварни подаци</span>',
+    'maintenance' => 'Одржавање <span class="muted">· решени радни налози</span>',
+    'not_tracked' => 'још се не прати',
+    'net' => 'Нето (приход − праћени трошкови)',
+    'revenue_by_channel' => 'Приход по каналима',
+    'channel' => 'Канал',
+    'bookings' => 'Резервације',
+    'share' => 'Удео',
+    'no_channel_revenue' => 'Нема прихода по каналима у овом периоду.',
+    'top_units' => 'Најбоље јединице',
+    'unit' => 'Јединица',
+    'nights' => 'Ноћи',
+    'room_revenue' => 'Приход од смештаја',
+    'no_unit_revenue' => 'Нема прихода по јединицама у овом периоду.',
+    'revenue_by_month' => 'Приход по месецима',
+    'month' => 'Месец',
+    'footer' => 'Израчунато из стварних података о фолио и одржавању (:scope · :period). Попуњеност, ADR и RevPAR рачунају се по ноћењима боравка; приход се рачуна по фолио (по датуму доласка). Износи се слажу са страницом „Извештаји“. Vyrobel.',
+];

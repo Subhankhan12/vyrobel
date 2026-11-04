@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'од :time',
+    'by_time' => 'до :time',
+    'repeat_guest' => '{1}Повратни гост · :count боравак|Повратни гост · :count боравка|Повратни гост · :count боравака',
+    'new_guest' => 'Нови гост',
+    'guests_count' => '{1}:count гост|:count госта|:count гостију',
+    'nights_count' => '{1}:count ноћ|:count ноћи|:count ноћи',
+    'channel_direct' => 'Директно преко Vyrobel',
+    'channel_walk_in' => 'Без резервације',
+    'channel_ota' => 'Канал OTA',
+    'event_booking_received' => 'Резервација примљена',
+    'event_cancelled' => 'Отказана',
+    'event_payment_received' => 'Уплата примљена',
+    'when_paid_in_full' => 'Плаћено у целости',
+    'event_part_payment_received' => 'Делимична уплата примљена',
+    'when_balance_due' => 'За плаћање',
+    'event_payment' => 'Уплата',
+    'when_not_yet_received' => 'Још није примљено',
+    'event_checked_in' => 'Гост пријављен',
+    'event_check_in' => 'Пријава госта',
+    'event_checked_out' => 'Гост одјављен',
+    'event_payout_released' => 'Исплата извршена',
+    'event_payout' => 'Исплата',
+    'when_next_payout' => 'Уз вашу следећу исплату',
+    'payout_not_attributed' => 'Још није приписано',
+    'payout_not_attributed_note' => 'Ова резервација још није приписана вашој картици власника.',
+    'payout_scheduled' => 'Заказано',
+    'payout_scheduled_note' => 'Биће укључено у ваш следећи обрачун, а затим исплаћено уз ту исплату.',
+    'payout_pending' => 'Исплата на чекању',
+    'payout_pending_note' => 'На закљученом обрачуну – исплаћује се уз ту исплату.',
+    'payout_paid' => 'Исплаћено',
+    'payout_paid_note' => 'Исплаћено уз завршену исплату.',
+];

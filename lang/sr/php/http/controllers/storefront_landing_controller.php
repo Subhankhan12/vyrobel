@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Наша понуда смештаја',
+    'properties_count' => 'Број објеката: :count',
+    'stays_count' => '{1}:count понуда|:count понуде|:count понуда',
+    'stays_sleeps' => ':stays · капацитет: :max',
+    'stays_sleeps_range' => ':stays · капацитет: :min–:max',
+    'perk_free_cancel_days' => '{1}Потпун повраћај новца до :count дана пре доласка.|Потпун повраћај новца до :count дана пре доласка.|Потпун повраћај новца до :count дана пре доласка.',
+    'perk_free_cancel_window' => 'Потпун повраћај новца у оквиру рока за отказивање.',
+    'perk_no_fees' => 'Без накнада за резервацију',
+    'perk_no_fees_sub' => 'Цена коју видите је цена коју плаћате.',
+    'perk_best_rate' => 'Најбоља цена директно',
+    'perk_best_rate_sub' => 'Резервишите директно и добијте нашу најбољу цену – без посредника.',
+    'perk_free_cancel' => 'Бесплатно отказивање',
+    'perk_host_support' => 'Директна подршка објекта',
+    'perk_host_support_sub' => 'Пошаљите поруку стварној особи у вези са вашом резервацијом.',
+    'kind_room' => 'Соба',
+    'kind_apartment' => 'Апартман',
+    'kind_villa' => 'Вила',
+    'kind_dorm' => 'Лежај у заједничкој соби',
+    'type_hotel' => 'Хотел',
+    'type_aparthotel' => 'Апартхотел',
+    'type_serviced_apartment' => 'Апартман са услугом',
+    'type_apartment_building' => 'Апартманска зграда',
+    'type_apartment' => 'Апартман',
+    'type_villa' => 'Вила',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Гостинска кућа',
+    'type_resort' => 'Ризорт',
+    'type_mixed' => 'Мешовито',
+    'type_portfolio' => 'Портфолио',
+];

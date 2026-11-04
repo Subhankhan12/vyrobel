@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Преглед',
+    'subtitle_all' => 'Све организације, укључујући интерне организације компаније Vyrobel.',
+    'subtitle_customers' => 'Само клијенти – интерне организације компаније Vyrobel нису укључене.',
+    'showing_all' => 'Приказују се <strong>све</strong> организације – од тога интерних: :internal.',
+    'internal_excluded' => '{1}:count интерна организација није урачуната ни у један податак испод.|:count интерне организације нису урачунате ни у један податак испод.|:count интерних организација није урачунато ни у један податак испод.',
+    'customers_only' => 'Само клијенти',
+    'include_internal' => 'Укључи интерне',
+    'no_customers_heading' => 'Још нема клијената',
+    'no_customers_body' => 'Свака организација на платформи припада компанији Vyrobel (интерних: :internal). Прва стварна регистрација појавиће се овде.',
+    'kpi_organisations' => 'Организације',
+    'kpi_customers' => 'Клијенти',
+    'kpi_account_status' => 'активне: :active · суспендоване: :suspended',
+    'kpi_subscriptions' => 'Претплате',
+    'kpi_subscriptions_sub' => 'активне · у бесплатном пробном периоду: :trial',
+    'kpi_revenue' => 'Приход',
+    'no_live_billing' => 'Још нема наплате у режиму уживо',
+    'no_live_billing_sub' => 'Ниједна претплата се не наплаћује преко платформе Stripe. Цена из ценовника за пробни период није приход.',
+    'billed_live' => '{1}Наплаћено уживо: :count|Наплаћено уживо: :count|Наплаћено уживо: :count',
+    'billed_live_sub' => 'Израчунато из онога што је Stripe наплатио, никада из ценовника – погледајте страницу <a class="ad-cell-link" href=":url">Приход</a>.',
+    'kpi_properties' => 'Објекти',
+    'kpi_reservations' => '{1}:count резервација|:count резервације|:count резервација',
+    'new_organisations_heading' => 'Нове организације · последњих 6 месеци',
+    'new_customers_heading' => 'Нови клијенти · последњих 6 месеци',
+    'no_signups' => 'Нема регистрација у последњих 6 месеци.',
+    'account_status_heading' => 'Статус налога',
+    'status_active' => 'Активна',
+    'status_suspended' => 'Суспендована',
+    'status_cancelled' => 'Отказана',
+    'status_trialing' => 'Пробни период (налог)',
+    'free_trial_hint' => 'Бесплатни пробни период је стање претплате, а не статус налога – тренутно у бесплатном пробном периоду: :trial.',
+    'plans_in_use' => 'Планови у употреби <span class="ad-stat-sub" style="font-weight: 400;">· активни или у пробном периоду</span>',
+    'no_plans' => 'Још нема планова у употреби.',
+];

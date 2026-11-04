@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Преглед',
+    'breadcrumb_bookings' => 'Резервације',
+    'guest_fallback' => 'Гост',
+    'reservation' => 'Резервација',
+    'check_in' => 'Долазак',
+    'nights_count' => '{1}:count ноћ|:count ноћи|:count ноћи',
+    'check_out' => 'Одлазак',
+    'unit' => 'Јединица',
+    'guests' => 'Гости',
+    'nights' => 'Број ноћи',
+    'nightly_rate' => 'Цена по ноћењу',
+    'your_earnings' => 'Ваш приход',
+    'gross_to_net' => 'бруто → нето',
+    'gross_booking_value' => 'Бруто вредност резервације',
+    'net_to_you' => 'Ваш нето приход',
+    'refunds_we_covered' => 'Повраћаји на терет управљачке компаније',
+    'refunds_we_covered_note' => 'Враћено госту, а на терет управљачке компаније, не вас. Ваш приход изнад је непромењен.',
+    'not_yet_attributed' => 'Још није приписано.',
+    'not_yet_attributed_note' => 'Ваш приход ће се овде појавити када ова резервација буде приписана вашој картици власника – обично после одјаве.',
+    'guest_heading' => 'Гост',
+    'guest_contact_note' => 'Контакт податке госта води ваша управљачка компанија – ви видите резервацију и свој приход.',
+    'message_your_team' => 'Пиши управљачкој компанији',
+    'timeline' => 'Хронологија',
+    'for_night_stay' => 'за овај боравак (ноћи: :nights)',
+    'booking_details' => 'Детаљи резервације',
+    'confirmation' => 'Потврда',
+    'source' => 'Извор',
+    'channel' => 'Канал',
+    'booked_on' => 'Датум резервације',
+    'download_confirmation' => 'Преузми потврду',
+    'download_unavailable' => 'Доступно сувласницима и рачуновођама',
+    'view_unit' => 'Прикажи јединицу :unit',
+];

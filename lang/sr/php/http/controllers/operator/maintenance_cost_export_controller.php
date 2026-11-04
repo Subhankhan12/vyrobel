@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Износи',
+    'csv_amounts_note' => 'основне јединице валуте, децимална тачка, без раздвајања хиљада',
+    'col_date' => 'Датум',
+    'col_work_order' => 'Радни налог',
+    'col_unit' => 'Јединица',
+    'col_category' => 'Категорија',
+    'col_labor' => 'Рад',
+    'col_parts' => 'Делови',
+    'col_total' => 'Укупно',
+    'col_currency' => 'Валута',
+    'total_row' => 'Укупно',
+    'sheet_summary' => 'Резиме',
+    'col_measure' => 'Показатељ',
+    'col_value' => 'Вредност',
+    'total_spend' => 'Укупни трошкови',
+    'measure_labour' => 'Рад',
+    'measure_parts' => 'Делови',
+    'orders_closed' => 'Затворени налози',
+    'owner_billed' => 'Наплаћено власнику',
+    'operator_borne' => 'Сноси управљачка компанија',
+    'parts_on_order' => 'Наручени делови',
+    'average_per_order' => 'Просек по налогу',
+    'by_category' => 'По категоријама',
+    'col_orders' => 'Налози',
+    'by_month' => 'По месецима',
+    'top_units' => 'Најбоље јединице',
+    'sheet_line_items' => 'Ставке',
+    'col_labour' => 'Рад',
+    'no_email' => 'Ваш налог нема адресу е-поште.',
+    'report_emailed' => 'Извештај о трошковима је послат на адресу :email.',
+];

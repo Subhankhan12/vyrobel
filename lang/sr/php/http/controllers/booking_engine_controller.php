@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Ви',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Укључено: :items',
+    'nightly_excludes' => 'Није укључено: :tax',
+    'sleeps' => 'Капацитет: :count',
+    'studio' => 'Студио',
+    'bedrooms' => '{1}:count спаваћа соба|:count спаваће собе|:count спаваћих соба',
+    'checkout_title' => 'Завршетак резервације – :property',
+    'room_just_taken' => 'Ту собу је управо резервисао неко други – изаберите другу собу или друге датуме.',
+    'payment_received' => 'Уплата је примљена',
+    'payment_received_note' => 'Плаћено у целости.',
+    'payment_processing' => 'Плаћање се обрађује',
+    'payment_processing_note' => 'Потврђујемо плаћање картицом. Мало касније освежите ову страницу да бисте видели да је стигло.',
+    'pay_on_arrival' => 'Плаћање по доласку',
+    'pay_on_arrival_note' => 'Платите у објекту приликом пријаве.',
+    'confirmed_title' => 'Резервација је потврђена – :property',
+    'kind_room' => 'Соба',
+    'kind_apartment' => 'Апартман',
+    'kind_villa' => 'Вила',
+    'kind_dorm' => 'Лежај у заједничкој соби',
+    'type_hotel' => 'Хотел',
+    'type_aparthotel' => 'Апартхотел',
+    'type_serviced_apartment' => 'Апартман са услугом',
+    'type_apartment_building' => 'Апартманска зграда',
+    'type_apartment' => 'Апартман',
+    'type_villa' => 'Вила',
+    'type_hostel' => 'Хостел',
+    'type_guest_house' => 'Гостинска кућа',
+    'type_resort' => 'Ризорт',
+    'type_mixed' => 'Мешовито',
+    'type_portfolio' => 'Портфолио',
+];

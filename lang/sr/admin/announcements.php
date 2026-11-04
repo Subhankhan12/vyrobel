@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Објаве',
+    'subtitle' => 'Објава у панелу за особље и порталу за власнике сваке организације – или само изабраних. Обичан текст; ништа се не шаље е-поштом.',
+    'empty_state' => 'Ниједна објава још није објављена.',
+    'col_announcement' => 'Објава',
+    'col_to' => 'За',
+    'col_from_until' => 'Од → до',
+    'col_state' => 'Стање',
+    'audience_all' => 'Све организације',
+    'audience_chosen_count' => 'Изабрано: :number',
+    'no_end' => 'без краја',
+    'state_withdrawn' => 'Повучена',
+    'state_showing' => 'Приказује се',
+    'state_scheduled' => 'Заказана',
+    'state_ended' => 'Завршена',
+    'reason_aria' => 'Разлог',
+    'withdraw_placeholder' => 'Зашто се повлачи?',
+    'withdraw_button' => 'Повуци',
+    'publish_heading' => 'Нова објава',
+    'title_label' => 'Наслов',
+    'message_label' => 'Порука (обичан текст)',
+    'kind_label' => 'Врста',
+    'show_from_label' => 'Приказ од (UTC)',
+    'until_label' => 'До (UTC, опционо)',
+    'to_label' => 'За',
+    'option_every_organisation' => 'Све организације',
+    'option_chosen_organisations' => 'Изабране организације',
+    'chosen_organisations_label' => 'Изабране организације (уз опцију „Изабране организације“)',
+    'no_organisation_chosen' => 'Још није изабрана ниједна организација',
+    'reason_label' => 'Разлог',
+    'publish_reason_placeholder' => 'Зашто се ово објављује?',
+    'publish_button' => 'Објави',
+];

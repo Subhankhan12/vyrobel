@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Белешка',
+    'kind_progress' => 'Напредак',
+    'kind_part' => 'Наручен део',
+    'elapsed_minutes' => ':minutes мин',
+    'elapsed_hours' => ':hours ч :minutes мин',
+    'elapsed_days' => ':days д :hours ч',
+    'hours_short' => ':hours ч',
+    'timeline_opened' => 'Пријављен',
+    'timeline_assigned_to' => 'Додељено: :name',
+    'a_technician' => 'техничар',
+    'timeline_unassigned' => 'Нераспоређено',
+    'timeline_started' => 'Рад је започет',
+    'timeline_resolved' => 'Решен',
+    'timeline_cancelled' => 'Отказан',
+    'timeline_parts_updated' => 'Делови ажурирани',
+    'timeline_cost_corrected' => 'Трошак исправљен',
+    'timeline_updated' => 'Детаљи измењени',
+    'note_progress' => 'Ажурирање напретка',
+    'note_part' => 'Наручен део',
+    'note_added' => 'Додата белешка',
+    'a_team_member' => 'Члан тима',
+    'system' => 'Систем',
+    'photo_alt' => 'Фотографија радног налога',
+    'the_owner' => 'непознат',
+    'load_none' => 'Нема отворених радних налога',
+    'load_open' => 'Отворено: :open',
+    'load_open_urgent' => 'Отворено: :open · хитно: :urgent',
+    'impact_arrivals' => '{1}За :count долазак вечерас треба обезбедити собу|За :count доласка вечерас треба обезбедити собу|За :count долазака вечерас треба обезбедити собу',
+    'impact_bookings' => '{1}:count резервација треба да се премести|:count резервације треба да се преместе|:count резервација треба да се премести',
+    'impact_none' => 'Нема захваћених резервација',
+];

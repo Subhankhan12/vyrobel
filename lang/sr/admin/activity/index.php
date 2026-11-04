@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Особље / власник',
+    'realm_guest' => 'Гост',
+    'realm_admin' => 'Администратор платформе',
+    'event_login' => 'Пријављивање',
+    'event_failed' => 'Неуспело',
+    'event_lockout' => 'Закључавање',
+    'subject_user' => 'Корисник',
+    'subject_guest' => 'Гост',
+    'subject_platform_admin' => 'Администратор платформе',
+    'subject_unknown' => 'Непознато',
+    'actor_user' => 'Корисник',
+    'actor_agent' => 'Агент',
+    'actor_system' => 'Систем',
+    'page_title' => 'Безбедност и активност',
+    'page_subtitle' => 'Активност пријављивања и догађаји налога на целој платформи – рок чувања у данима: :days, затим се бришу.',
+    'kpi_failures' => 'Неуспело / закључано · 24 ч',
+    'kpi_failures_help' => 'Поновљени неуспеси могу да указују на покушаје упада.',
+    'privacy' => 'Приватност',
+    'privacy_body' => 'Активност пријављивања (укључујући IP) бележи се само као <strong style="color: var(--ad-ink);">безбедносни сигнал</strong> – за уочавање сумњивих пријављивања и за подршку – никада као опште праћење. Рок чувања у данима: :days, затим се аутоматски брише; приступ има само ова конзола.',
+    'recent_sign_ins' => 'Недавна активност пријављивања',
+    'col_event' => 'Догађај',
+    'col_realm' => 'Област',
+    'col_account' => 'Налог',
+    'col_ip' => 'IP',
+    'col_when' => 'Када',
+    'no_sign_ins' => 'Још нема забележене активности пријављивања.',
+    'recent_account_events' => 'Недавни догађаји налога <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· за све клијенте</span>',
+    'col_customer' => 'Клијент',
+    'col_actor' => 'Извршилац',
+    'no_account_events' => 'Још нема догађаја налога.',
+];

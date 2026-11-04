@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Понуда смештаја',
+    'book_direct' => 'Резервишите директно',
+    'nav_stays' => 'Понуда смештаја',
+    'my_account' => 'Мој налог',
+    'sign_in' => 'Пријави се',
+    'rating_across' => '{1}:average на основу :count рецензије|:average на основу :count рецензије|:average на основу :count рецензија',
+    'heading' => ':org –<br>резервишите директно.',
+    'subheading' => 'Пажљиво одржаван смештај, резервисан директно код објекта – без накнада, по нашој најбољој цени и са правом особом са друге стране.',
+    'where' => 'Где',
+    'check_in' => 'Долазак',
+    'check_out' => 'Одлазак',
+    'adults' => 'Одрасли',
+    'children' => 'Деца',
+    'where_to_stay' => 'Где одсести',
+    'towns_lede' => '{21}:count место, свако са својим ритмом.|:count места, свако са својим ритмом.|:count места, свако са својим ритмом.|{1}Овде смо код куће.',
+    'from_price' => 'од :price',
+    'featured_stays' => 'Издвојена понуда',
+    'featured_lede' => 'Омиљени избор гостију из целе понуде.',
+    'per_night' => '/ ноћ',
+    'see_dates_for_pricing' => 'Изаберите датуме да видите цене',
+    'browse_by_what_matters' => 'Претражујте по ономе што вам је важно',
+    'why_book_direct' => 'Зашто резервисати директно',
+    'recent_guests' => 'Недавни гости',
+    'rating_short' => '{1}:average · :count рецензија|:average · :count рецензије|:average · :count рецензија',
+    'stars_aria' => 'Оцена :rating од 5 звездица',
+    'review_quote' => '„:body“',
+    'no_reviews_yet' => 'Још нема рецензија – будите први који ће боравити код нас и поделити своје искуство.',
+    'cta_heading' => 'Пронађите свој смештај',
+    'cta_sub' => 'Стварни датуми, цене уживо, тренутна потврда.',
+    'browse_all_stays' => 'Погледај целу понуду',
+];

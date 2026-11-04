@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Подешавања обавештења',
+    'subtitle' => 'Како вас Vyrobel обавештава',
+    'breadcrumb_label' => 'Путања навигације',
+    'crumb_settings' => 'Подешавања',
+    'crumb_notifications' => 'Обавештења',
+    'channel_email' => 'Е-пошта',
+    'channel_push' => 'На уређају',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Нема адресе е-поште',
+    'email_verified_title' => 'Адреса е-поште за пријављивање је верификована',
+    'email_verified' => 'Верификовано',
+    'push_not_set_up_title' => 'Обавештења на уређају још нису подешена',
+    'not_set_up_tag' => 'није подешено',
+    'push_not_available' => 'Обавештења у прегледачу и на уређају још нису доступна',
+    'channel_off' => 'Искључено',
+    'sms_not_set_up_title' => 'SMS још није подешен',
+    'sms_no_provider' => 'Још није повезан ниједан SMS провајдер',
+    'notify_me_when' => 'Обавести ме када',
+    'always_on' => 'Увек укључено',
+    'email_always_on_sr' => 'Обавештење е-поштом је увек укључено за догађај: :event',
+    'email_me_when_aria' => 'Обавести ме е-поштом када: :event',
+    'push_not_set_up_sr' => 'Обавештења на уређају нису подешена',
+    'sms_not_set_up_sr' => 'SMS није подешен',
+    'quiet_hours' => 'Тихи сати',
+    'quiet_hours_help' => 'Уобичајене е-поруке се задржавају у овом периоду – хитна безбедносна упозорења увек стижу, а обавештења у апликацији остају иста.',
+    'quiet_from' => 'Од',
+    'quiet_to' => 'До',
+    'digest_heading' => 'Дневни преглед е-поштом',
+    'digest_help' => 'Јутарњи преглед дана. <span class="vy-np-soon">још се не шаље</span> – подешавање се чува за тренутак када дневни преглед почне да се шаље.',
+    'digest_off' => 'Искључено',
+    'digest_morning' => 'Ујутру · 08:00',
+];

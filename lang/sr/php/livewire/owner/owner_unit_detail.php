@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Гост',
+    'nights' => '{1}:count ноћ|:count ноћи|:count ноћи',
+    'block_reason_none' => 'Блокирано',
+    'block_reason_maintenance' => 'Одржавање',
+    'block_reason_owner' => 'Власник',
+    'block_reason_manual' => 'Ручно',
+    'block_reason_overbooking_protection' => 'Заштита од прекомерног резервисања',
+    'cleaning_departure' => 'Чишћење после одласка',
+    'cleaning_stayover' => 'Услуга током боравка',
+    'cleaning_deep' => 'Темељно чишћење',
+    'cleaning_arrival_prep' => 'Припрема за долазак',
+    'cleaning_status_pending' => 'Заказано',
+    'cleaning_status_in_progress' => 'У току',
+    'cleaning_status_clean' => 'Очишћено',
+    'cleaning_status_inspected' => 'Прегледано',
+    'kind_room' => 'Соба',
+    'kind_apartment' => 'Апартман',
+    'kind_villa' => 'Вила',
+    'kind_dorm_bed' => 'Лежај у заједничкој соби',
+    'condition_out_of_order' => 'Неисправна',
+    'condition_out_of_service' => 'На поправци',
+    'status_enquiry' => 'Упит',
+    'status_tentative' => 'Привремена',
+    'status_confirmed' => 'Потврђена',
+    'status_checked_in' => 'Пријављена',
+    'status_checked_out' => 'Одјављена',
+    'status_cancelled' => 'Отказана',
+    'status_no_show' => 'Недолазак',
+    'terms_portfolio' => 'Услови на нивоу портфолија',
+    'terms_unit' => 'Услови за ову јединицу',
+];

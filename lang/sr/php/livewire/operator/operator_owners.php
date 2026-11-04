@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — sr translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Спремно за исплату',
+    'chip_hold' => 'Заустављено',
+    'chip_review' => 'Потребан преглед',
+    'chip_paused' => 'Исплате паузиране',
+    'chip_invited' => 'Позвани',
+    'sorted_name_asc' => 'по власнику, А–Ш',
+    'sorted_name_desc' => 'по власнику, Ш–А',
+    'sorted_units_desc' => 'прво највише јединица',
+    'sorted_units_asc' => 'прво најмање јединица',
+    'sorted_net_desc' => 'прво највећи износ за исплату',
+    'sorted_net_asc' => 'прво најмањи износ за исплату',
+    'sorted_status_asc' => 'прво оно што захтева вашу пажњу',
+    'sorted_status_desc' => 'оно што захтева вашу пажњу на крају',
+    'kpi_invited' => 'Позвани: :number',
+    'kpi_units' => '{1}:count јединица|:count јединице|:count јединица',
+    'kpi_owners_ready' => '{1}:count власник спреман|:count власника спремна|:count власника спремно',
+    'kpi_paused_not_counted' => 'паузирано, није урачунато: :number',
+    'kpi_hold_none' => 'ништа не чека',
+    'kpi_hold_waiting' => 'чека: :amounts',
+    'kpi_review_sub' => 'власници са ставкама које продајни канал није потврдио: :number',
+    'schedule' => ':day радни дан у месецу',
+    'ordinal_st' => ':number.',
+    'ordinal_nd' => ':number.',
+    'ordinal_rd' => ':number.',
+    'ordinal_th' => ':number.',
+    'role_manager' => 'Менаџер објекта',
+    'role_accountant' => 'Рачуновођа',
+    'role_owner' => 'Власник',
+    'another_owner' => 'други власник',
+];
