@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\I18n\Locales;
 use App\Support\Pdf\PdfFonts;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Exceptions;
@@ -30,8 +31,19 @@ it('creates a missing font directory and embeds the bundled Thai font', function
 
     $out = $pdf->output();
 
+    $res = realpath(resource_path('fonts/pdf')) ?: resource_path('fonts/pdf');
+    $diag = [
+        'group' => Locales::pdfGroup('th'), 'family' => PdfFonts::family('th'), 'locale' => app()->getLocale(),
+        'ttf' => collect(glob($res.'/VyrobelThai*.ttf') ?: [])->map(fn ($f) => basename($f).':'.filesize($f))->all(),
+        'dir' => collect(glob($dir.'/*') ?: [])->map(fn ($f) => basename($f).':'.filesize($f))->all(),
+        'families' => array_keys($pdf->getDomPDF()->getFontMetrics()->getFontFamilies()),
+        'chroot' => $options->getChroot(), 'fontDir' => $options->getFontDir(), 'bytes' => strlen($out),
+        'baseFonts' => array_slice(array_unique(preg_match_all('#/BaseFont\s*/([A-Za-z0-9_+-]+)#', $out, $m) ? $m[1] : []), 0, 5),
+    ];
+    expect(stripos((string) json_encode($diag), 'vyrobelthaisans') !== false)->toBeTrue(json_encode($diag));   // on failure the message carries the whole picture
+
     expect(is_dir($dir))->toBeTrue()
-        ->and(str_contains($out, 'vyrobelthaisans'))->toBeTrue()    // the bundled family is embedded …
+        ->and(stripos($out, 'vyrobelthaisans') !== false)->toBeTrue()    // the bundled family is embedded (named 'vyrobelthaisans…' or, once subset, 'VyrobelThaiSans-…': match either) …
         ->and(str_contains($out, 'Times-Roman'))->toBeFalse();      // … not the Times fallback that has no Thai glyphs
 
     foreach (glob($dir.'/*') ?: [] as $f) {
