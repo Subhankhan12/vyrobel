@@ -14,6 +14,7 @@ use App\Support\I18n\Locales;
 use App\Support\Pdf\FolioDocument;
 use App\Support\Pdf\GuestInvoiceDocument;
 use App\Support\Pdf\GuestReversalDocument;
+use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -50,7 +51,12 @@ class GuestDocumentController extends Controller
         $model = $this->owned($reservation);
 
         // I18N-01 (PLAN 5.5) — a tax document is issued in the ORGANISATION's language, not the reader's, until the lawyer rules.
-        return $this->pdf->download('pdfs.guest-vat-invoice', GuestInvoiceDocument::data($model), $this->filename('invoice', $model), null, Locales::organizationDefault((string) $model->organization_id));
+        // the document's own texts (title, dates, month names) are built in that same language: built in the reader's, a German or
+        // Georgian title and month sat inside an English invoice (and Georgian capitals printed as boxes)
+        $docLocale = Locales::organizationDefault((string) $model->organization_id);
+        $data = $this->inLocale(Locales::resolve($docLocale), fn () => GuestInvoiceDocument::data($model));
+
+        return $this->pdf->download('pdfs.guest-vat-invoice', $data, $this->filename('invoice', $model), null, $docLocale);
     }
 
     public function refundReceipt(string $reservation): Response
@@ -65,7 +71,10 @@ class GuestDocumentController extends Controller
         $model = $this->ownedWithRefund($reservation);
 
         // I18N-01 (PLAN 5.5) — a tax document is issued in the ORGANISATION's language, as the invoice it corrects.
-        return $this->pdf->download('pdfs.guest-credit-note', GuestReversalDocument::data($model), $this->filename('credit-note', $model), null, Locales::organizationDefault((string) $model->organization_id));
+        $docLocale = Locales::organizationDefault((string) $model->organization_id);
+        $data = $this->inLocale(Locales::resolve($docLocale), fn () => GuestReversalDocument::data($model));
+
+        return $this->pdf->download('pdfs.guest-credit-note', $data, $this->filename('credit-note', $model), null, $docLocale);
     }
 
     /** The authed guest's OWN reservation, or 404 — resolved through their own relation (never a request id). */
@@ -91,5 +100,25 @@ class GuestDocumentController extends Controller
     private function filename(string $kind, Reservation $reservation): string
     {
         return 'vyrobel-'.$kind.'-'.$reservation->reference.'.pdf';
+    }
+
+    /**
+     * Run $build with the application in $locale, then put the request's own language back (the same switch PdfService makes
+     * around the view) — so a document's data is built in the language the document is issued in.
+     *
+     * @template T
+     *
+     * @param  \Closure(): T  $build
+     * @return T
+     */
+    private function inLocale(string $locale, \Closure $build): mixed
+    {
+        $requestLocale = App::getLocale();
+        App::setLocale($locale);
+        try {
+            return $build();
+        } finally {
+            App::setLocale($requestLocale);
+        }
     }
 }

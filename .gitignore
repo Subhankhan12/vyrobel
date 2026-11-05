@@ -82,3 +82,6 @@ gate*.png
 
 # Local MCP server config — machine-specific paths; must never carry a secret into git.
 .mcp.json
+
+# dompdf font metrics, written on first use of a bundled script font (PdfFonts::prepare)
+/storage/fonts

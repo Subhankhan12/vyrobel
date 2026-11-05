@@ -63,7 +63,7 @@ final class PdfFonts
         if ($script === 'Thai') {
             $html = ThaiPdfShaper::shapeHtml($html);
         }
-        if ($script === 'Geor') {
+        if ($script === 'Geor' || preg_match('/\p{Georgian}/u', $html) === 1) {   // a Georgian word inside another language's document too
             $extra .= '*{text-transform:none !important}';
         }
         if (isset(self::BUNDLED[$group])) {
@@ -96,10 +96,22 @@ final class PdfFonts
         $dompdf->getOptions()->setIsFontSubsettingEnabled(true);
 
         try {
+            // dompdf writes each registered font's metrics (.ufm) into its font directory and cannot create it: on a fresh
+            // checkout or release `storage/fonts` does not exist, registerFont() then fails and a Thai / Chinese / Korean
+            // document silently prints in Times with no glyphs at all (found 2026-11-05 in the render pass)
+            $fontDir = $dompdf->getOptions()->getFontDir();
+            if ($fontDir !== '' && ! is_dir($fontDir)) {
+                @mkdir($fontDir, 0775, true);
+            }
+
             $metrics = $dompdf->getFontMetrics();
             if (self::isInstalled($metrics, $family)) {
                 return;
             }
+            // registering a bundled font parses the whole 2–5 MB file once: that needs more than PHP's 128M default (a Chinese
+            // document's first render died with "Allowed memory size exhausted" in php-font-lib, found 2026-11-05). Later
+            // renders find the saved metrics and never come here.
+            self::allowMemory(512);
             $dir = realpath(resource_path('fonts/pdf')) ?: resource_path('fonts/pdf');
             $options = $dompdf->getOptions();
             $chroot = $options->getChroot();
@@ -125,6 +137,25 @@ final class PdfFonts
             $metrics->setFontFamily($family, $entry);
         } catch (\Throwable $e) {
             report($e);
+        }
+    }
+
+    /** Raise PHP's memory limit to at least $megabytes MB for this request (never lowers it; -1 = unlimited stays). */
+    private static function allowMemory(int $megabytes): void
+    {
+        $limit = trim((string) ini_get('memory_limit'));
+        if ($limit === '' || $limit === '-1') {
+            return;
+        }
+        $unit = strtolower(substr($limit, -1));
+        $bytes = (int) $limit * match ($unit) {
+            'g' => 1024 ** 3,
+            'm' => 1024 ** 2,
+            'k' => 1024,
+            default => 1,
+        };
+        if ($bytes < $megabytes * 1024 ** 2) {
+            @ini_set('memory_limit', $megabytes.'M');
         }
     }
 
