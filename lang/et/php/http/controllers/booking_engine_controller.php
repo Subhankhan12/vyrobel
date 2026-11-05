@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Teie',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Sh: :items',
+    'nightly_excludes' => 'Ei sisalda: :tax',
+    'sleeps' => 'Mahutavus: :count',
+    'studio' => 'Stuudio',
+    'bedrooms' => '{1}:count magamistuba|[0,*]:count magamistuba',
+    'checkout_title' => 'Broneeringu vormistamine — :property',
+    'room_just_taken' => 'Selle toa broneeris just keegi teine — valige mõni teine tuba või kuupäevad.',
+    'payment_received' => 'Makse laekunud',
+    'payment_received_note' => 'Täielikult tasutud.',
+    'payment_processing' => 'Makse töötlemisel',
+    'payment_processing_note' => 'Kinnitame teie kaardimakset. Värskendage mõne hetke pärast seda lehte — siis näete makset.',
+    'pay_on_arrival' => 'Tasumine saabumisel',
+    'pay_on_arrival_note' => 'Tasuge majutusasutuses sisseregistreerimisel.',
+    'confirmed_title' => 'Broneering kinnitatud — :property',
+    'kind_room' => 'Tuba',
+    'kind_apartment' => 'Korter',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Ühistuba',
+    'type_hotel' => 'Hotell',
+    'type_aparthotel' => 'Apartementhotell',
+    'type_serviced_apartment' => 'Teenindusega korter',
+    'type_apartment_building' => 'Korterelamu',
+    'type_apartment' => 'Korter',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Külalistemaja',
+    'type_resort' => 'Puhkekeskus',
+    'type_mixed' => 'Segatüüp',
+    'type_portfolio' => 'Portfell',
+];

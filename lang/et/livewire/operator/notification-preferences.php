@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Teavituste seaded',
+    'subtitle' => 'Kuidas Vyrobel teieni jõuab',
+    'breadcrumb_label' => 'Navigatsioonirada',
+    'crumb_settings' => 'Seaded',
+    'crumb_notifications' => 'Teavitused',
+    'channel_email' => 'E-post',
+    'channel_push' => 'Tõuketeated',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'E-posti aadress puudub',
+    'email_verified_title' => 'Teie sisselogimise e-posti aadress on kinnitatud',
+    'email_verified' => 'Kinnitatud',
+    'push_not_set_up_title' => 'Tõuketeated pole veel seadistatud',
+    'not_set_up_tag' => 'pole seadistatud',
+    'push_not_available' => 'Brauseri ja seadme tõuketeated pole veel saadaval',
+    'channel_off' => 'Väljas',
+    'sms_not_set_up_title' => 'SMS-teavitused pole veel seadistatud',
+    'sms_no_provider' => 'SMS-teenuse pakkujat pole veel ühendatud',
+    'notify_me_when' => 'Teavita mind, kui',
+    'always_on' => 'Alati sees',
+    'email_always_on_sr' => 'E-post on alati sees: :event',
+    'email_me_when_aria' => 'Saada mulle e-kiri, kui: :event',
+    'push_not_set_up_sr' => 'Tõuketeated pole seadistatud',
+    'sms_not_set_up_sr' => 'SMS pole seadistatud',
+    'quiet_hours' => 'Vaikne aeg',
+    'quiet_hours_help' => 'Tavapärased e-kirjad lükatakse nende kellaaegade vahel edasi — kiireloomulised turvateated jõuavad alati kohale; rakendusesisest teavituste voogu see ei mõjuta.',
+    'quiet_from' => 'Alates',
+    'quiet_to' => 'Kuni',
+    'digest_heading' => 'Igapäevane kokkuvõte e-postiga',
+    'digest_help' => 'Hommikune ülevaade päevast. <span class="vy-np-soon">veel ei saadeta</span> — eelistus salvestatakse ajaks, mil kokkuvõtete saatmine käivitub.',
+    'digest_off' => 'Väljas',
+    'digest_morning' => 'Hommikul · 08:00',
+];

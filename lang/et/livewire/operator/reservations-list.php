@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Broneeringud',
+    'arrivals_this_month' => 'Selle kuu saabumised',
+    'arrivals_this_month_sub' => 'saabuvad sel kalendrikuul · tühistamised ja kohale mitteilmumised on välja arvatud',
+    'booked_value' => 'Broneeringute väärtus · selle kuu saabumised',
+    'booked_value_sub' => 'arveldatud selle kuu saabumiste eest',
+    'booked_value_sub_multi' => 'arveldatud selle kuu saabumiste eest · näidatud valuutade kaupa (eri valuutasid ei liideta kunagi kokku)',
+    'balances_due' => 'Tasumata summad · selle kuu saabumised',
+    'folios_owing' => '{1}:count folio on veel tasumata|[2,*]:count foliot on veel tasumata|{0}Tasumata summasid pole',
+    'search_placeholder' => 'Otsige külalise või broneeringu numbri järgi…',
+    'search_label' => 'Otsi broneeringuid',
+    'group_booking' => 'Grupibroneering',
+    'new_reservation' => 'Uus broneering',
+    'empty_heading' => 'Broneeringuid veel pole',
+    'empty_body' => 'Iga broneering — otse tehtud, kohapeal tehtud või imporditud — ilmub siia kohe, kui see on tehtud.',
+    'no_match_query' => 'Otsingule „:query“ ei vasta ükski broneering',
+    'no_match_view' => 'Selles vaates pole broneeringuid',
+    'no_match_hint' => '{1}Proovige külalise nime või broneeringu numbrit. Kokku on :count broneering.|[0,*]Proovige külalise nime või broneeringu numbrit. Kokku on :count broneeringut.',
+    'no_match_hint_filter' => '{1}Proovige külalise nime või broneeringu numbrit või tühjendage filter. Kokku on :count broneering.|[0,*]Proovige külalise nime või broneeringu numbrit või tühjendage filter. Kokku on :count broneeringut.',
+    'clear_search_filters' => 'Tühjenda otsing ja filtrid',
+    'col_guest' => 'Külaline',
+    'col_stay' => 'Viibimine',
+    'col_unit' => 'Majutusüksus',
+    'col_source' => 'Allikas',
+    'col_stage' => 'Etapp',
+    'col_balance_due' => 'Tasumata',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count öö|[0,*]:count ööd',
+    'guests' => '{1}:count külaline|[0,*]:count külalist',
+    'unassigned' => 'Määramata',
+    'refunded' => 'Tagasi makstud',
+    'pager_label' => 'broneeringut',
+];

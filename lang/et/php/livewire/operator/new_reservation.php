@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Viibimine',
+    'step_guest' => 'Külaline',
+    'step_extras' => 'Lisateenused',
+    'step_confirm' => 'Kinnitamine',
+    'source_direct' => 'Otsemüük',
+    'source_walk_in' => 'Ilma broneeringuta',
+    'source_corporate' => 'Ettevõte',
+    'source_agent' => 'Reisiagent',
+    'the_guest' => 'Külaline',
+    'a_night' => ':amount öö kohta',
+    'a_night_range' => ':low–:high öö kohta',
+    'dates_label' => '{1}:from → :to · :count öö|[0,*]:from → :to · :count ööd',
+    'restrict_min_stay' => '{1}Saabumisel :date peab viibimine kestma vähemalt :count öö|[0,*]Saabumisel :date peab viibimine kestma vähemalt :count ööd',
+    'restrict_max_stay' => '{1}Saabumisel :date võib viibimine kesta kuni :count öö|[0,*]Saabumisel :date võib viibimine kesta kuni :count ööd',
+    'restrict_no_arrivals' => 'Saabumine suletud: :date',
+    'restrict_no_departures' => 'Lahkumine suletud: :date',
+    'restrict_stop_sell' => 'Müük suletud: :date',
+    'restrict_other' => 'Piirang: :restriction · :date',
+    'arrival_mail_off' => 'Vyrobelist e-kirju veel ei saadeta — andke külalisele juhised ja uksekood ise.',
+    'arrival_pre_arrival_off' => 'E-kiri „Enne saabumist“ on teie majutusasutuste jaoks välja lülitatud — andke külalisele juhised ja uksekood ise.',
+    'arrival_too_soon' => 'Selle viibimise algus on liiga lähedal, et saata e-kiri „Enne saabumist“, mis saadetakse :count päeva enne sisseregistreerimist — andke külalisele juhised ja uksekood ise.',
+    'arrival_by_email' => 'Juhised ja uksekood (kui majutusüksusel see on) saadetakse külalisele e-postiga :count päeva enne sisseregistreerimist — kui külalisel on e-posti aadress. Uksekoodi siin kunagi ei kuvata.',
+    'cancel_not_free' => 'Tasuta tühistamine ei kehti — see lõppes :date',
+    'cancel_free_until_check_in' => 'Tasuta kuni sisseregistreerimiseni',
+    'cancel_free_until_date' => 'Tasuta kuni :date',
+    'cancel_free_until_days' => '{1}Tasuta kuni :count päev enne sisseregistreerimist|[0,*]Tasuta kuni :count päeva enne sisseregistreerimist',
+    'min_stay_none' => 'Piirangut pole',
+    'min_stay_nights' => '{1}:count öö|[0,*]:count ööd',
+    'guest_no_name' => 'Külaline',
+    'no_stays_yet' => 'Viibimisi veel pole',
+];

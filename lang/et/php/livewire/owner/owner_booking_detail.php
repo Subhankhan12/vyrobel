@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'alates :time',
+    'by_time' => 'kuni :time',
+    'repeat_guest' => '{1}Korduvkülaline · :count viibimine|[0,*]Korduvkülaline · :count viibimist',
+    'new_guest' => 'Uus külaline',
+    'guests_count' => '{1}:count külaline|[0,*]:count külalist',
+    'nights_count' => '{1}:count öö|[0,*]:count ööd',
+    'channel_direct' => 'Vyrobeli otsemüük',
+    'channel_walk_in' => 'Ilma broneeringuta',
+    'channel_ota' => 'OTA-kanal',
+    'event_booking_received' => 'Broneering vastu võetud',
+    'event_cancelled' => 'Tühistatud',
+    'event_payment_received' => 'Makse laekunud',
+    'when_paid_in_full' => 'Täielikult tasutud',
+    'event_part_payment_received' => 'Osamakse laekunud',
+    'when_balance_due' => 'Tasumata summa',
+    'event_payment' => 'Makse',
+    'when_not_yet_received' => 'Veel laekumata',
+    'event_checked_in' => 'Sisse registreeritud',
+    'event_check_in' => 'Sisseregistreerimine',
+    'event_checked_out' => 'Välja registreeritud',
+    'event_payout_released' => 'Väljamakse tehtud',
+    'event_payout' => 'Väljamakse',
+    'when_next_payout' => 'Koos teie järgmise väljamaksega',
+    'payout_not_attributed' => 'Pearaamatusse veel kandmata',
+    'payout_not_attributed_note' => 'Seda broneeringut pole veel teie pearaamatusse kantud.',
+    'payout_scheduled' => 'Planeeritud',
+    'payout_scheduled_note' => 'Kaasatakse teie järgmisesse väljavõttesse ja makstakse välja koos selle väljamaksega.',
+    'payout_pending' => 'Väljamakse ootel',
+    'payout_pending_note' => 'Lõplikul väljavõttel — makstakse välja koos selle väljamaksega.',
+    'payout_paid' => 'Välja makstud',
+    'payout_paid_note' => 'Välja makstud koos lõpule viidud väljamaksega.',
+];

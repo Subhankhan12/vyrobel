@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Rikketeade „:title“ on avatud majutusüksuse :unit kohta.',
+    'not_assignable_staff' => 'Seda kasutajat ei saa selles organisatsioonis vastutajaks määrata.',
+    'cannot_reassign_closed' => 'Selle rikketeate vastutajat ei saa muuta — see on juba lõpetatud.',
+    'assignment_updated' => 'Rikketeate vastutaja on uuendatud.',
+    'work_order_closed' => 'See töökäsk on lõpetatud — selle andmeid ei saa muuta.',
+    'work_order_updated' => 'Töökäsk on uuendatud.',
+    'col_title' => 'Pealkiri',
+    'col_unit' => 'Majutusüksus',
+    'col_category' => 'Kategooria',
+    'col_priority' => 'Prioriteet',
+    'col_status' => 'Olek',
+    'col_assignee' => 'Vastutaja',
+    'col_reported' => 'Teatatud',
+    'col_cost' => 'Kulu',
+    'bulk_assigned_skipped' => '{1}Vastutaja määratud: :count töökäsk · vahele jäetud: :skipped (juba lõpetatud)|[0,*]Vastutaja määratud: :count töökäsku · vahele jäetud: :skipped (juba lõpetatud)',
+    'bulk_assigned' => '{1}Vastutaja määratud: :count töökäsk.|[0,*]Vastutaja määratud: :count töökäsku.',
+    'bulk_resolved_skipped' => '{1}Lahendatud: :count töökäsk · vahele jäetud: :skipped (juba lõpetatud)|[0,*]Lahendatud: :count töökäsku · vahele jäetud: :skipped (juba lõpetatud)',
+    'bulk_resolved' => '{1}Lahendatud: :count töökäsk.|[0,*]Lahendatud: :count töökäsku.',
+    'cannot_start' => 'Selle rikketeate puhul ei saa tööd alustada — see ei ole enam avatud.',
+    'work_started' => 'Selle rikketeate töö on alustatud.',
+    'cannot_resolve_closed' => 'Seda töökäsku ei saa lahendada — see on juba lõpetatud.',
+    'ticket_resolved' => 'Rikketeade on lahendatud.',
+    'cannot_cancel_closed' => 'Seda rikketeadet ei saa tühistada — see on juba lõpetatud.',
+    'ticket_cancelled' => 'Rikketeade on tühistatud.',
+    'parts_closed' => 'See rikketeade on lõpetatud — varuosi ei saa uuendada.',
+    'awaiting_parts' => 'Märgitud varuosi ootavaks.',
+    'parts_arrived' => 'Varuosad on märgitud saabunuks.',
+    'update_posted_waiting_part' => 'Uuendus on postitatud — märgitud varuosa ootavaks.',
+    'update_posted' => 'Uuendus on postitatud.',
+    'photo_added' => 'Foto on lisatud.',
+    'photo_removed' => 'Foto on kustutatud.',
+    'workspace_paused' => 'Teie organisatsioon on peatatud (ainult vaatamiseks) — hoolduse muudatused on välja lülitatud, kuni jätkate.',
+];

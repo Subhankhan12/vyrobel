@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Halda broneeringut :reference',
+    'back_to_booking' => '← Tagasi broneeringu juurde',
+    'heading' => 'Hallake oma broneeringut',
+    'subheading' => ':property · :check_in → :check_out. Muudatused kinnitab majutusasutus — anname teile kohe teada, kui need on kinnitatud.',
+    'pending_requests' => 'Ootel taotlused',
+    'pending_badge' => 'Ootel',
+    'pending_note' => 'Teie broneeringus pole veel midagi muutunud — majutusasutus peab taotluse esmalt kinnitama.',
+    'pick_new_dates' => 'Valige uued kuupäevad',
+    'currently' => 'Praegu :check_in → :check_out. Valige uued kuupäevad, et näha hinnavahet, ja seejärel taotlege muudatust.',
+    'new_check_in' => 'Uus saabumiskuupäev',
+    'new_check_out' => 'Uus lahkumiskuupäev',
+    'see_price_difference' => 'Vaata hinnavahet',
+    'new_stay' => 'Uus viibimine',
+    'current' => 'Praegune',
+    'difference' => 'Vahe',
+    'estimate_note' => 'Ainult ligikaudne — sõltub majutusasutuse kinnitusest. Võimalik makse tehakse pärast kinnitamist.',
+    'unpriced_note' => 'Nendele kuupäevadele pole veel hinda avaldatud — taotlege muudatust ja majutusasutus kinnitab hinna.',
+    'request_date_change' => 'Taotle kuupäevade muutmist',
+    'add_to_your_stay' => 'Täiendage oma viibimist',
+    'add_to_your_stay_sub' => 'Lisage hommikusöök, transfeer ja palju muud — kinnitamisel arveldatakse kõik teie broneeringu kaudu.',
+    'browse_extras' => 'Vaata lisateenuseid',
+    'cancellation_policy' => 'Tühistamistingimused',
+    'free_until' => 'Tasuta tühistamine kuni <strong>:date</strong> — enne seda esitatud tühistamistaotluse korral makstakse kogu summa tagasi.',
+    'policy_by_property' => 'Majutusasutus kinnitab teie tühistamise ja teeb võimaliku tagasimakse oma tingimuste kohaselt.',
+    'cancel_confirm' => 'Kas saata selle broneeringu tühistamistaotlus? Majutusasutus vaatab selle üle ja teeb võimaliku tagasimakse oma tingimuste kohaselt.',
+    'reason' => 'Põhjus',
+    'choose_reason' => 'Valige põhjus…',
+    'request_cancellation' => 'Taotle tühistamist',
+    'closed_heading' => 'See broneering on lõppenud',
+    'closed_body' => 'Selles pole enam midagi muuta — kuid teie kuupäevad, viibimise andmed ja kõik tehtud maksed on siin alles, kui neid vajate.',
+];

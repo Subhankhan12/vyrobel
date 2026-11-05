@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Töötaja/omanik',
+    'realm_guest' => 'Külaline',
+    'realm_admin' => 'Platvormi administraator',
+    'event_login' => 'Sisselogimine',
+    'event_failed' => 'Ebaõnnestunud',
+    'event_lockout' => 'Lukustus',
+    'subject_user' => 'Kasutaja',
+    'subject_guest' => 'Külaline',
+    'subject_platform_admin' => 'Platvormi administraator',
+    'subject_unknown' => 'Teadmata',
+    'actor_user' => 'Kasutaja',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'Süsteem',
+    'page_title' => 'Turvalisus ja tegevused',
+    'page_subtitle' => 'Sisselogimised ja kontosündmused kogu platvormil — säilitatakse :days päeva jooksul, seejärel kustutatakse.',
+    'kpi_failures' => 'Ebaõnnestunud / lukustus · 24 h',
+    'kpi_failures_help' => 'Korduvad ebaõnnestumised võivad viidata sissetungikatsetele.',
+    'privacy' => 'Privaatsus',
+    'privacy_body' => 'Sisselogimisi (sh IP-aadressi) salvestatakse ainult <strong style="color: var(--ad-ink);">turvasignaalina</strong> — kahtlaste sisselogimiste märkamiseks ja kasutajatoeks — mitte kunagi taustajälgimiseks. Säilitatakse :days päeva jooksul, seejärel kustutatakse automaatselt; ligipääs on piiratud selle konsooliga.',
+    'recent_sign_ins' => 'Viimased sisselogimised',
+    'col_event' => 'Sündmus',
+    'col_realm' => 'Keskkond',
+    'col_account' => 'Konto',
+    'col_ip' => 'IP',
+    'col_when' => 'Millal',
+    'no_sign_ins' => 'Sisselogimisi pole veel salvestatud.',
+    'recent_account_events' => 'Viimased kontosündmused <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· kõigi klientide lõikes</span>',
+    'col_customer' => 'Klient',
+    'col_actor' => 'Tegija',
+    'no_account_events' => 'Kontosündmusi veel pole.',
+];

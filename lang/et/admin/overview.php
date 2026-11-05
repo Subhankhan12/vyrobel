@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — et translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ülevaade',
+    'subtitle_all' => 'Kõik organisatsioonid, kaasa arvatud Vyrobeli enda sisemised.',
+    'subtitle_customers' => 'Ainult kliendid — Vyrobeli enda sisemised organisatsioonid on välja jäetud.',
+    'showing_all' => 'Kuvatakse <strong>kõik</strong> organisatsioonid — neist sisemisi: :internal.',
+    'internal_excluded' => '{1}:count sisemine organisatsioon on kõigist allolevatest arvudest välja jäetud.|[0,*]:count sisemist organisatsiooni on kõigist allolevatest arvudest välja jäetud.',
+    'customers_only' => 'Ainult kliendid',
+    'include_internal' => 'Kaasa sisemised',
+    'no_customers_heading' => 'Kliente veel pole',
+    'no_customers_body' => 'Kõik platvormi organisatsioonid on Vyrobeli enda omad (sisemisi: :internal). Esimene päris registreerumine ilmub siia.',
+    'kpi_organisations' => 'Organisatsioonid',
+    'kpi_customers' => 'Kliendid',
+    'kpi_account_status' => 'Aktiivsed: :active · peatatud: :suspended',
+    'kpi_subscriptions' => 'Abonemendid',
+    'kpi_subscriptions_sub' => 'aktiivsed · tasuta prooviperioodil: :trial',
+    'kpi_revenue' => 'Käive',
+    'no_live_billing' => 'Reaalrežiimis arveldust veel pole',
+    'no_live_billing_sub' => 'Ühtegi abonementi ei arveldata Stripe’i kaudu. Prooviperioodi hinnakirjahind ei ole käive.',
+    'billed_live' => '{1}Reaalrežiimis arveldatud: :count|[0,*]Reaalrežiimis arveldatud: :count',
+    'billed_live_sub' => 'Arvutatud selle põhjal, mida Stripe debiteeris, mitte kunagi hinnakirja järgi — vt lehte <a class="ad-cell-link" href=":url">Käive</a>.',
+    'kpi_properties' => 'Majutusasutused',
+    'kpi_reservations' => '{1}:count broneering|[0,*]:count broneeringut',
+    'new_organisations_heading' => 'Uued organisatsioonid · viimased 6 kuud',
+    'new_customers_heading' => 'Uued kliendid · viimased 6 kuud',
+    'no_signups' => 'Viimase 6 kuu jooksul pole registreerumisi.',
+    'account_status_heading' => 'Konto olek',
+    'status_active' => 'Aktiivne',
+    'status_suspended' => 'Peatatud',
+    'status_cancelled' => 'Tühistatud',
+    'status_trialing' => 'Prooviperioodil (konto)',
+    'free_trial_hint' => 'Tasuta prooviperiood on abonemendi olek, mitte konto olek — praegu tasuta prooviperioodil: :trial.',
+    'plans_in_use' => 'Kasutusel olevad plaanid <span class="ad-stat-sub" style="font-weight: 400;">· aktiivsed või prooviperioodil</span>',
+    'no_plans' => 'Ühtegi plaani pole veel kasutusel.',
+];

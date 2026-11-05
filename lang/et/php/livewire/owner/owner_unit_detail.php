@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Külaline',
+    'nights' => '{1}:count öö|[0,*]:count ööd',
+    'block_reason_none' => 'Blokeeritud',
+    'block_reason_maintenance' => 'Hooldus',
+    'block_reason_owner' => 'Omanik',
+    'block_reason_manual' => 'Käsitsi',
+    'block_reason_overbooking_protection' => 'Ülebroneerimise kaitse',
+    'cleaning_departure' => 'Koristus pärast lahkumist',
+    'cleaning_stayover' => 'Viibimisaegne koristus',
+    'cleaning_deep' => 'Üldkoristus',
+    'cleaning_arrival_prep' => 'Saabumiseelne ettevalmistus',
+    'cleaning_status_pending' => 'Planeeritud',
+    'cleaning_status_in_progress' => 'Töös',
+    'cleaning_status_clean' => 'Puhas',
+    'cleaning_status_inspected' => 'Kontrollitud',
+    'kind_room' => 'Tuba',
+    'kind_apartment' => 'Korter',
+    'kind_villa' => 'Villa',
+    'kind_dorm_bed' => 'Voodikoht ühistoas',
+    'condition_out_of_order' => 'Rikkis',
+    'condition_out_of_service' => 'Remondis',
+    'status_enquiry' => 'Päring',
+    'status_tentative' => 'Eelbroneering',
+    'status_confirmed' => 'Kinnitatud',
+    'status_checked_in' => 'Sisse registreeritud',
+    'status_checked_out' => 'Välja registreeritud',
+    'status_cancelled' => 'Tühistatud',
+    'status_no_show' => 'Ei ilmunud kohale',
+    'terms_portfolio' => 'Kogu portfelli tingimused',
+    'terms_unit' => 'Selle majutusüksuse tingimused',
+];

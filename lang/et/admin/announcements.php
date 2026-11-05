@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Teadaanded',
+    'subtitle' => 'Teade iga organisatsiooni töötajate keskkonnas ja omanikuportaalis — või ainult valitud organisatsioonides. Lihttekst; e-kirju ei saadeta.',
+    'empty_state' => 'Ühtegi teadaannet pole kunagi avaldatud.',
+    'col_announcement' => 'Teadaanne',
+    'col_to' => 'Kellele',
+    'col_from_until' => 'Alates → kuni',
+    'col_state' => 'Olek',
+    'audience_all' => 'Kõik organisatsioonid',
+    'audience_chosen_count' => 'Valitud: :number',
+    'no_end' => 'tähtajatu',
+    'state_withdrawn' => 'Tagasi võetud',
+    'state_showing' => 'Kuvatakse',
+    'state_scheduled' => 'Ajastatud',
+    'state_ended' => 'Lõppenud',
+    'reason_aria' => 'Põhjus',
+    'withdraw_placeholder' => 'Miks tagasi võtta?',
+    'withdraw_button' => 'Võta tagasi',
+    'publish_heading' => 'Avalda teadaanne',
+    'title_label' => 'Pealkiri',
+    'message_label' => 'Sõnum (lihttekst)',
+    'kind_label' => 'Tüüp',
+    'show_from_label' => 'Näita alates (UTC)',
+    'until_label' => 'Kuni (UTC, valikuline)',
+    'to_label' => 'Kellele',
+    'option_every_organisation' => 'Kõik organisatsioonid',
+    'option_chosen_organisations' => 'Valitud organisatsioonid',
+    'chosen_organisations_label' => 'Valitud organisatsioonid (kui on valitud „Valitud organisatsioonid“)',
+    'no_organisation_chosen' => 'Ühtegi organisatsiooni pole veel valitud',
+    'reason_label' => 'Põhjus',
+    'publish_reason_placeholder' => 'Miks see teadaanne avaldatakse?',
+    'publish_button' => 'Avalda',
+];

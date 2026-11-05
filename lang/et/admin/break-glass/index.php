@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Hädajuurdepääs',
+    'subtitle' => 'Ajaliselt piiratud pilk ühe organisatsiooni sisse, ainult vaatamiseks — põhjus, 2FA ja organisatsiooni teavitatakse.',
+    'back_label' => 'Tugi',
+    'open_heading' => 'Teie seanss on avatud',
+    'open_summary' => '{1}:organization · lõpeb kell :time UTC · vaadatud :count leht.|[0,*]:organization · lõpeb kell :time UTC · vaadatud :count lehte.',
+    'go_to_back_office' => 'Ava nende töötajate keskkond',
+    'end_now' => 'Lõpeta seanss kohe',
+    'start_heading' => 'Ava seanss',
+    'rule_read_only' => '<strong>Ainult vaatamiseks.</strong> Iga muudatus keelatakse — vormid, nupud, kõik, mis midagi salvestab.',
+    'rule_minutes' => '{1}<strong>:count minut</strong>, seejärel lõpeb seanss ise.|[0,*]<strong>:count minutit</strong>, seejärel lõpeb seanss ise.',
+    'rule_senior_user' => 'Näete seda, mida näeb nende kõrgeima tasemega kinnitatud töötajate keskkonna kasutaja — sh külalisi. Vaadake ainult seda, mida põhjus nõuab.',
+    'rule_recorded' => 'Iga avatud leht salvestatakse ja nende meeskonda teavitatakse hiljem: teie nimi, aeg ja see põhjus.',
+    'organisation_label' => 'Organisatsioon',
+    'choose_option' => 'Valige…',
+    'code_label' => 'Teie 2FA-kood (praegu)',
+    'reason_label' => 'Põhjus — nad loevad seda',
+    'reason_placeholder' => 'nt päring #123 — omanik teatab puuduvast broneeringust',
+    'open_button' => 'Ava vaatamisseanss',
+    'recent_heading' => 'Viimased seansid',
+    'empty_state' => 'Ühtegi hädajuurdepääsu seanssi pole kunagi avatud.',
+    'col_admin' => 'Administraator',
+    'col_organisation' => 'Organisatsioon',
+    'col_reason' => 'Põhjus',
+    'col_started' => 'Algas',
+    'col_ended' => 'Lõppes',
+    'col_pages' => 'Lehed',
+    'col_told' => 'Teavitatud',
+    'ended_open' => 'avatud',
+    'ended_due' => 'aegunud — veel sulgemata',
+    'told_yes' => 'Jah',
+    'told_not_yet' => 'Veel mitte',
+];

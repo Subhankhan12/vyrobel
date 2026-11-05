@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count broneering|[0,*]:count broneeringut',
+    'room_moves' => '{1}:count ümberpaigutus|[0,*]:count ümberpaigutust',
+    'cleaning_tasks' => '{1}:count koristustöö|[0,*]:count koristustööd',
+    'work_orders' => '{1}:count töökäsk|[0,*]:count töökäsku',
+    'status_changes' => '{1}:count oleku muutus|[0,*]:count oleku muutust',
+    'blocks' => '{1}:count blokeering|[0,*]:count blokeeringut',
+    'owner_agreements' => '{1}:count omaniku haldusleping|[0,*]:count omaniku halduslepingut',
+    'owner_statement_lines' => '{1}:count omaniku väljavõtte rida|[0,*]:count omaniku väljavõtte rida',
+    'owner_expenses' => '{1}:count omaniku kulu|[0,*]:count omaniku kulu',
+    'reviews' => '{1}:count arvustus|[0,*]:count arvustust',
+    'owner_requests' => '{1}:count omaniku taotlus|[0,*]:count omaniku taotlust',
+    'notes' => '{1}:count märkus|[0,*]:count märkust',
+    'documents' => '{1}:count dokument|[0,*]:count dokumenti',
+    'files' => '{1}:count fail|[0,*]:count faili',
+    'units' => '{1}:count majutusüksus|[0,*]:count majutusüksust',
+    'rate_proposals' => '{1}:count hinnaettepanek|[0,*]:count hinnaettepanekut',
+    'overbooking_records' => '{1}:count ülebroneerimise kirje|[0,*]:count ülebroneerimise kirjet',
+    'guest_waitlist_entries' => '{1}:count külalise ootenimekirja kirje|[0,*]:count külalise ootenimekirja kirjet',
+    'guest_wishlist_saves' => '{1}:count külalise lemmik|[0,*]:count külalise lemmikut',
+    'derived_room_types' => '{1}:count sellele rajatud toatüüp|[0,*]:count sellele rajatud toatüüpi',
+    'derived_rate_plans' => '{1}:count mujal sellest tuletatud hinnaplaan|[0,*]:count mujal sellest tuletatud hinnaplaani',
+    'corporate_default_rates' => '{1}:count ettevõtte konto vaikehind|[0,*]:count ettevõtte konto vaikehinda',
+    'channel_connections' => '{1}:count müügikanali ühendus|[0,*]:count müügikanali ühendust',
+    'an_owner' => 'omanik',
+    'pending_owner_invitation' => 'ootel omaniku kutse',
+    'list_and' => ':items ja :last',
+    'kind_rooms' => 'toad',
+    'kind_apartments' => 'korterid',
+    'kind_villas' => 'villad',
+    'kind_dorm_beds' => 'voodikohad ühistoas',
+];

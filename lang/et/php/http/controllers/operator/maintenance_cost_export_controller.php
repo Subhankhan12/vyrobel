@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Summad',
+    'csv_amounts_note' => 'põhiühikud, kümnendpunkt, ilma tuhandete eraldajata',
+    'col_date' => 'Kuupäev',
+    'col_work_order' => 'Töökäsk',
+    'col_unit' => 'Majutusüksus',
+    'col_category' => 'Kategooria',
+    'col_labor' => 'Töö',
+    'col_parts' => 'Varuosad',
+    'col_total' => 'Kokku',
+    'col_currency' => 'Valuuta',
+    'total_row' => 'Kokku',
+    'sheet_summary' => 'Kokkuvõte',
+    'col_measure' => 'Näitaja',
+    'col_value' => 'Väärtus',
+    'total_spend' => 'Kulud kokku',
+    'measure_labour' => 'Töö',
+    'measure_parts' => 'Varuosad',
+    'orders_closed' => 'Lõpetatud töökäsud',
+    'owner_billed' => 'Omanikule arveldatud',
+    'operator_borne' => 'Ettevõtte kanda',
+    'parts_on_order' => 'Tellitud varuosad',
+    'average_per_order' => 'Keskmine töökäsu kohta',
+    'by_category' => 'Kategooriate kaupa',
+    'col_orders' => 'Töökäsud',
+    'by_month' => 'Kuude kaupa',
+    'top_units' => 'Parimad majutusüksused',
+    'sheet_line_items' => 'Read',
+    'col_labour' => 'Töö',
+    'no_email' => 'Teie kontol puudub e-posti aadress.',
+    'report_emailed' => 'Kuluaruanne on saadetud aadressile :email.',
+];

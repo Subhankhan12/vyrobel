@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Aruanded',
+    'arrivals_in' => 'Saabumised: :period',
+    'arrivals_count' => '{1}:count saabumine|[0,*]:count saabumist',
+    'pp_delta' => ':delta pp',
+    'occupancy' => 'Täitumus',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Brutokäive',
+    'basis_note' => 'Täitumus · ADR · RevPAR on arvutatud viibimisööde alusel, võrrelduna eelmise aasta sama perioodiga seal, kus eelmise aasta andmed on olemas. Allolev käive on esitatud folio (saabumise) alusel.',
+    'revenue' => 'Käive',
+    'room' => 'Majutuskäive',
+    'ancillary' => 'Lisateenuste käive <span class="muted">· lisateenused, tooted, tasud</span>',
+    'tax_collected' => 'Kogutud maksud · läbikäiv',
+    'costs_heading' => 'Kulud <span class="muted" style="font-size:9px">· ainult tegelikud andmed</span>',
+    'maintenance' => 'Hooldus <span class="muted">· lahendatud töökäsud</span>',
+    'not_tracked' => 'veel arvestamata',
+    'net' => 'Neto (käive − arvestatud kulud)',
+    'revenue_by_channel' => 'Käive kanalite kaupa',
+    'channel' => 'Kanal',
+    'bookings' => 'Broneeringud',
+    'share' => 'Osakaal',
+    'no_channel_revenue' => 'Sellel perioodil pole kanalite käivet.',
+    'top_units' => 'Parimad majutusüksused',
+    'unit' => 'Majutusüksus',
+    'nights' => 'Ööd',
+    'room_revenue' => 'Majutuskäive',
+    'no_unit_revenue' => 'Sellel perioodil pole majutusüksuste käivet.',
+    'revenue_by_month' => 'Käive kuude kaupa',
+    'month' => 'Kuu',
+    'footer' => 'Arvutatud tegelike folio- ja hooldusandmete põhjal: :scope · :period. Täitumus, ADR ja RevPAR põhinevad viibimisöödel; käive põhineb foliol (saabumisel). Arvud klapivad lehega „Aruanded“. Vyrobel.',
+];

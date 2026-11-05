@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotell',
+    'type_aparthotel' => 'Apartementhotell',
+    'type_serviced_apartment' => 'Teenindusega korterid',
+    'type_apartment_building' => 'Korterid',
+    'type_apartment' => 'Korter',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Külalistemaja',
+    'type_resort' => 'Puhkekeskus',
+    'type_mixed' => 'Hotell ja korterid',
+    'type_portfolio' => 'Majutusvõimalused',
+    'title_town' => ':name, :town — Broneerige otse',
+    'title' => ':name — Broneerige otse',
+    'title_room' => ':room, :property — Broneerige otse',
+    'org_description_towns' => '{1}Vaadake :count majutusasutust (:towns). Kontrollige saadavust ja broneerige otse majutaja :org juures.|[0,*]Vaadake :count majutusasutust (:towns). Kontrollige saadavust ja broneerige otse majutaja :org juures.',
+    'org_description' => '{1}Vaadake :count majutusasutust. Kontrollige saadavust ja broneerige otse majutaja :org juures.|[0,*]Vaadake :count majutusasutust. Kontrollige saadavust ja broneerige otse majutaja :org juures.',
+    'org_description_empty' => 'Kontrollige saadavust ja broneerige otse majutaja :org juures.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Broneerige :name otse. :type, :place. :count toatüüp. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.|[0,*]Broneerige :name otse. :type, :place. :count toatüüpi. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.',
+    'description_place' => 'Broneerige :name otse. :type, :place. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.',
+    'description_rooms' => '{1}Broneerige :name otse. :type. :count toatüüp. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.|[0,*]Broneerige :name otse. :type. :count toatüüpi. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.',
+    'description' => 'Broneerige :name otse. :type. Kontrollige reaalajas saadavust ja broneerige ilma broneerimisplatvormi kasutamata.',
+    'detail_sleeps' => 'mahutab kuni :guests külalist',
+    'detail_bedrooms' => '{1}:count magamistuba|[0,*]:count magamistuba',
+    'room_description_town_details' => ':room majutusasutuses :property (:town) — :details. Kontrollige reaalajas saadavust ja broneerige otse.',
+    'room_description_town' => ':room majutusasutuses :property (:town). Kontrollige reaalajas saadavust ja broneerige otse.',
+    'room_description_details' => ':room majutusasutuses :property — :details. Kontrollige reaalajas saadavust ja broneerige otse.',
+    'room_description' => ':room majutusasutuses :property. Kontrollige reaalajas saadavust ja broneerige otse.',
+    'list_and' => ':items ja :last',
+];

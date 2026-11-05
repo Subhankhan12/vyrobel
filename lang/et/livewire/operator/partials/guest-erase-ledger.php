@@ -1,0 +1,13 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/operator/partials/guest-erase-ledger.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'erased_heading' => 'Kustutatakse',
+    'erased_name_contact' => 'Nimi ja kontaktandmed',
+    'erased_city_preferences' => 'Linn, kodakondsus ja eelistused',
+    'erased_documents_messages' => 'Isikut tõendavad dokumendid, märkmed ja sõnumid',
+    'kept_heading' => 'Säilitatakse ilma nimeta',
+    'kept_bookings' => 'Broneeringud ja viibimised',
+    'kept_invoices' => 'Arved, maksed ja saldod',
+];

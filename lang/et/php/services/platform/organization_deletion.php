@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Sellel organisatsioonil on reaalrežiimi rahakanded (:records). Seadus võib nõuda nende säilitamist aastaid, seega on nende kustutamine ootele pandud kuni õigusliku otsuseni selle kohta, kui kaua neid tuleb säilitada — enne seda ei saa organisatsiooni kustutada.',
+    'uncounted_cascades' => 'Andmebaas seob kirjeid viisil, mida kustutamine ei suuda täpselt kokku lugeda (:links), seega ei saanud kinnitus öelda, mis kaob. Midagi ei saa kustutada enne, kui see on parandatud.',
+    'stripe_billing_live' => 'Selle organisatsiooni Stripe’i arveldus on reaalrežiimis. Tühistage abonement esmalt Stripe’is, muidu debiteeritakse tasusid edasi kliendilt, keda enam ei ole. Kui see on seal juba tühistatud, ei ole Stripe’i teadet selle kohta siin rakendatud — lahendage see käsitsi.',
+    'checkout_open_subscription' => 'Selle abonemendi Stripe’i maksuleht on avatud ja seda saab veel tasuda (avamisaeg: :opened; kehtib kuni: :closes). Proovige uuesti, kui see on tasutud või aegunud.',
+    'checkout_open_card' => 'Külalise kaardimakse Stripe’i maksuleht on avatud ja seda saab veel tasuda (avamisaeg: :opened; kehtib kuni: :closes). Proovige uuesti, kui see on tasutud või aegunud.',
+    'checkout_unreported_subscription' => 'Selle abonemendi reaalrežiimi Stripe’i maksuleht on suletud (avamisaeg: :opened; sulgemisaeg: :closed), kuid teadet selle kohta, kas see tasuti, pole siin rakendatud. Kontrollige lehte Stripe’i töölaual; kui see tasuti, tühistage esmalt seal sellega alustatu. Stripe proovib edastamata jäänud teadet uuesti kuni 3 päeva jooksul — proovige uuesti, kui teade on rakendatud. Kui Stripe on sellest juba teatanud ja teadet ei õnnestunud rakendada, lahendage see käsitsi.',
+    'checkout_unreported_card' => 'Külalise kaardimakse reaalrežiimi Stripe’i maksuleht on suletud (avamisaeg: :opened; sulgemisaeg: :closed), kuid teadet selle kohta, kas see tasuti, pole siin rakendatud. Kontrollige lehte Stripe’i töölaual; kui see tasuti, tühistage esmalt seal sellega alustatu. Stripe proovib edastamata jäänud teadet uuesti kuni 3 päeva jooksul — proovige uuesti, kui teade on rakendatud. Kui Stripe on sellest juba teatanud ja teadet ei õnnestunud rakendada, lahendage see käsitsi.',
+    'refund_processing' => 'Kaardi tagasimakse on Stripe’is veel töötlemisel. Oodake, kuni Stripe selle kinnitab, ja proovige siis uuesti.',
+    'card_payment_open' => 'Kaardimakse või kaardi eelautoriseerimine on veel pooleli. Laske sellel esmalt laekuda või vabastage see.',
+    'dispute_open' => 'Kaardimakse on Stripe’is vaidlustatud (algusaeg: :since). Vastake vaidlustusele Stripe’is ja proovige uuesti, kui Stripe teatab vaidlustuse sulgemisest. Kui Stripe’i töölaud näitab seda juba suletuna, siis teade ei jõudnud kohale — lahendage see käsitsi.',
+    'payouts_in_transit' => '{1}Stripe’is on teel üks väljamakse omanikule (algusaeg: :since).|[0,*]Stripe’is on teel :count väljamakset omanikele (algusaeg: :since).',
+    'payout_transit_stale' => 'See on kauem, kui peaks kuluma — lahendage see esmalt Stripe’iga käsitsi.',
+    'payout_transit_wait' => 'Oodake, kuni Stripe kinnitab, ja proovige siis uuesti.',
+    'payouts_owed' => '{1}Omanikule on veel üks väljamakse välja maksmata (ootel või kinni hoitud). Makske see esmalt välja — kustutamine jätaks omanikud väljamaksetta ja sellest ei jääks mingit kirjet.|[0,*]Omanikele on veel välja maksmata :count väljamakset (ootel või kinni hoitud). Makske need esmalt välja — kustutamine jätaks omanikud väljamaksetta ja sellest ei jääks mingit kirjet.',
+    'payout_run_running' => 'Koondväljamakse käivitus on pooleli (algusaeg: :since).',
+    'looks_stuck' => 'See näib kinni jäänud olevat — lahendage see enne kustutamist käsitsi.',
+    'payout_run_wait' => 'Proovige uuesti, kui see on lõppenud.',
+    'webhook_unprocessed' => 'Selle organisatsiooni kohta saabunud teavitust ei ole veel töödeldud (allikas: :source; saabumisaeg: :received).',
+    'webhook_wait' => 'Proovige uuesti mõne minuti pärast.',
+    'cross_tenant_references' => 'Mõnel teisel organisatsioonil on kirjeid, mis viitavad sellele organisatsioonile (:links). Kustutamine kustutaks needki.',
+    'schema_unreadable' => 'Andmebaasi skeemi ei õnnestunud täielikult lugeda (ei leitud tabeleid: :tables).',
+    'already_deleted' => 'Seda organisatsiooni enam ei ole — see on juba kustutatud.',
+    'protected' => 'See organisatsioon on kaitstud ja seda ei saa kunagi kustutada.',
+    'not_suspended' => 'Peatage see esmalt — kustutada saab ainult peatatud või arhiveeritud organisatsiooni.',
+    'record_survived' => 'Selle organisatsiooni kirje jäi kustutamisel alles (tabelid: :tables), seega võeti kõik tagasi.',
+    'organization_survived' => 'Organisatsioon või keegi selle inimestest jäi kustutamisel alles, seega võeti kõik tagasi.',
+    'live_card_payments' => '{1}:count kaardimakse|[0,*]:count kaardimakset',
+    'live_refunds' => '{1}:count tagasimakse|[0,*]:count tagasimakset',
+    'live_payouts' => '{1}:count väljamakse|[0,*]:count väljamakset',
+    'live_stripe_billing' => 'reaalrežiimis Stripe’i arveldus koos arvetega',
+    'unknown_time' => 'teadmata aeg',
+    'time_utc' => ':time UTC',
+];

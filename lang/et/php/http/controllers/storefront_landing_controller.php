@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Meie majutusvõimalused',
+    'properties_count' => 'Majutusasutusi: :count',
+    'stays_count' => '{1}:count majutusvõimalus|[0,*]:count majutusvõimalust',
+    'stays_sleeps' => ':stays · mahutab :max',
+    'stays_sleeps_range' => ':stays · mahutab :min–:max',
+    'perk_free_cancel_days' => '{1}Täielik tagasimakse kuni :count päev enne sisseregistreerimist.|[0,*]Täielik tagasimakse kuni :count päeva enne sisseregistreerimist.',
+    'perk_free_cancel_window' => 'Täielik tagasimakse tühistamisperioodi jooksul.',
+    'perk_no_fees' => 'Broneerimistasusid pole',
+    'perk_no_fees_sub' => 'Hind, mida näete, on hind, mida maksate.',
+    'perk_best_rate' => 'Parim hind otse',
+    'perk_best_rate_sub' => 'Broneerige otse meie parima hinnaga — ilma vahendajata.',
+    'perk_free_cancel' => 'Tasuta tühistamine',
+    'perk_host_support' => 'Otsene tugi majutajalt',
+    'perk_host_support_sub' => 'Kirjutage oma broneeringu kohta päris inimesele.',
+    'kind_room' => 'Tuba',
+    'kind_apartment' => 'Korter',
+    'kind_villa' => 'Villa',
+    'kind_dorm' => 'Ühistuba',
+    'type_hotel' => 'Hotell',
+    'type_aparthotel' => 'Apartementhotell',
+    'type_serviced_apartment' => 'Teenindusega korter',
+    'type_apartment_building' => 'Korterelamu',
+    'type_apartment' => 'Korter',
+    'type_villa' => 'Villa',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Külalistemaja',
+    'type_resort' => 'Puhkekeskus',
+    'type_mixed' => 'Segatüüp',
+    'type_portfolio' => 'Portfell',
+];

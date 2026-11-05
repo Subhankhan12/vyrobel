@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Majutusvõimalused',
+    'book_direct' => 'Broneeri otse',
+    'nav_stays' => 'Majutusvõimalused',
+    'my_account' => 'Minu konto',
+    'sign_in' => 'Logi sisse',
+    'rating_across' => '{1}:average (:count arvustus)|[0,*]:average (:count arvustust)',
+    'heading' => 'Broneerige otse:<br>:org.',
+    'subheading' => 'Hoolega hoitud majutused, broneeritud otse majutajalt — ilma tasudeta, meie parima hinnaga ja päris inimesega teisel pool.',
+    'where' => 'Sihtkoht',
+    'check_in' => 'Saabumine',
+    'check_out' => 'Lahkumine',
+    'adults' => 'Täiskasvanud',
+    'children' => 'Lapsed',
+    'where_to_stay' => 'Kus peatuda',
+    'towns_lede' => '{1}Meie kodupaik.|[0,*]:count linna, igaühel oma rütm.',
+    'from_price' => 'alates :price',
+    'featured_stays' => 'Esiletõstetud majutusvõimalused',
+    'featured_lede' => 'Külaliste lemmikud kogu valikust.',
+    'per_night' => '/ öö',
+    'see_dates_for_pricing' => 'Hinna nägemiseks valige kuupäevad',
+    'browse_by_what_matters' => 'Sirvige teile olulise järgi',
+    'why_book_direct' => 'Miks broneerida otse',
+    'recent_guests' => 'Hiljutised külalised',
+    'rating_short' => '{1}:average · :count arvustus|[0,*]:average · :count arvustust',
+    'stars_aria' => 'Hinnang: :rating / 5 tärni',
+    'review_quote' => '„:body“',
+    'no_reviews_yet' => 'Arvustusi veel pole — peatuge siin esimesena ja jagage oma kogemust.',
+    'cta_heading' => 'Leidke oma koht',
+    'cta_sub' => 'Päris kuupäevad, hinnad reaalajas, kohene kinnitus.',
+    'browse_all_stays' => 'Vaata kõiki majutusvõimalusi',
+];

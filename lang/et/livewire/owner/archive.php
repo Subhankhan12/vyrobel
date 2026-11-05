@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Väljavõtete arhiiv',
+    'history_summary' => 'Teie lõplike väljavõtete ajalugu · :years · :statements',
+    'years' => '{1}:count aasta|[0,*]:count aastat',
+    'statements' => '{1}:count väljavõte|[0,*]:count väljavõtet',
+    'archived_on_finalize' => 'Väljavõtted arhiveeritakse siia kohe, kui need on lõplikuks muudetud.',
+    'net_earned_lifetime' => 'Netotulu · kogu aja jooksul',
+    'since' => 'alates :date',
+    'per_currency_note' => 'Kokku väljamaksevaluuta kaupa — erinevates valuutades saldosid ei liideta.',
+    'lifetime_empty' => 'Lõplikke väljavõtteid veel pole — esimene ilmub siia.',
+    'search_placeholder' => 'Otsige oma väljavõtteid — kuu, aasta, olek või number',
+    'search_label' => 'Otsi väljavõtteid',
+    'no_match' => 'Päringule „:query“ ei vasta ükski väljavõte.',
+    'no_match_hint' => 'Proovige kuud („september“), aastat („2026“), olekut („Välja makstud“) või väljavõtte numbrit („nr 1“).',
+    'group_summary' => ':statements · netotulu :nets',
+    'per_payout_currency' => '(väljamaksevaluuta kaupa)',
+    'tax_summary_title' => 'Laadi alla :year. aasta maksukokkuvõte PDF-failina',
+    'tax_summary' => 'Maksukokkuvõte',
+    'col_statement' => 'Väljavõte',
+    'col_net_payable' => 'Väljamakstav summa',
+    'col_links' => 'Lingid',
+    'unverified_title' => 'Mõned read ootavad veel kanali andmetega kooskõlastamist',
+    'unverified' => 'Sisaldab kontrollimata ridu',
+    'pdf_title' => 'Laadi see väljavõte alla PDF-failina',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Laadi selle väljavõtte aluseks olevad broneeringud alla PDF-failina',
+    'bookings' => 'Broneeringud',
+    'empty' => 'Lõplikke väljavõtteid veel pole. Väljavõte arhiveeritakse siia, kui see on lõplikuks muudetud.',
+    'zip_heading' => 'Laadi alla kogu arhiiv',
+    'zip_sub' => '{1}Üks ZIP-fail, kus on :count väljavõtte PDF. Iga ülaltoodud väljavõtte saab alla laadida ka eraldi.|[0,*]Üks ZIP-fail, kus on :count väljavõtte PDF-i. Iga ülaltoodud väljavõtte saab alla laadida ka eraldi.',
+    'download_zip' => 'Laadi alla ZIP',
+];

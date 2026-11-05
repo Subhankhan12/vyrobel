@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Väljamakseks valmis',
+    'chip_hold' => 'Ootele pandud',
+    'chip_review' => 'Vajab ülevaatust',
+    'chip_paused' => 'Väljamaksed peatatud',
+    'chip_invited' => 'Kutsutud',
+    'sorted_name_asc' => 'omaniku järgi, A–Z',
+    'sorted_name_desc' => 'omaniku järgi, Z–A',
+    'sorted_units_desc' => 'kõige rohkem majutusüksusi esimesena',
+    'sorted_units_asc' => 'kõige vähem majutusüksusi esimesena',
+    'sorted_net_desc' => 'suurim väljamakstav summa esimesena',
+    'sorted_net_asc' => 'väikseim väljamakstav summa esimesena',
+    'sorted_status_asc' => 'esmalt need, mis vajavad teie tähelepanu',
+    'sorted_status_desc' => 'viimasena need, mis vajavad teie tähelepanu',
+    'kpi_invited' => 'Kutsutud: :number',
+    'kpi_units' => '{1}:count majutusüksus|[0,*]:count majutusüksust',
+    'kpi_owners_ready' => '{1}:count omanik valmis|[0,*]:count omanikku valmis',
+    'kpi_paused_not_counted' => 'Peatatud, arvesse võtmata: :number',
+    'kpi_hold_none' => 'ootel pole midagi',
+    'kpi_hold_waiting' => 'Ootel: :amounts',
+    'kpi_review_sub' => 'Müügikanali poolt kinnitamata ridadega omanikke: :number',
+    'schedule' => ':day tööpäev kuus',
+    'ordinal_st' => ':number.',
+    'ordinal_nd' => ':number.',
+    'ordinal_rd' => ':number.',
+    'ordinal_th' => ':number.',
+    'role_manager' => 'Hotelli juhataja',
+    'role_accountant' => 'Raamatupidaja',
+    'role_owner' => 'Omanik',
+    'another_owner' => 'teine omanik',
+];

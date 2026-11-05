@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Ülevaade',
+    'breadcrumb_bookings' => 'Broneeringud',
+    'guest_fallback' => 'Külaline',
+    'reservation' => 'Broneering',
+    'check_in' => 'Saabumine',
+    'nights_count' => '{1}:count öö|[0,*]:count ööd',
+    'check_out' => 'Lahkumine',
+    'unit' => 'Majutusüksus',
+    'guests' => 'Külalised',
+    'nights' => 'Ööd',
+    'nightly_rate' => 'Hind öö kohta',
+    'your_earnings' => 'Teie tulu',
+    'gross_to_net' => 'bruto → neto',
+    'gross_booking_value' => 'Broneeringu brutoväärtus',
+    'net_to_you' => 'Teie netotulu',
+    'refunds_we_covered' => 'Meie kaetud tagasimaksed',
+    'refunds_we_covered_note' => 'Külalisele tagasi makstud meie kulul, mitte teie arvelt. Teie ülaltoodud tulu ei muutu.',
+    'not_yet_attributed' => 'Pearaamatusse veel kandmata.',
+    'not_yet_attributed_note' => 'Teie tulu ilmub siia, kui see broneering on kantud teie pearaamatusse — tavaliselt pärast väljaregistreerimist.',
+    'guest_heading' => 'Külaline',
+    'guest_contact_note' => 'Külalise kontaktandmeid haldab teie haldusettevõte — teie näete broneeringut ja oma tulu.',
+    'message_your_team' => 'Kirjuta haldusettevõttele',
+    'timeline' => 'Ajajoon',
+    'for_night_stay' => 'selle :nights öö viibimise eest',
+    'booking_details' => 'Broneeringu andmed',
+    'confirmation' => 'Kinnitus',
+    'source' => 'Allikas',
+    'channel' => 'Kanal',
+    'booked_on' => 'Broneeritud',
+    'download_confirmation' => 'Laadi kinnitus alla',
+    'download_unavailable' => 'Saadaval kaasomanikele ja raamatupidajatele',
+    'view_unit' => 'Vaata :unit',
+];

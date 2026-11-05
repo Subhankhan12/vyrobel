@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'hallatud Vyrobeliga',
+    'eyebrow' => 'Omaniku väljavõte',
+    'unit_count' => '{1}:count majutusüksus|[0,*]:count majutusüksust',
+    'issued' => 'väljastatud :date',
+    'prepared_for' => 'Koostatud omanikule',
+    'net_payable_to_owner' => 'Omanikule väljamakstav summa',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Täitumus',
+    'nights_sold' => 'Müüdud ööd',
+    'avg_nightly_rate' => 'Keskmine hind öö kohta',
+    'breakdown' => 'Jaotus',
+    'item' => 'Kirje',
+    'detail' => 'Üksikasjad',
+    'amount' => 'Summa',
+    'provisional' => '(esialgne)',
+    'performance_by_unit' => 'Tulemused majutusüksuste kaupa',
+    'unit' => 'Majutusüksus',
+    'nights' => 'Ööd',
+    'revenue' => 'Tulu',
+    'total_gross_room_revenue' => 'Majutuse brutotulu kokku',
+    'callout_heading' => 'Väljamakse.',
+    'settles_to_iban' => 'Netosumma :amount makstakse välja pangaülekandega kontole IBAN :iban.',
+    'settles' => 'Netosumma :amount makstakse välja pangaülekandega.',
+    'fees_with_commission' => 'Halduse komisjonitasu arvestatakse :pct% majutuse brutotulust; makse- ja platvormitasud kantakse edasi omahinnaga. Kõik summad on esitatud valuutas :currency ja sisaldavad teie nimel kogutud kohaldatavaid makse.',
+    'fees' => 'Makse- ja platvormitasud kantakse edasi omahinnaga. Kõik summad on esitatud valuutas :currency ja sisaldavad teie nimel kogutud kohaldatavaid makse.',
+    'fx_note' => 'Teisendatud valuutast :source kursiga :rate (allikas: :src).',
+    'provisional_note' => 'Mõned read on esialgsed ja ootavad kanali andmetega kooskõlastamist.',
+    'statement_ref' => 'väljavõte :ref',
+    'sequence_no' => 'nr :number',
+    'generated' => 'koostatud <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Küsimused? :email',
+];

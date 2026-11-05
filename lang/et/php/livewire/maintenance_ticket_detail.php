@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Märkus',
+    'kind_progress' => 'Edenemine',
+    'kind_part' => 'Varuosa tellitud',
+    'elapsed_minutes' => ':minutes min',
+    'elapsed_hours' => ':hours h :minutes min',
+    'elapsed_days' => ':days p :hours h',
+    'hours_short' => ':hours h',
+    'timeline_opened' => 'Teatatud',
+    'timeline_assigned_to' => 'Vastutaja: :name',
+    'a_technician' => 'tehnik',
+    'timeline_unassigned' => 'Määramata',
+    'timeline_started' => 'Töö alustatud',
+    'timeline_resolved' => 'Lahendatud',
+    'timeline_cancelled' => 'Tühistatud',
+    'timeline_parts_updated' => 'Varuosad uuendatud',
+    'timeline_cost_corrected' => 'Kulu parandatud',
+    'timeline_updated' => 'Andmed muudetud',
+    'note_progress' => 'Edenemise uuendus',
+    'note_part' => 'Varuosa tellitud',
+    'note_added' => 'Märkus lisatud',
+    'a_team_member' => 'Meeskonnaliige',
+    'system' => 'Süsteem',
+    'photo_alt' => 'Hoolduse foto',
+    'the_owner' => 'omanik',
+    'load_none' => 'Avatud töökäske pole',
+    'load_open' => 'Avatud: :open',
+    'load_open_urgent' => 'Avatud: :open · kiireloomulisi: :urgent',
+    'impact_arrivals' => '{1}Täna öösel vajab tuba :count saabuv külaline|[0,*]Täna öösel vajab tuba :count saabuvat külalist',
+    'impact_bookings' => '{1}:count broneering tuleb ümber paigutada|[0,*]:count broneeringut tuleb ümber paigutada',
+    'impact_none' => 'Mõjutatud broneeringuid pole',
+];

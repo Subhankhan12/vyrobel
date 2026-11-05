@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — et translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Väljamaksemootor on välja lülitatud (PAYOUT_ENGINE_ENABLED). Lülitage see enne väljamaksete käivitamist sisse.',
+    'nothing_to_run' => 'Käivitada pole midagi — ühelgi siinsel omanikul pole väljamakstavat väljavõtet ega kinni hoitud väljamakset:paused_note.',
+    'run_complete' => 'Koondväljamakse on lõpetatud (režiim: :mode) — loodud: :created · välja makstud: :paid · kinni hoitud: :held:paused_note.',
+    'create_failed' => 'Väljamakse loomine ebaõnnestus: :reason',
+    'already_has_payout' => 'Sellel väljavõttel on juba väljamakse — midagi ei loodud.',
+    'one_payout_created' => 'Loodud: 1 väljamakse.',
+    'pay_failed' => 'Väljamakse tegemine ebaõnnestus: :reason',
+    'one_payout_paid' => 'Märgitud välja makstuks: 1 väljamakse.',
+    'payout_failed_reason' => 'Väljamakse ebaõnnestus: :reason',
+    'payout_failed_no_reason' => 'Väljamakse ebaõnnestus — väljamaksekanal ei andnud põhjust.',
+    'create_all_failed' => 'Väljamaksete loomine ebaõnnestus: :reason',
+    'no_payout_created_paused' => 'Väljamakset ei loodud:paused_note — jätkake nende väljamakseid omaniku lehel.',
+    'nothing_ready' => 'Väljamakseks pole midagi valmis — ühelgi lõplikul väljavõttel pole positiivset väljamakstavat summat:paused_note.',
+    'no_new_payouts' => 'Uusi väljamakseid pole — igal valmis väljavõttel on see juba olemas:paused_note.',
+    'payouts_created' => '{1}Loodud: :count väljamakse:paused_note.|[0,*]Loodud: :count väljamakset:paused_note.',
+    'some_not_created' => ':message Mõnda väljamakset ei õnnestunud luua: :reason',
+    'nothing_paid_paused' => 'Midagi ei makstud välja:paused_note — jätkake nende väljamakseid omaniku lehel.',
+    'no_pending_payouts' => 'Ootel väljamakseid pole.',
+    'paid_only' => '{1}Märgitud välja makstuks: :count väljamakse:paused_note.|[0,*]Märgitud välja makstuks: :count väljamakset:paused_note.',
+    'failed_only' => '[0,*]Ebaõnnestus väljamaksekanalis: :count:paused_note.',
+    'paid_and_failed' => '{1}Märgitud välja makstuks: :count väljamakse · ebaõnnestus väljamaksekanalis: :failed:paused_note.|[0,*]Märgitud välja makstuks: :count väljamakset · ebaõnnestus väljamaksekanalis: :failed:paused_note.',
+    'some_not_attempted' => ':message Mõnda väljamakset ei õnnestunud proovida: :reason',
+    'nothing_payable_negative' => 'Väljamakstavat summat pole — selle väljavõtte neto on negatiivne, seega kantakse saldo edasi ja see tasaarvestatakse omaniku järgmise väljavõttega.',
+    'nothing_payable_zero' => 'Väljamakstavat summat pole — selle väljavõtte neto on null, seega pole midagi võlgu.',
+    'workspace_paused_until' => 'Organisatsioon on peatatud — väljamaksed on ainult vaatamiseks kuni :date.',
+    'workspace_paused_for_now' => 'Organisatsioon on peatatud — väljamaksed on praegu ainult vaatamiseks.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}:count omanik jäeti vahele (väljamaksed peatatud)|[0,*]:count omanikku jäeti vahele (väljamaksed peatatud)',
+];

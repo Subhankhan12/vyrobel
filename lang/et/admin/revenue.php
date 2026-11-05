@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — et translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Käive',
+    'subtitle' => 'Selle põhjal, mida Stripe tegelikult debiteeris — mitte kunagi hinnakirja järgi. Ainult kliendid, kui te Vyrobeli enda organisatsioone ei kaasa.',
+    'including_internal' => 'Kaasa arvatud Vyrobeli enda sisemised organisatsioonid.',
+    'customers_only_note' => 'Ainult kliendid.',
+    'customers_only_link' => 'Ainult kliendid',
+    'include_internal_link' => 'Kaasa sisemised',
+    'no_live_billing_pill' => 'Reaalrežiimis arveldust veel pole',
+    'no_customer_charged' => 'Ühtegi klienti pole veel debiteeritud.',
+    'not_live_explainer' => 'Stripe ei ole reaalrežiimis, seega pole ühtegi tasutud arvet, mida loendada. See ei ole halb kuu — kuud lihtsalt veel pole. Käive arvutatakse siin ainult <strong>tasutud Stripe’i arvetest</strong> (tasu ise, salvestatud siis, kui Stripe sellest teatab), mitte kunagi plaani hinnakirjahinnast.',
+    'live_billed_subscriptions' => 'Reaalrežiimis arveldatud abonemendid',
+    'trialing_unbilled' => 'Prooviperioodil olevad abonemendid, arveldamata',
+    'failed_payments_30d' => 'Ebaõnnestunud maksed, viimased 30 päeva',
+    'when_first_paid' => 'Kui esimene arve on tasutud, näitab see leht: MRR ja ARR valuutade kaupa · uus, laienemise, vähenemise ja loobunute MRR · prooviperioodist tasuliseks muutumine · ebaõnnestunud maksed.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Arvestatud abonemendid',
+    'no_live_subscription_charged' => 'Ühtegi aktiivset reaalrežiimis arveldatud abonementi pole debiteeritud.',
+    'mrr_hint' => 'Iga aktiivne või maksega hilinenud reaalrežiimi abonement selle viimase tasutud arve alusel, taandatuna kuupõhiseks selle arve arveldusperioodi järgi.',
+    'this_month_vs_last' => 'See kuu võrreldes eelmisega',
+    'movement_new' => 'Uus · :currency',
+    'movement_expansion' => 'Laienemine · :currency',
+    'movement_contraction' => 'Vähenemine · :currency',
+    'movement_churned' => 'Loobunud · :currency',
+    'nothing_charged' => 'Eelmisel ega sel kuul pole midagi debiteeritud.',
+    'movements_hint' => 'Organisatsioonide kaupa, selle põhjal, mida igal kuul debiteeriti. Loobunud = eelmisel kuul debiteeriti, sel kuul mitte midagi, ja abonement on tühistatud.',
+    'trial_to_paid' => 'Prooviperioodist tasuliseks',
+    'trial_to_paid_value' => ':ended lõppenud prooviperioodist on debiteeritud :converted',
+    'past_due_now' => 'Praegu maksega hilinenud',
+    'paid_invoices_counted' => 'Arvestatud tasutud arved',
+    'never_moves_money' => 'See konsool ei debiteeri, ei maksa tagasi ega liiguta kunagi raha. Iga arv on esitatud valuutade kaupa ja eri valuutasid ei liideta kunagi kokku.',
+];

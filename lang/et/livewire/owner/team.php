@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — et translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Meeskond ja ligipääs',
+    'subtitle' => 'Andke kaasomanikule või oma raamatupidajale eraldi sisselogimine — ligipääs on piiratud sellega, mida nad vajavad.',
+    'people_with_access' => 'Ligipääsuga isikud',
+    'account_owner' => 'Peamine omanik',
+    'thats_you' => 'see olete teie',
+    'owner_access' => 'Täielik ligipääs kõigele, sh sellele lehele.',
+    'active_now' => 'Praegu aktiivne',
+    'role_for' => 'Roll: :name',
+    'your_password' => 'Teie parool',
+    'confirm_password' => 'Kinnita oma parooliga',
+    'remove_confirm' => 'Kas eemaldada kasutaja :name? Ta ei saa enam sisse logida.',
+    'no_members' => 'Praegu olete ainult teie — kutsuge allpool kaasomanik või raamatupidaja.',
+    'invite_heading' => 'Kutsu keegi',
+    'invite_sub' => 'Igaüks saab oma sisselogimise — ligipääsu saate igal ajal eemaldada.',
+    'invite_email_label' => 'Kutsutava e-posti aadress',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Saada kutse',
+    'pending_invites' => 'Ootel kutsed',
+    'resend' => 'Saada uuesti',
+    'revoke' => 'Võta ära',
+    'matrix_heading' => 'Mida iga roll näeb',
+    'matrix_note' => 'Meeskonda ja väljamaksekontot saate hallata ainult teie kui peamine omanik.',
+    'recent_activity' => 'Viimased tegevused',
+    'no_activity' => 'Veel midagi pole — siin kuvatakse kutsed ja sisselogimised.',
+    'download_log' => 'Allalaaditud eksportide logi',
+    'download_log_sub' => 'Igale teie meeskonna alla laaditud väljavõttele, broneeringule, väljamaksele või maksufailile märgitakse allalaadija nimi — ja see kantakse siia.',
+    'no_downloads' => 'Eksporte pole veel alla laaditud — need ilmuvad siia koos allalaadija nimega.',
+    'security_heading' => 'Igaühel on oma võti',
+    'security_body' => 'Jagatud paroole pole — igaüks logib sisse oma kontoga ja ligipääs piirdub tema rolliga. Finantseksportidele märgitakse veemärgina allalaadija nimi ja need kantakse ülalolevasse logisse. Lülitage oma kontol sisse kaheastmeline autentimine.',
+    'security_settings' => 'Turvaseaded',
+];

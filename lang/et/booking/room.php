@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — et translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Kõik toad',
+    'kind_sleeps_up_to' => ':kind · mahutab kuni :capacity',
+    'reviews_count' => '{1}:count arvustus|[0,*]:count arvustust',
+    'no_reviews_yet' => 'Arvustusi veel pole',
+    'save_to_wishlist' => 'Lisa lemmikutesse',
+    'sleeps' => 'Mahutavus',
+    'adults' => 'Täiskasvanud',
+    'children' => 'Lapsed',
+    'bedrooms' => 'Magamistoad',
+    'standard_occupancy' => 'Tavamahutavus',
+    'amenities' => 'Mugavused',
+    'not_yet_listed' => 'Veel lisamata',
+    'amenities_not_published' => 'Selle toa mugavusi pole veel avaldatud.',
+    'guest_reviews' => 'Külaliste arvustused',
+    'stars_aria' => 'Hinnang: :rating / 5 tärni',
+    'response_label' => 'Vastus:',
+    'no_reviews_be_first' => 'Arvustusi veel pole — peatuge siin esimesena ja jagage oma kogemust.',
+    'coming_soon' => 'Peagi tulekul',
+    'description_soon' => 'Täielik kirjeldus ja asukohakaart on tulekul — ülaltoodud andmed, saadavus, hind ja arvustused on päris.',
+    'per_night' => '/ öö',
+    'per_night_with_note' => '/ öö · :note',
+    'total_nights' => '{1}Kokku :amount · :count öö|[0,*]Kokku :amount · :count ööd',
+    'left_for_your_dates' => 'Teie kuupäevadeks vabu: :count',
+    'book_this_room' => 'Broneeri see tuba',
+    'nothing_reserved' => 'Midagi ei broneerita enne, kui olete broneeringu vormistamise lehel kinnitanud.',
+    'your_dates' => 'Teie kuupäevad',
+    'not_available' => 'Nendel kuupäevadel pole saadaval — proovige teisi kuupäevi.',
+    'check_in' => 'Saabumine',
+    'check_out' => 'Lahkumine',
+    'check_dates' => 'Kontrolli kuupäevi',
+    'check_availability' => 'Kontrolli saadavust ja hinda',
+    'see_price' => 'Vaata hinda',
+];
