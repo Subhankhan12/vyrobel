@@ -4,6 +4,30 @@
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
+## ⚠️ LOCAL, NOT SHIPPED — I18N-01, ten more languages (written 2026-11-05)
+- **Founder said (2026-11-02):** finish every language on localhost, then ship them all in ONE release; no per-language releases.
+  Live is still `rel_CG @ 7dde368e` (Russian). Nothing below is on production. ⚠️ Not pushed.
+- **R/V — committed locally, newest last (each: 10,433 of 10,433 texts, machine translation with AI review, no native check):**
+  Romanian `c6a4b22d`, Polish `d7892071`, Bulgarian `77205f47`, Traditional Chinese `cec04865`, Hindi `0a940b01`, Persian
+  `74aa9af2`, Thai `32013c9a`, Serbian (Cyrillic) `e1a66dac`, Estonian `f0036e2c`, Albanian `dd66961e`, Greek `75f44f96`,
+  Georgian `f5b0d7bb`; then the code-fix pass `14148ee8` and the PDF-font fix `69c37767`. `config('app.available_locales')`
+  holds all of them. Still to do from the 27: Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean (planned in
+  `Locales::ALL`, not translated).
+- **V (2026-11-05) gates on `69c37767`:** MySQL 8.4.10 4,599/4,599 (36,299 assertions) · MariaDB 11.8.9 4,599/4,599 (36,299) ·
+  PHPStan L5 0 · Pint clean · money gate "✅ MONEY AS SEEDED · FULL" · render-all (929 pages, 0 problems) for bg, zh_TW, hi, fa,
+  th, sr, et, sq, el, ka (the leftover-English lists show only demo data stored in English and words a language keeps).
+- **V — found and fixed by the code-fix pass / render pass (all code-only, English identical):** the free-cancel date in the
+  booking-confirmation email printed an English month in EVERY language (also the live ones) · Persian dates were Solar Hijri in
+  the browser · 12-hour clocks in el/sq/ko/hi/ar/zh_TW where the English source is 24-hour · Georgian capitals/months/ordinals ·
+  decimal marks and list separators · **Thai/Chinese/Korean PDFs printed no characters** (`storage/fonts` did not exist on a
+  fresh checkout; a CJK font also needed more than 128M once) · a Georgian title/month inside an English guest tax invoice.
+  ⚠️ **His call:** the 24-hour change also moves LIVE Arabic from 12-hour to 24-hour time (hi, zh_TW are not live yet).
+- **Before the single release:** (1) the production SSH block (82.25.102.188:65002 was closed from this Mac on 2026-11-02) must
+  be solved; (2) saved-language count (read-only) → `./ops/release.sh stage` → preflight with ALL new codes in both loops →
+  swap → `bash ops/public-checks.sh` → `/login?lang=<l>` for each; (3) render the new languages once more on the staged
+  commit; (4) production needs `storage/fonts` writable (created on first PDF).
+- `php artisan lang:todo` (V 2026-11-05, on `69c37767`): TOTAL — 0 new · 0 changed · 0 hardcoded · 0 removed · languages: 22.
+
 ## Live
 - **Live release `rel_CG` → commit `7dde368e`** (I18N-01 — **Russian is on**, 10,433 texts, machine translation with AI review, no
   native check). **V:** MySQL 8.4.10 4,588/4,588 (36,216) · MariaDB 11.8.9 4,588/4,588 (36,216) · lang:check 0 (de, ar, tr, fr, es,

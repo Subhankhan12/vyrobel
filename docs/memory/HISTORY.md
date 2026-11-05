@@ -1722,6 +1722,15 @@ count string). **Gates (V):** MySQL and MariaDB 4,588/4,588 (36,216) · lang:che
 0 problems. Deploy: saved-language count (none) → stage → preflight → swap 02:56:33 UTC → public checks 12/0/0 → live sign-in page
 (`lang="ru"`). Not pushed.
 
+**I18N-01 — ten more languages built locally, NOT shipped (2026-11-02 → 11-05).** After the founder's word to finish all
+languages on localhost and ship together: Romanian and Polish (before), then Bulgarian, Traditional Chinese, Hindi, Persian, Thai,
+Serbian, Estonian, Albanian, Greek, Georgian — each 34 batches translated → reviewed (groups A–H) → consistency → check → apply →
+committed locally. Two usage limits (weekly, then 5-hour) stopped agents; every one was resumed from its saved work. Then a
+code-fix pass (dates, 24-hour time, Persian calendar, Georgian case/ordinals, decimals, list separators) and a PDF-font fix found
+by the render pass (Thai/CJK/Korean PDFs printed no glyphs; Georgian title inside an English guest invoice). **Gates (V):** MySQL
+and MariaDB 4,599/4,599 (36,299) · PHPStan L5 0 · Pint clean · money gate FULL · render 929 pages × 10 languages, 0 problems. Not
+shipped, not pushed; SSH to production was closed on 2026-11-02 and must be fixed before the one release.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
