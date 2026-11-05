@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '정산서 보관함',
+    'history_summary' => '마감된 정산서 내역 · :years · :statements',
+    'years' => '{1}:count년|[0,*]:count년',
+    'statements' => '{1}정산서 :count건|[0,*]정산서 :count건',
+    'archived_on_finalize' => '정산서는 마감되는 즉시 이곳에 보관됩니다.',
+    'net_earned_lifetime' => '순수익 · 전체 기간',
+    'since' => ':date부터',
+    'per_currency_note' => '지급 통화별로 합산됩니다 — 서로 다른 통화의 잔액은 합산하지 않습니다.',
+    'lifetime_empty' => '아직 마감된 정산서가 없습니다 — 첫 정산서가 여기에 표시됩니다.',
+    'search_placeholder' => '정산서 검색 — 월, 연도, 상태 또는 번호',
+    'search_label' => '정산서 검색',
+    'no_match' => '“:query”에 해당하는 정산서가 없습니다.',
+    'no_match_hint' => '월(“9월”), 연도(“2026”), 상태(“지급 완료”) 또는 정산서 번호(“번호 1”)로 검색해 보세요.',
+    'group_summary' => ':statements · 순수익 :nets',
+    'per_payout_currency' => '(지급 통화별)',
+    'tax_summary_title' => ':year년 연간 세무 요약 PDF 다운로드',
+    'tax_summary' => '세무 요약',
+    'col_statement' => '정산서',
+    'col_net_payable' => '실지급액',
+    'col_links' => '링크',
+    'unverified_title' => '일부 항목이 아직 채널 정산 확인 대기 중입니다',
+    'unverified' => '미확인 항목 포함',
+    'pdf_title' => '이 정산서를 PDF로 다운로드',
+    'pdf' => 'PDF',
+    'bookings_title' => '이 정산서에 포함된 예약을 PDF로 다운로드',
+    'bookings' => '예약',
+    'empty' => '아직 마감된 정산서가 없습니다. 정산서가 마감되면 여기에 보관됩니다.',
+    'zip_heading' => '전체 보관함 다운로드',
+    'zip_sub' => '{1}정산서 PDF :count개를 ZIP 파일 하나로 받습니다. 위의 각 정산서도 개별로 다운로드할 수 있습니다.|[0,*]정산서 PDF :count개를 ZIP 파일 하나로 받습니다. 위의 각 정산서도 개별로 다운로드할 수 있습니다.',
+    'download_zip' => 'ZIP 다운로드',
+];

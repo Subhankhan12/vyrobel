@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => '메모',
+    'kind_progress' => '진행 상황',
+    'kind_part' => '부품 주문',
+    'elapsed_minutes' => ':minutes분',
+    'elapsed_hours' => ':hours시간 :minutes분',
+    'elapsed_days' => ':days일 :hours시간',
+    'hours_short' => ':hours시간',
+    'timeline_opened' => '보고됨',
+    'timeline_assigned_to' => ':name에게 할당됨',
+    'a_technician' => '기술자',
+    'timeline_unassigned' => '할당 해제됨',
+    'timeline_started' => '작업 시작됨',
+    'timeline_resolved' => '해결됨',
+    'timeline_cancelled' => '취소됨',
+    'timeline_parts_updated' => '부품 정보 수정됨',
+    'timeline_cost_corrected' => '비용 정정됨',
+    'timeline_updated' => '세부 정보 수정됨',
+    'note_progress' => '진행 상황 업데이트',
+    'note_part' => '부품 주문',
+    'note_added' => '메모 추가됨',
+    'a_team_member' => '팀원',
+    'system' => '시스템',
+    'photo_alt' => '유지보수 사진',
+    'the_owner' => '해당 소유주',
+    'load_none' => '미해결 작업 지시서 없음',
+    'load_open' => '미해결 :open건',
+    'load_open_urgent' => '미해결 :open건 · 긴급 :urgent건',
+    'impact_arrivals' => '{1}오늘 밤 도착하는 예약 :count건에 객실이 필요합니다|[0,*]오늘 밤 도착하는 예약 :count건에 객실이 필요합니다',
+    'impact_bookings' => '{1}객실을 변경해야 하는 예약 :count건|[0,*]객실을 변경해야 하는 예약 :count건',
+    'impact_none' => '영향받는 예약 없음',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'メモ',
+    'kind_progress' => '進捗',
+    'kind_part' => '部品を発注',
+    'elapsed_minutes' => ':minutes分',
+    'elapsed_hours' => ':hours時間:minutes分',
+    'elapsed_days' => ':days日:hours時間',
+    'hours_short' => ':hours時間',
+    'timeline_opened' => '報告',
+    'timeline_assigned_to' => '担当：:name',
+    'a_technician' => '技術者',
+    'timeline_unassigned' => '未割当',
+    'timeline_started' => '作業開始',
+    'timeline_resolved' => '完了',
+    'timeline_cancelled' => '中止',
+    'timeline_parts_updated' => '部品を更新',
+    'timeline_cost_corrected' => '費用を修正',
+    'timeline_updated' => '詳細を編集',
+    'note_progress' => '進捗報告',
+    'note_part' => '部品を発注',
+    'note_added' => 'メモを追加',
+    'a_team_member' => 'チームメンバー',
+    'system' => 'システム',
+    'photo_alt' => 'メンテナンス写真',
+    'the_owner' => 'オーナー',
+    'load_none' => '未完了の作業指示はありません',
+    'load_open' => '未完了:open件',
+    'load_open_urgent' => '未完了:open件 · 緊急:urgent件',
+    'impact_arrivals' => '{1}今夜到着予定の:count件の予約に客室が必要です|[0,*]今夜到着予定の:count件の予約に客室が必要です',
+    'impact_bookings' => '{1}:count件の予約の部屋移動が必要です|[0,*]:count件の予約の部屋移動が必要です',
+    'impact_none' => '影響を受ける予約はありません',
+];

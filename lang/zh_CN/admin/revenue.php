@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '营收',
+    'subtitle' => '依据 Stripe 的实际扣款——绝不依据标价。默认仅含客户，除非您选择包含 Vyrobel 自有组织。',
+    'including_internal' => '包括 Vyrobel 自有的内部组织。',
+    'customers_only_note' => '仅客户。',
+    'customers_only_link' => '仅客户',
+    'include_internal_link' => '包含内部组织',
+    'no_live_billing_pill' => '尚无正式计费',
+    'no_customer_charged' => '尚未向任何客户扣款。',
+    'not_live_explainer' => 'Stripe 尚未切换到正式模式，因此没有可统计的已付款发票。这不是业绩差的月份——而是还没有任何月份。此处的营收仅根据<strong>已付款的 Stripe 发票</strong>计算（即扣款本身，在 Stripe 通知我们时记录），绝不依据方案的标价。',
+    'live_billed_subscriptions' => '正式计费的订阅',
+    'trialing_unbilled' => '免费试用中、未计费的订阅',
+    'failed_payments_30d' => '付款失败，近 30 天',
+    'when_first_paid' => '首张发票付款后，本页面将显示：按货币统计的 MRR 和 ARR · 新增、扩张、收缩和流失 MRR · 免费试用转付费率 · 付款失败。',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => '已计值的订阅',
+    'no_live_subscription_charged' => '尚无已扣款的有效正式计费订阅。',
+    'mrr_hint' => '每个有效或逾期未付的正式计费订阅按其最近一张已付款发票计算，并按该发票的计费周期折算为月度金额。',
+    'this_month_vs_last' => '本月与上月对比',
+    'movement_new' => '新增 · :currency',
+    'movement_expansion' => '扩张 · :currency',
+    'movement_contraction' => '收缩 · :currency',
+    'movement_churned' => '流失 · :currency',
+    'nothing_charged' => '上月和本月均无扣款。',
+    'movements_hint' => '按组织统计，依据每月实际扣款。流失 = 上月有扣款、本月无扣款，且订阅已取消。',
+    'trial_to_paid' => '免费试用转付费',
+    'trial_to_paid_value' => ':ended 个已结束的免费试用中，有 :converted 个已扣款',
+    'past_due_now' => '当前逾期未付',
+    'paid_invoices_counted' => '已统计的已付款发票',
+    'never_moves_money' => '本控制台绝不扣款、退款或转移资金。所有数字均按货币分别统计，绝不跨货币相加。',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Anda',
+    'total_part' => ':amount :name',
+    'total_includes' => 'termasuk :items',
+    'nightly_excludes' => 'belum termasuk :tax',
+    'sleeps' => 'Kapasitas :count orang',
+    'studio' => 'Studio',
+    'bedrooms' => '{1}:count kamar tidur|[0,*]:count kamar tidur',
+    'checkout_title' => 'Pembayaran — :property',
+    'room_just_taken' => 'Kamar tersebut baru saja dipesan orang lain — silakan pilih kamar atau tanggal lain.',
+    'payment_received' => 'Pembayaran diterima',
+    'payment_received_note' => 'Dibayar lunas.',
+    'payment_processing' => 'Pembayaran sedang diproses',
+    'payment_processing_note' => 'Kami sedang mengonfirmasi pembayaran kartu Anda. Muat ulang halaman ini sebentar lagi untuk melihat pembayaran tercatat.',
+    'pay_on_arrival' => 'Bayar saat kedatangan',
+    'pay_on_arrival_note' => 'Lunasi di properti saat Anda check-in.',
+    'confirmed_title' => 'Reservasi dikonfirmasi — :property',
+    'kind_room' => 'Kamar',
+    'kind_apartment' => 'Apartemen',
+    'kind_villa' => 'Vila',
+    'kind_dorm' => 'Asrama',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartemen servis',
+    'type_apartment_building' => 'Gedung apartemen',
+    'type_apartment' => 'Apartemen',
+    'type_villa' => 'Vila',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Guest house',
+    'type_resort' => 'Resor',
+    'type_mixed' => 'Campuran',
+    'type_portfolio' => 'Portofolio',
+];

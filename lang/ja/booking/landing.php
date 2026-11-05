@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '客室一覧',
+    'book_direct' => '公式サイトで予約',
+    'nav_stays' => '客室一覧',
+    'my_account' => 'マイページ',
+    'sign_in' => 'ログイン',
+    'rating_across' => '{1}:average（クチコミ:count件）|[0,*]:average（クチコミ:count件）',
+    'heading' => ':orgの<br>公式サイトで予約',
+    'subheading' => '心を込めて整えた客室を、宿泊施設に直接ご予約いただけます。手数料なし、最安料金で、担当者が直接対応いたします。',
+    'where' => '目的地',
+    'check_in' => 'チェックイン',
+    'check_out' => 'チェックアウト',
+    'adults' => '大人',
+    'children' => '子ども',
+    'where_to_stay' => '滞在エリア',
+    'towns_lede' => '{1}私たちの拠点です。|[0,*]町は全:countか所、それぞれに独自の魅力があります。',
+    'from_price' => ':price〜',
+    'featured_stays' => 'おすすめの客室',
+    'featured_lede' => 'お客様に人気の客室です。',
+    'per_night' => '/泊',
+    'see_dates_for_pricing' => '日程を選んで料金を確認',
+    'browse_by_what_matters' => 'こだわり条件から探す',
+    'why_book_direct' => '公式サイトで予約するメリット',
+    'recent_guests' => '最近のお客様の声',
+    'rating_short' => '{1}:average · クチコミ:count件|[0,*]:average · クチコミ:count件',
+    'stars_aria' => '5つ星中:rating',
+    'review_quote' => '「:body」',
+    'no_reviews_yet' => 'クチコミはまだありません。最初にご宿泊いただき、体験をお聞かせください。',
+    'cta_heading' => '滞在先を探す',
+    'cta_sub' => '実際の日程、最新の料金、すぐに予約確定。',
+    'browse_all_stays' => 'すべての客室を見る',
+];

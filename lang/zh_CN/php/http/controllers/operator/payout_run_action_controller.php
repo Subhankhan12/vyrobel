@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => '打款引擎已停用（PAYOUT_ENGINE_ENABLED）。请先启用，再运行打款。',
+    'nothing_to_run' => '无可运行的打款——此处的业主均无可打款的结算单或已暂扣的打款:paused_note。',
+    'run_complete' => '打款批次运行完成（模式：:mode）——已创建 :created · 已打款 :paid · 已暂扣 :held:paused_note。',
+    'create_failed' => '无法创建打款——:reason',
+    'already_has_payout' => '该结算单已有打款——未创建任何打款。',
+    'one_payout_created' => '已创建 1 笔打款。',
+    'pay_failed' => '无法打款——:reason',
+    'one_payout_paid' => '已将 1 笔打款标记为已打款。',
+    'payout_failed_reason' => '打款失败——:reason',
+    'payout_failed_no_reason' => '打款失败——打款通道未提供原因。',
+    'create_all_failed' => '无法创建打款——:reason',
+    'no_payout_created_paused' => '未创建打款:paused_note——请在业主页面恢复打款。',
+    'nothing_ready' => '没有可打款的项目——没有应付净额为正数的已定稿结算单:paused_note。',
+    'no_new_payouts' => '没有新的打款——每份可打款的结算单都已有打款:paused_note。',
+    'payouts_created' => '{1}已创建 :count 笔打款:paused_note。|[0,*]已创建 :count 笔打款:paused_note。',
+    'some_not_created' => ':message部分打款无法创建——:reason',
+    'nothing_paid_paused' => '未打款:paused_note——请在业主页面恢复打款。',
+    'no_pending_payouts' => '没有待处理的打款。',
+    'paid_only' => '{1}已将 :count 笔打款标记为已打款:paused_note。|[0,*]已将 :count 笔打款标记为已打款:paused_note。',
+    'failed_only' => '[0,*]:count 笔打款在打款通道上失败:paused_note。',
+    'paid_and_failed' => '{1}已将 :count 笔打款标记为已打款 · :failed 笔在打款通道上失败:paused_note。|[0,*]已将 :count 笔打款标记为已打款 · :failed 笔在打款通道上失败:paused_note。',
+    'some_not_attempted' => ':message部分打款未能发起——:reason',
+    'nothing_payable_negative' => '无可打款——此结算单的净额为负数，余额将结转，用于抵扣该业主的下一份结算单。',
+    'nothing_payable_zero' => '无可打款——此结算单的净额为零，没有应付款项。',
+    'workspace_paused_until' => '组织已暂停——:date 前打款为只读。',
+    'workspace_paused_for_now' => '组织已暂停——打款目前为只读。',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}已跳过 :count 位已暂停的业主|[0,*]已跳过 :count 位已暂停的业主',
+];

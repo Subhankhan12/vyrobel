@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => '운영사/소유주',
+    'realm_guest' => '고객',
+    'realm_admin' => '플랫폼 관리자',
+    'event_login' => '로그인',
+    'event_failed' => '실패',
+    'event_lockout' => '계정 잠금',
+    'subject_user' => '사용자',
+    'subject_guest' => '고객',
+    'subject_platform_admin' => '플랫폼 관리자',
+    'subject_unknown' => '알 수 없음',
+    'actor_user' => '사용자',
+    'actor_agent' => '에이전트',
+    'actor_system' => '시스템',
+    'page_title' => '보안 및 활동',
+    'page_subtitle' => '플랫폼 전체의 로그인 활동과 계정 이벤트입니다. :days일 동안 보관된 후 삭제됩니다.',
+    'kpi_failures' => '실패 / 계정 잠금 · 24시간',
+    'kpi_failures_help' => '실패가 반복되면 무단 접근 시도일 수 있습니다.',
+    'privacy' => '개인정보 보호',
+    'privacy_body' => '로그인 활동(IP 포함)은 <strong style="color: var(--ad-ink);">보안 신호</strong>로만 수집됩니다. 의심스러운 로그인 탐지와 지원에만 쓰이며, 상시 추적에는 절대 쓰이지 않습니다. :days일 동안 보관된 후 자동으로 삭제되며, 이 콘솔에서만 볼 수 있습니다.',
+    'recent_sign_ins' => '최근 로그인 활동',
+    'col_event' => '이벤트',
+    'col_realm' => '영역',
+    'col_account' => '계정',
+    'col_ip' => 'IP',
+    'col_when' => '일시',
+    'no_sign_ins' => '아직 수집된 로그인 활동이 없습니다.',
+    'recent_account_events' => '최근 계정 이벤트 <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· 전체 고객사</span>',
+    'col_customer' => '고객사',
+    'col_actor' => '수행자',
+    'no_account_events' => '아직 계정 이벤트가 없습니다.',
+];

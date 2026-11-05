@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'すべての客室',
+    'kind_sleeps_up_to' => ':kind · 定員:capacity名',
+    'reviews_count' => '{1}クチコミ:count件|[0,*]クチコミ:count件',
+    'no_reviews_yet' => 'クチコミはまだありません',
+    'save_to_wishlist' => 'お気に入りに追加',
+    'sleeps' => '定員',
+    'adults' => '大人',
+    'children' => '子ども',
+    'bedrooms' => 'ベッドルーム',
+    'standard_occupancy' => '基本定員',
+    'amenities' => '設備',
+    'not_yet_listed' => '未掲載',
+    'amenities_not_published' => 'この客室の設備情報はまだ公開されていません。',
+    'guest_reviews' => '宿泊者のクチコミ',
+    'stars_aria' => '5つ星中:rating',
+    'response_label' => '返信：',
+    'no_reviews_be_first' => 'クチコミはまだありません。最初にご宿泊いただき、体験をお聞かせください。',
+    'coming_soon' => '近日公開',
+    'description_soon' => '詳しい説明と地図は準備中です。上に表示されている客室情報、空室状況、料金、クチコミは実際の情報です。',
+    'per_night' => '/泊',
+    'per_night_with_note' => '/泊 · :note',
+    'total_nights' => '{1}合計:amount · :count泊|[0,*]合計:amount · :count泊',
+    'left_for_your_dates' => 'ご指定の日程で残り:count室',
+    'book_this_room' => 'この客室を予約',
+    'nothing_reserved' => 'お支払い画面で確定するまで、予約は確保されません。',
+    'your_dates' => 'ご宿泊日程',
+    'not_available' => 'この日程ではご利用いただけません。別の日程でお試しください。',
+    'check_in' => 'チェックイン',
+    'check_out' => 'チェックアウト',
+    'check_dates' => '日程を確認',
+    'check_availability' => '空室と料金を確認',
+    'see_price' => '料金を表示',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '알림 설정',
+    'subtitle' => 'Vyrobel 알림 수신 방법',
+    'breadcrumb_label' => '이동 경로',
+    'crumb_settings' => '설정',
+    'crumb_notifications' => '알림',
+    'channel_email' => '이메일',
+    'channel_push' => '푸시',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => '등록된 이메일 없음',
+    'email_verified_title' => '로그인 이메일이 인증되었습니다',
+    'email_verified' => '인증됨',
+    'push_not_set_up_title' => '푸시가 아직 설정되지 않았습니다',
+    'not_set_up_tag' => '설정되지 않음',
+    'push_not_available' => '브라우저 및 기기 푸시는 아직 사용할 수 없습니다',
+    'channel_off' => '꺼짐',
+    'sms_not_set_up_title' => 'SMS가 아직 설정되지 않았습니다',
+    'sms_no_provider' => '아직 연결된 SMS 제공업체 없음',
+    'notify_me_when' => '다음 경우에 알림',
+    'always_on' => '항상 켜짐',
+    'email_always_on_sr' => '이메일 항상 켜짐: :event',
+    'email_me_when_aria' => '이메일 알림: :event',
+    'push_not_set_up_sr' => '푸시 설정되지 않음',
+    'sms_not_set_up_sr' => 'SMS 설정되지 않음',
+    'quiet_hours' => '방해 금지 시간',
+    'quiet_hours_help' => '이 시간 동안에는 일반 이메일을 보류합니다 — 긴급 보안 알림은 항상 발송되며, 앱 내 알림 피드에는 영향이 없습니다.',
+    'quiet_from' => '시작',
+    'quiet_to' => '종료',
+    'digest_heading' => '일일 요약 이메일',
+    'digest_help' => '하루 일정을 정리한 아침 요약입니다. <span class="vy-np-soon">아직 발송되지 않음</span> — 요약 발송 기능이 출시되면 적용되도록 설정이 저장됩니다.',
+    'digest_off' => '사용 안 함',
+    'digest_morning' => '아침 · 08:00',
+];

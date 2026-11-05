@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '공지',
+    'subtitle' => '모든 워크스페이스(또는 선택한 워크스페이스)의 백오피스와 소유주 포털 안에 표시되는 알림입니다. 일반 텍스트이며, 이메일은 발송되지 않습니다.',
+    'empty_state' => '지금까지 게시된 공지가 없습니다.',
+    'col_announcement' => '공지',
+    'col_to' => '대상',
+    'col_from_until' => '시작 → 종료',
+    'col_state' => '상태',
+    'audience_all' => '모든 워크스페이스',
+    'audience_chosen_count' => ':number개 선택',
+    'no_end' => '종료 없음',
+    'state_withdrawn' => '철회됨',
+    'state_showing' => '게시 중',
+    'state_scheduled' => '게시 예정',
+    'state_ended' => '종료됨',
+    'reason_aria' => '사유',
+    'withdraw_placeholder' => '철회하는 이유',
+    'withdraw_button' => '철회',
+    'publish_heading' => '공지 게시',
+    'title_label' => '제목',
+    'message_label' => '메시지(일반 텍스트)',
+    'kind_label' => '유형',
+    'show_from_label' => '게시 시작(UTC)',
+    'until_label' => '게시 종료(UTC, 선택 사항)',
+    'to_label' => '대상',
+    'option_every_organisation' => '모든 워크스페이스',
+    'option_chosen_organisations' => '선택한 워크스페이스',
+    'chosen_organisations_label' => '대상 워크스페이스(“선택한 워크스페이스” 선택 시)',
+    'no_organisation_chosen' => '아직 선택한 워크스페이스가 없습니다',
+    'reason_label' => '사유',
+    'publish_reason_placeholder' => '게시하는 이유',
+    'publish_button' => '게시',
+];

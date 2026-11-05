@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Số tiền',
+    'csv_amounts_note' => 'đơn vị tiền tệ chính, dấu chấm thập phân, không có dấu phân cách hàng nghìn',
+    'col_date' => 'Ngày',
+    'col_work_order' => 'Phiếu công việc',
+    'col_unit' => 'Phòng',
+    'col_category' => 'Hạng mục',
+    'col_labor' => 'Nhân công',
+    'col_parts' => 'Linh kiện',
+    'col_total' => 'Tổng',
+    'col_currency' => 'Tiền tệ',
+    'total_row' => 'Tổng',
+    'sheet_summary' => 'Tóm tắt',
+    'col_measure' => 'Chỉ số',
+    'col_value' => 'Giá trị',
+    'total_spend' => 'Tổng chi tiêu',
+    'measure_labour' => 'Nhân công',
+    'measure_parts' => 'Linh kiện',
+    'orders_closed' => 'Phiếu đã đóng',
+    'owner_billed' => 'Tính cho chủ sở hữu',
+    'operator_borne' => 'Đơn vị quản lý chịu',
+    'parts_on_order' => 'Linh kiện đang đặt',
+    'average_per_order' => 'Trung bình mỗi phiếu',
+    'by_category' => 'Theo hạng mục',
+    'col_orders' => 'Số phiếu',
+    'by_month' => 'Theo tháng',
+    'top_units' => 'Phòng có chi tiêu cao nhất',
+    'sheet_line_items' => 'Dòng chi phí',
+    'col_labour' => 'Nhân công',
+    'no_email' => 'Tài khoản của bạn chưa có địa chỉ email.',
+    'report_emailed' => 'Đã gửi báo cáo chi phí qua email đến :email.',
+];

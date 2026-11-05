@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '긴급 액세스',
+    'subtitle' => '한 워크스페이스 내부를 읽기 전용으로, 정해진 시간 동안만 확인합니다. 사유와 2단계 인증이 필요하며, 해당 워크스페이스에 통보됩니다.',
+    'back_label' => '지원',
+    'open_heading' => '세션이 열려 있습니다',
+    'open_summary' => '{1}:organization · :time UTC 종료 · 페이지 :count개 조회.|[0,*]:organization · :time UTC 종료 · 페이지 :count개 조회.',
+    'go_to_back_office' => '해당 백오피스로 이동',
+    'end_now' => '지금 세션 종료',
+    'start_heading' => '세션 열기',
+    'rule_read_only' => '<strong>읽기 전용.</strong> 양식, 버튼 등 저장하는 모든 변경이 거부됩니다.',
+    'rule_minutes' => '{1}<strong>:count분</strong> 후 자동으로 종료됩니다.|[0,*]<strong>:count분</strong> 후 자동으로 종료됩니다.',
+    'rule_senior_user' => '해당 워크스페이스에서 가장 상위 권한을 가진 인증된 백오피스 사용자가 보는 화면을 그대로 봅니다(고객 정보 포함). 사유에 필요한 내용만 확인하세요.',
+    'rule_recorded' => '여는 모든 페이지가 기록되며, 종료 후 해당 워크스페이스 팀에 이름, 시간, 이 사유가 통보됩니다.',
+    'organisation_label' => '워크스페이스',
+    'choose_option' => '선택하세요…',
+    'code_label' => '2단계 인증 코드(현재)',
+    'reason_label' => '사유 — 해당 워크스페이스 팀이 이 내용을 읽습니다',
+    'reason_placeholder' => '예: 티켓 #123 — 소유주가 예약 누락을 신고함',
+    'open_button' => '읽기 전용 세션 열기',
+    'recent_heading' => '최근 세션',
+    'empty_state' => '지금까지 열린 긴급 액세스 세션이 없습니다.',
+    'col_admin' => '관리자',
+    'col_organisation' => '워크스페이스',
+    'col_reason' => '사유',
+    'col_started' => '시작',
+    'col_ended' => '종료',
+    'col_pages' => '페이지',
+    'col_told' => '통보',
+    'ended_open' => '진행 중',
+    'ended_due' => '종료 시각 지남 — 아직 정리되지 않음',
+    'told_yes' => '예',
+    'told_not_yet' => '아직',
+];

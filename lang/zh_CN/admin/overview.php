@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '概览',
+    'subtitle_all' => '所有组织，包括 Vyrobel 自有的内部组织。',
+    'subtitle_customers' => '仅客户——不含 Vyrobel 自有的内部组织。',
+    'showing_all' => '显示<strong>全部</strong>组织——其中 :internal 个为内部组织。',
+    'internal_excluded' => '{1}以下所有数据均不含 :count 个内部组织。|[0,*]以下所有数据均不含 :count 个内部组织。',
+    'customers_only' => '仅客户',
+    'include_internal' => '包含内部组织',
+    'no_customers_heading' => '暂无客户',
+    'no_customers_body' => '平台上的所有组织都是 Vyrobel 自有组织（:internal 个内部组织）。首个真实注册将显示在这里。',
+    'kpi_organisations' => '组织',
+    'kpi_customers' => '客户',
+    'kpi_account_status' => ':active 个正常 · :suspended 个已冻结',
+    'kpi_subscriptions' => '订阅',
+    'kpi_subscriptions_sub' => '有效 · :trial 个处于免费试用',
+    'kpi_revenue' => '营收',
+    'no_live_billing' => '尚无正式计费',
+    'no_live_billing_sub' => '没有任何订阅通过 Stripe 计费。免费试用的标价不算营收。',
+    'billed_live' => '{1}:count 个正式计费|[0,*]:count 个正式计费',
+    'billed_live_sub' => '根据 Stripe 实际扣款计算，绝不依据价目表——请参阅<a class="ad-cell-link" href=":url">营收</a>。',
+    'kpi_properties' => '门店',
+    'kpi_reservations' => '{1}:count 个预订|[0,*]:count 个预订',
+    'new_organisations_heading' => '新组织 · 近 6 个月',
+    'new_customers_heading' => '新客户 · 近 6 个月',
+    'no_signups' => '近 6 个月暂无注册。',
+    'account_status_heading' => '账号状态',
+    'status_active' => '正常',
+    'status_suspended' => '已冻结',
+    'status_cancelled' => '已取消',
+    'status_trialing' => '免费试用中（账号）',
+    'free_trial_hint' => '免费试用是订阅状态，而不是账号状态——目前有 :trial 个处于免费试用。',
+    'plans_in_use' => '使用中的方案 <span class="ad-stat-sub" style="font-weight: 400;">· 有效或免费试用</span>',
+    'no_plans' => '暂无使用中的方案。',
+];

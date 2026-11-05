@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '紧急访问',
+    'subtitle' => '在单个组织内进行只读、限时的查看——需要原因和 2FA，并会通知该组织。',
+    'back_label' => '技术支持',
+    'open_heading' => '您的会话已开启',
+    'open_summary' => '{1}:organization · :time UTC 结束 · 已查看 :count 个页面。|[0,*]:organization · :time UTC 结束 · 已查看 :count 个页面。',
+    'go_to_back_office' => '前往其后台',
+    'end_now' => '立即结束会话',
+    'start_heading' => '开启会话',
+    'rule_read_only' => '<strong>只读。</strong>任何更改都会被拒绝——表单、按钮以及任何会保存的操作。',
+    'rule_minutes' => '{1}<strong>:count 分钟</strong>后自动结束。|[0,*]<strong>:count 分钟</strong>后自动结束。',
+    'rule_senior_user' => '您看到的是其最高级别的已验证后台用户所看到的内容——包括客人信息。请只查看原因所需的内容。',
+    'rule_recorded' => '您打开的每个页面都会被记录，事后会告知其团队：您的姓名、时间以及此原因。',
+    'organisation_label' => '组织',
+    'choose_option' => '请选择…',
+    'code_label' => '您的 2FA 验证码（当前）',
+    'reason_label' => '原因——对方会看到',
+    'reason_placeholder' => '例如：工单 #123——业主反映少了一个预订',
+    'open_button' => '开启只读会话',
+    'recent_heading' => '最近会话',
+    'empty_state' => '从未开启过紧急访问会话。',
+    'col_admin' => '管理员',
+    'col_organisation' => '组织',
+    'col_reason' => '原因',
+    'col_started' => '开始',
+    'col_ended' => '结束',
+    'col_pages' => '页面',
+    'col_told' => '已告知',
+    'ended_open' => '进行中',
+    'ended_due' => '已到期——尚未清理',
+    'told_yes' => '是',
+    'told_not_yet' => '尚未',
+];

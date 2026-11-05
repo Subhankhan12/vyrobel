@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'dikelola dengan Vyrobel',
+    'eyebrow' => 'Rekap pemilik',
+    'unit_count' => '{1}:count unit|[0,*]:count unit',
+    'issued' => 'diterbitkan :date',
+    'prepared_for' => 'Disiapkan untuk',
+    'net_payable_to_owner' => 'Bersih dibayarkan ke pemilik',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Okupansi',
+    'nights_sold' => 'Malam terjual',
+    'avg_nightly_rate' => 'Rata-rata tarif per malam',
+    'breakdown' => 'Rincian',
+    'item' => 'Item',
+    'detail' => 'Keterangan',
+    'amount' => 'Jumlah',
+    'provisional' => '(sementara)',
+    'performance_by_unit' => 'Kinerja per unit',
+    'unit' => 'Unit',
+    'nights' => 'Malam',
+    'revenue' => 'Penghasilan',
+    'total_gross_room_revenue' => 'Total penghasilan kamar kotor',
+    'callout_heading' => 'Pencairan.',
+    'settles_to_iban' => 'Jumlah bersih sebesar :amount dicairkan melalui transfer bank ke IBAN :iban.',
+    'settles' => 'Jumlah bersih sebesar :amount dicairkan melalui transfer bank.',
+    'fees_with_commission' => 'Komisi pengelolaan dikenakan sebesar :pct% dari penghasilan kamar kotor; biaya pembayaran dan biaya platform diteruskan sesuai biaya aktual. Semua jumlah dalam :currency dan sudah termasuk pajak berlaku yang dipungut atas nama Anda.',
+    'fees' => 'Biaya pembayaran dan biaya platform diteruskan sesuai biaya aktual. Semua jumlah dalam :currency dan sudah termasuk pajak berlaku yang dipungut atas nama Anda.',
+    'fx_note' => 'Dikonversi dari :source dengan kurs :rate (sumber: :src).',
+    'provisional_note' => 'Beberapa baris bersifat sementara, menunggu rekonsiliasi saluran.',
+    'statement_ref' => 'rekap :ref',
+    'sequence_no' => 'No. :number',
+    'generated' => 'dibuat <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Ada pertanyaan? :email',
+];

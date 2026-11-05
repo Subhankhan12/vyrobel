@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '매출',
+    'subtitle' => 'Stripe가 실제로 청구한 금액 기준 — 정가는 사용하지 않습니다. Vyrobel 자체 워크스페이스를 포함하지 않으면 고객사만 표시합니다.',
+    'including_internal' => 'Vyrobel 자체 내부 워크스페이스를 포함합니다.',
+    'customers_only_note' => '고객사만.',
+    'customers_only_link' => '고객사만',
+    'include_internal_link' => '내부 포함',
+    'no_live_billing_pill' => '아직 라이브 모드 청구 없음',
+    'no_customer_charged' => '아직 청구된 고객사가 없습니다.',
+    'not_live_explainer' => 'Stripe가 아직 라이브 모드가 아니므로 집계할 결제 완료 청구서가 없습니다. 실적이 나쁜 달이 아니라 아직 달 자체가 없는 것입니다. 이 화면의 매출은 <strong>결제 완료된 Stripe 청구서</strong>(Stripe가 알려 줄 때 기록되는 실제 청구)로만 계산하며, 요금제 정가로는 절대 계산하지 않습니다.',
+    'live_billed_subscriptions' => '라이브 모드 청구 구독',
+    'trialing_unbilled' => '무료 체험 중이며 청구되지 않은 구독',
+    'failed_payments_30d' => '결제 실패, 최근 30일',
+    'when_first_paid' => '첫 청구서가 결제되면 이 페이지에 다음이 표시됩니다: 통화별 MRR 및 ARR · 신규, 확장, 축소, 이탈 MRR · 무료 체험의 유료 전환율 · 결제 실패.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => '집계된 구독',
+    'no_live_subscription_charged' => '청구된 활성 라이브 모드 구독이 없습니다.',
+    'mrr_hint' => '활성 또는 연체 중인 라이브 모드 구독을 가장 최근 결제 완료 청구서 기준으로, 해당 청구서의 청구 기간에 따라 월 단위로 환산합니다.',
+    'this_month_vs_last' => '이번 달과 지난달 비교',
+    'movement_new' => '신규 · :currency',
+    'movement_expansion' => '확장 · :currency',
+    'movement_contraction' => '축소 · :currency',
+    'movement_churned' => '이탈 · :currency',
+    'nothing_charged' => '지난달과 이번 달 모두 청구된 금액이 없습니다.',
+    'movements_hint' => '워크스페이스별로 매월 청구된 금액을 기준으로 합니다. 이탈 = 지난달에 청구되었고, 이번 달에는 청구가 없으며, 구독이 해지된 경우.',
+    'trial_to_paid' => '유료 전환',
+    'trial_to_paid_value' => '종료된 무료 체험 :ended건 중 :converted건이 청구되었습니다',
+    'past_due_now' => '현재 연체',
+    'paid_invoices_counted' => '집계된 결제 완료 청구서',
+    'never_moves_money' => '이 콘솔은 결제 청구, 환불, 송금을 절대 하지 않습니다. 모든 수치는 통화별이며 통화 간에 합산하지 않습니다.',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => '概览',
+    'breadcrumb_bookings' => '预订',
+    'guest_fallback' => '客人',
+    'reservation' => '预订',
+    'check_in' => '入住',
+    'nights_count' => '{1}:count 晚|[0,*]:count 晚',
+    'check_out' => '离店',
+    'unit' => '房源',
+    'guests' => '客人',
+    'nights' => '晚数',
+    'nightly_rate' => '每晚房价',
+    'your_earnings' => '您的收入',
+    'gross_to_net' => '总收入 → 净收入',
+    'gross_booking_value' => '预订总额',
+    'net_to_you' => '您的净收入',
+    'refunds_we_covered' => '由我们承担的退款',
+    'refunds_we_covered_note' => '已退款给客人，由我们承担，不由您承担。上方您的收入保持不变。',
+    'not_yet_attributed' => '尚未计入台账。',
+    'not_yet_attributed_note' => '此预订计入您的台账后，您的收入将显示在这里——通常在退房后。',
+    'guest_heading' => '客人',
+    'guest_contact_note' => '客人的联系方式由您的管理方处理——您可以查看预订和您的收入。',
+    'message_your_team' => '给管理方发消息',
+    'timeline' => '时间线',
+    'for_night_stay' => '本次住宿共 :nights 晚',
+    'booking_details' => '预订详情',
+    'confirmation' => '预订号',
+    'source' => '来源',
+    'channel' => '渠道',
+    'booked_on' => '预订日期',
+    'download_confirmation' => '下载预订确认单',
+    'download_unavailable' => '仅共同业主和会计可用',
+    'view_unit' => '查看 :unit',
+];

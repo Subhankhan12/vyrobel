@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Lựa chọn lưu trú',
+    'properties_count' => ':count chỗ nghỉ',
+    'stays_count' => '{1}:count lựa chọn lưu trú|[0,*]:count lựa chọn lưu trú',
+    'stays_sleeps' => ':stays · tối đa :max khách',
+    'stays_sleeps_range' => ':stays · :min–:max khách',
+    'perk_free_cancel_days' => '{1}Hoàn tiền toàn bộ nếu hủy chậm nhất :count ngày trước ngày đến.|[0,*]Hoàn tiền toàn bộ nếu hủy chậm nhất :count ngày trước ngày đến.',
+    'perk_free_cancel_window' => 'Hoàn tiền toàn bộ nếu hủy trong thời hạn cho phép.',
+    'perk_no_fees' => 'Không có phí đặt phòng',
+    'perk_no_fees_sub' => 'Giá bạn thấy là giá bạn trả.',
+    'perk_best_rate' => 'Giá tốt nhất khi đặt trực tiếp',
+    'perk_best_rate_sub' => 'Đặt trực tiếp để nhận giá tốt nhất của chúng tôi — không qua trung gian.',
+    'perk_free_cancel' => 'Hủy miễn phí',
+    'perk_host_support' => 'Hỗ trợ trực tiếp từ chỗ nghỉ',
+    'perk_host_support_sub' => 'Nhắn tin với người thật về đặt phòng của bạn.',
+    'kind_room' => 'Phòng',
+    'kind_apartment' => 'Căn hộ',
+    'kind_villa' => 'Biệt thự',
+    'kind_dorm' => 'Phòng tập thể',
+    'type_hotel' => 'Khách sạn',
+    'type_aparthotel' => 'Khách sạn căn hộ',
+    'type_serviced_apartment' => 'Căn hộ dịch vụ',
+    'type_apartment_building' => 'Tòa nhà căn hộ',
+    'type_apartment' => 'Căn hộ',
+    'type_villa' => 'Biệt thự',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Nhà khách',
+    'type_resort' => 'Khu nghỉ dưỡng',
+    'type_mixed' => 'Hỗn hợp',
+    'type_portfolio' => 'Danh mục',
+];

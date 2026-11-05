@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'từ :time',
+    'by_time' => 'trước :time',
+    'repeat_guest' => '{1}Khách quay lại · :count kỳ lưu trú|[0,*]Khách quay lại · :count kỳ lưu trú',
+    'new_guest' => 'Khách mới',
+    'guests_count' => '{1}:count khách|[0,*]:count khách',
+    'nights_count' => '{1}:count đêm|[0,*]:count đêm',
+    'channel_direct' => 'Trực tiếp qua Vyrobel',
+    'channel_walk_in' => 'Khách vãng lai',
+    'channel_ota' => 'Kênh OTA',
+    'event_booking_received' => 'Đã nhận đặt phòng',
+    'event_cancelled' => 'Đã hủy',
+    'event_payment_received' => 'Đã nhận thanh toán',
+    'when_paid_in_full' => 'Đã thanh toán đủ',
+    'event_part_payment_received' => 'Đã nhận thanh toán một phần',
+    'when_balance_due' => 'Còn phải thanh toán',
+    'event_payment' => 'Thanh toán',
+    'when_not_yet_received' => 'Chưa nhận',
+    'event_checked_in' => 'Đã nhận phòng',
+    'event_check_in' => 'Nhận phòng',
+    'event_checked_out' => 'Đã trả phòng',
+    'event_payout_released' => 'Đã giải ngân chi trả',
+    'event_payout' => 'Chi trả',
+    'when_next_payout' => 'Trong lần chi trả tiếp theo của bạn',
+    'payout_not_attributed' => 'Chưa ghi vào sổ cái',
+    'payout_not_attributed_note' => 'Đặt phòng này chưa được ghi vào sổ cái của bạn.',
+    'payout_scheduled' => 'Đã lên lịch',
+    'payout_scheduled_note' => 'Sẽ được đưa vào bảng đối soát tiếp theo của bạn, rồi giải ngân cùng khoản chi trả đó.',
+    'payout_pending' => 'Đang chờ chi trả',
+    'payout_pending_note' => 'Đã có trong một bảng đối soát đã chốt — sẽ giải ngân cùng khoản chi trả đó.',
+    'payout_paid' => 'Đã chi trả',
+    'payout_paid_note' => 'Đã giải ngân trong một khoản chi trả đã hoàn tất.',
+];

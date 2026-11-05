@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time부터',
+    'by_time' => ':time까지',
+    'repeat_guest' => '{1}재방문 고객 · 숙박 :count회|[0,*]재방문 고객 · 숙박 :count회',
+    'new_guest' => '새 고객',
+    'guests_count' => '{1}:count명|[0,*]:count명',
+    'nights_count' => '{1}:count박|[0,*]:count박',
+    'channel_direct' => 'Vyrobel 직접 예약',
+    'channel_walk_in' => '워크인',
+    'channel_ota' => 'OTA 채널',
+    'event_booking_received' => '예약 접수',
+    'event_cancelled' => '취소됨',
+    'event_payment_received' => '결제 완료',
+    'when_paid_in_full' => '전액 결제 완료',
+    'event_part_payment_received' => '부분 결제 완료',
+    'when_balance_due' => '미결제 잔액',
+    'event_payment' => '결제',
+    'when_not_yet_received' => '아직 결제되지 않음',
+    'event_checked_in' => '체크인 완료',
+    'event_check_in' => '체크인',
+    'event_checked_out' => '체크아웃 완료',
+    'event_payout_released' => '지급 실행됨',
+    'event_payout' => '지급',
+    'when_next_payout' => '다음 지급 시',
+    'payout_not_attributed' => '아직 반영되지 않음',
+    'payout_not_attributed_note' => '이 예약은 아직 소유주 원장에 반영되지 않았습니다.',
+    'payout_scheduled' => '지급 예정',
+    'payout_scheduled_note' => '다음 정산서에 포함된 후 해당 지급과 함께 지급됩니다.',
+    'payout_pending' => '지급 대기 중',
+    'payout_pending_note' => '마감된 정산서에 포함됨 — 해당 지급과 함께 지급됩니다.',
+    'payout_paid' => '지급 완료',
+    'payout_paid_note' => '완료된 지급에 포함되어 송금되었습니다.',
+];

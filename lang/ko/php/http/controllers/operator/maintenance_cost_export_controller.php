@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => '금액',
+    'csv_amounts_note' => '기본 통화 단위, 소수점 사용, 천 단위 구분 기호 없음',
+    'col_date' => '날짜',
+    'col_work_order' => '작업 지시서',
+    'col_unit' => '객실',
+    'col_category' => '카테고리',
+    'col_labor' => '인건비',
+    'col_parts' => '부품비',
+    'col_total' => '합계',
+    'col_currency' => '통화',
+    'total_row' => '합계',
+    'sheet_summary' => '요약',
+    'col_measure' => '항목',
+    'col_value' => '값',
+    'total_spend' => '총 지출',
+    'measure_labour' => '인건비',
+    'measure_parts' => '부품비',
+    'orders_closed' => '종료된 작업 지시서',
+    'owner_billed' => '소유주 청구',
+    'operator_borne' => '운영사 부담',
+    'parts_on_order' => '주문 중인 부품',
+    'average_per_order' => '건당 평균',
+    'by_category' => '카테고리별',
+    'col_orders' => '건수',
+    'by_month' => '월별',
+    'top_units' => '상위 객실',
+    'sheet_line_items' => '항목 내역',
+    'col_labour' => '인건비',
+    'no_email' => '계정에 이메일 주소가 없습니다.',
+    'report_emailed' => '비용 보고서를 :email 주소로 보냈습니다.',
+];

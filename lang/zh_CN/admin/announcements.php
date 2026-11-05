@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '公告',
+    'subtitle' => '显示在每个组织（或所选组织）后台和业主门户中的公告。仅限纯文本；不会发送邮件。',
+    'empty_state' => '从未发布过公告。',
+    'col_announcement' => '公告',
+    'col_to' => '发送对象',
+    'col_from_until' => '开始 → 结束',
+    'col_state' => '状态',
+    'audience_all' => '所有组织',
+    'audience_chosen_count' => '已选 :number 个组织',
+    'no_end' => '不限期',
+    'state_withdrawn' => '已撤回',
+    'state_showing' => '展示中',
+    'state_scheduled' => '已排期',
+    'state_ended' => '已结束',
+    'reason_aria' => '原因',
+    'withdraw_placeholder' => '为什么撤回？',
+    'withdraw_button' => '撤回',
+    'publish_heading' => '发布公告',
+    'title_label' => '标题',
+    'message_label' => '消息（纯文本）',
+    'kind_label' => '类型',
+    'show_from_label' => '开始显示（UTC）',
+    'until_label' => '结束显示（UTC，可选）',
+    'to_label' => '发送对象',
+    'option_every_organisation' => '所有组织',
+    'option_chosen_organisations' => '所选组织',
+    'chosen_organisations_label' => '所选组织（选择“所选组织”时）',
+    'no_organisation_chosen' => '尚未选择组织',
+    'reason_label' => '原因',
+    'publish_reason_placeholder' => '为什么发布此公告？',
+    'publish_button' => '发布',
+];

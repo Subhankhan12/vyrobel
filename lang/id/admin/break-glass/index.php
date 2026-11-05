@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Akses darurat',
+    'subtitle' => 'Akses hanya baca dengan batas waktu ke dalam satu organisasi — dengan alasan, 2FA, dan organisasi tersebut diberi tahu.',
+    'back_label' => 'Dukungan',
+    'open_heading' => 'Sesi Anda sedang terbuka',
+    'open_summary' => '{1}:organization · berakhir pukul :time UTC · :count halaman dilihat.|[0,*]:organization · berakhir pukul :time UTC · :count halaman dilihat.',
+    'go_to_back_office' => 'Buka back office organisasi ini',
+    'end_now' => 'Akhiri sesi sekarang',
+    'start_heading' => 'Buka sesi',
+    'rule_read_only' => '<strong>Hanya baca.</strong> Setiap perubahan ditolak — formulir, tombol, apa pun yang menyimpan data.',
+    'rule_minutes' => '{1}<strong>:count menit</strong>, lalu berakhir dengan sendirinya.|[0,*]<strong>:count menit</strong>, lalu berakhir dengan sendirinya.',
+    'rule_senior_user' => 'Anda melihat apa yang dilihat pengguna back office terverifikasi dengan jabatan tertinggi di organisasi tersebut — termasuk tamu. Lihat hanya yang diperlukan sesuai alasan.',
+    'rule_recorded' => 'Setiap halaman yang Anda buka dicatat, dan tim mereka diberi tahu setelahnya: nama Anda, waktunya, dan alasan ini.',
+    'organisation_label' => 'Organisasi',
+    'choose_option' => 'Pilih…',
+    'code_label' => 'Kode 2FA Anda (saat ini)',
+    'reason_label' => 'Alasan — mereka akan membacanya',
+    'reason_placeholder' => 'Contoh: Tiket #123 — pemilik melaporkan reservasi yang hilang',
+    'open_button' => 'Buka sesi hanya baca',
+    'recent_heading' => 'Sesi terbaru',
+    'empty_state' => 'Belum pernah ada sesi akses darurat yang dibuka.',
+    'col_admin' => 'Admin',
+    'col_organisation' => 'Organisasi',
+    'col_reason' => 'Alasan',
+    'col_started' => 'Dimulai',
+    'col_ended' => 'Berakhir',
+    'col_pages' => 'Halaman',
+    'col_told' => 'Diberi tahu',
+    'ended_open' => 'terbuka',
+    'ended_due' => 'lewat waktu — belum ditutup',
+    'told_yes' => 'Ya',
+    'told_not_yet' => 'Belum',
+];

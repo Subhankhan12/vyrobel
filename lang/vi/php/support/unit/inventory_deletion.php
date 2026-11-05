@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count đặt phòng|[0,*]:count đặt phòng',
+    'room_moves' => '{1}:count lần chuyển phòng|[0,*]:count lần chuyển phòng',
+    'cleaning_tasks' => '{1}:count công việc dọn phòng|[0,*]:count công việc dọn phòng',
+    'work_orders' => '{1}:count phiếu công việc|[0,*]:count phiếu công việc',
+    'status_changes' => '{1}:count lần thay đổi trạng thái|[0,*]:count lần thay đổi trạng thái',
+    'blocks' => '{1}:count lượt chặn|[0,*]:count lượt chặn',
+    'owner_agreements' => '{1}:count hợp đồng với chủ sở hữu|[0,*]:count hợp đồng với chủ sở hữu',
+    'owner_statement_lines' => '{1}:count dòng bảng đối soát chủ sở hữu|[0,*]:count dòng bảng đối soát chủ sở hữu',
+    'owner_expenses' => '{1}:count chi phí của chủ sở hữu|[0,*]:count chi phí của chủ sở hữu',
+    'reviews' => '{1}:count đánh giá|[0,*]:count đánh giá',
+    'owner_requests' => '{1}:count yêu cầu của chủ sở hữu|[0,*]:count yêu cầu của chủ sở hữu',
+    'notes' => '{1}:count ghi chú|[0,*]:count ghi chú',
+    'documents' => '{1}:count tài liệu|[0,*]:count tài liệu',
+    'files' => '{1}:count tệp|[0,*]:count tệp',
+    'units' => '{1}:count phòng|[0,*]:count phòng',
+    'rate_proposals' => '{1}:count đề xuất giá|[0,*]:count đề xuất giá',
+    'overbooking_records' => '{1}:count bản ghi bán vượt|[0,*]:count bản ghi bán vượt',
+    'guest_waitlist_entries' => '{1}:count mục trong danh sách chờ của khách|[0,*]:count mục trong danh sách chờ của khách',
+    'guest_wishlist_saves' => '{1}:count lượt lưu vào danh sách yêu thích của khách|[0,*]:count lượt lưu vào danh sách yêu thích của khách',
+    'derived_room_types' => '{1}:count loại phòng được tạo dựa trên nó|[0,*]:count loại phòng được tạo dựa trên nó',
+    'derived_rate_plans' => '{1}:count gói giá ở nơi khác lấy giá từ nó|[0,*]:count gói giá ở nơi khác lấy giá từ nó',
+    'corporate_default_rates' => '{1}:count giá mặc định của tài khoản doanh nghiệp|[0,*]:count giá mặc định của tài khoản doanh nghiệp',
+    'channel_connections' => '{1}:count kết nối kênh|[0,*]:count kết nối kênh',
+    'an_owner' => 'một chủ sở hữu',
+    'pending_owner_invitation' => 'một lời mời chủ sở hữu đang chờ',
+    'list_and' => ':items và :last',
+    'kind_rooms' => 'phòng',
+    'kind_apartments' => 'căn hộ',
+    'kind_villas' => 'biệt thự',
+    'kind_dorm_beds' => 'giường tập thể',
+];

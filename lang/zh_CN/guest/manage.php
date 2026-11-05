@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '管理 :reference',
+    'back_to_booking' => '← 返回预订',
+    'heading' => '管理您的预订',
+    'subheading' => ':property · :check_in → :check_out。变更需经酒店确认——确认后我们会第一时间给您发消息。',
+    'pending_requests' => '待处理的申请',
+    'pending_badge' => '待处理',
+    'pending_note' => '您的预订尚未发生任何变更——申请需先经酒店确认。',
+    'pick_new_dates' => '选择新日期',
+    'currently' => '当前为 :check_in → :check_out。选择新日期查看差价，然后提交变更申请。',
+    'new_check_in' => '新入住日期',
+    'new_check_out' => '新离店日期',
+    'see_price_difference' => '查看差价',
+    'new_stay' => '新住宿',
+    'current' => '当前',
+    'difference' => '差价',
+    'estimate_note' => '仅为估算——以酒店确认为准。任何付款均在酒店确认后处理。',
+    'unpriced_note' => '这些日期尚未公布价格——提交变更申请后，酒店将确认价格。',
+    'request_date_change' => '申请更改日期',
+    'add_to_your_stay' => '为住宿添加服务',
+    'add_to_your_stay_sub' => '添加早餐、接送等服务——确认后所有款项均计入您的预订。',
+    'browse_extras' => '浏览附加服务',
+    'cancellation_policy' => '取消政策',
+    'free_until' => '<strong>:date</strong> 前可免费取消——在此之前提交的取消申请将全额退款。',
+    'policy_by_property' => '酒店将确认您的取消，并按其政策处理退款。',
+    'cancel_confirm' => '要为此预订发送取消申请吗？酒店将进行审核，并按其政策处理退款。',
+    'reason' => '原因',
+    'choose_reason' => '请选择原因…',
+    'request_cancellation' => '申请取消预订',
+    'closed_heading' => '此预订已结束',
+    'closed_body' => '此预订已无可更改的内容——但您的日期、住宿详情和已付款项仍会保留在此，随时可查看。',
+];

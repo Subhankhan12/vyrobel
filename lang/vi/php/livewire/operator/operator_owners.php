@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Sẵn sàng chi trả',
+    'chip_hold' => 'Tạm giữ',
+    'chip_review' => 'Cần xem xét',
+    'chip_paused' => 'Đã tạm dừng chi trả',
+    'chip_invited' => 'Đã mời',
+    'sorted_name_asc' => 'theo chủ sở hữu, A–Z',
+    'sorted_name_desc' => 'theo chủ sở hữu, Z–A',
+    'sorted_units_desc' => 'nhiều phòng nhất trước',
+    'sorted_units_asc' => 'ít phòng nhất trước',
+    'sorted_net_desc' => 'thực nhận lớn nhất trước',
+    'sorted_net_asc' => 'thực nhận nhỏ nhất trước',
+    'sorted_status_asc' => 'việc cần bạn xử lý trước',
+    'sorted_status_desc' => 'việc cần bạn xử lý sau cùng',
+    'kpi_invited' => ':number đã mời',
+    'kpi_units' => '{1}:count phòng|[0,*]:count phòng',
+    'kpi_owners_ready' => '{1}:count chủ sở hữu sẵn sàng|[0,*]:count chủ sở hữu sẵn sàng',
+    'kpi_paused_not_counted' => ':number tạm dừng, không được tính',
+    'kpi_hold_none' => 'không có gì đang chờ',
+    'kpi_hold_waiting' => ':amounts đang chờ',
+    'kpi_review_sub' => ':number có dòng chưa được kênh đặt phòng xác nhận',
+    'schedule' => 'ngày làm việc thứ :day hằng tháng',
+    'ordinal_st' => ':number',
+    'ordinal_nd' => ':number',
+    'ordinal_rd' => ':number',
+    'ordinal_th' => ':number',
+    'role_manager' => 'Quản lý chỗ nghỉ',
+    'role_accountant' => 'Kế toán',
+    'role_owner' => 'Chủ sở hữu',
+    'another_owner' => 'một chủ sở hữu khác',
+];

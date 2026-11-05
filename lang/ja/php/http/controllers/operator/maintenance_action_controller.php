@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => '客室:unitでメンテナンス依頼「:title」を作成しました。',
+    'not_assignable_staff' => 'このユーザーは、このワークスペースで割り当て可能なスタッフではありません。',
+    'cannot_reassign_closed' => 'このメンテナンス依頼はすでに終了しているため、担当者を変更できません。',
+    'assignment_updated' => 'メンテナンス依頼の担当者を更新しました。',
+    'work_order_closed' => 'この作業指示は終了しているため、詳細を変更できません。',
+    'work_order_updated' => '作業指示を更新しました。',
+    'col_title' => '件名',
+    'col_unit' => '客室',
+    'col_category' => 'カテゴリ',
+    'col_priority' => '優先度',
+    'col_status' => 'ステータス',
+    'col_assignee' => '担当者',
+    'col_reported' => '報告日',
+    'col_cost' => '費用',
+    'bulk_assigned_skipped' => '{1}作業指示:count件を割り当てました · :skipped件をスキップ（終了済み）|[0,*]作業指示:count件を割り当てました · :skipped件をスキップ（終了済み）',
+    'bulk_assigned' => '{1}作業指示:count件を割り当てました。|[0,*]作業指示:count件を割り当てました。',
+    'bulk_resolved_skipped' => '{1}作業指示:count件を完了にしました · :skipped件をスキップ（終了済み）|[0,*]作業指示:count件を完了にしました · :skipped件をスキップ（終了済み）',
+    'bulk_resolved' => '{1}作業指示:count件を完了にしました。|[0,*]作業指示:count件を完了にしました。',
+    'cannot_start' => 'このメンテナンス依頼は未着手の状態ではなくなったため、作業を開始できません。',
+    'work_started' => 'このメンテナンス依頼の作業を開始しました。',
+    'cannot_resolve_closed' => 'この作業指示はすでに終了しているため、完了にできません。',
+    'ticket_resolved' => 'メンテナンス依頼を完了にしました。',
+    'cannot_cancel_closed' => 'このメンテナンス依頼はすでに終了しているため、中止できません。',
+    'ticket_cancelled' => 'メンテナンス依頼を中止しました。',
+    'parts_closed' => 'このメンテナンス依頼は終了しているため、部品の状況を更新できません。',
+    'awaiting_parts' => '部品待ちにしました。',
+    'parts_arrived' => '部品の到着を記録しました。',
+    'update_posted_waiting_part' => '更新を投稿しました。部品待ちにしました。',
+    'update_posted' => '更新を投稿しました。',
+    'photo_added' => '写真を追加しました。',
+    'photo_removed' => '写真を削除しました。',
+    'workspace_paused' => 'ワークスペースは一時停止中（読み取り専用）です。再開するまで、メンテナンスの変更はできません。',
+];

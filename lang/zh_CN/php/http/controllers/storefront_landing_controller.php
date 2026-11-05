@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => '可选住宿',
+    'properties_count' => ':count 家酒店',
+    'stays_count' => '{1}:count 处住宿|[0,*]:count 处住宿',
+    'stays_sleeps' => ':stays · 可住 :max 人',
+    'stays_sleeps_range' => ':stays · 可住 :min–:max 人',
+    'perk_free_cancel_days' => '{1}最晚于到店前 :count 天取消可全额退款。|[0,*]最晚于到店前 :count 天取消可全额退款。',
+    'perk_free_cancel_window' => '在取消期限内取消可全额退款。',
+    'perk_no_fees' => '无预订手续费',
+    'perk_no_fees_sub' => '您看到的价格就是最终支付的价格。',
+    'perk_best_rate' => '官网直订最优价',
+    'perk_best_rate_sub' => '官网直订，享受我们自己的最优房价——没有中间商。',
+    'perk_free_cancel' => '免费取消',
+    'perk_host_support' => '与酒店直接沟通',
+    'perk_host_support_sub' => '就您的预订直接联系真人。',
+    'kind_room' => '客房',
+    'kind_apartment' => '公寓',
+    'kind_villa' => '别墅',
+    'kind_dorm' => '床位',
+    'type_hotel' => '酒店',
+    'type_aparthotel' => '公寓酒店',
+    'type_serviced_apartment' => '服务式公寓',
+    'type_apartment_building' => '公寓楼',
+    'type_apartment' => '公寓',
+    'type_villa' => '别墅',
+    'type_hostel' => '青年旅舍',
+    'type_guest_house' => '民宿',
+    'type_resort' => '度假村',
+    'type_mixed' => '混合型',
+    'type_portfolio' => '酒店组合',
+];

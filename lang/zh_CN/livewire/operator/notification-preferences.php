@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '通知偏好设置',
+    'subtitle' => 'Vyrobel 如何通知您',
+    'breadcrumb_label' => '面包屑导航',
+    'crumb_settings' => '设置',
+    'crumb_notifications' => '通知',
+    'channel_email' => '邮件',
+    'channel_push' => '推送',
+    'channel_sms' => '短信',
+    'no_email_on_file' => '未登记邮箱',
+    'email_verified_title' => '您的登录邮箱已验证',
+    'email_verified' => '已验证',
+    'push_not_set_up_title' => '推送尚未设置',
+    'not_set_up_tag' => '未设置',
+    'push_not_available' => '浏览器和设备推送暂不可用',
+    'channel_off' => '关闭',
+    'sms_not_set_up_title' => '短信尚未设置',
+    'sms_no_provider' => '尚未连接短信服务商',
+    'notify_me_when' => '以下情况时通知我',
+    'always_on' => '始终开启',
+    'email_always_on_sr' => '“:event”的邮件通知始终开启',
+    'email_me_when_aria' => '以下情况时给我发邮件：:event',
+    'push_not_set_up_sr' => '推送未设置',
+    'sms_not_set_up_sr' => '短信未设置',
+    'quiet_hours' => '免打扰时段',
+    'quiet_hours_help' => '在此时段内暂缓发送常规邮件——紧急安全提醒始终照常发送；应用内通知不受影响。',
+    'quiet_from' => '从',
+    'quiet_to' => '至',
+    'digest_heading' => '每日摘要邮件',
+    'digest_help' => '每天早上发送当日摘要。<span class="vy-np-soon">尚未发送</span>——此偏好已保存，摘要功能上线后即生效。',
+    'digest_off' => '关闭',
+    'digest_morning' => '早上 · 08:00',
+];

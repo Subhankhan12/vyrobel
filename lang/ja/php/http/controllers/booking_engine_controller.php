@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'マイページ',
+    'total_part' => ':name：:amount',
+    'total_includes' => ':itemsを含む',
+    'nightly_excludes' => ':tax別',
+    'sleeps' => '定員:count名',
+    'studio' => 'ワンルーム',
+    'bedrooms' => '{1}ベッドルーム:count|[0,*]ベッドルーム:count',
+    'checkout_title' => 'お支払い — :property',
+    'room_just_taken' => 'その客室はたった今ほかの方に予約されました。別の客室または日程をお選びください。',
+    'payment_received' => 'お支払い受領',
+    'payment_received_note' => '全額お支払い済みです。',
+    'payment_processing' => 'お支払い処理中',
+    'payment_processing_note' => 'カードでのお支払いを確認しています。しばらくしてからこのページを更新すると、反映されます。',
+    'pay_on_arrival' => '現地払い',
+    'pay_on_arrival_note' => 'チェックイン時に宿泊施設でお支払いください。',
+    'confirmed_title' => 'ご予約確定 — :property',
+    'kind_room' => '客室',
+    'kind_apartment' => 'アパートメント',
+    'kind_villa' => 'ヴィラ',
+    'kind_dorm' => 'ドミトリー',
+    'type_hotel' => 'ホテル',
+    'type_aparthotel' => 'アパートメントホテル',
+    'type_serviced_apartment' => 'サービスアパートメント',
+    'type_apartment_building' => 'アパートメント棟',
+    'type_apartment' => 'アパートメント',
+    'type_villa' => 'ヴィラ',
+    'type_hostel' => 'ホステル',
+    'type_guest_house' => 'ゲストハウス',
+    'type_resort' => 'リゾート',
+    'type_mixed' => '複合',
+    'type_portfolio' => 'ポートフォリオ',
+];

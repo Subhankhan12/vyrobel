@@ -1,0 +1,8 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/support/guest/guest_name.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest' => '客人',
+    'a_guest' => '一位客人',
+];

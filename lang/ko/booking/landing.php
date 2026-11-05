@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '숙박 상품',
+    'book_direct' => '직접 예약',
+    'nav_stays' => '숙박 상품',
+    'my_account' => '내 계정',
+    'sign_in' => '로그인',
+    'rating_across' => '{1}리뷰 :count개 기준 :average|[0,*]리뷰 :count개 기준 :average',
+    'heading' => ':org에서<br>직접 예약하세요.',
+    'subheading' => '정성껏 관리하는 숙소를 직접 예약하세요 — 수수료 없이 최저 요금으로, 실제 담당자가 응대합니다.',
+    'where' => '위치',
+    'check_in' => '체크인',
+    'check_out' => '체크아웃',
+    'adults' => '성인',
+    'children' => '아동',
+    'where_to_stay' => '지역별 숙소',
+    'towns_lede' => '{1}저희가 자리한 곳입니다.|[0,*]지역 :count곳, 저마다 다른 분위기가 있습니다.',
+    'from_price' => ':price부터',
+    'featured_stays' => '추천 숙박 상품',
+    'featured_lede' => '고객이 가장 좋아하는 숙박 상품입니다.',
+    'per_night' => '/박',
+    'see_dates_for_pricing' => '날짜를 선택하시면 가격을 확인하실 수 있습니다',
+    'browse_by_what_matters' => '원하는 조건으로 찾아보기',
+    'why_book_direct' => '직접 예약의 장점',
+    'recent_guests' => '최근 투숙객',
+    'rating_short' => '{1}:average · 리뷰 :count개|[0,*]:average · 리뷰 :count개',
+    'stars_aria' => '5점 만점에 :rating점',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => '아직 리뷰가 없습니다 — 첫 투숙객이 되어 경험을 공유해 주세요.',
+    'cta_heading' => '나에게 맞는 숙소 찾기',
+    'cta_sub' => '실제 날짜, 실시간 가격, 즉시 확정.',
+    'browse_all_stays' => '모든 숙박 상품 보기',
+];

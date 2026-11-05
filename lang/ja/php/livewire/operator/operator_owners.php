@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => '送金可能',
+    'chip_hold' => '保留中',
+    'chip_review' => '要確認',
+    'chip_paused' => '送金一時停止中',
+    'chip_invited' => '招待済み',
+    'sorted_name_asc' => 'オーナー名順（A〜Z）',
+    'sorted_name_desc' => 'オーナー名順（Z〜A）',
+    'sorted_units_desc' => '客室数の多い順',
+    'sorted_units_asc' => '客室数の少ない順',
+    'sorted_net_desc' => '支払純額の多い順',
+    'sorted_net_asc' => '支払純額の少ない順',
+    'sorted_status_asc' => '要対応を先頭に',
+    'sorted_status_desc' => '要対応を末尾に',
+    'kpi_invited' => '招待済み:number名',
+    'kpi_units' => '{1}:count室|[0,*]:count室',
+    'kpi_owners_ready' => '{1}送金可能なオーナー:count名|[0,*]送金可能なオーナー:count名',
+    'kpi_paused_not_counted' => '一時停止中:number名（集計対象外）',
+    'kpi_hold_none' => '保留なし',
+    'kpi_hold_waiting' => '保留額：:amounts',
+    'kpi_review_sub' => '販売チャネル未確認の明細あり：:number名',
+    'schedule' => '毎月:day営業日',
+    'ordinal_st' => '第:number',
+    'ordinal_nd' => '第:number',
+    'ordinal_rd' => '第:number',
+    'ordinal_th' => '第:number',
+    'role_manager' => '施設マネージャー',
+    'role_accountant' => '経理担当',
+    'role_owner' => 'オーナー',
+    'another_owner' => '別のオーナー',
+];

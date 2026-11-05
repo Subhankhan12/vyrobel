@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Arsip rekap',
+    'history_summary' => 'Riwayat rekap final Anda · :years · :statements',
+    'years' => '{1}:count tahun|[0,*]:count tahun',
+    'statements' => '{1}:count rekap|[0,*]:count rekap',
+    'archived_on_finalize' => 'Rekap diarsipkan di sini begitu difinalkan.',
+    'net_earned_lifetime' => 'Penghasilan bersih · sepanjang waktu',
+    'since' => 'sejak :date',
+    'per_currency_note' => 'Dijumlahkan per mata uang pencairan — saldo dalam mata uang berbeda tidak pernah digabungkan.',
+    'lifetime_empty' => 'Belum ada rekap final — rekap pertama Anda akan muncul di sini.',
+    'search_placeholder' => 'Cari rekap Anda — bulan, tahun, status, atau nomor',
+    'search_label' => 'Cari rekap',
+    'no_match' => 'Tidak ada rekap yang cocok dengan “:query”.',
+    'no_match_hint' => 'Coba bulan (“September”), tahun (“2026”), status (“Dicairkan”), atau nomor rekap (“No. 1”).',
+    'group_summary' => ':statements · bersih :nets',
+    'per_payout_currency' => '(per mata uang pencairan)',
+    'tax_summary_title' => 'Unduh ringkasan pajak tahunan :year sebagai PDF',
+    'tax_summary' => 'Ringkasan pajak',
+    'col_statement' => 'Rekap',
+    'col_net_payable' => 'Bersih dibayarkan',
+    'col_links' => 'Tautan',
+    'unverified_title' => 'Beberapa baris masih menunggu rekonsiliasi saluran',
+    'unverified' => 'Berisi baris yang belum diverifikasi',
+    'pdf_title' => 'Unduh rekap ini sebagai PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Unduh daftar reservasi untuk rekap ini sebagai PDF',
+    'bookings' => 'Reservasi',
+    'empty' => 'Belum ada rekap final. Rekap diarsipkan di sini setelah difinalkan.',
+    'zip_heading' => 'Unduh seluruh arsip',
+    'zip_sub' => '{1}Satu ZIP berisi :count PDF rekap. Setiap rekap di atas juga dapat diunduh satu per satu.|[0,*]Satu ZIP berisi :count PDF rekap. Setiap rekap di atas juga dapat diunduh satu per satu.',
+    'download_zip' => 'Unduh ZIP',
+];

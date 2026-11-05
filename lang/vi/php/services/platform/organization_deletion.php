@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Tổ chức này có bản ghi tiền ở chế độ thực (:records). Pháp luật có thể yêu cầu lưu giữ các bản ghi này trong nhiều năm, nên việc xóa đang tạm hoãn cho đến khi có kết luận pháp lý về thời hạn lưu giữ — trước thời điểm đó không thể xóa.',
+    'uncounted_cascades' => 'Cơ sở dữ liệu liên kết các bản ghi theo cách mà thao tác xóa không thể đếm chính xác (:links), nên phần xác nhận không thể cho biết những gì sẽ bị xóa. Không thể xóa cho đến khi vấn đề này được khắc phục.',
+    'stripe_billing_live' => 'Tổ chức này đang được tính phí thực qua Stripe. Vui lòng hủy gói đăng ký trong Stripe trước, nếu không Stripe sẽ tiếp tục tính phí một khách hàng không còn tồn tại. Nếu gói đã được hủy ở đó, báo cáo của Stripe về việc này chưa được áp dụng tại đây — vui lòng xử lý thủ công.',
+    'checkout_open_subscription' => 'Một trang thanh toán Stripe cho gói đăng ký của tổ chức đã được mở vào :opened và vẫn có thể được thanh toán đến :closes. Vui lòng thử lại khi trang đã được thanh toán hoặc đã hết hạn.',
+    'checkout_open_card' => 'Một trang thanh toán Stripe cho khoản thanh toán thẻ của khách đã được mở vào :opened và vẫn có thể được thanh toán đến :closes. Vui lòng thử lại khi trang đã được thanh toán hoặc đã hết hạn.',
+    'checkout_unreported_subscription' => 'Một trang thanh toán Stripe ở chế độ thực cho gói đăng ký của tổ chức đã được mở vào :opened và đóng vào :closed, nhưng chưa có báo cáo nào về việc trang đã được thanh toán hay chưa được áp dụng tại đây. Vui lòng kiểm tra trang này trên trang quản trị Stripe; nếu trang đã được thanh toán, hãy hủy những gì nó đã khởi tạo ở đó trước. Stripe gửi lại một báo cáo chưa gửi được trong tối đa 3 ngày — vui lòng thử lại khi báo cáo đã được áp dụng. Nếu Stripe đã báo cáo nhưng báo cáo không thể áp dụng, vui lòng xử lý thủ công.',
+    'checkout_unreported_card' => 'Một trang thanh toán Stripe ở chế độ thực cho khoản thanh toán thẻ của khách đã được mở vào :opened và đóng vào :closed, nhưng chưa có báo cáo nào về việc trang đã được thanh toán hay chưa được áp dụng tại đây. Vui lòng kiểm tra trang này trên trang quản trị Stripe; nếu trang đã được thanh toán, hãy hủy những gì nó đã khởi tạo ở đó trước. Stripe gửi lại một báo cáo chưa gửi được trong tối đa 3 ngày — vui lòng thử lại khi báo cáo đã được áp dụng. Nếu Stripe đã báo cáo nhưng báo cáo không thể áp dụng, vui lòng xử lý thủ công.',
+    'refund_processing' => 'Một khoản hoàn tiền qua thẻ vẫn đang được Stripe xử lý. Vui lòng chờ Stripe xác nhận, rồi thử lại.',
+    'card_payment_open' => 'Một khoản thanh toán thẻ hoặc khoản cấp phép trước trên thẻ vẫn đang mở. Vui lòng chờ giao dịch hoàn tất, hoặc giải phóng khoản đó, trước.',
+    'dispute_open' => 'Một khoản thanh toán thẻ đang bị tranh chấp tại Stripe (từ: :since). Vui lòng phản hồi trong Stripe, và thử lại khi Stripe báo cáo tranh chấp đã đóng. Nếu trang quản trị Stripe đã hiển thị tranh chấp đã đóng, báo cáo chưa bao giờ đến — vui lòng xử lý thủ công.',
+    'payouts_in_transit' => '[0,*]:count khoản chi trả cho chủ sở hữu đang được chuyển tại Stripe (từ: :since).|{1}Một khoản chi trả cho chủ sở hữu đang được chuyển tại Stripe (từ: :since).',
+    'payout_transit_stale' => 'Thời gian này lâu hơn mức cần thiết — vui lòng xử lý thủ công với Stripe trước.',
+    'payout_transit_wait' => 'Vui lòng chờ Stripe xác nhận, rồi thử lại.',
+    'payouts_owed' => '[0,*]Vẫn còn :count khoản chi trả chưa trả cho chủ sở hữu (đang chờ hoặc bị giữ lại). Vui lòng chi trả các khoản này trước — nếu xóa, chủ sở hữu sẽ không được chi trả và không còn bản ghi nào về việc đó.|{1}Vẫn còn một khoản chi trả chưa trả cho chủ sở hữu (đang chờ hoặc bị giữ lại). Vui lòng chi trả khoản này trước — nếu xóa, chủ sở hữu sẽ không được chi trả và không còn bản ghi nào về việc đó.',
+    'payout_run_running' => 'Một đợt chi trả đang chạy (bắt đầu: :since).',
+    'looks_stuck' => 'Có vẻ quá trình này đang bị treo — vui lòng xử lý thủ công trước khi xóa.',
+    'payout_run_wait' => 'Vui lòng thử lại khi quá trình này đã hoàn tất.',
+    'webhook_unprocessed' => 'Một thông báo từ :source cho tổ chức này, nhận vào :received, vẫn chưa được xử lý.',
+    'webhook_wait' => 'Vui lòng thử lại sau vài phút.',
+    'cross_tenant_references' => 'Một tổ chức khác có bản ghi trỏ đến tổ chức này (:links). Nếu xóa, các bản ghi đó cũng sẽ bị xóa.',
+    'schema_unreadable' => 'Không thể đọc đầy đủ lược đồ cơ sở dữ liệu (không tìm thấy: :tables).',
+    'already_deleted' => 'Tổ chức này không còn tồn tại — tổ chức đã bị xóa trước đó.',
+    'protected' => 'Tổ chức này được bảo vệ và không bao giờ có thể bị xóa.',
+    'not_suspended' => 'Vui lòng đình chỉ tổ chức trước — chỉ có thể xóa tổ chức đã đình chỉ hoặc đã lưu trữ.',
+    'record_survived' => 'Một bản ghi của tổ chức này vẫn còn sau khi xóa (trong: :tables), nên mọi thay đổi đã được hoàn tác.',
+    'organization_survived' => 'Tổ chức hoặc một người thuộc tổ chức vẫn còn sau khi xóa, nên mọi thay đổi đã được hoàn tác.',
+    'live_card_payments' => '{1}:count khoản thanh toán thẻ|[0,*]:count khoản thanh toán thẻ',
+    'live_refunds' => '{1}:count khoản hoàn tiền|[0,*]:count khoản hoàn tiền',
+    'live_payouts' => '{1}:count khoản chi trả|[0,*]:count khoản chi trả',
+    'live_stripe_billing' => 'gói đăng ký tính phí thực qua Stripe, kèm hóa đơn',
+    'unknown_time' => 'một thời điểm không rõ',
+    'time_utc' => ':time UTC',
+];

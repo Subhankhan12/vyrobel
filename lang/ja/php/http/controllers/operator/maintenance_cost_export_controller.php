@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => '金額',
+    'csv_amounts_note' => '通貨の基本単位、小数点表記、桁区切りなし',
+    'col_date' => '日付',
+    'col_work_order' => '作業指示',
+    'col_unit' => '客室',
+    'col_category' => 'カテゴリ',
+    'col_labor' => '人件費',
+    'col_parts' => '部品代',
+    'col_total' => '合計',
+    'col_currency' => '通貨',
+    'total_row' => '合計',
+    'sheet_summary' => '概要',
+    'col_measure' => '項目',
+    'col_value' => '値',
+    'total_spend' => '総支出',
+    'measure_labour' => '人件費',
+    'measure_parts' => '部品代',
+    'orders_closed' => '完了件数',
+    'owner_billed' => 'オーナー請求',
+    'operator_borne' => '自社負担',
+    'parts_on_order' => '発注中の部品',
+    'average_per_order' => '1件あたり平均',
+    'by_category' => 'カテゴリ別',
+    'col_orders' => '件数',
+    'by_month' => '月別',
+    'top_units' => '支出の多い客室',
+    'sheet_line_items' => '明細',
+    'col_labour' => '人件費',
+    'no_email' => 'アカウントにメールアドレスが登録されていません。',
+    'report_emailed' => '費用レポートを:emailに送信しました。',
+];

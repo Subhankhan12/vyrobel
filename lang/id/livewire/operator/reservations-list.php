@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Reservasi',
+    'arrivals_this_month' => 'Kedatangan bulan ini',
+    'arrivals_this_month_sub' => 'check-in dalam bulan kalender ini · pembatalan dan no-show tidak dihitung',
+    'booked_value' => 'Nilai reservasi · kedatangan bulan ini',
+    'booked_value_sub' => 'ditagihkan atas kedatangan bulan ini',
+    'booked_value_sub_multi' => 'ditagihkan atas kedatangan bulan ini · ditampilkan per mata uang (tidak pernah dijumlahkan lintas mata uang)',
+    'balances_due' => 'Sisa tagihan · kedatangan bulan ini',
+    'folios_owing' => '{0}tidak ada tagihan|{1}:count folio masih memiliki sisa tagihan|[2,*]:count folio masih memiliki sisa tagihan',
+    'search_placeholder' => 'Cari berdasarkan tamu atau kode reservasi…',
+    'search_label' => 'Cari reservasi',
+    'group_booking' => 'Reservasi grup',
+    'new_reservation' => 'Reservasi baru',
+    'empty_heading' => 'Belum ada reservasi',
+    'empty_body' => 'Setiap reservasi — langsung, walk-in, atau hasil impor — masuk ke sini setelah diterima.',
+    'no_match_query' => 'Tidak ada reservasi yang cocok dengan “:query”',
+    'no_match_view' => 'Tidak ada reservasi dalam tampilan ini',
+    'no_match_hint' => '{1}Coba nama tamu atau kode reservasi. Total :count reservasi.|[0,*]Coba nama tamu atau kode reservasi. Total :count reservasi.',
+    'no_match_hint_filter' => '{1}Coba nama tamu atau kode reservasi, atau bersihkan filter. Total :count reservasi.|[0,*]Coba nama tamu atau kode reservasi, atau bersihkan filter. Total :count reservasi.',
+    'clear_search_filters' => 'Bersihkan pencarian dan filter',
+    'col_guest' => 'Tamu',
+    'col_stay' => 'Masa inap',
+    'col_unit' => 'Unit',
+    'col_source' => 'Sumber',
+    'col_stage' => 'Tahap',
+    'col_balance_due' => 'Sisa tagihan',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count malam|[0,*]:count malam',
+    'guests' => '{1}:count tamu|[0,*]:count tamu',
+    'unassigned' => 'Belum ditetapkan',
+    'refunded' => 'Dana dikembalikan',
+    'pager_label' => 'reservasi',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Đã mở phiếu bảo trì “:title” cho phòng :unit.',
+    'not_assignable_staff' => 'Người dùng này không phải là nhân viên có thể phân công trong tổ chức này.',
+    'cannot_reassign_closed' => 'Không thể phân công lại phiếu này — phiếu đã đóng.',
+    'assignment_updated' => 'Đã cập nhật phân công phiếu.',
+    'work_order_closed' => 'Phiếu công việc này đã đóng — không thể thay đổi chi tiết.',
+    'work_order_updated' => 'Đã cập nhật phiếu công việc.',
+    'col_title' => 'Tiêu đề',
+    'col_unit' => 'Phòng',
+    'col_category' => 'Hạng mục',
+    'col_priority' => 'Mức ưu tiên',
+    'col_status' => 'Trạng thái',
+    'col_assignee' => 'Người phụ trách',
+    'col_reported' => 'Ngày báo cáo',
+    'col_cost' => 'Chi phí',
+    'bulk_assigned_skipped' => '{1}Đã phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)|[0,*]Đã phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)',
+    'bulk_assigned' => '{1}Đã phân công :count phiếu công việc.|[0,*]Đã phân công :count phiếu công việc.',
+    'bulk_resolved_skipped' => '{1}Đã xử lý xong :count phiếu công việc · bỏ qua :skipped (đã đóng)|[0,*]Đã xử lý xong :count phiếu công việc · bỏ qua :skipped (đã đóng)',
+    'bulk_resolved' => '{1}Đã xử lý xong :count phiếu công việc.|[0,*]Đã xử lý xong :count phiếu công việc.',
+    'cannot_start' => 'Không thể bắt đầu phiếu này — phiếu không còn mở.',
+    'work_started' => 'Đã bắt đầu xử lý phiếu này.',
+    'cannot_resolve_closed' => 'Không thể đánh dấu đã xử lý phiếu công việc này — phiếu đã đóng.',
+    'ticket_resolved' => 'Đã xử lý phiếu.',
+    'cannot_cancel_closed' => 'Không thể hủy phiếu này — phiếu đã đóng.',
+    'ticket_cancelled' => 'Đã hủy phiếu.',
+    'parts_closed' => 'Phiếu này đã đóng — không thể cập nhật linh kiện.',
+    'awaiting_parts' => 'Đã đánh dấu chờ linh kiện.',
+    'parts_arrived' => 'Đã đánh dấu linh kiện đã đến.',
+    'update_posted_waiting_part' => 'Đã đăng cập nhật — đã đánh dấu đang chờ linh kiện.',
+    'update_posted' => 'Đã đăng cập nhật.',
+    'photo_added' => 'Đã thêm ảnh.',
+    'photo_removed' => 'Đã xóa ảnh.',
+    'workspace_paused' => 'Tổ chức của bạn đang tạm dừng (chỉ đọc) — không thể thay đổi phần bảo trì cho đến khi bạn tiếp tục.',
+];

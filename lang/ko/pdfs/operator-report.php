@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => '보고서',
+    'arrivals_in' => ':period 도착 예약',
+    'arrivals_count' => '{1}도착 :count건|[0,*]도착 :count건',
+    'pp_delta' => ':delta%p',
+    'occupancy' => '객실 점유율',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => '총매출',
+    'basis_note' => '객실 점유율 · ADR · RevPAR는 숙박일 기준이며, 전년 데이터가 있는 경우 전년 동기와 비교합니다. 아래 매출은 폴리오(도착) 기준입니다.',
+    'revenue' => '매출',
+    'room' => '객실',
+    'ancillary' => '부대 매출 <span class="muted">· 추가 서비스, 상품, 수수료</span>',
+    'tax_collected' => '징수 세금 · 예수금',
+    'costs_heading' => '비용 <span class="muted" style="font-size:9px">· 실제 데이터만</span>',
+    'maintenance' => '유지보수 <span class="muted">· 해결된 작업 지시서</span>',
+    'not_tracked' => '아직 집계되지 않음',
+    'net' => '순액(매출 − 집계된 비용)',
+    'revenue_by_channel' => '채널별 매출',
+    'channel' => '채널',
+    'bookings' => '예약',
+    'share' => '비중',
+    'no_channel_revenue' => '이 기간에 채널 매출이 없습니다.',
+    'top_units' => '상위 객실',
+    'unit' => '객실',
+    'nights' => '객실 박수',
+    'room_revenue' => '객실 매출',
+    'no_unit_revenue' => '이 기간에 객실 매출이 없습니다.',
+    'revenue_by_month' => '월별 매출',
+    'month' => '월',
+    'footer' => ':scope · :period의 실제 폴리오 및 유지보수 데이터로 계산했습니다. 객실 점유율/ADR/RevPAR는 숙박일 기준, 매출은 폴리오(도착) 기준입니다. 수치는 “보고서” 화면과 일치합니다. Vyrobel.',
+];

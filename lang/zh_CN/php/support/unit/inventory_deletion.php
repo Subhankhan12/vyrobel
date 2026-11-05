@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count 个预订|[0,*]:count 个预订',
+    'room_moves' => '{1}:count 次换房|[0,*]:count 次换房',
+    'cleaning_tasks' => '{1}:count 个清洁任务|[0,*]:count 个清洁任务',
+    'work_orders' => '{1}:count 个工单|[0,*]:count 个工单',
+    'status_changes' => '{1}:count 次状态变更|[0,*]:count 次状态变更',
+    'blocks' => '{1}:count 次封房|[0,*]:count 次封房',
+    'owner_agreements' => '{1}:count 份托管协议|[0,*]:count 份托管协议',
+    'owner_statement_lines' => '{1}:count 条业主结算单明细|[0,*]:count 条业主结算单明细',
+    'owner_expenses' => '{1}:count 笔业主费用|[0,*]:count 笔业主费用',
+    'reviews' => '{1}:count 条评价|[0,*]:count 条评价',
+    'owner_requests' => '{1}:count 个业主申请|[0,*]:count 个业主申请',
+    'notes' => '{1}:count 条备注|[0,*]:count 条备注',
+    'documents' => '{1}:count 份文档|[0,*]:count 份文档',
+    'files' => '{1}:count 个文件|[0,*]:count 个文件',
+    'units' => '{1}:count 间房|[0,*]:count 间房',
+    'rate_proposals' => '{1}:count 条调价提议|[0,*]:count 条调价提议',
+    'overbooking_records' => '{1}:count 条超订记录|[0,*]:count 条超订记录',
+    'guest_waitlist_entries' => '{1}:count 条客人候补记录|[0,*]:count 条客人候补记录',
+    'guest_wishlist_saves' => '{1}:count 次客人心愿单收藏|[0,*]:count 次客人心愿单收藏',
+    'derived_room_types' => '{1}:count 个以其为基础的房型|[0,*]:count 个以其为基础的房型',
+    'derived_rate_plans' => '{1}:count 个以其定价的其他价格计划|[0,*]:count 个以其定价的其他价格计划',
+    'corporate_default_rates' => '{1}:count 个企业客户账户的默认价格计划|[0,*]:count 个企业客户账户的默认价格计划',
+    'channel_connections' => '{1}:count 个渠道连接|[0,*]:count 个渠道连接',
+    'an_owner' => '1 位业主',
+    'pending_owner_invitation' => '1 个待接受的业主邀请',
+    'list_and' => ':items 和 :last',
+    'kind_rooms' => '客房',
+    'kind_apartments' => '公寓',
+    'kind_villas' => '别墅',
+    'kind_dorm_beds' => '床位',
+];

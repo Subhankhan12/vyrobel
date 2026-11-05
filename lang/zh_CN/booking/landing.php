@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '可选住宿',
+    'book_direct' => '官网直订',
+    'nav_stays' => '可选住宿',
+    'my_account' => '我的账号',
+    'sign_in' => '登录',
+    'rating_across' => '{1}:average 分 · 共 :count 条评价|[0,*]:average 分 · 共 :count 条评价',
+    'heading' => '直接向<br>:org 预订。',
+    'subheading' => '用心打理的住宿，直接向酒店预订——无额外手续费，享最优房价，还有真人为您服务。',
+    'where' => '目的地',
+    'check_in' => '入住',
+    'check_out' => '离店',
+    'adults' => '成人',
+    'children' => '儿童',
+    'where_to_stay' => '住宿地点',
+    'towns_lede' => '{1}我们的大本营。|[0,*]:count 座小镇，各有各的节奏。',
+    'from_price' => ':price 起',
+    'featured_stays' => '精选住宿',
+    'featured_lede' => '所有住宿中最受客人喜爱的选择。',
+    'per_night' => '/晚',
+    'see_dates_for_pricing' => '选择日期查看价格',
+    'browse_by_what_matters' => '按您在意的条件浏览',
+    'why_book_direct' => '为什么官网直订',
+    'recent_guests' => '近期客人',
+    'rating_short' => '{1}:average · :count 条评价|[0,*]:average · :count 条评价',
+    'stars_aria' => ':rating 星（满分 5 星）',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => '暂无评价——成为第一位入住并分享体验的客人吧。',
+    'cta_heading' => '寻找您的住处',
+    'cta_sub' => '真实日期、实时价格、即时确认。',
+    'browse_all_stays' => '浏览所有住宿',
+];

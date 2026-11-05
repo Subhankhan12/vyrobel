@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start〜:end',
+    'guest_fallback' => 'ゲスト',
+    'nights' => '{1}:count泊|[0,*]:count泊',
+    'block_reason_none' => 'ブロック',
+    'block_reason_maintenance' => 'メンテナンス',
+    'block_reason_owner' => 'オーナー',
+    'block_reason_manual' => '手動',
+    'block_reason_overbooking_protection' => 'オーバーブッキング防止',
+    'cleaning_departure' => 'チェックアウト後の清掃',
+    'cleaning_stayover' => '滞在中の清掃',
+    'cleaning_deep' => '徹底清掃',
+    'cleaning_arrival_prep' => '到着前の準備',
+    'cleaning_status_pending' => '予定',
+    'cleaning_status_in_progress' => '清掃中',
+    'cleaning_status_clean' => '清掃済み',
+    'cleaning_status_inspected' => '点検済み',
+    'kind_room' => '客室',
+    'kind_apartment' => 'アパートメント',
+    'kind_villa' => 'ヴィラ',
+    'kind_dorm_bed' => 'ドミトリーベッド',
+    'condition_out_of_order' => '故障中',
+    'condition_out_of_service' => 'メンテナンス中',
+    'status_enquiry' => '問い合わせ',
+    'status_tentative' => '仮予約',
+    'status_confirmed' => '確定済み',
+    'status_checked_in' => 'チェックイン済み',
+    'status_checked_out' => 'チェックアウト済み',
+    'status_cancelled' => 'キャンセル済み',
+    'status_no_show' => 'ノーショー',
+    'terms_portfolio' => '全物件共通の条件',
+    'terms_unit' => 'この物件の条件',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Organisasi ini memiliki catatan keuangan mode live (:records). Hukum mungkin mewajibkan catatan tersebut disimpan selama bertahun-tahun, sehingga penghapusannya ditahan sampai ada keputusan hukum tentang lamanya — organisasi tidak dapat dihapus sebelum itu.',
+    'uncounted_cascades' => 'Basis data menautkan catatan dengan cara yang tidak dapat dihitung secara tepat oleh proses penghapusan (:links), sehingga konfirmasi tidak dapat menyebutkan apa saja yang ikut terhapus. Tidak ada yang dapat dihapus sampai masalah ini diperbaiki.',
+    'stripe_billing_live' => 'Penagihan Stripe sudah live untuk organisasi ini. Batalkan langganan di Stripe terlebih dahulu, atau Stripe akan terus menagih pelanggan yang sudah tidak ada. Jika langganan sudah dibatalkan di sana, laporan Stripe tentang pembatalan itu belum diterapkan di sini — selesaikan secara manual.',
+    'checkout_open_subscription' => 'Halaman pembayaran Stripe untuk langganannya dibuka pada :opened dan masih dapat dibayar hingga :closes. Coba lagi setelah halaman itu dibayar atau kedaluwarsa.',
+    'checkout_open_card' => 'Halaman pembayaran Stripe untuk pembayaran kartu tamu dibuka pada :opened dan masih dapat dibayar hingga :closes. Coba lagi setelah halaman itu dibayar atau kedaluwarsa.',
+    'checkout_unreported_subscription' => 'Halaman pembayaran Stripe live untuk langganannya dibuka pada :opened dan ditutup pada :closed, tetapi belum ada laporan yang diterapkan di sini tentang apakah halaman itu dibayar. Periksa halaman tersebut di dasbor Stripe; jika sudah dibayar, batalkan terlebih dahulu apa yang dimulainya di sana. Stripe mencoba ulang laporan yang gagal terkirim hingga 3 hari — coba lagi setelah laporan itu diterapkan. Jika Stripe sudah mengirim laporannya tetapi laporan itu tidak dapat diterapkan, selesaikan secara manual.',
+    'checkout_unreported_card' => 'Halaman pembayaran Stripe live untuk pembayaran kartu tamu dibuka pada :opened dan ditutup pada :closed, tetapi belum ada laporan yang diterapkan di sini tentang apakah halaman itu dibayar. Periksa halaman tersebut di dasbor Stripe; jika sudah dibayar, batalkan terlebih dahulu apa yang dimulainya di sana. Stripe mencoba ulang laporan yang gagal terkirim hingga 3 hari — coba lagi setelah laporan itu diterapkan. Jika Stripe sudah mengirim laporannya tetapi laporan itu tidak dapat diterapkan, selesaikan secara manual.',
+    'refund_processing' => 'Pengembalian dana kartu masih diproses di Stripe. Tunggu hingga Stripe mengonfirmasinya, lalu coba lagi.',
+    'card_payment_open' => 'Masih ada pembayaran kartu atau praotorisasi kartu yang terbuka. Tunggu hingga selesai, atau lepaskan terlebih dahulu.',
+    'dispute_open' => 'Ada pembayaran kartu yang sedang disengketakan di Stripe (sejak :since). Tanggapi sengketa itu di Stripe, lalu coba lagi setelah Stripe melaporkan sengketa ditutup. Jika dasbor Stripe sudah menunjukkan sengketa ditutup, laporannya tidak pernah sampai — selesaikan secara manual.',
+    'payouts_in_transit' => '[0,*]:count pencairan ke pemilik sedang ditransfer di Stripe (sejak :since).|{1}Satu pencairan ke pemilik sedang ditransfer di Stripe (sejak :since).',
+    'payout_transit_stale' => 'Ini lebih lama dari seharusnya — selesaikan dengan Stripe secara manual terlebih dahulu.',
+    'payout_transit_wait' => 'Tunggu hingga Stripe mengonfirmasi, lalu coba lagi.',
+    'payouts_owed' => '[0,*]:count pencairan masih terutang kepada pemilik (menunggu atau ditahan). Cairkan terlebih dahulu — penghapusan akan membuat pemilik tidak dibayar, tanpa catatan apa pun.|{1}Satu pencairan masih terutang kepada pemilik (menunggu atau ditahan). Cairkan terlebih dahulu — penghapusan akan membuat pemilik tidak dibayar, tanpa catatan apa pun.',
+    'payout_run_running' => 'Proses pencairan sedang berjalan sejak :since.',
+    'looks_stuck' => 'Proses ini tampaknya macet — selesaikan secara manual sebelum menghapus.',
+    'payout_run_wait' => 'Coba lagi setelah proses selesai.',
+    'webhook_unprocessed' => 'Notifikasi :source untuk organisasi ini, yang diterima pada :received, belum diproses.',
+    'webhook_wait' => 'Coba lagi dalam beberapa menit.',
+    'cross_tenant_references' => 'Organisasi lain memiliki catatan yang merujuk ke organisasi ini (:links). Penghapusan juga akan menghapus catatan tersebut.',
+    'schema_unreadable' => 'Skema basis data tidak dapat dibaca sepenuhnya (tidak ditemukan: :tables).',
+    'already_deleted' => 'Organisasi ini sudah tidak ada — organisasi ini sudah dihapus.',
+    'protected' => 'Organisasi ini dilindungi dan tidak akan pernah dapat dihapus.',
+    'not_suspended' => 'Tangguhkan terlebih dahulu — hanya organisasi yang ditangguhkan atau diarsipkan yang dapat dihapus.',
+    'record_survived' => 'Ada catatan organisasi ini yang masih tersisa setelah penghapusan (di :tables), sehingga seluruh penghapusan dibatalkan.',
+    'organization_survived' => 'Organisasi atau salah satu penggunanya masih tersisa setelah penghapusan, sehingga seluruh penghapusan dibatalkan.',
+    'live_card_payments' => '{1}:count pembayaran kartu|[0,*]:count pembayaran kartu',
+    'live_refunds' => '{1}:count pengembalian dana|[0,*]:count pengembalian dana',
+    'live_payouts' => '{1}:count pencairan|[0,*]:count pencairan',
+    'live_stripe_billing' => 'penagihan Stripe live, beserta fakturnya',
+    'unknown_time' => 'waktu yang tidak diketahui',
+    'time_utc' => ':time UTC',
+];

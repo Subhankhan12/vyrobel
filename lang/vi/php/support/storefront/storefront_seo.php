@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Khách sạn',
+    'type_aparthotel' => 'Khách sạn căn hộ',
+    'type_serviced_apartment' => 'Căn hộ dịch vụ',
+    'type_apartment_building' => 'Tòa nhà căn hộ',
+    'type_apartment' => 'Căn hộ',
+    'type_villa' => 'Biệt thự',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Nhà khách',
+    'type_resort' => 'Khu nghỉ dưỡng',
+    'type_mixed' => 'Khách sạn & căn hộ',
+    'type_portfolio' => 'Lựa chọn lưu trú',
+    'title_town' => ':name, :town — Đặt trực tiếp',
+    'title' => ':name — Đặt trực tiếp',
+    'title_room' => ':room tại :property — Đặt trực tiếp',
+    'org_description_towns' => '{1}Xem :count chỗ nghỉ tại :towns. Kiểm tra phòng trống và đặt trực tiếp với :org.|[0,*]Xem :count chỗ nghỉ tại :towns. Kiểm tra phòng trống và đặt trực tiếp với :org.',
+    'org_description' => '{1}Xem :count chỗ nghỉ. Kiểm tra phòng trống và đặt trực tiếp với :org.|[0,*]Xem :count chỗ nghỉ. Kiểm tra phòng trống và đặt trực tiếp với :org.',
+    'org_description_empty' => 'Kiểm tra phòng trống và đặt trực tiếp với :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Đặt trực tiếp tại :name. :type tại :place. :count loại phòng. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.|[0,*]Đặt trực tiếp tại :name. :type tại :place. :count loại phòng. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.',
+    'description_place' => 'Đặt trực tiếp tại :name. :type tại :place. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.',
+    'description_rooms' => '{1}Đặt trực tiếp tại :name. :type. :count loại phòng. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.|[0,*]Đặt trực tiếp tại :name. :type. :count loại phòng. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.',
+    'description' => 'Đặt trực tiếp tại :name. :type. Kiểm tra tình trạng phòng trống theo thời gian thực và đặt phòng mà không cần qua trang đặt phòng trung gian.',
+    'detail_sleeps' => 'tối đa :guests khách',
+    'detail_bedrooms' => '{1}:count phòng ngủ|[0,*]:count phòng ngủ',
+    'room_description_town_details' => ':room tại :property, :town — :details. Kiểm tra phòng trống theo thời gian thực và đặt trực tiếp.',
+    'room_description_town' => ':room tại :property, :town. Kiểm tra phòng trống theo thời gian thực và đặt trực tiếp.',
+    'room_description_details' => ':room tại :property — :details. Kiểm tra phòng trống theo thời gian thực và đặt trực tiếp.',
+    'room_description' => ':room tại :property. Kiểm tra phòng trống theo thời gian thực và đặt trực tiếp.',
+    'list_and' => ':items và :last',
+];

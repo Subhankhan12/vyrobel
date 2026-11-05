@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Thông báo chung',
+    'subtitle' => 'Một thông báo hiển thị trong khu vực nhân viên và cổng thông tin chủ sở hữu của mọi tổ chức — hoặc của các tổ chức được chọn. Văn bản thuần; không gửi email.',
+    'empty_state' => 'Chưa từng đăng thông báo chung nào.',
+    'col_announcement' => 'Thông báo chung',
+    'col_to' => 'Gửi đến',
+    'col_from_until' => 'Từ → đến',
+    'col_state' => 'Trạng thái',
+    'audience_all' => 'Mọi tổ chức',
+    'audience_chosen_count' => 'Đã chọn: :number',
+    'no_end' => 'không thời hạn',
+    'state_withdrawn' => 'Đã thu hồi',
+    'state_showing' => 'Đang hiển thị',
+    'state_scheduled' => 'Đã lên lịch',
+    'state_ended' => 'Đã kết thúc',
+    'reason_aria' => 'Lý do',
+    'withdraw_placeholder' => 'Vì sao thu hồi?',
+    'withdraw_button' => 'Thu hồi',
+    'publish_heading' => 'Đăng thông báo chung',
+    'title_label' => 'Tiêu đề',
+    'message_label' => 'Nội dung (văn bản thuần)',
+    'kind_label' => 'Loại',
+    'show_from_label' => 'Hiển thị từ (UTC)',
+    'until_label' => 'Đến (UTC, không bắt buộc)',
+    'to_label' => 'Gửi đến',
+    'option_every_organisation' => 'Mọi tổ chức',
+    'option_chosen_organisations' => 'Tổ chức được chọn',
+    'chosen_organisations_label' => 'Tổ chức được chọn (khi chọn “Tổ chức được chọn”)',
+    'no_organisation_chosen' => 'Chưa chọn tổ chức nào',
+    'reason_label' => 'Lý do',
+    'publish_reason_placeholder' => 'Vì sao gửi thông báo này?',
+    'publish_button' => 'Đăng',
+];

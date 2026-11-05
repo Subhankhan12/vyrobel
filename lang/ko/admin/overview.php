@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '개요',
+    'subtitle_all' => 'Vyrobel 자체 내부 워크스페이스를 포함한 모든 워크스페이스입니다.',
+    'subtitle_customers' => '고객사만 — Vyrobel 자체 내부 워크스페이스는 제외됩니다.',
+    'showing_all' => '<strong>모든</strong> 워크스페이스 표시 중 — 그중 :internal개는 내부 워크스페이스입니다.',
+    'internal_excluded' => '{1}내부 워크스페이스 :count개는 아래 모든 수치에서 제외됩니다.|[0,*]내부 워크스페이스 :count개는 아래 모든 수치에서 제외됩니다.',
+    'customers_only' => '고객사만',
+    'include_internal' => '내부 포함',
+    'no_customers_heading' => '아직 고객사가 없습니다',
+    'no_customers_body' => '플랫폼의 모든 워크스페이스가 Vyrobel 자체 워크스페이스입니다(내부 :internal개). 첫 실제 가입이 여기에 표시됩니다.',
+    'kpi_organisations' => '워크스페이스',
+    'kpi_customers' => '고객사',
+    'kpi_account_status' => '활성 :active개 · 이용 정지 :suspended개',
+    'kpi_subscriptions' => '구독',
+    'kpi_subscriptions_sub' => '활성 · 무료 체험 중 :trial건',
+    'kpi_revenue' => '매출',
+    'no_live_billing' => '아직 라이브 모드 청구 없음',
+    'no_live_billing_sub' => 'Stripe를 통해 청구되는 구독이 없습니다. 무료 체험의 정가는 매출이 아닙니다.',
+    'billed_live' => '{1}라이브 모드 청구 :count건|[0,*]라이브 모드 청구 :count건',
+    'billed_live_sub' => '가격표가 아니라 Stripe가 실제 청구한 금액으로 계산합니다 — <a class="ad-cell-link" href=":url">매출</a> 참조.',
+    'kpi_properties' => '숙소',
+    'kpi_reservations' => '{1}예약 :count건|[0,*]예약 :count건',
+    'new_organisations_heading' => '새 워크스페이스 · 최근 6개월',
+    'new_customers_heading' => '새 고객사 · 최근 6개월',
+    'no_signups' => '최근 6개월 동안 가입이 없습니다.',
+    'account_status_heading' => '계정 상태',
+    'status_active' => '활성',
+    'status_suspended' => '이용 정지됨',
+    'status_cancelled' => '해지됨',
+    'status_trialing' => '무료 체험 중(계정)',
+    'free_trial_hint' => '무료 체험은 계정 상태가 아니라 구독 상태입니다 — 현재 :trial건이 무료 체험 중입니다.',
+    'plans_in_use' => '사용 중인 요금제 <span class="ad-stat-sub" style="font-weight: 400;">· 활성 또는 무료 체험</span>',
+    'no_plans' => '아직 사용 중인 요금제가 없습니다.',
+];

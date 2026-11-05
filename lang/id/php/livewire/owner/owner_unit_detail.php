@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Tamu',
+    'nights' => '{1}:count malam|[0,*]:count malam',
+    'block_reason_none' => 'Diblokir',
+    'block_reason_maintenance' => 'Pemeliharaan',
+    'block_reason_owner' => 'Pemilik',
+    'block_reason_manual' => 'Manual',
+    'block_reason_overbooking_protection' => 'Perlindungan overbooking',
+    'cleaning_departure' => 'Pembersihan keberangkatan',
+    'cleaning_stayover' => 'Pembersihan harian',
+    'cleaning_deep' => 'Pembersihan menyeluruh',
+    'cleaning_arrival_prep' => 'Persiapan kedatangan',
+    'cleaning_status_pending' => 'Terjadwal',
+    'cleaning_status_in_progress' => 'Sedang dikerjakan',
+    'cleaning_status_clean' => 'Dibersihkan',
+    'cleaning_status_inspected' => 'Diperiksa',
+    'kind_room' => 'Kamar',
+    'kind_apartment' => 'Apartemen',
+    'kind_villa' => 'Vila',
+    'kind_dorm_bed' => 'Tempat tidur asrama',
+    'condition_out_of_order' => 'Rusak',
+    'condition_out_of_service' => 'Dalam perbaikan',
+    'status_enquiry' => 'Permintaan',
+    'status_tentative' => 'Tentatif',
+    'status_confirmed' => 'Dikonfirmasi',
+    'status_checked_in' => 'Sudah check-in',
+    'status_checked_out' => 'Sudah check-out',
+    'status_cancelled' => 'Dibatalkan',
+    'status_no_show' => 'No-show',
+    'terms_portfolio' => 'Ketentuan seluruh portofolio',
+    'terms_unit' => 'Ketentuan untuk unit ini',
+];

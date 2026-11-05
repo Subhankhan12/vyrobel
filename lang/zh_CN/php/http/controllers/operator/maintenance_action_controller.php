@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => '已为房间 :unit 新建工单“:title”。',
+    'not_assignable_staff' => '该用户不是本组织中可分配的员工。',
+    'cannot_reassign_closed' => '无法重新分配该工单——它已关闭。',
+    'assignment_updated' => '工单负责人已更新。',
+    'work_order_closed' => '该工单已关闭——无法更改其详情。',
+    'work_order_updated' => '工单已更新。',
+    'col_title' => '标题',
+    'col_unit' => '房间',
+    'col_category' => '类别',
+    'col_priority' => '优先级',
+    'col_status' => '状态',
+    'col_assignee' => '负责人',
+    'col_reported' => '报修时间',
+    'col_cost' => '成本',
+    'bulk_assigned_skipped' => '{1}已分配 :count 个工单 · 已跳过 :skipped 个（已关闭）|[0,*]已分配 :count 个工单 · 已跳过 :skipped 个（已关闭）',
+    'bulk_assigned' => '{1}已分配 :count 个工单。|[0,*]已分配 :count 个工单。',
+    'bulk_resolved_skipped' => '{1}已解决 :count 个工单 · 已跳过 :skipped 个（已关闭）|[0,*]已解决 :count 个工单 · 已跳过 :skipped 个（已关闭）',
+    'bulk_resolved' => '{1}已解决 :count 个工单。|[0,*]已解决 :count 个工单。',
+    'cannot_start' => '无法开始处理该工单——它已不再是未完成状态。',
+    'work_started' => '已开始处理此工单。',
+    'cannot_resolve_closed' => '无法解决该工单——它已关闭。',
+    'ticket_resolved' => '工单已解决。',
+    'cannot_cancel_closed' => '无法取消该工单——它已关闭。',
+    'ticket_cancelled' => '工单已取消。',
+    'parts_closed' => '该工单已关闭——无法更新配件。',
+    'awaiting_parts' => '已标记为等待配件。',
+    'parts_arrived' => '已标记配件到货。',
+    'update_posted_waiting_part' => '进展已发布——已标记为等待配件。',
+    'update_posted' => '进展已发布。',
+    'photo_added' => '照片已添加。',
+    'photo_removed' => '照片已删除。',
+    'workspace_paused' => '您的组织已暂停（只读）——恢复前无法更改维修信息。',
+];

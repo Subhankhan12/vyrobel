@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Bạn',
+    'total_part' => ':name :amount',
+    'total_includes' => 'bao gồm :items',
+    'nightly_excludes' => 'chưa gồm :tax',
+    'sleeps' => 'Sức chứa :count',
+    'studio' => 'Studio',
+    'bedrooms' => '{1}:count phòng ngủ|[0,*]:count phòng ngủ',
+    'checkout_title' => 'Thanh toán — :property',
+    'room_just_taken' => 'Phòng đó vừa được người khác đặt — vui lòng chọn phòng hoặc ngày khác.',
+    'payment_received' => 'Đã nhận thanh toán',
+    'payment_received_note' => 'Đã thanh toán đủ.',
+    'payment_processing' => 'Đang xử lý thanh toán',
+    'payment_processing_note' => 'Chúng tôi đang xác nhận khoản thanh toán thẻ của bạn. Vui lòng tải lại trang này sau giây lát để xem kết quả.',
+    'pay_on_arrival' => 'Thanh toán khi đến nơi',
+    'pay_on_arrival_note' => 'Thanh toán tại chỗ nghỉ khi bạn nhận phòng.',
+    'confirmed_title' => 'Đã xác nhận đặt phòng — :property',
+    'kind_room' => 'Phòng',
+    'kind_apartment' => 'Căn hộ',
+    'kind_villa' => 'Biệt thự',
+    'kind_dorm' => 'Phòng tập thể',
+    'type_hotel' => 'Khách sạn',
+    'type_aparthotel' => 'Khách sạn căn hộ',
+    'type_serviced_apartment' => 'Căn hộ dịch vụ',
+    'type_apartment_building' => 'Tòa nhà căn hộ',
+    'type_apartment' => 'Căn hộ',
+    'type_villa' => 'Biệt thự',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Nhà khách',
+    'type_resort' => 'Khu nghỉ dưỡng',
+    'type_mixed' => 'Hỗn hợp',
+    'type_portfolio' => 'Danh mục',
+];

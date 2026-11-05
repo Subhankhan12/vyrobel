@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => '金额',
+    'csv_amounts_note' => '以主币单位计，使用小数点，不含千位分隔符',
+    'col_date' => '日期',
+    'col_work_order' => '工单',
+    'col_unit' => '房间',
+    'col_category' => '类别',
+    'col_labor' => '人工',
+    'col_parts' => '配件',
+    'col_total' => '总计',
+    'col_currency' => '货币',
+    'total_row' => '总计',
+    'sheet_summary' => '汇总',
+    'col_measure' => '指标',
+    'col_value' => '数值',
+    'total_spend' => '总支出',
+    'measure_labour' => '人工',
+    'measure_parts' => '配件',
+    'orders_closed' => '已完成工单',
+    'owner_billed' => '业主承担',
+    'operator_borne' => '运营方承担',
+    'parts_on_order' => '已订购配件',
+    'average_per_order' => '平均每单',
+    'by_category' => '按类别',
+    'col_orders' => '工单数',
+    'by_month' => '按月',
+    'top_units' => '房间排行',
+    'sheet_line_items' => '明细',
+    'col_labour' => '人工',
+    'no_email' => '您的账号没有邮箱地址。',
+    'report_emailed' => '成本报表已发送至 :email。',
+];

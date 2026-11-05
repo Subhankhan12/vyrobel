@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Nhóm & quyền truy cập',
+    'subtitle' => 'Cấp cho đồng sở hữu hoặc kế toán của bạn tài khoản đăng nhập riêng — giới hạn đúng theo những gì họ cần.',
+    'people_with_access' => 'Người có quyền truy cập',
+    'account_owner' => 'Chủ tài khoản',
+    'thats_you' => 'là bạn',
+    'owner_access' => 'Toàn quyền truy cập mọi thứ, kể cả trang này.',
+    'active_now' => 'Đang hoạt động',
+    'role_for' => 'Vai trò của :name',
+    'your_password' => 'Mật khẩu của bạn',
+    'confirm_password' => 'Xác nhận bằng mật khẩu',
+    'remove_confirm' => 'Gỡ :name khỏi nhóm không? Người này sẽ không thể đăng nhập nữa.',
+    'no_members' => 'Hiện chỉ có bạn — mời đồng sở hữu hoặc kế toán ở bên dưới.',
+    'invite_heading' => 'Mời người khác',
+    'invite_sub' => 'Họ có tài khoản đăng nhập riêng — bạn có thể thu hồi quyền truy cập bất cứ lúc nào.',
+    'invite_email_label' => 'Địa chỉ email cần mời',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Gửi lời mời',
+    'pending_invites' => 'Lời mời đang chờ',
+    'resend' => 'Gửi lại',
+    'revoke' => 'Thu hồi',
+    'matrix_heading' => 'Quyền xem của từng vai trò',
+    'matrix_note' => 'Chỉ bạn, chủ tài khoản, mới có thể quản lý nhóm và tài khoản nhận chi trả.',
+    'recent_activity' => 'Hoạt động gần đây',
+    'no_activity' => 'Chưa có hoạt động — lời mời và lượt đăng nhập sẽ hiển thị tại đây.',
+    'download_log' => 'Nhật ký tải xuống bản xuất',
+    'download_log_sub' => 'Mọi tệp bảng đối soát, đặt phòng, chi trả hoặc thuế mà nhóm của bạn tải xuống đều được đóng dấu tên người tải — và được ghi lại tại đây.',
+    'no_downloads' => 'Chưa có bản xuất nào được tải xuống — chúng sẽ hiển thị tại đây, kèm dấu tên người tải.',
+    'security_heading' => 'Mỗi người một chìa khóa riêng',
+    'security_body' => 'Không dùng chung mật khẩu — mỗi người đăng nhập bằng tài khoản riêng, và quyền truy cập được giới hạn theo vai trò. Các bản xuất tài chính được đóng dấu chìm tên người tải và ghi vào nhật ký ở trên. Với tài khoản của chính bạn, vui lòng bật xác minh hai bước.',
+    'security_settings' => 'Cài đặt bảo mật',
+];

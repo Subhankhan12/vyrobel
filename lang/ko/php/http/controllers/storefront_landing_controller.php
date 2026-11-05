@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => '숙박 상품',
+    'properties_count' => '숙소 :count곳',
+    'stays_count' => '{1}숙박 상품 :count개|[0,*]숙박 상품 :count개',
+    'stays_sleeps' => ':stays · 최대 :max명',
+    'stays_sleeps_range' => ':stays · 최대 :min–:max명',
+    'perk_free_cancel_days' => '{1}도착 :count일 전까지 취소하시면 전액 환불됩니다.|[0,*]도착 :count일 전까지 취소하시면 전액 환불됩니다.',
+    'perk_free_cancel_window' => '취소 가능 기간 내에 취소하시면 전액 환불됩니다.',
+    'perk_no_fees' => '예약 수수료 없음',
+    'perk_no_fees_sub' => '표시된 가격 그대로 결제하시면 됩니다.',
+    'perk_best_rate' => '직접 예약 최저가',
+    'perk_best_rate_sub' => '공식 사이트에서 직접 예약하시면 중개업체 없이 최저 요금으로 예약하실 수 있습니다.',
+    'perk_free_cancel' => '무료 취소',
+    'perk_host_support' => '숙소와 직접 소통',
+    'perk_host_support_sub' => '예약에 관해 실제 담당자에게 메시지를 보내실 수 있습니다.',
+    'kind_room' => '일반 객실',
+    'kind_apartment' => '아파트',
+    'kind_villa' => '빌라',
+    'kind_dorm' => '도미토리',
+    'type_hotel' => '호텔',
+    'type_aparthotel' => '아파트호텔',
+    'type_serviced_apartment' => '서비스드 레지던스',
+    'type_apartment_building' => '아파트 건물',
+    'type_apartment' => '아파트',
+    'type_villa' => '빌라',
+    'type_hostel' => '호스텔',
+    'type_guest_house' => '게스트하우스',
+    'type_resort' => '리조트',
+    'type_mixed' => '복합',
+    'type_portfolio' => '포트폴리오',
+];

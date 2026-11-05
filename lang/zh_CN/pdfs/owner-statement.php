@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => '使用 Vyrobel 管理',
+    'eyebrow' => '业主结算单',
+    'unit_count' => '{1}:count 个房源|[0,*]:count 个房源',
+    'issued' => '开具日期：:date',
+    'prepared_for' => '致',
+    'net_payable_to_owner' => '应付业主净额',
+    'iban' => 'IBAN :iban',
+    'occupancy' => '入住率',
+    'nights_sold' => '已售间夜',
+    'avg_nightly_rate' => '平均每晚房价',
+    'breakdown' => '明细',
+    'item' => '项目',
+    'detail' => '详情',
+    'amount' => '金额',
+    'provisional' => '（暂定）',
+    'performance_by_unit' => '各房源业绩',
+    'unit' => '房源',
+    'nights' => '间夜',
+    'revenue' => '收入',
+    'total_gross_room_revenue' => '客房总收入合计',
+    'callout_heading' => '打款：',
+    'settles_to_iban' => '净额 :amount 将通过银行转账结算至 IBAN :iban。',
+    'settles' => '净额 :amount 将通过银行转账结算。',
+    'fees_with_commission' => '管理佣金按客房总收入的 :pct% 收取；支付手续费和平台服务费按实际成本转嫁。所有金额均以 :currency 计，并包含代您收取的适用税款。',
+    'fees' => '支付手续费和平台服务费按实际成本转嫁。所有金额均以 :currency 计，并包含代您收取的适用税款。',
+    'fx_note' => '按汇率 :rate 由 :source 换算（来源：:src）。',
+    'provisional_note' => '部分项目为暂定，待渠道对账确认。',
+    'statement_ref' => '结算单 :ref',
+    'sequence_no' => '编号 :number',
+    'generated' => '生成于 <span style="white-space:nowrap;">:date</span>',
+    'questions' => '如有疑问：:email',
+];

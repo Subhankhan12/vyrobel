@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — id translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ikhtisar',
+    'subtitle_all' => 'Semua organisasi, termasuk organisasi internal milik Vyrobel.',
+    'subtitle_customers' => 'Hanya pelanggan — organisasi internal milik Vyrobel tidak disertakan.',
+    'showing_all' => 'Menampilkan <strong>semua</strong> organisasi — :internal di antaranya internal.',
+    'internal_excluded' => '{1}:count organisasi internal tidak disertakan dalam semua angka di bawah.|[0,*]:count organisasi internal tidak disertakan dalam semua angka di bawah.',
+    'customers_only' => 'Hanya pelanggan',
+    'include_internal' => 'Sertakan internal',
+    'no_customers_heading' => 'Belum ada pelanggan',
+    'no_customers_body' => 'Setiap organisasi di platform adalah milik Vyrobel sendiri (:internal internal). Pendaftaran nyata pertama akan muncul di sini.',
+    'kpi_organisations' => 'Organisasi',
+    'kpi_customers' => 'Pelanggan',
+    'kpi_account_status' => ':active aktif · :suspended ditangguhkan',
+    'kpi_subscriptions' => 'Langganan',
+    'kpi_subscriptions_sub' => 'aktif · :trial dalam masa uji coba gratis',
+    'kpi_revenue' => 'Pendapatan',
+    'no_live_billing' => 'Belum ada penagihan live',
+    'no_live_billing_sub' => 'Belum ada langganan yang ditagih melalui Stripe. Harga daftar masa uji coba bukan pendapatan.',
+    'billed_live' => '{1}:count ditagih live|[0,*]:count ditagih live',
+    'billed_live_sub' => 'Dihitung dari yang ditagih Stripe, tidak pernah dari daftar harga — lihat <a class="ad-cell-link" href=":url">Pendapatan</a>.',
+    'kpi_properties' => 'Properti',
+    'kpi_reservations' => '{1}:count reservasi|[0,*]:count reservasi',
+    'new_organisations_heading' => 'Organisasi baru · 6 bulan terakhir',
+    'new_customers_heading' => 'Pelanggan baru · 6 bulan terakhir',
+    'no_signups' => 'Tidak ada pendaftaran dalam 6 bulan terakhir.',
+    'account_status_heading' => 'Status akun',
+    'status_active' => 'Aktif',
+    'status_suspended' => 'Ditangguhkan',
+    'status_cancelled' => 'Dibatalkan',
+    'status_trialing' => 'Uji coba (akun)',
+    'free_trial_hint' => 'Masa uji coba gratis adalah status langganan, bukan status akun — saat ini :trial dalam masa uji coba gratis.',
+    'plans_in_use' => 'Paket yang digunakan <span class="ad-stat-sub" style="font-weight: 400;">· aktif atau uji coba</span>',
+    'no_plans' => 'Belum ada paket yang digunakan.',
+];

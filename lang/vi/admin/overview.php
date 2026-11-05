@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Tổng quan',
+    'subtitle_all' => 'Mọi tổ chức, bao gồm cả các tổ chức nội bộ của Vyrobel.',
+    'subtitle_customers' => 'Chỉ khách hàng — không tính các tổ chức nội bộ của Vyrobel.',
+    'showing_all' => 'Đang hiển thị <strong>tất cả</strong> tổ chức — trong đó :internal là nội bộ.',
+    'internal_excluded' => '{1}Đã loại :count tổ chức nội bộ khỏi mọi số liệu bên dưới.|[0,*]Đã loại :count tổ chức nội bộ khỏi mọi số liệu bên dưới.',
+    'customers_only' => 'Chỉ khách hàng',
+    'include_internal' => 'Gồm nội bộ',
+    'no_customers_heading' => 'Chưa có khách hàng',
+    'no_customers_body' => 'Mọi tổ chức trên nền tảng đều là tổ chức nội bộ của Vyrobel (nội bộ: :internal). Lượt đăng ký thực đầu tiên sẽ xuất hiện ở đây.',
+    'kpi_organisations' => 'Tổ chức',
+    'kpi_customers' => 'Khách hàng',
+    'kpi_account_status' => 'Hoạt động: :active · Đã đình chỉ: :suspended',
+    'kpi_subscriptions' => 'Gói đăng ký',
+    'kpi_subscriptions_sub' => 'đang hoạt động · đang dùng thử miễn phí: :trial',
+    'kpi_revenue' => 'Doanh thu',
+    'no_live_billing' => 'Chưa tính phí thực',
+    'no_live_billing_sub' => 'Chưa có gói đăng ký nào được tính phí qua Stripe. Giá niêm yết của gói dùng thử không phải là doanh thu.',
+    'billed_live' => '{1}:count tính phí thực|[0,*]:count tính phí thực',
+    'billed_live_sub' => 'Tính từ số tiền Stripe đã thu, không bao giờ từ bảng giá — xem <a class="ad-cell-link" href=":url">Doanh thu</a>.',
+    'kpi_properties' => 'Chỗ nghỉ',
+    'kpi_reservations' => '{1}:count đặt phòng|[0,*]:count đặt phòng',
+    'new_organisations_heading' => 'Tổ chức mới · 6 tháng qua',
+    'new_customers_heading' => 'Khách hàng mới · 6 tháng qua',
+    'no_signups' => 'Không có lượt đăng ký nào trong 6 tháng qua.',
+    'account_status_heading' => 'Trạng thái tài khoản',
+    'status_active' => 'Hoạt động',
+    'status_suspended' => 'Đã đình chỉ',
+    'status_cancelled' => 'Đã hủy',
+    'status_trialing' => 'Đang dùng thử (tài khoản)',
+    'free_trial_hint' => 'Dùng thử miễn phí là trạng thái của gói đăng ký, không phải trạng thái tài khoản — hiện đang dùng thử miễn phí: :trial.',
+    'plans_in_use' => 'Gói đang dùng <span class="ad-stat-sub" style="font-weight: 400;">· đang hoạt động hoặc dùng thử</span>',
+    'no_plans' => 'Chưa có gói nào được dùng.',
+];

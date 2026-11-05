@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => '개요',
+    'breadcrumb_bookings' => '예약',
+    'guest_fallback' => '고객',
+    'reservation' => '예약',
+    'check_in' => '체크인',
+    'nights_count' => '{1}:count박|[0,*]:count박',
+    'check_out' => '체크아웃',
+    'unit' => '객실',
+    'guests' => '인원',
+    'nights' => '박수',
+    'nightly_rate' => '1박 요금',
+    'your_earnings' => '내 수익',
+    'gross_to_net' => '총수익 → 순수익',
+    'gross_booking_value' => '예약 총액',
+    'net_to_you' => '실수령액',
+    'refunds_we_covered' => '운영사 부담 환불',
+    'refunds_we_covered_note' => '고객에게 환불된 금액으로, 소유주가 아닌 운영사에 청구되었습니다. 위의 내 수익은 변경되지 않습니다.',
+    'not_yet_attributed' => '아직 반영되지 않았습니다.',
+    'not_yet_attributed_note' => '이 예약이 소유주 원장에 반영되면 여기에 수익이 표시됩니다 — 보통 체크아웃 후에 반영됩니다.',
+    'guest_heading' => '고객',
+    'guest_contact_note' => '고객 연락처 정보는 운영사가 관리합니다 — 소유주에게는 예약 내용과 수익이 표시됩니다.',
+    'message_your_team' => '운영사에 메시지',
+    'timeline' => '진행 내역',
+    'for_night_stay' => '이번 :nights박 숙박 기준',
+    'booking_details' => '예약 상세 정보',
+    'confirmation' => '예약 번호',
+    'source' => '예약 경로',
+    'channel' => '채널',
+    'booked_on' => '예약일',
+    'download_confirmation' => '예약 확인서 다운로드',
+    'download_unavailable' => '공동 소유주와 회계 담당자만 이용할 수 있습니다',
+    'view_unit' => ':unit 보기',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => '住宿',
+    'step_guest' => '客人',
+    'step_extras' => '附加服务',
+    'step_confirm' => '确认',
+    'source_direct' => '直订',
+    'source_walk_in' => '上门散客',
+    'source_corporate' => '企业客户',
+    'source_agent' => '旅行社',
+    'the_guest' => '客人',
+    'a_night' => '每晚 :amount',
+    'a_night_range' => '每晚 :low–:high',
+    'dates_label' => '{1}:from → :to · :count 晚|[0,*]:from → :to · :count 晚',
+    'restrict_min_stay' => '{1}:date 到店的住宿至少需 :count 晚|[0,*]:date 到店的住宿至少需 :count 晚',
+    'restrict_max_stay' => '{1}:date 到店的住宿最多 :count 晚|[0,*]:date 到店的住宿最多 :count 晚',
+    'restrict_no_arrivals' => ':date 禁止到店',
+    'restrict_no_departures' => ':date 禁止离店',
+    'restrict_stop_sell' => ':date 不接受新预订',
+    'restrict_other' => ':date：:restriction',
+    'arrival_mail_off' => 'Vyrobel 尚未开始发送邮件——请您亲自向客人提供交通指引和门锁密码。',
+    'arrival_pre_arrival_off' => '您门店的到店前邮件已关闭——请您亲自向客人提供交通指引和门锁密码。',
+    'arrival_too_soon' => '此住宿的开始日期太近，来不及发送到店前邮件（该邮件在入住前 :count 天发送）——请您亲自向客人提供交通指引和门锁密码。',
+    'arrival_by_email' => '交通指引以及门锁密码（如房间设有）将在入住前 :count 天通过邮件发送给客人——前提是客人留有邮箱地址。门锁密码绝不会在此处显示。',
+    'cancel_not_free' => '本次住宿不可免费取消——免费取消已于 :date 截止',
+    'cancel_free_until_check_in' => '入住前可免费取消',
+    'cancel_free_until_date' => ':date 前可免费取消',
+    'cancel_free_until_days' => '{1}最晚于入住前 :count 天免费取消|[0,*]最晚于入住前 :count 天免费取消',
+    'min_stay_none' => '无最少入住晚数',
+    'min_stay_nights' => '{1}:count 晚|[0,*]:count 晚',
+    'guest_no_name' => '客人',
+    'no_stays_yet' => '暂无住宿',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '収支報告書アーカイブ',
+    'history_summary' => '確定済みの履歴 · :years · :statements',
+    'years' => '{1}:count年分|[0,*]:count年分',
+    'statements' => '{1}収支報告書:count件|[0,*]収支報告書:count件',
+    'archived_on_finalize' => '収支報告書は確定と同時にここにアーカイブされます。',
+    'net_earned_lifetime' => '純収益 · 累計',
+    'since' => ':dateから',
+    'per_currency_note' => '送金通貨ごとに合計しています。異なる通貨の残高を合算することはありません。',
+    'lifetime_empty' => '確定済みの収支報告書はまだありません。最初の収支報告書はここに表示されます。',
+    'search_placeholder' => '収支報告書を検索 — 月、年、ステータス、番号',
+    'search_label' => '収支報告書を検索',
+    'no_match' => '「:query」に一致する収支報告書はありません。',
+    'no_match_hint' => '月（「9月」）、年（「2026」）、ステータス（「送金済み」）、収支報告書番号（「番号1」）で検索してください。',
+    'group_summary' => ':statements · 純収益：:nets',
+    'per_payout_currency' => '（送金通貨ごと）',
+    'tax_summary_title' => ':year年の年間税務サマリーをPDFでダウンロード',
+    'tax_summary' => '税務サマリー',
+    'col_statement' => '収支報告書',
+    'col_net_payable' => '支払純額',
+    'col_links' => 'リンク',
+    'unverified_title' => '一部の明細は、まだチャネルとの照合待ちです',
+    'unverified' => '未確認の明細あり',
+    'pdf_title' => 'この収支報告書をPDFでダウンロード',
+    'pdf' => 'PDF',
+    'bookings_title' => 'この収支報告書の対象予約をPDFでダウンロード',
+    'bookings' => '予約',
+    'empty' => '確定済みの収支報告書はまだありません。収支報告書は確定されるとここにアーカイブされます。',
+    'zip_heading' => 'アーカイブ全体をダウンロード',
+    'zip_sub' => '{1}:count件の収支報告書PDFをまとめたZIPファイルです。上の各収支報告書は個別にもダウンロードできます。|[0,*]:count件の収支報告書PDFをまとめたZIPファイルです。上の各収支報告書は個別にもダウンロードできます。',
+    'download_zip' => 'ZIPをダウンロード',
+];

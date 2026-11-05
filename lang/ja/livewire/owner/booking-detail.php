@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => '概要',
+    'breadcrumb_bookings' => '予約',
+    'guest_fallback' => 'ゲスト',
+    'reservation' => '予約',
+    'check_in' => 'チェックイン',
+    'nights_count' => '{1}:count泊|[0,*]:count泊',
+    'check_out' => 'チェックアウト',
+    'unit' => '物件',
+    'guests' => '人数',
+    'nights' => '泊数',
+    'nightly_rate' => '1泊料金',
+    'your_earnings' => '収益',
+    'gross_to_net' => '総額 → 純額',
+    'gross_booking_value' => '予約総額',
+    'net_to_you' => '手取り純収益',
+    'refunds_we_covered' => '管理会社負担の返金',
+    'refunds_we_covered_note' => 'ゲストに返金し、オーナーではなく管理会社が負担しました。上記の収益に変更はありません。',
+    'not_yet_attributed' => 'まだ配分されていません。',
+    'not_yet_attributed_note' => 'この予約が台帳に配分されると、ここに収益が表示されます。通常はチェックアウト後です。',
+    'guest_heading' => 'ゲスト',
+    'guest_contact_note' => 'ゲストの連絡先は管理会社が管理しています。オーナーには予約内容と収益が表示されます。',
+    'message_your_team' => '管理会社にメッセージ',
+    'timeline' => '履歴',
+    'for_night_stay' => 'この:nights泊の宿泊分',
+    'booking_details' => '予約の詳細',
+    'confirmation' => '予約番号',
+    'source' => '予約経路',
+    'channel' => 'チャネル',
+    'booked_on' => '予約日',
+    'download_confirmation' => '予約確認書をダウンロード',
+    'download_unavailable' => '共同オーナーと経理担当が利用できます',
+    'view_unit' => ':unitを表示',
+];

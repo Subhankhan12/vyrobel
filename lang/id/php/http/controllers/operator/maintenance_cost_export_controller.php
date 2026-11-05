@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Jumlah',
+    'csv_amounts_note' => 'satuan mata uang utama, titik sebagai desimal, tanpa pemisah ribuan',
+    'col_date' => 'Tanggal',
+    'col_work_order' => 'Perintah kerja',
+    'col_unit' => 'Unit',
+    'col_category' => 'Kategori',
+    'col_labor' => 'Tenaga kerja',
+    'col_parts' => 'Suku cadang',
+    'col_total' => 'Total',
+    'col_currency' => 'Mata uang',
+    'total_row' => 'Total',
+    'sheet_summary' => 'Ringkasan',
+    'col_measure' => 'Metrik',
+    'col_value' => 'Nilai',
+    'total_spend' => 'Total pengeluaran',
+    'measure_labour' => 'Tenaga kerja',
+    'measure_parts' => 'Suku cadang',
+    'orders_closed' => 'Perintah selesai',
+    'owner_billed' => 'Ditagihkan ke pemilik',
+    'operator_borne' => 'Ditanggung pengelola',
+    'parts_on_order' => 'Suku cadang dipesan',
+    'average_per_order' => 'Rata-rata per perintah',
+    'by_category' => 'Per kategori',
+    'col_orders' => 'Perintah',
+    'by_month' => 'Per bulan',
+    'top_units' => 'Unit teratas',
+    'sheet_line_items' => 'Rincian item',
+    'col_labour' => 'Tenaga kerja',
+    'no_email' => 'Akun Anda belum memiliki alamat email.',
+    'report_emailed' => 'Laporan biaya berhasil dikirim ke :email.',
+];

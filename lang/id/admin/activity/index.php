@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Operator/Pemilik',
+    'realm_guest' => 'Tamu',
+    'realm_admin' => 'Admin platform',
+    'event_login' => 'Masuk',
+    'event_failed' => 'Gagal',
+    'event_lockout' => 'Terkunci',
+    'subject_user' => 'Pengguna',
+    'subject_guest' => 'Tamu',
+    'subject_platform_admin' => 'Admin platform',
+    'subject_unknown' => 'Tidak diketahui',
+    'actor_user' => 'Pengguna',
+    'actor_agent' => 'Agen',
+    'actor_system' => 'Sistem',
+    'page_title' => 'Keamanan & aktivitas',
+    'page_subtitle' => 'Aktivitas masuk dan peristiwa akun di seluruh platform — disimpan selama :days hari, lalu dihapus.',
+    'kpi_failures' => 'Gagal / terkunci · 24 jam',
+    'kpi_failures_help' => 'Kegagalan berulang dapat menandakan upaya pembobolan.',
+    'privacy' => 'Privasi',
+    'privacy_body' => 'Aktivitas masuk (termasuk IP) hanya dicatat sebagai <strong style="color: var(--ad-ink);">sinyal keamanan</strong> — untuk mendeteksi upaya masuk yang mencurigakan dan untuk dukungan — tidak pernah untuk pelacakan latar belakang. Disimpan selama :days hari, lalu dihapus otomatis; akses dibatasi pada konsol ini.',
+    'recent_sign_ins' => 'Aktivitas masuk terbaru',
+    'col_event' => 'Peristiwa',
+    'col_realm' => 'Area',
+    'col_account' => 'Akun',
+    'col_ip' => 'IP',
+    'col_when' => 'Waktu',
+    'no_sign_ins' => 'Belum ada aktivitas masuk yang tercatat.',
+    'recent_account_events' => 'Peristiwa akun terbaru <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· di semua pelanggan</span>',
+    'col_customer' => 'Pelanggan',
+    'col_actor' => 'Pelaku',
+    'no_account_events' => 'Belum ada peristiwa akun.',
+];

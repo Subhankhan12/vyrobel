@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Doanh thu',
+    'subtitle' => 'Từ số tiền Stripe thực sự đã thu — không bao giờ từ giá niêm yết. Chỉ khách hàng, trừ khi bạn chọn bao gồm cả các tổ chức nội bộ của Vyrobel.',
+    'including_internal' => 'Bao gồm các tổ chức nội bộ của Vyrobel.',
+    'customers_only_note' => 'Chỉ khách hàng.',
+    'customers_only_link' => 'Chỉ khách hàng',
+    'include_internal_link' => 'Gồm nội bộ',
+    'no_live_billing_pill' => 'Chưa tính phí thực',
+    'no_customer_charged' => 'Chưa có khách hàng nào bị tính phí.',
+    'not_live_explainer' => 'Stripe chưa ở chế độ thực, nên chưa có hóa đơn đã thanh toán nào để đếm. Đó không phải là một tháng tệ — chỉ là chưa có tháng nào. Doanh thu ở đây chỉ được tính từ <strong>hóa đơn Stripe đã thanh toán</strong> (chính khoản thu, được ghi nhận khi Stripe báo cho chúng tôi), không bao giờ từ giá niêm yết của gói.',
+    'live_billed_subscriptions' => 'Gói đăng ký tính phí thực',
+    'trialing_unbilled' => 'Gói đăng ký đang dùng thử, chưa tính phí',
+    'failed_payments_30d' => 'Thanh toán thất bại, 30 ngày qua',
+    'when_first_paid' => 'Khi hóa đơn đầu tiên được thanh toán, trang này sẽ hiển thị: MRR và ARR theo từng loại tiền · MRR mới, mở rộng, thu hẹp và rời bỏ · tỷ lệ chuyển từ dùng thử sang trả phí · thanh toán thất bại.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Gói đăng ký được định giá',
+    'no_live_subscription_charged' => 'Chưa thu tiền gói đăng ký nào đang hoạt động và tính phí thực.',
+    'mrr_hint' => 'Mỗi gói đăng ký thực đang hoạt động hoặc quá hạn thanh toán, tính theo hóa đơn đã thanh toán gần nhất, quy đổi về mức hằng tháng theo chu kỳ thanh toán của hóa đơn đó.',
+    'this_month_vs_last' => 'Tháng này so với tháng trước',
+    'movement_new' => 'Mới · :currency',
+    'movement_expansion' => 'Mở rộng · :currency',
+    'movement_contraction' => 'Thu hẹp · :currency',
+    'movement_churned' => 'Rời bỏ · :currency',
+    'nothing_charged' => 'Không có khoản thu nào trong tháng trước hoặc tháng này.',
+    'movements_hint' => 'Theo từng tổ chức, từ số tiền đã thu trong mỗi tháng. Rời bỏ = có thu tháng trước, không thu gì tháng này và gói đăng ký đã bị hủy.',
+    'trial_to_paid' => 'Dùng thử sang trả phí',
+    'trial_to_paid_value' => ':converted trên :ended lượt dùng thử đã kết thúc đã được thu tiền',
+    'past_due_now' => 'Hiện quá hạn thanh toán',
+    'paid_invoices_counted' => 'Hóa đơn đã thanh toán được tính',
+    'never_moves_money' => 'Bảng điều khiển này không bao giờ thu tiền, hoàn tiền hay chuyển tiền. Mọi số liệu đều theo từng loại tiền và không bao giờ cộng gộp giữa các loại tiền.',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Tùy chọn thông báo',
+    'subtitle' => 'Cách Vyrobel liên lạc với bạn',
+    'breadcrumb_label' => 'Đường dẫn điều hướng',
+    'crumb_settings' => 'Cài đặt',
+    'crumb_notifications' => 'Thông báo',
+    'channel_email' => 'Email',
+    'channel_push' => 'Thông báo đẩy',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Chưa có email',
+    'email_verified_title' => 'Email đăng nhập của bạn đã được xác minh',
+    'email_verified' => 'Đã xác minh',
+    'push_not_set_up_title' => 'Thông báo đẩy chưa được thiết lập',
+    'not_set_up_tag' => 'chưa thiết lập',
+    'push_not_available' => 'Chưa hỗ trợ thông báo đẩy trên trình duyệt và thiết bị',
+    'channel_off' => 'Tắt',
+    'sms_not_set_up_title' => 'SMS chưa được thiết lập',
+    'sms_no_provider' => 'Chưa kết nối nhà cung cấp SMS',
+    'notify_me_when' => 'Thông báo cho tôi khi',
+    'always_on' => 'Luôn bật',
+    'email_always_on_sr' => 'Email luôn bật cho :event',
+    'email_me_when_aria' => 'Gửi email cho tôi khi: :event',
+    'push_not_set_up_sr' => 'Chưa thiết lập thông báo đẩy',
+    'sms_not_set_up_sr' => 'Chưa thiết lập SMS',
+    'quiet_hours' => 'Giờ yên tĩnh',
+    'quiet_hours_help' => 'Tạm giữ email thông thường trong khoảng giờ này — cảnh báo bảo mật khẩn cấp vẫn luôn được gửi; thông báo trong ứng dụng không bị ảnh hưởng.',
+    'quiet_from' => 'Từ',
+    'quiet_to' => 'Đến',
+    'digest_heading' => 'Email tóm tắt hằng ngày',
+    'digest_help' => 'Bản tóm tắt trong ngày gửi vào buổi sáng. <span class="vy-np-soon">chưa được gửi</span> — tùy chọn này được lưu để dùng khi tính năng email tóm tắt ra mắt.',
+    'digest_off' => 'Tắt',
+    'digest_morning' => 'Buổi sáng · 08:00',
+];

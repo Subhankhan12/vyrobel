@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Kỳ lưu trú',
+    'step_guest' => 'Khách',
+    'step_extras' => 'Dịch vụ thêm',
+    'step_confirm' => 'Xác nhận',
+    'source_direct' => 'Trực tiếp',
+    'source_walk_in' => 'Khách vãng lai',
+    'source_corporate' => 'Doanh nghiệp',
+    'source_agent' => 'Đại lý du lịch',
+    'the_guest' => 'khách',
+    'a_night' => ':amount / đêm',
+    'a_night_range' => ':low–:high / đêm',
+    'dates_label' => '{1}:from → :to · :count đêm|[0,*]:from → :to · :count đêm',
+    'restrict_min_stay' => '{1}Đến ngày :date, kỳ lưu trú phải tối thiểu :count đêm|[0,*]Đến ngày :date, kỳ lưu trú phải tối thiểu :count đêm',
+    'restrict_max_stay' => '{1}Đến ngày :date, kỳ lưu trú tối đa :count đêm|[0,*]Đến ngày :date, kỳ lưu trú tối đa :count đêm',
+    'restrict_no_arrivals' => 'Không nhận phòng vào :date',
+    'restrict_no_departures' => 'Không trả phòng vào :date',
+    'restrict_stop_sell' => 'Ngày :date ngừng nhận đặt phòng mới',
+    'restrict_other' => 'Hạn chế “:restriction” vào :date',
+    'arrival_mail_off' => 'Vyrobel chưa gửi email — vui lòng tự gửi cho khách chỉ đường và mã cửa.',
+    'arrival_pre_arrival_off' => 'Email trước ngày đến đang tắt cho các chỗ nghỉ của bạn — vui lòng tự gửi cho khách chỉ đường và mã cửa.',
+    'arrival_too_soon' => 'Kỳ lưu trú này bắt đầu quá sớm để gửi email trước ngày đến (email này được gửi :count ngày trước khi nhận phòng) — vui lòng tự gửi cho khách chỉ đường và mã cửa.',
+    'arrival_by_email' => 'Chỉ đường, và mã cửa nếu phòng có, được gửi đến khách qua email :count ngày trước khi nhận phòng — nếu khách có địa chỉ email. Mã cửa không bao giờ hiển thị tại đây.',
+    'cancel_not_free' => 'Không được hủy miễn phí cho kỳ lưu trú này — đã hết hạn: :date',
+    'cancel_free_until_check_in' => 'Miễn phí đến khi nhận phòng',
+    'cancel_free_until_date' => 'Miễn phí đến :date',
+    'cancel_free_until_days' => '{1}Miễn phí đến :count ngày trước khi nhận phòng|[0,*]Miễn phí đến :count ngày trước khi nhận phòng',
+    'min_stay_none' => 'Không yêu cầu tối thiểu',
+    'min_stay_nights' => '{1}:count đêm|[0,*]:count đêm',
+    'guest_no_name' => 'Khách',
+    'no_stays_yet' => 'Chưa có kỳ lưu trú',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Pengumuman',
+    'subtitle' => 'Pemberitahuan di back office dan portal pemilik setiap organisasi — atau organisasi yang dipilih. Teks biasa; tidak ada yang dikirim lewat email.',
+    'empty_state' => 'Belum pernah ada pengumuman yang diterbitkan.',
+    'col_announcement' => 'Pengumuman',
+    'col_to' => 'Untuk',
+    'col_from_until' => 'Mulai → hingga',
+    'col_state' => 'Status',
+    'audience_all' => 'Semua organisasi',
+    'audience_chosen_count' => ':number dipilih',
+    'no_end' => 'tanpa batas',
+    'state_withdrawn' => 'Ditarik',
+    'state_showing' => 'Ditampilkan',
+    'state_scheduled' => 'Terjadwal',
+    'state_ended' => 'Berakhir',
+    'reason_aria' => 'Alasan',
+    'withdraw_placeholder' => 'Mengapa ditarik?',
+    'withdraw_button' => 'Tarik',
+    'publish_heading' => 'Terbitkan pengumuman',
+    'title_label' => 'Judul',
+    'message_label' => 'Pesan (teks biasa)',
+    'kind_label' => 'Jenis',
+    'show_from_label' => 'Tampilkan mulai (UTC)',
+    'until_label' => 'Hingga (UTC, opsional)',
+    'to_label' => 'Untuk',
+    'option_every_organisation' => 'Semua organisasi',
+    'option_chosen_organisations' => 'Organisasi pilihan',
+    'chosen_organisations_label' => 'Organisasi pilihan (jika memilih “Organisasi pilihan”)',
+    'no_organisation_chosen' => 'Belum ada organisasi yang dipilih',
+    'reason_label' => 'Alasan',
+    'publish_reason_placeholder' => 'Mengapa pengumuman ini diterbitkan?',
+    'publish_button' => 'Terbitkan',
+];

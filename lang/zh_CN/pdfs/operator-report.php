@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => '报表',
+    'arrivals_in' => ':period 到店',
+    'arrivals_count' => '{1}:count 个到店预订|[0,*]:count 个到店预订',
+    'pp_delta' => ':delta 个百分点',
+    'occupancy' => '入住率',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => '总营收',
+    'basis_note' => '入住率 · ADR · RevPAR 按住宿间夜口径计算，并在有去年数据时与去年同期对比。下方营收按账单（到店）口径计算。',
+    'revenue' => '营收',
+    'room' => '客房',
+    'ancillary' => '其他营收 <span class="muted">· 附加服务、商品、附加费</span>',
+    'tax_collected' => '已收税款 · 代收代付',
+    'costs_heading' => '成本 <span class="muted" style="font-size:9px">· 仅真实数据</span>',
+    'maintenance' => '维修 <span class="muted">· 已解决的工单</span>',
+    'not_tracked' => '尚未统计',
+    'net' => '净额（营收 − 已跟踪成本）',
+    'revenue_by_channel' => '各渠道营收',
+    'channel' => '渠道',
+    'bookings' => '预订',
+    'share' => '占比',
+    'no_channel_revenue' => '本期暂无渠道营收。',
+    'top_units' => '房间排行',
+    'unit' => '房间',
+    'nights' => '间夜',
+    'room_revenue' => '客房营收',
+    'no_unit_revenue' => '本期暂无房间营收。',
+    'revenue_by_month' => '各月营收',
+    'month' => '月份',
+    'footer' => '基于 :scope · :period 的真实账单和维修数据计算。入住率/ADR/RevPAR 按住宿间夜口径计算；营收按账单（到店）口径计算。数字与“报表”页面一致。Vyrobel。',
+];

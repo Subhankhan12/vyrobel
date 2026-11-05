@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => '送金エンジンが無効です（PAYOUT_ENGINE_ENABLED）。一括送金を実行する前に有効にしてください。',
+    'nothing_to_run' => '実行する対象がありません。このワークスペースには、送金可能な収支報告書または差し止め中の送金があるオーナーがいません:paused_note。',
+    'run_complete' => '一括送金が完了しました（モード：:mode）— 作成:created件 · 送金済み:paid件 · 差し止め:held件:paused_note。',
+    'create_failed' => '送金を作成できませんでした：:reason',
+    'already_has_payout' => 'この収支報告書にはすでに送金があります。何も作成されていません。',
+    'one_payout_created' => '送金を1件作成しました。',
+    'pay_failed' => '送金できませんでした：:reason',
+    'one_payout_paid' => '1件の送金を送金済みにしました。',
+    'payout_failed_reason' => '送金に失敗しました：:reason',
+    'payout_failed_no_reason' => '送金に失敗しました。送金経路から理由は返されませんでした。',
+    'create_all_failed' => '送金を作成できませんでした：:reason',
+    'no_payout_created_paused' => '送金は作成されませんでした:paused_note。オーナーのページで送金を再開してください。',
+    'nothing_ready' => '送金可能なものはありません。支払純額がプラスの確定済み収支報告書がありません:paused_note。',
+    'no_new_payouts' => '新しい送金はありません。送金可能な収支報告書にはすべて送金が作成済みです:paused_note。',
+    'payouts_created' => '{1}送金を:count件作成しました:paused_note。|[0,*]送金を:count件作成しました:paused_note。',
+    'some_not_created' => ':message一部は作成できませんでした：:reason',
+    'nothing_paid_paused' => '送金されたものはありません:paused_note。オーナーのページで送金を再開してください。',
+    'no_pending_payouts' => '処理待ちの送金はありません。',
+    'paid_only' => '{1}:count件の送金を送金済みにしました:paused_note。|[0,*]:count件の送金を送金済みにしました:paused_note。',
+    'failed_only' => '[0,*]:count件が送金経路で失敗しました:paused_note。',
+    'paid_and_failed' => '{1}:count件の送金を送金済みにしました · :failed件が送金経路で失敗:paused_note。|[0,*]:count件の送金を送金済みにしました · :failed件が送金経路で失敗:paused_note。',
+    'some_not_attempted' => ':message一部は実行できませんでした：:reason',
+    'nothing_payable_negative' => '送金額はありません。この収支報告書の純額がマイナスのため、残高は繰越され、オーナーの次回の収支報告書で相殺されます。',
+    'nothing_payable_zero' => '送金額はありません。この収支報告書の純額はゼロのため、支払う金額はありません。',
+    'workspace_paused_until' => 'ワークスペースが一時停止中のため、:dateまで送金は読み取り専用です。',
+    'workspace_paused_for_now' => 'ワークスペースが一時停止中のため、現在、送金は読み取り専用です。',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}一時停止中のオーナー:count名をスキップ|[0,*]一時停止中のオーナー:count名をスキップ',
+];

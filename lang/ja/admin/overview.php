@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '概要',
+    'subtitle_all' => 'Vyrobel社内のものを含む、すべてのワークスペースです。',
+    'subtitle_customers' => '顧客のみ — Vyrobel社内のワークスペースは除外しています。',
+    'showing_all' => '<strong>すべての</strong>ワークスペースを表示しています。うち:internal件は社内です。',
+    'internal_excluded' => '{1}社内のワークスペース:count件を、以下のすべての数値から除外しています。|[0,*]社内のワークスペース:count件を、以下のすべての数値から除外しています。',
+    'customers_only' => '顧客のみ',
+    'include_internal' => '社内を含める',
+    'no_customers_heading' => 'まだ顧客はいません',
+    'no_customers_body' => 'プラットフォーム上のワークスペースはすべてVyrobel社内のものです（社内:internal件）。最初の実際の新規登録はここに表示されます。',
+    'kpi_organisations' => 'ワークスペース',
+    'kpi_customers' => '顧客',
+    'kpi_account_status' => '有効:active件 · 利用停止中:suspended件',
+    'kpi_subscriptions' => 'サブスクリプション',
+    'kpi_subscriptions_sub' => '有効 · 無料トライアル中:trial件',
+    'kpi_revenue' => '売上',
+    'no_live_billing' => '本番モードの請求はまだありません',
+    'no_live_billing_sub' => 'Stripeで請求されているサブスクリプションはありません。無料トライアルの定価は売上ではありません。',
+    'billed_live' => '{1}本番モードで請求中:count件|[0,*]本番モードで請求中:count件',
+    'billed_live_sub' => '定価ではなく、Stripeが実際に請求した金額から算出しています。<a class="ad-cell-link" href=":url">売上</a>をご確認ください。',
+    'kpi_properties' => '施設',
+    'kpi_reservations' => '{1}予約:count件|[0,*]予約:count件',
+    'new_organisations_heading' => '新規ワークスペース · 過去6か月',
+    'new_customers_heading' => '新規顧客 · 過去6か月',
+    'no_signups' => '過去6か月間の新規登録はありません。',
+    'account_status_heading' => 'アカウントのステータス',
+    'status_active' => '有効',
+    'status_suspended' => '利用停止中',
+    'status_cancelled' => '解約済み',
+    'status_trialing' => '無料トライアル中（アカウント）',
+    'free_trial_hint' => '無料トライアルはサブスクリプションの状態であり、アカウントのステータスではありません。現在、無料トライアル中は:trial件です。',
+    'plans_in_use' => '利用中のプラン <span class="ad-stat-sub" style="font-weight: 400;">· 有効または無料トライアル</span>',
+    'no_plans' => '利用中のプランはまだありません。',
+];

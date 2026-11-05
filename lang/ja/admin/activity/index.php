@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'スタッフ／オーナー',
+    'realm_guest' => 'ゲスト',
+    'realm_admin' => 'プラットフォーム管理者',
+    'event_login' => 'ログイン',
+    'event_failed' => '失敗',
+    'event_lockout' => 'ロックアウト',
+    'subject_user' => 'ユーザー',
+    'subject_guest' => 'ゲスト',
+    'subject_platform_admin' => 'プラットフォーム管理者',
+    'subject_unknown' => '不明',
+    'actor_user' => 'ユーザー',
+    'actor_agent' => 'エージェント',
+    'actor_system' => 'システム',
+    'page_title' => 'セキュリティとアクティビティ',
+    'page_subtitle' => 'プラットフォーム全体のログイン履歴とアカウントイベントです。:days日間保存され、その後削除されます。',
+    'kpi_failures' => '失敗／ロックアウト（24時間）',
+    'kpi_failures_help' => '失敗が繰り返される場合、不正アクセスの試みの可能性があります。',
+    'privacy' => 'プライバシー',
+    'privacy_body' => 'ログイン履歴（IPを含む）は<strong style="color: var(--ad-ink);">セキュリティシグナル</strong>としてのみ記録されます。不審なログインの発見とサポートのためであり、常時の追跡には使用しません。:days日間保存された後、自動的に削除されます。アクセスはこのコンソールに限られます。',
+    'recent_sign_ins' => '最近のログイン履歴',
+    'col_event' => 'イベント',
+    'col_realm' => '区分',
+    'col_account' => 'アカウント',
+    'col_ip' => 'IP',
+    'col_when' => '日時',
+    'no_sign_ins' => '記録されたログイン履歴はまだありません。',
+    'recent_account_events' => '最近のアカウントイベント <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· すべての顧客</span>',
+    'col_customer' => '顧客',
+    'col_actor' => '実行者',
+    'no_account_events' => 'アカウントイベントはまだありません。',
+];

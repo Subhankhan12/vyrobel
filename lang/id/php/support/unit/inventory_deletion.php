@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count reservasi|[0,*]:count reservasi',
+    'room_moves' => '{1}:count perpindahan unit|[0,*]:count perpindahan unit',
+    'cleaning_tasks' => '{1}:count tugas pembersihan|[0,*]:count tugas pembersihan',
+    'work_orders' => '{1}:count perintah kerja|[0,*]:count perintah kerja',
+    'status_changes' => '{1}:count perubahan status|[0,*]:count perubahan status',
+    'blocks' => '{1}:count blokir|[0,*]:count blokir',
+    'owner_agreements' => '{1}:count perjanjian pengelolaan|[0,*]:count perjanjian pengelolaan',
+    'owner_statement_lines' => '{1}:count baris rekap pemilik|[0,*]:count baris rekap pemilik',
+    'owner_expenses' => '{1}:count pengeluaran pemilik|[0,*]:count pengeluaran pemilik',
+    'reviews' => '{1}:count ulasan|[0,*]:count ulasan',
+    'owner_requests' => '{1}:count permintaan pemilik|[0,*]:count permintaan pemilik',
+    'notes' => '{1}:count catatan|[0,*]:count catatan',
+    'documents' => '{1}:count dokumen|[0,*]:count dokumen',
+    'files' => '{1}:count berkas|[0,*]:count berkas',
+    'units' => '{1}:count unit|[0,*]:count unit',
+    'rate_proposals' => '{1}:count usulan tarif|[0,*]:count usulan tarif',
+    'overbooking_records' => '{1}:count data overbooking|[0,*]:count data overbooking',
+    'guest_waitlist_entries' => '{1}:count entri daftar tunggu tamu|[0,*]:count entri daftar tunggu tamu',
+    'guest_wishlist_saves' => '{1}:count entri favorit tamu|[0,*]:count entri favorit tamu',
+    'derived_room_types' => '{1}:count tipe kamar turunan darinya|[0,*]:count tipe kamar turunan darinya',
+    'derived_rate_plans' => '{1}:count paket tarif lain yang harganya mengacu padanya|[0,*]:count paket tarif lain yang harganya mengacu padanya',
+    'corporate_default_rates' => '{1}:count tarif default akun korporat|[0,*]:count tarif default akun korporat',
+    'channel_connections' => '{1}:count koneksi saluran|[0,*]:count koneksi saluran',
+    'an_owner' => '1 pemilik',
+    'pending_owner_invitation' => '1 undangan pemilik yang masih menunggu',
+    'list_and' => ':items dan :last',
+    'kind_rooms' => 'kamar',
+    'kind_apartments' => 'apartemen',
+    'kind_villas' => 'vila',
+    'kind_dorm_beds' => 'tempat tidur asrama',
+];

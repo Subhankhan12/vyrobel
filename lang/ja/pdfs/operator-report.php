@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'レポート',
+    'arrivals_in' => ':periodの到着分',
+    'arrivals_count' => '{1}到着:count件|[0,*]到着:count件',
+    'pp_delta' => ':deltaポイント',
+    'occupancy' => '稼働率',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => '総売上',
+    'basis_note' => '稼働率・ADR・RevPARは宿泊日ベースで、前年のデータがある場合は前年同期と比較しています。下の売上はフォリオ（到着日）ベースです。',
+    'revenue' => '売上',
+    'room' => '客室',
+    'ancillary' => '付帯 <span class="muted">· オプション、商品、手数料</span>',
+    'tax_collected' => '徴収した税 · 預り金',
+    'costs_heading' => '費用 <span class="muted" style="font-size:9px">· 実データのみ</span>',
+    'maintenance' => 'メンテナンス <span class="muted">· 完了した作業指示</span>',
+    'not_tracked' => '未集計',
+    'net' => '純額（売上 − 集計済みの費用）',
+    'revenue_by_channel' => 'チャネル別売上',
+    'channel' => 'チャネル',
+    'bookings' => '予約数',
+    'share' => '構成比',
+    'no_channel_revenue' => 'この期間のチャネル別売上はありません。',
+    'top_units' => '売上上位の客室',
+    'unit' => '客室',
+    'nights' => '泊数',
+    'room_revenue' => '客室売上',
+    'no_unit_revenue' => 'この期間の客室売上はありません。',
+    'revenue_by_month' => '月別売上',
+    'month' => '月',
+    'footer' => ':scope · :periodの実際のフォリオとメンテナンスのデータから算出しています。稼働率・ADR・RevPARは宿泊日ベース、売上はフォリオ（到着日）ベースです。金額は「レポート」画面と一致します。Vyrobel。',
+];

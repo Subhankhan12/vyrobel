@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => '전체 객실',
+    'kind_sleeps_up_to' => ':kind · 최대 :capacity명',
+    'reviews_count' => '{1}리뷰 :count개|[0,*]리뷰 :count개',
+    'no_reviews_yet' => '아직 리뷰 없음',
+    'save_to_wishlist' => '위시리스트에 저장',
+    'sleeps' => '최대 인원',
+    'adults' => '성인',
+    'children' => '아동',
+    'bedrooms' => '침실',
+    'standard_occupancy' => '기준 인원',
+    'amenities' => '편의시설',
+    'not_yet_listed' => '아직 등록되지 않음',
+    'amenities_not_published' => '이 객실의 편의시설 정보가 아직 게시되지 않았습니다.',
+    'guest_reviews' => '투숙객 리뷰',
+    'stars_aria' => '5점 만점에 :rating점',
+    'response_label' => '숙소 답변:',
+    'no_reviews_be_first' => '아직 리뷰가 없습니다 — 첫 투숙객이 되어 경험을 공유해 주세요.',
+    'coming_soon' => '곧 제공 예정',
+    'description_soon' => '상세 설명과 위치 지도는 곧 추가됩니다. 위의 사양, 예약 가능 여부, 가격, 리뷰는 실제 정보입니다.',
+    'per_night' => '/박',
+    'per_night_with_note' => '/박 · :note',
+    'total_nights' => '{1}총 :amount · :count박|[0,*]총 :amount · :count박',
+    'left_for_your_dates' => '선택하신 날짜에 :count개 남음',
+    'book_this_room' => '이 객실 예약',
+    'nothing_reserved' => '결제 단계에서 확정하시기 전까지는 예약되지 않습니다.',
+    'your_dates' => '숙박 날짜',
+    'not_available' => '선택하신 날짜에는 예약할 수 없습니다 — 다른 날짜를 선택해 보세요.',
+    'check_in' => '체크인',
+    'check_out' => '체크아웃',
+    'check_dates' => '날짜 확인',
+    'check_availability' => '예약 가능 여부 및 가격 확인',
+    'see_price' => '가격 보기',
+];

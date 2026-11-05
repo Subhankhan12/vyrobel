@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Ghi chú',
+    'kind_progress' => 'Tiến độ',
+    'kind_part' => 'Đã đặt linh kiện',
+    'elapsed_minutes' => ':minutes phút',
+    'elapsed_hours' => ':hours giờ :minutes phút',
+    'elapsed_days' => ':days ngày :hours giờ',
+    'hours_short' => ':hours giờ',
+    'timeline_opened' => 'Đã báo sự cố',
+    'timeline_assigned_to' => 'Đã phân công cho :name',
+    'a_technician' => 'một kỹ thuật viên',
+    'timeline_unassigned' => 'Đã bỏ phân công',
+    'timeline_started' => 'Đã bắt đầu xử lý',
+    'timeline_resolved' => 'Đã xử lý',
+    'timeline_cancelled' => 'Đã hủy',
+    'timeline_parts_updated' => 'Đã cập nhật linh kiện',
+    'timeline_cost_corrected' => 'Đã điều chỉnh chi phí',
+    'timeline_updated' => 'Đã chỉnh sửa thông tin',
+    'note_progress' => 'Cập nhật tiến độ',
+    'note_part' => 'Đã đặt linh kiện',
+    'note_added' => 'Đã thêm ghi chú',
+    'a_team_member' => 'Một thành viên nhóm',
+    'system' => 'Hệ thống',
+    'photo_alt' => 'Ảnh bảo trì',
+    'the_owner' => 'chủ sở hữu',
+    'load_none' => 'Không có phiếu công việc đang mở',
+    'load_open' => ':open đang mở',
+    'load_open_urgent' => ':open đang mở · :urgent khẩn cấp',
+    'impact_arrivals' => '{1}:count lượt khách đến tối nay cần phòng|[0,*]:count lượt khách đến tối nay cần phòng',
+    'impact_bookings' => '{1}:count đặt phòng cần được chuyển|[0,*]:count đặt phòng cần được chuyển',
+    'impact_none' => 'Không có đặt phòng nào bị ảnh hưởng',
+];

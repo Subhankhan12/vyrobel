@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time以降',
+    'by_time' => ':timeまで',
+    'repeat_guest' => '{1}リピーター · 宿泊:count回|[0,*]リピーター · 宿泊:count回',
+    'new_guest' => '新規ゲスト',
+    'guests_count' => '{1}:count名|[0,*]:count名',
+    'nights_count' => '{1}:count泊|[0,*]:count泊',
+    'channel_direct' => 'Vyrobel直接予約',
+    'channel_walk_in' => 'ウォークイン',
+    'channel_ota' => 'OTAチャネル',
+    'event_booking_received' => '予約受付',
+    'event_cancelled' => 'キャンセル済み',
+    'event_payment_received' => '支払いを受領',
+    'when_paid_in_full' => '全額支払済み',
+    'event_part_payment_received' => '一部支払いを受領',
+    'when_balance_due' => '残額未払い',
+    'event_payment' => '支払い',
+    'when_not_yet_received' => '未受領',
+    'event_checked_in' => 'チェックイン済み',
+    'event_check_in' => 'チェックイン',
+    'event_checked_out' => 'チェックアウト済み',
+    'event_payout_released' => '送金を実行',
+    'event_payout' => '送金',
+    'when_next_payout' => '次回の送金時',
+    'payout_not_attributed' => '未配分',
+    'payout_not_attributed_note' => 'この予約はまだ台帳に配分されていません。',
+    'payout_scheduled' => '予定',
+    'payout_scheduled_note' => '次回の収支報告書に計上され、その送金で支払われます。',
+    'payout_pending' => '送金処理待ち',
+    'payout_pending_note' => '確定済みの収支報告書に計上済みです。その送金で支払われます。',
+    'payout_paid' => '送金済み',
+    'payout_paid_note' => '完了した送金で支払われました。',
+];

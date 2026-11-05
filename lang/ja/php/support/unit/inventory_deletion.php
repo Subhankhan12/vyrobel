@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}予約:count件|[0,*]予約:count件',
+    'room_moves' => '{1}部屋移動:count件|[0,*]部屋移動:count件',
+    'cleaning_tasks' => '{1}清掃タスク:count件|[0,*]清掃タスク:count件',
+    'work_orders' => '{1}作業指示:count件|[0,*]作業指示:count件',
+    'status_changes' => '{1}ステータス変更:count件|[0,*]ステータス変更:count件',
+    'blocks' => '{1}ブロック:count件|[0,*]ブロック:count件',
+    'owner_agreements' => '{1}オーナーとの管理委託契約:count件|[0,*]オーナーとの管理委託契約:count件',
+    'owner_statement_lines' => '{1}オーナー収支報告書の明細:count件|[0,*]オーナー収支報告書の明細:count件',
+    'owner_expenses' => '{1}オーナー経費:count件|[0,*]オーナー経費:count件',
+    'reviews' => '{1}クチコミ:count件|[0,*]クチコミ:count件',
+    'owner_requests' => '{1}オーナーからのリクエスト:count件|[0,*]オーナーからのリクエスト:count件',
+    'notes' => '{1}メモ:count件|[0,*]メモ:count件',
+    'documents' => '{1}書類:count件|[0,*]書類:count件',
+    'files' => '{1}ファイル:count件|[0,*]ファイル:count件',
+    'units' => '{1}客室:count室|[0,*]客室:count室',
+    'rate_proposals' => '{1}料金提案:count件|[0,*]料金提案:count件',
+    'overbooking_records' => '{1}オーバーブッキングの記録:count件|[0,*]オーバーブッキングの記録:count件',
+    'guest_waitlist_entries' => '{1}ゲストのキャンセル待ち登録:count件|[0,*]ゲストのキャンセル待ち登録:count件',
+    'guest_wishlist_saves' => '{1}ゲストのお気に入り登録:count件|[0,*]ゲストのお気に入り登録:count件',
+    'derived_room_types' => '{1}これを基にした客室タイプ:count種類|[0,*]これを基にした客室タイプ:count種類',
+    'derived_rate_plans' => '{1}これに連動する他の客室タイプの料金プラン:count件|[0,*]これに連動する他の客室タイプの料金プラン:count件',
+    'corporate_default_rates' => '{1}法人アカウント:count件のデフォルト料金|[0,*]法人アカウント:count件のデフォルト料金',
+    'channel_connections' => '{1}チャネル接続:count件|[0,*]チャネル接続:count件',
+    'an_owner' => 'オーナー',
+    'pending_owner_invitation' => '承諾待ちのオーナー招待',
+    'list_and' => ':itemsと:last',
+    'kind_rooms' => '客室',
+    'kind_apartments' => 'アパートメント',
+    'kind_villas' => 'ヴィラ',
+    'kind_dorm_beds' => 'ドミトリーベッド',
+];

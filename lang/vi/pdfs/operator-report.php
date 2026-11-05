@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Báo cáo',
+    'arrivals_in' => 'Lượt khách đến: :period',
+    'arrivals_count' => '{1}:count lượt khách đến|[0,*]:count lượt khách đến',
+    'pp_delta' => ':delta điểm',
+    'occupancy' => 'Công suất phòng',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Doanh thu gộp',
+    'basis_note' => 'Công suất phòng · ADR · RevPAR tính theo đêm lưu trú, so với cùng kỳ năm trước khi có dữ liệu năm trước. Doanh thu bên dưới tính theo folio (ngày đến).',
+    'revenue' => 'Doanh thu',
+    'room' => 'Phòng',
+    'ancillary' => 'Dịch vụ phụ trợ <span class="muted">· dịch vụ thêm, sản phẩm, phí</span>',
+    'tax_collected' => 'Thuế đã thu · thu hộ',
+    'costs_heading' => 'Chi phí <span class="muted" style="font-size:9px">· chỉ dữ liệu thực</span>',
+    'maintenance' => 'Bảo trì <span class="muted">· phiếu công việc đã xử lý</span>',
+    'not_tracked' => 'chưa theo dõi',
+    'net' => 'Ròng (doanh thu − chi phí đã theo dõi)',
+    'revenue_by_channel' => 'Doanh thu theo kênh',
+    'channel' => 'Kênh',
+    'bookings' => 'Đặt phòng',
+    'share' => 'Tỷ trọng',
+    'no_channel_revenue' => 'Không có doanh thu từ kênh trong kỳ này.',
+    'top_units' => 'Phòng dẫn đầu',
+    'unit' => 'Phòng',
+    'nights' => 'Đêm',
+    'room_revenue' => 'Doanh thu phòng',
+    'no_unit_revenue' => 'Không có doanh thu phòng trong kỳ này.',
+    'revenue_by_month' => 'Doanh thu theo tháng',
+    'month' => 'Tháng',
+    'footer' => 'Tính từ dữ liệu folio & bảo trì thực cho :scope · :period. Công suất phòng/ADR/RevPAR tính theo đêm lưu trú; doanh thu tính theo folio (ngày đến). Số liệu khớp với màn hình “Báo cáo”. Vyrobel.',
+];

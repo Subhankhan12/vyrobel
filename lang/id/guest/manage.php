@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Kelola :reference',
+    'back_to_booking' => '← Kembali ke reservasi',
+    'heading' => 'Kelola reservasi Anda',
+    'subheading' => ':property · :check_in → :check_out. Perubahan dikonfirmasi oleh properti — kami akan mengirimi Anda pesan begitu perubahan dikonfirmasi.',
+    'pending_requests' => 'Permintaan yang menunggu',
+    'pending_badge' => 'Menunggu',
+    'pending_note' => 'Belum ada yang berubah pada reservasi Anda — permintaan harus dikonfirmasi oleh properti terlebih dahulu.',
+    'pick_new_dates' => 'Pilih tanggal baru',
+    'currently' => 'Saat ini :check_in → :check_out. Pilih tanggal baru untuk melihat selisih harga, lalu ajukan perubahan.',
+    'new_check_in' => 'Tanggal kedatangan baru',
+    'new_check_out' => 'Tanggal keberangkatan baru',
+    'see_price_difference' => 'Lihat selisih harga',
+    'new_stay' => 'Masa inap baru',
+    'current' => 'Saat ini',
+    'difference' => 'Selisih',
+    'estimate_note' => 'Hanya perkiraan — tergantung konfirmasi properti. Pembayaran apa pun diproses setelah properti mengonfirmasi.',
+    'unpriced_note' => 'Tanggal tersebut belum memiliki harga yang dipublikasikan — ajukan perubahan dan properti akan mengonfirmasi harganya.',
+    'request_date_change' => 'Ajukan perubahan tanggal',
+    'add_to_your_stay' => 'Tambahkan ke masa inap Anda',
+    'add_to_your_stay_sub' => 'Tambahkan sarapan, antar-jemput, dan lainnya — semuanya ditagihkan ke reservasi Anda setelah dikonfirmasi.',
+    'browse_extras' => 'Lihat layanan tambahan',
+    'cancellation_policy' => 'Kebijakan pembatalan',
+    'free_until' => 'Pembatalan gratis hingga <strong>:date</strong> — permintaan pembatalan yang diajukan sebelum tanggal itu mendapat pengembalian dana penuh.',
+    'policy_by_property' => 'Properti mengonfirmasi pembatalan Anda dan memproses pengembalian dana sesuai kebijakannya.',
+    'cancel_confirm' => 'Kirim permintaan pembatalan untuk reservasi ini? Properti akan meninjaunya dan memproses pengembalian dana sesuai kebijakannya.',
+    'reason' => 'Alasan',
+    'choose_reason' => 'Pilih alasan…',
+    'request_cancellation' => 'Ajukan pembatalan',
+    'closed_heading' => 'Reservasi ini sudah ditutup',
+    'closed_body' => 'Tidak ada lagi yang dapat diubah — tetapi tanggal, detail masa inap, dan semua yang telah Anda bayar tetap tersedia di sini kapan pun Anda membutuhkannya.',
+];

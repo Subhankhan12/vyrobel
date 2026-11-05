@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'quản lý bằng Vyrobel',
+    'eyebrow' => 'Bảng đối soát chủ sở hữu',
+    'unit_count' => '{1}:count căn|[0,*]:count căn',
+    'issued' => 'phát hành: :date',
+    'prepared_for' => 'Lập cho',
+    'net_payable_to_owner' => 'Thực nhận của chủ sở hữu',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Công suất phòng',
+    'nights_sold' => 'Số đêm đã bán',
+    'avg_nightly_rate' => 'Giá TB mỗi đêm',
+    'breakdown' => 'Chi tiết',
+    'item' => 'Khoản mục',
+    'detail' => 'Diễn giải',
+    'amount' => 'Số tiền',
+    'provisional' => '(tạm tính)',
+    'performance_by_unit' => 'Hiệu quả theo căn',
+    'unit' => 'Căn',
+    'nights' => 'Đêm',
+    'revenue' => 'Thu nhập',
+    'total_gross_room_revenue' => 'Tổng thu nhập phòng gộp',
+    'callout_heading' => 'Chi trả.',
+    'settles_to_iban' => 'Số tiền ròng :amount được chi trả bằng chuyển khoản ngân hàng đến IBAN :iban.',
+    'settles' => 'Số tiền ròng :amount được chi trả bằng chuyển khoản ngân hàng.',
+    'fees_with_commission' => 'Hoa hồng quản lý được tính :pct% trên thu nhập phòng gộp; phí thanh toán và phí nền tảng được chuyển theo chi phí thực tế. Mọi số tiền tính bằng :currency và đã bao gồm các khoản thuế áp dụng được thu thay cho bạn.',
+    'fees' => 'Phí thanh toán và phí nền tảng được chuyển theo chi phí thực tế. Mọi số tiền tính bằng :currency và đã bao gồm các khoản thuế áp dụng được thu thay cho bạn.',
+    'fx_note' => 'Quy đổi từ :source theo tỷ giá :rate (nguồn: :src).',
+    'provisional_note' => 'Một số dòng là tạm tính, đang chờ đối chiếu với kênh.',
+    'statement_ref' => 'bảng đối soát :ref',
+    'sequence_no' => 'số :number',
+    'generated' => 'tạo ngày: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Có câu hỏi? Liên hệ: :email',
+];

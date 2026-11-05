@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Lưu trữ bảng đối soát',
+    'history_summary' => 'Lịch sử đã chốt của bạn · :years · :statements',
+    'years' => '{1}:count năm|[0,*]:count năm',
+    'statements' => '{1}:count bảng đối soát|[0,*]:count bảng đối soát',
+    'archived_on_finalize' => 'Bảng đối soát được lưu trữ tại đây ngay khi được chốt.',
+    'net_earned_lifetime' => 'Thu nhập ròng · toàn thời gian',
+    'since' => 'từ :date',
+    'per_currency_note' => 'Tính tổng theo từng tiền tệ chi trả — số dư ở các tiền tệ khác nhau không bao giờ được gộp lại.',
+    'lifetime_empty' => 'Chưa có bảng đối soát nào được chốt — bảng đầu tiên sẽ hiển thị ở đây.',
+    'search_placeholder' => 'Tìm bảng đối soát — tháng, năm, trạng thái hoặc số',
+    'search_label' => 'Tìm bảng đối soát',
+    'no_match' => 'Không có bảng đối soát nào khớp với “:query”.',
+    'no_match_hint' => 'Thử tìm theo tháng (“tháng 9”), năm (“2026”), trạng thái (“Đã chi trả”) hoặc số bảng đối soát (“Số 1”).',
+    'group_summary' => ':statements · thu nhập ròng: :nets',
+    'per_payout_currency' => '(theo tiền tệ chi trả)',
+    'tax_summary_title' => 'Tải xuống bảng tổng hợp thuế hằng năm :year dưới dạng PDF',
+    'tax_summary' => 'Bảng tổng hợp thuế',
+    'col_statement' => 'Bảng đối soát',
+    'col_net_payable' => 'Thực nhận',
+    'col_links' => 'Liên kết',
+    'unverified_title' => 'Một số dòng vẫn đang chờ đối chiếu với kênh',
+    'unverified' => 'Có dòng chưa xác minh',
+    'pdf_title' => 'Tải xuống bảng đối soát này dưới dạng PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Tải xuống danh sách đặt phòng của bảng đối soát này dưới dạng PDF',
+    'bookings' => 'Đặt phòng',
+    'empty' => 'Chưa có bảng đối soát nào được chốt. Bảng đối soát sẽ được lưu trữ tại đây sau khi chốt.',
+    'zip_heading' => 'Tải xuống toàn bộ lưu trữ',
+    'zip_sub' => '{1}Một tệp ZIP gồm :count bảng đối soát PDF. Mỗi bảng đối soát ở trên cũng có thể tải xuống riêng.|[0,*]Một tệp ZIP gồm :count bảng đối soát PDF. Mỗi bảng đối soát ở trên cũng có thể tải xuống riêng.',
+    'download_zip' => 'Tải xuống ZIP',
+];

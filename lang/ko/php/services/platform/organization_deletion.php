@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => '라이브 모드 결제 기록이 있습니다(:records). 법에 따라 여러 해 동안 보관해야 할 수 있으므로, 보관 기간에 대한 법률 판단이 나올 때까지 삭제가 보류됩니다 — 그 전에는 삭제할 수 없습니다.',
+    'uncounted_cascades' => '데이터베이스의 레코드 연결 방식 때문에 삭제 대상을 정확히 셀 수 없어(:links), 확인 화면에 삭제될 항목을 표시하지 못했습니다. 이 문제가 해결될 때까지 아무것도 삭제할 수 없습니다.',
+    'stripe_billing_live' => '이 워크스페이스는 Stripe 청구가 라이브 모드로 진행 중입니다. 먼저 Stripe에서 구독을 해지하세요. 그렇지 않으면 더 이상 존재하지 않는 고객사에 계속 요금이 청구됩니다. Stripe에서 이미 해지했다면 Stripe의 보고가 여기에 반영되지 않은 것입니다 — 직접 해결하세요.',
+    'checkout_open_subscription' => '구독용 Stripe 결제 페이지가 :opened에 열렸으며 :closes까지 결제할 수 있습니다. 결제가 완료되거나 페이지가 만료된 후 다시 시도하세요.',
+    'checkout_open_card' => '고객의 카드 결제용 Stripe 결제 페이지가 :opened에 열렸으며 :closes까지 결제할 수 있습니다. 결제가 완료되거나 페이지가 만료된 후 다시 시도하세요.',
+    'checkout_unreported_subscription' => '구독용 라이브 모드 Stripe 결제 페이지가 :opened에 열리고 :closed에 닫혔지만, 결제 여부에 대한 보고가 여기에 반영되지 않았습니다. Stripe 대시보드에서 해당 페이지를 확인하세요. 결제되었다면 그 결제로 시작된 항목을 먼저 Stripe에서 취소하세요. Stripe는 전달하지 못한 보고를 최대 3일 동안 다시 보냅니다 — 보고가 반영된 후 다시 시도하세요. Stripe가 이미 보고했는데 반영되지 못했다면 직접 해결하세요.',
+    'checkout_unreported_card' => '고객의 카드 결제용 라이브 모드 Stripe 결제 페이지가 :opened에 열리고 :closed에 닫혔지만, 결제 여부에 대한 보고가 여기에 반영되지 않았습니다. Stripe 대시보드에서 해당 페이지를 확인하세요. 결제되었다면 그 결제로 시작된 항목을 먼저 Stripe에서 취소하세요. Stripe는 전달하지 못한 보고를 최대 3일 동안 다시 보냅니다 — 보고가 반영된 후 다시 시도하세요. Stripe가 이미 보고했는데 반영되지 못했다면 직접 해결하세요.',
+    'refund_processing' => '카드 환불이 아직 Stripe에서 처리 중입니다. Stripe가 확인할 때까지 기다린 후 다시 시도하세요.',
+    'card_payment_open' => '카드 결제 또는 카드 가승인이 아직 진행 중입니다. 먼저 정산될 때까지 기다리거나 해제하세요.',
+    'dispute_open' => '카드 결제에 대한 지불 거절이 Stripe에서 진행 중입니다(시작: :since). Stripe에서 대응한 후, Stripe가 지불 거절 종료를 보고하면 다시 시도하세요. Stripe 대시보드에 이미 종료로 표시된다면 보고가 도착하지 않은 것입니다 — 직접 해결하세요.',
+    'payouts_in_transit' => '{1}소유주에게 보내는 지급 :count건이 Stripe에서 이체 중입니다(시작: :since).|[0,*]소유주에게 보내는 지급 :count건이 Stripe에서 이체 중입니다(시작: :since).',
+    'payout_transit_stale' => '정상보다 오래 걸리고 있습니다 — 먼저 Stripe 측과 직접 해결하세요.',
+    'payout_transit_wait' => 'Stripe가 확인할 때까지 기다린 후 다시 시도하세요.',
+    'payouts_owed' => '{1}소유주에게 지급해야 할 지급 :count건이 아직 남아 있습니다(대기 중 또는 유보됨). 먼저 지급하세요 — 삭제하면 소유주는 지급을 받지 못하고 그 기록도 남지 않습니다.|[0,*]소유주에게 지급해야 할 지급 :count건이 아직 남아 있습니다(대기 중 또는 유보됨). 먼저 지급하세요 — 삭제하면 소유주는 지급을 받지 못하고 그 기록도 남지 않습니다.',
+    'payout_run_running' => ':since부터 일괄 지급이 실행 중입니다.',
+    'looks_stuck' => '멈춘 것으로 보입니다 — 삭제하기 전에 직접 해결하세요.',
+    'payout_run_wait' => '완료된 후 다시 시도하세요.',
+    'webhook_unprocessed' => '이 워크스페이스에 대해 :received에 수신된 :source 알림이 아직 처리되지 않았습니다.',
+    'webhook_wait' => '몇 분 후 다시 시도하세요.',
+    'cross_tenant_references' => '다른 워크스페이스에 이 워크스페이스를 가리키는 레코드가 있습니다(:links). 삭제하면 그 레코드도 함께 삭제됩니다.',
+    'schema_unreadable' => '데이터베이스 스키마를 모두 읽지 못했습니다(찾을 수 없음: :tables).',
+    'already_deleted' => '이 워크스페이스는 더 이상 존재하지 않습니다 — 이미 삭제되었습니다.',
+    'protected' => '이 워크스페이스는 보호되어 있어 삭제할 수 없습니다.',
+    'not_suspended' => '먼저 이용 정지하세요 — 이용 정지되었거나 보관된 워크스페이스만 삭제할 수 있습니다.',
+    'record_survived' => '이 워크스페이스의 레코드가 삭제 후에도 남아 있어(테이블: :tables) 모든 작업이 롤백되었습니다.',
+    'organization_survived' => '워크스페이스 또는 소속 사용자 일부가 삭제 후에도 남아 있어 모든 작업이 롤백되었습니다.',
+    'live_card_payments' => '{1}카드 결제 :count건|[0,*]카드 결제 :count건',
+    'live_refunds' => '{1}환불 :count건|[0,*]환불 :count건',
+    'live_payouts' => '{1}지급 :count건|[0,*]지급 :count건',
+    'live_stripe_billing' => '라이브 모드 Stripe 청구 및 관련 청구서',
+    'unknown_time' => '알 수 없는 시각',
+    'time_utc' => ':time UTC',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => '本番モードの取引記録（:records）があります。法律で長期間の保存が義務付けられている可能性があるため、保存期間に関する法的判断が出るまで削除は保留されています。それまでは削除できません。',
+    'uncounted_cascades' => 'データベース内のレコードの関連付けが、削除処理で正確に数えられない形になっているため（:links）、確認画面で削除される内容を示せませんでした。これが修正されるまで、何も削除できません。',
+    'stripe_billing_live' => 'このワークスペースは、Stripeで本番モードの請求中です。先にStripeでサブスクリプションを解約してください。解約しないと、存在しなくなった顧客への請求が続きます。Stripe側ですでに解約済みの場合は、Stripeからの通知がここに反映されていません。手動で解決してください。',
+    'checkout_open_subscription' => 'このサブスクリプションのStripe決済ページが:openedに開かれ、:closesまで支払い可能な状態です。支払いが完了するか期限が切れてから、もう一度お試しください。',
+    'checkout_open_card' => 'ゲストのカード決済のStripe決済ページが:openedに開かれ、:closesまで支払い可能な状態です。支払いが完了するか期限が切れてから、もう一度お試しください。',
+    'checkout_unreported_subscription' => 'このサブスクリプションの本番モードのStripe決済ページが:openedに開かれ、:closedに閉じられましたが、支払いの有無に関するStripeからの通知がここに反映されていません。Stripeダッシュボードでそのページを確認し、支払い済みの場合は、まずStripe側でそこから始まった処理をキャンセルしてください。Stripeは配信できなかった通知を最大3日間再送します。通知が反映されてから、もう一度お試しください。Stripeがすでに通知していて、その通知を反映できなかった場合は、手動で解決してください。',
+    'checkout_unreported_card' => 'ゲストのカード決済の本番モードのStripe決済ページが:openedに開かれ、:closedに閉じられましたが、支払いの有無に関するStripeからの通知がここに反映されていません。Stripeダッシュボードでそのページを確認し、支払い済みの場合は、まずStripe側でそこから始まった処理をキャンセルしてください。Stripeは配信できなかった通知を最大3日間再送します。通知が反映されてから、もう一度お試しください。Stripeがすでに通知していて、その通知を反映できなかった場合は、手動で解決してください。',
+    'refund_processing' => 'カードの返金がStripeでまだ処理中です。Stripeで確定するまで待ってから、もう一度お試しください。',
+    'card_payment_open' => 'カード決済またはカードの与信がまだ完了していません。先に決済が完了するのを待つか、与信を解放してください。',
+    'dispute_open' => 'カード決済についてStripeで異議申し立てが行われています（:since以降）。Stripeで対応し、異議申し立ての終了がStripeから通知されてから、もう一度お試しください。Stripeダッシュボードですでに終了と表示されている場合は、通知が届いていません。手動で解決してください。',
+    'payouts_in_transit' => '{1}オーナーへの送金1件がStripeで送金中です（:since以降）。|[0,*]オーナーへの送金:count件がStripeで送金中です（:since以降）。',
+    'payout_transit_stale' => '通常より時間がかかっています。先にStripe側で手動で解決してください。',
+    'payout_transit_wait' => 'Stripeで確定するまで待ってから、もう一度お試しください。',
+    'payouts_owed' => '{1}オーナーへの未送金が1件あります（処理待ちまたは差し止め中）。先に送金してください。削除すると、オーナーに送金されないまま、その記録も残りません。|[0,*]オーナーへの未送金が:count件あります（処理待ちまたは差し止め中）。先に送金してください。削除すると、オーナーに送金されないまま、その記録も残りません。',
+    'payout_run_running' => ':sinceから一括送金が実行中です。',
+    'looks_stuck' => '停止しているようです。削除する前に手動で解決してください。',
+    'payout_run_wait' => '完了してから、もう一度お試しください。',
+    'webhook_unprocessed' => ':receivedに受信した、このワークスペース宛ての:sourceの通知がまだ処理されていません。',
+    'webhook_wait' => '数分後にもう一度お試しください。',
+    'cross_tenant_references' => '別のワークスペースに、このワークスペースを参照するレコードがあります（:links）。削除すると、それらも削除されます。',
+    'schema_unreadable' => 'データベースのスキーマをすべて読み取れませんでした（:tablesが見つかりません）。',
+    'already_deleted' => 'このワークスペースはすでに削除されており、存在しません。',
+    'protected' => 'このワークスペースは保護されているため、削除できません。',
+    'not_suspended' => '先に利用停止にしてください。削除できるのは、利用停止中またはアーカイブ済みのワークスペースのみです。',
+    'record_survived' => '削除後もこのワークスペースのレコードが残っていたため（:tables）、すべてロールバックしました。',
+    'organization_survived' => '削除後もワークスペースまたはそのメンバーの一部が残っていたため、すべてロールバックしました。',
+    'live_card_payments' => '{1}カード決済:count件|[0,*]カード決済:count件',
+    'live_refunds' => '{1}返金:count件|[0,*]返金:count件',
+    'live_payouts' => '{1}送金:count件|[0,*]送金:count件',
+    'live_stripe_billing' => '本番モードのStripe請求（その請求書を含む）',
+    'unknown_time' => '不明な時刻',
+    'time_utc' => ':time（UTC）',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Tiket “:title” berhasil dibuka untuk unit :unit.',
+    'not_assignable_staff' => 'Pengguna tersebut bukan staf yang dapat ditugaskan di organisasi ini.',
+    'cannot_reassign_closed' => 'Tiket tersebut tidak dapat dialihkan — tiket sudah ditutup.',
+    'assignment_updated' => 'Penugasan tiket berhasil diperbarui.',
+    'work_order_closed' => 'Perintah kerja tersebut sudah ditutup — detailnya tidak dapat diubah.',
+    'work_order_updated' => 'Perintah kerja berhasil diperbarui.',
+    'col_title' => 'Judul',
+    'col_unit' => 'Unit',
+    'col_category' => 'Kategori',
+    'col_priority' => 'Prioritas',
+    'col_status' => 'Status',
+    'col_assignee' => 'Petugas',
+    'col_reported' => 'Dilaporkan',
+    'col_cost' => 'Biaya',
+    'bulk_assigned_skipped' => '{1}:count perintah kerja ditugaskan · :skipped dilewati (sudah ditutup)|[0,*]:count perintah kerja ditugaskan · :skipped dilewati (sudah ditutup)',
+    'bulk_assigned' => '{1}:count perintah kerja ditugaskan.|[0,*]:count perintah kerja ditugaskan.',
+    'bulk_resolved_skipped' => '{1}:count perintah kerja diselesaikan · :skipped dilewati (sudah ditutup)|[0,*]:count perintah kerja diselesaikan · :skipped dilewati (sudah ditutup)',
+    'bulk_resolved' => '{1}:count perintah kerja diselesaikan.|[0,*]:count perintah kerja diselesaikan.',
+    'cannot_start' => 'Tiket tersebut tidak dapat dimulai — tiket sudah tidak terbuka.',
+    'work_started' => 'Pekerjaan untuk tiket ini dimulai.',
+    'cannot_resolve_closed' => 'Perintah kerja tersebut tidak dapat diselesaikan — sudah ditutup.',
+    'ticket_resolved' => 'Tiket diselesaikan.',
+    'cannot_cancel_closed' => 'Tiket tersebut tidak dapat dibatalkan — tiket sudah ditutup.',
+    'ticket_cancelled' => 'Tiket dibatalkan.',
+    'parts_closed' => 'Tiket tersebut sudah ditutup — suku cadang tidak dapat diperbarui.',
+    'awaiting_parts' => 'Ditandai menunggu suku cadang.',
+    'parts_arrived' => 'Suku cadang ditandai sudah tiba.',
+    'update_posted_waiting_part' => 'Pembaruan berhasil dikirim — ditandai menunggu suku cadang.',
+    'update_posted' => 'Pembaruan berhasil dikirim.',
+    'photo_added' => 'Foto berhasil ditambahkan.',
+    'photo_removed' => 'Foto berhasil dihapus.',
+    'workspace_paused' => 'Organisasi Anda dijeda (hanya baca) — perubahan pemeliharaan dinonaktifkan hingga Anda melanjutkannya.',
+];

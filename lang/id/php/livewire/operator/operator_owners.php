@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Siap dicairkan',
+    'chip_hold' => 'Ditahan',
+    'chip_review' => 'Perlu ditinjau',
+    'chip_paused' => 'Pencairan dijeda',
+    'chip_invited' => 'Diundang',
+    'sorted_name_asc' => 'menurut pemilik, A–Z',
+    'sorted_name_desc' => 'menurut pemilik, Z–A',
+    'sorted_units_desc' => 'unit terbanyak dulu',
+    'sorted_units_asc' => 'unit tersedikit dulu',
+    'sorted_net_desc' => 'bersih dibayarkan terbesar dulu',
+    'sorted_net_asc' => 'bersih dibayarkan terkecil dulu',
+    'sorted_status_asc' => 'yang perlu Anda tangani dulu',
+    'sorted_status_desc' => 'yang perlu Anda tangani terakhir',
+    'kpi_invited' => ':number diundang',
+    'kpi_units' => '{1}:count unit|[0,*]:count unit',
+    'kpi_owners_ready' => '{1}:count pemilik siap|[0,*]:count pemilik siap',
+    'kpi_paused_not_counted' => ':number dijeda, tidak dihitung',
+    'kpi_hold_none' => 'tidak ada yang menunggu',
+    'kpi_hold_waiting' => ':amounts menunggu',
+    'kpi_review_sub' => ':number dengan baris yang belum dikonfirmasi oleh saluran reservasi',
+    'schedule' => 'hari kerja :day setiap bulan',
+    'ordinal_st' => 'ke-:number',
+    'ordinal_nd' => 'ke-:number',
+    'ordinal_rd' => 'ke-:number',
+    'ordinal_th' => 'ke-:number',
+    'role_manager' => 'Manajer properti',
+    'role_accountant' => 'Akuntan',
+    'role_owner' => 'Pemilik',
+    'another_owner' => 'pemilik lain',
+];

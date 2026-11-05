@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '团队与权限',
+    'subtitle' => '为共同业主或您的会计开设独立的登录账号——权限仅限其所需范围。',
+    'people_with_access' => '有访问权限的人员',
+    'account_owner' => '主业主',
+    'thats_you' => '您本人',
+    'owner_access' => '可完全访问所有内容，包括此页面。',
+    'active_now' => '当前在线',
+    'role_for' => ':name 的角色',
+    'your_password' => '您的密码',
+    'confirm_password' => '使用密码确认',
+    'remove_confirm' => '移除 :name？此人将无法再登录。',
+    'no_members' => '目前只有您——可在下方邀请共同业主或会计。',
+    'invite_heading' => '邀请他人',
+    'invite_sub' => '对方将拥有自己的登录账号——您可随时移除其访问权限。',
+    'invite_email_label' => '被邀请人的邮箱地址',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => '发送邀请',
+    'pending_invites' => '待接受的邀请',
+    'resend' => '重新发送',
+    'revoke' => '撤回',
+    'matrix_heading' => '各角色可查看的内容',
+    'matrix_note' => '只有您（主业主）可以管理团队和打款账户。',
+    'recent_activity' => '最近动态',
+    'no_activity' => '暂无动态——邀请和登录记录将显示在此处。',
+    'download_log' => '导出文件下载记录',
+    'download_log_sub' => '您的团队下载的每一份结算单、预订、打款或税务文件都会标注下载人——并记录在此处。',
+    'no_downloads' => '暂无导出文件下载记录——下载后将显示在此处，并标注下载人。',
+    'security_heading' => '每人独立登录',
+    'security_body' => '不共用密码——每人使用自己的账号登录，访问权限限于其角色范围。财务导出文件会加上下载人水印，并记录在上方的日志中。请为您自己的账号开启两步验证。',
+    'security_settings' => '安全设置',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Akomodasi kami',
+    'properties_count' => ':count properti',
+    'stays_count' => '{1}:count akomodasi|[0,*]:count akomodasi',
+    'stays_sleeps' => ':stays · kapasitas :max orang',
+    'stays_sleeps_range' => ':stays · kapasitas :min–:max orang',
+    'perk_free_cancel_days' => '{1}Pengembalian dana penuh hingga :count hari sebelum kedatangan.|[0,*]Pengembalian dana penuh hingga :count hari sebelum kedatangan.',
+    'perk_free_cancel_window' => 'Pengembalian dana penuh dalam batas waktu pembatalan.',
+    'perk_no_fees' => 'Tanpa biaya pemesanan',
+    'perk_no_fees_sub' => 'Harga yang Anda lihat adalah harga yang Anda bayar.',
+    'perk_best_rate' => 'Tarif langsung terbaik',
+    'perk_best_rate_sub' => 'Pesan langsung untuk tarif terbaik kami — tanpa perantara.',
+    'perk_free_cancel' => 'Pembatalan gratis',
+    'perk_host_support' => 'Dukungan langsung dari tuan rumah',
+    'perk_host_support_sub' => 'Kirim pesan ke orang sungguhan tentang reservasi Anda.',
+    'kind_room' => 'Kamar',
+    'kind_apartment' => 'Apartemen',
+    'kind_villa' => 'Vila',
+    'kind_dorm' => 'Asrama',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartemen servis',
+    'type_apartment_building' => 'Gedung apartemen',
+    'type_apartment' => 'Apartemen',
+    'type_villa' => 'Vila',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Guest house',
+    'type_resort' => 'Resor',
+    'type_mixed' => 'Campuran',
+    'type_portfolio' => 'Portofolio',
+];

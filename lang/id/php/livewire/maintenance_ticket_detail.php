@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Catatan',
+    'kind_progress' => 'Progres',
+    'kind_part' => 'Suku cadang dipesan',
+    'elapsed_minutes' => ':minutes mnt',
+    'elapsed_hours' => ':hours jam :minutes mnt',
+    'elapsed_days' => ':days hr :hours jam',
+    'hours_short' => ':hours jam',
+    'timeline_opened' => 'Dilaporkan',
+    'timeline_assigned_to' => 'Ditugaskan ke :name',
+    'a_technician' => 'teknisi',
+    'timeline_unassigned' => 'Penugasan dicabut',
+    'timeline_started' => 'Pekerjaan dimulai',
+    'timeline_resolved' => 'Diselesaikan',
+    'timeline_cancelled' => 'Dibatalkan',
+    'timeline_parts_updated' => 'Suku cadang diperbarui',
+    'timeline_cost_corrected' => 'Biaya dikoreksi',
+    'timeline_updated' => 'Detail diubah',
+    'note_progress' => 'Pembaruan progres',
+    'note_part' => 'Suku cadang dipesan',
+    'note_added' => 'Catatan ditambahkan',
+    'a_team_member' => 'Anggota tim',
+    'system' => 'Sistem',
+    'photo_alt' => 'Foto pemeliharaan',
+    'the_owner' => 'pemilik',
+    'load_none' => 'Tidak ada perintah kerja terbuka',
+    'load_open' => ':open terbuka',
+    'load_open_urgent' => ':open terbuka · :urgent mendesak',
+    'impact_arrivals' => '{1}:count kedatangan malam ini memerlukan kamar|[0,*]:count kedatangan malam ini memerlukan kamar',
+    'impact_bookings' => '{1}:count reservasi perlu dipindahkan|[0,*]:count reservasi perlu dipindahkan',
+    'impact_none' => 'Tidak ada reservasi yang terdampak',
+];

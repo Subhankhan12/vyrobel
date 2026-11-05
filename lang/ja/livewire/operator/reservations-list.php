@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '予約',
+    'arrivals_this_month' => '今月の到着',
+    'arrivals_this_month_sub' => '今月チェックインする予約 · キャンセルとノーショーを除く',
+    'booked_value' => '予約総額 · 今月の到着',
+    'booked_value_sub' => '今月到着分の請求額',
+    'booked_value_sub_multi' => '今月到着分の請求額 · 通貨別に表示（合算しません）',
+    'balances_due' => '未払い額 · 今月の到着',
+    'folios_owing' => '{0}未払いなし|{1}未払いのフォリオ:count件|[2,*]未払いのフォリオ:count件',
+    'search_placeholder' => 'ゲスト名または予約番号で検索…',
+    'search_label' => '予約を検索',
+    'group_booking' => '団体予約',
+    'new_reservation' => '新規予約',
+    'empty_heading' => '予約はまだありません',
+    'empty_body' => '直接予約、ウォークイン、取り込みなど、すべての予約は受け付けるとここに表示されます。',
+    'no_match_query' => '「:query」に一致する予約はありません',
+    'no_match_view' => 'この表示に該当する予約はありません',
+    'no_match_hint' => '{1}ゲスト名または予約番号でお試しください。予約は全:count件です。|[0,*]ゲスト名または予約番号でお試しください。予約は全:count件です。',
+    'no_match_hint_filter' => '{1}ゲスト名または予約番号でお試しいただくか、フィルターをクリアしてください。予約は全:count件です。|[0,*]ゲスト名または予約番号でお試しいただくか、フィルターをクリアしてください。予約は全:count件です。',
+    'clear_search_filters' => '検索と絞り込みをクリア',
+    'col_guest' => 'ゲスト',
+    'col_stay' => '宿泊',
+    'col_unit' => '客室',
+    'col_source' => '予約経路',
+    'col_stage' => '状況',
+    'col_balance_due' => '未払い額',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count泊|[0,*]:count泊',
+    'guests' => '{1}:count名|[0,*]:count名',
+    'unassigned' => '部屋未割当',
+    'refunded' => '返金済み',
+    'pager_label' => '予約',
+];

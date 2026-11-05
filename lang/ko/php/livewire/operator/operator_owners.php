@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => '지급 준비 완료',
+    'chip_hold' => '보류 중',
+    'chip_review' => '검토 필요',
+    'chip_paused' => '지급 일시 중지됨',
+    'chip_invited' => '초대됨',
+    'sorted_name_asc' => '소유주순, A–Z',
+    'sorted_name_desc' => '소유주순, Z–A',
+    'sorted_units_desc' => '객실 많은 순',
+    'sorted_units_asc' => '객실 적은 순',
+    'sorted_net_desc' => '실지급액 큰 순',
+    'sorted_net_asc' => '실지급액 작은 순',
+    'sorted_status_asc' => '조치가 필요한 항목 먼저',
+    'sorted_status_desc' => '조치가 필요한 항목 나중에',
+    'kpi_invited' => '초대됨 :number명',
+    'kpi_units' => '{1}객실 :count개|[0,*]객실 :count개',
+    'kpi_owners_ready' => '{1}지급 준비 완료 소유주 :count명|[0,*]지급 준비 완료 소유주 :count명',
+    'kpi_paused_not_counted' => '일시 중지 :number명(집계 제외)',
+    'kpi_hold_none' => '대기 없음',
+    'kpi_hold_waiting' => '대기 중 :amounts',
+    'kpi_review_sub' => '예약 채널이 확인하지 않은 항목이 있는 소유주 :number명',
+    'schedule' => '매월 :day 영업일',
+    'ordinal_st' => ':number번째',
+    'ordinal_nd' => ':number번째',
+    'ordinal_rd' => ':number번째',
+    'ordinal_th' => ':number번째',
+    'role_manager' => '숙소 매니저',
+    'role_accountant' => '회계 담당자',
+    'role_owner' => '소유주',
+    'another_owner' => '다른 소유주',
+];

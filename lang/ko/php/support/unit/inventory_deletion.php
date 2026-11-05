@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}예약 :count건|[0,*]예약 :count건',
+    'room_moves' => '{1}객실 변경 :count건|[0,*]객실 변경 :count건',
+    'cleaning_tasks' => '{1}청소 작업 :count건|[0,*]청소 작업 :count건',
+    'work_orders' => '{1}작업 지시서 :count건|[0,*]작업 지시서 :count건',
+    'status_changes' => '{1}상태 변경 :count건|[0,*]상태 변경 :count건',
+    'blocks' => '{1}차단 :count건|[0,*]차단 :count건',
+    'owner_agreements' => '{1}위탁 운영 계약 :count건|[0,*]위탁 운영 계약 :count건',
+    'owner_statement_lines' => '{1}정산서 항목 :count개|[0,*]정산서 항목 :count개',
+    'owner_expenses' => '{1}소유주 비용 :count건|[0,*]소유주 비용 :count건',
+    'reviews' => '{1}리뷰 :count개|[0,*]리뷰 :count개',
+    'owner_requests' => '{1}소유주 요청 :count건|[0,*]소유주 요청 :count건',
+    'notes' => '{1}메모 :count개|[0,*]메모 :count개',
+    'documents' => '{1}문서 :count개|[0,*]문서 :count개',
+    'files' => '{1}파일 :count개|[0,*]파일 :count개',
+    'units' => '{1}객실 :count개|[0,*]객실 :count개',
+    'rate_proposals' => '{1}요금 제안 :count건|[0,*]요금 제안 :count건',
+    'overbooking_records' => '{1}오버부킹 기록 :count건|[0,*]오버부킹 기록 :count건',
+    'guest_waitlist_entries' => '{1}고객 대기자 명단 항목 :count건|[0,*]고객 대기자 명단 항목 :count건',
+    'guest_wishlist_saves' => '{1}고객 위시리스트 저장 :count건|[0,*]고객 위시리스트 저장 :count건',
+    'derived_room_types' => '{1}이 객실 유형을 기반으로 한 객실 유형 :count개|[0,*]이 객실 유형을 기반으로 한 객실 유형 :count개',
+    'derived_rate_plans' => '{1}이 객실 유형의 요금을 기준으로 하는 다른 연동 요금 플랜 :count개|[0,*]이 객실 유형의 요금을 기준으로 하는 다른 연동 요금 플랜 :count개',
+    'corporate_default_rates' => '{1}이 객실 유형의 요금 플랜을 기본 요금으로 쓰는 기업 고객 계정 :count개|[0,*]이 객실 유형의 요금 플랜을 기본 요금으로 쓰는 기업 고객 계정 :count개',
+    'channel_connections' => '{1}채널 연결 :count개|[0,*]채널 연결 :count개',
+    'an_owner' => '소유주 1명',
+    'pending_owner_invitation' => '대기 중인 소유주 초대 1건',
+    'list_and' => ':items 및 :last',
+    'kind_rooms' => '일반 객실',
+    'kind_apartments' => '아파트',
+    'kind_villas' => '빌라',
+    'kind_dorm_beds' => '도미토리 침대',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Quản lý đặt phòng :reference',
+    'back_to_booking' => '← Quay lại đặt phòng',
+    'heading' => 'Quản lý đặt phòng của bạn',
+    'subheading' => ':property · :check_in → :check_out. Mọi thay đổi đều do chỗ nghỉ xác nhận — chúng tôi sẽ nhắn tin cho bạn ngay khi được xác nhận.',
+    'pending_requests' => 'Yêu cầu đang chờ',
+    'pending_badge' => 'Đang chờ',
+    'pending_note' => 'Đặt phòng của bạn chưa có gì thay đổi — mỗi yêu cầu cần được chỗ nghỉ xác nhận trước.',
+    'pick_new_dates' => 'Chọn ngày mới',
+    'currently' => 'Hiện tại: :check_in → :check_out. Chọn ngày mới để xem chênh lệch giá, sau đó gửi yêu cầu thay đổi.',
+    'new_check_in' => 'Ngày nhận phòng mới',
+    'new_check_out' => 'Ngày trả phòng mới',
+    'see_price_difference' => 'Xem chênh lệch giá',
+    'new_stay' => 'Kỳ lưu trú mới',
+    'current' => 'Hiện tại',
+    'difference' => 'Chênh lệch',
+    'estimate_note' => 'Chỉ là ước tính — tùy thuộc vào xác nhận của chỗ nghỉ. Mọi khoản thanh toán sẽ được xử lý sau khi chỗ nghỉ xác nhận.',
+    'unpriced_note' => 'Những ngày này chưa có giá công bố — vui lòng gửi yêu cầu thay đổi và chỗ nghỉ sẽ xác nhận giá.',
+    'request_date_change' => 'Yêu cầu đổi ngày',
+    'add_to_your_stay' => 'Thêm vào kỳ lưu trú',
+    'add_to_your_stay_sub' => 'Thêm bữa sáng, đưa đón và nhiều dịch vụ khác — mọi khoản được tính vào đặt phòng khi được xác nhận.',
+    'browse_extras' => 'Xem dịch vụ thêm',
+    'cancellation_policy' => 'Chính sách hủy',
+    'free_until' => 'Hủy miễn phí đến <strong>:date</strong> — yêu cầu hủy gửi trước thời điểm đó được hoàn tiền toàn bộ.',
+    'policy_by_property' => 'Chỗ nghỉ sẽ xác nhận việc hủy và xử lý hoàn tiền (nếu có) theo chính sách của họ.',
+    'cancel_confirm' => 'Bạn có muốn gửi yêu cầu hủy đặt phòng này không? Chỗ nghỉ sẽ xem xét và xử lý hoàn tiền (nếu có) theo chính sách của họ.',
+    'reason' => 'Lý do',
+    'choose_reason' => 'Chọn lý do…',
+    'request_cancellation' => 'Yêu cầu hủy đặt phòng',
+    'closed_heading' => 'Đặt phòng này đã kết thúc',
+    'closed_body' => 'Không còn gì để thay đổi — nhưng ngày lưu trú, chi tiết kỳ lưu trú và mọi khoản bạn đã thanh toán vẫn luôn ở đây khi bạn cần.',
+];

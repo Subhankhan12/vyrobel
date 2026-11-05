@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => '所有房间',
+    'kind_sleeps_up_to' => ':kind · 最多可住 :capacity 人',
+    'reviews_count' => '{1}:count 条评价|[0,*]:count 条评价',
+    'no_reviews_yet' => '暂无评价',
+    'save_to_wishlist' => '加入心愿单',
+    'sleeps' => '可住人数',
+    'adults' => '成人',
+    'children' => '儿童',
+    'bedrooms' => '卧室',
+    'standard_occupancy' => '标准入住人数',
+    'amenities' => '设施',
+    'not_yet_listed' => '暂未列出',
+    'amenities_not_published' => '此房间的设施尚未发布。',
+    'guest_reviews' => '客人评价',
+    'stars_aria' => ':rating 星（满分 5 星）',
+    'response_label' => '回复：',
+    'no_reviews_be_first' => '暂无评价——成为第一位入住并分享体验的客人吧。',
+    'coming_soon' => '即将推出',
+    'description_soon' => '完整介绍和位置地图即将上线——上方的规格、空房、价格和评价均为真实信息。',
+    'per_night' => '/晚',
+    'per_night_with_note' => '/晚 · :note',
+    'total_nights' => '{1}总价 :amount · :count 晚|[0,*]总价 :amount · :count 晚',
+    'left_for_your_dates' => '您所选日期仅剩 :count 间',
+    'book_this_room' => '预订此房间',
+    'nothing_reserved' => '在付款页面确认之前，不会为您保留任何房间。',
+    'your_dates' => '您选择的日期',
+    'not_available' => '所选日期无空房——请尝试其他日期。',
+    'check_in' => '入住',
+    'check_out' => '离店',
+    'check_dates' => '查询日期',
+    'check_availability' => '查看空房和价格',
+    'see_price' => '查看价格',
+];

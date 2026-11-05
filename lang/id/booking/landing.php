@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Akomodasi',
+    'book_direct' => 'Pesan langsung',
+    'nav_stays' => 'Akomodasi',
+    'my_account' => 'Akun saya',
+    'sign_in' => 'Masuk',
+    'rating_across' => '{1}:average dari :count ulasan|[0,*]:average dari :count ulasan',
+    'heading' => 'Pesan langsung<br>di :org.',
+    'subheading' => 'Akomodasi yang dirawat sepenuh hati, dipesan langsung dari tuan rumah — tanpa biaya, tarif terbaik kami, dan orang sungguhan yang siap melayani Anda.',
+    'where' => 'Lokasi',
+    'check_in' => 'Tanggal kedatangan',
+    'check_out' => 'Tanggal keberangkatan',
+    'adults' => 'Dewasa',
+    'children' => 'Anak',
+    'where_to_stay' => 'Tempat menginap',
+    'towns_lede' => '{1}Kota asal kami.|[0,*]:count kota, masing-masing dengan suasananya sendiri.',
+    'from_price' => 'mulai :price',
+    'featured_stays' => 'Akomodasi pilihan',
+    'featured_lede' => 'Paling disukai tamu dari seluruh koleksi kami.',
+    'per_night' => '/ malam',
+    'see_dates_for_pricing' => 'Pilih tanggal untuk melihat harga',
+    'browse_by_what_matters' => 'Telusuri sesuai kebutuhan Anda',
+    'why_book_direct' => 'Mengapa pesan langsung',
+    'recent_guests' => 'Tamu terbaru',
+    'rating_short' => '{1}:average · :count ulasan|[0,*]:average · :count ulasan',
+    'stars_aria' => ':rating dari 5 bintang',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'Belum ada ulasan — jadilah yang pertama menginap dan berbagi pengalaman Anda.',
+    'cta_heading' => 'Temukan tempat Anda',
+    'cta_sub' => 'Tanggal sebenarnya, harga terkini, konfirmasi instan.',
+    'browse_all_stays' => 'Lihat semua akomodasi',
+];

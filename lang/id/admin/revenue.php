@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Pendapatan',
+    'subtitle' => 'Dari yang benar-benar ditagih Stripe — tidak pernah dari harga daftar. Hanya pelanggan, kecuali Anda menyertakan organisasi internal milik Vyrobel.',
+    'including_internal' => 'Termasuk organisasi internal milik Vyrobel.',
+    'customers_only_note' => 'Hanya pelanggan.',
+    'customers_only_link' => 'Hanya pelanggan',
+    'include_internal_link' => 'Sertakan internal',
+    'no_live_billing_pill' => 'Belum ada penagihan live',
+    'no_customer_charged' => 'Belum ada pelanggan yang ditagih.',
+    'not_live_explainer' => 'Stripe belum live, jadi belum ada faktur lunas untuk dihitung. Itu bukan bulan yang buruk — memang belum ada bulannya. Pendapatan di sini hanya dihitung dari <strong>faktur Stripe yang lunas</strong> (penagihan itu sendiri, dicatat saat Stripe memberi tahu kami), tidak pernah dari harga daftar paket.',
+    'live_billed_subscriptions' => 'Langganan dengan penagihan live',
+    'trialing_unbilled' => 'Langganan dalam masa uji coba, belum ditagih',
+    'failed_payments_30d' => 'Pembayaran gagal, 30 hari terakhir',
+    'when_first_paid' => 'Setelah faktur pertama lunas, halaman ini menampilkan: MRR dan ARR per mata uang · MRR baru, ekspansi, kontraksi, dan churn · konversi uji coba ke berbayar · pembayaran gagal.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Langganan yang dinilai',
+    'no_live_subscription_charged' => 'Belum ada langganan aktif dengan penagihan live yang ditagih.',
+    'mrr_hint' => 'Setiap langganan live yang aktif atau lewat jatuh tempo, pada faktur lunas terbarunya, dikonversi ke basis bulanan menurut periode penagihan faktur itu.',
+    'this_month_vs_last' => 'Bulan ini vs bulan lalu',
+    'movement_new' => 'Baru · :currency',
+    'movement_expansion' => 'Ekspansi · :currency',
+    'movement_contraction' => 'Kontraksi · :currency',
+    'movement_churned' => 'Churn · :currency',
+    'nothing_charged' => 'Tidak ada yang ditagih bulan lalu maupun bulan ini.',
+    'movements_hint' => 'Per organisasi, dari yang ditagih setiap bulan. Churn = ditagih bulan lalu, tidak ditagih bulan ini, dan langganannya dibatalkan.',
+    'trial_to_paid' => 'Uji coba ke berbayar',
+    'trial_to_paid_value' => ':converted dari :ended uji coba yang berakhir telah ditagih',
+    'past_due_now' => 'Lewat jatuh tempo saat ini',
+    'paid_invoices_counted' => 'Faktur lunas yang dihitung',
+    'never_moves_money' => 'Konsol ini tidak pernah menagih, mengembalikan dana, atau memindahkan uang. Setiap angka per mata uang dan tidak pernah dijumlahkan lintas mata uang.',
+];

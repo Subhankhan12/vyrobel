@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => ':reference 예약 관리',
+    'back_to_booking' => '← 예약으로 돌아가기',
+    'heading' => '예약 관리',
+    'subheading' => ':property · :check_in → :check_out. 변경 사항은 숙소에서 확인하며, 확인되는 즉시 메시지로 알려 드립니다.',
+    'pending_requests' => '대기 중인 요청',
+    'pending_badge' => '대기 중',
+    'pending_note' => '아직 예약에 변경된 내용은 없습니다. 요청은 먼저 숙소의 확인을 거칩니다.',
+    'pick_new_dates' => '새 날짜 선택',
+    'currently' => '현재 일정: :check_in → :check_out. 새 날짜를 선택해 가격 차이를 확인한 후 변경을 요청하세요.',
+    'new_check_in' => '새 체크인 날짜',
+    'new_check_out' => '새 체크아웃 날짜',
+    'see_price_difference' => '가격 차이 확인',
+    'new_stay' => '새 일정',
+    'current' => '현재',
+    'difference' => '차액',
+    'estimate_note' => '예상 금액이며 숙소의 확인이 필요합니다. 결제는 숙소에서 확인한 후에 처리됩니다.',
+    'unpriced_note' => '해당 날짜에는 아직 공개된 가격이 없습니다. 변경을 요청하시면 숙소에서 가격을 확인해 드립니다.',
+    'request_date_change' => '날짜 변경 요청',
+    'add_to_your_stay' => '숙박에 추가',
+    'add_to_your_stay_sub' => '조식, 교통편 등을 추가하세요. 확인되면 모든 금액이 예약에 합산됩니다.',
+    'browse_extras' => '추가 서비스 보기',
+    'cancellation_policy' => '취소 정책',
+    'free_until' => '<strong>:date</strong>까지 무료 취소 — 그 전에 요청하신 취소는 전액 환불됩니다.',
+    'policy_by_property' => '숙소에서 취소를 확인하고 숙소 정책에 따라 환불을 처리합니다.',
+    'cancel_confirm' => '이 예약의 취소를 요청하시겠습니까? 숙소에서 요청을 검토하고 정책에 따라 환불을 처리합니다.',
+    'reason' => '사유',
+    'choose_reason' => '사유 선택…',
+    'request_cancellation' => '취소 요청',
+    'closed_heading' => '종료된 예약입니다',
+    'closed_body' => '더 이상 변경할 내용은 없지만, 날짜와 숙박 정보, 결제 내역은 필요하실 때 언제든 여기에서 확인하실 수 있습니다.',
+];

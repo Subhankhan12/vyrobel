@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '예약',
+    'arrivals_this_month' => '이번 달 도착',
+    'arrivals_this_month_sub' => '이번 달 체크인 · 취소 및 노쇼 제외',
+    'booked_value' => '예약 금액 · 이번 달 도착',
+    'booked_value_sub' => '이번 달 도착 예약에 청구된 금액',
+    'booked_value_sub_multi' => '이번 달 도착 예약에 청구된 금액 · 통화별 표시(합산하지 않음)',
+    'balances_due' => '미결제 잔액 · 이번 달 도착',
+    'folios_owing' => '{0}미결제 없음|{1}미결제 폴리오 :count건|[2,*]미결제 폴리오 :count건',
+    'search_placeholder' => '고객 이름 또는 예약 번호로 검색…',
+    'search_label' => '예약 검색',
+    'group_booking' => '단체 예약',
+    'new_reservation' => '새 예약',
+    'empty_heading' => '아직 예약이 없습니다',
+    'empty_body' => '직접 예약, 워크인, 가져온 예약 등 모든 예약은 접수되면 여기에 표시됩니다.',
+    'no_match_query' => '검색어 “:query”에 해당하는 예약이 없습니다',
+    'no_match_view' => '이 보기에 예약이 없습니다',
+    'no_match_hint' => '{1}고객 이름 또는 예약 번호로 검색해 보세요. 전체 예약 :count건.|[0,*]고객 이름 또는 예약 번호로 검색해 보세요. 전체 예약 :count건.',
+    'no_match_hint_filter' => '{1}고객 이름 또는 예약 번호로 검색하거나 필터를 지워 보세요. 전체 예약 :count건.|[0,*]고객 이름 또는 예약 번호로 검색하거나 필터를 지워 보세요. 전체 예약 :count건.',
+    'clear_search_filters' => '검색 및 필터 지우기',
+    'col_guest' => '고객',
+    'col_stay' => '숙박',
+    'col_unit' => '객실',
+    'col_source' => '예약 경로',
+    'col_stage' => '단계',
+    'col_balance_due' => '미결제 잔액',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count박|[0,*]:count박',
+    'guests' => '{1}:count명|[0,*]:count명',
+    'unassigned' => '미배정',
+    'refunded' => '환불됨',
+    'pager_label' => '예약',
+];

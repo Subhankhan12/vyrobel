@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => '宿泊',
+    'step_guest' => 'ゲスト',
+    'step_extras' => 'オプション',
+    'step_confirm' => '確認',
+    'source_direct' => '直接予約',
+    'source_walk_in' => 'ウォークイン',
+    'source_corporate' => '法人',
+    'source_agent' => '旅行会社',
+    'the_guest' => 'ゲスト',
+    'a_night' => '1泊:amount',
+    'a_night_range' => '1泊:low〜:high',
+    'dates_label' => '{1}:from → :to · :count泊|[0,*]:from → :to · :count泊',
+    'restrict_min_stay' => '{1}:date到着の場合、最低:count泊が必要です|[0,*]:date到着の場合、最低:count泊が必要です',
+    'restrict_max_stay' => '{1}:date到着の場合、最大:count泊までです|[0,*]:date到着の場合、最大:count泊までです',
+    'restrict_no_arrivals' => ':dateは到着不可',
+    'restrict_no_departures' => ':dateは出発不可',
+    'restrict_stop_sell' => ':dateは新規予約を受け付けていません',
+    'restrict_other' => ':date：:restriction',
+    'arrival_mail_off' => 'Vyrobelからのメール送信はまだ行われていません。道順とドアの暗証番号は、ゲストに直接お伝えください。',
+    'arrival_pre_arrival_off' => '各施設の到着前の案内メールがオフになっています。道順とドアの暗証番号は、ゲストに直接お伝えください。',
+    'arrival_too_soon' => 'この宿泊は開始日が近いため、チェックインの:count日前に送られる到着前の案内メールに間に合いません。道順とドアの暗証番号は、ゲストに直接お伝えください。',
+    'arrival_by_email' => '道順と、客室に暗証番号がある場合はドアの暗証番号が、チェックインの:count日前にメールでゲストに届きます（ゲストのメールアドレスが登録されている場合）。ドアの暗証番号はここには表示されません。',
+    'cancel_not_free' => 'この宿泊は無料キャンセル不可 — 期限は:dateに終了しました',
+    'cancel_free_until_check_in' => 'チェックインまで無料',
+    'cancel_free_until_date' => ':dateまで無料',
+    'cancel_free_until_days' => '{1}チェックインの:count日前まで無料|[0,*]チェックインの:count日前まで無料',
+    'min_stay_none' => '最低宿泊数なし',
+    'min_stay_nights' => '{1}:count泊|[0,*]:count泊',
+    'guest_no_name' => 'ゲスト',
+    'no_stays_yet' => '宿泊履歴はまだありません',
+];

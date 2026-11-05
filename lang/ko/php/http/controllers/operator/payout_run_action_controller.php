@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => '지급 엔진이 비활성화되어 있습니다(PAYOUT_ENGINE_ENABLED). 지급을 실행하기 전에 활성화하세요.',
+    'nothing_to_run' => '실행할 항목이 없습니다 — 지급 가능한 정산서나 유보된 지급이 있는 소유주가 없습니다:paused_note.',
+    'run_complete' => '일괄 지급 완료(:mode 모드) — 생성 :created건 · 지급 완료 :paid건 · 유보 :held건:paused_note.',
+    'create_failed' => '지급을 생성하지 못했습니다 — :reason',
+    'already_has_payout' => '이 정산서에는 이미 지급이 있습니다 — 아무것도 생성되지 않았습니다.',
+    'one_payout_created' => '지급 1건을 생성했습니다.',
+    'pay_failed' => '지급하지 못했습니다 — :reason',
+    'one_payout_paid' => '지급 1건을 지급 완료로 표시했습니다.',
+    'payout_failed_reason' => '지급에 실패했습니다 — :reason',
+    'payout_failed_no_reason' => '지급에 실패했습니다 — 지급 경로에서 사유를 알려 주지 않았습니다.',
+    'create_all_failed' => '지급을 생성하지 못했습니다 — :reason',
+    'no_payout_created_paused' => '생성된 지급이 없습니다:paused_note — 소유주 페이지에서 재개하세요.',
+    'nothing_ready' => '지급할 준비가 된 항목이 없습니다 — 실지급액이 0보다 큰 마감된 정산서가 없습니다:paused_note.',
+    'no_new_payouts' => '새 지급이 없습니다 — 준비된 모든 정산서에 이미 지급이 있습니다:paused_note.',
+    'payouts_created' => '{1}지급 :count건을 생성했습니다:paused_note.|[0,*]지급 :count건을 생성했습니다:paused_note.',
+    'some_not_created' => ':message 일부는 생성하지 못했습니다 — :reason',
+    'nothing_paid_paused' => '지급된 항목이 없습니다:paused_note — 소유주 페이지에서 재개하세요.',
+    'no_pending_payouts' => '지급 대기 중인 건이 없습니다.',
+    'paid_only' => '{1}지급 :count건을 지급 완료로 표시했습니다:paused_note.|[0,*]지급 :count건을 지급 완료로 표시했습니다:paused_note.',
+    'failed_only' => '[0,*]지급 경로에서 :count건이 실패했습니다:paused_note.',
+    'paid_and_failed' => '{1}지급 완료 표시 :count건 · 지급 경로에서 실패 :failed건:paused_note.|[0,*]지급 완료 표시 :count건 · 지급 경로에서 실패 :failed건:paused_note.',
+    'some_not_attempted' => ':message 일부는 시도하지 못했습니다 — :reason',
+    'nothing_payable_negative' => '지급할 금액이 없습니다 — 이 정산서의 순액이 음수이므로 잔액이 이월되어 소유주의 다음 정산서에서 상계됩니다.',
+    'nothing_payable_zero' => '지급할 금액이 없습니다 — 이 정산서의 순액이 0이므로 지급 의무가 없습니다.',
+    'workspace_paused_until' => '워크스페이스가 일시 중지되었습니다 — :date까지 지급은 읽기 전용입니다.',
+    'workspace_paused_for_now' => '워크스페이스가 일시 중지되었습니다 — 현재 지급은 읽기 전용입니다.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}일시 중지된 소유주 :count명 제외|[0,*]일시 중지된 소유주 :count명 제외',
+];

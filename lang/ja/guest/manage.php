@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => ':referenceの管理',
+    'back_to_booking' => '← ご予約に戻る',
+    'heading' => 'ご予約の管理',
+    'subheading' => ':property · :check_in → :check_out。変更は宿泊施設が確認します。確認され次第、メッセージでお知らせします。',
+    'pending_requests' => '確認待ちのリクエスト',
+    'pending_badge' => '確認待ち',
+    'pending_note' => 'ご予約内容はまだ変更されていません。リクエストは宿泊施設の確認後に反映されます。',
+    'pick_new_dates' => '新しい日程を選択',
+    'currently' => '現在の日程：:check_in → :check_out。新しい日程を選ぶと料金の差額が表示されます。その後、変更をリクエストしてください。',
+    'new_check_in' => '新しいチェックイン日',
+    'new_check_out' => '新しいチェックアウト日',
+    'see_price_difference' => '差額を確認',
+    'new_stay' => '変更後',
+    'current' => '現在',
+    'difference' => '差額',
+    'estimate_note' => '概算です。宿泊施設の確認が必要です。お支払いは確認後に行われます。',
+    'unpriced_note' => 'この日程の料金はまだ公開されていません。変更をリクエストすると、宿泊施設が料金を確認します。',
+    'request_date_change' => '日程の変更をリクエスト',
+    'add_to_your_stay' => 'ご宿泊への追加',
+    'add_to_your_stay_sub' => '朝食や送迎などを追加できます。料金は確認時にすべてご予約に加算されます。',
+    'browse_extras' => 'オプションを見る',
+    'cancellation_policy' => 'キャンセルポリシー',
+    'free_until' => '<strong>:date</strong>までは無料でキャンセルできます。それまでにキャンセルのリクエストをいただいた場合は、全額返金されます。',
+    'policy_by_property' => 'キャンセルは宿泊施設が確認し、返金は宿泊施設のポリシーに従って対応します。',
+    'cancel_confirm' => 'このご予約のキャンセルをリクエストしますか？宿泊施設が内容を確認し、ポリシーに従って返金に対応します。',
+    'reason' => '理由',
+    'choose_reason' => '理由を選択…',
+    'request_cancellation' => 'キャンセルをリクエスト',
+    'closed_heading' => 'このご予約は終了しました',
+    'closed_body' => '変更できる項目はもうありませんが、日程、ご宿泊の詳細、お支払い済みの金額は、いつでもここでご確認いただけます。',
+];

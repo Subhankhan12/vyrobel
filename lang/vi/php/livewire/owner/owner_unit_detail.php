@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Khách',
+    'nights' => '{1}:count đêm|[0,*]:count đêm',
+    'block_reason_none' => 'Đã chặn',
+    'block_reason_maintenance' => 'Bảo trì',
+    'block_reason_owner' => 'Chủ sở hữu',
+    'block_reason_manual' => 'Thủ công',
+    'block_reason_overbooking_protection' => 'Dự phòng',
+    'cleaning_departure' => 'Dọn phòng khi khách đi',
+    'cleaning_stayover' => 'Dọn phòng khi khách đang ở',
+    'cleaning_deep' => 'Dọn dẹp chuyên sâu',
+    'cleaning_arrival_prep' => 'Chuẩn bị đón khách',
+    'cleaning_status_pending' => 'Đã lên lịch',
+    'cleaning_status_in_progress' => 'Đang dọn',
+    'cleaning_status_clean' => 'Đã dọn',
+    'cleaning_status_inspected' => 'Đã kiểm tra',
+    'kind_room' => 'Phòng',
+    'kind_apartment' => 'Căn hộ',
+    'kind_villa' => 'Biệt thự',
+    'kind_dorm_bed' => 'Giường tập thể',
+    'condition_out_of_order' => 'Hỏng',
+    'condition_out_of_service' => 'Đang bảo trì',
+    'status_enquiry' => 'Hỏi giá',
+    'status_tentative' => 'Giữ chỗ',
+    'status_confirmed' => 'Đã xác nhận',
+    'status_checked_in' => 'Đã nhận phòng',
+    'status_checked_out' => 'Đã trả phòng',
+    'status_cancelled' => 'Đã hủy',
+    'status_no_show' => 'Không đến',
+    'terms_portfolio' => 'Điều khoản áp dụng toàn danh mục',
+    'terms_unit' => 'Điều khoản cho căn này',
+];

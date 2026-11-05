@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => '호텔',
+    'type_aparthotel' => '아파트호텔',
+    'type_serviced_apartment' => '서비스드 레지던스',
+    'type_apartment_building' => '아파트',
+    'type_apartment' => '아파트',
+    'type_villa' => '빌라',
+    'type_hostel' => '호스텔',
+    'type_guest_house' => '게스트하우스',
+    'type_resort' => '리조트',
+    'type_mixed' => '호텔 및 아파트',
+    'type_portfolio' => '숙박 상품',
+    'title_town' => ':name, :town — 공식 사이트 직접 예약',
+    'title' => ':name — 공식 사이트 직접 예약',
+    'title_room' => ':property의 :room — 공식 사이트 직접 예약',
+    'org_description_towns' => '{1}:towns에 있는 숙소 :count곳을 둘러보세요. 예약 가능 여부를 확인하고 :org에서 직접 예약하세요.|[0,*]:towns에 있는 숙소 :count곳을 둘러보세요. 예약 가능 여부를 확인하고 :org에서 직접 예약하세요.',
+    'org_description' => '{1}숙소 :count곳을 둘러보세요. 예약 가능 여부를 확인하고 :org에서 직접 예약하세요.|[0,*]숙소 :count곳을 둘러보세요. 예약 가능 여부를 확인하고 :org에서 직접 예약하세요.',
+    'org_description_empty' => '예약 가능 여부를 확인하고 :org에서 직접 예약하세요.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}:name 공식 사이트에서 직접 예약하세요. :place의 :type. 객실 유형 :count개. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.|[0,*]:name 공식 사이트에서 직접 예약하세요. :place의 :type. 객실 유형 :count개. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.',
+    'description_place' => ':name 공식 사이트에서 직접 예약하세요. :place의 :type. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.',
+    'description_rooms' => '{1}:name 공식 사이트에서 직접 예약하세요. :type. 객실 유형 :count개. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.|[0,*]:name 공식 사이트에서 직접 예약하세요. :type. 객실 유형 :count개. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.',
+    'description' => ':name 공식 사이트에서 직접 예약하세요. :type. 중개 사이트를 거치지 않고 실시간 예약 가능 여부를 확인하고 바로 예약하세요.',
+    'detail_sleeps' => '최대 :guests명',
+    'detail_bedrooms' => '{1}침실 :count개|[0,*]침실 :count개',
+    'room_description_town_details' => ':town에 있는 :property의 :room — :details. 실시간 예약 가능 여부를 확인하고 공식 사이트에서 직접 예약하세요.',
+    'room_description_town' => ':town에 있는 :property의 :room. 실시간 예약 가능 여부를 확인하고 공식 사이트에서 직접 예약하세요.',
+    'room_description_details' => ':property의 :room — :details. 실시간 예약 가능 여부를 확인하고 공식 사이트에서 직접 예약하세요.',
+    'room_description' => ':property의 :room. 실시간 예약 가능 여부를 확인하고 공식 사이트에서 직접 예약하세요.',
+    'list_and' => ':items 및 :last',
+];

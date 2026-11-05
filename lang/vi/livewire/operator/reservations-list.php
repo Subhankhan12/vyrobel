@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Đặt phòng',
+    'arrivals_this_month' => 'Khách đến tháng này',
+    'arrivals_this_month_sub' => 'nhận phòng trong tháng này · không tính đặt phòng đã hủy và không đến',
+    'booked_value' => 'Giá trị đặt phòng · khách đến tháng này',
+    'booked_value_sub' => 'đã ghi phí cho khách đến tháng này',
+    'booked_value_sub_multi' => 'đã ghi phí cho khách đến tháng này · hiển thị theo từng loại tiền (không bao giờ cộng gộp)',
+    'balances_due' => 'Còn phải thanh toán · khách đến tháng này',
+    'folios_owing' => '{0}không còn nợ|{1}:count folio còn nợ|[2,*]:count folio còn nợ',
+    'search_placeholder' => 'Tìm theo khách hoặc mã đặt phòng…',
+    'search_label' => 'Tìm đặt phòng',
+    'group_booking' => 'Đặt phòng đoàn',
+    'new_reservation' => 'Đặt phòng mới',
+    'empty_heading' => 'Chưa có đặt phòng',
+    'empty_body' => 'Mọi đặt phòng — trực tiếp, khách vãng lai hay được nhập vào — sẽ xuất hiện ở đây ngay khi được nhận.',
+    'no_match_query' => 'Không có đặt phòng nào khớp với “:query”',
+    'no_match_view' => 'Không có đặt phòng nào trong chế độ xem này',
+    'no_match_hint' => '{1}Thử tìm theo tên khách hoặc mã đặt phòng. Tổng cộng: :count đặt phòng.|[0,*]Thử tìm theo tên khách hoặc mã đặt phòng. Tổng cộng: :count đặt phòng.',
+    'no_match_hint_filter' => '{1}Thử tìm theo tên khách hoặc mã đặt phòng, hoặc xóa bộ lọc. Tổng cộng: :count đặt phòng.|[0,*]Thử tìm theo tên khách hoặc mã đặt phòng, hoặc xóa bộ lọc. Tổng cộng: :count đặt phòng.',
+    'clear_search_filters' => 'Xóa tìm kiếm và bộ lọc',
+    'col_guest' => 'Khách',
+    'col_stay' => 'Kỳ lưu trú',
+    'col_unit' => 'Phòng',
+    'col_source' => 'Nguồn',
+    'col_stage' => 'Giai đoạn',
+    'col_balance_due' => 'Còn phải thanh toán',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count đêm|[0,*]:count đêm',
+    'guests' => '{1}:count khách|[0,*]:count khách',
+    'unassigned' => 'Chưa xếp phòng',
+    'refunded' => 'Đã hoàn tiền',
+    'pager_label' => 'đặt phòng',
+];

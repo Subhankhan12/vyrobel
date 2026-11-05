@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Tổng quan',
+    'breadcrumb_bookings' => 'Đặt phòng',
+    'guest_fallback' => 'Khách',
+    'reservation' => 'Đặt phòng',
+    'check_in' => 'Nhận phòng',
+    'nights_count' => '{1}:count đêm|[0,*]:count đêm',
+    'check_out' => 'Trả phòng',
+    'unit' => 'Căn',
+    'guests' => 'Khách',
+    'nights' => 'Số đêm',
+    'nightly_rate' => 'Giá mỗi đêm',
+    'your_earnings' => 'Thu nhập của bạn',
+    'gross_to_net' => 'gộp → ròng',
+    'gross_booking_value' => 'Giá trị đặt phòng gộp',
+    'net_to_you' => 'Thực nhận của bạn',
+    'refunds_we_covered' => 'Hoàn tiền do chúng tôi chịu',
+    'refunds_we_covered_note' => 'Đã hoàn tiền cho khách và tính cho chúng tôi, không tính cho bạn. Thu nhập của bạn ở trên không thay đổi.',
+    'not_yet_attributed' => 'Chưa ghi vào sổ cái.',
+    'not_yet_attributed_note' => 'Thu nhập của bạn sẽ hiển thị tại đây khi đặt phòng này được ghi vào sổ cái của bạn — thường là sau khi trả phòng.',
+    'guest_heading' => 'Khách',
+    'guest_contact_note' => 'Thông tin liên hệ của khách do đơn vị quản lý xử lý — bạn xem được đặt phòng và thu nhập của mình.',
+    'message_your_team' => 'Nhắn tin cho đơn vị quản lý',
+    'timeline' => 'Dòng thời gian',
+    'for_night_stay' => 'cho kỳ lưu trú :nights đêm này',
+    'booking_details' => 'Chi tiết đặt phòng',
+    'confirmation' => 'Mã xác nhận',
+    'source' => 'Nguồn',
+    'channel' => 'Kênh',
+    'booked_on' => 'Ngày đặt',
+    'download_confirmation' => 'Tải xuống xác nhận đặt phòng',
+    'download_unavailable' => 'Dành cho đồng sở hữu và kế toán',
+    'view_unit' => 'Xem căn :unit',
+];

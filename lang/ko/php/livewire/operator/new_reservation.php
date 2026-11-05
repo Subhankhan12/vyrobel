@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => '숙박',
+    'step_guest' => '고객',
+    'step_extras' => '추가 서비스',
+    'step_confirm' => '확인',
+    'source_direct' => '직접',
+    'source_walk_in' => '워크인',
+    'source_corporate' => '기업 고객',
+    'source_agent' => '여행사',
+    'the_guest' => '고객',
+    'a_night' => '1박 :amount',
+    'a_night_range' => '1박 :low–:high',
+    'dates_label' => '{1}:from → :to · :count박|[0,*]:from → :to · :count박',
+    'restrict_min_stay' => '{1}:date 도착 시 최소 :count박 이상 숙박해야 합니다|[0,*]:date 도착 시 최소 :count박 이상 숙박해야 합니다',
+    'restrict_max_stay' => '{1}:date 도착 시 최대 :count박까지 숙박할 수 있습니다|[0,*]:date 도착 시 최대 :count박까지 숙박할 수 있습니다',
+    'restrict_no_arrivals' => ':date 도착 불가',
+    'restrict_no_departures' => ':date 출발 불가',
+    'restrict_stop_sell' => ':date 판매 중지 — 새 예약을 받지 않습니다',
+    'restrict_other' => ':date: :restriction',
+    'arrival_mail_off' => '아직 Vyrobel에서 이메일이 발송되지 않습니다. 고객에게 길 안내와 도어락 비밀번호를 직접 전달하세요.',
+    'arrival_pre_arrival_off' => '숙소의 도착 전 이메일이 꺼져 있습니다. 고객에게 길 안내와 도어락 비밀번호를 직접 전달하세요.',
+    'arrival_too_soon' => '도착 전 이메일은 체크인 :count일 전에 발송되므로 이 숙박에는 너무 늦습니다. 고객에게 길 안내와 도어락 비밀번호를 직접 전달하세요.',
+    'arrival_by_email' => '길 안내와 도어락 비밀번호(객실에 있는 경우)는 체크인 :count일 전에 이메일로 고객에게 전달됩니다. 단, 고객의 이메일 주소가 있어야 합니다. 도어락 비밀번호는 여기에 표시되지 않습니다.',
+    'cancel_not_free' => '이 숙박은 무료 취소 불가 — :date에 기한 종료',
+    'cancel_free_until_check_in' => '체크인 전까지 무료 취소',
+    'cancel_free_until_date' => ':date까지 무료 취소',
+    'cancel_free_until_days' => '{1}체크인 :count일 전까지 무료 취소|[0,*]체크인 :count일 전까지 무료 취소',
+    'min_stay_none' => '최소 숙박 기간 없음',
+    'min_stay_nights' => '{1}:count박|[0,*]:count박',
+    'guest_no_name' => '고객',
+    'no_stays_yet' => '숙박 기록 없음',
+];

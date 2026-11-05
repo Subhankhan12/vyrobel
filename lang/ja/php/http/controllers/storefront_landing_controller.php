@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => '客室一覧',
+    'properties_count' => ':count施設',
+    'stays_count' => '{1}:count室|[0,*]:count室',
+    'stays_sleeps' => ':stays · 定員:max名',
+    'stays_sleeps_range' => ':stays · 定員:min〜:max名',
+    'perk_free_cancel_days' => '{1}到着の:count日前まで、全額返金されます。|[0,*]到着の:count日前まで、全額返金されます。',
+    'perk_free_cancel_window' => 'キャンセル期限内であれば、全額返金されます。',
+    'perk_no_fees' => '予約手数料なし',
+    'perk_no_fees_sub' => '表示されている料金が、そのままお支払い料金です。',
+    'perk_best_rate' => '公式サイトが最安料金',
+    'perk_best_rate_sub' => '公式サイトからのご予約で、最安料金をご利用いただけます。仲介業者は介在しません。',
+    'perk_free_cancel' => '無料キャンセル',
+    'perk_host_support' => '宿泊施設が直接サポート',
+    'perk_host_support_sub' => 'ご予約について、宿泊施設の担当者に直接メッセージをお送りいただけます。',
+    'kind_room' => '客室',
+    'kind_apartment' => 'アパートメント',
+    'kind_villa' => 'ヴィラ',
+    'kind_dorm' => 'ドミトリー',
+    'type_hotel' => 'ホテル',
+    'type_aparthotel' => 'アパートメントホテル',
+    'type_serviced_apartment' => 'サービスアパートメント',
+    'type_apartment_building' => 'アパートメント棟',
+    'type_apartment' => 'アパートメント',
+    'type_villa' => 'ヴィラ',
+    'type_hostel' => 'ホステル',
+    'type_guest_house' => 'ゲストハウス',
+    'type_resort' => 'リゾート',
+    'type_mixed' => '複合',
+    'type_portfolio' => 'ポートフォリオ',
+];

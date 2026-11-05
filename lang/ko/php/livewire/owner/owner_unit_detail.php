@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => '고객',
+    'nights' => '{1}:count박|[0,*]:count박',
+    'block_reason_none' => '차단됨',
+    'block_reason_maintenance' => '유지보수',
+    'block_reason_owner' => '소유주',
+    'block_reason_manual' => '수동',
+    'block_reason_overbooking_protection' => '초과 예약 방지',
+    'cleaning_departure' => '퇴실 청소',
+    'cleaning_stayover' => '숙박 중 청소',
+    'cleaning_deep' => '딥 클리닝',
+    'cleaning_arrival_prep' => '입실 준비',
+    'cleaning_status_pending' => '예정됨',
+    'cleaning_status_in_progress' => '청소 중',
+    'cleaning_status_clean' => '청소 완료',
+    'cleaning_status_inspected' => '점검 완료',
+    'kind_room' => '일반 객실',
+    'kind_apartment' => '아파트',
+    'kind_villa' => '빌라',
+    'kind_dorm_bed' => '도미토리 침대',
+    'condition_out_of_order' => '고장',
+    'condition_out_of_service' => '정비 중',
+    'status_enquiry' => '문의',
+    'status_tentative' => '가예약',
+    'status_confirmed' => '확정됨',
+    'status_checked_in' => '체크인 완료',
+    'status_checked_out' => '체크아웃 완료',
+    'status_cancelled' => '취소됨',
+    'status_no_show' => '노쇼',
+    'terms_portfolio' => '포트폴리오 전체 조건',
+    'terms_unit' => '이 객실의 조건',
+];

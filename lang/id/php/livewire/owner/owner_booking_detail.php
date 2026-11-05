@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'mulai :time',
+    'by_time' => 'hingga :time',
+    'repeat_guest' => '{1}Tamu langganan · :count masa inap|[0,*]Tamu langganan · :count masa inap',
+    'new_guest' => 'Tamu baru',
+    'guests_count' => '{1}:count tamu|[0,*]:count tamu',
+    'nights_count' => '{1}:count malam|[0,*]:count malam',
+    'channel_direct' => 'Langsung via Vyrobel',
+    'channel_walk_in' => 'Walk-in',
+    'channel_ota' => 'Saluran OTA',
+    'event_booking_received' => 'Reservasi diterima',
+    'event_cancelled' => 'Dibatalkan',
+    'event_payment_received' => 'Pembayaran diterima',
+    'when_paid_in_full' => 'Lunas',
+    'event_part_payment_received' => 'Pembayaran sebagian diterima',
+    'when_balance_due' => 'Sisa tagihan',
+    'event_payment' => 'Pembayaran',
+    'when_not_yet_received' => 'Belum diterima',
+    'event_checked_in' => 'Sudah check-in',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Sudah check-out',
+    'event_payout_released' => 'Pencairan dikirim',
+    'event_payout' => 'Pencairan',
+    'when_next_payout' => 'Bersama pencairan Anda berikutnya',
+    'payout_not_attributed' => 'Belum dicatat',
+    'payout_not_attributed_note' => 'Reservasi ini belum dicatat ke buku besar Anda.',
+    'payout_scheduled' => 'Terjadwal',
+    'payout_scheduled_note' => 'Termasuk dalam rekap Anda berikutnya, lalu dicairkan bersama pencairan tersebut.',
+    'payout_pending' => 'Pencairan menunggu',
+    'payout_pending_note' => 'Ada di rekap final — dicairkan bersama pencairan tersebut.',
+    'payout_paid' => 'Dicairkan',
+    'payout_paid_note' => 'Dicairkan melalui pencairan yang sudah selesai.',
+];

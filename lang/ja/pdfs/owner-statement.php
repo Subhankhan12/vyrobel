@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'Vyrobelで管理',
+    'eyebrow' => 'オーナー収支報告書',
+    'unit_count' => '{1}:count件の物件|[0,*]:count件の物件',
+    'issued' => '発行日：:date',
+    'prepared_for' => '宛先',
+    'net_payable_to_owner' => 'オーナーへの支払純額',
+    'iban' => 'IBAN：:iban',
+    'occupancy' => '稼働率',
+    'nights_sold' => '販売泊数',
+    'avg_nightly_rate' => '平均1泊料金',
+    'breakdown' => '内訳',
+    'item' => '項目',
+    'detail' => '詳細',
+    'amount' => '金額',
+    'provisional' => '（暫定）',
+    'performance_by_unit' => '物件別の実績',
+    'unit' => '物件',
+    'nights' => '泊数',
+    'revenue' => '収益',
+    'total_gross_room_revenue' => '宿泊総収益の合計',
+    'callout_heading' => '送金：',
+    'settles_to_iban' => '純額:amountは、銀行振込でIBAN :ibanに送金されます。',
+    'settles' => '純額:amountは、銀行振込で送金されます。',
+    'fees_with_commission' => '管理手数料として宿泊総収益の:pct%が差し引かれます。決済手数料とプラットフォーム手数料は実費で差し引かれます。金額はすべて:currency建てで、オーナーに代わって徴収した該当する税を含みます。',
+    'fees' => '決済手数料とプラットフォーム手数料は実費で差し引かれます。金額はすべて:currency建てで、オーナーに代わって徴収した該当する税を含みます。',
+    'fx_note' => ':sourceから為替レート:rateで換算しています（出典：:src）。',
+    'provisional_note' => '一部の明細は、チャネルとの照合待ちのため暫定です。',
+    'statement_ref' => '収支報告書:ref',
+    'sequence_no' => '番号:number',
+    'generated' => '作成日：<span style="white-space:nowrap;">:date</span>',
+    'questions' => 'お問い合わせ：:email',
+];

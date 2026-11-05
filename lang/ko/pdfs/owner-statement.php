@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'Vyrobel로 관리',
+    'eyebrow' => '소유주 정산서',
+    'unit_count' => '{1}객실 :count개|[0,*]객실 :count개',
+    'issued' => '발행일: :date',
+    'prepared_for' => '수신인',
+    'net_payable_to_owner' => '소유주 실지급액',
+    'iban' => 'IBAN :iban',
+    'occupancy' => '점유율',
+    'nights_sold' => '판매 박수',
+    'avg_nightly_rate' => '평균 1박 요금',
+    'breakdown' => '내역',
+    'item' => '항목',
+    'detail' => '세부 정보',
+    'amount' => '금액',
+    'provisional' => '(잠정)',
+    'performance_by_unit' => '객실별 실적',
+    'unit' => '객실',
+    'nights' => '박수',
+    'revenue' => '수익',
+    'total_gross_room_revenue' => '총 객실 수익 합계',
+    'callout_heading' => '지급.',
+    'settles_to_iban' => '순액(:amount)은 계좌 이체로 IBAN :iban 계좌에 지급됩니다.',
+    'settles' => '순액(:amount)은 계좌 이체로 지급됩니다.',
+    'fees_with_commission' => '위탁 운영 수수료는 총 객실 수익의 :pct%로 부과되며, 결제 및 플랫폼 수수료는 실비로 전가됩니다. 모든 금액은 :currency 기준이며 소유주를 대신해 징수한 해당 세금이 포함되어 있습니다.',
+    'fees' => '결제 및 플랫폼 수수료는 실비로 전가됩니다. 모든 금액은 :currency 기준이며 소유주를 대신해 징수한 해당 세금이 포함되어 있습니다.',
+    'fx_note' => ':source 통화에서 환산했습니다(환율 :rate, 출처: :src).',
+    'provisional_note' => '일부 항목은 채널 정산 대기 중인 잠정 항목입니다.',
+    'statement_ref' => '정산서 :ref',
+    'sequence_no' => '번호 :number',
+    'generated' => '생성일: <span style="white-space:nowrap;">:date</span>',
+    'questions' => '문의: :email',
+];

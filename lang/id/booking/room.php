@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — id translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Semua kamar',
+    'kind_sleeps_up_to' => ':kind · muat hingga :capacity orang',
+    'reviews_count' => '{1}:count ulasan|[0,*]:count ulasan',
+    'no_reviews_yet' => 'Belum ada ulasan',
+    'save_to_wishlist' => 'Tambahkan ke favorit',
+    'sleeps' => 'Kapasitas',
+    'adults' => 'Dewasa',
+    'children' => 'Anak',
+    'bedrooms' => 'Kamar tidur',
+    'standard_occupancy' => 'Kapasitas standar',
+    'amenities' => 'Fasilitas',
+    'not_yet_listed' => 'Belum dicantumkan',
+    'amenities_not_published' => 'Fasilitas kamar ini belum dipublikasikan.',
+    'guest_reviews' => 'Ulasan tamu',
+    'stars_aria' => ':rating dari 5 bintang',
+    'response_label' => 'Tanggapan:',
+    'no_reviews_be_first' => 'Belum ada ulasan — jadilah yang pertama menginap dan berbagi pengalaman Anda.',
+    'coming_soon' => 'Segera hadir',
+    'description_soon' => 'Deskripsi lengkap & peta lokasi segera hadir — spesifikasi, ketersediaan, harga, dan ulasan di atas adalah data nyata.',
+    'per_night' => '/ malam',
+    'per_night_with_note' => '/ malam · :note',
+    'total_nights' => '{1}Total :amount · :count malam|[0,*]Total :amount · :count malam',
+    'left_for_your_dates' => 'Sisa :count untuk tanggal Anda',
+    'book_this_room' => 'Pesan kamar ini',
+    'nothing_reserved' => 'Belum ada yang dipesan sampai Anda mengonfirmasi saat pembayaran.',
+    'your_dates' => 'Tanggal Anda',
+    'not_available' => 'Tidak tersedia untuk tanggal ini — coba tanggal lain.',
+    'check_in' => 'Tanggal kedatangan',
+    'check_out' => 'Tanggal keberangkatan',
+    'check_dates' => 'Cek tanggal',
+    'check_availability' => 'Cek ketersediaan & harga',
+    'see_price' => 'Lihat harga',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — id translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Ikhtisar',
+    'breadcrumb_bookings' => 'Reservasi',
+    'guest_fallback' => 'Tamu',
+    'reservation' => 'Reservasi',
+    'check_in' => 'Check-in',
+    'nights_count' => '{1}:count malam|[0,*]:count malam',
+    'check_out' => 'Check-out',
+    'unit' => 'Unit',
+    'guests' => 'Tamu',
+    'nights' => 'Malam',
+    'nightly_rate' => 'Tarif per malam',
+    'your_earnings' => 'Penghasilan Anda',
+    'gross_to_net' => 'kotor → bersih',
+    'gross_booking_value' => 'Nilai reservasi kotor',
+    'net_to_you' => 'Bersih untuk Anda',
+    'refunds_we_covered' => 'Pengembalian dana yang kami tanggung',
+    'refunds_we_covered_note' => 'Dikembalikan ke tamu dan dibebankan kepada kami, bukan kepada Anda. Penghasilan Anda di atas tidak berubah.',
+    'not_yet_attributed' => 'Belum dicatat.',
+    'not_yet_attributed_note' => 'Penghasilan Anda tampil di sini setelah reservasi ini dicatat ke buku besar Anda — biasanya setelah check-out.',
+    'guest_heading' => 'Tamu',
+    'guest_contact_note' => 'Detail kontak tamu ditangani oleh pengelola Anda — Anda dapat melihat reservasi dan penghasilan Anda.',
+    'message_your_team' => 'Kirim pesan ke pengelola',
+    'timeline' => 'Linimasa',
+    'for_night_stay' => 'untuk masa inap :nights malam ini',
+    'booking_details' => 'Detail reservasi',
+    'confirmation' => 'Kode konfirmasi',
+    'source' => 'Sumber',
+    'channel' => 'Saluran',
+    'booked_on' => 'Dipesan pada',
+    'download_confirmation' => 'Unduh konfirmasi',
+    'download_unavailable' => 'Tersedia untuk pemilik bersama dan akuntan',
+    'view_unit' => 'Lihat :unit',
+];

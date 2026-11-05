@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '緊急アクセス',
+    'subtitle' => '1つのワークスペースを、時間を限って読み取り専用で確認します。理由と2要素認証が必要で、そのワークスペースにも通知されます。',
+    'back_label' => 'サポート',
+    'open_heading' => 'セッションが開いています',
+    'open_summary' => '{1}:organization · :time（UTC）に終了 · :countページを閲覧。|[0,*]:organization · :time（UTC）に終了 · :countページを閲覧。',
+    'go_to_back_office' => 'このワークスペースの管理画面へ移動',
+    'end_now' => '今すぐセッションを終了',
+    'start_heading' => 'セッションを開始',
+    'rule_read_only' => '<strong>読み取り専用。</strong>フォーム、ボタンなど、保存を伴う変更はすべて拒否されます。',
+    'rule_minutes' => '{1}<strong>:count分</strong>経過すると自動的に終了します。|[0,*]<strong>:count分</strong>経過すると自動的に終了します。',
+    'rule_senior_user' => '管理画面の認証済みユーザーのうち、最上位の権限を持つユーザーと同じ画面が表示されます（ゲスト情報を含む）。理由に必要な範囲だけを確認してください。',
+    'rule_recorded' => '開いたページはすべて記録され、終了後にそのワークスペースのチームへ、名前、日時、この理由が通知されます。',
+    'organisation_label' => 'ワークスペース',
+    'choose_option' => '選択…',
+    'code_label' => '2要素認証コード（現在のもの）',
+    'reason_label' => '理由 — ワークスペース側に表示されます',
+    'reason_placeholder' => '例：チケット#123 — オーナーから予約が見当たらないとの報告',
+    'open_button' => '読み取り専用セッションを開始',
+    'recent_heading' => '最近のセッション',
+    'empty_state' => '緊急アクセスのセッションはまだ一度も開始されていません。',
+    'col_admin' => '管理者',
+    'col_organisation' => 'ワークスペース',
+    'col_reason' => '理由',
+    'col_started' => '開始',
+    'col_ended' => '終了',
+    'col_pages' => 'ページ数',
+    'col_told' => '通知',
+    'ended_open' => '継続中',
+    'ended_due' => '期限到来 — 未処理',
+    'told_yes' => '通知済み',
+    'told_not_yet' => '未通知',
+];

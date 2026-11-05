@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — id translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Preferensi notifikasi',
+    'subtitle' => 'Cara Vyrobel menghubungi Anda',
+    'breadcrumb_label' => 'Jejak navigasi',
+    'crumb_settings' => 'Pengaturan',
+    'crumb_notifications' => 'Notifikasi',
+    'channel_email' => 'Email',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Belum ada email terdaftar',
+    'email_verified_title' => 'Email untuk masuk Anda sudah terverifikasi',
+    'email_verified' => 'Terverifikasi',
+    'push_not_set_up_title' => 'Push belum diatur',
+    'not_set_up_tag' => 'belum diatur',
+    'push_not_available' => 'Notifikasi push di browser & perangkat belum tersedia',
+    'channel_off' => 'Nonaktif',
+    'sms_not_set_up_title' => 'SMS belum diatur',
+    'sms_no_provider' => 'Belum ada penyedia SMS yang terhubung',
+    'notify_me_when' => 'Beri tahu saya saat',
+    'always_on' => 'Selalu aktif',
+    'email_always_on_sr' => 'Email selalu aktif untuk :event',
+    'email_me_when_aria' => 'Kirim email saat: :event',
+    'push_not_set_up_sr' => 'Push belum diatur',
+    'sms_not_set_up_sr' => 'SMS belum diatur',
+    'quiet_hours' => 'Jam tenang',
+    'quiet_hours_help' => 'Tahan email rutin di antara jam ini — peringatan keamanan yang mendesak selalu terkirim; notifikasi di aplikasi tidak terpengaruh.',
+    'quiet_from' => 'Dari',
+    'quiet_to' => 'Sampai',
+    'digest_heading' => 'Email ringkasan harian',
+    'digest_help' => 'Ringkasan hari ini setiap pagi. <span class="vy-np-soon">belum dikirim</span> — preferensi ini disimpan untuk saat fitur ringkasan dirilis.',
+    'digest_off' => 'Nonaktif',
+    'digest_morning' => 'Pagi · 08:00',
+];

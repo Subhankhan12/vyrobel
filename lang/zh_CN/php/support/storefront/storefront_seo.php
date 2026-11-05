@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => '酒店',
+    'type_aparthotel' => '公寓酒店',
+    'type_serviced_apartment' => '服务式公寓',
+    'type_apartment_building' => '公寓楼',
+    'type_apartment' => '公寓',
+    'type_villa' => '别墅',
+    'type_hostel' => '青年旅舍',
+    'type_guest_house' => '民宿',
+    'type_resort' => '度假村',
+    'type_mixed' => '酒店及公寓',
+    'type_portfolio' => '可选住宿',
+    'title_town' => ':name，:town——官网直订',
+    'title' => ':name——官网直订',
+    'title_room' => ':property 的 :room——官网直订',
+    'org_description_towns' => '{1}浏览位于 :towns 的 :count 家酒店。查看空房，直接向 :org 预订。|[0,*]浏览位于 :towns 的 :count 家酒店。查看空房，直接向 :org 预订。',
+    'org_description' => '{1}浏览 :count 家酒店。查看空房，直接向 :org 预订。|[0,*]浏览 :count 家酒店。查看空房，直接向 :org 预订。',
+    'org_description_empty' => '查看空房，直接向 :org 预订。',
+    'place_town_country' => ':town，:country',
+    'description_place_rooms' => '{1}官网直订 :name。位于 :place 的:type。共 :count 个房型。查看实时空房，无需通过预订网站即可预订。|[0,*]官网直订 :name。位于 :place 的:type。共 :count 个房型。查看实时空房，无需通过预订网站即可预订。',
+    'description_place' => '官网直订 :name。位于 :place 的:type。查看实时空房，无需通过预订网站即可预订。',
+    'description_rooms' => '{1}官网直订 :name。:type。共 :count 个房型。查看实时空房，无需通过预订网站即可预订。|[0,*]官网直订 :name。:type。共 :count 个房型。查看实时空房，无需通过预订网站即可预订。',
+    'description' => '官网直订 :name。:type。查看实时空房，无需通过预订网站即可预订。',
+    'detail_sleeps' => '最多可住 :guests 人',
+    'detail_bedrooms' => '{1}:count 间卧室|[0,*]:count 间卧室',
+    'room_description_town_details' => ':property（:town）的 :room——:details。查看实时空房，官网直订。',
+    'room_description_town' => ':property（:town）的 :room。查看实时空房，官网直订。',
+    'room_description_details' => ':property 的 :room——:details。查看实时空房，官网直订。',
+    'room_description' => ':property 的 :room。查看实时空房，官网直订。',
+    'list_and' => ':items 和 :last',
+];

@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Công cụ chi trả đang tắt (PAYOUT_ENGINE_ENABLED). Vui lòng bật công cụ này trước khi chạy chi trả.',
+    'nothing_to_run' => 'Không có gì để chạy — không chủ sở hữu nào ở đây có bảng đối soát cần chi trả hoặc khoản chi trả bị giữ lại:paused_note.',
+    'run_complete' => 'Đã chạy xong đợt chi trả (chế độ: :mode) — :created đã tạo · :paid đã chi trả · :held bị giữ lại:paused_note.',
+    'create_failed' => 'Không thể tạo khoản chi trả — :reason',
+    'already_has_payout' => 'Bảng đối soát này đã có khoản chi trả — không có gì được tạo.',
+    'one_payout_created' => 'Đã tạo 1 khoản chi trả.',
+    'pay_failed' => 'Không thể chi trả — :reason',
+    'one_payout_paid' => 'Đã đánh dấu 1 khoản chi trả là đã chi trả.',
+    'payout_failed_reason' => 'Chi trả thất bại — :reason',
+    'payout_failed_no_reason' => 'Chi trả thất bại — kênh chi trả không cho biết lý do.',
+    'create_all_failed' => 'Không thể tạo các khoản chi trả — :reason',
+    'no_payout_created_paused' => 'Chưa tạo khoản chi trả nào:paused_note — tiếp tục chi trả trên trang của chủ sở hữu.',
+    'nothing_ready' => 'Không có gì sẵn sàng chi trả — không bảng đối soát đã chốt nào có số thực nhận dương:paused_note.',
+    'no_new_payouts' => 'Không có khoản chi trả mới — mọi bảng đối soát sẵn sàng đều đã có khoản chi trả:paused_note.',
+    'payouts_created' => '{1}Đã tạo :count khoản chi trả:paused_note.|[0,*]Đã tạo :count khoản chi trả:paused_note.',
+    'some_not_created' => ':message Một số khoản không thể tạo — :reason',
+    'nothing_paid_paused' => 'Chưa chi trả khoản nào:paused_note — tiếp tục chi trả trên trang của chủ sở hữu.',
+    'no_pending_payouts' => 'Không có khoản chi trả đang chờ nào để chi trả.',
+    'paid_only' => '{1}Đã đánh dấu :count khoản chi trả là đã chi trả:paused_note.|[0,*]Đã đánh dấu :count khoản chi trả là đã chi trả:paused_note.',
+    'failed_only' => '[0,*]:count khoản thất bại trên kênh chi trả:paused_note.',
+    'paid_and_failed' => '{1}Đã đánh dấu :count khoản chi trả là đã chi trả · :failed khoản thất bại trên kênh chi trả:paused_note.|[0,*]Đã đánh dấu :count khoản chi trả là đã chi trả · :failed khoản thất bại trên kênh chi trả:paused_note.',
+    'some_not_attempted' => ':message Một số khoản không thể thực hiện — :reason',
+    'nothing_payable_negative' => 'Không có gì để chi trả — số ròng của bảng đối soát này âm, nên số dư được chuyển sang kỳ sau để bù trừ vào bảng đối soát tiếp theo của chủ sở hữu.',
+    'nothing_payable_zero' => 'Không có gì để chi trả — số ròng của bảng đối soát này bằng 0, nên không có khoản nào phải trả.',
+    'workspace_paused_until' => 'Tổ chức đang tạm dừng — phần chi trả chỉ đọc đến :date.',
+    'workspace_paused_for_now' => 'Tổ chức đang tạm dừng — phần chi trả tạm thời chỉ đọc.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}đã bỏ qua :count chủ sở hữu đang tạm dừng|[0,*]đã bỏ qua :count chủ sở hữu đang tạm dừng',
+];

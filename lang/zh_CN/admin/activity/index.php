@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => '运营方/业主',
+    'realm_guest' => '客人',
+    'realm_admin' => '平台管理员',
+    'event_login' => '登录',
+    'event_failed' => '失败',
+    'event_lockout' => '锁定',
+    'subject_user' => '用户',
+    'subject_guest' => '客人',
+    'subject_platform_admin' => '平台管理员',
+    'subject_unknown' => '未知',
+    'actor_user' => '用户',
+    'actor_agent' => '智能体',
+    'actor_system' => '系统',
+    'page_title' => '安全与活动',
+    'page_subtitle' => '整个平台的登录活动和账号事件——保留 :days 天，之后清除。',
+    'kpi_failures' => '失败/锁定 · 24 小时',
+    'kpi_failures_help' => '多次失败可能是试探攻击的信号。',
+    'privacy' => '隐私',
+    'privacy_body' => '登录活动（含 IP）仅作为<strong style="color: var(--ad-ink);">安全信号</strong>采集——用于发现可疑登录和提供支持——绝不用于日常追踪。保留 :days 天后自动清除；仅限本控制台访问。',
+    'recent_sign_ins' => '最近登录活动',
+    'col_event' => '事件',
+    'col_realm' => '账号类型',
+    'col_account' => '账号',
+    'col_ip' => 'IP',
+    'col_when' => '时间',
+    'no_sign_ins' => '暂无登录活动记录。',
+    'recent_account_events' => '最近账号事件 <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· 涵盖所有客户</span>',
+    'col_customer' => '客户',
+    'col_actor' => '操作者',
+    'no_account_events' => '暂无账号事件。',
+];

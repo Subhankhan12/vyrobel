@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time 起',
+    'by_time' => ':time 前',
+    'repeat_guest' => '{1}回头客 · :count 次住宿|[0,*]回头客 · :count 次住宿',
+    'new_guest' => '新客人',
+    'guests_count' => '{1}:count 位客人|[0,*]:count 位客人',
+    'nights_count' => '{1}:count 晚|[0,*]:count 晚',
+    'channel_direct' => 'Vyrobel 直订',
+    'channel_walk_in' => '上门散客',
+    'channel_ota' => 'OTA 渠道',
+    'event_booking_received' => '收到预订',
+    'event_cancelled' => '已取消',
+    'event_payment_received' => '已收到付款',
+    'when_paid_in_full' => '已全额付款',
+    'event_part_payment_received' => '已收到部分付款',
+    'when_balance_due' => '有待付金额',
+    'event_payment' => '付款',
+    'when_not_yet_received' => '尚未收到',
+    'event_checked_in' => '已入住',
+    'event_check_in' => '入住',
+    'event_checked_out' => '已退房',
+    'event_payout_released' => '已发放打款',
+    'event_payout' => '打款',
+    'when_next_payout' => '随您的下一笔打款发放',
+    'payout_not_attributed' => '尚未计入台账',
+    'payout_not_attributed_note' => '此预订尚未计入您的台账。',
+    'payout_scheduled' => '已排期',
+    'payout_scheduled_note' => '将计入您的下一份结算单，并随该笔打款发放。',
+    'payout_pending' => '待打款',
+    'payout_pending_note' => '已计入定稿的结算单——随该笔打款发放。',
+    'payout_paid' => '已打款',
+    'payout_paid_note' => '已随一笔已完成的打款发放。',
+];

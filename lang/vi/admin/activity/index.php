@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Đơn vị quản lý/Chủ sở hữu',
+    'realm_guest' => 'Khách',
+    'realm_admin' => 'Quản trị viên nền tảng',
+    'event_login' => 'Đăng nhập',
+    'event_failed' => 'Thất bại',
+    'event_lockout' => 'Bị khóa',
+    'subject_user' => 'Người dùng',
+    'subject_guest' => 'Khách',
+    'subject_platform_admin' => 'Quản trị viên nền tảng',
+    'subject_unknown' => 'Không rõ',
+    'actor_user' => 'Người dùng',
+    'actor_agent' => 'Tác tử',
+    'actor_system' => 'Hệ thống',
+    'page_title' => 'Bảo mật & hoạt động',
+    'page_subtitle' => 'Hoạt động đăng nhập và sự kiện tài khoản trên toàn nền tảng — lưu giữ :days ngày, sau đó bị xóa.',
+    'kpi_failures' => 'Thất bại / bị khóa · 24 giờ',
+    'kpi_failures_help' => 'Thất bại lặp lại có thể là dấu hiệu dò thử.',
+    'privacy' => 'Quyền riêng tư',
+    'privacy_body' => 'Hoạt động đăng nhập (bao gồm IP) chỉ được ghi lại như một <strong style="color: var(--ad-ink);">tín hiệu bảo mật</strong> — để phát hiện đăng nhập đáng ngờ và hỗ trợ — không bao giờ để theo dõi ngầm. Lưu giữ :days ngày, sau đó tự động xóa; chỉ có thể truy cập từ bảng điều khiển này.',
+    'recent_sign_ins' => 'Hoạt động đăng nhập gần đây',
+    'col_event' => 'Sự kiện',
+    'col_realm' => 'Khu vực',
+    'col_account' => 'Tài khoản',
+    'col_ip' => 'IP',
+    'col_when' => 'Thời gian',
+    'no_sign_ins' => 'Chưa ghi nhận hoạt động đăng nhập nào.',
+    'recent_account_events' => 'Sự kiện tài khoản gần đây <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· trên mọi khách hàng</span>',
+    'col_customer' => 'Khách hàng',
+    'col_actor' => 'Người thực hiện',
+    'no_account_events' => 'Chưa có sự kiện tài khoản nào.',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => '고객님',
+    'total_part' => ':name :amount',
+    'total_includes' => ':items 포함',
+    'nightly_excludes' => ':tax 별도',
+    'sleeps' => '최대 :count명',
+    'studio' => '스튜디오',
+    'bedrooms' => '{1}침실 :count개|[0,*]침실 :count개',
+    'checkout_title' => '결제 — :property',
+    'room_just_taken' => '방금 다른 고객이 이 객실을 예약했습니다 — 다른 객실이나 날짜를 선택하세요.',
+    'payment_received' => '결제 완료',
+    'payment_received_note' => '전액 결제되었습니다.',
+    'payment_processing' => '결제 처리 중',
+    'payment_processing_note' => '카드 결제를 확인하고 있습니다. 잠시 후 이 페이지를 새로고침하면 결제 내역을 확인하실 수 있습니다.',
+    'pay_on_arrival' => '현장 결제',
+    'pay_on_arrival_note' => '체크인하실 때 숙소에서 결제하세요.',
+    'confirmed_title' => '예약 확정 — :property',
+    'kind_room' => '일반 객실',
+    'kind_apartment' => '아파트',
+    'kind_villa' => '빌라',
+    'kind_dorm' => '도미토리',
+    'type_hotel' => '호텔',
+    'type_aparthotel' => '아파트호텔',
+    'type_serviced_apartment' => '서비스드 레지던스',
+    'type_apartment_building' => '아파트 건물',
+    'type_apartment' => '아파트',
+    'type_villa' => '빌라',
+    'type_hostel' => '호스텔',
+    'type_guest_house' => '게스트하우스',
+    'type_resort' => '리조트',
+    'type_mixed' => '복합',
+    'type_portfolio' => '포트폴리오',
+];

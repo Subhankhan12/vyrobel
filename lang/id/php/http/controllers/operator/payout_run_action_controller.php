@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Mesin pencairan dinonaktifkan (PAYOUT_ENGINE_ENABLED). Aktifkan terlebih dahulu sebelum menjalankan pencairan.',
+    'nothing_to_run' => 'Tidak ada yang dijalankan — tidak ada pemilik di sini yang memiliki rekap yang dapat dibayarkan atau pencairan yang ditahan:paused_note.',
+    'run_complete' => 'Proses pencairan selesai (mode :mode) — :created dibuat · :paid dicairkan · :held ditahan:paused_note.',
+    'create_failed' => 'Pencairan tidak dapat dibuat — :reason',
+    'already_has_payout' => 'Rekap tersebut sudah memiliki pencairan — tidak ada yang dibuat.',
+    'one_payout_created' => '1 pencairan berhasil dibuat.',
+    'pay_failed' => 'Pencairan tidak dapat dilakukan — :reason',
+    'one_payout_paid' => '1 pencairan ditandai dicairkan.',
+    'payout_failed_reason' => 'Pencairan gagal — :reason',
+    'payout_failed_no_reason' => 'Pencairan gagal — jalur pencairan tidak memberikan alasan.',
+    'create_all_failed' => 'Pencairan tidak dapat dibuat — :reason',
+    'no_payout_created_paused' => 'Tidak ada pencairan yang dibuat:paused_note — lanjutkan pencairannya di halaman pemilik.',
+    'nothing_ready' => 'Tidak ada yang siap dicairkan — tidak ada rekap final dengan bersih dibayarkan positif:paused_note.',
+    'no_new_payouts' => 'Tidak ada pencairan baru — setiap rekap yang siap sudah memiliki pencairan:paused_note.',
+    'payouts_created' => '{1}:count pencairan berhasil dibuat:paused_note.|[0,*]:count pencairan berhasil dibuat:paused_note.',
+    'some_not_created' => ':message Sebagian tidak dapat dibuat — :reason',
+    'nothing_paid_paused' => 'Tidak ada yang dicairkan:paused_note — lanjutkan pencairannya di halaman pemilik.',
+    'no_pending_payouts' => 'Tidak ada pencairan menunggu untuk dicairkan.',
+    'paid_only' => '{1}:count pencairan ditandai dicairkan:paused_note.|[0,*]:count pencairan ditandai dicairkan:paused_note.',
+    'failed_only' => '[0,*]:count gagal di jalur pencairan:paused_note.',
+    'paid_and_failed' => '{1}:count pencairan ditandai dicairkan · :failed gagal di jalur pencairan:paused_note.|[0,*]:count pencairan ditandai dicairkan · :failed gagal di jalur pencairan:paused_note.',
+    'some_not_attempted' => ':message Sebagian tidak dapat dicoba — :reason',
+    'nothing_payable_negative' => 'Tidak ada yang dapat dibayarkan — nilai bersih rekap ini negatif, sehingga saldonya menjadi saldo pindahan untuk mengurangi rekap pemilik berikutnya.',
+    'nothing_payable_zero' => 'Tidak ada yang dapat dibayarkan — nilai bersih rekap ini nol, sehingga tidak ada yang terutang.',
+    'workspace_paused_until' => 'Organisasi dijeda — pencairan hanya baca hingga :date.',
+    'workspace_paused_for_now' => 'Organisasi dijeda — pencairan hanya baca untuk sementara.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}:count pemilik yang dijeda dilewati|[0,*]:count pemilik yang dijeda dilewati',
+];

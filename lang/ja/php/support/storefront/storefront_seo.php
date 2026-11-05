@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'ホテル',
+    'type_aparthotel' => 'アパートメントホテル',
+    'type_serviced_apartment' => 'サービスアパートメント',
+    'type_apartment_building' => 'アパートメント',
+    'type_apartment' => 'アパートメント',
+    'type_villa' => 'ヴィラ',
+    'type_hostel' => 'ホステル',
+    'type_guest_house' => 'ゲストハウス',
+    'type_resort' => 'リゾート',
+    'type_mixed' => 'ホテル・アパートメント',
+    'type_portfolio' => '宿泊施設',
+    'title_town' => ':name（:town）｜公式サイトで予約',
+    'title' => ':name｜公式サイトで予約',
+    'title_room' => ':propertyの:room｜公式サイトで予約',
+    'org_description_towns' => '{1}:townsの宿泊施設（:count施設）をご覧いただけます。空室状況を確認して、:orgの公式サイトから直接ご予約いただけます。|[0,*]:townsの宿泊施設（:count施設）をご覧いただけます。空室状況を確認して、:orgの公式サイトから直接ご予約いただけます。',
+    'org_description' => '{1}宿泊施設（:count施設）をご覧いただけます。空室状況を確認して、:orgの公式サイトから直接ご予約いただけます。|[0,*]宿泊施設（:count施設）をご覧いただけます。空室状況を確認して、:orgの公式サイトから直接ご予約いただけます。',
+    'org_description_empty' => '空室状況を確認して、:orgの公式サイトから直接ご予約いただけます。',
+    'place_town_country' => ':town（:country）',
+    'description_place_rooms' => '{1}:nameの公式サイトで直接予約。:placeの:type。客室タイプ:count種類。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。|[0,*]:nameの公式サイトで直接予約。:placeの:type。客室タイプ:count種類。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。',
+    'description_place' => ':nameの公式サイトで直接予約。:placeの:type。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。',
+    'description_rooms' => '{1}:nameの公式サイトで直接予約。:type。客室タイプ:count種類。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。|[0,*]:nameの公式サイトで直接予約。:type。客室タイプ:count種類。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。',
+    'description' => ':nameの公式サイトで直接予約。:type。リアルタイムの空室状況を確認して、予約サイトを通さずにご予約いただけます。',
+    'detail_sleeps' => '定員:guests名',
+    'detail_bedrooms' => '{1}ベッドルーム:count室|[0,*]ベッドルーム:count室',
+    'room_description_town_details' => ':townにある:propertyの:room（:details）。リアルタイムの空室状況を確認して、公式サイトから直接ご予約いただけます。',
+    'room_description_town' => ':townにある:propertyの:room。リアルタイムの空室状況を確認して、公式サイトから直接ご予約いただけます。',
+    'room_description_details' => ':propertyの:room（:details）。リアルタイムの空室状況を確認して、公式サイトから直接ご予約いただけます。',
+    'room_description' => ':propertyの:room。リアルタイムの空室状況を確認して、公式サイトから直接ご予約いただけます。',
+    'list_and' => ':itemsと:last',
+];

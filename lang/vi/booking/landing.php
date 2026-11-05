@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Lựa chọn lưu trú',
+    'book_direct' => 'Đặt trực tiếp',
+    'nav_stays' => 'Lựa chọn lưu trú',
+    'my_account' => 'Tài khoản của tôi',
+    'sign_in' => 'Đăng nhập',
+    'rating_across' => '{1}:average từ :count đánh giá|[0,*]:average từ :count đánh giá',
+    'heading' => 'Đặt trực tiếp với<br>:org.',
+    'subheading' => 'Những nơi lưu trú được chăm chút tận tâm, đặt trực tiếp với chỗ nghỉ — không mất phí, giá tốt nhất của chúng tôi, và luôn có người thật hỗ trợ bạn.',
+    'where' => 'Điểm đến',
+    'check_in' => 'Nhận phòng',
+    'check_out' => 'Trả phòng',
+    'adults' => 'Người lớn',
+    'children' => 'Trẻ em',
+    'where_to_stay' => 'Nơi lưu trú',
+    'towns_lede' => '[0,*]:count thị trấn, mỗi nơi một nhịp sống riêng.|{1}Nơi chúng tôi gắn bó.',
+    'from_price' => 'từ :price',
+    'featured_stays' => 'Lựa chọn lưu trú nổi bật',
+    'featured_lede' => 'Được khách yêu thích nhất trong bộ sưu tập của chúng tôi.',
+    'per_night' => '/ đêm',
+    'see_dates_for_pricing' => 'Chọn ngày để xem giá',
+    'browse_by_what_matters' => 'Tìm theo điều bạn quan tâm',
+    'why_book_direct' => 'Vì sao nên đặt trực tiếp',
+    'recent_guests' => 'Khách gần đây',
+    'rating_short' => '{1}:average · :count đánh giá|[0,*]:average · :count đánh giá',
+    'stars_aria' => ':rating trên 5 sao',
+    'review_quote' => '“:body”',
+    'no_reviews_yet' => 'Chưa có đánh giá — hãy là người đầu tiên lưu trú và chia sẻ trải nghiệm của bạn.',
+    'cta_heading' => 'Tìm nơi dành cho bạn',
+    'cta_sub' => 'Lịch trống thực tế, giá cập nhật liên tục, xác nhận tức thì.',
+    'browse_all_stays' => 'Xem tất cả lựa chọn lưu trú',
+];

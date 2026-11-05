@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'チームとアクセス権',
+    'subtitle' => '共同オーナーや経理担当に、必要な範囲に限定した専用のログインを発行できます。',
+    'people_with_access' => 'アクセス権を持つメンバー',
+    'account_owner' => 'メインオーナー',
+    'thats_you' => '自分',
+    'owner_access' => 'このページを含むすべての機能にフルアクセスできます。',
+    'active_now' => '現在アクティブ',
+    'role_for' => ':nameのロール',
+    'your_password' => '自分のパスワード',
+    'confirm_password' => 'パスワードで確認',
+    'remove_confirm' => ':nameをチームから除外しますか？ログインできなくなります。',
+    'no_members' => 'メンバーはまだ自分だけです。下から共同オーナーや経理担当を招待できます。',
+    'invite_heading' => 'メンバーを招待',
+    'invite_sub' => '招待されたメンバーには専用のログインが発行されます。アクセスはいつでも解除できます。',
+    'invite_email_label' => '招待するメールアドレス',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => '招待を送信',
+    'pending_invites' => '承諾待ちの招待',
+    'resend' => '再送信',
+    'revoke' => '無効化',
+    'matrix_heading' => '各ロールで閲覧できる範囲',
+    'matrix_note' => 'チームと送金先口座を管理できるのは、メインオーナーである自分だけです。',
+    'recent_activity' => '最近のアクティビティ',
+    'no_activity' => 'まだありません。招待やログインがここに表示されます。',
+    'download_log' => 'エクスポートのダウンロード履歴',
+    'download_log_sub' => 'チームがダウンロードした収支報告書、予約、送金、税務の各ファイルには、ダウンロードした人の名前が記載され、ここに記録されます。',
+    'no_downloads' => 'ダウンロードされたエクスポートはまだありません。ダウンロードした人の名前とともにここに表示されます。',
+    'security_heading' => 'メンバーごとに専用のログイン',
+    'security_body' => 'パスワードを共有する必要はありません。各メンバーは自分のアカウントでログインし、アクセスはロールに応じた範囲に限定されます。財務データのエクスポートには、ダウンロードした人の名前が透かしとして入り、上の履歴に記録されます。自分のアカウントでは2要素認証をオンにしてください。',
+    'security_settings' => 'セキュリティ設定',
+];

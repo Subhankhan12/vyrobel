@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '팀 및 액세스',
+    'subtitle' => '공동 소유주나 회계 담당자에게 개별 로그인 계정을 제공하세요 — 필요한 범위만 액세스할 수 있습니다.',
+    'people_with_access' => '액세스 권한이 있는 사람',
+    'account_owner' => '대표 소유주',
+    'thats_you' => '본인',
+    'owner_access' => '이 페이지를 포함한 모든 항목에 대한 전체 액세스 권한.',
+    'active_now' => '현재 활동 중',
+    'role_for' => ':name님의 역할',
+    'your_password' => '비밀번호',
+    'confirm_password' => '비밀번호로 확인',
+    'remove_confirm' => ':name님을 제거하시겠습니까? 더 이상 로그인할 수 없습니다.',
+    'no_members' => '아직 본인만 있습니다 — 아래에서 공동 소유주나 회계 담당자를 초대하세요.',
+    'invite_heading' => '사용자 초대',
+    'invite_sub' => '초대받은 사람은 개별 로그인 계정을 받으며, 액세스는 언제든지 제거할 수 있습니다.',
+    'invite_email_label' => '초대할 이메일 주소',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => '초대 보내기',
+    'pending_invites' => '대기 중인 초대',
+    'resend' => '재발송',
+    'revoke' => '회수',
+    'matrix_heading' => '역할별 볼 수 있는 항목',
+    'matrix_note' => '팀과 지급 계좌는 대표 소유주인 본인만 관리할 수 있습니다.',
+    'recent_activity' => '최근 활동',
+    'no_activity' => '아직 활동이 없습니다 — 초대와 로그인 기록이 여기에 표시됩니다.',
+    'download_log' => '내보내기 다운로드 기록',
+    'download_log_sub' => '팀원이 다운로드하는 모든 정산서, 예약, 지급, 세무 파일에는 다운로드한 사람이 표시되며 여기에 기록됩니다.',
+    'no_downloads' => '아직 다운로드된 내보내기 파일이 없습니다 — 다운로드되면 다운로드한 사람이 표시된 채로 여기에 나타납니다.',
+    'security_heading' => '사람마다 개별 계정',
+    'security_body' => '공유 비밀번호는 없습니다 — 각자 자신의 계정으로 로그인하며, 액세스는 역할에 맞게 제한됩니다. 재무 내보내기 파일에는 다운로드한 사람의 워터마크가 표시되고 위 기록에 남습니다. 본인 계정에는 2단계 인증을 켜세요.',
+    'security_settings' => '보안 설정',
+];

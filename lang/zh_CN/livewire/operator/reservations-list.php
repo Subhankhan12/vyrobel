@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '预订',
+    'arrivals_this_month' => '本月到店',
+    'arrivals_this_month_sub' => '本自然月内入住 · 不含取消和未到店',
+    'booked_value' => '预订金额 · 本月到店',
+    'booked_value_sub' => '本月到店预订的账单金额',
+    'booked_value_sub_multi' => '本月到店预订的账单金额 · 按币种分别显示（从不跨币种相加）',
+    'balances_due' => '待付金额 · 本月到店',
+    'folios_owing' => '{0}无待付款项|{1}:count 个账单仍有欠款|[2,*]:count 个账单仍有欠款',
+    'search_placeholder' => '按客人或预订号搜索…',
+    'search_label' => '搜索预订',
+    'group_booking' => '团队预订',
+    'new_reservation' => '新建预订',
+    'empty_heading' => '暂无预订',
+    'empty_body' => '所有预订——无论是直订、上门散客还是导入的——一经接收都会显示在这里。',
+    'no_match_query' => '没有与“:query”匹配的预订',
+    'no_match_view' => '此视图中没有预订',
+    'no_match_hint' => '{1}请尝试输入客人姓名或预订号。共 :count 个预订。|[0,*]请尝试输入客人姓名或预订号。共 :count 个预订。',
+    'no_match_hint_filter' => '{1}请尝试输入客人姓名或预订号，或清除筛选条件。共 :count 个预订。|[0,*]请尝试输入客人姓名或预订号，或清除筛选条件。共 :count 个预订。',
+    'clear_search_filters' => '清除搜索和筛选',
+    'col_guest' => '客人',
+    'col_stay' => '住宿',
+    'col_unit' => '房间',
+    'col_source' => '来源',
+    'col_stage' => '阶段',
+    'col_balance_due' => '待付金额',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count 晚|[0,*]:count 晚',
+    'guests' => '{1}:count 位客人|[0,*]:count 位客人',
+    'unassigned' => '未排房',
+    'refunded' => '已退款',
+    'pager_label' => '预订',
+];

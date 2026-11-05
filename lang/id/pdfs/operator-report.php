@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Laporan',
+    'arrivals_in' => 'Kedatangan dalam :period',
+    'arrivals_count' => '{1}:count kedatangan|[0,*]:count kedatangan',
+    'pp_delta' => ':delta poin',
+    'occupancy' => 'Okupansi',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Pendapatan kotor',
+    'basis_note' => 'Okupansi · ADR · RevPAR dihitung berdasarkan malam inap, dibandingkan dengan periode yang sama tahun lalu jika data tahun sebelumnya tersedia. Pendapatan di bawah dihitung berdasarkan folio (kedatangan).',
+    'revenue' => 'Pendapatan',
+    'room' => 'Kamar',
+    'ancillary' => 'Lainnya <span class="muted">· layanan tambahan, produk, biaya</span>',
+    'tax_collected' => 'Pajak terpungut · diteruskan',
+    'costs_heading' => 'Biaya <span class="muted" style="font-size:9px">· hanya data nyata</span>',
+    'maintenance' => 'Pemeliharaan <span class="muted">· perintah kerja yang diselesaikan</span>',
+    'not_tracked' => 'belum dicatat',
+    'net' => 'Bersih (pendapatan − biaya tercatat)',
+    'revenue_by_channel' => 'Pendapatan per saluran',
+    'channel' => 'Saluran',
+    'bookings' => 'Reservasi',
+    'share' => 'Porsi',
+    'no_channel_revenue' => 'Tidak ada pendapatan saluran dalam periode ini.',
+    'top_units' => 'Unit teratas',
+    'unit' => 'Unit',
+    'nights' => 'Malam',
+    'room_revenue' => 'Pendapatan kamar',
+    'no_unit_revenue' => 'Tidak ada pendapatan unit dalam periode ini.',
+    'revenue_by_month' => 'Pendapatan per bulan',
+    'month' => 'Bulan',
+    'footer' => 'Dihitung dari data folio & pemeliharaan nyata untuk :scope · :period. Okupansi/ADR/RevPAR berdasarkan malam inap; pendapatan berdasarkan folio (kedatangan). Angka cocok dengan layar “Laporan”. Vyrobel.',
+];

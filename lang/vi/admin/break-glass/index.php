@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Truy cập khẩn cấp',
+    'subtitle' => 'Xem nhanh bên trong một tổ chức, chỉ đọc và có giới hạn thời gian — cần lý do, 2FA, và tổ chức sẽ được thông báo.',
+    'back_label' => 'Hỗ trợ',
+    'open_heading' => 'Phiên của bạn đang mở',
+    'open_summary' => '{1}:organization · kết thúc lúc :time UTC · đã xem :count trang.|[0,*]:organization · kết thúc lúc :time UTC · đã xem :count trang.',
+    'go_to_back_office' => 'Đến khu vực nhân viên của tổ chức',
+    'end_now' => 'Kết thúc phiên ngay',
+    'start_heading' => 'Mở phiên',
+    'rule_read_only' => '<strong>Chỉ đọc.</strong> Mọi thay đổi đều bị từ chối — biểu mẫu, nút bấm, mọi thứ có lưu dữ liệu.',
+    'rule_minutes' => '{1}<strong>:count phút</strong>, sau đó phiên tự kết thúc.|[0,*]<strong>:count phút</strong>, sau đó phiên tự kết thúc.',
+    'rule_senior_user' => 'Bạn thấy đúng những gì người dùng khu vực nhân viên cấp cao nhất (đã xác minh) của tổ chức nhìn thấy — kể cả khách. Chỉ xem những gì lý do cần đến.',
+    'rule_recorded' => 'Mọi trang bạn mở đều được ghi lại, và nhóm của tổ chức sẽ được thông báo sau đó: tên bạn, thời gian và lý do này.',
+    'organisation_label' => 'Tổ chức',
+    'choose_option' => 'Chọn…',
+    'code_label' => 'Mã 2FA của bạn (hiện tại)',
+    'reason_label' => 'Lý do — tổ chức sẽ đọc nội dung này',
+    'reason_placeholder' => 'VD: Phiếu hỗ trợ #123 — chủ sở hữu báo thiếu một đặt phòng',
+    'open_button' => 'Mở phiên chỉ đọc',
+    'recent_heading' => 'Phiên gần đây',
+    'empty_state' => 'Chưa từng mở phiên truy cập khẩn cấp nào.',
+    'col_admin' => 'Quản trị viên',
+    'col_organisation' => 'Tổ chức',
+    'col_reason' => 'Lý do',
+    'col_started' => 'Bắt đầu',
+    'col_ended' => 'Kết thúc',
+    'col_pages' => 'Trang',
+    'col_told' => 'Đã thông báo',
+    'ended_open' => 'đang mở',
+    'ended_due' => 'đã đến hạn — chưa đóng',
+    'told_yes' => 'Có',
+    'told_not_yet' => 'Chưa',
+];

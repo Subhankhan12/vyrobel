@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => '该组织存在正式模式资金记录：:records。法律可能要求将这些记录保存多年，因此在就保存期限作出法律裁定之前，删除暂缓进行——在此之前无法删除。',
+    'uncounted_cascades' => '数据库中记录的关联方式导致删除操作无法准确统计：:links。因此确认信息无法说明哪些内容会被删除。在修复此问题之前，无法删除任何内容。',
+    'stripe_billing_live' => '此组织已启用 Stripe 正式计费。请先在 Stripe 中取消订阅，否则 Stripe 会继续向一个已不存在的客户扣款。如果订阅已在 Stripe 中取消，说明 Stripe 发来的通知尚未在此处应用——请手动处理。',
+    'checkout_open_subscription' => '该组织订阅的一个 Stripe 付款页面仍可付款（打开时间：:opened，可付款至：:closes）。请在该页面完成付款或过期后重试。',
+    'checkout_open_card' => '一个用于客人银行卡付款的 Stripe 付款页面仍可付款（打开时间：:opened，可付款至：:closes）。请在该页面完成付款或过期后重试。',
+    'checkout_unreported_subscription' => '该组织订阅的一个正式模式 Stripe 付款页面已关闭（打开时间：:opened，关闭时间：:closed），但此处尚未应用任何关于其是否已付款的通知。请在 Stripe 管理平台中查看该页面；如果已付款，请先在 Stripe 中取消由此产生的内容。Stripe 会在最长 3 天内重试未能送达的通知——通知应用后请重试。如果 Stripe 已发送通知但未能应用，请手动处理。',
+    'checkout_unreported_card' => '一个用于客人银行卡付款的正式模式 Stripe 付款页面已关闭（打开时间：:opened，关闭时间：:closed），但此处尚未应用任何关于其是否已付款的通知。请在 Stripe 管理平台中查看该页面；如果已付款，请先在 Stripe 中取消由此产生的内容。Stripe 会在最长 3 天内重试未能送达的通知——通知应用后请重试。如果 Stripe 已发送通知但未能应用，请手动处理。',
+    'refund_processing' => '一笔银行卡退款仍在 Stripe 处理中。请等待 Stripe 确认后重试。',
+    'card_payment_open' => '仍有一笔银行卡付款或预授权未完成。请先等待其结算，或将其释放。',
+    'dispute_open' => '一笔银行卡付款在 Stripe 存在争议（开始时间：:since）。请在 Stripe 中回应，待 Stripe 通知争议已关闭后重试。如果 Stripe 管理平台已显示争议关闭，说明通知未送达——请手动处理。',
+    'payouts_in_transit' => '{1}一笔给业主的打款正在 Stripe 转账中（开始时间：:since）。|[0,*]:count 笔给业主的打款正在 Stripe 转账中（开始时间：:since）。',
+    'payout_transit_stale' => '这已超出正常所需时间——请先手动在 Stripe 处理此问题。',
+    'payout_transit_wait' => '请等待 Stripe 确认后重试。',
+    'payouts_owed' => '{1}仍有一笔应付给业主的打款（待处理或已暂扣）。请先完成打款——删除会导致业主无法收款，且不留任何记录。|[0,*]仍有 :count 笔应付给业主的打款（待处理或已暂扣）。请先完成这些打款——删除会导致业主无法收款，且不留任何记录。',
+    'payout_run_running' => '一个打款批次正在运行（开始时间：:since）。',
+    'looks_stuck' => '它似乎已卡住——请先手动处理，再进行删除。',
+    'payout_run_wait' => '请在其完成后重试。',
+    'webhook_unprocessed' => '此组织的一条 :source 通知尚未处理（接收时间：:received）。',
+    'webhook_wait' => '请几分钟后重试。',
+    'cross_tenant_references' => '其他组织有指向此组织的记录：:links。删除此组织也会删除这些记录。',
+    'schema_unreadable' => '无法完整读取数据库结构（未找到：:tables）。',
+    'already_deleted' => '此组织已不存在——已被删除。',
+    'protected' => '此组织受保护，永远无法删除。',
+    'not_suspended' => '请先冻结——只有已冻结或已归档的组织才能删除。',
+    'record_survived' => '删除后仍残留此组织的记录（位于：:tables），因此所有操作已回滚。',
+    'organization_survived' => '删除后此组织或其某位成员仍然存在，因此所有操作已回滚。',
+    'live_card_payments' => '{1}:count 笔银行卡付款|[0,*]:count 笔银行卡付款',
+    'live_refunds' => '{1}:count 笔退款|[0,*]:count 笔退款',
+    'live_payouts' => '{1}:count 笔打款|[0,*]:count 笔打款',
+    'live_stripe_billing' => 'Stripe 正式计费及其发票',
+    'unknown_time' => '未知时间',
+    'time_utc' => ':time UTC',
+];

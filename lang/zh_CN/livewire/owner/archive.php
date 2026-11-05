@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '结算单归档',
+    'history_summary' => '您已定稿的历史记录 · :years · :statements',
+    'years' => '{1}:count 年|[0,*]:count 年',
+    'statements' => '{1}:count 份结算单|[0,*]:count 份结算单',
+    'archived_on_finalize' => '结算单一经定稿即归档于此。',
+    'net_earned_lifetime' => '累计净收入',
+    'since' => '自 :date 起',
+    'per_currency_note' => '按打款币种分别合计——不同币种的余额绝不合并。',
+    'lifetime_empty' => '暂无已定稿的结算单——第一份结算单将显示在此处。',
+    'search_placeholder' => '搜索结算单——月份、年份、状态或编号',
+    'search_label' => '搜索结算单',
+    'no_match' => '没有与“:query”匹配的结算单。',
+    'no_match_hint' => '试试月份（“9月”）、年份（“2026”）、状态（“已打款”）或结算单编号（“编号 1”）。',
+    'group_summary' => ':statements · 净收入 :nets',
+    'per_payout_currency' => '（按打款币种）',
+    'tax_summary_title' => '下载 :year 年度税务汇总（PDF）',
+    'tax_summary' => '税务汇总',
+    'col_statement' => '结算单',
+    'col_net_payable' => '应付净额',
+    'col_links' => '链接',
+    'unverified_title' => '部分明细仍在等待渠道对账',
+    'unverified' => '含未核实明细',
+    'pdf_title' => '将此结算单下载为 PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => '将此结算单对应的预订下载为 PDF',
+    'bookings' => '预订',
+    'empty' => '暂无已定稿的结算单。结算单定稿后即归档于此。',
+    'zip_heading' => '下载完整归档',
+    'zip_sub' => '{1}一个 ZIP 文件，包含 :count 份结算单 PDF。上方每份结算单均可单独下载。|[0,*]一个 ZIP 文件，包含 :count 份结算单 PDF。上方每份结算单均可单独下载。',
+    'download_zip' => '下载 ZIP',
+];

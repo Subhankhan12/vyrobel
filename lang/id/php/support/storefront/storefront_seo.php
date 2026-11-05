@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartemen servis',
+    'type_apartment_building' => 'Apartemen',
+    'type_apartment' => 'Apartemen',
+    'type_villa' => 'Vila',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Guest house',
+    'type_resort' => 'Resor',
+    'type_mixed' => 'Hotel & apartemen',
+    'type_portfolio' => 'Akomodasi',
+    'title_town' => ':name, :town — Pesan langsung',
+    'title' => ':name — Pesan langsung',
+    'title_room' => ':room di :property — Pesan langsung',
+    'org_description_towns' => '{1}Jelajahi :count properti di :towns. Periksa ketersediaan dan pesan langsung di :org.|[0,*]Jelajahi :count properti di :towns. Periksa ketersediaan dan pesan langsung di :org.',
+    'org_description' => '{1}Jelajahi :count properti. Periksa ketersediaan dan pesan langsung di :org.|[0,*]Jelajahi :count properti. Periksa ketersediaan dan pesan langsung di :org.',
+    'org_description_empty' => 'Periksa ketersediaan dan pesan langsung di :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Pesan langsung di :name. :type di :place. :count tipe kamar. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.|[0,*]Pesan langsung di :name. :type di :place. :count tipe kamar. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.',
+    'description_place' => 'Pesan langsung di :name. :type di :place. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.',
+    'description_rooms' => '{1}Pesan langsung di :name. :type. :count tipe kamar. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.|[0,*]Pesan langsung di :name. :type. :count tipe kamar. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.',
+    'description' => 'Pesan langsung di :name. :type. Periksa ketersediaan terkini dan pesan tanpa melalui situs pemesanan.',
+    'detail_sleeps' => 'muat hingga :guests orang',
+    'detail_bedrooms' => '{1}:count kamar tidur|[0,*]:count kamar tidur',
+    'room_description_town_details' => ':room di :property, :town — :details. Periksa ketersediaan terkini dan pesan langsung.',
+    'room_description_town' => ':room di :property, :town. Periksa ketersediaan terkini dan pesan langsung.',
+    'room_description_details' => ':room di :property — :details. Periksa ketersediaan terkini dan pesan langsung.',
+    'room_description' => ':room di :property. Periksa ketersediaan terkini dan pesan langsung.',
+    'list_and' => ':items dan :last',
+];

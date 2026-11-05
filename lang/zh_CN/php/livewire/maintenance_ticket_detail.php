@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — zh_CN translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => '备注',
+    'kind_progress' => '进展',
+    'kind_part' => '已订购配件',
+    'elapsed_minutes' => ':minutes 分钟',
+    'elapsed_hours' => ':hours 小时 :minutes 分钟',
+    'elapsed_days' => ':days 天 :hours 小时',
+    'hours_short' => ':hours 小时',
+    'timeline_opened' => '已报修',
+    'timeline_assigned_to' => '已分配给 :name',
+    'a_technician' => '技术员',
+    'timeline_unassigned' => '未分配',
+    'timeline_started' => '已开始处理',
+    'timeline_resolved' => '已解决',
+    'timeline_cancelled' => '已取消',
+    'timeline_parts_updated' => '配件已更新',
+    'timeline_cost_corrected' => '成本已更正',
+    'timeline_updated' => '详情已编辑',
+    'note_progress' => '进展更新',
+    'note_part' => '已订购配件',
+    'note_added' => '已添加备注',
+    'a_team_member' => '一位团队成员',
+    'system' => '系统',
+    'photo_alt' => '维修照片',
+    'the_owner' => '业主',
+    'load_none' => '无未完成工单',
+    'load_open' => ':open 个未完成',
+    'load_open_urgent' => ':open 个未完成 · :urgent 个紧急',
+    'impact_arrivals' => '{1}今晚有 :count 个到店预订需要安排房间|[0,*]今晚有 :count 个到店预订需要安排房间',
+    'impact_bookings' => '{1}:count 个预订需要换房|[0,*]:count 个预订需要换房',
+    'impact_none' => '无受影响的预订',
+];

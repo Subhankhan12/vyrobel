@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'お知らせ',
+    'subtitle' => 'すべてのワークスペース、または選択したワークスペースの管理画面とオーナーポータルに表示されるお知らせです。プレーンテキストのみで、メールは送信されません。',
+    'empty_state' => 'お知らせはまだ一度も公開されていません。',
+    'col_announcement' => 'お知らせ',
+    'col_to' => '対象',
+    'col_from_until' => '開始 → 終了',
+    'col_state' => '状態',
+    'audience_all' => 'すべてのワークスペース',
+    'audience_chosen_count' => '選択済み:number件',
+    'no_end' => '終了なし',
+    'state_withdrawn' => '取り下げ済み',
+    'state_showing' => '表示中',
+    'state_scheduled' => '公開予定',
+    'state_ended' => '終了',
+    'reason_aria' => '理由',
+    'withdraw_placeholder' => '取り下げる理由は？',
+    'withdraw_button' => '取り下げ',
+    'publish_heading' => 'お知らせを公開',
+    'title_label' => 'タイトル',
+    'message_label' => 'メッセージ（プレーンテキスト）',
+    'kind_label' => '種類',
+    'show_from_label' => '表示開始（UTC）',
+    'until_label' => '表示終了（UTC、任意）',
+    'to_label' => '対象',
+    'option_every_organisation' => 'すべてのワークスペース',
+    'option_chosen_organisations' => '選択したワークスペース',
+    'chosen_organisations_label' => '対象ワークスペース（「選択したワークスペース」の場合）',
+    'no_organisation_chosen' => 'ワークスペースが選択されていません',
+    'reason_label' => '理由',
+    'publish_reason_placeholder' => 'このお知らせを出す理由は？',
+    'publish_button' => '公開',
+];

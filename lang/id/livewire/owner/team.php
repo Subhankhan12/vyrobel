@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Tim & akses',
+    'subtitle' => 'Beri pemilik bersama atau akuntan Anda akun masuk sendiri — terbatas pada yang mereka perlukan.',
+    'people_with_access' => 'Orang dengan akses',
+    'account_owner' => 'Pemilik akun',
+    'thats_you' => 'Anda',
+    'owner_access' => 'Akses penuh ke semuanya, termasuk halaman ini.',
+    'active_now' => 'Aktif sekarang',
+    'role_for' => 'Peran untuk :name',
+    'your_password' => 'Kata sandi Anda',
+    'confirm_password' => 'Konfirmasi dengan kata sandi Anda',
+    'remove_confirm' => 'Keluarkan :name? Orang ini tidak dapat masuk lagi.',
+    'no_members' => 'Sejauh ini hanya Anda — undang pemilik bersama atau akuntan di bawah.',
+    'invite_heading' => 'Undang seseorang',
+    'invite_sub' => 'Mereka mendapat akun masuk sendiri — Anda dapat mencabut akses kapan saja.',
+    'invite_email_label' => 'Alamat email yang diundang',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Kirim undangan',
+    'pending_invites' => 'Undangan menunggu',
+    'resend' => 'Kirim ulang',
+    'revoke' => 'Cabut',
+    'matrix_heading' => 'Apa yang dapat dilihat setiap peran',
+    'matrix_note' => 'Hanya Anda, pemilik akun, yang dapat mengelola tim dan rekening pencairan.',
+    'recent_activity' => 'Aktivitas terbaru',
+    'no_activity' => 'Belum ada — undangan dan aktivitas masuk akan muncul di sini.',
+    'download_log' => 'Log unduhan ekspor',
+    'download_log_sub' => 'Setiap berkas rekap, reservasi, pencairan, atau pajak yang diunduh tim Anda diberi tanda siapa yang mengunduhnya — dan dicatat di sini.',
+    'no_downloads' => 'Belum ada ekspor yang diunduh — ekspor akan muncul di sini, ditandai dengan siapa yang mengunduhnya.',
+    'security_heading' => 'Setiap orang punya kunci sendiri',
+    'security_body' => 'Tidak ada kata sandi bersama — setiap orang masuk dengan akunnya sendiri, dan akses dibatasi sesuai perannya. Ekspor keuangan diberi tanda air berisi siapa yang mengunduhnya dan dicatat di log di atas. Untuk akun Anda sendiri, aktifkan verifikasi dua langkah.',
+    'security_settings' => 'Pengaturan keamanan',
+];

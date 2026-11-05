@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ko translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => ':unit 객실에 “:title” 티켓을 등록했습니다.',
+    'not_assignable_staff' => '이 사용자는 이 워크스페이스에서 할당할 수 있는 직원이 아닙니다.',
+    'cannot_reassign_closed' => '이 티켓은 이미 종료되어 재할당할 수 없습니다.',
+    'assignment_updated' => '티켓 담당자를 변경했습니다.',
+    'work_order_closed' => '이 작업 지시서는 종료되어 세부 정보를 변경할 수 없습니다.',
+    'work_order_updated' => '작업 지시서를 업데이트했습니다.',
+    'col_title' => '제목',
+    'col_unit' => '객실',
+    'col_category' => '카테고리',
+    'col_priority' => '우선순위',
+    'col_status' => '상태',
+    'col_assignee' => '담당자',
+    'col_reported' => '보고 일시',
+    'col_cost' => '비용',
+    'bulk_assigned_skipped' => '{1}작업 지시서 :count건 할당 · :skipped건 건너뜀(이미 종료됨)|[0,*]작업 지시서 :count건 할당 · :skipped건 건너뜀(이미 종료됨)',
+    'bulk_assigned' => '{1}작업 지시서 :count건을 할당했습니다.|[0,*]작업 지시서 :count건을 할당했습니다.',
+    'bulk_resolved_skipped' => '{1}작업 지시서 :count건 해결 · :skipped건 건너뜀(이미 종료됨)|[0,*]작업 지시서 :count건 해결 · :skipped건 건너뜀(이미 종료됨)',
+    'bulk_resolved' => '{1}작업 지시서 :count건을 해결했습니다.|[0,*]작업 지시서 :count건을 해결했습니다.',
+    'cannot_start' => '이 티켓은 더 이상 미해결 상태가 아니어서 작업을 시작할 수 없습니다.',
+    'work_started' => '이 티켓의 작업을 시작했습니다.',
+    'cannot_resolve_closed' => '이 작업 지시서는 이미 종료되어 해결할 수 없습니다.',
+    'ticket_resolved' => '티켓을 해결했습니다.',
+    'cannot_cancel_closed' => '이 티켓은 이미 종료되어 취소할 수 없습니다.',
+    'ticket_cancelled' => '티켓을 취소했습니다.',
+    'parts_closed' => '이 티켓은 종료되어 부품 정보를 업데이트할 수 없습니다.',
+    'awaiting_parts' => '부품 대기로 표시했습니다.',
+    'parts_arrived' => '부품 도착으로 표시했습니다.',
+    'update_posted_waiting_part' => '업데이트를 게시했습니다 — 부품 대기로 표시했습니다.',
+    'update_posted' => '업데이트를 게시했습니다.',
+    'photo_added' => '사진을 추가했습니다.',
+    'photo_removed' => '사진을 삭제했습니다.',
+    'workspace_paused' => '워크스페이스가 일시 중지되었습니다(읽기 전용) — 재개할 때까지 유지보수 내용을 변경할 수 없습니다.',
+];

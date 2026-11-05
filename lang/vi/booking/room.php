@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — vi translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Tất cả phòng',
+    'kind_sleeps_up_to' => ':kind · tối đa :capacity khách',
+    'reviews_count' => '{1}:count đánh giá|[0,*]:count đánh giá',
+    'no_reviews_yet' => 'Chưa có đánh giá',
+    'save_to_wishlist' => 'Lưu vào danh sách yêu thích',
+    'sleeps' => 'Sức chứa',
+    'adults' => 'Người lớn',
+    'children' => 'Trẻ em',
+    'bedrooms' => 'Phòng ngủ',
+    'standard_occupancy' => 'Số khách tiêu chuẩn',
+    'amenities' => 'Tiện nghi',
+    'not_yet_listed' => 'Chưa cập nhật',
+    'amenities_not_published' => 'Tiện nghi của phòng này chưa được đăng.',
+    'guest_reviews' => 'Đánh giá của khách',
+    'stars_aria' => ':rating trên 5 sao',
+    'response_label' => 'Phản hồi:',
+    'no_reviews_be_first' => 'Chưa có đánh giá — hãy là người đầu tiên lưu trú và chia sẻ trải nghiệm của bạn.',
+    'coming_soon' => 'Sắp ra mắt',
+    'description_soon' => 'Mô tả đầy đủ & bản đồ vị trí sẽ sớm có — thông số, tình trạng phòng trống, giá và đánh giá ở trên là thật.',
+    'per_night' => '/ đêm',
+    'per_night_with_note' => '/ đêm · :note',
+    'total_nights' => '{1}Tổng :amount · :count đêm|[0,*]Tổng :amount · :count đêm',
+    'left_for_your_dates' => 'Còn :count phòng cho ngày bạn chọn',
+    'book_this_room' => 'Đặt phòng này',
+    'nothing_reserved' => 'Chưa có gì được giữ cho đến khi bạn xác nhận ở bước thanh toán.',
+    'your_dates' => 'Ngày bạn chọn',
+    'not_available' => 'Không còn trống vào những ngày này — vui lòng thử ngày khác.',
+    'check_in' => 'Nhận phòng',
+    'check_out' => 'Trả phòng',
+    'check_dates' => 'Kiểm tra ngày',
+    'check_availability' => 'Xem phòng trống & giá',
+    'see_price' => 'Xem giá',
+];

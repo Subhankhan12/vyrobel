@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => '売上',
+    'subtitle' => '定価ではなく、Stripeが実際に請求した金額から算出します。Vyrobel社内のものを含めない限り、顧客のみが対象です。',
+    'including_internal' => 'Vyrobel社内のワークスペースを含みます。',
+    'customers_only_note' => '顧客のみ。',
+    'customers_only_link' => '顧客のみ',
+    'include_internal_link' => '社内を含める',
+    'no_live_billing_pill' => '本番モードの請求はまだありません',
+    'no_customer_charged' => 'まだどの顧客にも請求していません。',
+    'not_live_explainer' => 'Stripeは本番モードではないため、集計できる支払済みの請求書はありません。業績の悪い月なのではなく、まだ集計する月がないのです。ここでの売上は<strong>支払済みのStripe請求書</strong>（Stripeから通知を受けて記録される請求そのもの）のみから算出し、プランの定価から算出することはありません。',
+    'live_billed_subscriptions' => '本番モードで請求中のサブスクリプション',
+    'trialing_unbilled' => '無料トライアル中で未請求のサブスクリプション',
+    'failed_payments_30d' => '支払い失敗（過去30日間）',
+    'when_first_paid' => '最初の請求書が支払われると、このページに次の項目が表示されます：通貨ごとのMRRとARR · 新規、拡大、縮小、解約によるMRR · 無料トライアルから有料への転換 · 支払い失敗。',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => '算出対象のサブスクリプション',
+    'no_live_subscription_charged' => '本番モードで請求中の有効なサブスクリプションへの請求はまだありません。',
+    'mrr_hint' => '有効または支払期限超過の本番モードのサブスクリプションそれぞれについて、直近の支払済み請求書を基に、その請求書の請求期間から月額に換算しています。',
+    'this_month_vs_last' => '今月と先月の比較',
+    'movement_new' => '新規 · :currency',
+    'movement_expansion' => '拡大 · :currency',
+    'movement_contraction' => '縮小 · :currency',
+    'movement_churned' => '解約 · :currency',
+    'nothing_charged' => '先月も今月も請求はありません。',
+    'movements_hint' => 'ワークスペースごとに、各月の請求額から算出します。「解約」は、先月は請求があり今月は請求がなく、かつサブスクリプションが解約済みであることを指します。',
+    'trial_to_paid' => '無料トライアルから有料への転換',
+    'trial_to_paid_value' => '終了した無料トライアル:ended件中:converted件が請求済み',
+    'past_due_now' => '現在の支払期限超過',
+    'paid_invoices_counted' => '集計した支払済み請求書',
+    'never_moves_money' => 'このコンソールが請求、返金、資金の移動を行うことは一切ありません。すべての数値は通貨ごとで、通貨をまたいで合計することはありません。',
+];

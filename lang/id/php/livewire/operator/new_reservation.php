@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — id translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Masa inap',
+    'step_guest' => 'Tamu',
+    'step_extras' => 'Layanan tambahan',
+    'step_confirm' => 'Konfirmasi',
+    'source_direct' => 'Langsung',
+    'source_walk_in' => 'Walk-in',
+    'source_corporate' => 'Korporat',
+    'source_agent' => 'Agen perjalanan',
+    'the_guest' => 'Tamu',
+    'a_night' => ':amount per malam',
+    'a_night_range' => ':low–:high per malam',
+    'dates_label' => '{1}:from → :to · :count malam|[0,*]:from → :to · :count malam',
+    'restrict_min_stay' => '{1}Untuk kedatangan :date, masa inap minimal :count malam|[0,*]Untuk kedatangan :date, masa inap minimal :count malam',
+    'restrict_max_stay' => '{1}Untuk kedatangan :date, masa inap maksimal :count malam|[0,*]Untuk kedatangan :date, masa inap maksimal :count malam',
+    'restrict_no_arrivals' => 'Tutup untuk kedatangan pada :date',
+    'restrict_no_departures' => 'Tutup untuk keberangkatan pada :date',
+    'restrict_stop_sell' => 'Tanggal :date ditutup untuk reservasi baru',
+    'restrict_other' => ':restriction pada :date',
+    'arrival_mail_off' => 'Email belum dikirim dari Vyrobel — berikan petunjuk arah dan kode pintu kepada tamu secara langsung.',
+    'arrival_pre_arrival_off' => 'Email sebelum kedatangan dinonaktifkan untuk properti Anda — berikan petunjuk arah dan kode pintu kepada tamu secara langsung.',
+    'arrival_too_soon' => 'Masa inap ini dimulai terlalu cepat untuk email sebelum kedatangan, yang dikirim :count hari sebelum kedatangan — berikan petunjuk arah dan kode pintu kepada tamu secara langsung.',
+    'arrival_by_email' => 'Petunjuk arah, beserta kode pintu jika unit memilikinya, dikirim ke tamu melalui email :count hari sebelum kedatangan — jika tamu memiliki alamat email. Kode pintu tidak pernah ditampilkan di sini.',
+    'cancel_not_free' => 'Tidak gratis untuk masa inap ini — batasnya berakhir :date',
+    'cancel_free_until_check_in' => 'Gratis hingga check-in',
+    'cancel_free_until_date' => 'Gratis hingga :date',
+    'cancel_free_until_days' => '{1}Gratis hingga :count hari sebelum check-in|[0,*]Gratis hingga :count hari sebelum check-in',
+    'min_stay_none' => 'Tanpa minimum',
+    'min_stay_nights' => '{1}:count malam|[0,*]:count malam',
+    'guest_no_name' => 'Tamu',
+    'no_stays_yet' => 'Belum ada masa inap',
+];

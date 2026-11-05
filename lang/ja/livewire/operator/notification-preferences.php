@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ja translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => '通知設定',
+    'subtitle' => 'Vyrobelからの通知方法',
+    'breadcrumb_label' => 'パンくずリスト',
+    'crumb_settings' => '設定',
+    'crumb_notifications' => '通知',
+    'channel_email' => 'メール',
+    'channel_push' => 'プッシュ通知',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'メールアドレスが未登録',
+    'email_verified_title' => 'ログイン用メールアドレスは確認済みです',
+    'email_verified' => '確認済み',
+    'push_not_set_up_title' => 'プッシュ通知はまだ設定されていません',
+    'not_set_up_tag' => '未設定',
+    'push_not_available' => 'ブラウザ・デバイスへのプッシュ通知はまだご利用いただけません',
+    'channel_off' => 'オフ',
+    'sms_not_set_up_title' => 'SMSはまだ設定されていません',
+    'sms_no_provider' => 'SMSプロバイダーはまだ接続されていません',
+    'notify_me_when' => '通知するタイミング',
+    'always_on' => '常に有効',
+    'email_always_on_sr' => ':eventのメール通知は常に有効',
+    'email_me_when_aria' => 'メールで通知：:event',
+    'push_not_set_up_sr' => 'プッシュ通知は未設定',
+    'sms_not_set_up_sr' => 'SMSは未設定',
+    'quiet_hours' => '通知停止時間',
+    'quiet_hours_help' => 'この時間帯は通常のメールを保留します。緊急のセキュリティ通知は常に届き、アプリ内の通知には影響しません。',
+    'quiet_from' => '開始',
+    'quiet_to' => '終了',
+    'digest_heading' => '毎日のダイジェストメール',
+    'digest_help' => '毎朝その日の概要を送信します。<span class="vy-np-soon">送信は準備中</span>：設定は保存され、ダイジェスト機能の提供開始時に使用されます。',
+    'digest_off' => 'オフ',
+    'digest_morning' => '朝 · 08:00',
+];
