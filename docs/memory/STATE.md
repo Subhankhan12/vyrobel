@@ -4,7 +4,7 @@
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
-## ⚠️ LOCAL, NOT SHIPPED — I18N-01, ten more languages (written 2026-11-05)
+## ✅ SHIPPED 2026-11-05 — I18N-01, all 27 languages (was: local, not shipped)
 - **Founder said (2026-11-02):** finish every language on localhost, then ship them all in ONE release; no per-language releases.
   Live is still `rel_CG @ 7dde368e` (Russian). Nothing below is on production. ⚠️ Not pushed.
 - **R/V — committed locally, newest last (each: 10,433 of 10,433 texts, machine translation with AI review, no native check):**
@@ -29,6 +29,17 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - `php artisan lang:todo` (V 2026-11-05, on `69c37767`): TOTAL — 0 new · 0 changed · 0 hardcoded · 0 removed · languages: 22.
 
 ## Live
+- **Live release `rel_CH` → commit `a5e68e16`** (I18N-01 — **all 27 languages are on**: the 17 new ones are ro, pl, bg, zh_TW, hi,
+  fa, th, sr, et, sq, el, ka, id, vi, zh_CN, ja, ko; machine translation with AI review, no native check; plus the code-fix pass and
+  the PDF-font fix). **V:** MySQL 8.4.10 4,599/4,599 (36,299) · MariaDB 11.8.9 4,599/4,599 (36,299) · PHPStan L5 0 · Pint clean ·
+  lang:check 0 (27 languages) · lang:todo 0 · money gate "✅ MONEY AS SEEDED · FULL" · render 929 pages × 17 languages, 0 problems ·
+  saved-language count on production before the swap (read-only): users en × 17, empty × 3; guests empty × 18; platform admins
+  empty × 1; orgs en × 15 — nobody had saved a new language · host preflight (PHP 8.4.27, memory_limit 512M; 309 views parse; 606
+  lang files each, all 27 codes in both loops; `storage` writable) · stage needed one fix to `ops/release.sh` (xargs split the
+  10,400-file list over several `git archive` runs; the count check refused it, nothing uploaded) → payload from one extracted
+  tree · swap 2026-11-05 (4 ms) · public checks 12/0/0 · live `/login?lang=<l>` → correct `<html lang>` and translated heading
+  for all 19 non-English codes checked, `fa` has `dir="rtl"`. ⚠️ His call still open: the 24-hour clock fix also moved LIVE
+  Arabic from 12-hour to 24-hour time. Rollback target: `rel_CG @ 7dde368e`.
 - **Live release `rel_CG` → commit `7dde368e`** (I18N-01 — **Russian is on**, 10,433 texts, machine translation with AI review, no
   native check). **V:** MySQL 8.4.10 4,588/4,588 (36,216) · MariaDB 11.8.9 4,588/4,588 (36,216) · lang:check 0 (de, ar, tr, fr, es,
   nl, pt, it, pt_BR, ru) · lang:todo 0 · money gate "✅ MONEY AS SEEDED · FULL" · Russian render 929 pages 0 problems · host preflight

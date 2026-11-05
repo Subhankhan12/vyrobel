@@ -1728,8 +1728,9 @@ Serbian, Estonian, Albanian, Greek, Georgian (and Indonesian, Vietnamese, Simpli
 committed locally. Two usage limits (weekly, then 5-hour) stopped agents; every one was resumed from its saved work. Then a
 code-fix pass (dates, 24-hour time, Persian calendar, Georgian case/ordinals, decimals, list separators) and a PDF-font fix found
 by the render pass (Thai/CJK/Korean PDFs printed no glyphs; Georgian title inside an English guest invoice). **Gates (V):** MySQL
-and MariaDB 4,599/4,599 (36,299) · PHPStan L5 0 · Pint clean · money gate FULL · render 929 pages × 10 languages, 0 problems. Not
-shipped, not pushed; SSH to production was closed on 2026-11-02 and must be fixed before the one release.
+and MariaDB 4,599/4,599 (36,299) · PHPStan L5 0 · Pint clean · money gate FULL · render 929 pages × 10 languages, 0 problems. SSH to
+production was closed on 2026-11-02 and reopened by 2026-11-05. **Shipped 2026-11-05 as ONE release, `rel_CH @ a5e68e16`** (stage fix to
+`ops/release.sh` first: xargs split a 10,400-file list), public checks 12/0/0, all 27 languages answer on `/login?lang=`.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
