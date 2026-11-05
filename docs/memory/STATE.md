@@ -4,7 +4,7 @@
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
-## ✅ SHIPPED 2026-11-05 — I18N-01, all 27 languages (was: local, not shipped)
+## ✅ SHIPPED 2026-11-05 — I18N-01, all 27 languages; leftovers fixed + shipped 2026-11-06 (see HISTORY)
 - **Founder said (2026-11-02):** finish every language on localhost, then ship them all in ONE release; no per-language releases.
   Live is still `rel_CG @ 7dde368e` (Russian). Nothing below is on production. ⚠️ Not pushed.
 - **R/V — committed locally, newest last (each: 10,433 of 10,433 texts, machine translation with AI review, no native check):**

@@ -1732,6 +1732,14 @@ and MariaDB 4,599/4,599 (36,299) · PHPStan L5 0 · Pint clean · money gate FUL
 production was closed on 2026-11-02 and reopened by 2026-11-05. **Shipped 2026-11-05 as ONE release, `rel_CH @ a5e68e16`** (stage fix to
 `ops/release.sh` first: xargs split a 10,400-file list), public checks 12/0/0, all 27 languages answer on `/login?lang=`.
 
+**I18N-01 — leftovers fixed, translated, shipped (2026-11-06).** His word: fix the 10 code/key items and the 11 English-copy items.
+Code + English `a30d4252` (a plain-words rewrite of each copy item; Georgian "F Y" without the comma; sentence-end key; typed
+sealed-statement reason; mode/interval/refund-method words; pause with no date in properties AND inbox), DELTA `a1e9d990` (15 new + 13
+changed texts × 27 languages, 10,448 keys each; translator + check.php only). GitHub's first run of the 27-language code (run
+42075504542) FAILED — 23 tests red, `Class "Locale" not found`: the CI image had no ext-intl; fixed in `9edcda4e` (image installs it,
+contract asserts it). Gates (V): MySQL 4,619/4,619 (36,364) · MariaDB 11.8.9 4,619/4,619 (36,364) · PHPStan 0 · Pint clean · money gate
+FULL · render 929 pages × 10 languages 0 problems · 63 pages × 7 languages fetched signed in, no 5xx/raw key/raw Blade.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

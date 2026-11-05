@@ -37,12 +37,9 @@ change is said.** Briefs live in `briefs/`.
 | A13 | **The Rates page could flag a saved-but-unapplied season more loudly.** On production his €200 "Winter" season sat saved and never applied for six days, the reason no booking could be made (V 2026-10-04). The booking page now offers it; the Rates page still shows it only as a "not applied" line in its season list. A banner ("1 season saved but not applied — no price is written until you apply it") is a small change to that page. | his go | — | Saving a season and expecting prices is an easy mistake; the two-step is deliberate (R-SEASON), its visibility is not. |
 
 ## Known defects (each its own ID)
+- ✅ **CLOSED 2026-11-06 (his go: "fix all these") — the I18N leftovers:** D-I18N-TOO-LONG-PLURAL · D-I18N-HARD-PERIOD · D-I18N-PAYOUT-MODE · D-I18N-SHARED-NAME · D-I18N-SHARED-PAUSED · D-I18N-STATEMENT-REFUSAL · D-I18N-PLAN-INTERVAL · D-I18N-REFUND-METHOD · D-I18N-FRONT-DESK-DASH · D-I18N-KA-MONTH-COMMA, and the English copy: D-OWNER-MESSAGE-GUESTS · D-CHECKIN-REFUSAL-STALE · D-AGREEMENT-DOUBLE-WORD · D-FD-COLLECT-JARGON · D-NOSHOW-REFUSAL-COPY · D-INVITE-INVALID-OPERATOR · D-OWNER-REMEMBER-ME-COPY · D-ROOM-MOVES-NOTE-JARGON · D-STATEMENT-PDF-FEES-LOWERCASE · D-PAUSE-RESUME-NULL (properties AND inbox) · D-ACRONYM-CASE-COPY. Commits `a30d4252` (code + English), `a1e9d990` (translations, 27 languages: translator + check.php only, no second reviewer), tests `tests/Feature/I18nLeftoversTest.php`. Still open from the earlier list: D-I18N-24H-LIVE-AR (his call).
 - **D-I18N-24H-LIVE-AR (2026-11-05, V — his call):** `LocalDate` now keeps 24-hour clocks 24-hour in every language (the English source writes `H:i`); live Arabic printed 12-hour before. Keep, or restore 12-hour for ar.
-- **D-I18N-TOO-LONG-PLURAL (V 2026-11-02):** `lang/en/livewire/operator/new-reservation.php` `too_long` has no plural forms but is called with a count — a limit of 1 prints "1 nights". Needs a key change + translations.
-- **D-I18N-HARD-PERIOD (V 2026-11-02):** `resources/views/emails/cancellation.blade.php:55` (and `booking-confirmation.blade.php:89`) print a Latin full stop after a translated line; hi/zh/th/ja want their own stop. Move it into the key.
-- **D-I18N-KA-MONTH-COMMA (2026-11-05):** ICU's Georgian "F Y" pattern prints "ნოემბერი, 2026" (a comma); not fixable in code only.
-- **English-copy items for him (found by translators, V by reading):** D-OWNER-MESSAGE-GUESTS · D-CHECKIN-REFUSAL-STALE · D-AGREEMENT-DOUBLE-WORD · D-FD-COLLECT-JARGON · D-NOSHOW-REFUSAL-COPY · D-INVITE-INVALID-OPERATOR ("ask your operator" is wrong for owner-team invites) · D-OWNER-REMEMBER-ME-COPY · D-ROOM-MOVES-NOTE-JARGON · D-STATEMENT-PDF-FEES-LOWERCASE · D-PAUSE-RESUME-NULL (a cancelled pause prints "…until .") · D-ACRONYM-CASE-COPY ("Api"/"Ota").
-- **Also open, from the translators (V by reading, each a code+key change):** D-I18N-PAYOUT-MODE · D-I18N-SHARED-NAME · D-I18N-SHARED-PAUSED · D-I18N-STATEMENT-REFUSAL (`OwnerManageController.php:174`) · D-I18N-PLAN-INTERVAL · D-I18N-REFUND-METHOD · D-I18N-FRONT-DESK-DASH (`front-desk.blade.php` ~281, ~324 hard-code "–").
+- ✅ **D-CI-INTL (2026-11-06, V — found by GitHub's first run of the 27-language code, run 42075504542, 23 tests red with `Class "Locale" not found`):** the CI image had no `ext-intl` (left out on purpose while intl was optional). Fixed in `9edcda4e`: `Dockerfile.ci` installs it, `ops/runtime-contract.sh` asserts it, `docs/DEPLOYMENT.md` §7.5.1b updated. ⚠️ I18N tests had never run in CI before that push (the last green CI was 2026-10-24); a second CI run is the proof, not this note.
 - **D-B19**: delete could not see an open Stripe Checkout page. **Fixed by ADMIN 06**, including the two gaps review 2 found
   (a live page paid but not yet reported, D-R2-2; the guest page's half, D-R2-4).
 - **D-3b**: the delete preview counted 17 of the 232 rows it removes. **Fixed by ADMIN 06**; the proof gap (D-R2-6) is closed.
@@ -347,12 +344,12 @@ change is said.** Briefs live in `briefs/`.
 - **D-OWNER-VILLA-COLUMN (2026-11-02, V by reading — HIS CALL, English copy):** the owner Rates and Agreement tables head their
   unit column "Villa" (`livewire/owner/rates.col_villa`, `agreement.col_villa`) and owner Insights says "How your villas are
   filling…" whatever the unit kind — a wireframe leftover. Translations say "unit"; the English is unchanged until he rules.
-- **D-NOSHOW-REFUSAL-COPY (2026-11-02, V by reading — HIS CALL, English copy):** `check_in_reservation.refused_no_show` tells
+- ✅ **D-NOSHOW-REFUSAL-COPY — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V by reading — HIS CALL, English copy):** `check_in_reservation.refused_no_show` tells
   staff to "take a New reservation on the front desk", but the front desk offers only Walk-in. Translations follow the English.
-- **D-I18N-PAYOUT-MODE (2026-11-02, V by reading `PayoutRunActionController.php:93`):** the payout-run notice passes the raw code
+- ✅ **D-I18N-PAYOUT-MODE — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V by reading `PayoutRunActionController.php:93`):** the payout-run notice passes the raw code
   `$run->mode` ("test"/"live") into `run_complete`, so every language reads "(modo test)". Fix with the next code-carrying
   release: two keys (English "test"/"live", byte-identical), pass the word.
-- **D-I18N-SHARED-NAME (2026-11-02, V by reading):** `common.name` labels both a person's name and a room-type name
+- ✅ **D-I18N-SHARED-NAME — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V by reading):** `common.name` labels both a person's name and a room-type name
   (`units-list.blade.php`); Russian needs «Имя» vs «Название». Fix: a separate key for the room-type name (English "Name").
 - **D-I18N-ONE-UNITS (2026-11-02, V by the pt_BR reviewer reading `trans_choice` callers):** two owner CSV month totals
   (":count units" / ":count nights") are picked by `trans_choice` but have no singular in English ("1 units"). Translations
@@ -361,16 +358,16 @@ change is said.** Briefs live in `briefs/`.
 - **D-I18N-CONSOLE-REGISTER (2026-11-02, V — english-left.php):** the console privacy page's sub-processor register
   (`App\Support\Privacy\SubProcessors`) is typed English (purposes, data shared, "Not connected", "None on file") in every language.
   Founder-only console and a legal register (cf. D-I18N-LAWYER) — recorded, not keyed.
-- **D-OWNER-MESSAGE-GUESTS (2026-11-02, V — `resources/views/livewire/owner/dashboard.blade.php:102-104`):** the owner Overview
+- ✅ **D-OWNER-MESSAGE-GUESTS — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V — `resources/views/livewire/owner/dashboard.blade.php:102-104`):** the owner Overview
   button "Message guests" links to `route('owner.messages')`, the owner's thread with the management team, not with guests. English
   copy — his call (rename the button, or it stays).
-- **D-CHECKIN-REFUSAL-STALE (2026-11-02, V — `lang/en/php/actions/reservations/check_in_reservation.php:8`, `routes/web.php:1474`):**
+- ✅ **D-CHECKIN-REFUSAL-STALE — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V — `lang/en/php/actions/reservations/check_in_reservation.php:8`, `routes/web.php:1474`):**
   the refusal says "Reversing a checkout is not available", but `front-desk.reverse-checkout` exists. English copy — his call.
-- **D-AGREEMENT-DOUBLE-WORD (2026-11-02, V — `lang/en/livewire/owner/agreement.php:39`):** "Included in the management management
+- ✅ **D-AGREEMENT-DOUBLE-WORD — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V — `lang/en/livewire/owner/agreement.php:39`):** "Included in the management management
   fee" — a doubled word in the English. Translations say it once.
-- **D-FD-COLLECT-JARGON (2026-11-02, V — `lang/en/livewire/partials/fd-collect-form.php:11`, `lang/en/livewire/front-desk.php:105`):**
+- ✅ **D-FD-COLLECT-JARGON — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V — `lang/en/livewire/partials/fd-collect-form.php:11`, `lang/en/livewire/front-desk.php:105`):**
   front-desk hints say "the deferred Stripe seam" — developer words on a staff screen. English copy — his call.
-- **D-I18N-SHARED-PAUSED (2026-11-02, V — `resources/views/livewire/units-list.blade.php:62` and `:311`):** one key,
+- ✅ **D-I18N-SHARED-PAUSED — CLOSED 2026-11-06 (see the closed-list above) (2026-11-02, V — `resources/views/livewire/units-list.blade.php:62` and `:311`):** one key,
   `livewire/units-list.paused`, labels both the plural KPI and a single unit's tag; gendered languages need two keys. Fix with the next
   code-carrying release (English stays byte-identical).
 - **D-GUEST-TILE-NARROW (2026-10-29, V — low, pre-existing in English too):** the guest reservation's four stat tiles on a 390px
