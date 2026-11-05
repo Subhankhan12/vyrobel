@@ -14,6 +14,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\Ordinal;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
@@ -452,11 +453,11 @@ class OperatorOwners extends Component
 
     private function ordinal(int $n): string
     {
-        return match (true) {
-            $n % 100 >= 11 && $n % 100 <= 13 => __('php/livewire/operator/operator_owners.ordinal_th', ['number' => $n]),
-            $n % 10 === 1 => __('php/livewire/operator/operator_owners.ordinal_st', ['number' => $n]),
-            $n % 10 === 2 => __('php/livewire/operator/operator_owners.ordinal_nd', ['number' => $n]),
-            $n % 10 === 3 => __('php/livewire/operator/operator_owners.ordinal_rd', ['number' => $n]),
+        // the choice of st / nd / rd / th is App\Support\I18n\Ordinal's (English's rule; Georgian's own for `ka`)
+        return match (Ordinal::form($n)) {
+            'st' => __('php/livewire/operator/operator_owners.ordinal_st', ['number' => $n]),
+            'nd' => __('php/livewire/operator/operator_owners.ordinal_nd', ['number' => $n]),
+            'rd' => __('php/livewire/operator/operator_owners.ordinal_rd', ['number' => $n]),
             default => __('php/livewire/operator/operator_owners.ordinal_th', ['number' => $n]),
         };
     }

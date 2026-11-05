@@ -93,6 +93,7 @@ use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\I18n\CarbonFixes;
 use App\Support\I18n\Locales;
 use App\Support\Llm\AnthropicLlmClient;
 use App\Support\Llm\FakeLlmClient;
@@ -457,7 +458,10 @@ class AppServiceProvider extends ServiceProvider
         // I18N-01 — month and day names follow the page's language: Laravel moves its translator on App::setLocale but never
         //    Carbon, so a translatedFormat()/diffForHumans() stayed English. Serbian maps to Carbon's CYRILLIC messages
         //    (`sr_Cyrl`) — Carbon's plain `sr` is Latin (hrmzy's lesson). The map lives in App\Support\I18n\Locales.
-        Event::listen(LocaleUpdated::class, fn (LocaleUpdated $event) => Carbon::setLocale(Locales::carbon($event->locale)));
+        Event::listen(LocaleUpdated::class, function (LocaleUpdated $event): void {
+            Carbon::setLocale(Locales::carbon($event->locale));
+            CarbonFixes::apply(Locales::carbon($event->locale));   // Georgian's dative month and weekday names → the nominative a date line wants
+        });
 
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof

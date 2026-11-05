@@ -8,6 +8,7 @@ use App\Exceptions\Authorization\RoleAssignmentException;
 use App\Models\User;
 use App\Support\Authorization\RolePermissions;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\I18n\LocalText;
 use App\Support\Tenancy\TenantContext;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -429,7 +430,7 @@ class RolePermissionService
     private function initials(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];
-        $letters = array_map(fn (string $p): string => mb_strtoupper(mb_substr($p, 0, 1)), array_filter($parts));
+        $letters = array_map(fn (string $p): string => LocalText::upper(mb_substr($p, 0, 1)), array_filter($parts));
 
         return implode('', array_slice($letters, 0, 2)) ?: '·';
     }

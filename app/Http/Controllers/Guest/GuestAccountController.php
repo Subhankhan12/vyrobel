@@ -14,6 +14,7 @@ use App\Support\Email\GuestEmailPreferences;
 use App\Support\Guest\GuestName;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
+use App\Support\I18n\LocalText;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -178,7 +179,7 @@ class GuestAccountController extends Controller
 
     private function initials(string $first, string $last): string
     {
-        $initials = mb_strtoupper(mb_substr($first, 0, 1).mb_substr($last, 0, 1));
+        $initials = LocalText::upper(mb_substr($first, 0, 1).mb_substr($last, 0, 1));
 
         return $initials !== '' ? $initials : 'G';
     }

@@ -53,7 +53,7 @@
                 <div class="vy-card vy-fade" style="padding:18px 20px;animation-delay:.12s">
                     <div class="vy-eyebrow">{{ __('livewire/owner/reviews.overall_rating') }}</div>
                     <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
-                        <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ number_format((float) $summary['average'], 1) }}</span>
+                        <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ \App\Support\I18n\LocalNumber::decimal(number_format((float) $summary['average'], 1)) }}</span>
                         <x-star-rating :value="$summary['average']" size="16px" gap="2px" />
                     </div>
                     <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ trans_choice('livewire/owner/reviews.reviews_all_villas', $summary['count'], ['count' => $summary['count']]) }}</div>
@@ -68,7 +68,7 @@
                     <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                         <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ $summary['last30_count'] }}</span>
                         @if ($summary['last30_average'] !== null)
-                            <span class="vy-rv-chip" style="background:rgba(79,122,70,.13);color:#3F6A38">{{ __('livewire/owner/reviews.last_30_avg', ['rating' => number_format((float) $summary['last30_average'], 1)]) }}</span>
+                            <span class="vy-rv-chip" style="background:rgba(79,122,70,.13);color:#3F6A38">{{ __('livewire/owner/reviews.last_30_avg', ['rating' => \App\Support\I18n\LocalNumber::decimal(number_format((float) $summary['last30_average'], 1))]) }}</span>
                         @endif
                     </div>
                     <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ trans_choice('livewire/owner/reviews.new_reviews', $summary['last30_count']) }}</div>
@@ -86,7 +86,7 @@
                         </div>
                         <div class="vy-rv-bar"><span style="width:{{ $v['pct'] }}%"></span></div>
                         <div style="display:flex;align-items:baseline;gap:6px;justify-content:flex-end">
-                            <span style="font-family:var(--vy-display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums">{{ number_format((float) $v['rating'], 1) }}</span>
+                            <span style="font-family:var(--vy-display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums">{{ \App\Support\I18n\LocalNumber::decimal(number_format((float) $v['rating'], 1)) }}</span>
                             <span aria-hidden="true" style="color:var(--vy-star);font-size:13px">★</span>
                         </div>
                         <div style="text-align:right">
@@ -178,7 +178,7 @@
                             <div>
                                 <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
                                     <span style="font-size:12.5px;font-weight:500;color:var(--vy-ink)">{{ $categoryLabels[$c['key']] ?? $c['label'] }}</span>
-                                    <span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ number_format((float) $c['score'], 1) }}</span>
+                                    <span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ \App\Support\I18n\LocalNumber::decimal(number_format((float) $c['score'], 1)) }}</span>
                                 </div>
                                 <div class="vy-rv-bar" style="height:7px"><span style="width:{{ $c['pct'] }}%"></span></div>
                             </div>

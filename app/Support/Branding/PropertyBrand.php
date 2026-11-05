@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Branding;
 
 use App\Models\Property;
+use App\Support\I18n\LocalText;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -58,7 +59,7 @@ final class PropertyBrand
             accentSoft: self::soften($accent),
             logoUrl: $logoPath !== '' ? Storage::disk('public')->url($logoPath) : null,
             displayName: $name,
-            initial: mb_strtoupper(mb_substr($name, 0, 1)),
+            initial: LocalText::upper(mb_substr($name, 0, 1)),
             fromName: $fromName !== '' ? $fromName : $name,
             replyTo: $replyTo !== '' ? $replyTo : null,
             poweredBy: (bool) ($property->brand_powered_by ?? true),

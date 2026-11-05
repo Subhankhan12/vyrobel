@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\Unit;
 use App\Services\OwnerInviteService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
@@ -90,7 +91,7 @@ class InviteOwnerController extends Controller
                 $which = $owned->map(fn (Unit $u): string => __('php/http/controllers/operator/invite_owner_controller.unit_owned_by', [
                     'unit' => $u->name ?: $u->code,
                     'owner' => $names[$u->owner_id] ?? __('php/http/controllers/operator/invite_owner_controller.another_owner'),
-                ]))->implode(', ');
+                ]))->pipe(fn ($which) => ListJoin::join($which));
 
                 return $this->back($request)->withInput($request->except('current_password'))->withErrors(['unit_ids' => trans_choice(
                     'php/http/controllers/operator/invite_owner_controller.units_already_owned', $owned->count(), ['units' => $which])]);

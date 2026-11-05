@@ -23,6 +23,7 @@ use App\Services\OwnerRateService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Guest\GuestName;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -368,7 +369,7 @@ class OwnerUnitDetail extends Component
     {
         $monday = Carbon::parse('2024-01-01');   // a Monday
 
-        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
+        return array_map(fn (int $i): string => LocalText::upper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
     }
 
     /**

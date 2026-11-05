@@ -10,6 +10,7 @@ use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateBulkService;
 use App\Services\RateDerivationService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
@@ -405,7 +406,7 @@ class RateActionController extends Controller
         $nightsLabel = trans_choice('php/http/controllers/operator/rate_action_controller.nights_count', $nights, ['count' => $nights]);
         // Plain English — "Updated the nightly price and the minimum stay …", never "rate + minimum stay" (2026-10-01).
         $last = array_pop($what);
-        $list = $what === [] ? (string) $last : __('php/http/controllers/operator/rate_action_controller.list_and', ['items' => implode(', ', $what), 'last' => (string) $last]);
+        $list = $what === [] ? (string) $last : __('php/http/controllers/operator/rate_action_controller.list_and', ['items' => ListJoin::join($what), 'last' => (string) $last]);
         $message = __('php/http/controllers/operator/rate_action_controller.summary_updated', ['what' => $list, 'room_types' => $roomTypes, 'nights' => $nightsLabel]);
 
         if ($missingPlan > 0) {

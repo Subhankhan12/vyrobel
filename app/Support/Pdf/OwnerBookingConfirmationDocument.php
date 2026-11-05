@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Reservation;
 use App\Support\Guest\GuestName;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerBookingsReader;
@@ -66,7 +67,7 @@ final class OwnerBookingConfirmationDocument
             'status' => ReservationStage::meta(ReservationStage::for($reservation))['label'],
             // #28 — NAME ONLY (shared GuestName; anonymized → "Guest").
             'guest' => GuestName::display($reservation->leadGuest),
-            'units' => collect($ownedUnits)->pluck('label')->implode(', '),
+            'units' => ListJoin::join(collect($ownedUnits)->pluck('label')),
             'check_in' => $checkIn->translatedFormat(LocalDate::pattern('D j M Y')),
             'check_out' => $checkOut->translatedFormat(LocalDate::pattern('D j M Y')),
             'nights' => $nights,

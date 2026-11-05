@@ -8,6 +8,7 @@ use App\Models\TeamConversation;
 use App\Models\TeamConversationMember;
 use App\Models\TeamMessage;
 use App\Models\User;
+use App\Support\I18n\ListJoin;
 use App\Support\Schedule\StaffRoster;
 use Illuminate\Support\Collection;
 use Symfony\Component\Uid\Ulid;
@@ -240,8 +241,8 @@ final class TeamChatReader
         $first = $others->map(fn (User $u): string => (string) strtok((string) $u->name, ' '))->values();
 
         return match (true) {
-            $first->count() <= 3 => $first->implode(', '),
-            default => trans_choice('php/support/team_chat/team_chat_reader.group_name_others', $first->count() - 2, ['names' => $first->take(2)->implode(', '), 'count' => $first->count() - 2]),
+            $first->count() <= 3 => ListJoin::join($first),
+            default => trans_choice('php/support/team_chat/team_chat_reader.group_name_others', $first->count() - 2, ['names' => ListJoin::join($first->take(2)), 'count' => $first->count() - 2]),
         };
     }
 

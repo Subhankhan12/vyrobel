@@ -389,7 +389,7 @@
             const PL = @js($__tcPl);
             const plural = (map, other, n) => (map[n] !== undefined ? map[n] : other.replace(':count', String(n)));
             // I18N-01 — dates in the PAGE's language; English keeps the browser's, as it always has
-            const DATE_LOCALE = @js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::tag()) ?? undefined;
+            const DATE_LOCALE = @js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::dateTag()) ?? undefined;
 
             // the things that must never become reactive (the recorder, timers) live outside Alpine's state
             let recording = null, recToken = 0, pollTimer = null, readTimer = null;

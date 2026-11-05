@@ -6,6 +6,7 @@ namespace App\Support\Storefront;
 
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Support\I18n\ListJoin;
 use App\Support\Reviews\ReviewRating;
 use Tests\Feature\StorefrontSeoTest;
 
@@ -519,6 +520,6 @@ final class StorefrontSeo
 
         $last = array_pop($items);
 
-        return __('php/support/storefront/storefront_seo.list_and', ['items' => implode(', ', $items), 'last' => $last]);
+        return __('php/support/storefront/storefront_seo.list_and', ['items' => ListJoin::join($items), 'last' => $last]);
     }
 }

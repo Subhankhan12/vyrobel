@@ -14,6 +14,7 @@ use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Services\PayoutRunService;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -216,7 +217,7 @@ final class OwnerRows
     public static function initials(string $name): string
     {
         $parts = preg_split('/\s+/u', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        $letters = array_map(fn (string $p): string => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
+        $letters = array_map(fn (string $p): string => LocalText::upper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
 
         return implode('', $letters) ?: '?';
     }

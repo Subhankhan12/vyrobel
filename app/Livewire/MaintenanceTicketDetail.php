@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Services\MaintenanceSettingsService;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalNumber;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\StaffRoster;
@@ -393,7 +394,7 @@ class MaintenanceTicketDetail extends Component
     /** "1.5h" / "2h" — a labour-hours label (trailing zeros trimmed). */
     private function hoursLabel(float $hours): string
     {
-        return __('php/livewire/maintenance_ticket_detail.hours_short', ['hours' => rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.')]);
+        return __('php/livewire/maintenance_ticket_detail.hours_short', ['hours' => LocalNumber::decimal(rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.'))]);
     }
 
     /** SLA progress % (elapsed / target), clamped 0–100 — for the timing bar. */

@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RoomType;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
@@ -178,7 +179,7 @@ class StorefrontLandingController extends Controller
                 'name' => (string) $rt->name,
                 'kind' => $this->roomKind((string) $rt->kind),
                 'town' => $property !== null ? ($this->town($property) ?: (string) $property->name) : '',
-                'rating' => $rating['has_reviews'] ? number_format((float) $rating['average'], 1) : null,
+                'rating' => $rating['has_reviews'] ? LocalNumber::decimal(number_format((float) $rating['average'], 1)) : null,
                 'from' => $from !== null ? $this->money($from, (string) ($property->currency ?? 'EUR')) : null,
                 'from_minor' => $from,
                 'cover' => $rt->coverPhoto()?->url,

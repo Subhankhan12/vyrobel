@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Models\User;
 use App\Notifications\NewDeviceSignInNotification;
+use App\Support\I18n\LocalDate;
 use App\Support\Log\LogSafe;
 use App\Support\Platform\DeviceLabel;
 use App\Support\Security\NewDeviceSignIn;
@@ -45,7 +46,7 @@ class NotifyNewDeviceSignIn
                 eventKey: $key,
                 device: DeviceLabel::from($request->userAgent()),
                 ip: $request->ip(),
-                when: $now->setTimezone($zone)->format('j M Y, H:i T'),
+                when: $now->setTimezone($zone)->translatedFormat(LocalDate::pattern('j M Y, H:i T')),
                 securityUrl: route($key === NewDeviceSignIn::OWNER_KEY ? 'owner.security' : 'app.security', [], false),
             ));
         } catch (\Throwable $e) {

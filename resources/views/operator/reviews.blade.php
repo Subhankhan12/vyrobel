@@ -20,7 +20,7 @@
         <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade" style="margin-bottom:16px">
             <div class="vy-dash-kpi">
                 <div class="vy-dk-label">{{ __('operator/reviews.overall_rating') }}</div>
-                <div class="vy-dk-val">{{ number_format((float) $summary['average'], 1) }}<span class="vy-dk-unit"> ★</span></div>
+                <div class="vy-dk-val">{{ \App\Support\I18n\LocalNumber::decimal(number_format((float) $summary['average'], 1)) }}<span class="vy-dk-unit"> ★</span></div>
                 <div class="vy-dk-sub">{{ trans_choice('operator/reviews.published_reviews', $summary['count'], ['count' => $summary['count']]) }}</div>
             </div>
             <div class="vy-dash-kpi">

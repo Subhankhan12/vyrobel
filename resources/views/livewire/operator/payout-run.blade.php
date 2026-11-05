@@ -321,7 +321,7 @@
                                             <td>
                                                 <div class="vy-po-who">
                                                     @if ($row['owner_name'] !== '—')
-                                                        <span class="vy-mini-avatar" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['owner_name'])->explode(' ')->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('') }}</span>
+                                                        <span class="vy-mini-avatar" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['owner_name'])->explode(' ')->filter()->take(2)->map(fn ($w) => \App\Support\I18n\LocalText::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('') }}</span>
                                                     @endif
                                                     <div>
                                                         @if ($row['owner_id'])

@@ -9,6 +9,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Services\ReviewService;
+use App\Support\I18n\LocalNumber;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -165,10 +166,10 @@ final class OwnerReviewSummary
                 $delta = round((float) $recent->avg('rating') - (float) $prior->avg('rating'), 1);
                 if ($delta > 0) {
                     $direction = 'up';
-                    $trend = __('php/support/reviews/owner_review_summary.trend_up', ['delta' => number_format($delta, 1)]);
+                    $trend = __('php/support/reviews/owner_review_summary.trend_up', ['delta' => LocalNumber::decimal(number_format($delta, 1))]);
                 } elseif ($delta < 0) {
                     $direction = 'down';
-                    $trend = __('php/support/reviews/owner_review_summary.trend_down', ['delta' => number_format(abs($delta), 1)]);
+                    $trend = __('php/support/reviews/owner_review_summary.trend_down', ['delta' => LocalNumber::decimal(number_format(abs($delta), 1))]);
                 }
             }
 

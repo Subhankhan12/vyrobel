@@ -20,6 +20,8 @@ use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
 use App\Services\SeasonalRateService;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalNumber;
+use App\Support\I18n\LocalText;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
@@ -302,7 +304,7 @@ class RatesGrid extends Component
                 $isMain = in_array((string) $plan->getKey(), $mainPlanIds, true);
                 // ⚠️ "the grid above" only where it is TRUE — the grid prices each room type's main plan and no other
                 //    (2026-10-01: every refundable plan said it, and a non-refundable one read "Base plan").
-                $pctText = $pct !== null ? rtrim(rtrim(number_format($pct, 2), '0'), '.') : '';
+                $pctText = $pct !== null ? LocalNumber::decimal(rtrim(rtrim(number_format($pct, 2), '0'), '.')) : '';
                 $fromName = $plan->derivedFrom instanceof RatePlan ? $plan->derivedFrom->name : null;   // null → "base", as before
                 $sub = match (true) {
                     $pct !== null && $fromName !== null => __('php/livewire/operator/rates_grid.derived_from', ['pct' => $pctText, 'plan' => (string) $fromName]),
@@ -367,7 +369,7 @@ class RatesGrid extends Component
         foreach (Channel::query()->whereIn('property_id', $this->currentReadIds)->orderBy('name')->get() as $channel) {
             $status = (string) $channel->status;
             $rows[] = [
-                'init' => mb_strtoupper(mb_substr((string) $channel->name, 0, 1)),
+                'init' => LocalText::upper(mb_substr((string) $channel->name, 0, 1)),
                 'name' => (string) $channel->name,
                 'status' => match ($status) {
                     'connected' => __('php/livewire/operator/rates_grid.status_connected'),
@@ -470,7 +472,7 @@ class RatesGrid extends Component
             if ($pct === null) {
                 continue;
             }
-            $num = rtrim(rtrim(number_format(abs($pct), 2), '0'), '.');
+            $num = LocalNumber::decimal(rtrim(rtrim(number_format(abs($pct), 2), '0'), '.'));
             $labels[(string) $plan->name.$pct] = (string) $plan->name.' '.($pct < 0 ? '−' : '+').$num.'%';
         }
 

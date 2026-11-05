@@ -215,7 +215,7 @@
 
             <div x-show="! editing">
                 <div class="vy-ud-prow"><span class="k">{{ __('livewire/owner/unit-detail.nightly_rate') }}</span><span class="v">{{ $pricing['rate_display'] ?? __('livewire/owner/unit-detail.not_set') }}</span></div>
-                <div class="vy-ud-prow"><span class="k">{{ __('livewire/owner/unit-detail.weekend_uplift') }}</span><span class="v">{{ $pricing['weekend_pct'] !== null && (float) $pricing['weekend_pct'] > 0 ? rtrim(rtrim(number_format((float) $pricing['weekend_pct'], 2), '0'), '.').'%' : __('common.none') }}</span></div>
+                <div class="vy-ud-prow"><span class="k">{{ __('livewire/owner/unit-detail.weekend_uplift') }}</span><span class="v">{{ $pricing['weekend_pct'] !== null && (float) $pricing['weekend_pct'] > 0 ? \App\Support\I18n\LocalNumber::decimal(rtrim(rtrim(number_format((float) $pricing['weekend_pct'], 2), '0'), '.')).'%' : __('common.none') }}</span></div>
                 <div class="vy-ud-prow"><span class="k">{{ __('livewire/owner/unit-detail.minimum_stay') }}</span><span class="v">{{ $pricing['min_stay'] !== null ? trans_choice('livewire/owner/unit-detail.nights', $pricing['min_stay'], ['count' => $pricing['min_stay']]) : __('common.none') }}</span></div>
                 @if (! $pricing['editable'])
                     <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">{{ __('livewire/owner/unit-detail.rate_shared_note') }}</p>
@@ -344,7 +344,7 @@
                 <h2 class="vy-card-title" style="font-size:16px;margin-bottom:8px">{{ __('livewire/owner/unit-detail.reviews_heading') }}</h2>
                 @if ($reviews['has_reviews'])
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
-                        <span class="vy-ud-reviews-score">{{ number_format((float) $reviews['average'], 1) }}</span>
+                        <span class="vy-ud-reviews-score">{{ \App\Support\I18n\LocalNumber::decimal(number_format((float) $reviews['average'], 1)) }}</span>
                         <div>
                             {{-- DO10-4 capstone: this row used `round()`, so a 4.6 average printed FIVE filled
                                  stars — the owner's own unit read as perfect when it is not. The shared

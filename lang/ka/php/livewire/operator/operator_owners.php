@@ -27,7 +27,7 @@ return [
     'ordinal_st' => ':number-ლი',
     'ordinal_nd' => 'მე-:number',
     'ordinal_rd' => 'მე-:number',
-    'ordinal_th' => 'მე-:number',
+    'ordinal_th' => ':number-ე',
     'role_manager' => 'ობიექტის მენეჯერი',
     'role_accountant' => 'ბუღალტერი',
     'role_owner' => 'მესაკუთრე',

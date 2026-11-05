@@ -207,7 +207,7 @@
                                 <div class="vy-arr-who">
                                     {{-- The design leads each arrival with an initials avatar. Derived from the
                                          name already displayed — no new data, and name-only per #28. --}}
-                                    <span class="vy-arr-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($a['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
+                                    <span class="vy-arr-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($a['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \App\Support\I18n\LocalText::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
                                     <div style="min-width:0;">
                                         <div class="vy-arr-name">{{ $a['guest'] }}</div>
                                         {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}

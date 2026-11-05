@@ -659,7 +659,7 @@
                                     <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
                                 @endif
                                 <ul class="vyo-factlist vyo-factlist--spaced">
-                                    <li>@if (count($removeUnitNames)){!! __('livewire/operator/owner-detail.remove_units_named', ['units' => e(implode(', ', $removeUnitNames))]) !!}@else{!! __('livewire/operator/owner-detail.remove_units_generic') !!}@endif</li>
+                                    <li>@if (count($removeUnitNames)){!! __('livewire/operator/owner-detail.remove_units_named', ['units' => e(\App\Support\I18n\ListJoin::join($removeUnitNames))]) !!}@else{!! __('livewire/operator/owner-detail.remove_units_generic') !!}@endif</li>
                                     {{-- ⚠️ Removal cascades to the owner's team (2026-08-31) — so the claim is true, and spelled out. --}}
                                     <li>@if ($removeTeamCount > 0){!! trans_choice('livewire/operator/owner-detail.remove_portal_ends_team', $removeTeamCount, ['count' => $removeTeamCount, 'name' => e($owner['name'])]) !!}@else{!! __('livewire/operator/owner-detail.remove_portal_ends', ['name' => e($owner['name'])]) !!}@endif</li>
                                     {{-- ⚠️ OwnerLoginLifecycle spares a person who still holds a back-office role — the owner too. --}}

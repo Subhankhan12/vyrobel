@@ -183,7 +183,7 @@
                     <ul class="vy-sx-rows">
                         @forelse ($connectedApps as $app)
                             <li class="vy-sx-row">
-                                <span class="vy-sx-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($app['name'], 0, 2)) }}</span>
+                                <span class="vy-sx-avatar" aria-hidden="true">{{ \App\Support\I18n\LocalText::upper(mb_substr($app['name'], 0, 2)) }}</span>
                                 <div class="vy-sx-row-main">
                                     <span class="vy-sx-row-title">{{ $app['name'] }}</span>
                                     <span class="vy-sx-row-meta">

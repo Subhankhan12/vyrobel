@@ -21,10 +21,14 @@ use IntlDatePatternGenerator;
  */
 final class LocalDate
 {
-    /** PHP date letter → the ICU skeleton field that asks for the same thing. */
+    /**
+     * PHP date letter → the ICU skeleton field that asks for the same thing. ⚠️ `H`/`G` (a 24-hour clock in the English source)
+     * ask for the 24-hour skeleton `H`, NOT `j` ("the language's preferred hour"): `j` made Greek, Hindi, Arabic, Albanian,
+     * Traditional Chinese and Korean print "3:00 ΜΜ" where the source said 15:00. `g`/`h` (12-hour) keep `j`.
+     */
     private const SKELETON = [
         'j' => 'd', 'd' => 'd', 'M' => 'MMM', 'F' => 'MMMM', 'n' => 'M', 'm' => 'M', 'Y' => 'y', 'y' => 'yy',
-        'D' => 'EEE', 'l' => 'EEEE', 'H' => 'j', 'G' => 'j', 'g' => 'j', 'h' => 'j', 'i' => 'mm',
+        'D' => 'EEE', 'l' => 'EEEE', 'H' => 'H', 'G' => 'H', 'g' => 'j', 'h' => 'j', 'i' => 'mm',
     ];
 
     /** @var array<string, string> */
@@ -60,7 +64,9 @@ final class LocalDate
             return $pattern;
         }
 
-        $generator = new IntlDatePatternGenerator(str_replace('_', '-', Locales::tag($locale)));
+        // ⚠️ the GREGORIAN calendar, always: Persian's default calendar is Solar Hijri and its date patterns come back in the
+        //    wrong order for the Gregorian dates this app prints ("2026 نوامبر 5, پنجشنبه" for "l j F Y")
+        $generator = new IntlDatePatternGenerator(str_replace('_', '-', Locales::tag($locale)).'-u-ca-gregory');
         $icu = $generator->getBestPattern($fields);
         if ($icu === false || $icu === '') {
             return $pattern;

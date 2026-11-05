@@ -15,7 +15,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? __('components/layouts/operator.default_title') }}</title>
+    <title>{{ $title ?? __('components/layouts/operator.default_title') }}</title>{!! \App\Support\I18n\LocalText::caselessCss() !!}
 
     <x-favicon />
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Unit;
 
 use App\Http\Controllers\Operator\InventoryActionController;
+use App\Support\I18n\ListJoin;
 
 /**
  * UNIT CODES, SEVERAL AT ONCE (2026-10-05, the founder: "Add inventory section design and functionality is not good. It is
@@ -108,8 +109,8 @@ final class UnitCodes
         $more = count($parts) - count($shown);
 
         return $more > 0
-            ? trans_choice('php/support/unit/unit_codes.summary_more', $more, ['codes' => implode(', ', $shown), 'count' => $more])
-            : implode(', ', $shown);
+            ? trans_choice('php/support/unit/unit_codes.summary_more', $more, ['codes' => ListJoin::join($shown), 'count' => $more])
+            : ListJoin::join($shown);
     }
 
     /** @return array{part: string, prefix: string, from: int, to: int, width: int, count: int} */

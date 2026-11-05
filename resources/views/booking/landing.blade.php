@@ -112,7 +112,7 @@
             @if ($rating['has_reviews'])
                 <div class="vy-lp-badge">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>
-                    {{ trans_choice('booking/landing.rating_across', $rating['count'], ['average' => number_format((float) $rating['average'], 1), 'count' => $rating['count']]) }}@if ($heroTowns->isNotEmpty()) · {{ $heroTowns->join(' · ') }}@endif
+                    {{ trans_choice('booking/landing.rating_across', $rating['count'], ['average' => \App\Support\I18n\LocalNumber::decimal(number_format((float) $rating['average'], 1)), 'count' => $rating['count']]) }}@if ($heroTowns->isNotEmpty()) · {{ $heroTowns->join(' · ') }}@endif
                 </div>
             @endif
             <h1 class="vy-lp-h1">{!! __('booking/landing.heading', ['org' => e($org['name'])]) !!}</h1>
@@ -267,7 +267,7 @@
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
             <h2 class="vy-lp-h2">{{ __('booking/landing.recent_guests') }}</h2>
             @if ($rating['has_reviews'])
-                <span class="vy-lp-badge" style="margin: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>{{ trans_choice('booking/landing.rating_short', $rating['count'], ['average' => number_format((float) $rating['average'], 1), 'count' => $rating['count']]) }}</span>
+                <span class="vy-lp-badge" style="margin: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="var(--vy-accent-3)" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>{{ trans_choice('booking/landing.rating_short', $rating['count'], ['average' => \App\Support\I18n\LocalNumber::decimal(number_format((float) $rating['average'], 1)), 'count' => $rating['count']]) }}</span>
             @endif
         </div>
         @if (count($reviews) > 0)

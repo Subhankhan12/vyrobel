@@ -358,7 +358,7 @@
                                     <span class="vy-au-commission-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
                                     <span class="vy-au-commission-main">
                                         @if ($commissionPct !== null)
-                                            <span class="vy-au-commission-l1">{!! __('livewire/owner/add-unit.managed_by_pct', ['operator' => e($operatorName), 'pct' => e(rtrim(rtrim(number_format($commissionPct, 2), '0'), '.'))]) !!}</span>
+                                            <span class="vy-au-commission-l1">{!! __('livewire/owner/add-unit.managed_by_pct', ['operator' => e($operatorName), 'pct' => e(\App\Support\I18n\LocalNumber::decimal(rtrim(rtrim(number_format($commissionPct, 2), '0'), '.')))]) !!}</span>
                                             <span class="vy-au-commission-l2" x-show="netNight">{!! __('livewire/owner/add-unit.you_keep', ['amount' => '<span class="vy-au-commission-net" x-text="netNight"></span>']) !!}</span>
                                             <span class="vy-au-commission-l2" x-show="!netNight">{{ __('livewire/owner/add-unit.enter_rate') }}</span>
                                         @else

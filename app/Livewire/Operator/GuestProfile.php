@@ -16,6 +16,7 @@ use App\Models\Tag;
 use App\Services\GuestService;
 use App\Support\Guest\GuestHistory;
 use App\Support\Guest\GuestSpend;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -418,7 +419,7 @@ class GuestProfile extends Component
             'nights' => (int) $checkIn->diffInDays($checkOut),
             // `reservation_units.unit_id` is nullable by design (a fresh OTA import lands unassigned), so
             // this reports a real state.
-            'unit' => $units->isNotEmpty() ? $units->implode(', ') : null,
+            'unit' => $units->isNotEmpty() ? ListJoin::join($units) : null,
             'source' => $this->sourceLabel((string) $reservation->source),
             'stage' => $stage,
             'stage_meta' => ReservationStage::meta($stage),

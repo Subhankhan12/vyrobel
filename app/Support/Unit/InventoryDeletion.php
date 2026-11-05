@@ -11,6 +11,7 @@ use App\Models\Media;
 use App\Models\Note;
 use App\Models\OwnerInvite;
 use App\Models\Unit;
+use App\Support\I18n\ListJoin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -176,7 +177,7 @@ final class InventoryDeletion
             return $items[0] ?? '';
         }
 
-        return __('php/support/unit/inventory_deletion.list_and', ['items' => implode(', ', array_slice($items, 0, -1)), 'last' => $items[count($items) - 1]]);
+        return __('php/support/unit/inventory_deletion.list_and', ['items' => ListJoin::join(array_slice($items, 0, -1)), 'last' => $items[count($items) - 1]]);
     }
 
     /** The noun for a room type's kind, as its units were added ("rooms", "dorm beds"). */

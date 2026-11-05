@@ -6,6 +6,7 @@ namespace App\Livewire\Owner\Concerns;
 
 use App\Models\Owner;
 use App\Models\User;
+use App\Support\I18n\LocalText;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Owner\OwnerContext;
@@ -118,7 +119,7 @@ trait FormatsOwnerData
         $first = mb_substr($parts[0], 0, 1);
         $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
 
-        return mb_strtoupper($first.$last);
+        return LocalText::upper($first.$last);
     }
 
     /**

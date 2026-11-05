@@ -32,7 +32,7 @@
     @if ($seo !== null)
     <x-public.seo :seo="$seo" />
     @else
-    <title>{{ $title !== '' ? __('components/public/shell.page_title', ['title' => $title, 'property' => $property['name']]) : $property['name'] }}</title>
+    <title>{{ $title !== '' ? __('components/public/shell.page_title', ['title' => $title, 'property' => $property['name']]) : $property['name'] }}</title>{!! \App\Support\I18n\LocalText::caselessCss() !!}
     @endif
 
     <x-favicon />

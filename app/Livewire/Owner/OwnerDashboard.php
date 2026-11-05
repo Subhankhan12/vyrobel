@@ -12,6 +12,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -208,7 +209,7 @@ class OwnerDashboard extends Component
 
         return [
             'has_data' => $latest instanceof OwnerStatement,
-            'month_label' => $latest instanceof OwnerStatement ? mb_strtoupper($latest->period_start->translatedFormat(LocalDate::pattern('F Y'))) : '',
+            'month_label' => $latest instanceof OwnerStatement ? LocalText::upper($latest->period_start->translatedFormat(LocalDate::pattern('F Y'))) : '',
             'this_month_minor' => $thisMonthMinor,
             'this_month_display' => $this->money($thisMonthMinor, $currency),
             'currency_symbol' => $this->currencySymbol($currency),

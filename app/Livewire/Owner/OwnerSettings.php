@@ -15,6 +15,7 @@ use App\Models\PayoutMethod;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Support\I18n\Locales;
+use App\Support\I18n\LocalText;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -192,7 +193,7 @@ class OwnerSettings extends Component
             ->each(function (OwnerUser $m) use (&$out, $user): void {
                 $name = (string) $m->user->name;   // active members always have a user (with('user') loaded)
                 $out[] = [
-                    'initials' => mb_strtoupper(mb_substr($name, 0, 1)),
+                    'initials' => LocalText::upper(mb_substr($name, 0, 1)),
                     'name' => $name,
                     'role' => OwnerTeamRole::label((string) $m->role),
                     'you' => (string) $m->user->getKey() === (string) $user->getKey(),

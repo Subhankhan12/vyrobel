@@ -32,7 +32,7 @@
     // the Livewire pages, never a generic "Operator / O" placeholder. Derives from auth, not the passed prop.
     $__viewerName = $__acctUser?->name ?? ($viewer['name'] ?? __('components/operator/shell.staff'));
     $__viewerInitials = \Illuminate\Support\Str::of($__viewerName)->explode(' ')
-        ->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
+        ->filter()->take(2)->map(fn ($w) => \App\Support\I18n\LocalText::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
     $__viewerInitials = $__viewerInitials !== '' ? $__viewerInitials : 'S';
     $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
     $__todayLabel = \Carbon\CarbonImmutable::now()->translatedFormat(\App\Support\I18n\LocalDate::pattern('D · j M'));

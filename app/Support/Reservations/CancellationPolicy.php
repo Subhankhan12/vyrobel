@@ -8,6 +8,7 @@ use App\Livewire\ReservationDetail;
 use App\Mail\BookingConfirmationMail;
 use App\Models\PropertyPolicy;
 use App\Models\Reservation;
+use App\Support\I18n\LocalDate;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -53,9 +54,15 @@ final class CancellationPolicy
         return $freeUntil !== null && CarbonImmutable::parse($on)->startOfDay()->lessThanOrEqualTo($freeUntil);
     }
 
-    /** The free-cancel deadline as a display label (e.g. "10 Sep"), or null. */
+    /** The free-cancel deadline as a display label (e.g. "10 Sep"), in the reader's language (I18N-01), or null. */
     public static function freeUntilLabel(Reservation $reservation, string $format = 'j M'): ?string
     {
-        return self::freeUntil($reservation)?->format($format);
+        return self::label(self::freeUntil($reservation), $format);
+    }
+
+    /** A deadline date in the reader's language — English "5 Nov", German "5. Nov.", Japanese "11月5日". */
+    public static function label(?CarbonImmutable $date, string $format = 'j M'): ?string
+    {
+        return $date?->translatedFormat(LocalDate::pattern($format));
     }
 }

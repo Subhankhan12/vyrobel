@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\UnitRateOverride;
 use App\Services\FrontDeskService;
 use App\Services\UnitAvailabilityService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Schedule\BoardDate;
@@ -366,7 +367,7 @@ class FrontDesk extends Component
                 'status_label' => $meta['label'],
                 'tone' => $meta['tone'],
                 'source' => $this->sourceLabel((string) $reservation->source),
-                'unit' => $assignedCodes->isNotEmpty() ? $assignedCodes->implode(', ') : null,
+                'unit' => $assignedCodes->isNotEmpty() ? ListJoin::join($assignedCodes) : null,
                 'unassigned' => $unassigned,
                 'nights' => (int) $checkIn->diffInDays($checkOut),
                 'guests' => (int) $reservation->adults + (int) $reservation->children,

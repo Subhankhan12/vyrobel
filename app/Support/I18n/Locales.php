@@ -144,6 +144,18 @@ final class Locales
         return self::ALL[$code ?? app()->getLocale()][4] ?? self::SOURCE;
     }
 
+    /**
+     * The BCP-47 tag a BROWSER date call should use (`toLocaleDateString`). The language's tag, except Persian: its bare tag makes
+     * the browser print the Solar Hijri calendar in Persian digits beside the server's Gregorian dates, so it is pinned to the
+     * Gregorian calendar and Latin digits. Every other language is exactly {@see tag()}.
+     */
+    public static function dateTag(?string $code = null): string
+    {
+        $code ??= app()->getLocale();
+
+        return $code === 'fa' ? 'fa-u-ca-gregory-nu-latn' : self::tag($code);
+    }
+
     public static function script(?string $code = null): string
     {
         return self::ALL[$code ?? app()->getLocale()][5] ?? 'Latn';

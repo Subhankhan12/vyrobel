@@ -15,6 +15,7 @@ use App\Services\OwnerBlockService;
 use App\Services\OwnerPortalService;
 use App\Support\Guest\GuestName;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -118,7 +119,7 @@ class OwnerBlockCalendar extends Component
     {
         $monday = Carbon::parse('2024-01-01');   // a Monday
 
-        return array_map(fn (int $i): string => mb_strtoupper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
+        return array_map(fn (int $i): string => LocalText::upper($monday->copy()->addDays($i)->translatedFormat(LocalDate::pattern('D'))), range(0, 6));
     }
 
     /**

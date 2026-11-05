@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Vyrobel') · Vyrobel</title>
+    <title>@yield('title', 'Vyrobel') · Vyrobel</title>{!! \App\Support\I18n\LocalText::caselessCss() !!}
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">

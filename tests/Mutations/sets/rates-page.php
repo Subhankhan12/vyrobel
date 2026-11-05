@@ -173,7 +173,7 @@ return [
         'id' => 'RP-M18',
         'name' => 'the success sentence joins its parts with "+"',
         'file' => $rates,
-        'old' => "        \$list = \$what === [] ? (string) \$last : __('php/http/controllers/operator/rate_action_controller.list_and', ['items' => implode(', ', \$what), 'last' => (string) \$last]);",
+        'old' => "        \$list = \$what === [] ? (string) \$last : __('php/http/controllers/operator/rate_action_controller.list_and', ['items' => ListJoin::join(\$what), 'last' => (string) \$last]);",
         'new' => "        \$list = implode(' + ', array_merge(\$what, [\$last]));",
         'tests' => [['file' => $fix, 'filter' => 'sets a maximum stay']],
     ],

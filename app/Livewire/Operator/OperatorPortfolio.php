@@ -12,6 +12,7 @@ use App\Services\FrontDeskService;
 use App\Services\PropertyRemovalService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
@@ -108,7 +109,7 @@ class OperatorPortfolio extends Component
             return [
                 'id' => (string) $property->id,
                 'name' => (string) $property->name,
-                'initial' => mb_strtoupper(mb_substr((string) $property->name, 0, 1)),
+                'initial' => LocalText::upper(mb_substr((string) $property->name, 0, 1)),
                 'location' => $this->locationLabel($property),
                 'type_label' => $this->typeLabel((string) $property->type),
                 'units' => $unitCount,
@@ -243,7 +244,7 @@ class OperatorPortfolio extends Component
 
             return [
                 'name' => (string) $property->name,
-                'initial' => mb_strtoupper(mb_substr((string) $property->name, 0, 1)),
+                'initial' => LocalText::upper(mb_substr((string) $property->name, 0, 1)),
                 'units' => (int) $property->units_count,
                 // Same undefined-vs-zero rule as the cards (the design's `—`).
                 'occupancy_pct' => $m->availableRoomNights > 0 ? $m->occupancyPct().'%' : '—',

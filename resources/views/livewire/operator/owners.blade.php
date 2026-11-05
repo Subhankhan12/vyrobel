@@ -233,7 +233,7 @@
                                                     <td class="is-num">
                                                         <span class="vy-gl-fig">{{ $row['units'] }}</span>
                                                         @if ($row['units'] > 0)
-                                                            <div class="vyo-units" title="{{ implode(', ', $row['unit_labels']) }}">{{ implode(', ', array_slice($row['unit_labels'], 0, 3)) }}{{ $row['units'] > 3 ? ' +'.($row['units'] - 3) : '' }}</div>
+                                                            <div class="vyo-units" title="{{ \App\Support\I18n\ListJoin::join($row['unit_labels']) }}">{{ \App\Support\I18n\ListJoin::join(array_slice($row['unit_labels'], 0, 3)) }}{{ $row['units'] > 3 ? ' +'.($row['units'] - 3) : '' }}</div>
                                                         @endif
                                                     </td>
                                                     <td><span class="vy-gl-fig">{{ $row['commission'] }}</span></td>

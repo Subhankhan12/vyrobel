@@ -120,7 +120,7 @@
                 $repeatSummaries['monthly'][$n] = trans_choice('livewire/owner/block-calendar.repeat_summary_monthly', $n, ['count' => $n]);
             }
             // The script's short dates: English keeps en-GB ("3 Oct 2026"); another language uses its own tag.
-            $jsDateLocale = app()->getLocale() === 'en' ? 'en-GB' : \App\Support\I18n\Locales::tag();
+            $jsDateLocale = app()->getLocale() === 'en' ? 'en-GB' : \App\Support\I18n\Locales::dateTag();
         @endphp
         <div
             x-data="{

@@ -7,6 +7,7 @@ namespace App\Support\Reviews;
 use App\Models\Review;
 use App\Support\Guest\GuestName;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -101,7 +102,7 @@ final class ReviewList
     private static function initials(string $byline): string
     {
         $parts = array_values(array_filter(preg_split('/[\s&]+/', $byline) ?: []));
-        $letters = array_map(fn (string $w): string => mb_strtoupper(mb_substr($w, 0, 1)), array_slice($parts, 0, 2));
+        $letters = array_map(fn (string $w): string => LocalText::upper(mb_substr($w, 0, 1)), array_slice($parts, 0, 2));
 
         return implode('', $letters) ?: '·';
     }

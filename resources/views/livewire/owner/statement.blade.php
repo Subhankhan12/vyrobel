@@ -131,7 +131,7 @@
                      backend log. Never a guessed portfolio name.) --}}
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
                     <div>
-                        <span class="vy-eyebrow">{{ mb_strtoupper($statement['period_label']) }}</span>
+                        <span class="vy-eyebrow">{{ \App\Support\I18n\LocalText::upper($statement['period_label']) }}</span>
                         <div class="vy-st-hero-sub">{{ trans_choice('livewire/owner/statement.units', $unitsCount, ['count' => $unitsCount]) }}</div>
                     </div>
                     <span class="vy-status vy-status--{{ $statement['status_meta']['tone'] }}">
@@ -222,7 +222,7 @@
                          (role="img" + aria-label), built from the same real values. --}}
                 @php
                     $occSummary = collect($occupancy['months'])
-                        ->map(fn (array $m): string => $m['label'].' '.$m['pct'].'%')->implode(', ');
+                        ->map(fn (array $m): string => $m['label'].' '.$m['pct'].'%')->pipe(fn ($months) => \App\Support\I18n\ListJoin::join($months));
                 @endphp
                 <div class="vy-st-occ-bars" role="img" aria-label="{{ __('livewire/owner/statement.monthly_occupancy', ['summary' => $occSummary]) }}">
                     @foreach ($occupancy['months'] as $i => $m)

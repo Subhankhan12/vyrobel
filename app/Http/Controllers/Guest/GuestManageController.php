@@ -11,6 +11,7 @@ use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
 use App\Services\AssignmentService;
 use App\Services\GuestChangeRequestService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Reservations\CancellationPolicy;
 use Carbon\CarbonImmutable;
@@ -213,7 +214,7 @@ class GuestManageController extends Controller
             ->whereIn('id', array_map('strval', $ids))
             ->orderBy('name')
             ->pluck('name')
-            ->implode(', ');
+            ->pipe(fn ($names) => ListJoin::join($names));
     }
 
     /** The words for a stored cancellation-reason code; anything else (an older row) is shown as it was stored. */

@@ -11,6 +11,7 @@ use App\Models\OwnerExpense;
 use App\Models\OwnerStatement;
 use App\Models\PayoutMethod;
 use App\Models\RateProposal;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Support\Carbon;
 
@@ -236,7 +237,7 @@ final class OwnerAttention
 
         $extra = [];
         if ($proposal->proposed_weekend_pct !== null && (float) $proposal->proposed_weekend_pct > 0) {
-            $extra[] = __('php/support/owner/owner_attention.extra_weekends', ['pct' => rtrim(rtrim(number_format((float) $proposal->proposed_weekend_pct, 2), '0'), '.')]);
+            $extra[] = __('php/support/owner/owner_attention.extra_weekends', ['pct' => LocalNumber::decimal(rtrim(rtrim(number_format((float) $proposal->proposed_weekend_pct, 2), '0'), '.'))]);
         }
         if ($proposal->proposed_min_stay !== null) {
             $extra[] = __('php/support/owner/owner_attention.extra_min_stay', ['nights' => (int) $proposal->proposed_min_stay]);

@@ -100,6 +100,17 @@ final class LocalNumber
         return $mark === ',' ? ',' : '.';
     }
 
+    /**
+     * A number ALREADY printed with "." as its decimal mark ("1.5", from number_format / round / a trimmed percent), in the page
+     * language's own mark: "1,5" in German, unchanged in English. Display only — never a value that is posted back or compared.
+     */
+    public static function decimal(string $printed, ?string $locale = null): string
+    {
+        $mark = self::decimalMark($locale);
+
+        return $mark === '.' ? $printed : str_replace('.', $mark, $printed);
+    }
+
     /** "150,50" or "150.50" — how this page's language writes an example amount (for a hint or an error). */
     public static function example(?string $locale = null): string
     {

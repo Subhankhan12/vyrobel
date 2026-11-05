@@ -15,7 +15,9 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\AssignmentService;
 use App\Services\OwnerPortalService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
@@ -208,7 +210,7 @@ class OwnerBookingDetail extends Component
         }
 
         $parts = array_values(array_filter(preg_split('/\s+/', preg_replace('/^The\s+/i', '', $name) ?? $name) ?: []));
-        $letters = array_map(fn (string $p): string => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
+        $letters = array_map(fn (string $p): string => LocalText::upper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
 
         return implode('', $letters) ?: '—';
     }
@@ -249,7 +251,7 @@ class OwnerBookingDetail extends Component
     /** "{unit(s)} · N nights · {source}" — the header sub-line. */
     private function headSub(array $units, int $nights, string $source): string
     {
-        $unitLabel = collect($units)->pluck('label')->implode(', ');
+        $unitLabel = ListJoin::join(collect($units)->pluck('label'));
 
         return trim($unitLabel.' · '.trans_choice('php/livewire/owner/owner_booking_detail.nights_count', $nights, ['count' => $nights]).' · '.$this->sourceLabel($source), ' ·');
     }

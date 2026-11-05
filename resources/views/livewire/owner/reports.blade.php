@@ -533,9 +533,9 @@
             </div>
             <div style="margin-top:12px;font-size:11.5px;color:var(--vy-muted);line-height:1.6;max-width:720px">
                 @php
-                    $vatAccommodationRate = rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.');
+                    $vatAccommodationRate = \App\Support\I18n\LocalNumber::decimal(rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.'));
                     $vatRates = $vat['service_rate'] !== null
-                        ? __('livewire/owner/reports.vat_rates_both', ['accommodation_rate' => $vatAccommodationRate, 'service_rate' => rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.')])
+                        ? __('livewire/owner/reports.vat_rates_both', ['accommodation_rate' => $vatAccommodationRate, 'service_rate' => \App\Support\I18n\LocalNumber::decimal(rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.'))])
                         : __('livewire/owner/reports.vat_rates_accommodation', ['accommodation_rate' => $vatAccommodationRate]);
                 @endphp
                 {!! __($vat['is_example'] ? 'livewire/owner/reports.vat_computed_example' : 'livewire/owner/reports.vat_computed_configured', ['country' => e((string) $taxCountry), 'rates' => e($vatRates)]) !!}

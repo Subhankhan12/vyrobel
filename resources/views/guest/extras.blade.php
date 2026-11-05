@@ -40,7 +40,7 @@
             <div class="vy-eyebrow" style="margin-bottom:8px">{{ __('guest/extras.your_extras') }}</div>
             @foreach ($pending as $req)
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px">
-                    <span style="color:var(--vy-ink)">{{ implode(', ', $req['names']) ?: __('guest/extras.extras_fallback') }}</span>
+                    <span style="color:var(--vy-ink)">{{ \App\Support\I18n\ListJoin::join($req['names']) ?: __('guest/extras.extras_fallback') }}</span>
                     <span style="flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;{{ $req['status'] === 'confirmed' ? 'background:rgba(79,122,70,.13);color:#3F6338' : 'background:var(--vy-wash);color:var(--vy-amber-text)' }}">{{ $req['status'] === 'confirmed' ? __('guest/extras.added_to_booking') : __('guest/extras.awaiting_confirmation') }}</span>
                 </div>
             @endforeach

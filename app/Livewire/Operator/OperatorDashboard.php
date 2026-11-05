@@ -20,6 +20,7 @@ use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\FrontDeskService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Property\PropertyOccupancy;
 use App\Support\Tenancy\TenantContext;
@@ -538,9 +539,9 @@ class OperatorDashboard extends Component
             $meta = $this->reservationStatusMeta((string) $reservation->status);
 
             $nights = (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out));
-            $unit = $reservation->reservationUnits
+            $unit = ListJoin::join($reservation->reservationUnits
                 ->map(fn ($line): string => (string) ($line->unit->code ?? ''))
-                ->filter()->unique()->values()->implode(', ');
+                ->filter()->unique()->values());
 
             return [
                 'id' => $reservation->id,

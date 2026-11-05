@@ -25,6 +25,7 @@ use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalText;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
@@ -556,7 +557,7 @@ class OperatorSettings extends Component
         $first = mb_substr($parts[0], 0, 1);
         $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
 
-        return mb_strtoupper($first.$last);
+        return LocalText::upper($first.$last);
     }
 
     /** A `time` column ("15:00:00") as an H:i value for a <input type="time">, or '' when null. */

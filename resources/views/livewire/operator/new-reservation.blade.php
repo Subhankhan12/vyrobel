@@ -783,7 +783,7 @@
                     ariaCheckOut: @js(__('livewire/operator/new-reservation.aria_check_out')),
                 };
                 // dates people read, in the page's language (English keeps its day-month order)
-                const DATE_LOCALE = @js(app()->getLocale() === 'en' ? 'en-GB' : \App\Support\I18n\Locales::tag());
+                const DATE_LOCALE = @js(app()->getLocale() === 'en' ? 'en-GB' : \App\Support\I18n\Locales::dateTag());
                 const plural = (map, other, n) => (map[n] !== undefined ? map[n] : other.replace(':count', String(n)));
                 // ⚠️ THE DRAFT HOLDS NO GUEST NAME — ids, counts and amounts only (the group-booking discipline: a name
                 //    left in browser storage outlives the booking on a shared front-desk machine). It is kept per

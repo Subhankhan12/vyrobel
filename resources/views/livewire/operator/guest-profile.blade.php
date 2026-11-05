@@ -129,8 +129,8 @@
                         </div>
                         @if ($review !== null)
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span role="img" aria-label="{{ __('livewire/operator/guest-profile.rating_stars_label', ['rating' => number_format($review['rating'], 1)]) }}" style="font-size: 18px; color: var(--vy-star); letter-spacing: 2px;"><span aria-hidden="true">{{ $review['stars'] }}</span></span>
-                                <span style="font-weight: 700; color: var(--vy-ink);">{{ number_format($review['rating'], 1) }}</span>
+                                <span role="img" aria-label="{{ __('livewire/operator/guest-profile.rating_stars_label', ['rating' => \App\Support\I18n\LocalNumber::decimal(number_format($review['rating'], 1))]) }}" style="font-size: 18px; color: var(--vy-star); letter-spacing: 2px;"><span aria-hidden="true">{{ $review['stars'] }}</span></span>
+                                <span style="font-weight: 700; color: var(--vy-ink);">{{ \App\Support\I18n\LocalNumber::decimal(number_format($review['rating'], 1)) }}</span>
                                 @if ($review['status'] !== 'published')
                                     <span class="vy-tag tone-tag" style="margin-left: auto;"><span class="vy-dot"></span>{{ $review['status_label'] }}</span>
                                 @endif

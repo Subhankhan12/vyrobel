@@ -8,6 +8,8 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\Reservation;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalNumber;
+use App\Support\I18n\LocalText;
 use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -99,12 +101,12 @@ class OperatorChannels extends Component
         return $channels->map(function (Channel $c): array {
             $status = (string) $c->status;
             $bookings = (int) $c->reservations()->count();
-            $commission = $c->commission_pct !== null ? rtrim(rtrim(number_format((float) $c->commission_pct, 2), '0'), '.').'%' : null;
+            $commission = $c->commission_pct !== null ? LocalNumber::decimal(rtrim(rtrim(number_format((float) $c->commission_pct, 2), '0'), '.')).'%' : null;
 
             return [
                 'id' => (string) $c->id,
                 'name' => (string) $c->name,
-                'initial' => strtoupper(substr((string) $c->name, 0, 1)),
+                'initial' => LocalText::initial((string) $c->name),
                 'status' => $status,
                 // Translated here (render time), keyed by the status CODE; the view branches on `status`, never this.
                 'status_label' => match ($status) {

@@ -7,6 +7,7 @@ namespace App\Support\Schedule;
 use App\Models\Membership;
 use App\Models\User;
 use App\Support\Authorization\RoleLabel;
+use App\Support\I18n\LocalText;
 use App\Support\Tenancy\TenantContext;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -151,6 +152,6 @@ final class StaffRoster
         $parts = preg_split('/\s+/', trim($name)) ?: [];
         $letters = array_map(fn (string $p): string => mb_substr($p, 0, 1), array_slice($parts, 0, 2));
 
-        return mb_strtoupper(implode('', $letters)) ?: '?';
+        return LocalText::upper(implode('', $letters)) ?: '?';
     }
 }

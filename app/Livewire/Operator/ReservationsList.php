@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\FrontDesk;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Reservation;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
 use App\Support\Reservations\ReservationStage;
@@ -279,7 +280,7 @@ class ReservationsList extends Component
             // Half-open [check_in, check_out) — the same arithmetic as the folio's room nights.
             'nights' => (int) $checkIn->diffInDays($checkOut),
             'guests' => (int) $reservation->adults + (int) $reservation->children,
-            'unit' => $assigned->isNotEmpty() ? $assigned->implode(', ') : null,
+            'unit' => $assigned->isNotEmpty() ? ListJoin::join($assigned) : null,
             'unassigned' => $unassigned,
             // The OTA BRAND IS NOT MODELLED: `source` is exactly direct/walk_in/ota/corporate/group/agent/
             // manual, and no brand column exists on any table. An OTA booking is "OTA" — never "Booking.com".

@@ -7,6 +7,7 @@ namespace App\Livewire\Operator\Concerns;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Payout;
 use App\Models\User;
+use App\Support\I18n\LocalText;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reports\OperatorRevenueBreakdown;
@@ -44,7 +45,7 @@ trait FormatsOperatorData
         $first = mb_substr($parts[0], 0, 1);
         $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
 
-        return mb_strtoupper($first.$last);
+        return LocalText::upper($first.$last);
     }
 
     /** Format integer minor units for display, e.g. 1037000 EUR → "€10,370.00". */
@@ -330,7 +331,7 @@ trait FormatsOperatorData
             'whatsapp' => ['label' => 'WhatsApp', 'short' => 'W', 'tone' => 'whatsapp', 'filter' => 'WhatsApp'],
             'booking_com' => ['label' => 'Booking.com', 'short' => 'B', 'tone' => 'bookingcom', 'filter' => 'Booking.com'],
             'airbnb' => ['label' => 'Airbnb', 'short' => 'A', 'tone' => 'airbnb', 'filter' => 'Airbnb'],
-            default => ['label' => ucfirst($channel), 'short' => mb_strtoupper(mb_substr($channel, 0, 1)), 'tone' => 'manual', 'filter' => ucfirst($channel)],
+            default => ['label' => ucfirst($channel), 'short' => LocalText::upper(mb_substr($channel, 0, 1)), 'tone' => 'manual', 'filter' => ucfirst($channel)],
         };
     }
 

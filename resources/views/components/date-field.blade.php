@@ -97,7 +97,7 @@
                     if (! this.iso) { return ''; }
                     var d = this.parse(this.iso);
                     // I18N-01 — the PAGE's language (English keeps the browser's, as it always has)
-                    return d.toLocaleDateString(@js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::tag()) ?? undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                    return d.toLocaleDateString(@js(app()->getLocale() === 'en' ? null : \App\Support\I18n\Locales::dateTag()) ?? undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 },
                 get cells() {
                     var first = new Date(this.viewYear, this.viewMonth, 1);

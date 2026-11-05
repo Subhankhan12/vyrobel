@@ -13,6 +13,7 @@ use App\Models\OwnerExpense;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerAttributionService;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Owner\OwnerAgreementTerms;
 use App\Support\Owner\OwnerCommissionRate;
@@ -550,7 +551,7 @@ class OwnerAgreement extends Component
         // a legal document. Each element goes through the same headline treatment a scalar gets, so a list
         // reads exactly like the single value it would have been.
         if (is_array($value) && array_is_list($value) && $value !== [] && ! array_filter($value, fn ($v): bool => ! is_scalar($v))) {
-            return implode(', ', array_map(fn (mixed $v): string => $this->valueWord((string) $v), $value));
+            return ListJoin::join(array_map(fn (mixed $v): string => $this->valueWord((string) $v), $value));
         }
 
         // Anything genuinely structured (a nested object) has no honest one-line rendering; say so rather

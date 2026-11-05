@@ -9,6 +9,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Organization;
 use App\Models\Owner;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerAgreementTerms;
 
@@ -161,6 +162,6 @@ final class OwnerAgreementDocument
 
     private static function pct(float $value): string
     {
-        return rtrim(rtrim(number_format($value, 2), '0'), '.').'%';
+        return LocalNumber::decimal(rtrim(rtrim(number_format($value, 2), '0'), '.')).'%';
     }
 }

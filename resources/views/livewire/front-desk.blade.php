@@ -184,7 +184,7 @@
                             <div class="vy-fd-row">
                                 {{-- The design leads each row with an initials avatar. Derived from the guest
                                      NAME already shown — no contact PII is added to this surface (#28). --}}
-                                <span class="vy-fd-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
+                                <span class="vy-fd-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \App\Support\I18n\LocalText::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
                                 <div class="vy-fd-main">
                                     <div class="vy-fd-guest">
                                         {{ $row['guest'] }}

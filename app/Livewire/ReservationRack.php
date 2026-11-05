@@ -22,6 +22,7 @@ use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\StayEstimator;
+use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\CalendarReturn;
@@ -567,7 +568,7 @@ class ReservationRack extends Component
         $names = array_map(fn (array $r): string => (string) $r['room_type'], $marked);
         $last = array_pop($names);
 
-        return ['names' => $names === [] ? (string) $last : __('php/livewire/reservation_rack.names_and', ['names' => implode(', ', $names), 'last' => (string) $last]), 'seasons' => array_values($seasons)];
+        return ['names' => $names === [] ? (string) $last : __('php/livewire/reservation_rack.names_and', ['names' => ListJoin::join($names), 'last' => (string) $last]), 'seasons' => array_values($seasons)];
     }
 
     /**
