@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Vizitor',
+    'nights' => '{1}:count natë|[0,*]:count netë',
+    'block_reason_none' => 'Bllokuar',
+    'block_reason_maintenance' => 'Mirëmbajtja',
+    'block_reason_owner' => 'Pronari',
+    'block_reason_manual' => 'Manual',
+    'block_reason_overbooking_protection' => 'Mbrojtje nga mbirezervimi',
+    'cleaning_departure' => 'Pastrim pas largimit',
+    'cleaning_stayover' => 'Pastrim gjatë qëndrimit',
+    'cleaning_deep' => 'Pastrim i thellë',
+    'cleaning_arrival_prep' => 'Përgatitje për mbërritjen',
+    'cleaning_status_pending' => 'Planifikuar',
+    'cleaning_status_in_progress' => 'Në vazhdim',
+    'cleaning_status_clean' => 'Pastër',
+    'cleaning_status_inspected' => 'Kontrolluar',
+    'kind_room' => 'Dhomë',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilë',
+    'kind_dorm_bed' => 'Shtrat në dhomë të përbashkët',
+    'condition_out_of_order' => 'Jashtë funksionit',
+    'condition_out_of_service' => 'Në riparim',
+    'status_enquiry' => 'Kërkesë',
+    'status_tentative' => 'Paraprak',
+    'status_confirmed' => 'Konfirmuar',
+    'status_checked_in' => 'Check-in kryer',
+    'status_checked_out' => 'Check-out kryer',
+    'status_cancelled' => 'Anuluar',
+    'status_no_show' => 'Mosparaqitje',
+    'terms_portfolio' => 'Kushte për të gjithë portofolin',
+    'terms_unit' => 'Kushte për këtë njësi',
+];

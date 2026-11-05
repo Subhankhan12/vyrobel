@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Të gjitha dhomat',
+    'kind_sleeps_up_to' => ':kind · kapaciteti maksimal: :capacity',
+    'reviews_count' => '{1}:count vlerësim|[0,*]:count vlerësime',
+    'no_reviews_yet' => 'Ende pa vlerësime',
+    'save_to_wishlist' => 'Shto te të preferuarat',
+    'sleeps' => 'Kapaciteti',
+    'adults' => 'Të rritur',
+    'children' => 'Fëmijë',
+    'bedrooms' => 'Dhoma gjumi',
+    'standard_occupancy' => 'Numri standard i vizitorëve',
+    'amenities' => 'Komoditetet',
+    'not_yet_listed' => 'Ende pa publikuar',
+    'amenities_not_published' => 'Komoditetet e kësaj dhome ende nuk janë publikuar.',
+    'guest_reviews' => 'Vlerësimet e vizitorëve',
+    'stars_aria' => ':rating nga 5 yje',
+    'response_label' => 'Përgjigjja:',
+    'no_reviews_be_first' => 'Ende pa vlerësime — bëhuni i pari që qëndron këtu dhe ndani përvojën tuaj.',
+    'coming_soon' => 'Së shpejti',
+    'description_soon' => 'Një përshkrim i plotë dhe harta e vendndodhjes po vijnë — specifikimet, disponueshmëria, çmimi dhe vlerësimet më lart janë reale.',
+    'per_night' => '/ natë',
+    'per_night_with_note' => '/ natë · :note',
+    'total_nights' => '{1}Gjithsej: :amount · :count natë|[0,*]Gjithsej: :amount · :count netë',
+    'left_for_your_dates' => 'Mbeten për datat tuaja: :count',
+    'book_this_room' => 'Rezervo këtë dhomë',
+    'nothing_reserved' => 'Asgjë nuk rezervohet derisa të konfirmoni në hapin e pagesës.',
+    'your_dates' => 'Datat tuaja',
+    'not_available' => 'Nuk është e disponueshme për këto data — provoni data të tjera.',
+    'check_in' => 'Mbërritja',
+    'check_out' => 'Largimi',
+    'check_dates' => 'Kontrollo datat',
+    'check_availability' => 'Kontrollo disponueshmërinë dhe çmimin',
+    'see_price' => 'Shiko çmimin',
+];

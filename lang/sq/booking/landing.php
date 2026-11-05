@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Mundësitë e akomodimit',
+    'book_direct' => 'Rezervo drejtpërdrejt',
+    'nav_stays' => 'Akomodimet',
+    'my_account' => 'Llogaria ime',
+    'sign_in' => 'Hyr',
+    'rating_across' => '{1}:average nga :count vlerësim|[0,*]:average nga :count vlerësime',
+    'heading' => 'Rezervoni drejtpërdrejt te<br>:org.',
+    'subheading' => 'Akomodime të kujdesura me dorë, të rezervuara drejtpërdrejt me mikpritësin — pa tarifa shtesë, çmimi ynë më i mirë dhe një person i vërtetë në anën tjetër.',
+    'where' => 'Ku',
+    'check_in' => 'Mbërritja',
+    'check_out' => 'Largimi',
+    'adults' => 'Të rritur',
+    'children' => 'Fëmijë',
+    'where_to_stay' => 'Ku të qëndroni',
+    'towns_lede' => '{1}Baza jonë.|[0,*]:count qytete, secili me ritmin e vet.',
+    'from_price' => 'nga :price',
+    'featured_stays' => 'Akomodimet e veçuara',
+    'featured_lede' => 'Të preferuarat e vizitorëve në të gjithë koleksionin.',
+    'per_night' => '/ natë',
+    'see_dates_for_pricing' => 'Zgjidhni datat për të parë çmimet',
+    'browse_by_what_matters' => 'Shfletoni sipas asaj që ka rëndësi',
+    'why_book_direct' => 'Pse të rezervoni drejtpërdrejt',
+    'recent_guests' => 'Vizitorët e fundit',
+    'rating_short' => '{1}:average · :count vlerësim|[0,*]:average · :count vlerësime',
+    'stars_aria' => ':rating nga 5 yje',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'Ende pa vlerësime — bëhuni i pari që qëndron këtu dhe ndani përvojën tuaj.',
+    'cta_heading' => 'Gjeni vendin tuaj',
+    'cta_sub' => 'Data reale, çmime të përditësuara, konfirmim i menjëhershëm.',
+    'browse_all_stays' => 'Shfleto të gjitha akomodimet',
+];

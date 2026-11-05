@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/guest/manage.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Menaxho rezervimin :reference',
+    'back_to_booking' => '← Kthehu te rezervimi',
+    'heading' => 'Menaxhoni rezervimin tuaj',
+    'subheading' => ':property · :check_in → :check_out. Ndryshimet konfirmohen nga struktura akomoduese — do t’ju shkruajmë sapo të konfirmohen.',
+    'pending_requests' => 'Kërkesat në pritje',
+    'pending_badge' => 'Në pritje',
+    'pending_note' => 'Ende nuk ka ndryshuar asgjë në rezervimin tuaj — kërkesa konfirmohet fillimisht nga struktura akomoduese.',
+    'pick_new_dates' => 'Zgjidhni datat e reja',
+    'currently' => 'Aktualisht: :check_in → :check_out. Zgjidhni datat e reja për të parë diferencën e çmimit, pastaj kërkoni ndryshimin.',
+    'new_check_in' => 'Data e re e mbërritjes',
+    'new_check_out' => 'Data e re e largimit',
+    'see_price_difference' => 'Shiko diferencën e çmimit',
+    'new_stay' => 'Qëndrimi i ri',
+    'current' => 'Qëndrimi aktual',
+    'difference' => 'Diferenca',
+    'estimate_note' => 'Vetëm çmim i përafërt — në pritje të konfirmimit nga struktura akomoduese. Çdo pagesë trajtohet pasi ta konfirmojë.',
+    'unpriced_note' => 'Për ato data ende nuk ka çmim të publikuar — kërkoni ndryshimin dhe struktura akomoduese do ta konfirmojë çmimin.',
+    'request_date_change' => 'Kërko ndryshimin e datave',
+    'add_to_your_stay' => 'Shtoni në qëndrimin tuaj',
+    'add_to_your_stay_sub' => 'Shtoni mëngjes, transferta dhe më shumë — gjithçka shtohet në rezervimin tuaj pas konfirmimit.',
+    'browse_extras' => 'Shfleto shërbimet shtesë',
+    'cancellation_policy' => 'Rregullorja e anulimit',
+    'free_until' => 'Anulim falas — afati: <strong>:date</strong>. Një anulim i kërkuar para kësaj date rimbursohet plotësisht.',
+    'policy_by_property' => 'Struktura akomoduese e konfirmon anulimin tuaj dhe trajton çdo rimbursim sipas rregullores së saj.',
+    'cancel_confirm' => 'Të dërgohet një kërkesë anulimi për këtë rezervim? Struktura akomoduese e shqyrton atë dhe trajton çdo rimbursim sipas rregullores së saj.',
+    'reason' => 'Arsyeja',
+    'choose_reason' => 'Zgjidhni një arsye…',
+    'request_cancellation' => 'Kërko anulimin',
+    'closed_heading' => 'Ky rezervim është mbyllur',
+    'closed_body' => 'Nuk ka mbetur asgjë për të ndryshuar në të — por datat, detajet e qëndrimit dhe gjithçka që keni paguar janë ende këtu sa herë që t’ju duhen.',
+];

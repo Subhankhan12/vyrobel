@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/services/platform/organization_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'live_money_records' => 'Ka regjistrime parash në modalitetin real (:records). Ligji mund të kërkojë që ato të ruhen me vite, prandaj fshirja e tyre është ndalur deri në vendimin ligjor mbi kohëzgjatjen e ruajtjes — organizata nuk mund të fshihet para kësaj.',
+    'uncounted_cascades' => 'Baza e të dhënave i lidh regjistrimet në një mënyrë që fshirja nuk mund ta numërojë saktësisht (:links), ndaj konfirmimi nuk mundi të thotë çfarë do të hiqet. Asgjë nuk mund të fshihet derisa kjo të rregullohet.',
+    'stripe_billing_live' => 'Faturimi në Stripe është në modalitetin real për këtë organizatë. Anuloni fillimisht abonimin në Stripe, përndryshe ai vazhdon të debitojë një klient që nuk ekziston më. Nëse është anuluar tashmë atje, raporti i Stripe për këtë nuk është zbatuar këtu — zgjidheni me dorë.',
+    'checkout_open_subscription' => 'Një faqe pagese në Stripe për abonimin e saj është hapur (nisur: :opened) dhe mund të paguhet ende (afati: :closes). Provoni përsëri kur të jetë paguar ose të ketë skaduar.',
+    'checkout_open_card' => 'Një faqe pagese në Stripe për pagesën me kartë të një vizitori është hapur (nisur: :opened) dhe mund të paguhet ende (afati: :closes). Provoni përsëri kur të jetë paguar ose të ketë skaduar.',
+    'checkout_unreported_subscription' => 'Një faqe pagese në Stripe në modalitetin real për abonimin e saj u hap (nisur: :opened) dhe u mbyll (mbyllur: :closed), por këtu nuk është zbatuar ende asnjë raport që thotë nëse u pagua. Kontrolloni faqen në panelin e Stripe; nëse është paguar, anuloni fillimisht atë që ka nisur atje. Stripe e riprovon deri në 3 ditë një raport që nuk ka mundur ta dorëzojë — provoni përsëri kur të zbatohet. Nëse Stripe e ka raportuar tashmë dhe raporti nuk ka mundur të zbatohet, zgjidheni me dorë.',
+    'checkout_unreported_card' => 'Një faqe pagese në Stripe në modalitetin real për pagesën me kartë të një vizitori u hap (nisur: :opened) dhe u mbyll (mbyllur: :closed), por këtu nuk është zbatuar ende asnjë raport që thotë nëse u pagua. Kontrolloni faqen në panelin e Stripe; nëse është paguar, anuloni fillimisht atë që ka nisur atje. Stripe e riprovon deri në 3 ditë një raport që nuk ka mundur ta dorëzojë — provoni përsëri kur të zbatohet. Nëse Stripe e ka raportuar tashmë dhe raporti nuk ka mundur të zbatohet, zgjidheni me dorë.',
+    'refund_processing' => 'Një rimbursim me kartë është ende në përpunim te Stripe. Prisni derisa Stripe ta konfirmojë, pastaj provoni përsëri.',
+    'card_payment_open' => 'Një pagesë me kartë ose një paraautorizim me kartë nuk është mbyllur ende. Lëreni të përfundojë ose lirojeni më parë.',
+    'dispute_open' => 'Një pagesë me kartë po kontestohet te Stripe (nisur: :since). Përgjigjuni asaj te Stripe dhe provoni përsëri kur Stripe të raportojë se kontestimi është mbyllur. Nëse paneli i Stripe e tregon tashmë të mbyllur, raporti nuk ka mbërritur kurrë — zgjidheni me dorë.',
+    'payouts_in_transit' => '{1}Një derdhje për një pronar është në tranzit te Stripe (nisur: :since).|[0,*]:count derdhje për pronarë janë në tranzit te Stripe (nisur: :since).',
+    'payout_transit_stale' => 'Kjo po zgjat më shumë se zakonisht — zgjidheni fillimisht me dorë me Stripe.',
+    'payout_transit_wait' => 'Prisni derisa Stripe të konfirmojë, pastaj provoni përsëri.',
+    'payouts_owed' => '{1}Një pronari i takon ende një derdhje (në pritje ose e mbajtur). Paguajeni fillimisht — fshirja do t’i linte pronarët pa u paguar dhe pa asnjë gjurmë të saj.|[0,*]Pronarëve u takojnë ende :count derdhje (në pritje ose të mbajtura). Paguajini fillimisht — fshirja do t’i linte pronarët pa u paguar dhe pa asnjë gjurmë të tyre.',
+    'payout_run_running' => 'Një ekzekutim i derdhjeve është në vazhdim (nisur: :since).',
+    'looks_stuck' => 'Duket i bllokuar — zgjidheni me dorë para fshirjes.',
+    'payout_run_wait' => 'Provoni përsëri kur të ketë përfunduar.',
+    'webhook_unprocessed' => 'Një njoftim nga :source për këtë organizatë (marrë: :received) nuk është përpunuar ende.',
+    'webhook_wait' => 'Provoni përsëri pas pak minutash.',
+    'cross_tenant_references' => 'Një organizatë tjetër ka regjistrime që lidhen me këtë (:links). Fshirja do t’i fshinte edhe ato.',
+    'schema_unreadable' => 'Skema e bazës së të dhënave nuk u lexua plotësisht (nuk u gjetën: :tables).',
+    'already_deleted' => 'Kjo organizatë nuk ekziston më — është fshirë tashmë.',
+    'protected' => 'Kjo organizatë është e mbrojtur dhe nuk mund të fshihet kurrë.',
+    'not_suspended' => 'Pezulloni fillimisht organizatën — vetëm një organizatë e pezulluar ose e arkivuar mund të fshihet.',
+    'record_survived' => 'Një regjistrim i kësaj organizate ka mbetur pas fshirjes (tabelat: :tables), prandaj gjithçka u kthye mbrapsht.',
+    'organization_survived' => 'Organizata ose një nga personat e saj ka mbetur pas fshirjes, prandaj gjithçka u kthye mbrapsht.',
+    'live_card_payments' => '{1}:count pagesë me kartë|[0,*]:count pagesa me kartë',
+    'live_refunds' => '{1}:count rimbursim|[0,*]:count rimbursime',
+    'live_payouts' => '{1}:count derdhje|[0,*]:count derdhje',
+    'live_stripe_billing' => 'faturim real në Stripe, me faturat e tij',
+    'unknown_time' => 'kohë e panjohur',
+    'time_utc' => ':time UTC',
+];

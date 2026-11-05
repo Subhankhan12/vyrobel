@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/livewire/owner/archive.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Arkivi i pasqyrave',
+    'history_summary' => 'Historiku juaj i finalizuar · :years · :statements',
+    'years' => '{1}:count vit|[0,*]:count vite',
+    'statements' => '{1}:count pasqyrë|[0,*]:count pasqyra',
+    'archived_on_finalize' => 'Pasqyrat arkivohen këtu sapo finalizohen.',
+    'net_earned_lifetime' => 'Të ardhurat neto · gjatë gjithë kohës',
+    'since' => 'që nga :date',
+    'per_currency_note' => 'Totali llogaritet sipas monedhës së derdhjes — gjendjet në monedha të ndryshme nuk bashkohen kurrë.',
+    'lifetime_empty' => 'Ende pa pasqyra të finalizuara — e para do të shfaqet këtu.',
+    'search_placeholder' => 'Kërko te pasqyrat tuaja — muaji, viti, statusi ose numri',
+    'search_label' => 'Kërko pasqyra',
+    'no_match' => 'Asnjë pasqyrë nuk përputhet me «:query».',
+    'no_match_hint' => 'Provoni një muaj («shtator»), një vit («2026»), një status («Paguar») ose një numër pasqyre («Nr. 1»).',
+    'group_summary' => ':statements · neto: :nets',
+    'per_payout_currency' => '(sipas monedhës së derdhjes)',
+    'tax_summary_title' => 'Shkarko përmbledhjen tatimore vjetore për vitin :year si PDF',
+    'tax_summary' => 'Përmbledhja tatimore',
+    'col_statement' => 'Pasqyra',
+    'col_net_payable' => 'Neto për derdhje',
+    'col_links' => 'Lidhjet',
+    'unverified_title' => 'Disa rreshta janë ende në pritje të rakordimit të kanaleve',
+    'unverified' => 'Përmban rreshta të paverifikuar',
+    'pdf_title' => 'Shkarko këtë pasqyrë si PDF',
+    'pdf' => 'PDF',
+    'bookings_title' => 'Shkarko rezervimet pas kësaj pasqyre si PDF',
+    'bookings' => 'Rezervimet',
+    'empty' => 'Ende pa pasqyra të finalizuara. Një pasqyrë arkivohet këtu sapo të finalizohet.',
+    'zip_heading' => 'Shkarko arkivin e plotë',
+    'zip_sub' => '{1}Një ZIP me :count PDF të pasqyrës. Çdo pasqyrë më sipër shkarkohet edhe më vete.|[0,*]Një ZIP me :count PDF të pasqyrave. Çdo pasqyrë më sipër shkarkohet edhe më vete.',
+    'download_zip' => 'Shkarko ZIP',
+];

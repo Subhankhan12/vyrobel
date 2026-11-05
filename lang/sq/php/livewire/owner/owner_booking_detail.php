@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'nga ora :time',
+    'by_time' => 'deri në orën :time',
+    'repeat_guest' => '{1}Vizitor që kthehet · :count qëndrim|[0,*]Vizitor që kthehet · :count qëndrime',
+    'new_guest' => 'Vizitor i ri',
+    'guests_count' => '{1}:count vizitor|[0,*]:count vizitorë',
+    'nights_count' => '{1}:count natë|[0,*]:count netë',
+    'channel_direct' => 'Drejtpërdrejt në Vyrobel',
+    'channel_walk_in' => 'Pa rezervim',
+    'channel_ota' => 'Kanal OTA',
+    'event_booking_received' => 'Rezervimi u pranua',
+    'event_cancelled' => 'Anuluar',
+    'event_payment_received' => 'Pagesa u pranua',
+    'when_paid_in_full' => 'Paguar plotësisht',
+    'event_part_payment_received' => 'Pagesa e pjesshme u pranua',
+    'when_balance_due' => 'Detyrimi i mbetur',
+    'event_payment' => 'Pagesa',
+    'when_not_yet_received' => 'Ende nuk është pranuar',
+    'event_checked_in' => 'Check-in kryer',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Check-out kryer',
+    'event_payout_released' => 'Derdhja u lirua',
+    'event_payout' => 'Derdhja',
+    'when_next_payout' => 'Me derdhjen tuaj të radhës',
+    'payout_not_attributed' => 'Ende nuk është caktuar',
+    'payout_not_attributed_note' => 'Ky rezervim ende nuk i është caktuar librit tuaj kontabël.',
+    'payout_scheduled' => 'Planifikuar',
+    'payout_scheduled_note' => 'Përfshihet në pasqyrën tuaj të radhës, pastaj lirohet me atë derdhje.',
+    'payout_pending' => 'Derdhje në pritje',
+    'payout_pending_note' => 'Në një pasqyrë të finalizuar — lirohet me atë derdhje.',
+    'payout_paid' => 'Paguar',
+    'payout_paid_note' => 'U lirua me një derdhje të përfunduar.',
+];

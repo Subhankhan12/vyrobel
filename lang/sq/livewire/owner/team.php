@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/livewire/owner/team.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ekipi dhe qasja',
+    'subtitle' => 'Jepini një bashkëpronari ose kontabilistit tuaj hyrje të veçantë — me qasje vetëm në atë që i nevojitet.',
+    'people_with_access' => 'Personat me qasje',
+    'account_owner' => 'Titullari i llogarisë',
+    'thats_you' => 'ky jeni ju',
+    'owner_access' => 'Qasje e plotë në gjithçka, përfshirë këtë faqe.',
+    'active_now' => 'Aktiv tani',
+    'role_for' => 'Roli i përdoruesit :name',
+    'your_password' => 'Fjalëkalimi juaj',
+    'confirm_password' => 'Konfirmo me fjalëkalimin tuaj',
+    'remove_confirm' => 'Të hiqet :name? Nuk do të mund të hyjë më.',
+    'no_members' => 'Deri tani vetëm ju — ftoni një bashkëpronar ose kontabilist më poshtë.',
+    'invite_heading' => 'Ftoni dikë',
+    'invite_sub' => 'Secili merr hyrjen e vet — qasjen mund ta hiqni kurdo.',
+    'invite_email_label' => 'Adresa e email-it për ftesën',
+    'email_placeholder' => 'name@email.com',
+    'send_invite' => 'Dërgo ftesën',
+    'pending_invites' => 'Ftesat në pritje',
+    'resend' => 'Ridërgo',
+    'revoke' => 'Anulo ftesën',
+    'matrix_heading' => 'Çfarë mund të shohë secili rol',
+    'matrix_note' => 'Vetëm ju, titullari i llogarisë, mund të menaxhoni ekipin dhe llogarinë për derdhjet.',
+    'recent_activity' => 'Aktiviteti i fundit',
+    'no_activity' => 'Ende asgjë — ftesat dhe hyrjet do të shfaqen këtu.',
+    'download_log' => 'Regjistri i shkarkimeve të eksporteve',
+    'download_log_sub' => 'Çdo pasqyrë, rezervim, derdhje ose skedar tatimor që shkarkon ekipi juaj vuloset me emrin e personit që e shkarkoi — dhe evidentohet këtu.',
+    'no_downloads' => 'Ende nuk është shkarkuar asnjë eksport — do të shfaqen këtu, me emrin e personit që i shkarkoi.',
+    'security_heading' => 'Secili ka çelësin e vet',
+    'security_body' => 'Pa fjalëkalime të përbashkëta — secili person hyn me llogarinë e vet dhe qasja kufizohet sipas rolit të tij. Eksportet financiare vulosen me emrin e personit që i shkarkoi dhe evidentohen në regjistrin më sipër. Për llogarinë tuaj, aktivizoni vërtetimin me dy hapa.',
+    'security_settings' => 'Cilësimet e sigurisë',
+];

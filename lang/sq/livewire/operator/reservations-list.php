@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/livewire/operator/reservations-list.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Rezervimet',
+    'arrivals_this_month' => 'Mbërritjet këtë muaj',
+    'arrivals_this_month_sub' => 'me mbërritje këtë muaj kalendarik · pa anulimet dhe mosparaqitjet',
+    'booked_value' => 'Vlera e rezervuar · mbërritjet këtë muaj',
+    'booked_value_sub' => 'e faturuar mbi mbërritjet e këtij muaji',
+    'booked_value_sub_multi' => 'e faturuar mbi mbërritjet e këtij muaji · shfaqur sipas monedhës (pa mbledhje mes monedhave)',
+    'balances_due' => 'Detyrimet e mbetura · mbërritjet këtë muaj',
+    'folios_owing' => '{0}asnjë detyrim i mbetur|{1}:count llogari qëndrimi me detyrim të mbetur|[2,*]:count llogari qëndrimi me detyrim të mbetur',
+    'search_placeholder' => 'Kërko sipas vizitorit ose referencës…',
+    'search_label' => 'Kërko rezervimet',
+    'group_booking' => 'Rezervim grupi',
+    'new_reservation' => 'Rezervim i ri',
+    'empty_heading' => 'Ende pa rezervime',
+    'empty_body' => 'Çdo rezervim — i drejtpërdrejtë, i vizitorit pa rezervim ose i importuar — shfaqet këtu sapo të merret.',
+    'no_match_query' => 'Asnjë rezervim nuk përputhet me «:query»',
+    'no_match_view' => 'Asnjë rezervim në këtë pamje',
+    'no_match_hint' => '{1}Provoni një emër vizitori ose një referencë rezervimi. Gjithsej: :count rezervim.|[0,*]Provoni një emër vizitori ose një referencë rezervimi. Gjithsej: :count rezervime.',
+    'no_match_hint_filter' => '{1}Provoni një emër vizitori ose një referencë rezervimi, ose pastroni filtrin. Gjithsej: :count rezervim.|[0,*]Provoni një emër vizitori ose një referencë rezervimi, ose pastroni filtrin. Gjithsej: :count rezervime.',
+    'clear_search_filters' => 'Pastro kërkimin dhe filtrat',
+    'col_guest' => 'Vizitori',
+    'col_stay' => 'Qëndrimi',
+    'col_unit' => 'Njësia',
+    'col_source' => 'Burimi',
+    'col_stage' => 'Faza',
+    'col_balance_due' => 'Detyrimi i mbetur',
+    'stay_sub' => ':nights · :guests',
+    'nights' => '{1}:count natë|[0,*]:count netë',
+    'guests' => '{1}:count vizitor|[0,*]:count vizitorë',
+    'unassigned' => 'Pa njësi',
+    'refunded' => 'Rimbursuar',
+    'pager_label' => 'rezervime',
+];

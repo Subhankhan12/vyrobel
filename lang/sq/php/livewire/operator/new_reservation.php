@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Qëndrimi',
+    'step_guest' => 'Vizitori',
+    'step_extras' => 'Shërbime shtesë',
+    'step_confirm' => 'Konfirmimi',
+    'source_direct' => 'Drejtpërdrejt',
+    'source_walk_in' => 'Pa rezervim',
+    'source_corporate' => 'Kompani',
+    'source_agent' => 'Agjenci udhëtimi',
+    'the_guest' => 'vizitori',
+    'a_night' => ':amount / natë',
+    'a_night_range' => ':low–:high / natë',
+    'dates_label' => '{1}:from → :to · :count natë|[0,*]:from → :to · :count netë',
+    'restrict_min_stay' => '{1}Mbërritja: :date — qëndrimi duhet të jetë të paktën :count natë|[0,*]Mbërritja: :date — qëndrimi duhet të jetë të paktën :count netë',
+    'restrict_max_stay' => '{1}Mbërritja: :date — qëndrimi mund të jetë më së shumti :count natë|[0,*]Mbërritja: :date — qëndrimi mund të jetë më së shumti :count netë',
+    'restrict_no_arrivals' => 'Ndalohet mbërritja: :date',
+    'restrict_no_departures' => 'Ndalohet largimi: :date',
+    'restrict_stop_sell' => 'Ndalim shitjesh: :date — nuk pranohen rezervime të reja',
+    'restrict_other' => ':restriction: :date',
+    'arrival_mail_off' => 'Email-et nuk dërgohen ende nga Vyrobel — udhëzimet dhe kodin e derës jepini vetë vizitorit.',
+    'arrival_pre_arrival_off' => 'Email-i para mbërritjes është i fikur për strukturat tuaja — udhëzimet dhe kodin e derës jepini vetë vizitorit.',
+    'arrival_too_soon' => 'Ky qëndrim nis shumë shpejt për email-in para mbërritjes, që dërgohet :count ditë përpara datës së mbërritjes — udhëzimet dhe kodin e derës jepini vetë vizitorit.',
+    'arrival_by_email' => 'Udhëzimet dhe kodi i derës, aty ku njësia ka të tillë, i mbërrijnë vizitorit me email :count ditë para mbërritjes — nëse ka adresë email-i. Kodi i derës nuk shfaqet kurrë këtu.',
+    'cancel_not_free' => 'Jo falas për këtë qëndrim — afati përfundoi më :date',
+    'cancel_free_until_check_in' => 'Falas deri në check-in',
+    'cancel_free_until_date' => 'Falas deri më :date',
+    'cancel_free_until_days' => '{1}Falas deri në :count ditë para mbërritjes|[0,*]Falas deri në :count ditë para mbërritjes',
+    'min_stay_none' => 'Pa minimum',
+    'min_stay_nights' => '{1}:count natë|[0,*]:count netë',
+    'guest_no_name' => 'Vizitor',
+    'no_stays_yet' => 'Ende pa qëndrime',
+];

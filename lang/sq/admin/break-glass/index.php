@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/admin/break-glass/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Qasja emergjente',
+    'subtitle' => 'Një vështrim vetëm për lexim, me kohë të kufizuar, brenda një organizate — me arsye, me 2FA, dhe organizata njoftohet.',
+    'back_label' => 'Mbështetja',
+    'open_heading' => 'Seanca juaj është e hapur',
+    'open_summary' => '{1}:organization · përfundon në orën :time UTC · :count faqe e shikuar.|[0,*]:organization · përfundon në orën :time UTC · :count faqe të shikuara.',
+    'go_to_back_office' => 'Shko te back office i organizatës',
+    'end_now' => 'Mbyll seancën tani',
+    'start_heading' => 'Hap një seancë',
+    'rule_read_only' => '<strong>Vetëm për lexim.</strong> Çdo ndryshim refuzohet — formularë, butona, çdo gjë që ruan.',
+    'rule_minutes' => '{1}<strong>:count minutë</strong>, pastaj përfundon vetë.|[0,*]<strong>:count minuta</strong>, pastaj përfundon vetë.',
+    'rule_senior_user' => 'Shihni atë që sheh përdoruesi i tyre i verifikuar me rolin më të lartë në back office — përfshirë vizitorët. Shikoni vetëm atë që kërkon arsyeja.',
+    'rule_recorded' => 'Çdo faqe që hapni evidentohet dhe ekipi i tyre njoftohet më pas: emri juaj, koha dhe kjo arsye.',
+    'organisation_label' => 'Organizata',
+    'choose_option' => 'Zgjidhni…',
+    'code_label' => 'Kodi juaj 2FA (tani)',
+    'reason_label' => 'Arsyeja — ata do ta lexojnë',
+    'reason_placeholder' => 'p.sh. Tiketa #123 — pronari raporton një rezervim që mungon',
+    'open_button' => 'Hap seancë vetëm për lexim',
+    'recent_heading' => 'Seancat e fundit',
+    'empty_state' => 'Nuk është hapur kurrë asnjë seancë qasjeje emergjente.',
+    'col_admin' => 'Administratori',
+    'col_organisation' => 'Organizata',
+    'col_reason' => 'Arsyeja',
+    'col_started' => 'Fillimi',
+    'col_ended' => 'Mbarimi',
+    'col_pages' => 'Faqet',
+    'col_told' => 'Njoftuar',
+    'ended_open' => 'e hapur',
+    'ended_due' => 'skaduar — ende e pambyllur',
+    'told_yes' => 'Po',
+    'told_not_yet' => 'Ende jo',
+];

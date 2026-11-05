@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'Motori i derdhjeve është i çaktivizuar (PAYOUT_ENGINE_ENABLED). Aktivizojeni përpara se të ekzekutoni një derdhje.',
+    'nothing_to_run' => 'Nuk ka asgjë për të ekzekutuar — asnjë pronar këtu nuk ka pasqyrë për derdhje ose derdhje të mbajtur:paused_note.',
+    'run_complete' => 'Ekzekutimi i derdhjeve u krye (modaliteti: :mode) — krijuar: :created · paguar: :paid · mbajtur: :held:paused_note.',
+    'create_failed' => 'Derdhja nuk u krijua dot — :reason',
+    'already_has_payout' => 'Kjo pasqyrë ka tashmë një derdhje — nuk u krijua asgjë.',
+    'one_payout_created' => 'U krijua 1 derdhje.',
+    'pay_failed' => 'Nuk u pagua dot — :reason',
+    'one_payout_paid' => '1 derdhje u shënua «Paguar».',
+    'payout_failed_reason' => 'Derdhja dështoi — :reason',
+    'payout_failed_no_reason' => 'Derdhja dështoi — kanali i derdhjes nuk dha asnjë arsye.',
+    'create_all_failed' => 'Derdhjet nuk u krijuan dot — :reason',
+    'no_payout_created_paused' => 'Asnjë derdhje nuk u krijua:paused_note — rifilloni ato në faqen e pronarit.',
+    'nothing_ready' => 'Asgjë nuk është gati për pagesë — asnjë pasqyrë e finalizuar nuk ka neto pozitive për derdhje:paused_note.',
+    'no_new_payouts' => 'Asnjë derdhje e re — çdo pasqyrë gati ka tashmë një derdhje:paused_note.',
+    'payouts_created' => '{1}U krijua :count derdhje:paused_note.|[0,*]U krijuan :count derdhje:paused_note.',
+    'some_not_created' => ':message Disa nuk u krijuan dot — :reason',
+    'nothing_paid_paused' => 'Asgjë nuk u pagua:paused_note — rifilloni ato në faqen e pronarit.',
+    'no_pending_payouts' => 'Nuk ka derdhje në pritje për pagesë.',
+    'paid_only' => '{1}U shënua «Paguar» :count derdhje:paused_note.|[0,*]U shënuan «Paguar» :count derdhje:paused_note.',
+    'failed_only' => '[0,*]Dështuan :count derdhje në kanalin e derdhjes:paused_note.',
+    'paid_and_failed' => '{1}U shënua «Paguar» :count derdhje · dështuan :failed në kanalin e derdhjes:paused_note.|[0,*]U shënuan «Paguar» :count derdhje · dështuan :failed në kanalin e derdhjes:paused_note.',
+    'some_not_attempted' => ':message Disa nuk u provuan dot — :reason',
+    'nothing_payable_negative' => 'Nuk ka asgjë për derdhje — neto e kësaj pasqyre është negative, ndaj gjendja mbartet dhe kompensohet me pasqyrën e ardhshme të pronarit.',
+    'nothing_payable_zero' => 'Nuk ka asgjë për derdhje — neto e kësaj pasqyre është zero, ndaj nuk ka detyrim.',
+    'workspace_paused_until' => 'Organizata është në pauzë — derdhjet janë vetëm për lexim deri më :date.',
+    'workspace_paused_for_now' => 'Organizata është në pauzë — derdhjet janë vetëm për lexim për momentin.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}:count pronar në pauzë u anashkalua|[0,*]:count pronarë në pauzë u anashkaluan',
+];

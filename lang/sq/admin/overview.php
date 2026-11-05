@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Përmbledhja',
+    'subtitle_all' => 'Çdo organizatë, përfshirë ato të brendshme të Vyrobel.',
+    'subtitle_customers' => 'Vetëm klientë — organizatat e brendshme të Vyrobel përjashtohen.',
+    'showing_all' => 'Po shfaqen <strong>të gjitha</strong> organizatat — prej tyre të brendshme: :internal.',
+    'internal_excluded' => '{1}:count organizatë e brendshme përjashtohet nga çdo shifër më poshtë.|[0,*]:count organizata të brendshme përjashtohen nga çdo shifër më poshtë.',
+    'customers_only' => 'Vetëm klientë',
+    'include_internal' => 'Përfshi të brendshmet',
+    'no_customers_heading' => 'Ende asnjë klient',
+    'no_customers_body' => 'Çdo organizatë në platformë i përket Vyrobel (të brendshme: :internal). Regjistrimi i parë i vërtetë do të shfaqet këtu.',
+    'kpi_organisations' => 'Organizatat',
+    'kpi_customers' => 'Klientët',
+    'kpi_account_status' => 'Aktive: :active · Pezulluar: :suspended',
+    'kpi_subscriptions' => 'Abonimet',
+    'kpi_subscriptions_sub' => 'aktive · në provë falas: :trial',
+    'kpi_revenue' => 'Të hyrat',
+    'no_live_billing' => 'Ende pa faturim real',
+    'no_live_billing_sub' => 'Asnjë abonim nuk faturohet përmes Stripe. Çmimi i listës për një provë falas nuk përbën të hyra.',
+    'billed_live' => '{1}:count me faturim real|[0,*]:count me faturim real',
+    'billed_live_sub' => 'Llogaritur nga ajo që debitoi Stripe, kurrë nga lista e çmimeve — shihni <a class="ad-cell-link" href=":url">Të hyrat</a>.',
+    'kpi_properties' => 'Strukturat',
+    'kpi_reservations' => '{1}:count rezervim|[0,*]:count rezervime',
+    'new_organisations_heading' => 'Organizata të reja · 6 muajt e fundit',
+    'new_customers_heading' => 'Klientë të rinj · 6 muajt e fundit',
+    'no_signups' => 'Asnjë regjistrim në 6 muajt e fundit.',
+    'account_status_heading' => 'Statusi i llogarisë',
+    'status_active' => 'Aktive',
+    'status_suspended' => 'Pezulluar',
+    'status_cancelled' => 'Anuluar',
+    'status_trialing' => 'Në provë (llogaria)',
+    'free_trial_hint' => 'Prova falas është gjendje e abonimit, jo status i llogarisë — tani në provë falas: :trial.',
+    'plans_in_use' => 'Planet në përdorim <span class="ad-stat-sub" style="font-weight: 400;">· aktive ose në provë</span>',
+    'no_plans' => 'Ende asnjë plan në përdorim.',
+];

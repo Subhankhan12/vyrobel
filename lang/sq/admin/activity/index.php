@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Operator/Pronar',
+    'realm_guest' => 'Vizitor',
+    'realm_admin' => 'Administrator i platformës',
+    'event_login' => 'Hyrje',
+    'event_failed' => 'Dështuar',
+    'event_lockout' => 'Bllokim llogarie',
+    'subject_user' => 'Përdorues',
+    'subject_guest' => 'Vizitor',
+    'subject_platform_admin' => 'Administrator i platformës',
+    'subject_unknown' => 'Nuk dihet',
+    'actor_user' => 'Përdorues',
+    'actor_agent' => 'Agjent',
+    'actor_system' => 'Sistemi',
+    'page_title' => 'Siguria dhe aktiviteti',
+    'page_subtitle' => 'Aktiviteti i hyrjeve dhe ngjarjet e llogarive në të gjithë platformën — ruhen :days ditë, pastaj fshihen.',
+    'kpi_failures' => 'Dështuar / bllokim · 24 orë',
+    'kpi_failures_help' => 'Dështimet e përsëritura mund të tregojnë përpjekje për depërtim.',
+    'privacy' => 'Privatësia',
+    'privacy_body' => 'Aktiviteti i hyrjeve (përfshirë IP-në) evidentohet vetëm si <strong style="color: var(--ad-ink);">sinjal sigurie</strong> — për të dalluar hyrje të dyshimta dhe për mbështetje — kurrë si gjurmim i vazhdueshëm. Ruhet :days ditë, pastaj fshihet automatikisht; qasja kufizohet te kjo konsolë.',
+    'recent_sign_ins' => 'Aktiviteti i fundit i hyrjeve',
+    'col_event' => 'Ngjarja',
+    'col_realm' => 'Zona',
+    'col_account' => 'Llogaria',
+    'col_ip' => 'IP',
+    'col_when' => 'Kur',
+    'no_sign_ins' => 'Ende nuk është evidentuar asnjë aktivitet hyrjeje.',
+    'recent_account_events' => 'Ngjarjet e fundit të llogarive <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· në të gjithë klientët</span>',
+    'col_customer' => 'Klienti',
+    'col_actor' => 'Kryesi',
+    'no_account_events' => 'Ende asnjë ngjarje llogarie.',
+];

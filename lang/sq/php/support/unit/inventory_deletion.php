@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count rezervim|[0,*]:count rezervime',
+    'room_moves' => '{1}:count zhvendosje dhome|[0,*]:count zhvendosje dhomash',
+    'cleaning_tasks' => '{1}:count detyrë pastrimi|[0,*]:count detyra pastrimi',
+    'work_orders' => '{1}:count urdhër pune|[0,*]:count urdhra pune',
+    'status_changes' => '{1}:count ndryshim statusi|[0,*]:count ndryshime statusi',
+    'blocks' => '{1}:count bllokim|[0,*]:count bllokime',
+    'owner_agreements' => '{1}:count kontratë pronari|[0,*]:count kontrata pronarësh',
+    'owner_statement_lines' => '{1}:count rresht i pasqyrës së pronarit|[0,*]:count rreshta të pasqyrave të pronarit',
+    'owner_expenses' => '{1}:count shpenzim i pronarit|[0,*]:count shpenzime të pronarit',
+    'reviews' => '{1}:count vlerësim|[0,*]:count vlerësime',
+    'owner_requests' => '{1}:count kërkesë e pronarit|[0,*]:count kërkesa të pronarit',
+    'notes' => '{1}:count shënim|[0,*]:count shënime',
+    'documents' => '{1}:count dokument|[0,*]:count dokumente',
+    'files' => '{1}:count skedar|[0,*]:count skedarë',
+    'units' => '{1}:count njësi|[0,*]:count njësi',
+    'rate_proposals' => '{1}:count propozim tarife|[0,*]:count propozime tarifash',
+    'overbooking_records' => '{1}:count regjistrim mbirezervimi|[0,*]:count regjistrime mbirezervimi',
+    'guest_waitlist_entries' => '{1}:count regjistrim i vizitorit në listën e pritjes|[0,*]:count regjistrime të vizitorëve në listën e pritjes',
+    'guest_wishlist_saves' => '{1}:count ruajtje e vizitorit te të preferuarat|[0,*]:count ruajtje të vizitorëve te të preferuarat',
+    'derived_room_types' => '{1}:count lloj dhome i prejardhur prej tij|[0,*]:count lloje dhomash të prejardhura prej tij',
+    'derived_rate_plans' => '{1}:count plan tarifor diku tjetër i prejardhur prej tij|[0,*]:count plane tarifore diku tjetër të prejardhura prej tij',
+    'corporate_default_rates' => '{1}:count tarifë e parazgjedhur e llogarisë së kompanisë|[0,*]:count tarifa të parazgjedhura të llogarive të kompanisë',
+    'channel_connections' => '{1}:count lidhje kanali|[0,*]:count lidhje kanali',
+    'an_owner' => 'një pronar',
+    'pending_owner_invitation' => 'një ftesë në pritje për pronar',
+    'list_and' => ':items dhe :last',
+    'kind_rooms' => 'dhoma',
+    'kind_apartments' => 'apartamente',
+    'kind_villas' => 'vila',
+    'kind_dorm_beds' => 'shtretër në dhomë të përbashkët',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Përmbledhja',
+    'breadcrumb_bookings' => 'Rezervimet',
+    'guest_fallback' => 'Vizitor',
+    'reservation' => 'Rezervimi',
+    'check_in' => 'Mbërritja',
+    'nights_count' => '{1}:count natë|[0,*]:count netë',
+    'check_out' => 'Largimi',
+    'unit' => 'Njësia',
+    'guests' => 'Vizitorët',
+    'nights' => 'Netët',
+    'nightly_rate' => 'Tarifa për natë',
+    'your_earnings' => 'Të ardhurat tuaja',
+    'gross_to_net' => 'bruto → neto',
+    'gross_booking_value' => 'Vlera bruto e rezervimit',
+    'net_to_you' => 'Të ardhurat tuaja neto',
+    'refunds_we_covered' => 'Rimbursimet që kemi mbuluar',
+    'refunds_we_covered_note' => 'Vizitorit iu rimbursua shuma dhe ajo iu debitua neve, jo juve. Të ardhurat tuaja më sipër nuk ndryshojnë.',
+    'not_yet_attributed' => 'Ende nuk është caktuar.',
+    'not_yet_attributed_note' => 'Të ardhurat tuaja shfaqen këtu sapo rezervimi t’i caktohet librit tuaj kontabël — zakonisht pasi të kryhet check-out.',
+    'guest_heading' => 'Vizitori',
+    'guest_contact_note' => 'Të dhënat e kontaktit të vizitorit i trajton kompania administruese — ju shihni rezervimin dhe të ardhurat tuaja.',
+    'message_your_team' => 'Shkruaji kompanisë administruese',
+    'timeline' => 'Kronologjia',
+    'for_night_stay' => 'për këtë qëndrim (netë: :nights)',
+    'booking_details' => 'Të dhënat e rezervimit',
+    'confirmation' => 'Konfirmimi',
+    'source' => 'Burimi',
+    'channel' => 'Kanali',
+    'booked_on' => 'Rezervuar më',
+    'download_confirmation' => 'Shkarko konfirmimin',
+    'download_unavailable' => 'Në dispozicion për bashkëpronarët dhe kontabilistët',
+    'view_unit' => 'Shiko njësinë :unit',
+];

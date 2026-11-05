@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Gati për pagesë',
+    'chip_hold' => 'Ndalur',
+    'chip_review' => 'Kërkon shqyrtim',
+    'chip_paused' => 'Derdhjet në pauzë',
+    'chip_invited' => 'Ftuar',
+    'sorted_name_asc' => 'sipas pronarit, A–Z',
+    'sorted_name_desc' => 'sipas pronarit, Z–A',
+    'sorted_units_desc' => 'me më shumë njësi së pari',
+    'sorted_units_asc' => 'me më pak njësi së pari',
+    'sorted_net_desc' => 'neto për derdhje më e madhe së pari',
+    'sorted_net_asc' => 'neto për derdhje më e vogël së pari',
+    'sorted_status_asc' => 'çfarë kërkon vëmendjen tuaj së pari',
+    'sorted_status_desc' => 'çfarë kërkon vëmendjen tuaj në fund',
+    'kpi_invited' => 'Të ftuar: :number',
+    'kpi_units' => '{1}:count njësi|[0,*]:count njësi',
+    'kpi_owners_ready' => '{1}:count pronar gati|[0,*]:count pronarë gati',
+    'kpi_paused_not_counted' => 'Në pauzë dhe të pallogaritur: :number',
+    'kpi_hold_none' => 'asgjë në pritje',
+    'kpi_hold_waiting' => 'Në pritje: :amounts',
+    'kpi_review_sub' => 'Me rreshta që kanali i shitjes nuk i ka konfirmuar: :number',
+    'schedule' => 'dita e punës :day e muajit',
+    'ordinal_st' => 'nr. :number',
+    'ordinal_nd' => 'nr. :number',
+    'ordinal_rd' => 'nr. :number',
+    'ordinal_th' => 'nr. :number',
+    'role_manager' => 'Menaxher strukture',
+    'role_accountant' => 'Kontabilist',
+    'role_owner' => 'Pronar',
+    'another_owner' => 'një pronar tjetër',
+];

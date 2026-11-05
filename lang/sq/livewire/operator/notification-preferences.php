@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Preferencat e njoftimeve',
+    'subtitle' => 'Si ju kontakton Vyrobel',
+    'breadcrumb_label' => 'Shtegu i navigimit',
+    'crumb_settings' => 'Cilësimet',
+    'crumb_notifications' => 'Njoftimet',
+    'channel_email' => 'Email-i',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Nuk ka email të ruajtur',
+    'email_verified_title' => 'Email-i juaj i hyrjes është verifikuar',
+    'email_verified' => 'Verifikuar',
+    'push_not_set_up_title' => 'Njoftimet push nuk janë konfiguruar ende',
+    'not_set_up_tag' => 'pa konfigurim',
+    'push_not_available' => 'Njoftimet push në shfletues dhe pajisje nuk ofrohen ende',
+    'channel_off' => 'Fikur',
+    'sms_not_set_up_title' => 'Njoftimet me SMS nuk janë konfiguruar ende',
+    'sms_no_provider' => 'Ende nuk është lidhur asnjë ofrues SMS',
+    'notify_me_when' => 'Më njofto kur',
+    'always_on' => 'Gjithmonë aktive',
+    'email_always_on_sr' => 'Email-i është gjithmonë aktiv për: :event',
+    'email_me_when_aria' => 'Njoftim me email kur: :event',
+    'push_not_set_up_sr' => 'Njoftimet push nuk janë konfiguruar',
+    'sms_not_set_up_sr' => 'Njoftimet me SMS nuk janë konfiguruar',
+    'quiet_hours' => 'Orët e qeta',
+    'quiet_hours_help' => 'Email-et rutinë mbahen gjatë këtyre orëve — sinjalizimet urgjente të sigurisë vijnë gjithmonë; njoftimet brenda aplikacionit nuk preken.',
+    'quiet_from' => 'Nga',
+    'quiet_to' => 'Deri',
+    'digest_heading' => 'Email-i i përmbledhjes ditore',
+    'digest_help' => 'Një përmbledhje e ditës çdo mëngjes. <span class="vy-np-soon">ende nuk dërgohet</span> — preferenca ruhet për kur të aktivizohet dërgimi i përmbledhjes.',
+    'digest_off' => 'Fikur',
+    'digest_morning' => 'Mëngjes · 08:00',
+];

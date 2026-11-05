@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/pdfs/operator-report.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'eyebrow' => 'Raportet',
+    'arrivals_in' => 'Mbërritjet për periudhën: :period',
+    'arrivals_count' => '{1}:count mbërritje|[0,*]:count mbërritje',
+    'pp_delta' => ':delta p.p.',
+    'occupancy' => 'Zënia',
+    'adr' => 'ADR',
+    'revpar' => 'RevPAR',
+    'gross_revenue' => 'Të hyrat bruto',
+    'basis_note' => 'Zënia · ADR · RevPAR llogariten mbi bazën e netëve të qëndrimit, krahasuar me të njëjtën periudhë të vitit të kaluar ku ka të dhëna të vitit paraardhës. Të hyrat më poshtë janë mbi bazën e llogarisë së qëndrimit (sipas mbërritjes).',
+    'revenue' => 'Të hyrat',
+    'room' => 'Akomodimi',
+    'ancillary' => 'Të hyrat shtesë <span class="muted">· shërbime shtesë, produkte, tarifa</span>',
+    'tax_collected' => 'Taksa e arkëtuar · vlerë kalimtare',
+    'costs_heading' => 'Kostot <span class="muted" style="font-size:9px">· vetëm të dhëna reale</span>',
+    'maintenance' => 'Mirëmbajtja <span class="muted">· urdhra pune të zgjidhur</span>',
+    'not_tracked' => 'ende pa evidentim',
+    'net' => 'Neto (të hyrat − kostot e evidentuara)',
+    'revenue_by_channel' => 'Të hyrat sipas kanalit',
+    'channel' => 'Kanali',
+    'bookings' => 'Rezervimet',
+    'share' => 'Pjesa',
+    'no_channel_revenue' => 'Ende pa të hyra sipas kanalit në këtë periudhë.',
+    'top_units' => 'Njësitë kryesore',
+    'unit' => 'Njësia',
+    'nights' => 'Netët',
+    'room_revenue' => 'Të hyrat nga akomodimi',
+    'no_unit_revenue' => 'Ende pa të hyra nga njësitë në këtë periudhë.',
+    'revenue_by_month' => 'Të hyrat sipas muajit',
+    'month' => 'Muaji',
+    'footer' => 'Llogaritur nga të dhëna reale të llogarive të qëndrimit dhe të mirëmbajtjes — :scope · :period. Zënia/ADR/RevPAR llogariten mbi bazën e netëve të qëndrimit; të hyrat llogariten mbi bazën e llogarisë së qëndrimit (sipas mbërritjes). Shifrat përputhen me faqen «Raportet». Vyrobel.',
+];

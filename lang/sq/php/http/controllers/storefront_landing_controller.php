@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Akomodimet tona',
+    'properties_count' => 'Struktura: :count',
+    'stays_count' => '{1}:count akomodim|[0,*]:count akomodime',
+    'stays_sleeps' => ':stays · kapaciteti maksimal: :max',
+    'stays_sleeps_range' => ':stays · kapaciteti: :min–:max',
+    'perk_free_cancel_days' => '{1}Rimbursim i plotë deri në :count ditë para mbërritjes.|[0,*]Rimbursim i plotë deri në :count ditë para mbërritjes.',
+    'perk_free_cancel_window' => 'Rimbursim i plotë brenda afatit të anulimit.',
+    'perk_no_fees' => 'Pa tarifa rezervimi',
+    'perk_no_fees_sub' => 'Çmimi që shihni është çmimi që paguani.',
+    'perk_best_rate' => 'Çmimi më i mirë drejtpërdrejt',
+    'perk_best_rate_sub' => 'Rezervoni drejtpërdrejt për çmimin tonë më të mirë — pa ndërmjetës.',
+    'perk_free_cancel' => 'Anulim falas',
+    'perk_host_support' => 'Mbështetje e drejtpërdrejtë nga mikpritësi',
+    'perk_host_support_sub' => 'Shkruajini një personi real për rezervimin tuaj.',
+    'kind_room' => 'Dhomë',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilë',
+    'kind_dorm' => 'Shtrat në dhomë të përbashkët',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament me shërbim',
+    'type_apartment_building' => 'Ndërtesë me apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilë',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Bujtinë',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'I përzier',
+    'type_portfolio' => 'Portofol strukturash',
+];

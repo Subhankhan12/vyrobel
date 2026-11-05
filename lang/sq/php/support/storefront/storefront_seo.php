@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/support/storefront/storefront_seo.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartamente me shërbim',
+    'type_apartment_building' => 'Apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilë',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Bujtinë',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'Hotel dhe apartamente',
+    'type_portfolio' => 'Akomodime',
+    'title_town' => ':name, :town — Rezervo drejtpërdrejt',
+    'title' => ':name — Rezervo drejtpërdrejt',
+    'title_room' => ':room te :property — Rezervo drejtpërdrejt',
+    'org_description_towns' => '{1}Shfletoni :count strukturë (vendndodhja: :towns). Shikoni disponueshmërinë dhe rezervoni drejtpërdrejt te :org.|[0,*]Shfletoni :count struktura (vendndodhja: :towns). Shikoni disponueshmërinë dhe rezervoni drejtpërdrejt te :org.',
+    'org_description' => '{1}Shfletoni :count strukturë. Shikoni disponueshmërinë dhe rezervoni drejtpërdrejt te :org.|[0,*]Shfletoni :count struktura. Shikoni disponueshmërinë dhe rezervoni drejtpërdrejt te :org.',
+    'org_description_empty' => 'Shikoni disponueshmërinë dhe rezervoni drejtpërdrejt te :org.',
+    'place_town_country' => ':town, :country',
+    'description_place_rooms' => '{1}Rezervoni drejtpërdrejt në strukturën :name. :type. Vendndodhja: :place. :count lloj dhome. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.|[0,*]Rezervoni drejtpërdrejt në strukturën :name. :type. Vendndodhja: :place. :count lloje dhomash. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.',
+    'description_place' => 'Rezervoni drejtpërdrejt në strukturën :name. :type. Vendndodhja: :place. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.',
+    'description_rooms' => '{1}Rezervoni drejtpërdrejt në strukturën :name. :type. :count lloj dhome. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.|[0,*]Rezervoni drejtpërdrejt në strukturën :name. :type. :count lloje dhomash. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.',
+    'description' => 'Rezervoni drejtpërdrejt në strukturën :name. :type. Shikoni disponueshmërinë në kohë reale dhe rezervoni pa kaluar nëpër një faqe rezervimesh.',
+    'detail_sleeps' => 'kapaciteti maksimal: :guests',
+    'detail_bedrooms' => '{1}:count dhomë gjumi|[0,*]:count dhoma gjumi',
+    'room_description_town_details' => ':room te :property (vendndodhja: :town) — :details. Shikoni disponueshmërinë në kohë reale dhe rezervoni drejtpërdrejt.',
+    'room_description_town' => ':room te :property (vendndodhja: :town). Shikoni disponueshmërinë në kohë reale dhe rezervoni drejtpërdrejt.',
+    'room_description_details' => ':room te :property — :details. Shikoni disponueshmërinë në kohë reale dhe rezervoni drejtpërdrejt.',
+    'room_description' => ':room te :property. Shikoni disponueshmërinë në kohë reale dhe rezervoni drejtpërdrejt.',
+    'list_and' => ':items dhe :last',
+];

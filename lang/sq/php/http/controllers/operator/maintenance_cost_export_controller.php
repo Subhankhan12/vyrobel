@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Shumat',
+    'csv_amounts_note' => 'njësi kryesore të monedhës, pikë dhjetore, pa ndarës të mijërave',
+    'col_date' => 'Data',
+    'col_work_order' => 'Urdhri i punës',
+    'col_unit' => 'Njësia',
+    'col_category' => 'Kategoria',
+    'col_labor' => 'Puna',
+    'col_parts' => 'Pjesët',
+    'col_total' => 'Totali',
+    'col_currency' => 'Monedha',
+    'total_row' => 'Totali',
+    'sheet_summary' => 'Përmbledhja',
+    'col_measure' => 'Treguesi',
+    'col_value' => 'Vlera',
+    'total_spend' => 'Shpenzimi total',
+    'measure_labour' => 'Puna',
+    'measure_parts' => 'Pjesët',
+    'orders_closed' => 'Urdhrat e mbyllur',
+    'owner_billed' => 'Faturuar pronarit',
+    'operator_borne' => 'Mbuluar nga organizata',
+    'parts_on_order' => 'Pjesët e porositura',
+    'average_per_order' => 'Mesatarja për urdhër',
+    'by_category' => 'Sipas kategorisë',
+    'col_orders' => 'Urdhrat',
+    'by_month' => 'Sipas muajit',
+    'top_units' => 'Njësitë kryesore',
+    'sheet_line_items' => 'Zërat',
+    'col_labour' => 'Puna',
+    'no_email' => 'Llogaria juaj nuk ka adresë email.',
+    'report_emailed' => 'Raporti i kostove u dërgua me email te :email.',
+];

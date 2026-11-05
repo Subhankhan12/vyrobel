@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Lajmërimet',
+    'subtitle' => 'Një lajmërim që shfaqet në back office dhe në portalin e pronarëve të çdo organizate — ose vetëm të atyre të zgjedhura. Tekst i thjeshtë; nuk dërgohet asnjë email.',
+    'empty_state' => 'Nuk është publikuar kurrë asnjë lajmërim.',
+    'col_announcement' => 'Lajmërimi',
+    'col_to' => 'Marrësit',
+    'col_from_until' => 'Nga → deri',
+    'col_state' => 'Gjendja',
+    'audience_all' => 'Çdo organizatë',
+    'audience_chosen_count' => 'Të zgjedhura: :number',
+    'no_end' => 'pa përfundim',
+    'state_withdrawn' => 'Tërhequr',
+    'state_showing' => 'Në shfaqje',
+    'state_scheduled' => 'Planifikuar',
+    'state_ended' => 'Përfunduar',
+    'reason_aria' => 'Arsyeja',
+    'withdraw_placeholder' => 'Pse po e tërhiqni?',
+    'withdraw_button' => 'Tërhiq',
+    'publish_heading' => 'Publiko një lajmërim',
+    'title_label' => 'Titulli',
+    'message_label' => 'Mesazhi (tekst i thjeshtë)',
+    'kind_label' => 'Lloji',
+    'show_from_label' => 'Shfaq nga (UTC)',
+    'until_label' => 'Deri (UTC, opsionale)',
+    'to_label' => 'Marrësit',
+    'option_every_organisation' => 'Çdo organizatë',
+    'option_chosen_organisations' => 'Organizata të zgjedhura',
+    'chosen_organisations_label' => 'Organizatat e zgjedhura (kur zgjidhet «Organizata të zgjedhura»)',
+    'no_organisation_chosen' => 'Ende nuk është zgjedhur asnjë organizatë',
+    'reason_label' => 'Arsyeja',
+    'publish_reason_placeholder' => 'Pse po dërgohet ky lajmërim?',
+    'publish_button' => 'Publiko',
+];

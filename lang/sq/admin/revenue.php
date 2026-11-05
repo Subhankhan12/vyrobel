@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/admin/revenue.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Të hyrat',
+    'subtitle' => 'Nga ajo që debitoi realisht Stripe — kurrë nga çmimet e listës. Vetëm klientë, përveç nëse përfshini edhe organizatat e Vyrobel.',
+    'including_internal' => 'Përfshihen edhe organizatat e brendshme të Vyrobel.',
+    'customers_only_note' => 'Vetëm klientë.',
+    'customers_only_link' => 'Vetëm klientë',
+    'include_internal_link' => 'Përfshi të brendshmet',
+    'no_live_billing_pill' => 'Ende pa faturim real',
+    'no_customer_charged' => 'Ende nuk është debituar asnjë klient.',
+    'not_live_explainer' => 'Stripe nuk është në modalitetin real, ndaj nuk ka faturë të paguar për të numëruar. Nuk është muaj i keq — ende nuk ka muaj. Të hyrat këtu llogariten vetëm nga <strong>faturat e paguara në Stripe</strong> (vetë debitimi, i evidentuar kur na njofton Stripe), kurrë nga çmimi i listës së një plani.',
+    'live_billed_subscriptions' => 'Abonime me faturim real',
+    'trialing_unbilled' => 'Abonime në provë, të pafaturuara',
+    'failed_payments_30d' => 'Pagesa të dështuara, 30 ditët e fundit',
+    'when_first_paid' => 'Kur të paguhet fatura e parë, kjo faqe tregon: MRR dhe ARR për çdo monedhë · MRR të re, zgjerim, tkurrje dhe MRR të humbur · kalimin nga prova në pagesë · pagesat e dështuara.',
+    'mrr_arr_heading' => 'MRR / ARR',
+    'mrr_currency' => 'MRR · :currency',
+    'arr_currency' => 'ARR · :currency',
+    'subscriptions_valued' => 'Abonime me vlerë të llogaritur',
+    'no_live_subscription_charged' => 'Nuk është debituar asnjë abonim aktiv me faturim real.',
+    'mrr_hint' => 'Çdo abonim real aktiv ose me pagesë të vonuar, sipas faturës së tij më të fundit të paguar, i kthyer në bazë mujore sipas periudhës së faturimit të asaj fature.',
+    'this_month_vs_last' => 'Ky muaj kundrejt muajit të kaluar',
+    'movement_new' => 'Të reja · :currency',
+    'movement_expansion' => 'Zgjerim · :currency',
+    'movement_contraction' => 'Tkurrje · :currency',
+    'movement_churned' => 'Humbur · :currency',
+    'nothing_charged' => 'Asgjë e debituar muajin e kaluar ose këtë muaj.',
+    'movements_hint' => 'Për çdo organizatë, nga ajo që u debitua në secilin muaj. Humbur = debituar muajin e kaluar, asgjë këtë muaj, dhe abonimi është anuluar.',
+    'trial_to_paid' => 'Nga prova në pagesë',
+    'trial_to_paid_value' => ':converted nga :ended prova të përfunduara janë debituar',
+    'past_due_now' => 'Me pagesë të vonuar tani',
+    'paid_invoices_counted' => 'Fatura të paguara të numëruara',
+    'never_moves_money' => 'Kjo konsolë kurrë nuk debiton, nuk rimburson dhe nuk lëviz para. Çdo shifër është sipas monedhës dhe kurrë nuk mblidhet mes monedhave.',
+];

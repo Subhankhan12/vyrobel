@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'administruar me Vyrobel',
+    'eyebrow' => 'Pasqyra e pronarit',
+    'unit_count' => '{1}:count njësi|[0,*]:count njësi',
+    'issued' => 'lëshuar: :date',
+    'prepared_for' => 'Përgatitur për',
+    'net_payable_to_owner' => 'Neto për derdhje te pronari',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Zënia',
+    'nights_sold' => 'Netë të shitura',
+    'avg_nightly_rate' => 'Tarifa mesatare për natë',
+    'breakdown' => 'Detajimi',
+    'item' => 'Zëri',
+    'detail' => 'Detajet',
+    'amount' => 'Shuma',
+    'provisional' => '(paraprak)',
+    'performance_by_unit' => 'Performanca sipas njësisë',
+    'unit' => 'Njësia',
+    'nights' => 'Netët',
+    'revenue' => 'Të hyrat',
+    'total_gross_room_revenue' => 'Totali i të hyrave bruto nga akomodimi',
+    'callout_heading' => 'Derdhja.',
+    'settles_to_iban' => 'Shuma neto prej :amount derdhet me transfertë bankare në llogarinë me IBAN :iban.',
+    'settles' => 'Shuma neto prej :amount derdhet me transfertë bankare.',
+    'fees_with_commission' => 'Komisioni i administrimit aplikohet në masën :pct% të të hyrave bruto nga akomodimi; tarifat e pagesës dhe të platformës kalojnë sipas kostos. Të gjitha shumat janë në monedhën :currency dhe përfshijnë taksat e zbatueshme të arkëtuara në emrin tuaj.',
+    'fees' => 'Tarifat e pagesës dhe të platformës kalojnë sipas kostos. Të gjitha shumat janë në monedhën :currency dhe përfshijnë taksat e zbatueshme të arkëtuara në emrin tuaj.',
+    'fx_note' => 'Konvertuar nga :source me kursin :rate (burimi: :src).',
+    'provisional_note' => 'Disa rreshta janë paraprakë, në pritje të rakordimit të kanaleve.',
+    'statement_ref' => 'pasqyra :ref',
+    'sequence_no' => 'nr. :number',
+    'generated' => 'krijuar: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Pyetje? :email',
+];

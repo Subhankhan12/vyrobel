@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/http/controllers/operator/maintenance_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'ticket_opened' => 'Urdhri i punës «:title» u hap për njësinë :unit.',
+    'not_assignable_staff' => 'Ky përdorues nuk është staf që mund të caktohet në këtë organizatë.',
+    'cannot_reassign_closed' => 'Ky urdhër pune nuk mund të ricaktohet — është mbyllur tashmë.',
+    'assignment_updated' => 'Caktimi i urdhrit të punës u përditësua.',
+    'work_order_closed' => 'Ky urdhër pune është i mbyllur — detajet e tij nuk mund të ndryshohen.',
+    'work_order_updated' => 'Urdhri i punës u përditësua.',
+    'col_title' => 'Titulli',
+    'col_unit' => 'Njësia',
+    'col_category' => 'Kategoria',
+    'col_priority' => 'Përparësia',
+    'col_status' => 'Statusi',
+    'col_assignee' => 'Përgjegjësi',
+    'col_reported' => 'Raportuar',
+    'col_cost' => 'Kostoja',
+    'bulk_assigned_skipped' => '{1}U caktua :count urdhër pune · anashkaluar: :skipped (tashmë të mbyllur)|[0,*]U caktuan :count urdhra pune · anashkaluar: :skipped (tashmë të mbyllur)',
+    'bulk_assigned' => '{1}U caktua :count urdhër pune.|[0,*]U caktuan :count urdhra pune.',
+    'bulk_resolved_skipped' => '{1}U zgjidh :count urdhër pune · anashkaluar: :skipped (tashmë të mbyllur)|[0,*]U zgjidhën :count urdhra pune · anashkaluar: :skipped (tashmë të mbyllur)',
+    'bulk_resolved' => '{1}U zgjidh :count urdhër pune.|[0,*]U zgjidhën :count urdhra pune.',
+    'cannot_start' => 'Ky urdhër pune nuk mund të nisë — nuk është më i hapur.',
+    'work_started' => 'Puna në këtë urdhër pune filloi.',
+    'cannot_resolve_closed' => 'Ky urdhër pune nuk mund të zgjidhet — është mbyllur tashmë.',
+    'ticket_resolved' => 'Urdhri i punës u zgjidh.',
+    'cannot_cancel_closed' => 'Ky urdhër pune nuk mund të anulohet — është mbyllur tashmë.',
+    'ticket_cancelled' => 'Urdhri i punës u anulua.',
+    'parts_closed' => 'Ky urdhër pune është i mbyllur — pjesët nuk mund të përditësohen.',
+    'awaiting_parts' => 'U shënua në pritje të pjesëve.',
+    'parts_arrived' => 'Pjesët u shënuan si të mbërritura.',
+    'update_posted_waiting_part' => 'Përditësimi u publikua — urdhri u shënua në pritje të pjesës.',
+    'update_posted' => 'Përditësimi u publikua.',
+    'photo_added' => 'Fotografia u shtua.',
+    'photo_removed' => 'Fotografia u fshi.',
+    'workspace_paused' => 'Organizata juaj është në pauzë (vetëm për lexim) — ndryshimet e mirëmbajtjes janë çaktivizuar derisa ta rifilloni.',
+];

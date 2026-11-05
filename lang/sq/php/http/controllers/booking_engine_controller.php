@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Ju',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Përfshihen: :items',
+    'nightly_excludes' => 'Pa përfshirë: :tax',
+    'sleeps' => 'Kapaciteti: :count',
+    'studio' => 'Studio',
+    'bedrooms' => '{1}:count dhomë gjumi|[0,*]:count dhoma gjumi',
+    'checkout_title' => 'Përfundo rezervimin — :property',
+    'room_just_taken' => 'Kjo dhomë sapo u rezervua nga dikush tjetër — ju lutemi, zgjidhni një dhomë tjetër ose data të tjera.',
+    'payment_received' => 'Pagesa u pranua',
+    'payment_received_note' => 'Paguar plotësisht.',
+    'payment_processing' => 'Pagesa në përpunim',
+    'payment_processing_note' => 'Po e konfirmojmë pagesën tuaj me kartë. Rifreskoni këtë faqe pas pak për të parë që pagesa ka mbërritur.',
+    'pay_on_arrival' => 'Paguaj në mbërritje',
+    'pay_on_arrival_note' => 'Paguani në strukturën akomoduese kur bëni check-in.',
+    'confirmed_title' => 'Rezervimi u konfirmua — :property',
+    'kind_room' => 'Dhomë',
+    'kind_apartment' => 'Apartament',
+    'kind_villa' => 'Vilë',
+    'kind_dorm' => 'Shtrat në dhomë të përbashkët',
+    'type_hotel' => 'Hotel',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Apartament me shërbim',
+    'type_apartment_building' => 'Ndërtesë me apartamente',
+    'type_apartment' => 'Apartament',
+    'type_villa' => 'Vilë',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Bujtinë',
+    'type_resort' => 'Resort',
+    'type_mixed' => 'I përzier',
+    'type_portfolio' => 'Portofol strukturash',
+];

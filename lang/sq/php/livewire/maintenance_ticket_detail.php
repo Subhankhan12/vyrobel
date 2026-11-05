@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — sq translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Shënim',
+    'kind_progress' => 'Ecuria',
+    'kind_part' => 'Pjesë e porositur',
+    'elapsed_minutes' => ':minutes min',
+    'elapsed_hours' => ':hours orë :minutes min',
+    'elapsed_days' => ':days ditë :hours orë',
+    'hours_short' => ':hours orë',
+    'timeline_opened' => 'Raportuar',
+    'timeline_assigned_to' => 'Caktuar te :name',
+    'a_technician' => 'një teknik',
+    'timeline_unassigned' => 'Pa caktuar',
+    'timeline_started' => 'Puna nisi',
+    'timeline_resolved' => 'Zgjidhur',
+    'timeline_cancelled' => 'Anuluar',
+    'timeline_parts_updated' => 'Pjesë të përditësuara',
+    'timeline_cost_corrected' => 'Kosto e korrigjuar',
+    'timeline_updated' => 'Detaje të redaktuara',
+    'note_progress' => 'Përditësim i ecurisë',
+    'note_part' => 'Pjesë e porositur',
+    'note_added' => 'Shënim i shtuar',
+    'a_team_member' => 'Një anëtar i ekipit',
+    'system' => 'Sistemi',
+    'photo_alt' => 'Fotografi mirëmbajtjeje',
+    'the_owner' => 'pronari',
+    'load_none' => 'Asnjë urdhër pune i hapur',
+    'load_open' => 'Të hapur: :open',
+    'load_open_urgent' => 'Të hapur: :open · urgjentë: :urgent',
+    'impact_arrivals' => '{1}:count mbërritje sonte ka nevojë për një dhomë|[0,*]:count mbërritje sonte kanë nevojë për një dhomë',
+    'impact_bookings' => '{1}:count rezervim duhet të zhvendoset|[0,*]:count rezervime duhet të zhvendosen',
+    'impact_none' => 'Asnjë rezervim nuk preket',
+];
