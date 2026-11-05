@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Undangan · Vyrobel',
     'heading' => 'Tautan undangan ini tidak valid',
-    'body' => 'Tautan mungkin sudah kedaluwarsa atau sudah digunakan. Silakan minta pengelola Anda mengirim undangan baru.',
+    'body' => 'Tautan mungkin sudah kedaluwarsa atau sudah digunakan. Silakan minta orang yang mengundang Anda untuk mengirim undangan baru.',
     'go_to_sign_in' => 'Buka halaman masuk',
 ];

@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'موتور واریز خودکار غیرفعال است (PAYOUT_ENGINE_ENABLED). پیش از اجرای واریز، آن را فعال کنید.',
     'nothing_to_run' => 'چیزی برای اجرا وجود ندارد — هیچ مالکی در اینجا صورتحساب قابل واریز یا واریز نگه‌داشته‌شده ندارد:paused_note.',
     'run_complete' => 'اجرای واریز کامل شد (حالت :mode) — ایجادشده: :created · واریزشده: :paid · نگه‌داشته‌شده: :held:paused_note.',
+    'mode_test' => 'آزمایشی',
+    'mode_live' => 'واقعی',
     'create_failed' => 'ایجاد واریز ممکن نشد — :reason',
     'already_has_payout' => 'این صورتحساب از قبل واریز دارد — چیزی ایجاد نشد.',
     'one_payout_created' => '1 واریز ایجاد شد.',

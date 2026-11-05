@@ -11,7 +11,7 @@ return [
     'chip_review' => 'A rever',
     'more_count' => 'Mais :number',
     'view_calendar' => 'Ver calendário',
-    'message_guests' => 'Enviar mensagem aos hóspedes',
+    'message_guests' => 'Enviar mensagem à equipa de gestão',
     'download_statement' => 'Descarregar extrato',
     'contact_support' => 'Contactar o suporte',
     'this_month' => 'Este mês',

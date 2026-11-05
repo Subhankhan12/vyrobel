@@ -69,7 +69,7 @@ return [
     'whats_free' => 'क्या खाली है',
     'check_the_rack' => 'बुकिंग चार्ट देखें<span class="vy-sr-only"> (नए टैब में खुलता है)</span>',
     'pick_dates_first' => 'क्या खाली है, यह देखने के लिए ऊपर तिथियाँ चुनें।',
-    'too_long' => 'बुकिंग में रातों की अधिकतम संख्या :count है — छोटा ठहराव चुनें।',
+    'too_long' => '{1}बुकिंग में अधिकतम :count रात हो सकती है — छोटा ठहराव चुनें।|[2,*]बुकिंग में अधिकतम :count रातें हो सकती हैं — छोटा ठहराव चुनें।',
     'rt_price' => '{1}<strong>:nightly</strong> · :count रात के लिए :price|[2,*]<strong>:nightly</strong> · :count रातों के लिए :price',
     'rt_free' => ':count खाली',
     'units_in' => ':name के कमरे',

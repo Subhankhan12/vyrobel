@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Aplikacionet e palëve të treta që autorizoni do të shfaqen këtu.',
     'change_password_title' => 'Ndrysho fjalëkalimin',
     'set_password_title' => 'Cakto një fjalëkalim',
-    'change_password_sub' => 'Do të dilni nga pajisjet e tjera ku keni zgjedhur «Më mbaj mend».',
+    'change_password_sub' => 'Do të dilni nga çdo pajisje tjetër. Hyrja juaj mbetet aktive këtu.',
     'set_password_sub' => 'Do t’ju kërkohet kur konfirmoni ndryshime të ndjeshme.',
     'current_password' => 'Fjalëkalimi aktual',
     'new_password' => 'Fjalëkalimi i ri',

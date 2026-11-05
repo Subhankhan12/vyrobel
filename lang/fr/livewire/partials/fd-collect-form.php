@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Espèces',
     'method_bank_transfer' => 'Virement bancaire',
     'collect_button' => 'Encaisser',
-    'hint' => 'Enregistré sur le folio réel · le terminal de carte est l’intégration Stripe différée — encaissez en espèces ou par virement bancaire pour l’instant.',
+    'hint' => 'Enregistré sur le folio réel · le paiement par carte n’est pas encore activé ici — encaissez en espèces ou par virement bancaire pour l’instant.',
 ];

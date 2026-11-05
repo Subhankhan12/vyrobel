@@ -40,4 +40,5 @@ return [
     'date' => 'तिथि',
     'total' => 'कुल',
     'today' => 'आज',
+    'sentence_end' => '।',
 ];

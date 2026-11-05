@@ -69,7 +69,7 @@ return [
     'whats_free' => 'O que está livre',
     'check_the_rack' => 'Ver o mapa de reservas<span class="vy-sr-only"> (abre num novo separador)</span>',
     'pick_dates_first' => 'Escolha as datas acima para ver o que está livre.',
-    'too_long' => 'Uma reserva pode ter no máximo :count noites — escolha uma estadia mais curta.',
+    'too_long' => '{1} Uma reserva pode ter no máximo :count noite — escolha uma estadia mais curta.|[2,*] Uma reserva pode ter no máximo :count noites — escolha uma estadia mais curta.',
     'rt_price' => '{1} <strong>:nightly</strong> · :price por :count noite|[0,*] <strong>:nightly</strong> · :price por :count noites',
     'rt_free' => 'Livres: :count',
     'units_in' => 'Unidades do tipo de quarto :name',

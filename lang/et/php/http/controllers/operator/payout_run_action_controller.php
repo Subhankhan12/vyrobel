@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Väljamaksemootor on välja lülitatud (PAYOUT_ENGINE_ENABLED). Lülitage see enne väljamaksete käivitamist sisse.',
     'nothing_to_run' => 'Käivitada pole midagi — ühelgi siinsel omanikul pole väljamakstavat väljavõtet ega kinni hoitud väljamakset:paused_note.',
     'run_complete' => 'Koondväljamakse on lõpetatud (režiim: :mode) — loodud: :created · välja makstud: :paid · kinni hoitud: :held:paused_note.',
+    'mode_test' => 'test',
+    'mode_live' => 'reaalne',
     'create_failed' => 'Väljamakse loomine ebaõnnestus: :reason',
     'already_has_payout' => 'Sellel väljavõttel on juba väljamakse — midagi ei loodud.',
     'one_payout_created' => 'Loodud: 1 väljamakse.',

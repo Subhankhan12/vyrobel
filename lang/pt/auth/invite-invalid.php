@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Convite · Vyrobel',
     'heading' => 'Esta ligação de convite não é válida',
-    'body' => 'Pode ter expirado ou já ter sido utilizada. Peça à sua entidade gestora que lhe envie um novo convite.',
+    'body' => 'Pode ter expirado ou já ter sido utilizada. Peça a quem enviou o convite que envie um novo.',
     'go_to_sign_in' => 'Ir para o início de sessão',
 ];

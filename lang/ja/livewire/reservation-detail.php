@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'フォリオをPDFでダウンロード',
     'export_pdf' => 'フォリオをエクスポート（PDF）',
     'export_csv_print' => 'CSVエクスポート · 印刷',
-    'room_moves_note' => '部屋移動は保護されたAssignmentService（ロックあり、オーバーブッキングなし）を経由し、すぐに保存されます。',
+    'room_moves_note' => '部屋移動では空室状況が確認されるため、客室が二重に予約されることはありません。変更はすぐに保存されます。',
 ];

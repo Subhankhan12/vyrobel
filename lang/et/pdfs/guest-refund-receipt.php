@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Tagasimakse',
     'col_amount' => 'Summa',
     'refund_to' => 'Tagasimakse makseviisile: :method',
+    'method_manual' => 'Käsitsi',
+    'method_bank_transfer' => 'Pangaülekanne',
     'total_refunded' => 'Tagasi makstud kokku',
     'footer' => 'Kviitung teile tagastatud raha kohta, koostatud Vyrobeli ainult täiendatavast kulude ülevaate pearaamatust; iga tagasimakse on registreeritud eraldi stornokandena ning klapib teie kontoga. Vyrobel · :operator.',
 ];

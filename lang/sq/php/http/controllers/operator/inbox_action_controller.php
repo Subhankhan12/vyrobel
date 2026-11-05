@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Rezervimi u lidh.',
     'conversation_started' => 'Biseda u nis.',
     'workspace_paused' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim deri më :date.',
+    'workspace_paused_for_now' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim për momentin.',
 ];

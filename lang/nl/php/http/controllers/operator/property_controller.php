@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organisatie gepauzeerd — tot :resume kunt u geen accommodatie toevoegen (alleen-lezen).',
+    'paused_adding_no_date' => 'Organisatie gepauzeerd — voorlopig kunt u geen accommodatie toevoegen (alleen-lezen).',
+    'paused_editing_no_date' => 'Organisatie gepauzeerd — voorlopig kunt u geen accommodatie bewerken (alleen-lezen).',
     'property_added' => ':name toegevoegd aan uw portfolio. Volgende stap: voeg een kamertype en een eenheid toe, daarna een tariefplan met prijzen — dan kan de accommodatie reserveringen aannemen.',
     'paused_editing' => 'Organisatie gepauzeerd — tot :resume kunt u geen accommodatie bewerken (alleen-lezen).',
     'property_updated' => ':name bijgewerkt.',

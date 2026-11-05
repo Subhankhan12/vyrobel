@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Công cụ chi trả đang tắt (PAYOUT_ENGINE_ENABLED). Vui lòng bật công cụ này trước khi chạy chi trả.',
     'nothing_to_run' => 'Không có gì để chạy — không chủ sở hữu nào ở đây có bảng đối soát cần chi trả hoặc khoản chi trả bị giữ lại:paused_note.',
     'run_complete' => 'Đã chạy xong đợt chi trả (chế độ: :mode) — :created đã tạo · :paid đã chi trả · :held bị giữ lại:paused_note.',
+    'mode_test' => 'kiểm thử',
+    'mode_live' => 'thực',
     'create_failed' => 'Không thể tạo khoản chi trả — :reason',
     'already_has_payout' => 'Bảng đối soát này đã có khoản chi trả — không có gì được tạo.',
     'one_payout_created' => 'Đã tạo 1 khoản chi trả.',

@@ -15,6 +15,8 @@ return [
     'period_end_required' => '請選擇期間的最後一天。',
     'period_end_after_start' => '期間的結束日不得早於開始日。',
     'period_not_closed' => '該期間無法關帳：:reason請選擇從最近一次已關帳期間之後開始的期間。',
+    'period_sealed' => '無法重新產生已定稿或已鎖定的結算單。',
+    'period_not_closed_other' => '無法建立該期間的結算單。',
     'period_closed' => '已關帳——結算單編號 :number 已定稿，應付金額為 :amount。尚未向房客收款的收入不會列入本次結算，將出現在之後的結算單。',
     'note_required' => '請先寫下備註。',
     'note_max' => '備註最多 2,000 個字元。',

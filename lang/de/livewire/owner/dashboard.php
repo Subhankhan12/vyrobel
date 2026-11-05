@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Prüfen',
     'more_count' => '+:number weitere',
     'view_calendar' => 'Kalender anzeigen',
-    'message_guests' => 'Gästen schreiben',
+    'message_guests' => 'Dem Verwaltungsteam schreiben',
     'download_statement' => 'Abrechnung herunterladen',
     'contact_support' => 'Support kontaktieren',
     'this_month' => 'Dieser Monat',

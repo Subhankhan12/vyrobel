@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Les applications tierces que vous autorisez apparaîtront ici.',
     'change_password_title' => 'Modifier le mot de passe',
     'set_password_title' => 'Définir un mot de passe',
-    'change_password_sub' => 'Les autres appareils avec « Se souvenir de moi » sont déconnectés.',
+    'change_password_sub' => 'Tous les autres appareils sont déconnectés. Vous gardez votre session ouverte ici.',
     'set_password_sub' => 'Il vous sera demandé pour confirmer les modifications sensibles.',
     'current_password' => 'Mot de passe actuel',
     'new_password' => 'Nouveau mot de passe',

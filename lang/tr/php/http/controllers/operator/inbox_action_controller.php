@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Rezervasyon bağlandı.',
     'conversation_started' => 'Konuşma başlatıldı.',
     'workspace_paused' => 'Kuruluş duraklatıldı — mesajlaşma :date tarihine kadar salt okunur.',
+    'workspace_paused_for_now' => 'Kuruluş duraklatıldı — mesajlaşma şimdilik salt okunur.',
 ];

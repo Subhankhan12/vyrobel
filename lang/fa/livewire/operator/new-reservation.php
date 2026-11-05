@@ -69,7 +69,7 @@ return [
     'whats_free' => 'واحدهای خالی',
     'check_the_rack' => 'بررسی جدول رزروها<span class="vy-sr-only"> (در برگه جدید باز می‌شود)</span>',
     'pick_dates_first' => 'برای دیدن واحدهای خالی، تاریخ‌ها را در بالا انتخاب کنید.',
-    'too_long' => 'هر رزرو حداکثر :count شب می‌تواند باشد — اقامت کوتاه‌تری انتخاب کنید.',
+    'too_long' => '{1}هر رزرو حداکثر :count شب می‌تواند باشد — اقامت کوتاه‌تری انتخاب کنید.|[2,*]هر رزرو حداکثر :count شب می‌تواند باشد — اقامت کوتاه‌تری انتخاب کنید.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price برای :count شب|[0,*]<strong>:nightly</strong> · :price برای :count شب',
     'rt_free' => 'خالی: :count',
     'units_in' => 'واحدهای :name',

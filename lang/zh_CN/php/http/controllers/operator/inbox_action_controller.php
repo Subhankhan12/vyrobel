@@ -26,4 +26,5 @@ return [
     'reservation_linked' => '已关联预订。',
     'conversation_started' => '对话已发起。',
     'workspace_paused' => '组织已暂停——消息在 :date 之前为只读。',
+    'workspace_paused_for_now' => '组织已暂停——消息目前为只读。',
 ];

@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Nakit',
     'method_bank_transfer' => 'Banka havalesi',
     'collect_button' => 'Tahsil et',
-    'hint' => 'Gerçek folyoya işlenir · kart terminali henüz bağlanmamış Stripe entegrasyonudur — şimdilik nakit veya banka havalesi alın.',
+    'hint' => 'Gerçek folyoya işlenir · kart ödemeleri burada henüz etkinleştirilmedi — şimdilik nakit veya banka havalesi alın.',
 ];

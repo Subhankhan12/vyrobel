@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Télécharger le folio en PDF',
     'export_pdf' => 'Exporter le folio (PDF)',
     'export_csv_print' => 'Export CSV · impression',
-    'room_moves_note' => 'Les changements de chambre passent par le service protégé AssignmentService (verrouillé, sans surréservation) et sont enregistrés immédiatement.',
+    'room_moves_note' => 'Un changement de chambre est vérifié côté disponibilité pour qu’une chambre ne soit jamais réservée deux fois, et il est enregistré immédiatement.',
 ];

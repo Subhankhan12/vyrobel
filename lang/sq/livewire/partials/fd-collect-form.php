@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Para në dorë',
     'method_bank_transfer' => 'Transfertë bankare',
     'collect_button' => 'Arkëto',
-    'hint' => 'Evidentohet në llogarinë reale të qëndrimit · terminali i kartës do të lidhet me Stripe më vonë — tani mund të arkëtoni para në dorë ose me transfertë bankare.',
+    'hint' => 'Evidentohet në llogarinë reale të qëndrimit · pagesat me kartë nuk janë ende të aktivizuara këtu — tani mund të arkëtoni para në dorë ose me transfertë bankare.',
 ];

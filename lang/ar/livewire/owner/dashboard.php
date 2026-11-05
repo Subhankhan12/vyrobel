@@ -11,7 +11,7 @@ return [
     'chip_review' => 'مراجعة',
     'more_count' => '+:number أخرى',
     'view_calendar' => 'عرض التقويم',
-    'message_guests' => 'مراسلة الضيوف',
+    'message_guests' => 'مراسلة فريق الإدارة',
     'download_statement' => 'تنزيل كشف الحساب',
     'contact_support' => 'التواصل مع الدعم',
     'this_month' => 'هذا الشهر',

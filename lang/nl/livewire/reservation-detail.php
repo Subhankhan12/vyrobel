@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'De folio downloaden als PDF',
     'export_pdf' => 'Folio exporteren (PDF)',
     'export_csv_print' => 'CSV exporteren · afdrukken',
-    'room_moves_note' => 'Kamerwissels lopen via de beveiligde AssignmentService (vergrendeld, geen overboeking) en worden direct opgeslagen.',
+    'room_moves_note' => 'Een kamerwissel wordt gecontroleerd op beschikbaarheid, zodat een kamer nooit dubbel wordt geboekt, en wordt direct opgeslagen.',
 ];

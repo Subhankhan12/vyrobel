@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Nakijken',
     'more_count' => '+:number meer',
     'view_calendar' => 'Kalender bekijken',
-    'message_guests' => 'Bericht aan gasten',
+    'message_guests' => 'Bericht aan het beheerteam',
     'download_statement' => 'Afrekening downloaden',
     'contact_support' => 'Contact opnemen met support',
     'this_month' => 'Deze maand',

@@ -10,6 +10,8 @@ return [
     'col_refund' => '退款',
     'col_amount' => '金额',
     'refund_to' => '退款至:method',
+    'method_manual' => '手动',
+    'method_bank_transfer' => '银行转账',
     'total_refunded' => '退款总额',
     'footer' => '这是退还给您款项的收据，由 Vyrobel 只追加的账单台账生成；每笔退款均作为一笔单独的冲销记录，并与您的账户对账一致。Vyrobel · :operator。',
 ];

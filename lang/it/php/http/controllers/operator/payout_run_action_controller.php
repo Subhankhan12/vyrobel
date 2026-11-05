@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Il motore dei versamenti è disattivato (PAYOUT_ENGINE_ENABLED). Attivarlo prima di eseguire un versamento.',
     'nothing_to_run' => 'Nulla da eseguire: nessun proprietario qui ha un rendiconto con un importo da versare o un versamento trattenuto:paused_note.',
     'run_complete' => 'Ciclo di versamenti completato (modalità :mode) — creati: :created · pagati: :paid · trattenuti: :held:paused_note.',
+    'mode_test' => 'test',
+    'mode_live' => 'live',
     'create_failed' => 'Impossibile creare il versamento — :reason',
     'already_has_payout' => 'Questo rendiconto ha già un versamento: non è stato creato nulla.',
     'one_payout_created' => '1 versamento creato.',

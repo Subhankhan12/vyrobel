@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'पेआउट इंजन बंद है (PAYOUT_ENGINE_ENABLED)। सामूहिक पेआउट चलाने से पहले इसे चालू करें।',
     'nothing_to_run' => 'चलाने के लिए कुछ नहीं — यहाँ किसी मालिक के पास पेआउट के लिए तैयार स्टेटमेंट या रोका गया पेआउट नहीं है:paused_note।',
     'run_complete' => 'सामूहिक पेआउट पूरा (:mode मोड) — बनाए गए: :created · पेआउट किए गए: :paid · रोके गए: :held:paused_note।',
+    'mode_test' => 'टेस्ट',
+    'mode_live' => 'लाइव',
     'create_failed' => 'पेआउट नहीं बनाया जा सका — :reason',
     'already_has_payout' => 'उस स्टेटमेंट का पेआउट पहले से मौजूद है — कुछ नहीं बनाया गया।',
     'one_payout_created' => '1 पेआउट बनाया गया।',

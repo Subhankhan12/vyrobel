@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Wybierz ostatni dzień okresu.',
     'period_end_after_start' => 'Okres musi kończyć się w dniu rozpoczęcia lub później.',
     'period_not_closed' => 'Nie można zamknąć tego okresu: :reason Wybierz okres, który zaczyna się po ostatnim zamkniętym.',
+    'period_sealed' => 'Nie można ponownie wygenerować zamkniętego rozliczenia.',
+    'period_not_closed_other' => 'Nie udało się utworzyć rozliczenia za ten okres.',
     'period_closed' => 'Okres zamknięty – rozliczenie nr :number zamknięte, do wypłaty: :amount. Przychód jeszcze niepobrany od gości pozostaje nierozliczony i pojawi się w późniejszym rozliczeniu.',
     'note_required' => 'Najpierw wpisz notatkę.',
     'note_max' => 'Notatka może mieć do 2000 znaków.',

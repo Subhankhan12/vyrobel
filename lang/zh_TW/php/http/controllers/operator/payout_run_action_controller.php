@@ -6,6 +6,8 @@ return [
     'engine_disabled' => '撥款引擎已停用（PAYOUT_ENGINE_ENABLED）。請先啟用，再執行撥款。',
     'nothing_to_run' => '沒有可執行的項目——此處沒有業主有可撥款的結算單或已暫扣的撥款:paused_note。',
     'run_complete' => '撥款批次已完成（「:mode」模式）——已建立 :created 筆 · 已撥款 :paid 筆 · 已暫扣 :held 筆:paused_note。',
+    'mode_test' => '測試',
+    'mode_live' => '正式',
     'create_failed' => '無法建立撥款——:reason',
     'already_has_payout' => '該結算單已有撥款——未建立任何撥款。',
     'one_payout_created' => '已建立 1 筆撥款。',

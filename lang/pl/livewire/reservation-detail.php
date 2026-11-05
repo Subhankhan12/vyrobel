@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Pobierz folio jako plik PDF',
     'export_pdf' => 'Eksportuj folio (PDF)',
     'export_csv_print' => 'Eksport CSV · drukowanie',
-    'room_moves_note' => 'Przeniesienia przechodzą przez chroniony AssignmentService (z blokadą, bez nadrezerwacji) i są zapisywane od razu.',
+    'room_moves_note' => 'Przeniesienie do innego pokoju jest sprawdzane pod kątem dostępności, aby pokój nigdy nie został zarezerwowany dwukrotnie, i zapisuje się od razu.',
 ];

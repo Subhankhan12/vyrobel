@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'बुकिंग लिंक की गई।',
     'conversation_started' => 'बातचीत शुरू की गई।',
     'workspace_paused' => 'वर्कस्पेस स्थगित है — :date तक संदेश केवल देखने के लिए हैं।',
+    'workspace_paused_for_now' => 'वर्कस्पेस स्थगित है — अभी संदेश केवल देखने के लिए हैं।',
 ];

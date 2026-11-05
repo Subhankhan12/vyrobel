@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Disponibilitate',
     'check_the_rack' => 'Verificare grilă<span class="vy-sr-only"> (se deschide într-o filă nouă)</span>',
     'pick_dates_first' => 'Alegeți datele de mai sus pentru a vedea ce este liber.',
-    'too_long' => 'Numărul maxim de nopți pentru o rezervare este :count — alegeți un sejur mai scurt.',
+    'too_long' => '{1}O rezervare poate avea cel mult :count noapte — alegeți un sejur mai scurt.|O rezervare poate avea cel mult :count nopți — alegeți un sejur mai scurt.|O rezervare poate avea cel mult :count de nopți — alegeți un sejur mai scurt.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price pentru :count noapte|<strong>:nightly</strong> · :price pentru :count nopți|<strong>:nightly</strong> · :price pentru :count de nopți',
     'rt_free' => 'Libere: :count',
     'units_in' => 'Unități de tipul :name',

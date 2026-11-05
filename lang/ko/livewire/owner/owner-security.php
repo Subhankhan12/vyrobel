@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => '권한을 부여한 타사 앱이 여기에 표시됩니다.',
     'change_password_title' => '비밀번호 변경',
     'set_password_title' => '비밀번호 설정',
-    'change_password_sub' => '“로그인 상태 유지”를 사용한 다른 기기는 로그아웃됩니다.',
+    'change_password_sub' => '다른 모든 기기는 로그아웃됩니다. 이 기기에서는 로그인 상태가 유지됩니다.',
     'set_password_sub' => '중요한 변경 사항을 확인할 때 이 비밀번호를 입력해야 합니다.',
     'current_password' => '현재 비밀번호',
     'new_password' => '새 비밀번호',

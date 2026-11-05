@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Motorul de viramente este dezactivat (PAYOUT_ENGINE_ENABLED). Activați-l înainte de a efectua un virament.',
     'nothing_to_run' => 'Nimic de procesat — niciun proprietar de aici nu are un decont de virat sau un virament reținut:paused_note.',
     'run_complete' => 'Ciclu de viramente încheiat (mod: :mode) — create: :created · plătite: :paid · reținute: :held:paused_note.',
+    'mode_test' => 'testare',
+    'mode_live' => 'real',
     'create_failed' => 'Viramentul nu a putut fi creat — :reason',
     'already_has_payout' => 'Acest decont are deja un virament — nu s-a creat nimic.',
     'one_payout_created' => '1 virament creat.',

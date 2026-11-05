@@ -27,7 +27,7 @@ return [
     'settles_to_iban' => 'Suma netă de :amount se virează prin transfer bancar în contul cu IBAN :iban.',
     'settles' => 'Suma netă de :amount se virează prin transfer bancar.',
     'fees_with_commission' => 'Comisionul de administrare este de :pct% din veniturile brute din cazare; comisioanele de plată și de platformă sunt refacturate la prețul de cost. Toate sumele sunt în :currency și includ taxele aplicabile colectate în numele dumneavoastră.',
-    'fees' => 'comisioanele de plată și de platformă sunt refacturate la prețul de cost. Toate sumele sunt în :currency și includ taxele aplicabile colectate în numele dumneavoastră.',
+    'fees' => 'Comisioanele de plată și de platformă sunt refacturate la prețul de cost. Toate sumele sunt în :currency și includ taxele aplicabile colectate în numele dumneavoastră.',
     'fx_note' => 'Convertit din :source la cursul :rate (sursă: :src).',
     'provisional_note' => 'Unele linii sunt provizorii, în așteptarea reconcilierii cu canalele.',
     'statement_ref' => 'decont :ref',

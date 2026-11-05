@@ -26,4 +26,5 @@ return [
     'reservation_linked' => '예약을 연결했습니다.',
     'conversation_started' => '대화를 시작했습니다.',
     'workspace_paused' => '워크스페이스가 일시 중지되었습니다 — :date까지 메시지는 읽기 전용입니다.',
+    'workspace_paused_for_now' => '워크스페이스가 일시 중지되었습니다 — 현재 메시지는 읽기 전용입니다.',
 ];

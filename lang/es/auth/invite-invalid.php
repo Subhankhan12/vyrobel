@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Invitación · Vyrobel',
     'heading' => 'Este enlace de invitación no es válido',
-    'body' => 'Puede que haya caducado o que ya se haya usado. Pida a su gestor que le envíe una nueva invitación.',
+    'body' => 'Puede que haya caducado o que ya se haya usado. Pida a quien le invitó que le envíe una nueva invitación.',
     'go_to_sign_in' => 'Ir al inicio de sesión',
 ];

@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Da verificare',
     'more_count' => '+:number altri',
     'view_calendar' => 'Visualizza calendario',
-    'message_guests' => 'Scrivi agli ospiti',
+    'message_guests' => 'Scrivi al team di gestione',
     'download_statement' => 'Scarica rendiconto',
     'contact_support' => 'Contatta l’assistenza',
     'this_month' => 'Questo mese',

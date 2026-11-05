@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Terugbetaling',
     'col_amount' => 'Bedrag',
     'refund_to' => 'Terugbetaling via :method',
+    'method_manual' => 'Handmatig',
+    'method_bank_transfer' => 'Bankoverschrijving',
     'total_refunded' => 'Totaal terugbetaald',
     'footer' => 'Een bewijs van geld dat aan u is terugbetaald, gegenereerd uit het foliogrootboek van Vyrobel, dat alleen aanvullingen toestaat; elke terugbetaling is als eigen tegenboeking vastgelegd en sluit aan op uw account. Vyrobel · :operator.',
 ];

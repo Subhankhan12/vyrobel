@@ -11,7 +11,7 @@ return [
     'chip_review' => 'بررسی',
     'more_count' => ':number مورد دیگر',
     'view_calendar' => 'مشاهده تقویم',
-    'message_guests' => 'پیام به مهمانان',
+    'message_guests' => 'پیام به مدیریت اقامتگاه',
     'download_statement' => 'بارگیری صورتحساب',
     'contact_support' => 'تماس با پشتیبانی',
     'this_month' => 'این ماه',

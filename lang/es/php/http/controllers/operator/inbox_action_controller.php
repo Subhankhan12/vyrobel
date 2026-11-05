@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Se vinculó la reserva.',
     'conversation_started' => 'Se inició la conversación.',
     'workspace_paused' => 'Organización en pausa: los mensajes están en solo lectura hasta el :date.',
+    'workspace_paused_for_now' => 'Organización en pausa: por ahora, la mensajería está en modo de solo lectura.',
 ];

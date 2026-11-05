@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Freie Einheiten',
     'check_the_rack' => 'Belegungsplan prüfen<span class="vy-sr-only"> (öffnet in einem neuen Tab)</span>',
     'pick_dates_first' => 'Wählen Sie oben die Reisedaten, um zu sehen, was frei ist.',
-    'too_long' => 'Eine Buchung kann höchstens :count Nächte umfassen — wählen Sie einen kürzeren Aufenthalt.',
+    'too_long' => '{1} Eine Buchung kann höchstens :count Nacht umfassen — wählen Sie einen kürzeren Aufenthalt.|[2,*] Eine Buchung kann höchstens :count Nächte umfassen — wählen Sie einen kürzeren Aufenthalt.',
     'rt_price' => '{1} <strong>:nightly</strong> · :price für :count Nacht|[0,*] <strong>:nightly</strong> · :price für :count Nächte',
     'rt_free' => ':count frei',
     'units_in' => 'Einheiten in :name',

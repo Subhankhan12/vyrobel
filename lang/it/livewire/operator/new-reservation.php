@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Disponibili',
     'check_the_rack' => 'Controlla il planning<span class="vy-sr-only"> (si apre in una nuova scheda)</span>',
     'pick_dates_first' => 'Scegliere le date qui sopra per vedere cosa è disponibile.',
-    'too_long' => 'Una prenotazione può durare al massimo :count notti: scegliere un soggiorno più breve.',
+    'too_long' => '{1} Una prenotazione può durare al massimo :count notte: scegliere un soggiorno più breve.|[2,*] Una prenotazione può durare al massimo :count notti: scegliere un soggiorno più breve.',
     'rt_price' => '{1} <strong>:nightly</strong> · :price per :count notte|[0,*] <strong>:nightly</strong> · :price per :count notti',
     'rt_free' => 'Libere: :count',
     'units_in' => 'Unità in :name',

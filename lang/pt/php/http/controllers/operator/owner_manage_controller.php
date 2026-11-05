@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Escolha o último dia do período.',
     'period_end_after_start' => 'O período tem de terminar no dia em que começa ou depois.',
     'period_not_closed' => 'Não foi possível fechar esse período: :reason Escolha um período que comece depois do último período fechado.',
+    'period_sealed' => 'Não é possível regenerar um extrato finalizado ou selado.',
+    'period_not_closed_other' => 'Não foi possível gerar o extrato desse período.',
     'period_closed' => 'Período fechado — extrato n.º :number finalizado com :amount a pagar. A receita ainda não cobrada aos hóspedes fica pendente e aparecerá num extrato posterior.',
     'note_required' => 'Escreva a nota primeiro.',
     'note_max' => 'Uma nota pode ter até 2000 caracteres.',

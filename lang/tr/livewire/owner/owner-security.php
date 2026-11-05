@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Yetki verdiğiniz üçüncü taraf uygulamalar burada görünür.',
     'change_password_title' => 'Şifreyi değiştir',
     'set_password_title' => 'Şifre belirleyin',
-    'change_password_sub' => '“Beni hatırla” ile oturum açılmış diğer cihazlarda oturum kapatılır.',
+    'change_password_sub' => 'Diğer tüm cihazlarda oturum kapatılır. Burada oturumunuz açık kalır.',
     'set_password_sub' => 'Hassas değişiklikleri onaylarken bu şifre sizden istenecek.',
     'current_password' => 'Mevcut şifre',
     'new_password' => 'Yeni şifre',

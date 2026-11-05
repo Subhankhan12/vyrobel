@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Davet · Vyrobel',
     'heading' => 'Bu davet bağlantısı geçerli değil',
-    'body' => 'Süresi dolmuş veya daha önce kullanılmış olabilir. Lütfen işletmenizden yeni bir davet göndermesini isteyin.',
+    'body' => 'Süresi dolmuş veya daha önce kullanılmış olabilir. Lütfen sizi davet eden kişiden yeni bir davet göndermesini isteyin.',
     'go_to_sign_in' => 'Oturum açmaya git',
 ];

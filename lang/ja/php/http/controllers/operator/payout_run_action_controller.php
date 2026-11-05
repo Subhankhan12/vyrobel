@@ -6,6 +6,8 @@ return [
     'engine_disabled' => '送金エンジンが無効です（PAYOUT_ENGINE_ENABLED）。一括送金を実行する前に有効にしてください。',
     'nothing_to_run' => '実行する対象がありません。このワークスペースには、送金可能な収支報告書または差し止め中の送金があるオーナーがいません:paused_note。',
     'run_complete' => '一括送金が完了しました（モード：:mode）— 作成:created件 · 送金済み:paid件 · 差し止め:held件:paused_note。',
+    'mode_test' => 'テスト',
+    'mode_live' => '本番',
     'create_failed' => '送金を作成できませんでした：:reason',
     'already_has_payout' => 'この収支報告書にはすでに送金があります。何も作成されていません。',
     'one_payout_created' => '送金を1件作成しました。',

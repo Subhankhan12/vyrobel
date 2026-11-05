@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Đã liên kết đặt phòng.',
     'conversation_started' => 'Đã bắt đầu hội thoại.',
     'workspace_paused' => 'Tổ chức đang tạm dừng — tin nhắn ở chế độ chỉ đọc đến :date.',
+    'workspace_paused_for_now' => 'Tổ chức đang tạm dừng — tin nhắn tạm thời ở chế độ chỉ đọc.',
 ];

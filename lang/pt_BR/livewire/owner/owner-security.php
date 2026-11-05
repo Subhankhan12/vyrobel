@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Os aplicativos de terceiros que você autorizar aparecerão aqui.',
     'change_password_title' => 'Alterar senha',
     'set_password_title' => 'Definir uma senha',
-    'change_password_sub' => 'As sessões em outros dispositivos com “lembrar de mim” serão encerradas.',
+    'change_password_sub' => 'Todos os outros dispositivos têm a sessão encerrada. Você continua com a sessão aberta aqui.',
     'set_password_sub' => 'Ela será pedida quando você confirmar alterações sensíveis.',
     'current_password' => 'Senha atual',
     'new_password' => 'Nova senha',

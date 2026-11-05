@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Shqyrtim',
     'more_count' => '+:number të tjera',
     'view_calendar' => 'Shiko kalendarin',
-    'message_guests' => 'Dërgo mesazh vizitorëve',
+    'message_guests' => 'Shkruaji kompanisë administruese',
     'download_statement' => 'Shkarko pasqyrën',
     'contact_support' => 'Kontakto mbështetjen',
     'this_month' => 'Ky muaj',

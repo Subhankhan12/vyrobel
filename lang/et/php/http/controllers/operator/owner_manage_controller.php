@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Valige perioodi viimane päev.',
     'period_end_after_start' => 'Periood peab lõppema alguspäeval või hiljem.',
     'period_not_closed' => 'Seda perioodi ei saanud sulgeda: :reason Valige periood, mis algab pärast viimast lukustatud perioodi.',
+    'period_sealed' => 'Lõplikuks muudetud või lukustatud väljavõtet ei saa uuesti koostada.',
+    'period_not_closed_other' => 'Selle perioodi väljavõtet ei õnnestunud koostada.',
     'period_closed' => 'Periood on suletud — väljavõte nr :number on lõplikuks muudetud, väljamakstav summa on :amount. Külalistelt veel laekumata tulu jääb sellest väljavõttest välja ja ilmub hilisemale väljavõttele.',
     'note_required' => 'Kirjutage esmalt märkus.',
     'note_max' => 'Märkus võib olla kuni 2 000 märki pikk.',

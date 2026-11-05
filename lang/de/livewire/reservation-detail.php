@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Das Folio als PDF herunterladen',
     'export_pdf' => 'Folio exportieren (PDF)',
     'export_csv_print' => 'CSV exportieren · drucken',
-    'room_moves_note' => 'Zimmerwechsel laufen über den geschützten AssignmentService (gesperrt, keine Überbuchung) und werden sofort gespeichert.',
+    'room_moves_note' => 'Bei einem Zimmerwechsel wird die Verfügbarkeit geprüft, damit ein Zimmer nie doppelt gebucht wird; er wird sofort gespeichert.',
 ];

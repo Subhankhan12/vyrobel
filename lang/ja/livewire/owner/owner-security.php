@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => '許可したサードパーティアプリがここに表示されます。',
     'change_password_title' => 'パスワードを変更',
     'set_password_title' => 'パスワードを設定',
-    'change_password_sub' => 'ログイン状態を保持している他のデバイスはログアウトされます。',
+    'change_password_sub' => '他のすべてのデバイスからログアウトされます。このデバイスではログインしたままです。',
     'set_password_sub' => '重要な変更を確認する際に入力を求められます。',
     'current_password' => '現在のパスワード',
     'new_password' => '新しいパスワード',

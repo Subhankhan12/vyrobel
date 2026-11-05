@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Ülevaatus',
     'more_count' => '+:number veel',
     'view_calendar' => 'Vaata kalendrit',
-    'message_guests' => 'Saada külalistele sõnum',
+    'message_guests' => 'Kirjuta haldusettevõttele',
     'download_statement' => 'Laadi väljavõte alla',
     'contact_support' => 'Võta toega ühendust',
     'this_month' => 'See kuu',

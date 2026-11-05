@@ -40,4 +40,5 @@ return [
     'date' => '日付',
     'total' => '合計',
     'today' => '今日',
+    'sentence_end' => '。',
 ];

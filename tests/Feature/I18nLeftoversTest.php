@@ -43,7 +43,7 @@ it('B · the full stop that ends an email sentence is a key, not a hard-coded La
     expect(__('common.sentence_end'))->toBe('.');
     foreach (['cancellation', 'booking-confirmation'] as $view) {
         $source = ilSource("resources/views/emails/{$view}.blade.php");
-        expect($source)->toContain("{{ __('common.sentence_end') }}</p>");
+        expect($source)->toContain("__('common.sentence_end')");   // read from the key (cancellation holds it in a variable: lang:check forbids two translations glued side by side)
     }
     expect(ilSource('resources/views/emails/cancellation.blade.php'))->not->toContain('{{ $sourceLine }}.</p>')
         ->and(ilSource('resources/views/emails/booking-confirmation.blade.php'))->not->toContain('@endif.</p>');

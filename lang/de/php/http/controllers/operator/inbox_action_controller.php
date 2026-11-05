@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Buchung verknüpft.',
     'conversation_started' => 'Unterhaltung begonnen.',
     'workspace_paused' => 'Organisation pausiert — bei Nachrichten besteht bis :date nur Lesezugriff.',
+    'workspace_paused_for_now' => 'Organisation pausiert — bei Nachrichten besteht vorerst nur Lesezugriff.',
 ];

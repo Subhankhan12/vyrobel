@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Reembolso',
     'col_amount' => 'Valor',
     'refund_to' => 'Reembolso para: :method',
+    'method_manual' => 'Manual',
+    'method_bank_transfer' => 'Transferência bancária',
     'total_refunded' => 'Total reembolsado',
     'footer' => 'Um recibo do dinheiro que lhe foi devolvido, gerado a partir do registo inalterável do folio da Vyrobel; cada reembolso é registado como um estorno próprio e coincide com a sua conta. Vyrobel · :operator.',
 ];

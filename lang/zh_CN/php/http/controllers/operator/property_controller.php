@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => '组织已暂停——:resume 前添加门店为只读。',
+    'paused_adding_no_date' => '组织已暂停——添加门店目前为只读。',
+    'paused_editing_no_date' => '组织已暂停——编辑门店目前为只读。',
     'property_added' => '已将 :name 添加到您的门店组合。下一步：添加一个房型和一个房间，再添加一个含价格的价格计划——之后即可接受预订。',
     'paused_editing' => '组织已暂停——:resume 前编辑门店为只读。',
     'property_updated' => ':name 已更新。',

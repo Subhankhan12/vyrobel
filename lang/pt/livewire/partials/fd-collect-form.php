@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Numerário',
     'method_bank_transfer' => 'Transferência bancária',
     'collect_button' => 'Cobrar',
-    'hint' => 'Fica registado no folio real · o terminal de cartão é a integração Stripe ainda por ativar — receba agora em numerário ou por transferência bancária.',
+    'hint' => 'Fica registado no folio real · os pagamentos por cartão ainda não estão ativados aqui — receba agora em numerário ou por transferência bancária.',
 ];

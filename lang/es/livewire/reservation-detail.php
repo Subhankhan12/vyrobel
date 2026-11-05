@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Descargar el folio en PDF',
     'export_pdf' => 'Exportar folio (PDF)',
     'export_csv_print' => 'Exportar CSV · imprimir',
-    'room_moves_note' => 'Los traslados de habitación pasan por el AssignmentService protegido (con bloqueo, sin sobreventa) y se guardan de inmediato.',
+    'room_moves_note' => 'Al trasladar una habitación se comprueba la disponibilidad para que nunca se reserve dos veces, y el cambio se guarda de inmediato.',
 ];

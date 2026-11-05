@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Xem xét',
     'more_count' => '+:number mục khác',
     'view_calendar' => 'Xem lịch',
-    'message_guests' => 'Nhắn tin cho khách',
+    'message_guests' => 'Nhắn tin cho đơn vị quản lý',
     'download_statement' => 'Tải xuống bảng đối soát',
     'contact_support' => 'Liên hệ hỗ trợ',
     'this_month' => 'Tháng này',

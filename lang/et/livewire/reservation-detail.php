@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Laadi folio alla PDF-failina',
     'export_pdf' => 'Ekspordi folio (PDF)',
     'export_csv_print' => 'Ekspordi CSV · prindi',
-    'room_moves_note' => 'Ümberpaigutused käivad läbi kaitstud teenuse AssignmentService (lukustatud, ülebroneerimist ei teki) ja salvestatakse kohe.',
+    'room_moves_note' => 'Ümberpaigutuse puhul kontrollitakse saadavust, et tuba ei broneeritaks kunagi kaks korda, ja see salvestatakse kohe.',
 ];

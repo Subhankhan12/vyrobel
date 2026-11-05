@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organisasi dijeda — penambahan properti hanya baca hingga :resume.',
+    'paused_adding_no_date' => 'Organisasi dijeda — penambahan properti hanya baca untuk sementara.',
+    'paused_editing_no_date' => 'Organisasi dijeda — pengeditan properti hanya baca untuk sementara.',
     'property_added' => ':name berhasil ditambahkan ke portofolio Anda. Berikutnya: tambahkan tipe kamar dan unit, lalu paket tarif beserta harganya — setelah itu properti dapat menerima reservasi.',
     'paused_editing' => 'Organisasi dijeda — pengubahan properti hanya baca hingga :resume.',
     'property_updated' => ':name berhasil diperbarui.',

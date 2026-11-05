@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Unit tersedia',
     'check_the_rack' => 'Cek bagan reservasi<span class="vy-sr-only"> (terbuka di tab baru)</span>',
     'pick_dates_first' => 'Pilih tanggal di atas untuk melihat unit yang tersedia.',
-    'too_long' => 'Satu reservasi paling lama :count malam — pilih masa inap yang lebih singkat.',
+    'too_long' => '{1}Satu reservasi paling lama :count malam — pilih masa inap yang lebih singkat.|[2,*]Satu reservasi paling lama :count malam — pilih masa inap yang lebih singkat.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price untuk :count malam|[0,*]<strong>:nightly</strong> · :price untuk :count malam',
     'rt_free' => ':count tersedia',
     'units_in' => 'Unit tipe kamar :name',

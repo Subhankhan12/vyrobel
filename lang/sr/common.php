@@ -40,4 +40,5 @@ return [
     'date' => 'Датум',
     'total' => 'Укупно',
     'today' => 'Данас',
+    'sentence_end' => '.',
 ];

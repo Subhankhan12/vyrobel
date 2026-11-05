@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'De uitbetalingsengine is uitgeschakeld (PAYOUT_ENGINE_ENABLED). Schakel die in voordat u een uitbetaling uitvoert.',
     'nothing_to_run' => 'Niets uit te voeren — geen enkele eigenaar hier heeft een afrekening om uit te betalen of een ingehouden uitbetaling:paused_note.',
     'run_complete' => 'Uitbetalingsrun voltooid (modus: :mode) — aangemaakt: :created · betaald: :paid · ingehouden: :held:paused_note.',
+    'mode_test' => 'test',
+    'mode_live' => 'live',
     'create_failed' => 'De uitbetaling kon niet worden aangemaakt — :reason',
     'already_has_payout' => 'Die afrekening heeft al een uitbetaling — er is niets aangemaakt.',
     'one_payout_created' => '1 uitbetaling aangemaakt.',

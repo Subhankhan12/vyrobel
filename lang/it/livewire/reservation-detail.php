@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Scaricare il conto in PDF',
     'export_pdf' => 'Esporta conto (PDF)',
     'export_csv_print' => 'Esporta CSV · stampa',
-    'room_moves_note' => 'Gli spostamenti di camera passano dall’AssignmentService protetto (con blocco, senza overbooking) e vengono salvati subito.',
+    'room_moves_note' => 'A ogni spostamento di camera viene controllata la disponibilità, così una camera non viene mai prenotata due volte, e la modifica è salvata subito.',
 ];

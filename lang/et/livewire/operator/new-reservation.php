@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Vabad majutusüksused',
     'check_the_rack' => 'Vaata broneeringute tabelit<span class="vy-sr-only"> (avaneb uuel vahelehel)</span>',
     'pick_dates_first' => 'Vabade majutusüksuste nägemiseks valige ülal kuupäevad.',
-    'too_long' => 'Broneeringu ööde arv on piiratud (max :count) — valige lühem viibimine.',
+    'too_long' => '{1}Broneeringu pikkus võib olla kuni :count öö — valige lühem viibimine.|[2,*]Broneeringu pikkus võib olla kuni :count ööd — valige lühem viibimine.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price :count öö eest|[0,*]<strong>:nightly</strong> · :price :count öö eest',
     'rt_free' => 'Vabu: :count',
     'units_in' => 'Toatüübi :name majutusüksused',

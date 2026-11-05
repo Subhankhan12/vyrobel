@@ -15,6 +15,8 @@ return [
     'period_end_required' => '기간의 마지막 날을 선택하세요.',
     'period_end_after_start' => '기간 종료일은 시작일과 같거나 그 이후여야 합니다.',
     'period_not_closed' => '이 기간을 마감할 수 없습니다: :reason 마지막으로 마감된 기간 이후에 시작하는 기간을 선택하세요.',
+    'period_sealed' => '마감되어 잠긴 정산서는 다시 생성할 수 없습니다.',
+    'period_not_closed_other' => '해당 기간의 정산서를 생성할 수 없습니다.',
     'period_closed' => '기간을 마감했습니다 — 정산서 번호 :number 마감, 실지급액 :amount. 아직 고객에게서 수납되지 않은 매출은 이번 정산서에 포함되지 않으며 이후 정산서에 반영됩니다.',
     'note_required' => '먼저 메모를 작성하세요.',
     'note_max' => '메모는 최대 2,000자까지 입력할 수 있습니다.',

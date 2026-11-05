@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Baixar o fólio em PDF',
     'export_pdf' => 'Exportar fólio (PDF)',
     'export_csv_print' => 'Exportar CSV · imprimir',
-    'room_moves_note' => 'As mudanças de quarto passam pelo AssignmentService protegido (com bloqueio, sem overbooking) e são salvas imediatamente.',
+    'room_moves_note' => 'A mudança de quarto é verificada quanto à disponibilidade para que um quarto nunca seja reservado duas vezes, e é salva imediatamente.',
 ];

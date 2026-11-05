@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organizata është në pauzë — shtimi i një strukture është vetëm për lexim deri më :resume.',
+    'paused_adding_no_date' => 'Organizata është në pauzë — shtimi i një strukture është vetëm për lexim për momentin.',
+    'paused_editing_no_date' => 'Organizata është në pauzë — redaktimi i një strukture është vetëm për lexim për momentin.',
     'property_added' => 'Struktura «:name» u shtua në portofolin tuaj të strukturave. Hapi tjetër: shtoni një lloj dhome dhe një njësi, pastaj një plan tarifor me çmime — atëherë mund të pranojë rezervime.',
     'paused_editing' => 'Organizata është në pauzë — redaktimi i një strukture është vetëm për lexim deri më :resume.',
     'property_updated' => 'Struktura «:name» u përditësua.',

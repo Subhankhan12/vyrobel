@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Kuruluş duraklatıldı — :resume tarihine kadar tesis eklenemez.',
+    'paused_adding_no_date' => 'Kuruluş duraklatıldı — şimdilik tesis eklenemez.',
+    'paused_editing_no_date' => 'Kuruluş duraklatıldı — şimdilik tesis düzenlenemez.',
     'property_added' => ':name portföyünüze eklendi. Sıradaki adım: bir oda tipi ve bir birim, ardından fiyatları girilmiş bir fiyat planı ekleyin — sonra rezervasyon alabilir.',
     'paused_editing' => 'Kuruluş duraklatıldı — :resume tarihine kadar tesis düzenlenemez.',
     'property_updated' => ':name güncellendi.',

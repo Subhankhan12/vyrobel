@@ -40,4 +40,5 @@ return [
     'date' => 'التاريخ',
     'total' => 'الإجمالي',
     'today' => 'اليوم',
+    'sentence_end' => '.',
 ];

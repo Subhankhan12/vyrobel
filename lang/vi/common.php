@@ -40,4 +40,5 @@ return [
     'date' => 'Ngày',
     'total' => 'Tổng',
     'today' => 'Hôm nay',
+    'sentence_end' => '.',
 ];

@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Wählen Sie den letzten Tag des Zeitraums.',
     'period_end_after_start' => 'Der Zeitraum darf nicht vor seinem ersten Tag enden.',
     'period_not_closed' => 'Dieser Zeitraum konnte nicht abgeschlossen werden: :reason Wählen Sie einen Zeitraum, der nach dem zuletzt abgeschlossenen beginnt.',
+    'period_sealed' => 'Eine abgeschlossene oder gesperrte Abrechnung kann nicht neu erzeugt werden.',
+    'period_not_closed_other' => 'Die Abrechnung für diesen Zeitraum konnte nicht erstellt werden.',
     'period_closed' => 'Zeitraum abgeschlossen — Abrechnung #:number mit einem Auszahlungsbetrag von :amount abgeschlossen. Noch nicht von Gästen kassierte Umsätze bleiben vorerst unberücksichtigt und erscheinen auf einer späteren Abrechnung.',
     'note_required' => 'Schreiben Sie zuerst die Notiz.',
     'note_max' => 'Eine Notiz darf bis zu 2.000 Zeichen lang sein.',

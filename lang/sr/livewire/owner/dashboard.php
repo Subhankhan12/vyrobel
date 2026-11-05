@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Преглед',
     'more_count' => '+:number још',
     'view_calendar' => 'Прикажи календар',
-    'message_guests' => 'Пошаљи поруку гостима',
+    'message_guests' => 'Пиши управљачкој компанији',
     'download_statement' => 'Преузми обрачун',
     'contact_support' => 'Контактирај подршку',
     'this_month' => 'Овај месец',

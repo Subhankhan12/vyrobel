@@ -40,4 +40,5 @@ return [
     'date' => 'თარიღი',
     'total' => 'სულ',
     'today' => 'დღეს',
+    'sentence_end' => '.',
 ];

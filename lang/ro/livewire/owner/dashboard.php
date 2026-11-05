@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Verificare',
     'more_count' => 'Încă :number',
     'view_calendar' => 'Vizualizare calendar',
-    'message_guests' => 'Trimitere mesaj oaspeților',
+    'message_guests' => 'Trimitere mesaj administratorului',
     'download_statement' => 'Descărcare decont',
     'contact_support' => 'Contactare asistență',
     'this_month' => 'Luna aceasta',

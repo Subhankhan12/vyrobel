@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Motori i derdhjeve është i çaktivizuar (PAYOUT_ENGINE_ENABLED). Aktivizojeni përpara se të ekzekutoni një derdhje.',
     'nothing_to_run' => 'Nuk ka asgjë për të ekzekutuar — asnjë pronar këtu nuk ka pasqyrë për derdhje ose derdhje të mbajtur:paused_note.',
     'run_complete' => 'Ekzekutimi i derdhjeve u krye (modaliteti: :mode) — krijuar: :created · paguar: :paid · mbajtur: :held:paused_note.',
+    'mode_test' => 'testim',
+    'mode_live' => 'real',
     'create_failed' => 'Derdhja nuk u krijua dot — :reason',
     'already_has_payout' => 'Kjo pasqyrë ka tashmë një derdhje — nuk u krijua asgjë.',
     'one_payout_created' => 'U krijua 1 derdhje.',

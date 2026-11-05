@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => '폴리오를 PDF로 다운로드',
     'export_pdf' => '폴리오 내보내기(PDF)',
     'export_csv_print' => 'CSV 내보내기 · 인쇄',
-    'room_moves_note' => '객실 변경은 보호된 AssignmentService(잠금 처리, 초과 예약 없음)를 거쳐 즉시 저장됩니다.',
+    'room_moves_note' => '객실 변경 시 잔여 객실을 확인하므로 같은 객실이 중복 예약되지 않으며, 변경 내용은 즉시 저장됩니다.',
 ];

@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Réservation liée.',
     'conversation_started' => 'Conversation démarrée.',
     'workspace_paused' => 'Organisation en pause — la messagerie est en lecture seule jusqu’au :date.',
+    'workspace_paused_for_now' => 'Organisation en pause — la messagerie est en lecture seule pour l’instant.',
 ];

@@ -11,7 +11,7 @@ return [
     'chip_review' => 'समीक्षा',
     'more_count' => '+:number और',
     'view_calendar' => 'कैलेंडर देखें',
-    'message_guests' => 'मेहमानों को संदेश भेजें',
+    'message_guests' => 'प्रबंधन कंपनी को संदेश भेजें',
     'download_statement' => 'स्टेटमेंट डाउनलोड करें',
     'contact_support' => 'सपोर्ट से संपर्क करें',
     'this_month' => 'इस माह',

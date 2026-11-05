@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'O motor de transferências está desativado (PAYOUT_ENGINE_ENABLED). Ative-o antes de executar uma transferência.',
     'nothing_to_run' => 'Nada a executar — nenhum proprietário aqui tem um extrato a pagar ou uma transferência retida:paused_note.',
     'run_complete' => 'Lote de transferências concluído (modo :mode) — criadas: :created · pagas: :paid · retidas: :held:paused_note.',
+    'mode_test' => 'de teste',
+    'mode_live' => 'real',
     'create_failed' => 'Não foi possível criar a transferência — :reason',
     'already_has_payout' => 'Esse extrato já tem uma transferência — nada foi criado.',
     'one_payout_created' => '1 transferência criada.',

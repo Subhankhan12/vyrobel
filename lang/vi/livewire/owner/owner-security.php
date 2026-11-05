@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Ứng dụng bên thứ ba bạn cấp quyền sẽ hiển thị tại đây.',
     'change_password_title' => 'Đổi mật khẩu',
     'set_password_title' => 'Đặt mật khẩu',
-    'change_password_sub' => 'Các thiết bị khác đã chọn “ghi nhớ đăng nhập” sẽ bị đăng xuất.',
+    'change_password_sub' => 'Mọi thiết bị khác sẽ bị đăng xuất. Bạn vẫn đăng nhập trên thiết bị này.',
     'set_password_sub' => 'Bạn sẽ cần nhập mật khẩu này khi xác nhận các thay đổi quan trọng.',
     'current_password' => 'Mật khẩu hiện tại',
     'new_password' => 'Mật khẩu mới',

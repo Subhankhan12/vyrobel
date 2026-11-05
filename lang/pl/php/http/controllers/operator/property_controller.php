@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organizacja wstrzymana – dodawanie obiektów jest niedostępne do :resume.',
+    'paused_adding_no_date' => 'Organizacja wstrzymana – dodawanie obiektów jest na razie niedostępne.',
+    'paused_editing_no_date' => 'Organizacja wstrzymana – edycja obiektu jest na razie niedostępna.',
     'property_added' => 'Dodano obiekt :name do portfolio. Dalej: dodaj typ pokoju i jednostkę, a potem plan cenowy z cenami – wtedy obiekt będzie mógł przyjmować rezerwacje.',
     'paused_editing' => 'Organizacja wstrzymana – edycja obiektu jest niedostępna do :resume.',
     'property_updated' => 'Zaktualizowano obiekt :name.',

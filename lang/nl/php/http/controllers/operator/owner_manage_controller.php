@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Kies de laatste dag van de periode.',
     'period_end_after_start' => 'De periode moet eindigen op of na de dag waarop ze begint.',
     'period_not_closed' => 'Die periode kon niet worden afgesloten: :reason Kies een periode die begint na de laatste afgesloten periode.',
+    'period_sealed' => 'Een definitieve of vergrendelde afrekening kan niet opnieuw worden aangemaakt.',
+    'period_not_closed_other' => 'De afrekening voor die periode kon niet worden opgebouwd.',
     'period_closed' => 'Periode afgesloten — afrekening nr. :number definitief, uit te betalen: :amount. Omzet die nog niet bij gasten is geïnd, blijft openstaan en verschijnt op een latere afrekening.',
     'note_required' => 'Schrijf eerst de notitie.',
     'note_max' => 'Een notitie mag maximaal 2.000 tekens bevatten.',

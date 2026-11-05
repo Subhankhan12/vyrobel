@@ -6,6 +6,8 @@ return [
     'engine_disabled' => '打款引擎已停用（PAYOUT_ENGINE_ENABLED）。请先启用，再运行打款。',
     'nothing_to_run' => '无可运行的打款——此处的业主均无可打款的结算单或已暂扣的打款:paused_note。',
     'run_complete' => '打款批次运行完成（模式：:mode）——已创建 :created · 已打款 :paid · 已暂扣 :held:paused_note。',
+    'mode_test' => '测试',
+    'mode_live' => '正式',
     'create_failed' => '无法创建打款——:reason',
     'already_has_payout' => '该结算单已有打款——未创建任何打款。',
     'one_payout_created' => '已创建 1 笔打款。',

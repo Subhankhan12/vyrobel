@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Pengembalian dana',
     'col_amount' => 'Jumlah',
     'refund_to' => 'Dikembalikan ke :method',
+    'method_manual' => 'Manual',
+    'method_bank_transfer' => 'Transfer bank',
     'total_refunded' => 'Total dikembalikan',
     'footer' => 'Kuitansi untuk uang yang dikembalikan kepada Anda, dibuat dari buku besar folio Vyrobel yang hanya dapat ditambah; setiap pengembalian dana dicatat sebagai pembalikan tersendiri dan cocok dengan akun Anda. Vyrobel · :operator.',
 ];

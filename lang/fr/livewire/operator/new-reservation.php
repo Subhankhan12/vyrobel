@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Disponibilités',
     'check_the_rack' => 'Consulter le planning<span class="vy-sr-only"> (s’ouvre dans un nouvel onglet)</span>',
     'pick_dates_first' => 'Choisissez les dates ci-dessus pour voir les disponibilités.',
-    'too_long' => 'Une réservation ne peut pas dépasser :count nuits — choisissez un séjour plus court.',
+    'too_long' => '{1} Une réservation ne peut pas dépasser :count nuit — choisissez un séjour plus court.|[2,*] Une réservation ne peut pas dépasser :count nuits — choisissez un séjour plus court.',
     'rt_price' => '{1} <strong>:nightly</strong> · :price pour :count nuit|[0,*] <strong>:nightly</strong> · :price pour :count nuits',
     'rt_free' => 'Libres : :count',
     'units_in' => 'Unités du type :name',

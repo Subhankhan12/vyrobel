@@ -40,4 +40,5 @@ return [
     'date' => '날짜',
     'total' => '합계',
     'today' => '오늘',
+    'sentence_end' => '.',
 ];

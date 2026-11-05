@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Gotówka',
     'method_bank_transfer' => 'Przelew bankowy',
     'collect_button' => 'Przyjmij płatność',
-    'hint' => 'Zapisywane w rzeczywistym folio · terminal kartowy to odłożona integracja ze Stripe – teraz przyjmij gotówkę lub przelew bankowy.',
+    'hint' => 'Zapisywane w rzeczywistym folio · płatności kartą nie są tu jeszcze włączone – teraz przyjmij gotówkę lub przelew bankowy.',
 ];

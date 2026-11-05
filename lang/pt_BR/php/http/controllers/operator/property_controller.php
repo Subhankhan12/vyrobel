@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organização em pausa — não é possível adicionar uma propriedade até :resume.',
+    'paused_adding_no_date' => 'Organização em pausa — não é possível adicionar uma propriedade por enquanto.',
+    'paused_editing_no_date' => 'Organização em pausa — não é possível editar uma propriedade por enquanto.',
     'property_added' => 'Propriedade :name adicionada ao seu portfólio. Próximo passo: adicione um tipo de quarto e uma unidade e depois um plano tarifário com preços — assim ela poderá receber reservas.',
     'paused_editing' => 'Organização em pausa — não é possível editar uma propriedade até :resume.',
     'property_updated' => 'Propriedade :name atualizada.',

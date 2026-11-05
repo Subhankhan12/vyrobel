@@ -8,5 +8,5 @@ return [
     'method_cash' => '現金',
     'method_bank_transfer' => '銀行轉帳',
     'collect_button' => '收款',
-    'hint' => '記入實際帳單 · 刷卡機收款需待 Stripe 串接完成——目前請收取現金或銀行轉帳。',
+    'hint' => '記入實際帳單 · 此處尚未開啟刷卡收款——目前請收取現金或銀行轉帳。',
 ];

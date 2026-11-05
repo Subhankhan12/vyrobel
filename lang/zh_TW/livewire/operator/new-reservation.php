@@ -69,7 +69,7 @@ return [
     'whats_free' => '空房',
     'check_the_rack' => '查看房況表<span class="vy-sr-only">（在新分頁開啟）</span>',
     'pick_dates_first' => '請先在上方選擇日期，以查看空房。',
-    'too_long' => '每筆訂房最多 :count 晚——請選擇較短的住宿。',
+    'too_long' => '{1}每筆訂房最多 :count 晚——請選擇較短的住宿。|[2,*]每筆訂房最多 :count 晚——請選擇較短的住宿。',
     'rt_price' => '{1}<strong>:nightly</strong> · :count 晚共 :price|[0,*]<strong>:nightly</strong> · :count 晚共 :price',
     'rt_free' => '空房 :count 間',
     'units_in' => ':name 的房間',

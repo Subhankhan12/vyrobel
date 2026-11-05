@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'O mecanismo de repasses está desativado (PAYOUT_ENGINE_ENABLED). Ative-o antes de processar um repasse.',
     'nothing_to_run' => 'Nada a processar — nenhum proprietário daqui tem um extrato a pagar ou um repasse retido:paused_note.',
     'run_complete' => 'Lote de repasses concluído (modo :mode) — Criados: :created · Pagos: :paid · Retidos: :held:paused_note.',
+    'mode_test' => 'de teste',
+    'mode_live' => 'de produção',
     'create_failed' => 'Não foi possível criar o repasse — :reason',
     'already_has_payout' => 'Este extrato já tem um repasse — nada foi criado.',
     'one_payout_created' => '1 repasse criado.',

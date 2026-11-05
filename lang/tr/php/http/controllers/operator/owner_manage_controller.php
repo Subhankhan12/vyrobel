@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Dönemin son gününü seçin.',
     'period_end_after_start' => 'Dönem, başladığı günle aynı gün veya daha sonra bitmelidir.',
     'period_not_closed' => 'Bu dönem kapatılamadı: :reason Son kapatılan dönemden sonra başlayan bir dönem seçin.',
+    'period_sealed' => 'Kesinleşmiş veya kilitlenmiş bir hesap özeti yeniden oluşturulamaz.',
+    'period_not_closed_other' => 'Bu döneme ait hesap özeti oluşturulamadı.',
     'period_closed' => 'Dönem kapatıldı — #:number numaralı hesap özeti kesinleşti, ödenecek tutar: :amount. Misafirlerden henüz tahsil edilmemiş gelir bu hesap özetine alınmaz ve sonraki bir hesap özetinde görünür.',
     'note_required' => 'Önce notu yazın.',
     'note_max' => 'Not en fazla 2.000 karakter olabilir.',

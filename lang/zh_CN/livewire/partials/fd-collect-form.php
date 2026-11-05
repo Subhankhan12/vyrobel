@@ -8,5 +8,5 @@ return [
     'method_cash' => '现金',
     'method_bank_transfer' => '银行转账',
     'collect_button' => '收款',
-    'hint' => '记入实际账单 · 刷卡终端是尚未接入的 Stripe 功能——现在请收取现金或银行转账。',
+    'hint' => '记入实际账单 · 刷卡收款尚未开通——现在请收取现金或银行转账。',
 ];

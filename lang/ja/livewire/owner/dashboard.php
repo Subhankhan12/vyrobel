@@ -11,7 +11,7 @@ return [
     'chip_review' => '要確認',
     'more_count' => '他:number件',
     'view_calendar' => 'カレンダーを表示',
-    'message_guests' => 'ゲストにメッセージ',
+    'message_guests' => '管理会社にメッセージ',
     'download_statement' => '収支報告書をダウンロード',
     'contact_support' => 'サポートに問い合わせ',
     'this_month' => '今月',

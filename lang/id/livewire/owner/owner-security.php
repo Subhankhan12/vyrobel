@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Aplikasi pihak ketiga yang Anda izinkan akan muncul di sini.',
     'change_password_title' => 'Ubah kata sandi',
     'set_password_title' => 'Atur kata sandi',
-    'change_password_sub' => 'Perangkat lain yang menggunakan “ingat saya” akan dikeluarkan.',
+    'change_password_sub' => 'Semua perangkat lain dikeluarkan. Anda tetap masuk di sini.',
     'set_password_sub' => 'Kata sandi ini akan diminta saat Anda mengonfirmasi perubahan penting.',
     'current_password' => 'Kata sandi saat ini',
     'new_password' => 'Kata sandi baru',

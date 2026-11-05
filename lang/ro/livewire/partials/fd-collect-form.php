@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Numerar',
     'method_bank_transfer' => 'Transfer bancar',
     'collect_button' => 'Încasare',
-    'hint' => 'Se înregistrează în nota de plată reală · terminalul de card este integrarea Stripe încă amânată — încasați acum numerar sau un transfer bancar.',
+    'hint' => 'Se înregistrează în nota de plată reală · plățile cu cardul nu sunt încă activate aici — încasați acum numerar sau un transfer bancar.',
 ];

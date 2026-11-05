@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organizație în pauză — până la :resume nu se pot adăuga proprietăți.',
+    'paused_adding_no_date' => 'Organizație în pauză — deocamdată nu se pot adăuga proprietăți.',
+    'paused_editing_no_date' => 'Organizație în pauză — deocamdată proprietățile nu pot fi editate.',
     'property_added' => 'Proprietatea :name a fost adăugată în portofoliu. Următorul pas: adăugați un tip de cameră și o unitate, apoi un plan tarifar cu prețuri — după aceea poate primi rezervări.',
     'paused_editing' => 'Organizație în pauză — până la :resume proprietățile nu pot fi editate.',
     'property_updated' => 'Proprietatea :name a fost actualizată.',

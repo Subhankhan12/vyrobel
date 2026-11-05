@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organisatsioon on peatatud — majutusasutuse lisamine on välja lülitatud kuni :resume.',
+    'paused_adding_no_date' => 'Organisatsioon on peatatud — majutusasutuse lisamine on praegu välja lülitatud.',
+    'paused_editing_no_date' => 'Organisatsioon on peatatud — majutusasutuse muutmine on praegu välja lülitatud.',
     'property_added' => 'Majutusasutus :name on lisatud teie portfelli. Järgmine samm: lisage toatüüp ja majutusüksus, seejärel hinnaplaan koos hindadega — siis saab see broneeringuid vastu võtta.',
     'paused_editing' => 'Organisatsioon on peatatud — majutusasutuse muutmine on välja lülitatud kuni :resume.',
     'property_updated' => 'Majutusasutus :name on uuendatud.',

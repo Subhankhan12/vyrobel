@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Mechanizm wypłat jest wyłączony (PAYOUT_ENGINE_ENABLED). Włącz go przed uruchomieniem wypłaty.',
     'nothing_to_run' => 'Nie ma czego uruchomić – żaden właściciel nie ma rozliczenia do wypłaty ani zatrzymanej wypłaty:paused_note.',
     'run_complete' => 'Wypłata zbiorcza zakończona (tryb „:mode”) – utworzono: :created · wypłacono: :paid · zatrzymano: :held:paused_note.',
+    'mode_test' => 'testowy',
+    'mode_live' => 'na żywo',
     'create_failed' => 'Nie udało się utworzyć wypłaty – :reason',
     'already_has_payout' => 'To rozliczenie ma już wypłatę – niczego nie utworzono.',
     'one_payout_created' => 'Utworzono 1 wypłatę.',

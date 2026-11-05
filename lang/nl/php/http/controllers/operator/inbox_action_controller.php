@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Reservering gekoppeld.',
     'conversation_started' => 'Gesprek gestart.',
     'workspace_paused' => 'Organisatie gepauzeerd — berichten zijn tot :date alleen-lezen.',
+    'workspace_paused_for_now' => 'Organisatie gepauzeerd — berichten zijn voorlopig alleen-lezen.',
 ];

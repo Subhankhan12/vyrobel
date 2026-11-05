@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Invito · Vyrobel',
     'heading' => 'Questo link di invito non è valido',
-    'body' => 'Potrebbe essere scaduto o essere già stato usato. Chieda al Suo gestore un nuovo invito.',
+    'body' => 'Potrebbe essere scaduto o essere già stato usato. Chieda alla persona che Le ha inviato l’invito di mandarne uno nuovo.',
     'go_to_sign_in' => 'Vai all’accesso',
 ];

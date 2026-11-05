@@ -40,4 +40,5 @@ return [
     'date' => 'Datum',
     'total' => 'Totaal',
     'today' => 'Vandaag',
+    'sentence_end' => '.',
 ];

@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Phòng trống',
     'check_the_rack' => 'Xem lịch phòng<span class="vy-sr-only"> (mở trong tab mới)</span>',
     'pick_dates_first' => 'Chọn ngày ở trên để xem phòng trống.',
-    'too_long' => 'Mỗi đặt phòng tối đa :count đêm — hãy chọn kỳ lưu trú ngắn hơn.',
+    'too_long' => '{1}Mỗi đặt phòng tối đa :count đêm — hãy chọn kỳ lưu trú ngắn hơn.|[2,*]Mỗi đặt phòng tối đa :count đêm — hãy chọn kỳ lưu trú ngắn hơn.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price cho :count đêm|[0,*]<strong>:nightly</strong> · :price cho :count đêm',
     'rt_free' => ':count phòng trống',
     'units_in' => 'Phòng thuộc :name',

@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Проверка',
     'more_count' => 'Ещё :number',
     'view_calendar' => 'Открыть календарь',
-    'message_guests' => 'Написать гостям',
+    'message_guests' => 'Написать управляющей компании',
     'download_statement' => 'Скачать выписку',
     'contact_support' => 'Связаться с поддержкой',
     'this_month' => 'Этот месяц',

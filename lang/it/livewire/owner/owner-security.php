@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Qui compariranno le app di terze parti che autorizza.',
     'change_password_title' => 'Modifica password',
     'set_password_title' => 'Imposta una password',
-    'change_password_sub' => 'Gli altri dispositivi con «Ricordami» vengono disconnessi.',
+    'change_password_sub' => 'Tutti gli altri dispositivi vengono disconnessi. Questo dispositivo resta connesso.',
     'set_password_sub' => 'Le verrà chiesta per confermare le modifiche importanti.',
     'current_password' => 'Password attuale',
     'new_password' => 'Nuova password',

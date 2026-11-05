@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Drittanbieter-Apps, die Sie autorisieren, werden hier angezeigt.',
     'change_password_title' => 'Passwort ändern',
     'set_password_title' => 'Passwort festlegen',
-    'change_password_sub' => 'Andere Geräte mit „Angemeldet bleiben“ werden abgemeldet.',
+    'change_password_sub' => 'Alle anderen Geräte werden abgemeldet. Hier bleiben Sie angemeldet.',
     'set_password_sub' => 'Sie werden danach gefragt, wenn Sie sensible Änderungen bestätigen.',
     'current_password' => 'Aktuelles Passwort',
     'new_password' => 'Neues Passwort',

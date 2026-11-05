@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => '您授权的第三方应用将显示在此处。',
     'change_password_title' => '修改密码',
     'set_password_title' => '设置密码',
-    'change_password_sub' => '其他勾选了“记住我”的设备将退出登录。',
+    'change_password_sub' => '其他所有设备均已退出登录。您在此设备上保持登录状态。',
     'set_password_sub' => '确认敏感更改时，系统将要求您输入此密码。',
     'current_password' => '当前密码',
     'new_password' => '新密码',

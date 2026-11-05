@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Ftesa · Vyrobel',
     'heading' => 'Kjo lidhje ftese nuk është e vlefshme',
-    'body' => 'Mund të ketë skaduar ose të jetë përdorur tashmë. Ju lutemi, kërkojini personit ose organizatës që ju ftoi një ftesë të re.',
+    'body' => 'Mund të ketë skaduar ose të jetë përdorur tashmë. Ju lutemi, kërkojini kujtdo që ju ftoi të dërgojë një ftesë të re.',
     'go_to_sign_in' => 'Shkoni te hyrja',
 ];

@@ -40,4 +40,5 @@ return [
     'date' => 'วันที่',
     'total' => 'ยอดรวม',
     'today' => 'วันนี้',
+    'sentence_end' => '.',
 ];

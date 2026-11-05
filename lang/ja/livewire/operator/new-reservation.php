@@ -69,7 +69,7 @@ return [
     'whats_free' => '空室',
     'check_the_rack' => '予約チャートを確認<span class="vy-sr-only">（新しいタブで開きます）</span>',
     'pick_dates_first' => '上で日程を選択すると空室が表示されます。',
-    'too_long' => '予約は最大:count泊までです。より短い宿泊期間を選択してください。',
+    'too_long' => '{1}予約は最大:count泊までです。より短い宿泊期間を選択してください。|[2,*]予約は最大:count泊までです。より短い宿泊期間を選択してください。',
     'rt_price' => '{1}<strong>:nightly</strong> · :count泊で:price|[0,*]<strong>:nightly</strong> · :count泊で:price',
     'rt_free' => '空き:count室',
     'units_in' => ':nameの客室',

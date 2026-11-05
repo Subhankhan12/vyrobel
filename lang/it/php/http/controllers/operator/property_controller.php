@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organizzazione in pausa — non è possibile aggiungere una struttura (ripresa: :resume).',
+    'paused_adding_no_date' => 'Organizzazione in pausa — per il momento non è possibile aggiungere una struttura.',
+    'paused_editing_no_date' => 'Organizzazione in pausa — per il momento non è possibile modificare una struttura.',
     'property_added' => 'Struttura :name aggiunta al Suo portfolio. Prossimo passo: aggiungere una tipologia di camera e un’unità, poi un piano tariffario con i prezzi: a quel punto potrà ricevere prenotazioni.',
     'paused_editing' => 'Organizzazione in pausa — non è possibile modificare una struttura (ripresa: :resume).',
     'property_updated' => 'Struttura :name aggiornata.',

@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Reserva vinculada.',
     'conversation_started' => 'Conversa iniciada.',
     'workspace_paused' => 'Organização em pausa — as mensagens ficam em modo somente leitura até :date.',
+    'workspace_paused_for_now' => 'Organização em pausa — as mensagens ficam em modo somente leitura por enquanto.',
 ];

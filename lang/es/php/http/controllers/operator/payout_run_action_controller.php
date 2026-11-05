@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'El motor de liquidaciones está desactivado (PAYOUT_ENGINE_ENABLED). Actívelo antes de ejecutar una liquidación.',
     'nothing_to_run' => 'No hay nada que ejecutar: ningún propietario tiene un extracto a liquidar ni una liquidación retenida:paused_note.',
     'run_complete' => 'Proceso de liquidación completado (modo: :mode) — creadas: :created · pagadas: :paid · retenidas: :held:paused_note.',
+    'mode_test' => 'prueba',
+    'mode_live' => 'real',
     'create_failed' => 'No se pudo crear la liquidación: :reason',
     'already_has_payout' => 'Ese extracto ya tiene una liquidación: no se creó nada.',
     'one_payout_created' => 'Se creó 1 liquidación.',

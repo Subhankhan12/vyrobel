@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'محرك التحويلات معطّل (PAYOUT_ENGINE_ENABLED). يرجى تفعيله قبل تشغيل التحويلات.',
     'nothing_to_run' => 'لا يوجد ما يتم تشغيله — لا يوجد لدى أي مالك هنا كشف حساب مستحق الدفع أو تحويل محتجز:paused_note.',
     'run_complete' => 'اكتملت دورة التحويلات (الوضع: :mode) — المنشأة: :created · المدفوعة: :paid · المحتجزة: :held:paused_note.',
+    'mode_test' => 'اختبار',
+    'mode_live' => 'فعلي',
     'create_failed' => 'تعذر إنشاء التحويل — :reason',
     'already_has_payout' => 'يوجد بالفعل تحويل لكشف الحساب هذا — لم يتم إنشاء أي شيء.',
     'one_payout_created' => 'تم إنشاء تحويل واحد.',

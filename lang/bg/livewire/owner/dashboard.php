@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Преглед',
     'more_count' => '+:number още',
     'view_calendar' => 'Преглед на календара',
-    'message_guests' => 'Съобщение до гостите',
+    'message_guests' => 'Съобщение до управляващата компания',
     'download_statement' => 'Изтегляне на отчета',
     'contact_support' => 'Връзка с поддръжката',
     'this_month' => 'Този месец',

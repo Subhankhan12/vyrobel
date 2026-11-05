@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Alegeți ultima zi a perioadei.',
     'period_end_after_start' => 'Perioada trebuie să se încheie în ziua în care începe sau după aceasta.',
     'period_not_closed' => 'Perioada nu a putut fi închisă: :reason Alegeți o perioadă care începe după ultima perioadă închisă.',
+    'period_sealed' => 'Un decont finalizat sau blocat nu poate fi regenerat.',
+    'period_not_closed_other' => 'Decontul pentru acea perioadă nu a putut fi generat.',
     'period_closed' => 'Perioadă închisă — decontul nr. :number a fost finalizat, net de virat: :amount. Veniturile încă neîncasate de la oaspeți nu sunt incluse deocamdată și vor apărea într-un decont ulterior.',
     'note_required' => 'Scrieți mai întâi nota.',
     'note_max' => 'O notă poate avea cel mult 2.000 de caractere.',

@@ -15,6 +15,8 @@ return [
     'period_end_required' => '请选择结算期的最后一天。',
     'period_end_after_start' => '结算期的结束日期必须与开始日期相同或在其之后。',
     'period_not_closed' => '无法关闭该结算期：:reason请选择在最近一个已封存结算期之后开始的结算期。',
+    'period_sealed' => '无法重新生成已定稿或已锁定的结算单。',
+    'period_not_closed_other' => '无法生成该结算期的结算单。',
     'period_closed' => '结算期已关闭——结算单号 :number 已定稿，应付 :amount。尚未向客人收取的营收暂不结算，将出现在之后的结算单上。',
     'note_required' => '请先填写备注。',
     'note_max' => '备注最多 2,000 个字符。',

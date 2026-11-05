@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Die automatische Auszahlung ist deaktiviert (PAYOUT_ENGINE_ENABLED). Aktivieren Sie sie, bevor Sie eine Auszahlung ausführen.',
     'nothing_to_run' => 'Nichts auszuführen — kein Eigentümer hier hat eine zahlbare Abrechnung oder eine einbehaltene Auszahlung:paused_note.',
     'run_complete' => 'Auszahlungslauf abgeschlossen (Modus :mode) — Erstellt: :created · Bezahlt: :paid · Einbehalten: :held:paused_note.',
+    'mode_test' => 'Test',
+    'mode_live' => 'Live',
     'create_failed' => 'Die Auszahlung konnte nicht erstellt werden — :reason',
     'already_has_payout' => 'Für diese Abrechnung gibt es bereits eine Auszahlung — es wurde nichts erstellt.',
     'one_payout_created' => '1 Auszahlung erstellt.',

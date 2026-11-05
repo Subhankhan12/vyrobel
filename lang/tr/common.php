@@ -40,4 +40,5 @@ return [
     'date' => 'Tarih',
     'total' => 'Toplam',
     'today' => 'Bugün',
+    'sentence_end' => '.',
 ];

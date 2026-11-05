@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Pilih hari terakhir periode.',
     'period_end_after_start' => 'Periode harus berakhir pada atau setelah hari mulainya.',
     'period_not_closed' => 'Periode tersebut tidak dapat ditutup: :reason Pilih periode yang dimulai setelah periode terakhir yang sudah dikunci.',
+    'period_sealed' => 'Rekap yang sudah final atau terkunci tidak dapat dibuat ulang.',
+    'period_not_closed_other' => 'Rekap untuk periode tersebut tidak dapat dibuat.',
     'period_closed' => 'Periode ditutup — rekap No. :number difinalkan dengan bersih dibayarkan :amount. Pendapatan yang belum diterima dari tamu belum dihitung dan akan muncul di rekap berikutnya.',
     'note_required' => 'Tulis catatannya terlebih dahulu.',
     'note_max' => 'Catatan maksimal 2.000 karakter.',

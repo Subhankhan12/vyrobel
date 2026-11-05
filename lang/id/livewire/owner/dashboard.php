@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Tinjauan',
     'more_count' => '+:number lainnya',
     'view_calendar' => 'Lihat kalender',
-    'message_guests' => 'Kirim pesan ke tamu',
+    'message_guests' => 'Kirim pesan ke pengelola',
     'download_statement' => 'Unduh rekap',
     'contact_support' => 'Hubungi dukungan',
     'this_month' => 'Bulan ini',

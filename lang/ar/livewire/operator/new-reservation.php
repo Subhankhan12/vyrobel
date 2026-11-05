@@ -69,7 +69,7 @@ return [
     'whats_free' => 'الوحدات المتاحة',
     'check_the_rack' => 'مراجعة مخطط الحجوزات<span class="vy-sr-only"> (يفتح في علامة تبويب جديدة)</span>',
     'pick_dates_first' => 'يرجى اختيار التواريخ أعلاه لعرض الوحدات المتاحة.',
-    'too_long' => 'الحد الأقصى لمدة الحجز :count ليلة — يرجى اختيار إقامة أقصر.',
+    'too_long' => '{0} الحد الأقصى لمدة الحجز :count ليالٍ — يرجى اختيار إقامة أقصر.|الحد الأقصى لمدة الحجز ليلة واحدة — يرجى اختيار إقامة أقصر.|الحد الأقصى لمدة الحجز ليلتان — يرجى اختيار إقامة أقصر.|الحد الأقصى لمدة الحجز :count ليالٍ — يرجى اختيار إقامة أقصر.|الحد الأقصى لمدة الحجز :count ليلةً — يرجى اختيار إقامة أقصر.|الحد الأقصى لمدة الحجز :count ليلة — يرجى اختيار إقامة أقصر.',
     'rt_price' => '{0} <strong>:nightly</strong> · :price لمدة :count ليالٍ|<strong>:nightly</strong> · :price لمدة ليلة واحدة|<strong>:nightly</strong> · :price لمدة ليلتين|<strong>:nightly</strong> · :price لمدة :count ليالٍ|<strong>:nightly</strong> · :price لمدة :count ليلةً|<strong>:nightly</strong> · :price لمدة :count ليلة',
     'rt_free' => 'المتاح: :count',
     'units_in' => 'الوحدات ضمن :name',

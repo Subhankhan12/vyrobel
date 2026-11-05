@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Hoàn tiền',
     'col_amount' => 'Số tiền',
     'refund_to' => 'Hoàn về: :method',
+    'method_manual' => 'Thủ công',
+    'method_bank_transfer' => 'Chuyển khoản ngân hàng',
     'total_refunded' => 'Tổng tiền đã hoàn',
     'footer' => 'Biên lai cho khoản tiền được hoàn lại cho bạn, được tạo từ sổ cái folio chỉ ghi thêm của Vyrobel; mỗi khoản hoàn tiền được ghi nhận thành một bút toán đảo ngược riêng và khớp với tài khoản của bạn. Vyrobel · :operator.',
 ];

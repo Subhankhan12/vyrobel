@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Apps van derden die u autoriseert, verschijnen hier.',
     'change_password_title' => 'Wachtwoord wijzigen',
     'set_password_title' => 'Wachtwoord instellen',
-    'change_password_sub' => 'Andere apparaten waarop u ingelogd bleef, worden uitgelogd.',
+    'change_password_sub' => 'Alle andere apparaten worden uitgelogd. Op dit apparaat blijft u ingelogd.',
     'set_password_sub' => 'Hierom wordt gevraagd wanneer u gevoelige wijzigingen bevestigt.',
     'current_password' => 'Huidig wachtwoord',
     'new_password' => 'Nieuw wachtwoord',

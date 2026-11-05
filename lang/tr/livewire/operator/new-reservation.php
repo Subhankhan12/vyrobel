@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Müsait olanlar',
     'check_the_rack' => 'Doluluk planına bak<span class="vy-sr-only"> (yeni sekmede açılır)</span>',
     'pick_dates_first' => 'Müsait olanları görmek için yukarıdan tarihleri seçin.',
-    'too_long' => 'Bir rezervasyon en fazla :count gece olabilir — daha kısa bir konaklama seçin.',
+    'too_long' => '{1} Bir rezervasyon en fazla :count gece olabilir — daha kısa bir konaklama seçin.|[2,*] Bir rezervasyon en fazla :count gece olabilir — daha kısa bir konaklama seçin.',
     'rt_price' => '{1} <strong>:nightly</strong> · :count gece için :price|[0,*] <strong>:nightly</strong> · :count gece için :price',
     'rt_free' => ':count müsait',
     'units_in' => ':name oda tipindeki birimler',

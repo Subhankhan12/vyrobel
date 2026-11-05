@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Έλεγχος',
     'more_count' => '+:number ακόμη',
     'view_calendar' => 'Προβολή ημερολογίου',
-    'message_guests' => 'Μήνυμα στους επισκέπτες',
+    'message_guests' => 'Μήνυμα στην εταιρεία διαχείρισης',
     'download_statement' => 'Λήψη εκκαθάρισης',
     'contact_support' => 'Επικοινωνία με την υποστήριξη',
     'this_month' => 'Αυτός ο μήνας',

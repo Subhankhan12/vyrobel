@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Çfarë është e lirë',
     'check_the_rack' => 'Shiko tabelën e rezervimeve<span class="vy-sr-only"> (hapet në një skedë të re)</span>',
     'pick_dates_first' => 'Zgjidhni datat më sipër për të parë çfarë është e lirë.',
-    'too_long' => 'Një rezervim mund të zgjasë më së shumti :count netë — zgjidhni një qëndrim më të shkurtër.',
+    'too_long' => '{1}Një rezervim mund të zgjasë më së shumti :count natë — zgjidhni një qëndrim më të shkurtër.|[2,*]Një rezervim mund të zgjasë më së shumti :count netë — zgjidhni një qëndrim më të shkurtër.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price për :count natë|[0,*]<strong>:nightly</strong> · :price për :count netë',
     'rt_free' => 'Të lira: :count',
     'units_in' => 'Njësitë e llojit «:name»',

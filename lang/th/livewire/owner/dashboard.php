@@ -11,7 +11,7 @@ return [
     'chip_review' => 'ตรวจสอบ',
     'more_count' => '+อีก :number รายการ',
     'view_calendar' => 'ดูปฏิทิน',
-    'message_guests' => 'ส่งข้อความถึงผู้เข้าพัก',
+    'message_guests' => 'ส่งข้อความถึงผู้บริหารจัดการ',
     'download_statement' => 'ดาวน์โหลดใบแจ้งยอด',
     'contact_support' => 'ติดต่อฝ่ายช่วยเหลือ',
     'this_month' => 'เดือนนี้',

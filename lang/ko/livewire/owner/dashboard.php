@@ -11,7 +11,7 @@ return [
     'chip_review' => '검토',
     'more_count' => '+:number건 더',
     'view_calendar' => '캘린더 보기',
-    'message_guests' => '고객에게 메시지 보내기',
+    'message_guests' => '운영사에 메시지',
     'download_statement' => '정산서 다운로드',
     'contact_support' => '지원 문의',
     'this_month' => '이번 달',

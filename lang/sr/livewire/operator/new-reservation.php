@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Слободно',
     'check_the_rack' => 'Провери план заузетости<span class="vy-sr-only"> (отвара се у новој картици)</span>',
     'pick_dates_first' => 'Изаберите датуме изнад да видите шта је слободно.',
-    'too_long' => 'Највећи број ноћи по резервацији: :count – изаберите краћи боравак.',
+    'too_long' => '{1}Највећи број ноћи по резервацији: :count – изаберите краћи боравак.|Највећи број ноћи по резервацији: :count – изаберите краћи боравак.|Највећи број ноћи по резервацији: :count – изаберите краћи боравак.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price за :count ноћ|<strong>:nightly</strong> · :price за :count ноћи|<strong>:nightly</strong> · :price за :count ноћи',
     'rt_free' => 'Слободно: :count',
     'units_in' => 'Јединице – :name',

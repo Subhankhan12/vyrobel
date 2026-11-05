@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Uitnodiging · Vyrobel',
     'heading' => 'Deze uitnodigingslink is niet geldig',
-    'body' => 'Mogelijk is hij verlopen of al gebruikt. Vraag uw exploitant om een nieuwe uitnodiging te sturen.',
+    'body' => 'Mogelijk is hij verlopen of al gebruikt. Vraag degene die u heeft uitgenodigd om een nieuwe uitnodiging te sturen.',
     'go_to_sign_in' => 'Naar inloggen',
 ];

@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Shkarko llogarinë e qëndrimit si PDF',
     'export_pdf' => 'Eksporto llogarinë e qëndrimit (PDF)',
     'export_csv_print' => 'Eksporto CSV · printo',
-    'room_moves_note' => 'Zhvendosjet e dhomave kalojnë përmes AssignmentService të mbrojtur (me kyçje, pa mbirezervim) dhe ruhen menjëherë.',
+    'room_moves_note' => 'Zhvendosja e dhomës kontrollohet për disponueshmëri, që dhoma të mos rezervohet dy herë, dhe ruhet menjëherë.',
 ];

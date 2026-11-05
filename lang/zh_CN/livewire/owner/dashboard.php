@@ -11,7 +11,7 @@ return [
     'chip_review' => '待查看',
     'more_count' => '还有 :number 项',
     'view_calendar' => '查看日历',
-    'message_guests' => '给客人发消息',
+    'message_guests' => '给管理方发消息',
     'download_statement' => '下载结算单',
     'contact_support' => '联系客服',
     'this_month' => '本月',

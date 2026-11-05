@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Reservasi berhasil ditautkan.',
     'conversation_started' => 'Percakapan dimulai.',
     'workspace_paused' => 'Organisasi dijeda — pesan hanya baca hingga :date.',
+    'workspace_paused_for_now' => 'Organisasi dijeda — pesan hanya baca untuk sementara.',
 ];

@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => '将账单下载为 PDF',
     'export_pdf' => '导出账单（PDF）',
     'export_csv_print' => '导出 CSV · 打印',
-    'room_moves_note' => '换房通过受保护的 AssignmentService 处理（加锁，杜绝超订），并立即生效。',
+    'room_moves_note' => '换房时会检查可售房量，确保同一房间不会被重复预订，并立即保存。',
 ];

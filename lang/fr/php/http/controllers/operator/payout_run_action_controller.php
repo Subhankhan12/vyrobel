@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Le moteur de versement est désactivé (PAYOUT_ENGINE_ENABLED). Activez-le avant de lancer un versement.',
     'nothing_to_run' => 'Rien à lancer — aucun propriétaire ici n’a de relevé à verser ni de versement retenu:paused_note.',
     'run_complete' => 'Lot de versements terminé (mode :mode) — Créés : :created · Versés : :paid · Retenus : :held:paused_note.',
+    'mode_test' => 'test',
+    'mode_live' => 'réel',
     'create_failed' => 'Impossible de créer le versement — :reason',
     'already_has_payout' => 'Ce relevé a déjà un versement — rien n’a été créé.',
     'one_payout_created' => '1 versement créé.',

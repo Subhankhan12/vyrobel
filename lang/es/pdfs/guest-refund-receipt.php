@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Reembolso',
     'col_amount' => 'Importe',
     'refund_to' => 'Reembolso a: :method',
+    'method_manual' => 'Manual',
+    'method_bank_transfer' => 'Transferencia bancaria',
     'total_refunded' => 'Total reembolsado',
     'footer' => 'Recibo del dinero que se le ha devuelto, generado a partir del registro contable del folio de Vyrobel, en el que solo se añaden asientos; cada reembolso se registra como un asiento de contrapartida propio y cuadra con su cuenta. Vyrobel · :operator.',
 ];

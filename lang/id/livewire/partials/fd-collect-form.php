@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Tunai',
     'method_bank_transfer' => 'Transfer bank',
     'collect_button' => 'Tagih',
-    'hint' => 'Dicatat ke folio sebenarnya · terminal kartu masih menunggu integrasi Stripe — terima tunai atau transfer bank sekarang.',
+    'hint' => 'Dicatat ke folio sebenarnya · pembayaran kartu belum diaktifkan di sini — terima tunai atau transfer bank sekarang.',
 ];

@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Contanti',
     'method_bank_transfer' => 'Bonifico bancario',
     'collect_button' => 'Incassa',
-    'hint' => 'Registra sul conto reale · il terminale per carte (Stripe) non è ancora attivo — incassare ora in contanti o con bonifico bancario.',
+    'hint' => 'Registra sul conto reale · i pagamenti con carta non sono ancora attivi qui — incassare ora in contanti o con bonifico bancario.',
 ];

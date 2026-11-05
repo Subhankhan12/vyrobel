@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Zgjidhni ditën e fundit të periudhës.',
     'period_end_after_start' => 'Periudha duhet të përfundojë në ditën e nisjes ose më pas.',
     'period_not_closed' => 'Kjo periudhë nuk u mbyll dot: :reason Zgjidhni një periudhë që nis pas periudhës së fundit të vulosur.',
+    'period_sealed' => 'Një pasqyrë e finalizuar ose e kyçur nuk mund të rigjenerohet.',
+    'period_not_closed_other' => 'Pasqyra për atë periudhë nuk u krijua dot.',
     'period_closed' => 'Periudha u mbyll — pasqyra nr. :number u finalizua; neto për derdhje: :amount. Të hyrat që nuk janë arkëtuar ende nga vizitorët mbeten të papërfshira dhe do të shfaqen në një pasqyrë të mëvonshme.',
     'note_required' => 'Shkruani fillimisht shënimin.',
     'note_max' => 'Një shënim mund të ketë deri në 2 000 karaktere.',

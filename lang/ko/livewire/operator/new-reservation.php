@@ -69,7 +69,7 @@ return [
     'whats_free' => '잔여 객실',
     'check_the_rack' => '예약 현황표 확인<span class="vy-sr-only"> (새 탭에서 열림)</span>',
     'pick_dates_first' => '위에서 날짜를 선택하면 잔여 객실이 표시됩니다.',
-    'too_long' => '예약은 최대 :count박까지 가능합니다 — 더 짧은 숙박 기간을 선택하세요.',
+    'too_long' => '{1}예약은 최대 :count박까지 가능합니다 — 더 짧은 숙박 기간을 선택하세요.|[2,*]예약은 최대 :count박까지 가능합니다 — 더 짧은 숙박 기간을 선택하세요.',
     'rt_price' => '{1}<strong>:nightly</strong> · :count박 :price|[0,*]<strong>:nightly</strong> · :count박 :price',
     'rt_free' => '잔여 :count개',
     'units_in' => ':name 객실',

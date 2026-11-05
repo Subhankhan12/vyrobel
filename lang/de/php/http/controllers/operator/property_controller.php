@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organisation pausiert — Unterkünfte können bis :resume nicht hinzugefügt werden (nur Lesezugriff).',
+    'paused_adding_no_date' => 'Organisation pausiert — Unterkünfte können vorerst nicht hinzugefügt werden (nur Lesezugriff).',
+    'paused_editing_no_date' => 'Organisation pausiert — Unterkünfte können vorerst nicht bearbeitet werden (nur Lesezugriff).',
     'property_added' => ':name wurde Ihrem Portfolio hinzugefügt. Als Nächstes: Fügen Sie eine Zimmerkategorie und eine Einheit hinzu, dann einen Preisplan mit Preisen — danach kann die Unterkunft Buchungen annehmen.',
     'paused_editing' => 'Organisation pausiert — Unterkünfte können bis :resume nicht bearbeitet werden (nur Lesezugriff).',
     'property_updated' => ':name aktualisiert.',

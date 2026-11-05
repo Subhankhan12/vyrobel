@@ -27,7 +27,7 @@ return [
     'settles_to_iban' => 'Kwota do wypłaty :amount zostanie przekazana przelewem bankowym na konto IBAN :iban.',
     'settles' => 'Kwota do wypłaty :amount zostanie przekazana przelewem bankowym.',
     'fees_with_commission' => 'Prowizja za zarządzanie wynosi :pct% przychodu z noclegów; opłaty płatnicze i opłaty platformy są rozliczane według rzeczywistych kosztów. Wszystkie kwoty podano w walucie :currency i obejmują należne podatki pobrane w Państwa imieniu.',
-    'fees' => 'opłaty płatnicze i opłaty platformy są rozliczane według rzeczywistych kosztów. Wszystkie kwoty podano w walucie :currency i obejmują należne podatki pobrane w Państwa imieniu.',
+    'fees' => 'Opłaty płatnicze i opłaty platformy są rozliczane według rzeczywistych kosztów. Wszystkie kwoty podano w walucie :currency i obejmują należne podatki pobrane w Państwa imieniu.',
     'fx_note' => 'Przeliczono z waluty :source po kursie :rate (źródło: :src).',
     'provisional_note' => 'Niektóre pozycje są wstępne i czekają na uzgodnienie z kanałem sprzedaży.',
     'statement_ref' => 'rozliczenie :ref',

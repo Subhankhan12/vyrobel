@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => '組織已暫停——至 :resume 前，新增館別為唯讀。',
+    'paused_adding_no_date' => '組織已暫停——目前新增館別為唯讀。',
+    'paused_editing_no_date' => '組織已暫停——目前編輯館別為唯讀。',
     'property_added' => '已將 :name 新增至您的館別。下一步：新增房型與房間，再建立含房價的房價方案——之後即可接受訂房。',
     'paused_editing' => '組織已暫停——至 :resume 前，編輯館別為唯讀。',
     'property_updated' => ':name 已更新。',

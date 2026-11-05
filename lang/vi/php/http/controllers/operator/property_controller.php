@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Tổ chức đang tạm dừng — không thể thêm chỗ nghỉ cho đến :resume.',
+    'paused_adding_no_date' => 'Tổ chức đang tạm dừng — tạm thời không thể thêm chỗ nghỉ.',
+    'paused_editing_no_date' => 'Tổ chức đang tạm dừng — tạm thời không thể chỉnh sửa chỗ nghỉ.',
     'property_added' => 'Đã thêm chỗ nghỉ :name vào danh mục của bạn. Tiếp theo: thêm một loại phòng và một phòng, rồi một gói giá có giá — sau đó chỗ nghỉ có thể nhận đặt phòng.',
     'paused_editing' => 'Tổ chức đang tạm dừng — không thể chỉnh sửa chỗ nghỉ cho đến :resume.',
     'property_updated' => 'Đã cập nhật chỗ nghỉ :name.',

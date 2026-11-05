@@ -40,4 +40,5 @@ return [
     'date' => 'Data',
     'total' => 'Łącznie',
     'today' => 'Dzisiaj',
+    'sentence_end' => '.',
 ];

@@ -10,6 +10,8 @@ return [
     'col_refund' => '返金',
     'col_amount' => '金額',
     'refund_to' => '返金先：:method',
+    'method_manual' => '手動',
+    'method_bank_transfer' => '銀行振込',
     'total_refunded' => '返金合計',
     'footer' => 'お客様へ返金した金額の領収書です。Vyrobelの追記専用のフォリオ台帳から作成しており、各返金はそれぞれ個別の取消として記録され、お客様のアカウントと一致します。Vyrobel · :operator。',
 ];

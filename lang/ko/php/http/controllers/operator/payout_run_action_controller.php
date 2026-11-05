@@ -6,6 +6,8 @@ return [
     'engine_disabled' => '지급 엔진이 비활성화되어 있습니다(PAYOUT_ENGINE_ENABLED). 지급을 실행하기 전에 활성화하세요.',
     'nothing_to_run' => '실행할 항목이 없습니다 — 지급 가능한 정산서나 유보된 지급이 있는 소유주가 없습니다:paused_note.',
     'run_complete' => '일괄 지급 완료(:mode 모드) — 생성 :created건 · 지급 완료 :paid건 · 유보 :held건:paused_note.',
+    'mode_test' => '테스트',
+    'mode_live' => '라이브',
     'create_failed' => '지급을 생성하지 못했습니다 — :reason',
     'already_has_payout' => '이 정산서에는 이미 지급이 있습니다 — 아무것도 생성되지 않았습니다.',
     'one_payout_created' => '지급 1건을 생성했습니다.',

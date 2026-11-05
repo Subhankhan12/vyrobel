@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => '您授權的第三方應用程式會顯示在這裡。',
     'change_password_title' => '變更密碼',
     'set_password_title' => '設定密碼',
-    'change_password_sub' => '其他勾選「記住我」的裝置將會登出。',
+    'change_password_sub' => '其他所有裝置都會登出，您在此裝置上維持登入。',
     'set_password_sub' => '確認敏感變更時，系統會要求您輸入此密碼。',
     'current_password' => '目前密碼',
     'new_password' => '新密碼',

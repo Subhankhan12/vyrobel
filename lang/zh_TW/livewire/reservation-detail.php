@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => '將帳單下載為 PDF',
     'export_pdf' => '匯出帳單（PDF）',
     'export_csv_print' => '匯出 CSV · 列印',
-    'room_moves_note' => '換房會經由受保護的排房服務處理（已鎖定，不會超額訂房），並立即生效。',
+    'room_moves_note' => '換房時會檢查可售房數，確保同一間房不會重複訂房，且會立即儲存。',
 ];

@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Unduh folio sebagai PDF',
     'export_pdf' => 'Ekspor folio (PDF)',
     'export_csv_print' => 'Ekspor CSV · cetak',
-    'room_moves_note' => 'Pindah unit diproses melalui AssignmentService yang terlindungi (terkunci, tanpa pemesanan ganda) dan langsung tersimpan.',
+    'room_moves_note' => 'Pindah unit diperiksa ketersediaannya agar kamar tidak pernah dipesan dua kali, dan langsung disimpan.',
 ];

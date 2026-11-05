@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Aquí aparecerán las aplicaciones de terceros que usted autorice.',
     'change_password_title' => 'Cambiar contraseña',
     'set_password_title' => 'Establecer una contraseña',
-    'change_password_sub' => 'Se cerrará la sesión en los demás dispositivos que usen “Recordarme”.',
+    'change_password_sub' => 'Se cerrará la sesión en todos los demás dispositivos. Aquí seguirá con la sesión iniciada.',
     'set_password_sub' => 'Se le pedirá cuando confirme cambios importantes.',
     'current_password' => 'Contraseña actual',
     'new_password' => 'Nueva contraseña',

@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Tải folio xuống dưới dạng PDF',
     'export_pdf' => 'Xuất folio (PDF)',
     'export_csv_print' => 'Xuất CSV · in',
-    'room_moves_note' => 'Việc chuyển phòng đi qua AssignmentService có bảo vệ (khóa, không bán vượt) và được lưu ngay.',
+    'room_moves_note' => 'Việc chuyển phòng được kiểm tra tình trạng phòng trống để một phòng không bao giờ bị đặt trùng, và được lưu ngay.',
 ];

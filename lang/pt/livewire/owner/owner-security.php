@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'As aplicações de terceiros que autorizar aparecem aqui.',
     'change_password_title' => 'Alterar palavra-passe',
     'set_password_title' => 'Definir uma palavra-passe',
-    'change_password_sub' => 'Os outros dispositivos onde escolheu manter a sessão iniciada terminam a sessão.',
+    'change_password_sub' => 'Todos os outros dispositivos terminam a sessão. Mantém a sessão iniciada aqui.',
     'set_password_sub' => 'Ser-lhe-á pedida ao confirmar alterações sensíveis.',
     'current_password' => 'Palavra-passe atual',
     'new_password' => 'Nova palavra-passe',

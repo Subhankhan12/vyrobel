@@ -69,7 +69,7 @@ return [
     'whats_free' => '可预订房间',
     'check_the_rack' => '查看房态图<span class="vy-sr-only">（在新标签页中打开）</span>',
     'pick_dates_first' => '请先在上方选择日期，以查看可预订的房间。',
-    'too_long' => '每个预订最多 :count 晚——请选择更短的住宿。',
+    'too_long' => '{1}每个预订最多 :count 晚——请选择更短的住宿。|[2,*]每个预订最多 :count 晚——请选择更短的住宿。',
     'rt_price' => '{1}<strong>:nightly</strong> · :count 晚共 :price|[0,*]<strong>:nightly</strong> · :count 晚共 :price',
     'rt_free' => '空闲 :count 间',
     'units_in' => ':name 的房间',

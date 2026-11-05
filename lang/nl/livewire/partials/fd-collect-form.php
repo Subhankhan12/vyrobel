@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Contant',
     'method_bank_transfer' => 'Bankoverschrijving',
     'collect_button' => 'Afrekenen',
-    'hint' => 'Wordt vastgelegd op de echte folio · de pinterminal is de Stripe-koppeling die nog volgt — ontvang nu contant of per bankoverschrijving.',
+    'hint' => 'Wordt vastgelegd op de echte folio · kaartbetalingen zijn hier nog niet ingeschakeld — ontvang nu contant of per bankoverschrijving.',
 ];

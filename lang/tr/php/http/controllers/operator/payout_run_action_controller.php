@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Hakediş motoru devre dışı (PAYOUT_ENGINE_ENABLED). Toplu hakedişi başlatmadan önce etkinleştirin.',
     'nothing_to_run' => 'Başlatılacak bir şey yok — buradaki hiçbir mülk sahibinin ödenecek hesap özeti veya bloke hakedişi yok:paused_note.',
     'run_complete' => 'Toplu hakediş tamamlandı (mod: :mode) — oluşturulan: :created · ödenen: :paid · bloke: :held:paused_note.',
+    'mode_test' => 'test',
+    'mode_live' => 'canlı',
     'create_failed' => 'Hakediş oluşturulamadı — :reason',
     'already_has_payout' => 'Bu hesap özetinin zaten bir hakedişi var — hiçbir şey oluşturulmadı.',
     'one_payout_created' => '1 hakediş oluşturuldu.',

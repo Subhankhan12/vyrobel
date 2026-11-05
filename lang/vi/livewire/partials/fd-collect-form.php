@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Tiền mặt',
     'method_bank_transfer' => 'Chuyển khoản ngân hàng',
     'collect_button' => 'Thu tiền',
-    'hint' => 'Ghi nhận vào folio thực · máy quẹt thẻ là phần Stripe chưa triển khai — vui lòng thu tiền mặt hoặc chuyển khoản ngân hàng ngay bây giờ.',
+    'hint' => 'Ghi nhận vào folio thực · thanh toán thẻ chưa được bật ở đây — vui lòng thu tiền mặt hoặc chuyển khoản ngân hàng ngay bây giờ.',
 ];

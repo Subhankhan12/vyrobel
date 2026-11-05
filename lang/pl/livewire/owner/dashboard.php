@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Do przejrzenia',
     'more_count' => '+:number więcej',
     'view_calendar' => 'Wyświetl kalendarz',
-    'message_guests' => 'Napisz do gości',
+    'message_guests' => 'Napisz do firmy zarządzającej',
     'download_statement' => 'Pobierz rozliczenie',
     'contact_support' => 'Skontaktuj się z pomocą',
     'this_month' => 'Ten miesiąc',

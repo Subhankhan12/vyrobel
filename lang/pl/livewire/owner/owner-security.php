@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Tutaj pojawią się aplikacje innych firm, którym przyznają Państwo dostęp.',
     'change_password_title' => 'Zmień hasło',
     'set_password_title' => 'Ustaw hasło',
-    'change_password_sub' => 'Inne urządzenia z zaznaczoną opcją „Zapamiętaj mnie” zostaną wylogowane.',
+    'change_password_sub' => 'Wszystkie pozostałe urządzenia zostaną wylogowane. Na tym urządzeniu sesja pozostaje aktywna.',
     'set_password_sub' => 'Hasło będzie wymagane przy potwierdzaniu ważnych zmian.',
     'current_password' => 'Obecne hasło',
     'new_password' => 'Nowe hasło',

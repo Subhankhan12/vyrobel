@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Vui lòng chọn ngày cuối cùng của kỳ.',
     'period_end_after_start' => 'Ngày kết thúc kỳ phải trùng hoặc sau ngày bắt đầu.',
     'period_not_closed' => 'Không thể chốt kỳ này: :reason Vui lòng chọn kỳ bắt đầu sau kỳ được niêm phong gần nhất.',
+    'period_sealed' => 'Không thể tạo lại bảng đối soát đã chốt hoặc đã niêm phong.',
+    'period_not_closed_other' => 'Không thể lập bảng đối soát cho kỳ đó.',
     'period_closed' => 'Đã chốt kỳ — bảng đối soát #:number đã chốt với số tiền phải trả :amount. Doanh thu chưa thu từ khách vẫn chưa được ghi nhận và sẽ xuất hiện trên một bảng đối soát sau.',
     'note_required' => 'Vui lòng viết ghi chú trước.',
     'note_max' => 'Ghi chú tối đa 2.000 ký tự.',

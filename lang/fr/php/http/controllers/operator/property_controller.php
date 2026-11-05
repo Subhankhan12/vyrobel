@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organisation en pause — l’ajout d’un établissement est désactivé jusqu’au :resume.',
+    'paused_adding_no_date' => 'Organisation en pause — l’ajout d’un établissement est en lecture seule pour l’instant.',
+    'paused_editing_no_date' => 'Organisation en pause — la modification d’un établissement est en lecture seule pour l’instant.',
     'property_added' => 'L’établissement :name a été ajouté à votre portfolio. Ensuite : ajoutez un type de chambre et une unité, puis un plan tarifaire avec des prix — il pourra alors recevoir des réservations.',
     'paused_editing' => 'Organisation en pause — la modification d’un établissement est désactivée jusqu’au :resume.',
     'property_updated' => 'L’établissement :name a été mis à jour.',

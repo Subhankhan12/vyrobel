@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Remboursement',
     'col_amount' => 'Montant',
     'refund_to' => 'Remboursement sur :method',
+    'method_manual' => 'Manuel',
+    'method_bank_transfer' => 'Virement bancaire',
     'total_refunded' => 'Total remboursé',
     'footer' => 'Un reçu pour l’argent qui vous a été rendu, généré à partir du registre inaltérable du folio de Vyrobel ; chaque remboursement est enregistré comme une contrepassation distincte et concorde avec votre compte. Vyrobel · :operator.',
 ];

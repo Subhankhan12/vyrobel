@@ -11,7 +11,7 @@ return [
     'chip_review' => 'შესამოწმებელი',
     'more_count' => '+:number კიდევ',
     'view_calendar' => 'კალენდრის ნახვა',
-    'message_guests' => 'სტუმრებისთვის მიწერა',
+    'message_guests' => 'მართვის კომპანიისთვის მიწერა',
     'download_statement' => 'ანგარიშგების ჩამოტვირთვა',
     'contact_support' => 'მხარდაჭერასთან დაკავშირება',
     'this_month' => 'ამ თვეში',

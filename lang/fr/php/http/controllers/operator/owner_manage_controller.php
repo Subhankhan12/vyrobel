@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Choisissez le dernier jour de la période.',
     'period_end_after_start' => 'La période doit se terminer le jour où elle commence ou après.',
     'period_not_closed' => 'Cette période n’a pas pu être clôturée : :reason Choisissez une période qui commence après la dernière période scellée.',
+    'period_sealed' => 'Impossible de régénérer un relevé finalisé ou verrouillé.',
+    'period_not_closed_other' => 'Le relevé de cette période n’a pas pu être généré.',
     'period_closed' => 'Période clôturée — relevé n° :number finalisé, net à verser : :amount. Les revenus pas encore encaissés auprès des clients restent non imputés et figureront sur un relevé ultérieur.',
     'note_required' => 'Rédigez d’abord la note.',
     'note_max' => 'Une note peut contenir jusqu’à 2 000 caractères.',

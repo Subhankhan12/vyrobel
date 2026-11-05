@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Beschikbaar',
     'check_the_rack' => 'Planbord bekijken<span class="vy-sr-only"> (opent in een nieuw tabblad)</span>',
     'pick_dates_first' => 'Kies hierboven de data om te zien wat er beschikbaar is.',
-    'too_long' => 'Een reservering mag maximaal :count nachten duren — kies een korter verblijf.',
+    'too_long' => '{1} Een reservering mag maximaal :count nacht duren — kies een korter verblijf.|[2,*] Een reservering mag maximaal :count nachten duren — kies een korter verblijf.',
     'rt_price' => '{1} <strong>:nightly</strong> · :price voor :count nacht|[0,*] <strong>:nightly</strong> · :price voor :count nachten',
     'rt_free' => ':count vrij',
     'units_in' => 'Eenheden in :name',

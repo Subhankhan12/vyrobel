@@ -83,5 +83,5 @@ return [
     'export_pdf_title' => 'Folyoyu PDF olarak indir',
     'export_pdf' => 'Folyoyu dışa aktar (PDF)',
     'export_csv_print' => 'CSV dışa aktar · yazdır',
-    'room_moves_note' => 'Oda değişiklikleri korumalı AssignmentService üzerinden geçer (kilitli, fazla rezervasyon yok) ve hemen kaydedilir.',
+    'room_moves_note' => 'Oda değişikliğinde müsaitlik kontrol edilir, böylece bir oda hiçbir zaman iki kez rezerve edilmez; değişiklik hemen kaydedilir.',
 ];

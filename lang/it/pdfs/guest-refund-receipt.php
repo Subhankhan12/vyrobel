@@ -10,6 +10,8 @@ return [
     'col_refund' => 'Rimborso',
     'col_amount' => 'Importo',
     'refund_to' => 'Rimborso su: :method',
+    'method_manual' => 'Manuale',
+    'method_bank_transfer' => 'Bonifico bancario',
     'total_refunded' => 'Totale rimborsato',
     'footer' => 'Ricevuta del denaro restituito, generata dal registro non modificabile dei conti di Vyrobel; ogni rimborso è registrato come storno separato e corrisponde ai dati del Suo account. Vyrobel · :operator.',
 ];

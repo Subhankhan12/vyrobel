@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Dinheiro',
     'method_bank_transfer' => 'Transferência bancária',
     'collect_button' => 'Cobrar',
-    'hint' => 'Registra no fólio real · o terminal de cartão é a integração Stripe ainda pendente — receba em dinheiro ou por transferência bancária agora.',
+    'hint' => 'Registra no fólio real · os pagamentos com cartão ainda não estão ativados aqui — receba em dinheiro ou por transferência bancária agora.',
 ];

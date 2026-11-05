@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Prenotazione collegata.',
     'conversation_started' => 'Conversazione avviata.',
     'workspace_paused' => 'Organizzazione in pausa — la messaggistica è in sola lettura (ripresa: :date).',
+    'workspace_paused_for_now' => 'Organizzazione in pausa — per il momento la messaggistica è in sola lettura.',
 ];

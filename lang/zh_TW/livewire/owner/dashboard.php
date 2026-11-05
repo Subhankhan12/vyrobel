@@ -11,7 +11,7 @@ return [
     'chip_review' => '待查看',
     'more_count' => '還有 :number 項',
     'view_calendar' => '檢視日曆',
-    'message_guests' => '傳送訊息給房客',
+    'message_guests' => '傳送訊息給代管方',
     'download_statement' => '下載結算單',
     'contact_support' => '聯絡客服',
     'this_month' => '本月',

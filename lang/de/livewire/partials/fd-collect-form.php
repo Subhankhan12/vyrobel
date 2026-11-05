@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Bar',
     'method_bank_transfer' => 'Banküberweisung',
     'collect_button' => 'Kassieren',
-    'hint' => 'Wird auf dem echten Folio erfasst · das Kartenterminal ist die noch ausstehende Stripe-Anbindung — nehmen Sie jetzt Bargeld oder eine Banküberweisung an.',
+    'hint' => 'Wird auf dem echten Folio erfasst · Kartenzahlungen sind hier noch nicht eingeschaltet — nehmen Sie jetzt Bargeld oder eine Banküberweisung an.',
 ];

@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Escolha o último dia do período.',
     'period_end_after_start' => 'O período deve terminar no mesmo dia em que começa ou depois.',
     'period_not_closed' => 'Não foi possível fechar este período: :reason Escolha um período que comece depois do último lacrado.',
+    'period_sealed' => 'Não é possível gerar de novo um extrato finalizado ou bloqueado.',
+    'period_not_closed_other' => 'Não foi possível gerar o extrato desse período.',
     'period_closed' => 'Período fechado — extrato nº :number finalizado com :amount a pagar. A receita ainda não recebida dos hóspedes fica pendente e aparecerá em um extrato futuro.',
     'note_required' => 'Escreva a observação primeiro.',
     'note_max' => 'Uma observação pode ter até 2.000 caracteres.',

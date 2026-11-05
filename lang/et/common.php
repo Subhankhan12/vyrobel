@@ -40,4 +40,5 @@ return [
     'date' => 'Kuupäev',
     'total' => 'Kokku',
     'today' => 'Täna',
+    'sentence_end' => '.',
 ];

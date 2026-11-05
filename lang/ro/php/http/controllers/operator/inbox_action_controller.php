@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Rezervare asociată.',
     'conversation_started' => 'Conversație începută.',
     'workspace_paused' => 'Organizație în pauză — mesageria este doar în citire până la :date.',
+    'workspace_paused_for_now' => 'Organizație în pauză — mesageria este deocamdată doar în citire.',
 ];

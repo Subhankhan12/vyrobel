@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organização em pausa — adicionar um alojamento está em modo só de leitura até :resume.',
+    'paused_adding_no_date' => 'Organização em pausa — adicionar um alojamento está, por agora, em modo só de leitura.',
+    'paused_editing_no_date' => 'Organização em pausa — editar um alojamento está, por agora, em modo só de leitura.',
     'property_added' => ':name adicionado ao seu portefólio. A seguir: adicione um tipo de quarto e uma unidade e depois um plano tarifário com preços — a partir daí pode aceitar reservas.',
     'paused_editing' => 'Organização em pausa — editar um alojamento está em modo só de leitura até :resume.',
     'property_updated' => ':name atualizado.',

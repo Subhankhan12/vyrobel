@@ -11,7 +11,7 @@ return [
     'chip_review' => 'İnceleme',
     'more_count' => '+:number daha',
     'view_calendar' => 'Takvimi görüntüle',
-    'message_guests' => 'Misafirlere mesaj gönder',
+    'message_guests' => 'Yönetim ekibine mesaj gönder',
     'download_statement' => 'Hesap özetini indir',
     'contact_support' => 'Destekle iletişime geç',
     'this_month' => 'Bu ay',

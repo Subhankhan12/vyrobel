@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Invitation · Vyrobel',
     'heading' => 'Ce lien d’invitation n’est pas valide',
-    'body' => 'Il a peut-être expiré ou déjà été utilisé. Demandez à votre exploitant d’envoyer une nouvelle invitation.',
+    'body' => 'Il a peut-être expiré ou déjà été utilisé. Demandez à la personne qui vous a envoyé l’invitation de vous en envoyer une nouvelle.',
     'go_to_sign_in' => 'Aller à la connexion',
 ];

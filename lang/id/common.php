@@ -40,4 +40,5 @@ return [
     'date' => 'Tanggal',
     'total' => 'Total',
     'today' => 'Hari ini',
+    'sentence_end' => '.',
 ];

@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Powiązano rezerwację.',
     'conversation_started' => 'Rozpoczęto rozmowę.',
     'workspace_paused' => 'Organizacja wstrzymana – wiadomości są tylko do odczytu do :date.',
+    'workspace_paused_for_now' => 'Organizacja wstrzymana – wiadomości są na razie tylko do odczytu.',
 ];

@@ -40,4 +40,5 @@ return [
     'date' => 'Ημερομηνία',
     'total' => 'Σύνολο',
     'today' => 'Σήμερα',
+    'sentence_end' => '.',
 ];

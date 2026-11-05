@@ -69,7 +69,7 @@ return [
     'whats_free' => 'Wolne jednostki',
     'check_the_rack' => 'Sprawdź grafik rezerwacji<span class="vy-sr-only"> (otwiera się w nowej karcie)</span>',
     'pick_dates_first' => 'Wybierz daty powyżej, aby zobaczyć wolne jednostki.',
-    'too_long' => 'Maksymalna liczba nocy w rezerwacji: :count – wybierz krótszy pobyt.',
+    'too_long' => '{1}Rezerwacja może obejmować najwyżej :count noc – wybierz krótszy pobyt.|Rezerwacja może obejmować najwyżej :count noce – wybierz krótszy pobyt.|Rezerwacja może obejmować najwyżej :count nocy – wybierz krótszy pobyt.',
     'rt_price' => '{1}<strong>:nightly</strong> · :price za :count noc|<strong>:nightly</strong> · :price za :count noce|<strong>:nightly</strong> · :price za :count nocy',
     'rt_free' => 'Wolne: :count',
     'units_in' => 'Jednostki typu :name',

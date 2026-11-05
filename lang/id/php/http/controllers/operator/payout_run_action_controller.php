@@ -6,6 +6,8 @@ return [
     'engine_disabled' => 'Mesin pencairan dinonaktifkan (PAYOUT_ENGINE_ENABLED). Aktifkan terlebih dahulu sebelum menjalankan pencairan.',
     'nothing_to_run' => 'Tidak ada yang dijalankan — tidak ada pemilik di sini yang memiliki rekap yang dapat dibayarkan atau pencairan yang ditahan:paused_note.',
     'run_complete' => 'Proses pencairan selesai (mode :mode) — :created dibuat · :paid dicairkan · :held ditahan:paused_note.',
+    'mode_test' => 'tes',
+    'mode_live' => 'live',
     'create_failed' => 'Pencairan tidak dapat dibuat — :reason',
     'already_has_payout' => 'Rekap tersebut sudah memiliki pencairan — tidak ada yang dibuat.',
     'one_payout_created' => '1 pencairan berhasil dibuat.',

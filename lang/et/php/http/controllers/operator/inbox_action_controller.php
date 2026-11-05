@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'Broneering on seotud.',
     'conversation_started' => 'Vestlus on alustatud.',
     'workspace_paused' => 'Organisatsioon on peatatud — sõnumeid saab kuni :date ainult lugeda.',
+    'workspace_paused_for_now' => 'Organisatsioon on peatatud — sõnumeid saab praegu ainult lugeda.',
 ];

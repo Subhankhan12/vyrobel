@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Siia ilmuvad kolmanda osapoole rakendused, millele annate volituse.',
     'change_password_title' => 'Parooli muutmine',
     'set_password_title' => 'Parooli määramine',
-    'change_password_sub' => 'Teised seadmed, kus on valitud „Jäta mind meelde“, logitakse välja.',
+    'change_password_sub' => 'Kõik teised seadmed logitakse välja. Siin jääte sisse logituks.',
     'set_password_sub' => 'Seda küsitakse tundlike muudatuste kinnitamisel.',
     'current_password' => 'Praegune parool',
     'new_password' => 'Uus parool',

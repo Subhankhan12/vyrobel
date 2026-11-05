@@ -15,6 +15,8 @@ return [
     'period_end_required' => 'Scegliere l’ultimo giorno del periodo.',
     'period_end_after_start' => 'Il periodo deve terminare lo stesso giorno in cui inizia o in un giorno successivo.',
     'period_not_closed' => 'Impossibile chiudere il periodo: :reason Scegliere un periodo che inizi dopo l’ultimo periodo chiuso.',
+    'period_sealed' => 'Impossibile rigenerare un rendiconto finalizzato o bloccato.',
+    'period_not_closed_other' => 'Non è stato possibile generare il rendiconto per quel periodo.',
     'period_closed' => 'Periodo chiuso — rendiconto n. :number finalizzato, importo da versare: :amount. I ricavi non ancora incassati dagli ospiti restano non attribuiti e compariranno in un rendiconto successivo.',
     'note_required' => 'Scrivere prima la nota.',
     'note_max' => 'Una nota può contenere al massimo 2.000 caratteri.',

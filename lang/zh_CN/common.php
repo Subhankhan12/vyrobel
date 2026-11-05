@@ -40,4 +40,5 @@ return [
     'date' => '日期',
     'total' => '总计',
     'today' => '今天',
+    'sentence_end' => '。',
 ];

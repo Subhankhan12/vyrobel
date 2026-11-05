@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Sularaha',
     'method_bank_transfer' => 'Pangaülekanne',
     'collect_button' => 'Võta vastu',
-    'hint' => 'Kantakse tegelikku foliosse · kaarditerminal on Stripe’i edasilükatud liides — võtke praegu vastu sularaha või pangaülekanne.',
+    'hint' => 'Kantakse tegelikku foliosse · kaardimaksed pole siin veel sisse lülitatud — võtke praegu vastu sularaha või pangaülekanne.',
 ];

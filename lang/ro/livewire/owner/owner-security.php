@@ -47,7 +47,7 @@ return [
     'no_connected_apps_hint' => 'Aplicațiile terțe pe care le autorizați vor apărea aici.',
     'change_password_title' => 'Schimbare parolă',
     'set_password_title' => 'Setare parolă',
-    'change_password_sub' => 'Celelalte dispozitive pe care ați ales să rămâneți conectat sunt deconectate.',
+    'change_password_sub' => 'Toate celelalte dispozitive sunt deconectate. Sesiunea de aici rămâne activă.',
     'set_password_sub' => 'Vi se va cere atunci când confirmați modificări importante.',
     'current_password' => 'Parola actuală',
     'new_password' => 'Parola nouă',

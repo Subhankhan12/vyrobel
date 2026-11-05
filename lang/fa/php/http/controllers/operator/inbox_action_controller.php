@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'رزرو متصل شد.',
     'conversation_started' => 'گفتگو شروع شد.',
     'workspace_paused' => 'فضای کاری متوقف است — پیام‌رسانی تا :date فقط خواندنی است.',
+    'workspace_paused_for_now' => 'فضای کاری متوقف است — پیام‌رسانی فعلاً فقط خواندنی است.',
 ];

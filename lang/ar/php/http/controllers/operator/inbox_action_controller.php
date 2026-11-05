@@ -26,4 +26,5 @@ return [
     'reservation_linked' => 'تم ربط الحجز.',
     'conversation_started' => 'تم بدء المحادثة.',
     'workspace_paused' => 'مساحة العمل متوقفة مؤقتًا — المراسلة للقراءة فقط حتى :date.',
+    'workspace_paused_for_now' => 'مساحة العمل متوقفة مؤقتًا — المراسلة للقراءة فقط حاليًا.',
 ];

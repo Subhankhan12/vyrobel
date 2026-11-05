@@ -4,6 +4,8 @@
 
 return [
     'paused_adding' => 'Organización en pausa: no se pueden agregar alojamientos hasta el :resume.',
+    'paused_adding_no_date' => 'Organización en pausa: por ahora, agregar un alojamiento está en modo de solo lectura.',
+    'paused_editing_no_date' => 'Organización en pausa: por ahora, editar un alojamiento está en modo de solo lectura.',
     'property_added' => 'Se agregó :name a su cartera. Siguiente paso: agregue un tipo de habitación y una unidad, y después un plan tarifario con precios; entonces podrá aceptar reservas.',
     'paused_editing' => 'Organización en pausa: no se pueden editar alojamientos hasta el :resume.',
     'property_updated' => 'Se actualizó :name.',

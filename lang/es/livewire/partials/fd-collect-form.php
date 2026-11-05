@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Efectivo',
     'method_bank_transfer' => 'Transferencia bancaria',
     'collect_button' => 'Cobrar',
-    'hint' => 'Se registra en el folio real · el terminal de tarjetas es la conexión con Stripe aún pendiente: cobre ahora en efectivo o por transferencia bancaria.',
+    'hint' => 'Se registra en el folio real · los pagos con tarjeta aún no están activados aquí: cobre ahora en efectivo o por transferencia bancaria.',
 ];
