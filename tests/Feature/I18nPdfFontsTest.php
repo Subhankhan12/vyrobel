@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\Pdf\PdfFonts;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Exceptions;
 
 // I18N-01 · PDF fonts (2026-11-05). dompdf writes a bundled font's metrics into its font directory and cannot create it: on a
 // fresh checkout `storage/fonts` did not exist, registerFont() failed, and a Thai / Chinese / Korean PDF printed in Times with no
@@ -15,6 +16,7 @@ it('creates a missing font directory and embeds the bundled Thai font', function
     $dir = sys_get_temp_dir().'/vy-pdf-fonts-'.bin2hex(random_bytes(4));   // a directory that does not exist yet
     expect(is_dir($dir))->toBeFalse();
 
+    Exceptions::fake();   // PdfFonts::prepare reports (never throws): a failure must show its reason here, not only 'false is not true'
     app()->setLocale('th');
     $html = PdfFonts::html('<html><head><meta charset="utf-8"></head><body style="font-family:\'DejaVu Sans\'">สวัสดี ห้องพัก</body></html>', 'th');
     $pdf = Pdf::loadHTML($html);
@@ -22,6 +24,9 @@ it('creates a missing font directory and embeds the bundled Thai font', function
     $options->setFontDir($dir);
     $options->setFontCache($dir);
     PdfFonts::prepare($pdf->getDomPDF(), 'th');
+
+    $reasons = collect(Exceptions::reported())->map(fn ($e) => get_class($e).': '.$e->getMessage())->all();
+    expect($reasons)->toBe([]);
 
     $out = $pdf->output();
 
