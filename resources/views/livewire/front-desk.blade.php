@@ -278,7 +278,7 @@
                         <div class="vy-fdm-head">
                             <div>
                                 <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-checkin-5">{!! __('livewire/front-desk.checkin_title') !!}</div>
-                                <div class="vy-fdm-sub"><span x-text="row.unit || @js(__('livewire/front-desk.unassigned'))"></span> · <span x-text="row.nights_label"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
+                                <div class="vy-fdm-sub"><span x-text="row.unit || @js(__('livewire/front-desk.unassigned'))"></span> · <span x-text="row.nights_label"></span> · <span x-text="@js(__('livewire/front-desk.date_range', ['from' => ':from', 'to' => ':to'])).replace(':from', () => row.check_in_label).replace(':to', () => row.check_out_label)"></span></div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="{{ __('common.close') }}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
@@ -321,7 +321,7 @@
                         <div class="vy-fdm-head">
                             <div>
                                 <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-checkout-4">{!! __('livewire/front-desk.checkout_title') !!}</div>
-                                <div class="vy-fdm-sub"><span x-text="row.unit || @js(__('livewire/front-desk.unassigned'))"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
+                                <div class="vy-fdm-sub"><span x-text="row.unit || @js(__('livewire/front-desk.unassigned'))"></span> · <span x-text="@js(__('livewire/front-desk.date_range', ['from' => ':from', 'to' => ':to'])).replace(':from', () => row.check_in_label).replace(':to', () => row.check_out_label)"></span></div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="{{ __('common.close') }}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>

@@ -6,6 +6,9 @@ return [
     'engine_disabled' => 'The payout engine is disabled (PAYOUT_ENGINE_ENABLED). Enable it before running a payout.',
     'nothing_to_run' => 'Nothing to run — no owner here has a payable statement or a held payout:paused_note.',
     'run_complete' => 'Payout run complete (:mode mode) — :created created · :paid paid · :held held:paused_note.',
+    // the run's mode as a word people read in the sentence above (test = no real money moves)
+    'mode_test' => 'test',
+    'mode_live' => 'live',
     'create_failed' => 'Couldn’t create the payout — :reason',
     'already_has_payout' => 'That statement already has a payout — nothing was created.',
     'one_payout_created' => '1 payout created.',

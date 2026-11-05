@@ -26,9 +26,9 @@ return [
     'callout_heading' => 'Payout.',
     'settles_to_iban' => 'The net amount of :amount settles by bank transfer to IBAN :iban.',
     'settles' => 'The net amount of :amount settles by bank transfer.',
-    // with no commission rate the clause opens the sentence in lower case, exactly as the English always read
+    // with no commission rate this is a sentence of its own after the settlement line, so it starts with a capital
     'fees_with_commission' => 'Management commission is charged at :pct% of gross room revenue; payment and platform fees are passed through at cost. All amounts are in :currency and include applicable taxes collected on your behalf.',
-    'fees' => 'payment and platform fees are passed through at cost. All amounts are in :currency and include applicable taxes collected on your behalf.',
+    'fees' => 'Payment and platform fees are passed through at cost. All amounts are in :currency and include applicable taxes collected on your behalf.',
     'fx_note' => 'Converted from :source at :rate (source: :src).',
     'provisional_note' => 'Some lines are provisional, pending channel reconciliation.',
     'statement_ref' => 'statement :ref',

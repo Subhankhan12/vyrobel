@@ -72,7 +72,7 @@ it('⚠️ F-18 — refuses check-in from every TERMINAL state, proven by row st
     } catch (RuntimeException $e) {
         expect($e->getMessage())->toContain(match ($from) {
             'checked_out' => 'departure has already been recorded',
-            'no_show' => 'take a New reservation on the front desk',
+            'no_show' => 'take a Walk-in on the front desk',
             default => 'needs a new booking',
         });
     }

@@ -80,7 +80,11 @@ class UniquePlanTierCycle implements DataAwareRule, ValidationRule
             $fail(__('php/support/billing/unique_plan_tier_cycle.tier_taken', [
                 'tier' => $tier,
                 'plan' => (string) $clash->code,
-                'interval' => $interval,
+                'interval' => match ($interval) {
+                    'monthly' => __('php/support/billing/unique_plan_tier_cycle.interval_monthly'),
+                    'yearly' => __('php/support/billing/unique_plan_tier_cycle.interval_yearly'),
+                    default => $interval,
+                },
             ]));
         }
     }

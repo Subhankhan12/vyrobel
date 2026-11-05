@@ -8,5 +8,5 @@ return [
     'method_cash' => 'Cash',
     'method_bank_transfer' => 'Bank transfer',
     'collect_button' => 'Collect',
-    'hint' => 'Records against the real folio · card terminal is the deferred Stripe seam — take cash or a bank transfer now.',
+    'hint' => 'Records against the real folio · card payments are not switched on here yet — take cash or a bank transfer now.',
 ];

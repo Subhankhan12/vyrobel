@@ -39,6 +39,8 @@ return [
     'vip' => 'VIP',
     'expected_arrival' => 'Arrival · :window',
     'unassigned' => 'Unassigned',
+    // two dates joined as a range, e.g. “12 Nov–14 Nov” — a language writes its own joiner
+    'date_range' => ':from–:to',
     'assign_link' => 'Assign →',
     'move_link' => 'Move',
     'nights' => '{1} :count night|[0,*] :count nights',
@@ -102,7 +104,7 @@ return [
     'method' => 'Method',
     'method_cash' => 'Cash',
     'method_bank' => 'Bank transfer',
-    'card_terminal_hint' => 'Card terminal at the desk is the deferred Stripe seam · the rest stays on the folio.',
+    'card_terminal_hint' => 'Card payments at the desk are not switched on here yet · the rest stays on the folio.',
     'check_in_walk_in' => 'Check in walk-in',
     // the note under the board
     'live_integrations' => 'Live integrations',

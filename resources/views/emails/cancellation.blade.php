@@ -52,7 +52,7 @@
         @endif
     @endif
 
-    <p style="margin:0 0 18px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ $sourceLine }}.</p>
+    <p style="margin:0 0 18px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ $sourceLine }}{{ __('common.sentence_end') }}</p>
 
     {{-- Come-back invitation (toggleable block #86) — a warm invite + real link, never a fabricated promo --}}
     @if ($blocks['return_offer'] ?? true)

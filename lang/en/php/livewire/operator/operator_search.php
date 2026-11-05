@@ -14,7 +14,7 @@ return [
     'status_cancelled' => 'Cancelled',
     'source_direct' => 'Direct',
     // written as the page has always shown the code (OTA = online travel agency)
-    'source_ota' => 'Ota',
+    'source_ota' => 'OTA',
     'source_walk_in' => 'Walk in',
     'source_corporate' => 'Corporate',
     'source_group' => 'Group',

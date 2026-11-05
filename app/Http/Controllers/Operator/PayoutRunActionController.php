@@ -91,7 +91,7 @@ class PayoutRunActionController extends Controller
         $held = (int) ($run->payouts_held ?? 0);
 
         return $this->back('payout_notice', __('php/http/controllers/operator/payout_run_action_controller.run_complete', [
-            'mode' => $run->mode, 'created' => $created, 'paid' => $paid, 'held' => $held, 'paused_note' => $this->pausedNote($paused),
+            'mode' => $this->modeWord((string) $run->mode), 'created' => $created, 'paid' => $paid, 'held' => $held, 'paused_note' => $this->pausedNote($paused),
         ]));
     }
 
@@ -353,6 +353,16 @@ class PayoutRunActionController extends Controller
         return $paused > 0
             ? __('php/http/controllers/operator/payout_run_action_controller.paused_note', ['skipped' => trans_choice('php/http/controllers/operator/payout_run_action_controller.paused_owners_skipped', $paused, ['count' => $paused])])
             : '';
+    }
+
+    /** The run's mode ('test' / 'live') as the word a person reads — never the raw code (D-I18N-PAYOUT-MODE). */
+    private function modeWord(string $mode): string
+    {
+        return match ($mode) {
+            PayoutRunModel::MODE_TEST => __('php/http/controllers/operator/payout_run_action_controller.mode_test'),
+            PayoutRunModel::MODE_LIVE => __('php/http/controllers/operator/payout_run_action_controller.mode_live'),
+            default => $mode,
+        };
     }
 
     private function back(string $key, string $message): RedirectResponse

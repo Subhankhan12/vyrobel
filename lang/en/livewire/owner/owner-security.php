@@ -60,7 +60,7 @@ return [
     // the password dialog
     'change_password_title' => 'Change password',
     'set_password_title' => 'Set a password',
-    'change_password_sub' => 'Other devices with “remember me” are signed out.',
+    'change_password_sub' => 'Every other device is signed out. You stay signed in here.',
     'set_password_sub' => 'You’ll be asked for it when confirming sensitive changes.',
     'current_password' => 'Current password',
     'new_password' => 'New password',

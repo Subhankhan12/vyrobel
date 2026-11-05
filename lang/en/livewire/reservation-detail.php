@@ -101,5 +101,5 @@ return [
     'export_pdf_title' => 'Download the folio as a PDF',
     'export_pdf' => 'Export folio (PDF)',
     'export_csv_print' => 'Export CSV · print',
-    'room_moves_note' => 'Room moves route through the guarded AssignmentService (locked, no overbooking) and persist immediately.',
+    'room_moves_note' => 'A room move is checked for availability so a room is never booked twice, and it is saved straight away.',
 ];

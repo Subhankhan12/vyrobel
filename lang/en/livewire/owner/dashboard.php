@@ -11,7 +11,7 @@ return [
     'chip_review' => 'Review',
     'more_count' => '+:number more',
     'view_calendar' => 'View calendar',
-    'message_guests' => 'Message guests',
+    'message_guests' => 'Message the management team',
     'download_statement' => 'Download statement',
     'contact_support' => 'Contact support',
     'this_month' => 'This month',

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Owner\StatementSealedException;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
@@ -86,7 +87,7 @@ class OwnerStatementService
         ]);
 
         if ($statement->exists && $statement->isLocked()) {
-            throw new RuntimeException('Cannot regenerate a finalized/locked statement.');
+            throw StatementSealedException::cannotRegenerate();
         }
 
         $claimed = $this->claimable($ownerId, $periodEnd);
@@ -106,7 +107,7 @@ class OwnerStatementService
     public function finalize(OwnerStatement $statement, ?string $finalizedBy = null, ?string $fxRate = null, ?string $fxSource = null): OwnerStatement
     {
         if ($statement->isLocked()) {
-            throw new RuntimeException('Statement is already finalized/locked.');
+            throw StatementSealedException::alreadyFinalized();
         }
 
         $owner = Owner::query()->findOrFail($statement->owner_id);

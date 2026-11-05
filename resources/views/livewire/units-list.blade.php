@@ -308,7 +308,7 @@
                                                         <span class="vy-ul-thumb is-empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">{!! $kindIcons[$row['kind_key'] === 'dorm_bed' ? 'dorm' : $row['kind_key']] ?? $kindIcons['room'] !!}</svg></span>
                                                     @endif
                                                     <div class="vy-ul-who">
-                                                        <div class="vy-gl-nameline"><span class="vy-ul-code">{{ $row['code'] }}</span>@if (! $row['is_active']) <span class="vy-tag tone-paused">{{ __('livewire/units-list.paused') }}</span>@endif</div>
+                                                        <div class="vy-gl-nameline"><span class="vy-ul-code">{{ $row['code'] }}</span>@if (! $row['is_active']) <span class="vy-tag tone-paused">{{ __('livewire/units-list.unit_paused_tag') }}</span>@endif</div>
                                                         {{-- the second line only when it has something to say (an empty one pushed the code off centre) --}}
                                                         @php
                                                             $vySub = array_values(array_filter([
@@ -521,7 +521,7 @@
                                     <p class="vy-ul-addsto">{!! __('livewire/units-list.adds_to', ['property' => e($addsTo)]) !!}</p>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-ul-rt-name">{{ __('common.name') }}</label>
+                                    <label class="vy-field-label" for="vy-ul-rt-name">{{ __('livewire/units-list.room_type_name_label') }}</label>
                                     <input class="vy-input" id="vy-ul-rt-name" type="text" name="name" maxlength="255" required placeholder="{{ __('livewire/units-list.room_type_name_placeholder') }}" x-model="rtForm.name" autocomplete="off">
                                 </div>
                                 <div class="vy-ul-kinds">
@@ -739,7 +739,7 @@
                                     </div>
                                 @endif
                                 <div class="vy-field">
-                                    <label class="vy-field-label" for="vy-ul-rte-name">{{ __('common.name') }}</label>
+                                    <label class="vy-field-label" for="vy-ul-rte-name">{{ __('livewire/units-list.room_type_name_label') }}</label>
                                     <input class="vy-input" id="vy-ul-rte-name" type="text" name="name" maxlength="255" required x-model="rtEdit.name" autocomplete="off">
                                 </div>
                                 <div class="vy-ul-kinds" x-show="rtEdit.unit_rows === 0">

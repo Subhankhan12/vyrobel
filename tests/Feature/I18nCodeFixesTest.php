@@ -111,3 +111,13 @@ it('joins a list of words with the language\'s own separator, English exactly as
     app()->setLocale('ar');
     expect(ListJoin::join(['x', 'y']))->toBe('x، y');
 });
+
+it('prints a Georgian month and year without the comma ICU puts between them, and leaves every other pattern as ICU gave it (D-I18N-KA-MONTH-COMMA)', function () {
+    CarbonFixes::apply('ka');
+    expect(LocalDate::pattern('F Y', 'ka'))->toBe('F Y')
+        ->and(cfDate()->locale('ka')->translatedFormat(LocalDate::pattern('F Y', 'ka')))->toBe('ნოემბერი 2026')
+        ->and(LocalDate::pattern('F Y', 'en'))->toBe('F Y')
+        ->and(LocalDate::pattern('j F Y', 'ka'))->toBe('j F, Y');   // a day-month-year line keeps ICU's own comma
+    // another language's month-and-year order is untouched by the Georgian rule
+    expect(LocalDate::pattern('F Y', 'de'))->not->toBe('F, Y');
+});

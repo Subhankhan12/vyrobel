@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Operator;
 
+use App\Exceptions\Owner\StatementSealedException;
 use App\Http\Controllers\Controller;
 use App\Models\ManagementAgreement;
 use App\Models\Owner;
@@ -171,8 +172,14 @@ class OwnerManageController extends Controller
             );
         } catch (RuntimeException $e) {
             // the dates come back with the refusal, so the dialog reopens with them and says why (2026-10-03)
+            // ⚠️ the reason is a translated key chosen by the exception's TYPE — an exception's own message is English and
+            //    for the log, never for a person (D-I18N-STATEMENT-REFUSAL)
+            $reason = $e instanceof StatementSealedException
+                ? __('php/http/controllers/operator/owner_manage_controller.period_sealed')
+                : __('php/http/controllers/operator/owner_manage_controller.period_not_closed_other');
+
             return $this->back($owner, 'owners_error',
-                __('php/http/controllers/operator/owner_manage_controller.period_not_closed', ['reason' => $e->getMessage()]))->withInput($request->only('_form', 'period_start', 'period_end'));
+                __('php/http/controllers/operator/owner_manage_controller.period_not_closed', ['reason' => $reason]))->withInput($request->only('_form', 'period_start', 'period_end'));
         }
 
         // ⚠️ Recorded as a field list, never the figures — an audit row is not a second copy of the money.

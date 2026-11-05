@@ -72,7 +72,14 @@ final class LocalDate
             return $pattern;
         }
 
-        return self::toPhp($icu).($zone ? ' T' : '');
+        $php = self::toPhp($icu);
+        // ⚠️ Georgian's ICU pattern for a month and a year is "LLLL, y" — "ნოემბერი, 2026", a comma Georgian does not write
+        //    between the two (D-I18N-KA-MONTH-COMMA). Only that one shape moves; every other pattern and language is as ICU gave it.
+        if ($locale === 'ka' && $php === 'F, Y') {
+            $php = 'F Y';
+        }
+
+        return $php.($zone ? ' T' : '');
     }
 
     /** An ICU pattern ("d. MMM y, HH:mm", "y年M月d日", "d MMM y 'г'.") in PHP's date() letters, literal text escaped. */

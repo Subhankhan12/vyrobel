@@ -352,7 +352,11 @@ class InboxActionController extends Controller
 
     private function pausedMessage(): string
     {
-        return __('php/http/controllers/operator/inbox_action_controller.workspace_paused', ['date' => app(OperatorWorkspace::class)->resumeLabel()]);
+        $date = app(OperatorWorkspace::class)->resumeLabel();
+
+        return $date !== null
+            ? __('php/http/controllers/operator/inbox_action_controller.workspace_paused', ['date' => $date])
+            : __('php/http/controllers/operator/inbox_action_controller.workspace_paused_for_now');
     }
 
     private function back(MessageThread $model, string $key, string $message): RedirectResponse

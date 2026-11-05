@@ -27,4 +27,5 @@ return [
     'reservation_linked' => 'Reservation linked.',
     'conversation_started' => 'Conversation started.',
     'workspace_paused' => 'Workspace paused — messaging is read-only until :date.',
+    'workspace_paused_for_now' => 'Workspace paused — messaging is read-only for now.',
 ];

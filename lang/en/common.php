@@ -45,4 +45,6 @@ return [
     'date' => 'Date',
     'total' => 'Total',
     'today' => 'Today',
+    // the full stop that ends a sentence built from translated parts (a language can write its own)
+    'sentence_end' => '.',
 ];

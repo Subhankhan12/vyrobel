@@ -5,6 +5,6 @@
 return [
     'page_title' => 'Invitation · Vyrobel',
     'heading' => 'This invitation link isn’t valid',
-    'body' => 'It may have expired or already been used. Please ask your operator to send a new invitation.',
+    'body' => 'It may have expired or already been used. Please ask whoever invited you to send a new invitation.',
     'go_to_sign_in' => 'Go to sign in',
 ];

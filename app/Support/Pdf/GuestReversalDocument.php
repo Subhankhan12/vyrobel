@@ -47,7 +47,7 @@ final class GuestReversalDocument
                 $refunds[] = [
                     'date' => $when->translatedFormat(LocalDate::pattern('j M Y')),
                     'amount' => MoneyFormatter::display($amount, $currency),
-                    'method' => ucfirst(str_replace('_', ' ', (string) ($payment->gateway ?? 'manual'))),
+                    'method' => self::methodLabel((string) ($payment->gateway ?? 'manual')),
                 ];
             }
         }
@@ -65,5 +65,15 @@ final class GuestReversalDocument
             'refund_no' => 'RF-'.$reservation->reference,
             'credit_note_no' => 'CN-'.$reservation->reference,
         ];
+    }
+
+    /** The refund rail as a person reads it: words we own are translated, a brand (Stripe) and anything unknown stay as they are. */
+    private static function methodLabel(string $gateway): string
+    {
+        return match ($gateway) {
+            'manual' => __('pdfs/guest-refund-receipt.method_manual'),
+            'bank_transfer' => __('pdfs/guest-refund-receipt.method_bank_transfer'),
+            default => ucfirst(str_replace('_', ' ', $gateway)),
+        };
     }
 }

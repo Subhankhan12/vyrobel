@@ -47,7 +47,7 @@ return [
     // a permission section heading, keyed by its resource
     'section_addons' => 'Addons',
     'section_amenities' => 'Amenities',
-    'section_api' => 'Api',
+    'section_api' => 'API',
     'section_availability' => 'Availability',
     'section_billing' => 'Billing',
     'section_corporate_accounts' => 'Corporate accounts',

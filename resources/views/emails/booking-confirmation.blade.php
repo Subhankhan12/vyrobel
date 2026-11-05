@@ -86,7 +86,7 @@
     </table>
 
     {{-- Footer note + calendar links --}}
-    <p style="margin:20px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $sourceLine }}@if ($freeCancelUntil) · {{ __('emails/booking-confirmation.free_cancel_until', ['date' => $freeCancelUntil]) }}@endif.</p>
+    <p style="margin:20px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $sourceLine }}@if ($freeCancelUntil) · {{ __('emails/booking-confirmation.free_cancel_until', ['date' => $freeCancelUntil]) }}@endif{{ __('common.sentence_end') }}</p>
     @if ($blocks['calendar_links'] ?? true)
     <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#6C645F;">{{ __('emails/booking-confirmation.add_to_calendar') }} <a href="{{ $calendar['google'] }}" style="color:#5F5853; font-weight:500; text-decoration:none;">Google</a> · <a href="{{ $calendar['outlook'] }}" style="color:#5F5853; font-weight:500; text-decoration:none;">Outlook</a> · <a href="{{ $calendar['ics'] }}" download="{{ $reference }}.ics" style="color:#5F5853; font-weight:500; text-decoration:none;">Apple</a></p>
     @endif

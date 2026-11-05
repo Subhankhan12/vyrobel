@@ -4,6 +4,9 @@
 
 return [
     'paused_adding' => 'Workspace paused — adding a property is read-only until :resume.',
+    // a pause with no resume date (a cancelled pause has none) — never “until .”
+    'paused_adding_no_date' => 'Workspace paused — adding a property is read-only for now.',
+    'paused_editing_no_date' => 'Workspace paused — editing a property is read-only for now.',
     'property_added' => ':name added to your portfolio. Next: add a room type and a unit, then a rate plan with prices — then it can take bookings.',
     'paused_editing' => 'Workspace paused — editing a property is read-only until :resume.',
     'property_updated' => ':name updated.',

@@ -36,7 +36,7 @@ return [
     'acknowledged' => 'Acknowledged · takes effect :effective.',
     'fee_covers_heading' => 'What your fee covers',
     'fee_covers_sub' => 'Included in the :rate management fee — no extra charge.',
-    'fee_covers_sub_no_rate' => 'Included in the management management fee — no extra charge.',
+    'fee_covers_sub_no_rate' => 'Included in the management fee — no extra charge.',
     'billed_at_cost' => 'Billed separately, at cost',
     'at_cost_empty' => 'Anything beyond management — deep cleaning, repairs, consumables — is billed to you at cost as it’s incurred. Nothing has been charged yet.',
     'terms_by_villa' => 'Terms by villa',

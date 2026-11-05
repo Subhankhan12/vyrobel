@@ -46,7 +46,11 @@ class PropertyController extends Controller
     public function store(Request $request): RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.paused_adding', ['resume' => app(OperatorWorkspace::class)->resumeLabel()]));
+            $resume = app(OperatorWorkspace::class)->resumeLabel();
+
+            return redirect()->route('app.portfolio')->with('portfolio_error', $resume !== null
+                ? __('php/http/controllers/operator/property_controller.paused_adding', ['resume' => $resume])
+                : __('php/http/controllers/operator/property_controller.paused_adding_no_date'));
         }
 
         $data = $request->validate([
@@ -93,7 +97,11 @@ class PropertyController extends Controller
     public function update(Request $request): RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return redirect()->route('app.portfolio')->with('portfolio_error', __('php/http/controllers/operator/property_controller.paused_editing', ['resume' => app(OperatorWorkspace::class)->resumeLabel()]));
+            $resume = app(OperatorWorkspace::class)->resumeLabel();
+
+            return redirect()->route('app.portfolio')->with('portfolio_error', $resume !== null
+                ? __('php/http/controllers/operator/property_controller.paused_editing', ['resume' => $resume])
+                : __('php/http/controllers/operator/property_controller.paused_editing_no_date'));
         }
 
         $data = $request->validate([

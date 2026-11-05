@@ -81,7 +81,7 @@ return [
     'whats_free' => 'What’s free',
     'check_the_rack' => 'Check the rack<span class="vy-sr-only"> (opens in a new tab)</span>',
     'pick_dates_first' => 'Pick the dates above to see what’s free.',
-    'too_long' => 'A booking can be at most :count nights — pick a shorter stay.',
+    'too_long' => '{1} A booking can be at most :count night — pick a shorter stay.|[2,*] A booking can be at most :count nights — pick a shorter stay.',
     // a room type's price: :nightly ("€120.00 a night"), :price the whole stay
     'rt_price' => '{1} <strong>:nightly</strong> · :price for :count night|[0,*] <strong>:nightly</strong> · :price for :count nights',
     // units free in a room type that has no price yet

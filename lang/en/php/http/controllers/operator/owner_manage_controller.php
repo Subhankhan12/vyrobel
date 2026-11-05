@@ -15,6 +15,9 @@ return [
     'period_end_required' => 'Choose the last day of the period.',
     'period_end_after_start' => 'The period has to end on or after the day it starts.',
     'period_not_closed' => 'That period could not be closed: :reason Pick a period that starts after the last sealed one.',
+    // the reason slotted into the line above (:reason)
+    'period_sealed' => 'Cannot regenerate a finalized/locked statement.',
+    'period_not_closed_other' => 'The statement for that period could not be built.',
     'period_closed' => 'Period closed — statement #:number finalised at :amount payable. Revenue not yet collected from guests stays unclaimed and will appear on a later statement.',
     'note_required' => 'Write the note first.',
     'note_max' => 'A note can be up to 2,000 characters.',
