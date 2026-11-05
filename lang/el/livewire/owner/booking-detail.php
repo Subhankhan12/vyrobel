@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — el translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'Επισκόπηση',
+    'breadcrumb_bookings' => 'Κρατήσεις',
+    'guest_fallback' => 'Επισκέπτης',
+    'reservation' => 'Κράτηση',
+    'check_in' => 'Άφιξη',
+    'nights_count' => '{1}:count διανυκτέρευση|[0,*]:count διανυκτερεύσεις',
+    'check_out' => 'Αναχώρηση',
+    'unit' => 'Μονάδα',
+    'guests' => 'Επισκέπτες',
+    'nights' => 'Διανυκτερεύσεις',
+    'nightly_rate' => 'Τιμή ανά διανυκτέρευση',
+    'your_earnings' => 'Το εισόδημά σας',
+    'gross_to_net' => 'μικτό → καθαρό',
+    'gross_booking_value' => 'Μικτή αξία κράτησης',
+    'net_to_you' => 'Το καθαρό εισόδημά σας',
+    'refunds_we_covered' => 'Επιστροφές χρημάτων που καλύψαμε',
+    'refunds_we_covered_note' => 'Επιστράφηκαν στον επισκέπτη και χρεώθηκαν σε εμάς, όχι σε εσάς. Το εισόδημά σας παραπάνω παραμένει αμετάβλητο.',
+    'not_yet_attributed' => 'Δεν έχει ακόμη επιμεριστεί.',
+    'not_yet_attributed_note' => 'Το εισόδημά σας εμφανίζεται εδώ μόλις η κράτηση επιμεριστεί στο καθολικό σας — συνήθως μετά το check-out.',
+    'guest_heading' => 'Επισκέπτης',
+    'guest_contact_note' => 'Τα στοιχεία επικοινωνίας του επισκέπτη διαχειρίζονται από την εταιρεία διαχείρισης — εσείς βλέπετε την κράτηση και το εισόδημά σας.',
+    'message_your_team' => 'Μήνυμα στην εταιρεία διαχείρισης',
+    'timeline' => 'Χρονολόγιο',
+    'for_night_stay' => 'για αυτή τη διαμονή (διανυκτερεύσεις: :nights)',
+    'booking_details' => 'Στοιχεία κράτησης',
+    'confirmation' => 'Κωδικός κράτησης',
+    'source' => 'Πηγή',
+    'channel' => 'Κανάλι',
+    'booked_on' => 'Ημερομηνία κράτησης',
+    'download_confirmation' => 'Λήψη επιβεβαίωσης',
+    'download_unavailable' => 'Διαθέσιμο σε συνιδιοκτήτες και λογιστές',
+    'view_unit' => 'Προβολή μονάδας :unit',
+];

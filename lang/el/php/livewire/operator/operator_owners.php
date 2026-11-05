@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'Έτοιμοι για πληρωμή',
+    'chip_hold' => 'Σε αναμονή',
+    'chip_review' => 'Απαιτείται έλεγχος',
+    'chip_paused' => 'Εκταμιεύσεις σε παύση',
+    'chip_invited' => 'Προσκλήθηκε',
+    'sorted_name_asc' => 'ταξινόμηση ανά ιδιοκτήτη, Α–Ω',
+    'sorted_name_desc' => 'ταξινόμηση ανά ιδιοκτήτη, Ω–Α',
+    'sorted_units_desc' => 'ταξινόμηση με πρώτους όσους έχουν τις περισσότερες μονάδες',
+    'sorted_units_asc' => 'ταξινόμηση με πρώτους όσους έχουν τις λιγότερες μονάδες',
+    'sorted_net_desc' => 'ταξινόμηση με πρώτο το μεγαλύτερο καθαρό προς εκταμίευση',
+    'sorted_net_asc' => 'ταξινόμηση με πρώτο το μικρότερο καθαρό προς εκταμίευση',
+    'sorted_status_asc' => 'ταξινόμηση με πρώτα όσα χρειάζονται την προσοχή σας',
+    'sorted_status_desc' => 'ταξινόμηση με τελευταία όσα χρειάζονται την προσοχή σας',
+    'kpi_invited' => 'Προσκλήθηκαν: :number',
+    'kpi_units' => '{1}:count μονάδα|[0,*]:count μονάδες',
+    'kpi_owners_ready' => '{1}:count ιδιοκτήτης έτοιμος|[0,*]:count ιδιοκτήτες έτοιμοι',
+    'kpi_paused_not_counted' => 'Σε παύση, δεν προσμετρούνται: :number',
+    'kpi_hold_none' => 'δεν περιμένει τίποτα',
+    'kpi_hold_waiting' => 'περιμένουν: :amounts',
+    'kpi_review_sub' => 'Με γραμμές που το κανάλι κρατήσεων δεν έχει επιβεβαιώσει: :number',
+    'schedule' => ':day εργάσιμη ημέρα του μήνα',
+    'ordinal_st' => ':numberη',
+    'ordinal_nd' => ':numberη',
+    'ordinal_rd' => ':numberη',
+    'ordinal_th' => ':numberη',
+    'role_manager' => 'Διαχειριστής καταλύματος',
+    'role_accountant' => 'Λογιστής',
+    'role_owner' => 'Ιδιοκτήτης',
+    'another_owner' => 'άλλος ιδιοκτήτης',
+];

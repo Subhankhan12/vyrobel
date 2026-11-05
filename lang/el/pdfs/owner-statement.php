@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'διαχείριση με το Vyrobel',
+    'eyebrow' => 'Εκκαθάριση ιδιοκτήτη',
+    'unit_count' => '{1}:count μονάδα|[0,*]:count μονάδες',
+    'issued' => 'εκδόθηκε στις :date',
+    'prepared_for' => 'Εκδόθηκε για',
+    'net_payable_to_owner' => 'Καθαρό προς εκταμίευση στον ιδιοκτήτη',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'Πληρότητα',
+    'nights_sold' => 'Πωληθείσες διανυκτερεύσεις',
+    'avg_nightly_rate' => 'Μέση τιμή ανά διανυκτέρευση',
+    'breakdown' => 'Ανάλυση',
+    'item' => 'Στοιχείο',
+    'detail' => 'Λεπτομέρειες',
+    'amount' => 'Ποσό',
+    'provisional' => '(προσωρινή)',
+    'performance_by_unit' => 'Απόδοση ανά μονάδα',
+    'unit' => 'Μονάδα',
+    'nights' => 'Διανυκτερεύσεις',
+    'revenue' => 'Έσοδα',
+    'total_gross_room_revenue' => 'Σύνολο μικτών εσόδων δωματίων',
+    'callout_heading' => 'Εκταμίευση.',
+    'settles_to_iban' => 'Το καθαρό ποσό :amount εκταμιεύεται με τραπεζική μεταφορά στον λογαριασμό με IBAN :iban.',
+    'settles' => 'Το καθαρό ποσό :amount εκταμιεύεται με τραπεζική μεταφορά.',
+    'fees_with_commission' => 'Η προμήθεια διαχείρισης χρεώνεται με :pct% επί των μικτών εσόδων δωματίων. Οι αμοιβές πληρωμών και πλατφόρμας μεταφέρονται στην τιμή κόστους. Όλα τα ποσά είναι σε :currency και περιλαμβάνουν τους ισχύοντες φόρους που εισπράττονται για λογαριασμό σας.',
+    'fees' => 'Οι αμοιβές πληρωμών και πλατφόρμας μεταφέρονται στην τιμή κόστους. Όλα τα ποσά είναι σε :currency και περιλαμβάνουν τους ισχύοντες φόρους που εισπράττονται για λογαριασμό σας.',
+    'fx_note' => 'Μετατροπή από :source με ισοτιμία :rate (πηγή: :src).',
+    'provisional_note' => 'Ορισμένες γραμμές είναι προσωρινές και αναμένουν ακόμη συμφωνία με το κανάλι.',
+    'statement_ref' => 'εκκαθάριση :ref',
+    'sequence_no' => 'αρ. :number',
+    'generated' => 'δημιουργήθηκε: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'Έχετε ερωτήσεις; :email',
+];

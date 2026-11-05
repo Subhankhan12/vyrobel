@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count κράτηση|[0,*]:count κρατήσεις',
+    'room_moves' => '{1}:count αλλαγή μονάδας|[0,*]:count αλλαγές μονάδας',
+    'cleaning_tasks' => '{1}:count εργασία καθαρισμού|[0,*]:count εργασίες καθαρισμού',
+    'work_orders' => '{1}:count εντολή εργασίας|[0,*]:count εντολές εργασίας',
+    'status_changes' => '{1}:count αλλαγή κατάστασης|[0,*]:count αλλαγές κατάστασης',
+    'blocks' => '{1}:count αποκλεισμός|[0,*]:count αποκλεισμοί',
+    'owner_agreements' => '{1}:count σύμβαση ιδιοκτήτη|[0,*]:count συμβάσεις ιδιοκτήτη',
+    'owner_statement_lines' => '{1}:count γραμμή εκκαθάρισης ιδιοκτήτη|[0,*]:count γραμμές εκκαθάρισης ιδιοκτήτη',
+    'owner_expenses' => '{1}:count έξοδο ιδιοκτήτη|[0,*]:count έξοδα ιδιοκτήτη',
+    'reviews' => '{1}:count κριτική|[0,*]:count κριτικές',
+    'owner_requests' => '{1}:count αίτημα ιδιοκτήτη|[0,*]:count αιτήματα ιδιοκτήτη',
+    'notes' => '{1}:count σημείωση|[0,*]:count σημειώσεις',
+    'documents' => '{1}:count έγγραφο|[0,*]:count έγγραφα',
+    'files' => '{1}:count αρχείο|[0,*]:count αρχεία',
+    'units' => '{1}:count μονάδα|[0,*]:count μονάδες',
+    'rate_proposals' => '{1}:count πρόταση τιμής|[0,*]:count προτάσεις τιμής',
+    'overbooking_records' => '{1}:count εγγραφή υπερκράτησης|[0,*]:count εγγραφές υπερκράτησης',
+    'guest_waitlist_entries' => '{1}:count εγγραφή επισκέπτη σε λίστα αναμονής|[0,*]:count εγγραφές επισκεπτών σε λίστα αναμονής',
+    'guest_wishlist_saves' => '{1}:count αποθήκευση επισκέπτη στα αγαπημένα|[0,*]:count αποθηκεύσεις επισκεπτών στα αγαπημένα',
+    'derived_room_types' => '{1}:count τύπος δωματίου που βασίζεται σε αυτόν|[0,*]:count τύποι δωματίων που βασίζονται σε αυτόν',
+    'derived_rate_plans' => '{1}:count πρόγραμμα τιμών αλλού που παράγεται από αυτόν|[0,*]:count προγράμματα τιμών αλλού που παράγονται από αυτόν',
+    'corporate_default_rates' => '{1}:count προεπιλεγμένη τιμή εταιρικού λογαριασμού|[0,*]:count προεπιλεγμένες τιμές εταιρικών λογαριασμών',
+    'channel_connections' => '{1}:count σύνδεση καναλιού|[0,*]:count συνδέσεις καναλιών',
+    'an_owner' => 'ένας ιδιοκτήτης',
+    'pending_owner_invitation' => 'μια εκκρεμής πρόσκληση ιδιοκτήτη',
+    'list_and' => ':items και :last',
+    'kind_rooms' => 'δωμάτια',
+    'kind_apartments' => 'διαμερίσματα',
+    'kind_villas' => 'βίλες',
+    'kind_dorm_beds' => 'κρεβάτια σε κοιτώνα',
+];

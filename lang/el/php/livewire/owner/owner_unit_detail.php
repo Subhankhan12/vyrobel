@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'Επισκέπτης',
+    'nights' => '{1}:count διανυκτέρευση|[0,*]:count διανυκτερεύσεις',
+    'block_reason_none' => 'Αποκλεισμένο',
+    'block_reason_maintenance' => 'Συντήρηση',
+    'block_reason_owner' => 'Ιδιοκτήτης',
+    'block_reason_manual' => 'Χειροκίνητος',
+    'block_reason_overbooking_protection' => 'Προστασία από υπερκράτηση',
+    'cleaning_departure' => 'Καθαρισμός αναχώρησης',
+    'cleaning_stayover' => 'Καθαρισμός κατά τη διαμονή',
+    'cleaning_deep' => 'Γενικός καθαρισμός',
+    'cleaning_arrival_prep' => 'Προετοιμασία άφιξης',
+    'cleaning_status_pending' => 'Προγραμματίστηκε',
+    'cleaning_status_in_progress' => 'Σε εξέλιξη',
+    'cleaning_status_clean' => 'Καθαρίστηκε',
+    'cleaning_status_inspected' => 'Ελέγχθηκε',
+    'kind_room' => 'Δωμάτιο',
+    'kind_apartment' => 'Διαμέρισμα',
+    'kind_villa' => 'Βίλα',
+    'kind_dorm_bed' => 'Κρεβάτι σε κοιτώνα',
+    'condition_out_of_order' => 'Εκτός λειτουργίας',
+    'condition_out_of_service' => 'Σε συντήρηση',
+    'status_enquiry' => 'Ερώτημα',
+    'status_tentative' => 'Προσωρινή',
+    'status_confirmed' => 'Επιβεβαιωμένη',
+    'status_checked_in' => 'Έγινε check-in',
+    'status_checked_out' => 'Έγινε check-out',
+    'status_cancelled' => 'Ακυρώθηκε',
+    'status_no_show' => 'Μη εμφάνιση',
+    'terms_portfolio' => 'Όροι για ολόκληρο το χαρτοφυλάκιο',
+    'terms_unit' => 'Όροι για αυτή τη μονάδα',
+];

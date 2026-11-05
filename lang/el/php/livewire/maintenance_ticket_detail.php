@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'Σημείωση',
+    'kind_progress' => 'Πρόοδος',
+    'kind_part' => 'Παραγγελία ανταλλακτικού',
+    'elapsed_minutes' => ':minutes λεπ.',
+    'elapsed_hours' => ':hours ώ. :minutes λεπ.',
+    'elapsed_days' => ':days ημ. :hours ώ.',
+    'hours_short' => ':hours ώ.',
+    'timeline_opened' => 'Αναφέρθηκε',
+    'timeline_assigned_to' => 'Ανατέθηκε σε :name',
+    'a_technician' => 'έναν τεχνικό',
+    'timeline_unassigned' => 'Χωρίς ανάθεση',
+    'timeline_started' => 'Ξεκίνησε η εργασία',
+    'timeline_resolved' => 'Επιλύθηκε',
+    'timeline_cancelled' => 'Ακυρώθηκε',
+    'timeline_parts_updated' => 'Ενημερώθηκαν τα ανταλλακτικά',
+    'timeline_cost_corrected' => 'Διορθώθηκε το κόστος',
+    'timeline_updated' => 'Επεξεργάστηκαν τα στοιχεία',
+    'note_progress' => 'Ενημέρωση προόδου',
+    'note_part' => 'Παραγγελία ανταλλακτικού',
+    'note_added' => 'Προστέθηκε σημείωση',
+    'a_team_member' => 'Ένα μέλος της ομάδας',
+    'system' => 'Σύστημα',
+    'photo_alt' => 'Φωτογραφία συντήρησης',
+    'the_owner' => '(χωρίς όνομα)',
+    'load_none' => 'Δεν υπάρχουν ανοιχτές εντολές εργασίας',
+    'load_open' => 'Ανοιχτές: :open',
+    'load_open_urgent' => 'Ανοιχτές: :open · Επείγουσες: :urgent',
+    'impact_arrivals' => '{1}:count άφιξη απόψε χρειάζεται δωμάτιο|[0,*]:count αφίξεις απόψε χρειάζονται δωμάτιο',
+    'impact_bookings' => '{1}:count κράτηση πρέπει να μετακινηθεί|[0,*]:count κρατήσεις πρέπει να μετακινηθούν',
+    'impact_none' => 'Δεν επηρεάζεται καμία κράτηση',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'Προσωπικό/Ιδιοκτήτης',
+    'realm_guest' => 'Επισκέπτης',
+    'realm_admin' => 'Διαχειριστής πλατφόρμας',
+    'event_login' => 'Σύνδεση',
+    'event_failed' => 'Αποτυχία',
+    'event_lockout' => 'Κλείδωμα',
+    'subject_user' => 'Χρήστης',
+    'subject_guest' => 'Επισκέπτης',
+    'subject_platform_admin' => 'Διαχειριστής πλατφόρμας',
+    'subject_unknown' => 'Άγνωστο',
+    'actor_user' => 'Χρήστης',
+    'actor_agent' => 'Πράκτορας',
+    'actor_system' => 'Σύστημα',
+    'page_title' => 'Ασφάλεια και δραστηριότητα',
+    'page_subtitle' => 'Δραστηριότητα σύνδεσης και συμβάντα λογαριασμών σε όλη την πλατφόρμα — διατηρούνται για :days ημ. και έπειτα διαγράφονται.',
+    'kpi_failures' => 'Αποτυχίες / κλειδώματα · 24 ώρες',
+    'kpi_failures_help' => 'Οι επαναλαμβανόμενες αποτυχίες μπορεί να υποδηλώνουν απόπειρες παραβίασης.',
+    'privacy' => 'Απόρρητο',
+    'privacy_body' => 'Η δραστηριότητα σύνδεσης (μαζί με τη διεύθυνση IP) καταγράφεται μόνο ως <strong style="color: var(--ad-ink);">ένδειξη ασφαλείας</strong> — για τον εντοπισμό ύποπτων συνδέσεων και για την υποστήριξη — και ποτέ για γενική παρακολούθηση. Διατηρείται για :days ημ. και έπειτα διαγράφεται αυτόματα. Η πρόσβαση περιορίζεται σε αυτήν την κονσόλα.',
+    'recent_sign_ins' => 'Πρόσφατη δραστηριότητα σύνδεσης',
+    'col_event' => 'Συμβάν',
+    'col_realm' => 'Πύλη',
+    'col_account' => 'Λογαριασμός',
+    'col_ip' => 'IP',
+    'col_when' => 'Πότε',
+    'no_sign_ins' => 'Δεν έχει καταγραφεί ακόμη δραστηριότητα σύνδεσης.',
+    'recent_account_events' => 'Πρόσφατα συμβάντα λογαριασμών <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· σε όλους τους πελάτες</span>',
+    'col_customer' => 'Πελάτης',
+    'col_actor' => 'Από',
+    'no_account_events' => 'Δεν υπάρχουν ακόμη συμβάντα λογαριασμών.',
+];

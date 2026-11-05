@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — el translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Επισκόπηση',
+    'subtitle_all' => 'Όλοι οι οργανισμοί, μαζί με τους εσωτερικούς οργανισμούς του Vyrobel.',
+    'subtitle_customers' => 'Μόνο πελάτες — οι εσωτερικοί οργανισμοί του Vyrobel εξαιρούνται.',
+    'showing_all' => 'Εμφανίζονται <strong>όλοι</strong> οι οργανισμοί — εσωτερικοί: :internal.',
+    'internal_excluded' => '{1}:count εσωτερικός οργανισμός εξαιρείται από όλα τα παρακάτω στοιχεία.|[0,*]:count εσωτερικοί οργανισμοί εξαιρούνται από όλα τα παρακάτω στοιχεία.',
+    'customers_only' => 'Μόνο πελάτες',
+    'include_internal' => 'Συμπερίληψη εσωτερικών',
+    'no_customers_heading' => 'Δεν υπάρχουν ακόμη πελάτες',
+    'no_customers_body' => 'Κάθε οργανισμός της πλατφόρμας ανήκει στο Vyrobel (εσωτερικοί: :internal). Η πρώτη πραγματική εγγραφή θα εμφανιστεί εδώ.',
+    'kpi_organisations' => 'Οργανισμοί',
+    'kpi_customers' => 'Πελάτες',
+    'kpi_account_status' => 'Ενεργοί: :active · σε αναστολή: :suspended',
+    'kpi_subscriptions' => 'Συνδρομές',
+    'kpi_subscriptions_sub' => 'ενεργές · σε δωρεάν δοκιμή: :trial',
+    'kpi_revenue' => 'Έσοδα',
+    'no_live_billing' => 'Καμία πραγματική τιμολόγηση ακόμη',
+    'no_live_billing_sub' => 'Καμία συνδρομή δεν τιμολογείται μέσω του Stripe. Η τιμή καταλόγου μιας δωρεάν δοκιμής δεν είναι έσοδο.',
+    'billed_live' => '{1}:count με πραγματική τιμολόγηση|[0,*]:count με πραγματική τιμολόγηση',
+    'billed_live_sub' => 'Υπολογίζεται από ό,τι χρέωσε το Stripe, ποτέ από τον τιμοκατάλογο — δείτε τη σελίδα <a class="ad-cell-link" href=":url">Έσοδα</a>.',
+    'kpi_properties' => 'Καταλύματα',
+    'kpi_reservations' => '{1}:count κράτηση|[0,*]:count κρατήσεις',
+    'new_organisations_heading' => 'Νέοι οργανισμοί · τελευταίοι 6 μήνες',
+    'new_customers_heading' => 'Νέοι πελάτες · τελευταίοι 6 μήνες',
+    'no_signups' => 'Καμία εγγραφή τους τελευταίους 6 μήνες.',
+    'account_status_heading' => 'Κατάσταση λογαριασμού',
+    'status_active' => 'Ενεργός',
+    'status_suspended' => 'Σε αναστολή',
+    'status_cancelled' => 'Ακυρώθηκε',
+    'status_trialing' => 'Σε δωρεάν δοκιμή (λογαριασμός)',
+    'free_trial_hint' => 'Η δωρεάν δοκιμή είναι κατάσταση συνδρομής, όχι κατάσταση λογαριασμού — σε δωρεάν δοκιμή αυτή τη στιγμή: :trial.',
+    'plans_in_use' => 'Πακέτα σε χρήση <span class="ad-stat-sub" style="font-weight: 400;">· ενεργά ή σε δωρεάν δοκιμή</span>',
+    'no_plans' => 'Κανένα πακέτο σε χρήση ακόμη.',
+];

@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'Οι επιλογές διαμονής μας',
+    'properties_count' => 'Καταλύματα: :count',
+    'stays_count' => '{1}:count επιλογή διαμονής|[0,*]:count επιλογές διαμονής',
+    'stays_sleeps' => ':stays · χωρητικότητα: :max',
+    'stays_sleeps_range' => ':stays · χωρητικότητα: :min–:max',
+    'perk_free_cancel_days' => '{1}Πλήρης επιστροφή χρημάτων έως :count ημέρα πριν από την άφιξη.|[0,*]Πλήρης επιστροφή χρημάτων έως :count ημέρες πριν από την άφιξη.',
+    'perk_free_cancel_window' => 'Πλήρης επιστροφή χρημάτων εντός της προθεσμίας ακύρωσης.',
+    'perk_no_fees' => 'Χωρίς χρεώσεις κράτησης',
+    'perk_no_fees_sub' => 'Η τιμή που βλέπετε είναι η τιμή που πληρώνετε.',
+    'perk_best_rate' => 'Η καλύτερη τιμή απευθείας',
+    'perk_best_rate_sub' => 'Κάντε κράτηση απευθείας για την καλύτερη τιμή μας — χωρίς μεσάζοντες.',
+    'perk_free_cancel' => 'Δωρεάν ακύρωση',
+    'perk_host_support' => 'Απευθείας υποστήριξη από τον οικοδεσπότη',
+    'perk_host_support_sub' => 'Στείλτε μήνυμα σε πραγματικό άτομο για την κράτησή σας.',
+    'kind_room' => 'Δωμάτιο',
+    'kind_apartment' => 'Διαμέρισμα',
+    'kind_villa' => 'Βίλα',
+    'kind_dorm' => 'Κρεβάτι σε κοιτώνα',
+    'type_hotel' => 'Ξενοδοχείο',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Διαμέρισμα με υπηρεσίες',
+    'type_apartment_building' => 'Συγκρότημα διαμερισμάτων',
+    'type_apartment' => 'Διαμέρισμα',
+    'type_villa' => 'Βίλα',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Ξενώνας',
+    'type_resort' => 'Θέρετρο',
+    'type_mixed' => 'Μικτό',
+    'type_portfolio' => 'Χαρτοφυλάκιο',
+];

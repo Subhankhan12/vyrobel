@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'Ανακοινώσεις',
+    'subtitle' => 'Μια ειδοποίηση μέσα στο back office και στην πύλη ιδιοκτητών κάθε οργανισμού — ή μόνο όσων επιλέξετε. Απλό κείμενο, χωρίς αποστολή email.',
+    'empty_state' => 'Δεν έχει δημοσιευτεί ποτέ καμία ανακοίνωση.',
+    'col_announcement' => 'Ανακοίνωση',
+    'col_to' => 'Προς',
+    'col_from_until' => 'Από → έως',
+    'col_state' => 'Κατάσταση',
+    'audience_all' => 'Όλοι οι οργανισμοί',
+    'audience_chosen_count' => 'Επιλεγμένοι: :number',
+    'no_end' => 'χωρίς λήξη',
+    'state_withdrawn' => 'Αποσύρθηκε',
+    'state_showing' => 'Εμφανίζεται',
+    'state_scheduled' => 'Προγραμματισμένη',
+    'state_ended' => 'Έληξε',
+    'reason_aria' => 'Αιτιολογία',
+    'withdraw_placeholder' => 'Γιατί αποσύρεται;',
+    'withdraw_button' => 'Απόσυρση',
+    'publish_heading' => 'Δημοσίευση ανακοίνωσης',
+    'title_label' => 'Τίτλος',
+    'message_label' => 'Μήνυμα (απλό κείμενο)',
+    'kind_label' => 'Είδος',
+    'show_from_label' => 'Εμφάνιση από (UTC)',
+    'until_label' => 'Έως (UTC, προαιρετικό)',
+    'to_label' => 'Προς',
+    'option_every_organisation' => 'Όλοι οι οργανισμοί',
+    'option_chosen_organisations' => 'Επιλεγμένοι οργανισμοί',
+    'chosen_organisations_label' => 'Οργανισμοί (για την επιλογή «Επιλεγμένοι οργανισμοί»)',
+    'no_organisation_chosen' => 'Δεν έχει επιλεγεί ακόμη οργανισμός',
+    'reason_label' => 'Αιτιολογία',
+    'publish_reason_placeholder' => 'Γιατί δημοσιεύεται;',
+    'publish_button' => 'Δημοσίευση',
+];

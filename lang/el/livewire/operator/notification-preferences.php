@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Προτιμήσεις ειδοποιήσεων',
+    'subtitle' => 'Πώς επικοινωνεί μαζί σας το Vyrobel',
+    'breadcrumb_label' => 'Διαδρομή πλοήγησης',
+    'crumb_settings' => 'Ρυθμίσεις',
+    'crumb_notifications' => 'Ειδοποιήσεις',
+    'channel_email' => 'Email',
+    'channel_push' => 'Push',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'Δεν έχει καταχωριστεί email',
+    'email_verified_title' => 'Το email σύνδεσής σας έχει επαληθευτεί',
+    'email_verified' => 'Επαληθευμένο',
+    'push_not_set_up_title' => 'Οι ειδοποιήσεις push δεν έχουν ρυθμιστεί ακόμη',
+    'not_set_up_tag' => 'δεν έχει ρυθμιστεί',
+    'push_not_available' => 'Οι ειδοποιήσεις push σε πρόγραμμα περιήγησης και συσκευές δεν είναι ακόμη διαθέσιμες',
+    'channel_off' => 'Ανενεργό',
+    'sms_not_set_up_title' => 'Τα SMS δεν έχουν ρυθμιστεί ακόμη',
+    'sms_no_provider' => 'Δεν έχει συνδεθεί ακόμη πάροχος SMS',
+    'notify_me_when' => 'Να ειδοποιούμαι όταν',
+    'always_on' => 'Πάντα ενεργό',
+    'email_always_on_sr' => 'Το email είναι πάντα ενεργό για το συμβάν: :event',
+    'email_me_when_aria' => 'Αποστολή email όταν: :event',
+    'push_not_set_up_sr' => 'Οι ειδοποιήσεις push δεν έχουν ρυθμιστεί',
+    'sms_not_set_up_sr' => 'Τα SMS δεν έχουν ρυθμιστεί',
+    'quiet_hours' => 'Ώρες ησυχίας',
+    'quiet_hours_help' => 'Τα συνήθη email κρατούνται σε αναμονή μεταξύ αυτών των ωρών — οι επείγουσες ειδοποιήσεις ασφαλείας φτάνουν πάντα. Η ροή ειδοποιήσεων στην εφαρμογή δεν επηρεάζεται.',
+    'quiet_from' => 'Από',
+    'quiet_to' => 'Έως',
+    'digest_heading' => 'Ημερήσια σύνοψη με email',
+    'digest_help' => 'Μια πρωινή σύνοψη της ημέρας. <span class="vy-np-soon">δεν αποστέλλεται ακόμη</span> — η προτίμηση αποθηκεύεται για όταν κυκλοφορήσει η αποστολή της σύνοψης.',
+    'digest_off' => 'Ανενεργή',
+    'digest_morning' => 'Πρωί · 08:00',
+];

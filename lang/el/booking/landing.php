@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'Επιλογές διαμονής',
+    'book_direct' => 'Απευθείας κράτηση',
+    'nav_stays' => 'Επιλογές διαμονής',
+    'my_account' => 'Ο λογαριασμός μου',
+    'sign_in' => 'Σύνδεση',
+    'rating_across' => '{1}:average από :count κριτική|[0,*]:average από :count κριτικές',
+    'heading' => 'Απευθείας κράτηση με<br>:org.',
+    'subheading' => 'Διαμονές με προσεγμένη φροντίδα, με κράτηση απευθείας στον οικοδεσπότη — χωρίς χρεώσεις, με την καλύτερη τιμή μας και έναν πραγματικό άνθρωπο στην άλλη άκρη.',
+    'where' => 'Πού',
+    'check_in' => 'Άφιξη',
+    'check_out' => 'Αναχώρηση',
+    'adults' => 'Ενήλικες',
+    'children' => 'Παιδιά',
+    'where_to_stay' => 'Πού θα μείνετε',
+    'towns_lede' => '{1}Η βάση μας.|[0,*]:count πόλεις, η καθεμία με τον δικό της ρυθμό.',
+    'from_price' => 'από :price',
+    'featured_stays' => 'Προτεινόμενες διαμονές',
+    'featured_lede' => 'Οι αγαπημένες των επισκεπτών σε όλη τη συλλογή.',
+    'per_night' => '/ διανυκτέρευση',
+    'see_dates_for_pricing' => 'Επιλέξτε ημερομηνίες για να δείτε τιμές',
+    'browse_by_what_matters' => 'Αναζήτηση με βάση ό,τι σας ενδιαφέρει',
+    'why_book_direct' => 'Γιατί απευθείας κράτηση',
+    'recent_guests' => 'Πρόσφατοι επισκέπτες',
+    'rating_short' => '{1}:average · :count κριτική|[0,*]:average · :count κριτικές',
+    'stars_aria' => ':rating στα 5 αστέρια',
+    'review_quote' => '«:body»',
+    'no_reviews_yet' => 'Δεν υπάρχουν ακόμη κριτικές — κάντε την πρώτη διαμονή και μοιραστείτε την εμπειρία σας.',
+    'cta_heading' => 'Βρείτε το μέρος σας',
+    'cta_sub' => 'Πραγματικές ημερομηνίες, τρέχουσες τιμές, άμεση επιβεβαίωση.',
+    'browse_all_stays' => 'Όλες οι επιλογές διαμονής',
+];

@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => 'από τις :time',
+    'by_time' => 'έως τις :time',
+    'repeat_guest' => '{1}Επαναλαμβανόμενος επισκέπτης · :count διαμονή|[0,*]Επαναλαμβανόμενος επισκέπτης · :count διαμονές',
+    'new_guest' => 'Νέος επισκέπτης',
+    'guests_count' => '{1}:count επισκέπτης|[0,*]:count επισκέπτες',
+    'nights_count' => '{1}:count διανυκτέρευση|[0,*]:count διανυκτερεύσεις',
+    'channel_direct' => 'Απευθείας μέσω Vyrobel',
+    'channel_walk_in' => 'Χωρίς κράτηση',
+    'channel_ota' => 'Κανάλι OTA',
+    'event_booking_received' => 'Η κράτηση ελήφθη',
+    'event_cancelled' => 'Ακυρώθηκε',
+    'event_payment_received' => 'Η πληρωμή ελήφθη',
+    'when_paid_in_full' => 'Εξοφλήθηκε πλήρως',
+    'event_part_payment_received' => 'Η μερική πληρωμή ελήφθη',
+    'when_balance_due' => 'Υπόλοιπο προς πληρωμή',
+    'event_payment' => 'Πληρωμή',
+    'when_not_yet_received' => 'Δεν έχει ληφθεί ακόμη',
+    'event_checked_in' => 'Έγινε check-in',
+    'event_check_in' => 'Check-in',
+    'event_checked_out' => 'Έγινε check-out',
+    'event_payout_released' => 'Η εκταμίευση αποδεσμεύτηκε',
+    'event_payout' => 'Εκταμίευση',
+    'when_next_payout' => 'Με την επόμενη εκταμίευσή σας',
+    'payout_not_attributed' => 'Δεν έχει ακόμη επιμεριστεί',
+    'payout_not_attributed_note' => 'Αυτή η κράτηση δεν έχει ακόμη επιμεριστεί στο καθολικό σας.',
+    'payout_scheduled' => 'Προγραμματισμένη',
+    'payout_scheduled_note' => 'Συμπεριλαμβάνεται στην επόμενη εκκαθάρισή σας και στη συνέχεια αποδεσμεύεται με την αντίστοιχη εκταμίευση.',
+    'payout_pending' => 'Εκταμίευση σε εκκρεμότητα',
+    'payout_pending_note' => 'Σε οριστικοποιημένη εκκαθάριση — αποδεσμεύεται με την αντίστοιχη εκταμίευση.',
+    'payout_paid' => 'Πληρώθηκε',
+    'payout_paid_note' => 'Αποδεσμεύτηκε με ολοκληρωμένη εκταμίευση.',
+];

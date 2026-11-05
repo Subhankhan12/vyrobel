@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'Ποσά',
+    'csv_amounts_note' => 'κύριες μονάδες νομίσματος, δεκαδική τελεία, χωρίς διαχωριστικό χιλιάδων',
+    'col_date' => 'Ημερομηνία',
+    'col_work_order' => 'Εντολή εργασίας',
+    'col_unit' => 'Μονάδα',
+    'col_category' => 'Κατηγορία',
+    'col_labor' => 'Εργασία',
+    'col_parts' => 'Ανταλλακτικά',
+    'col_total' => 'Σύνολο',
+    'col_currency' => 'Νόμισμα',
+    'total_row' => 'Σύνολο',
+    'sheet_summary' => 'Σύνοψη',
+    'col_measure' => 'Στοιχείο',
+    'col_value' => 'Τιμή',
+    'total_spend' => 'Συνολικές δαπάνες',
+    'measure_labour' => 'Εργασία',
+    'measure_parts' => 'Ανταλλακτικά',
+    'orders_closed' => 'Κλειστές εντολές',
+    'owner_billed' => 'Χρέωση στον ιδιοκτήτη',
+    'operator_borne' => 'Επιβάρυνση επιχείρησης',
+    'parts_on_order' => 'Ανταλλακτικά σε παραγγελία',
+    'average_per_order' => 'Μέσος όρος ανά εντολή',
+    'by_category' => 'Ανά κατηγορία',
+    'col_orders' => 'Εντολές',
+    'by_month' => 'Ανά μήνα',
+    'top_units' => 'Κορυφαίες μονάδες',
+    'sheet_line_items' => 'Γραμμές',
+    'col_labour' => 'Εργασία',
+    'no_email' => 'Ο λογαριασμός σας δεν έχει διεύθυνση email.',
+    'report_emailed' => 'Η αναφορά κόστους στάλθηκε στη διεύθυνση :email.',
+];

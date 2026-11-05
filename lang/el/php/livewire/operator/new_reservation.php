@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'Διαμονή',
+    'step_guest' => 'Επισκέπτης',
+    'step_extras' => 'Πρόσθετες υπηρεσίες',
+    'step_confirm' => 'Επιβεβαίωση',
+    'source_direct' => 'Απευθείας',
+    'source_walk_in' => 'Χωρίς κράτηση',
+    'source_corporate' => 'Εταιρική',
+    'source_agent' => 'Ταξιδιωτικό γραφείο',
+    'the_guest' => 'Ο επισκέπτης',
+    'a_night' => ':amount / διανυκτέρευση',
+    'a_night_range' => ':low–:high / διανυκτέρευση',
+    'dates_label' => '{1}:from → :to · :count διανυκτέρευση|[0,*]:from → :to · :count διανυκτερεύσεις',
+    'restrict_min_stay' => '{1}Άφιξη: :date — η διαμονή πρέπει να είναι τουλάχιστον :count διανυκτέρευση|[0,*]Άφιξη: :date — η διαμονή πρέπει να είναι τουλάχιστον :count διανυκτερεύσεις',
+    'restrict_max_stay' => '{1}Άφιξη: :date — η διαμονή μπορεί να είναι έως :count διανυκτέρευση|[0,*]Άφιξη: :date — η διαμονή μπορεί να είναι έως :count διανυκτερεύσεις',
+    'restrict_no_arrivals' => 'Χωρίς αφίξεις: :date',
+    'restrict_no_departures' => 'Χωρίς αναχωρήσεις: :date',
+    'restrict_stop_sell' => 'Διακοπή πωλήσεων: :date',
+    'restrict_other' => 'Περιορισμός «:restriction»: :date',
+    'arrival_mail_off' => 'Το Vyrobel δεν στέλνει ακόμη email — δώστε εσείς στον επισκέπτη οδηγίες και τον κωδικό πόρτας.',
+    'arrival_pre_arrival_off' => 'Το email πριν από την άφιξη είναι απενεργοποιημένο για τα καταλύματά σας — δώστε εσείς στον επισκέπτη οδηγίες και τον κωδικό πόρτας.',
+    'arrival_too_soon' => 'Αυτή η διαμονή ξεκινά πολύ σύντομα για το email πριν από την άφιξη, που αποστέλλεται :count ημέρες πριν από το check-in — δώστε εσείς στον επισκέπτη οδηγίες και τον κωδικό πόρτας.',
+    'arrival_by_email' => 'Οι οδηγίες και, αν η μονάδα διαθέτει, ο κωδικός πόρτας φτάνουν στον επισκέπτη με email :count ημέρες πριν από το check-in — εφόσον έχει διεύθυνση email. Ο κωδικός πόρτας δεν εμφανίζεται ποτέ εδώ.',
+    'cancel_not_free' => 'Δεν είναι δωρεάν για αυτή τη διαμονή — έληξε στις :date',
+    'cancel_free_until_check_in' => 'Δωρεάν μέχρι το check-in',
+    'cancel_free_until_date' => 'Δωρεάν έως τις :date',
+    'cancel_free_until_days' => '{1}Δωρεάν έως :count ημέρα πριν από το check-in|[0,*]Δωρεάν έως :count ημέρες πριν από το check-in',
+    'min_stay_none' => 'Χωρίς ελάχιστο',
+    'min_stay_nights' => '{1}:count διανυκτέρευση|[0,*]:count διανυκτερεύσεις',
+    'guest_no_name' => 'Επισκέπτης',
+    'no_stays_yet' => 'Δεν υπάρχουν ακόμη διαμονές',
+];

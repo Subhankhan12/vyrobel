@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — el translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'Όλα τα δωμάτια',
+    'kind_sleeps_up_to' => ':kind · φιλοξενεί έως :capacity άτομα',
+    'reviews_count' => '{1}:count κριτική|[0,*]:count κριτικές',
+    'no_reviews_yet' => 'Δεν υπάρχουν ακόμη κριτικές',
+    'save_to_wishlist' => 'Προσθήκη στα αγαπημένα',
+    'sleeps' => 'Χωρητικότητα',
+    'adults' => 'Ενήλικες',
+    'children' => 'Παιδιά',
+    'bedrooms' => 'Υπνοδωμάτια',
+    'standard_occupancy' => 'Βασική χωρητικότητα',
+    'amenities' => 'Παροχές',
+    'not_yet_listed' => 'Δεν έχουν καταχωριστεί ακόμη',
+    'amenities_not_published' => 'Οι παροχές αυτού του δωματίου δεν έχουν δημοσιευτεί ακόμη.',
+    'guest_reviews' => 'Κριτικές επισκεπτών',
+    'stars_aria' => ':rating στα 5 αστέρια',
+    'response_label' => 'Απάντηση:',
+    'no_reviews_be_first' => 'Δεν υπάρχουν ακόμη κριτικές — κάντε την πρώτη διαμονή και μοιραστείτε την εμπειρία σας.',
+    'coming_soon' => 'Έρχεται σύντομα',
+    'description_soon' => 'Μια πλήρης περιγραφή και χάρτης τοποθεσίας έρχονται σύντομα — τα χαρακτηριστικά, η διαθεσιμότητα, η τιμή και οι κριτικές παραπάνω είναι πραγματικά.',
+    'per_night' => '/ διανυκτέρευση',
+    'per_night_with_note' => '/ διανυκτέρευση · :note',
+    'total_nights' => '{1}Σύνολο: :amount · :count διανυκτέρευση|[0,*]Σύνολο: :amount · :count διανυκτερεύσεις',
+    'left_for_your_dates' => 'Διαθέσιμες για τις ημερομηνίες σας: :count',
+    'book_this_room' => 'Κράτηση αυτού του δωματίου',
+    'nothing_reserved' => 'Τίποτα δεν δεσμεύεται μέχρι να επιβεβαιώσετε στην ολοκλήρωση της κράτησης.',
+    'your_dates' => 'Οι ημερομηνίες σας',
+    'not_available' => 'Δεν είναι διαθέσιμο για αυτές τις ημερομηνίες — δοκιμάστε άλλες ημερομηνίες.',
+    'check_in' => 'Άφιξη',
+    'check_out' => 'Αναχώρηση',
+    'check_dates' => 'Έλεγχος ημερομηνιών',
+    'check_availability' => 'Έλεγχος διαθεσιμότητας και τιμής',
+    'see_price' => 'Προβολή τιμής',
+];

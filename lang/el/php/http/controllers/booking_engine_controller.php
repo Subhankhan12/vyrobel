@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — el translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'Εσείς',
+    'total_part' => ':amount :name',
+    'total_includes' => 'Περιλαμβάνονται: :items',
+    'nightly_excludes' => 'Δεν περιλαμβάνεται: :tax',
+    'sleeps' => 'Χωρητικότητα: :count',
+    'studio' => 'Στούντιο',
+    'bedrooms' => '{1}:count υπνοδωμάτιο|[0,*]:count υπνοδωμάτια',
+    'checkout_title' => 'Ολοκλήρωση κράτησης — :property',
+    'room_just_taken' => 'Αυτό το δωμάτιο μόλις κρατήθηκε από κάποιον άλλον — επιλέξτε άλλο δωμάτιο ή άλλες ημερομηνίες.',
+    'payment_received' => 'Η πληρωμή ελήφθη',
+    'payment_received_note' => 'Εξοφλήθηκε πλήρως.',
+    'payment_processing' => 'Πληρωμή σε επεξεργασία',
+    'payment_processing_note' => 'Επιβεβαιώνουμε την πληρωμή σας με κάρτα. Ανανεώστε αυτή τη σελίδα σε λίγο για να δείτε ότι καταχωρίστηκε.',
+    'pay_on_arrival' => 'Πληρωμή κατά την άφιξη',
+    'pay_on_arrival_note' => 'Εξοφλήστε στο κατάλυμα κατά το check-in.',
+    'confirmed_title' => 'Η κράτηση επιβεβαιώθηκε — :property',
+    'kind_room' => 'Δωμάτιο',
+    'kind_apartment' => 'Διαμέρισμα',
+    'kind_villa' => 'Βίλα',
+    'kind_dorm' => 'Κρεβάτι σε κοιτώνα',
+    'type_hotel' => 'Ξενοδοχείο',
+    'type_aparthotel' => 'Aparthotel',
+    'type_serviced_apartment' => 'Διαμέρισμα με υπηρεσίες',
+    'type_apartment_building' => 'Συγκρότημα διαμερισμάτων',
+    'type_apartment' => 'Διαμέρισμα',
+    'type_villa' => 'Βίλα',
+    'type_hostel' => 'Hostel',
+    'type_guest_house' => 'Ξενώνας',
+    'type_resort' => 'Θέρετρο',
+    'type_mixed' => 'Μικτό',
+    'type_portfolio' => 'Χαρτοφυλάκιο',
+];
