@@ -164,8 +164,8 @@ return [
         'id' => 'UL-M18',
         'name' => 'a label goes back to the class that styles nothing (16 px body text)',
         'file' => $view,
-        'old' => '<label class="vy-field-label" for="vy-ul-rt-name">{{ __(\'common.name\') }}</label>',
-        'new' => '<label class="vy-label" for="vy-ul-rt-name">{{ __(\'common.name\') }}</label>',
+        'old' => '<label class="vy-field-label" for="vy-ul-rt-name">{{ __(\'livewire/units-list.room_type_name_label\') }}</label>',
+        'new' => '<label class="vy-label" for="vy-ul-rt-name">{{ __(\'livewire/units-list.room_type_name_label\') }}</label>',
         'tests' => [['file' => $t, 'filter' => 'lays the add forms out']],
     ],
     [

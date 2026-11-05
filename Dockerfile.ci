@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip ca-certificates \
         libzip-dev libxml2-dev libsodium-dev \
         libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+        libicu-dev \
         default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
@@ -66,10 +67,12 @@ RUN pecl install redis && docker-php-ext-enable redis
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" gd
 
-# ── ⚠️ NOT installed: ext-intl (§7.5.1b) ───────────────────────────────────────────────────────────
-# It is OPTIONAL — one guarded \Locale::getDisplayRegion() call with a correct alpha-2 fallback. Leaving
-# it out is the point: CI then runs the same way a host without it would, so any future code that starts
-# depending on intl UNGUARDED fails here rather than in production.
+# ── ext-intl (§7.5.1b) — INSTALLED since 2026-11-05, because the app now REQUIRES it ──────────────────────
+# It was left out on purpose while the app only made one guarded \Locale::getDisplayRegion() call, so CI would catch any
+# unguarded use. I18N-01 (27 languages) uses it everywhere — dates (IntlDatePatternGenerator), language names (\Locale) — and
+# the production host provides it. The contract (ops/runtime-contract.sh) now ASSERTS it, so the image and production stay equal.
+# (The first CI run of the 27-language code, 2026-11-05, failed 23 tests with `Class "Locale" not found` before this.)
+RUN docker-php-ext-install -j"$(nproc)" intl
 
 # ── ⚠️ The php.ini contract (§7.5.4), derived from real upload ceilings and the ID-encryption path ──
 # Without these the image would run at PHP's 2M/8M/128M defaults — which is exactly what a developer

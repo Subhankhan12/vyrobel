@@ -674,6 +674,8 @@ not that it is named.
 ⚠️ Do not leave it unset and uninstalled. It has never bitten here only because this dev machine happens to
 have `ext-redis` installed — an instrument masking the default.
 
+**(b) ⚠️ UPDATE 2026-11-05 — `ext-intl` is now REQUIRED (it was optional until I18N-01).** The 27-language dates (`IntlDatePatternGenerator`) and language names (`\Locale`) need it; without it the operator profile page answers 500. The production host provides it (preflight 2026-11-05); the CI image installs it and `ops/runtime-contract.sh` asserts it. The text below is the original (superseded) finding.
+
 **(b) ✅ `ext-intl` is OPTIONAL — a nicety, never a requirement.** Money does **not** need it: it is formatted
 with plain `number_format` (`app/Support/Money/MoneyFormatter.php:17`), and there is no `NumberFormatter`,
 `IntlDateFormatter` or `Collator` anywhere in `app/`.

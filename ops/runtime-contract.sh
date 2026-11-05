@@ -70,11 +70,13 @@ else
   fail "REDIS_CLIENT is not 'predis' AND ext-redis is missing. config/database.php:148 defaults to phpredis, which is NOT in composer.json — so this is the one gap the pre-flight cannot catch (§7.5.1a)"
 fi
 
-# ── ⚠️ §7.5.1(b) — intl is OPTIONAL. Recorded, never required. ──────────────────────────────────────
+# ── ⚠️ §7.5.1(b) — intl: OPTIONAL until 2026-11-05, REQUIRED since I18N-01 ────────────────────────
+# I18N-01 (27 languages) prints dates through IntlDatePatternGenerator and names languages through \Locale; without ext-intl the
+# profile page answers 500 and the date helpers print English patterns. The production host provides it (preflight 2026-11-05).
 if php -r 'exit(extension_loaded("intl") ? 0 : 1);'; then
-  note "ext-intl present — country names render in full. Optional; the app is correct without it (§7.5.1b)"
+  pass "ext-intl present — dates in every language, language names, country names (§7.5.1b, required since I18N-01)"
 else
-  note "ext-intl absent — the Guests CRM shows alpha-2 codes. Correct, by design (§7.5.1b)"
+  fail "ext-intl is MISSING — the 27-language dates and the profile page need it (§7.5.1b, required since I18N-01)"
 fi
 
 # ── PHP ini, derived from real upload ceilings + the ID-encryption path (§7.5.4) ────────────────────
