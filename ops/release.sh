@@ -105,7 +105,12 @@ stage)
     [ -s "$WORK/ship" ] || die "nothing to ship"
 
     TAR="$WORK/payload.tar.gz"
-    tr '\n' '\0' < "$WORK/ship" | xargs -0 git archive --format=tar.gz -o "$TAR" "$TO" --
+    # ⚠️ 2026-11-05 — NOT `xargs -0 git archive -o "$TAR" … --`: with ~10,400 files (a release that adds 17 languages) xargs splits
+    #    the list over several `git archive` runs and each one OVERWRITES the -o file, so the payload held only the last
+    #    slice (caught by the count check below). The new commit's tree is extracted once and tarred from the list.
+    mkdir -p "$WORK/newtree"
+    git archive "$TO" | tar -x -C "$WORK/newtree"
+    tar -czf "$TAR" -C "$WORK/newtree" -T "$WORK/ship"
     [ "$(tar -tzf "$TAR" | grep -cv '/$')" = "$(wc -l < "$WORK/ship" | tr -d ' ')" ] || die "the payload does not contain every file to ship"
     LOCAL_SHA="$(shasum -a 256 "$TAR" | cut -d' ' -f1)"
     scp -i "$KEY" -P "$PORT" -q "$TAR" "$HOST:~/vy-release-payload.tar.gz"
