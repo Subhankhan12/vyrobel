@@ -1724,7 +1724,7 @@ count string). **Gates (V):** MySQL and MariaDB 4,588/4,588 (36,216) · lang:che
 
 **I18N-01 — ten more languages built locally, NOT shipped (2026-11-02 → 11-05).** After the founder's word to finish all
 languages on localhost and ship together: Romanian and Polish (before), then Bulgarian, Traditional Chinese, Hindi, Persian, Thai,
-Serbian, Estonian, Albanian, Greek, Georgian — each 34 batches translated → reviewed (groups A–H) → consistency → check → apply →
+Serbian, Estonian, Albanian, Greek, Georgian (and Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, already translated earlier, installed 2026-11-05) — each 34 batches translated → reviewed (groups A–H) → consistency → check → apply →
 committed locally. Two usage limits (weekly, then 5-hour) stopped agents; every one was resumed from its saved work. Then a
 code-fix pass (dates, 24-hour time, Persian calendar, Georgian case/ordinals, decimals, list separators) and a PDF-font fix found
 by the render pass (Thai/CJK/Korean PDFs printed no glyphs; Georgian title inside an English guest invoice). **Gates (V):** MySQL

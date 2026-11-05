@@ -10,12 +10,12 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **R/V — committed locally, newest last (each: 10,433 of 10,433 texts, machine translation with AI review, no native check):**
   Romanian `c6a4b22d`, Polish `d7892071`, Bulgarian `77205f47`, Traditional Chinese `cec04865`, Hindi `0a940b01`, Persian
   `74aa9af2`, Thai `32013c9a`, Serbian (Cyrillic) `e1a66dac`, Estonian `f0036e2c`, Albanian `dd66961e`, Greek `75f44f96`,
-  Georgian `f5b0d7bb`; then the code-fix pass `14148ee8` and the PDF-font fix `69c37767`. `config('app.available_locales')`
-  holds all of them. Still to do from the 27: Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean (planned in
-  `Locales::ALL`, not translated).
-- **V (2026-11-05) gates on `69c37767`:** MySQL 8.4.10 4,599/4,599 (36,299 assertions) · MariaDB 11.8.9 4,599/4,599 (36,299) ·
+  Georgian `f5b0d7bb`; then the code-fix pass `14148ee8` and the PDF-font fix `69c37767`; then Indonesian, Vietnamese,
+  Simplified Chinese, Japanese and Korean `125ac2a0` (already translated + reviewed + consistency-edited earlier). All 27
+  planned languages are built; `config('app.available_locales')` holds all of them.
+- **V (2026-11-05) gates on `125ac2a0` (27 languages):** MySQL 8.4.10 4,599/4,599 (36,299 assertions) · MariaDB 11.8.9 4,599/4,599 (36,299) ·
   PHPStan L5 0 · Pint clean · money gate "✅ MONEY AS SEEDED · FULL" · render-all (929 pages, 0 problems) for bg, zh_TW, hi, fa,
-  th, sr, et, sq, el, ka (the leftover-English lists show only demo data stored in English and words a language keeps).
+  th, sr, et, sq, el, ka, id, vi, zh_CN, ja, ko (the leftover-English lists show only demo data stored in English and words a language keeps).
 - **V — found and fixed by the code-fix pass / render pass (all code-only, English identical):** the free-cancel date in the
   booking-confirmation email printed an English month in EVERY language (also the live ones) · Persian dates were Solar Hijri in
   the browser · 12-hour clocks in el/sq/ko/hi/ar/zh_TW where the English source is 24-hour · Georgian capitals/months/ordinals ·
