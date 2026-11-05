@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/admin/activity/index.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'realm_web' => 'პერსონალი/მესაკუთრე',
+    'realm_guest' => 'სტუმარი',
+    'realm_admin' => 'პლატფორმის ადმინისტრატორი',
+    'event_login' => 'შესვლა',
+    'event_failed' => 'წარუმატებელი',
+    'event_lockout' => 'დაბლოკვა',
+    'subject_user' => 'მომხმარებელი',
+    'subject_guest' => 'სტუმარი',
+    'subject_platform_admin' => 'პლატფორმის ადმინისტრატორი',
+    'subject_unknown' => 'უცნობი',
+    'actor_user' => 'მომხმარებელი',
+    'actor_agent' => 'აგენტი',
+    'actor_system' => 'სისტემა',
+    'page_title' => 'უსაფრთხოება და აქტივობა',
+    'page_subtitle' => 'შესვლის აქტივობა და ანგარიშების მოვლენები მთელ პლატფორმაზე – ინახება :days დღე, შემდეგ იშლება.',
+    'kpi_failures' => 'წარუმატებელი / დაბლოკვა · 24 სთ',
+    'kpi_failures_help' => 'განმეორებითი წარუმატებელი მცდელობები შეიძლება თავდასხმის მცდელობაზე მიუთითებდეს.',
+    'privacy' => 'კონფიდენციალურობა',
+    'privacy_body' => 'შესვლის აქტივობა (მათ შორის IP) აღირიცხება მხოლოდ როგორც <strong style="color: var(--ad-ink);">უსაფრთხოების სიგნალი</strong> – საეჭვო შესვლების აღმოსაჩენად და მხარდაჭერისთვის – და არასდროს ფონური თვალთვალისთვის. ინახება :days დღე, შემდეგ ავტომატურად იშლება; წვდომა მხოლოდ ამ კონსოლიდან არის შესაძლებელი.',
+    'recent_sign_ins' => 'შესვლის ბოლო აქტივობა',
+    'col_event' => 'მოვლენა',
+    'col_realm' => 'პორტალი',
+    'col_account' => 'ანგარიში',
+    'col_ip' => 'IP',
+    'col_when' => 'დრო',
+    'no_sign_ins' => 'შესვლის აქტივობა ჯერ არ დაფიქსირებულა.',
+    'recent_account_events' => 'ანგარიშების ბოლო მოვლენები <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· ყველა კლიენტი</span>',
+    'col_customer' => 'კლიენტი',
+    'col_actor' => 'შემსრულებელი',
+    'no_account_events' => 'ანგარიშების მოვლენები ჯერ არ არის.',
+];

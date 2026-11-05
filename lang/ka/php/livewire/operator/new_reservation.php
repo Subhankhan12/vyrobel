@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/livewire/operator/new_reservation.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'step_stay' => 'ყოფნა',
+    'step_guest' => 'სტუმარი',
+    'step_extras' => 'დამატებითი მომსახურება',
+    'step_confirm' => 'დადასტურება',
+    'source_direct' => 'პირდაპირი',
+    'source_walk_in' => 'ჯავშნის გარეშე',
+    'source_corporate' => 'კორპორატიული',
+    'source_agent' => 'ტურისტული აგენტი',
+    'the_guest' => 'სტუმარი',
+    'a_night' => ':amount / ღამე',
+    'a_night_range' => ':low–:high / ღამე',
+    'dates_label' => '{1}:from → :to · :count ღამე|[0,*]:from → :to · :count ღამე',
+    'restrict_min_stay' => '{1}ჩამოსვლის თარიღი :date – ყოფნა მინიმუმ :count ღამე უნდა იყოს|[0,*]ჩამოსვლის თარიღი :date – ყოფნა მინიმუმ :count ღამე უნდა იყოს',
+    'restrict_max_stay' => '{1}ჩამოსვლის თარიღი :date – ყოფნა მაქსიმუმ :count ღამე შეიძლება იყოს|[0,*]ჩამოსვლის თარიღი :date – ყოფნა მაქსიმუმ :count ღამე შეიძლება იყოს',
+    'restrict_no_arrivals' => 'ჩამოსვლა დახურულია თარიღზე :date',
+    'restrict_no_departures' => 'გამგზავრება დახურულია თარიღზე :date',
+    'restrict_stop_sell' => 'თარიღი :date ახალი ჯავშნებისთვის დახურულია',
+    'restrict_other' => 'შეზღუდვა „:restriction“ თარიღზე :date',
+    'arrival_mail_off' => 'Vyrobel-იდან ელფოსტა ჯერ არ იგზავნება – მისვლის მითითებები და კარის კოდი სტუმარს თავად გადასცეთ.',
+    'arrival_pre_arrival_off' => 'ჩამოსვლამდე გასაგზავნი წერილი თქვენი ობიექტებისთვის გამორთულია – მისვლის მითითებები და კარის კოდი სტუმარს თავად გადასცეთ.',
+    'arrival_too_soon' => 'ეს ყოფნა ძალიან მალე იწყება – ჩამოსვლამდე გასაგზავნი წერილი ჩასახლებამდე :count დღით ადრე იგზავნება, ამიტომ მისვლის მითითებები და კარის კოდი სტუმარს თავად გადასცეთ.',
+    'arrival_by_email' => 'მისვლის მითითებები და კარის კოდი (თუ ერთეულს აქვს) სტუმარს ელფოსტით ჩასახლებამდე :count დღით ადრე გაეგზავნება – თუ მას ელფოსტის მისამართი აქვს. კარის კოდი აქ არასდროს ჩანს.',
+    'cancel_not_free' => 'ამ ყოფნისთვის უფასო არ არის – ვადა ამოიწურა: :date',
+    'cancel_free_until_check_in' => 'უფასოა ჩასახლებამდე',
+    'cancel_free_until_date' => 'უფასოა, ვადა: :date',
+    'cancel_free_until_days' => '{1}უფასოა ჩასახლებამდე :count დღით ადრე|[0,*]უფასოა ჩასახლებამდე :count დღით ადრე',
+    'min_stay_none' => 'მინიმუმი არ არის',
+    'min_stay_nights' => '{1}:count ღამე|[0,*]:count ღამე',
+    'guest_no_name' => 'სტუმარი',
+    'no_stays_yet' => 'ვიზიტები ჯერ არ არის',
+];

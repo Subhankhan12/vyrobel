@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/admin/announcements.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'განცხადებები',
+    'subtitle' => 'შეტყობინება ყველა ორგანიზაციის პერსონალის პანელსა და მესაკუთრის პორტალში – ან მხოლოდ არჩეულებში. მხოლოდ ტექსტი; ელფოსტით არაფერი იგზავნება.',
+    'empty_state' => 'განცხადება ჯერ არასდროს გამოქვეყნებულა.',
+    'col_announcement' => 'განცხადება',
+    'col_to' => 'ადრესატი',
+    'col_from_until' => 'დასაწყისი → დასასრული',
+    'col_state' => 'მდგომარეობა',
+    'audience_all' => 'ყველა ორგანიზაცია',
+    'audience_chosen_count' => 'არჩეულია: :number',
+    'no_end' => 'დასასრულის გარეშე',
+    'state_withdrawn' => 'გაწვეული',
+    'state_showing' => 'ჩანს',
+    'state_scheduled' => 'დაგეგმილი',
+    'state_ended' => 'დასრულებული',
+    'reason_aria' => 'მიზეზი',
+    'withdraw_placeholder' => 'რატომ ხდება გაწვევა?',
+    'withdraw_button' => 'გაწვევა',
+    'publish_heading' => 'განცხადების გამოქვეყნება',
+    'title_label' => 'სათაური',
+    'message_label' => 'შეტყობინება (მხოლოდ ტექსტი)',
+    'kind_label' => 'ტიპი',
+    'show_from_label' => 'ჩვენების დასაწყისი (UTC)',
+    'until_label' => 'დასასრული (UTC, არასავალდებულო)',
+    'to_label' => 'ადრესატი',
+    'option_every_organisation' => 'ყველა ორგანიზაცია',
+    'option_chosen_organisations' => 'არჩეული ორგანიზაციები',
+    'chosen_organisations_label' => 'არჩეული ორგანიზაციები (როცა არჩეულია „არჩეული ორგანიზაციები“)',
+    'no_organisation_chosen' => 'ორგანიზაცია ჯერ არ არის არჩეული',
+    'reason_label' => 'მიზეზი',
+    'publish_reason_placeholder' => 'რატომ იგზავნება ეს განცხადება?',
+    'publish_button' => 'გამოქვეყნება',
+];

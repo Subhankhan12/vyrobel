@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/http/controllers/storefront_landing_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'our_stays' => 'ჩვენი განთავსების ვარიანტები',
+    'properties_count' => ':count ობიექტი',
+    'stays_count' => '{1}:count განთავსების ვარიანტი|[0,*]:count განთავსების ვარიანტი',
+    'stays_sleeps' => ':stays · ტევადობა: :max',
+    'stays_sleeps_range' => ':stays · ტევადობა: :min–:max',
+    'perk_free_cancel_days' => '{1}თანხა სრულად ბრუნდება ჩამოსვლამდე :count დღით ადრე.|[0,*]თანხა სრულად ბრუნდება ჩამოსვლამდე :count დღით ადრე.',
+    'perk_free_cancel_window' => 'თანხა სრულად ბრუნდება გაუქმების ვადის ფარგლებში.',
+    'perk_no_fees' => 'ჯავშნის საფასური არ არის',
+    'perk_no_fees_sub' => 'თქვენ ზუსტად იმ ფასს იხდით, რასაც ხედავთ.',
+    'perk_best_rate' => 'საუკეთესო ფასი პირდაპირ',
+    'perk_best_rate_sub' => 'დაჯავშნეთ პირდაპირ და მიიღეთ ჩვენი საუკეთესო ფასი – შუამავლის გარეშე.',
+    'perk_free_cancel' => 'უფასო გაუქმება',
+    'perk_host_support' => 'პირდაპირი მხარდაჭერა მასპინძლისგან',
+    'perk_host_support_sub' => 'მისწერეთ რეალურ ადამიანს თქვენი ჯავშნის შესახებ.',
+    'kind_room' => 'ოთახი',
+    'kind_apartment' => 'ბინა',
+    'kind_villa' => 'ვილა',
+    'kind_dorm' => 'საერთო ოთახი',
+    'type_hotel' => 'სასტუმრო',
+    'type_aparthotel' => 'აპარტ-სასტუმრო',
+    'type_serviced_apartment' => 'აპარტამენტი მომსახურებით',
+    'type_apartment_building' => 'აპარტამენტების შენობა',
+    'type_apartment' => 'ბინა',
+    'type_villa' => 'ვილა',
+    'type_hostel' => 'ჰოსტელი',
+    'type_guest_house' => 'სასტუმრო სახლი',
+    'type_resort' => 'კურორტი',
+    'type_mixed' => 'შერეული',
+    'type_portfolio' => 'პორტფელი',
+];

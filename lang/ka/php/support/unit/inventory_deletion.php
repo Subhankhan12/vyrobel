@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/support/unit/inventory_deletion.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'bookings' => '{1}:count ჯავშანი|[0,*]:count ჯავშანი',
+    'room_moves' => '{1}:count სხვა ერთეულში გადაყვანა|[0,*]:count სხვა ერთეულში გადაყვანა',
+    'cleaning_tasks' => '{1}:count დასუფთავების დავალება|[0,*]:count დასუფთავების დავალება',
+    'work_orders' => '{1}:count სამუშაო დავალება|[0,*]:count სამუშაო დავალება',
+    'status_changes' => '{1}:count სტატუსის ცვლილება|[0,*]:count სტატუსის ცვლილება',
+    'blocks' => '{1}:count ბლოკირება|[0,*]:count ბლოკირება',
+    'owner_agreements' => '{1}:count მესაკუთრის მართვის ხელშეკრულება|[0,*]:count მესაკუთრის მართვის ხელშეკრულება',
+    'owner_statement_lines' => '{1}:count მესაკუთრის ანგარიშგების ჩანაწერი|[0,*]:count მესაკუთრის ანგარიშგების ჩანაწერი',
+    'owner_expenses' => '{1}:count მესაკუთრის ხარჯი|[0,*]:count მესაკუთრის ხარჯი',
+    'reviews' => '{1}:count შეფასება|[0,*]:count შეფასება',
+    'owner_requests' => '{1}:count მესაკუთრის მოთხოვნა|[0,*]:count მესაკუთრის მოთხოვნა',
+    'notes' => '{1}:count შენიშვნა|[0,*]:count შენიშვნა',
+    'documents' => '{1}:count დოკუმენტი|[0,*]:count დოკუმენტი',
+    'files' => '{1}:count ფაილი|[0,*]:count ფაილი',
+    'units' => '{1}:count ერთეული|[0,*]:count ერთეული',
+    'rate_proposals' => '{1}:count ფასის შეთავაზება|[0,*]:count ფასის შეთავაზება',
+    'overbooking_records' => '{1}:count ჭარბი დაჯავშნის ჩანაწერი|[0,*]:count ჭარბი დაჯავშნის ჩანაწერი',
+    'guest_waitlist_entries' => '{1}:count სტუმრის ჩაწერა მოლოდინის სიაში|[0,*]:count სტუმრის ჩაწერა მოლოდინის სიაში',
+    'guest_wishlist_saves' => '{1}:count სტუმრის რჩეულებში დამატება|[0,*]:count სტუმრის რჩეულებში დამატება',
+    'derived_room_types' => '{1}:count მასზე დაფუძნებული ოთახის ტიპი|[0,*]:count მასზე დაფუძნებული ოთახის ტიპი',
+    'derived_rate_plans' => '{1}:count სხვა ფასის გეგმა, რომლის ფასი მასზეა დამოკიდებული|[0,*]:count სხვა ფასის გეგმა, რომლის ფასი მასზეა დამოკიდებული',
+    'corporate_default_rates' => '{1}:count კორპორატიული კლიენტის ნაგულისხმევი ფასი|[0,*]:count კორპორატიული კლიენტის ნაგულისხმევი ფასი',
+    'channel_connections' => '{1}:count არხის კავშირი|[0,*]:count არხის კავშირი',
+    'an_owner' => 'მესაკუთრე',
+    'pending_owner_invitation' => 'მესაკუთრის მოლოდინში მყოფი მოწვევა',
+    'list_and' => ':items და :last',
+    'kind_rooms' => 'ოთახები',
+    'kind_apartments' => 'ბინები',
+    'kind_villas' => 'ვილები',
+    'kind_dorm_beds' => 'საწოლები საერთო ოთახში',
+];

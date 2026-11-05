@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/livewire/owner/booking-detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'breadcrumb_overview' => 'მიმოხილვა',
+    'breadcrumb_bookings' => 'ჯავშნები',
+    'guest_fallback' => 'სტუმარი',
+    'reservation' => 'ჯავშანი',
+    'check_in' => 'ჩამოსვლა',
+    'nights_count' => '{1}:count ღამე|[0,*]:count ღამე',
+    'check_out' => 'გამგზავრება',
+    'unit' => 'ერთეული',
+    'guests' => 'სტუმრები',
+    'nights' => 'ღამეები',
+    'nightly_rate' => 'ღამის ფასი',
+    'your_earnings' => 'თქვენი შემოსავალი',
+    'gross_to_net' => 'მთლიანი → წმინდა',
+    'gross_booking_value' => 'ჯავშნის მთლიანი ღირებულება',
+    'net_to_you' => 'თქვენი წმინდა შემოსავალი',
+    'refunds_we_covered' => 'ჩვენ მიერ დაფარული თანხის დაბრუნებები',
+    'refunds_we_covered_note' => 'სტუმარს დაუბრუნდა და ჩვენზე დაირიცხა, თქვენზე – არა. თქვენი ზემოთ მოცემული შემოსავალი არ შეცვლილა.',
+    'not_yet_attributed' => 'ჯერ არ არის მიკუთვნებული.',
+    'not_yet_attributed_note' => 'თქვენი შემოსავალი აქ გამოჩნდება, როცა ეს ჯავშანი თქვენს ფინანსურ ჟურნალს მიეკუთვნება – ჩვეულებრივ, გაწერის შემდეგ.',
+    'guest_heading' => 'სტუმარი',
+    'guest_contact_note' => 'სტუმრის საკონტაქტო მონაცემებს მართვის კომპანია მართავს – თქვენ ხედავთ ჯავშანს და თქვენს შემოსავალს.',
+    'message_your_team' => 'მართვის კომპანიისთვის მიწერა',
+    'timeline' => 'ქრონოლოგია',
+    'for_night_stay' => 'ამ ყოფნისთვის: :nights ღამე',
+    'booking_details' => 'ჯავშნის დეტალები',
+    'confirmation' => 'დადასტურების კოდი',
+    'source' => 'წყარო',
+    'channel' => 'არხი',
+    'booked_on' => 'დაჯავშნის თარიღი',
+    'download_confirmation' => 'დადასტურების ჩამოტვირთვა',
+    'download_unavailable' => 'ხელმისაწვდომია თანამესაკუთრეებისა და ბუღალტრებისთვის',
+    'view_unit' => 'ერთეულის ნახვა: :unit',
+];

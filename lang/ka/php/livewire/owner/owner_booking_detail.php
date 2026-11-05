@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/livewire/owner/owner_booking_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'from_time' => ':time საათიდან',
+    'by_time' => ':time საათამდე',
+    'repeat_guest' => '{1}განმეორებითი სტუმარი · :count ვიზიტი|[0,*]განმეორებითი სტუმარი · :count ვიზიტი',
+    'new_guest' => 'ახალი სტუმარი',
+    'guests_count' => '{1}:count სტუმარი|[0,*]:count სტუმარი',
+    'nights_count' => '{1}:count ღამე|[0,*]:count ღამე',
+    'channel_direct' => 'პირდაპირი · Vyrobel',
+    'channel_walk_in' => 'ჯავშნის გარეშე',
+    'channel_ota' => 'OTA არხი',
+    'event_booking_received' => 'ჯავშანი მიღებულია',
+    'event_cancelled' => 'გაუქმებულია',
+    'event_payment_received' => 'გადახდა მიღებულია',
+    'when_paid_in_full' => 'სრულად გადახდილი',
+    'event_part_payment_received' => 'ნაწილობრივი გადახდა მიღებულია',
+    'when_balance_due' => 'გადასახდელი თანხა',
+    'event_payment' => 'გადახდა',
+    'when_not_yet_received' => 'ჯერ არ არის მიღებული',
+    'event_checked_in' => 'ჩასახლებულია',
+    'event_check_in' => 'ჩასახლება',
+    'event_checked_out' => 'გაწერილია',
+    'event_payout_released' => 'გადარიცხვა შესრულდა',
+    'event_payout' => 'გადარიცხვა',
+    'when_next_payout' => 'თქვენს შემდეგ გადარიცხვასთან ერთად',
+    'payout_not_attributed' => 'ჯერ არ არის მიკუთვნებული',
+    'payout_not_attributed_note' => 'ეს ჯავშანი თქვენს ფინანსურ ჟურნალზე ჯერ არ არის მიკუთვნებული.',
+    'payout_scheduled' => 'დაგეგმილი',
+    'payout_scheduled_note' => 'შედის თქვენს შემდეგ ანგარიშგებაში და გადაირიცხება ამ ანგარიშგების გადარიცხვასთან ერთად.',
+    'payout_pending' => 'გადარიცხვა მოლოდინში',
+    'payout_pending_note' => 'საბოლოო ანგარიშგებაშია – გადაირიცხება ამ ანგარიშგების გადარიცხვასთან ერთად.',
+    'payout_paid' => 'გადარიცხული',
+    'payout_paid_note' => 'გადაირიცხა დასრულებულ გადარიცხვასთან ერთად.',
+];

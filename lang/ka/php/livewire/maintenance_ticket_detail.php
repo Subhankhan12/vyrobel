@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/livewire/maintenance_ticket_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'kind_note' => 'შენიშვნა',
+    'kind_progress' => 'პროგრესი',
+    'kind_part' => 'ნაწილი შეკვეთილია',
+    'elapsed_minutes' => ':minutes წთ',
+    'elapsed_hours' => ':hours სთ :minutes წთ',
+    'elapsed_days' => ':days დღე :hours სთ',
+    'hours_short' => ':hours სთ',
+    'timeline_opened' => 'მომართვა შეიქმნა',
+    'timeline_assigned_to' => 'პასუხისმგებელი: :name',
+    'a_technician' => 'ტექნიკოსი',
+    'timeline_unassigned' => 'დაუნიშნავი',
+    'timeline_started' => 'სამუშაო დაიწყო',
+    'timeline_resolved' => 'მოგვარდა',
+    'timeline_cancelled' => 'გაუქმდა',
+    'timeline_parts_updated' => 'ნაწილები განახლდა',
+    'timeline_cost_corrected' => 'ღირებულება შესწორდა',
+    'timeline_updated' => 'დეტალები შეიცვალა',
+    'note_progress' => 'პროგრესის ჩანაწერი',
+    'note_part' => 'ნაწილი შეკვეთილია',
+    'note_added' => 'შენიშვნა დაემატა',
+    'a_team_member' => 'თანამშრომელი',
+    'system' => 'სისტემა',
+    'photo_alt' => 'ტექმომსახურების ფოტო',
+    'the_owner' => 'მესაკუთრე',
+    'load_none' => 'ღია სამუშაო დავალებები არ არის',
+    'load_open' => 'ღია: :open',
+    'load_open_urgent' => 'ღია: :open · სასწრაფო: :urgent',
+    'impact_arrivals' => '{1}ამაღამ :count ჩამოსვლას ოთახი სჭირდება|[0,*]ამაღამ :count ჩამოსვლას ოთახი სჭირდება',
+    'impact_bookings' => '{1}:count ჯავშანი სხვა ერთეულში გადასაყვანია|[0,*]:count ჯავშანი სხვა ერთეულში გადასაყვანია',
+    'impact_none' => 'ჯავშნებზე გავლენა არ არის',
+];

@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/http/controllers/operator/maintenance_cost_export_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'csv_amounts' => 'თანხები',
+    'csv_amounts_note' => 'ძირითადი ერთეულები, ათწილადი წერტილი, ათასების გამყოფის გარეშე',
+    'col_date' => 'თარიღი',
+    'col_work_order' => 'სამუშაო დავალება',
+    'col_unit' => 'ერთეული',
+    'col_category' => 'კატეგორია',
+    'col_labor' => 'შრომა',
+    'col_parts' => 'ნაწილები',
+    'col_total' => 'სულ',
+    'col_currency' => 'ვალუტა',
+    'total_row' => 'სულ',
+    'sheet_summary' => 'შეჯამება',
+    'col_measure' => 'მაჩვენებელი',
+    'col_value' => 'მნიშვნელობა',
+    'total_spend' => 'მთლიანი ხარჯი',
+    'measure_labour' => 'შრომა',
+    'measure_parts' => 'ნაწილები',
+    'orders_closed' => 'დასრულებული დავალებები',
+    'owner_billed' => 'მესაკუთრეზე დარიცხული',
+    'operator_borne' => 'მართვის კომპანიის ხარჯი',
+    'parts_on_order' => 'შეკვეთილი ნაწილები',
+    'average_per_order' => 'საშუალოდ დავალებაზე',
+    'by_category' => 'კატეგორიების მიხედვით',
+    'col_orders' => 'დავალებები',
+    'by_month' => 'თვეების მიხედვით',
+    'top_units' => 'ყველაზე მაღალი ხარჯის ერთეულები',
+    'sheet_line_items' => 'პუნქტები',
+    'col_labour' => 'შრომა',
+    'no_email' => 'თქვენს ანგარიშს ელფოსტის მისამართი არ აქვს.',
+    'report_emailed' => 'ხარჯების ანგარიში გაიგზავნა ელფოსტაზე :email.',
+];

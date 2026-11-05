@@ -1,0 +1,35 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/livewire/operator/operator_owners.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'chip_ready' => 'გადასარიცხად მზადაა',
+    'chip_hold' => 'შეჩერებული',
+    'chip_review' => 'შესამოწმებელი',
+    'chip_paused' => 'გადარიცხვები პაუზაზეა',
+    'chip_invited' => 'მოწვეული',
+    'sorted_name_asc' => 'მესაკუთრის მიხედვით, A–Z',
+    'sorted_name_desc' => 'მესაკუთრის მიხედვით, Z–A',
+    'sorted_units_desc' => 'ჯერ ყველაზე მეტი ერთეულით',
+    'sorted_units_asc' => 'ჯერ ყველაზე ცოტა ერთეულით',
+    'sorted_net_desc' => 'ჯერ ყველაზე დიდი გადასარიცხი თანხით',
+    'sorted_net_asc' => 'ჯერ ყველაზე მცირე გადასარიცხი თანხით',
+    'sorted_status_asc' => 'ჯერ ის, რაც თქვენგან მოქმედებას მოითხოვს',
+    'sorted_status_desc' => 'ბოლოს ის, რაც თქვენგან მოქმედებას მოითხოვს',
+    'kpi_invited' => ':number მოწვეული',
+    'kpi_units' => '{1}:count ერთეული|[0,*]:count ერთეული',
+    'kpi_owners_ready' => '{1}:count მესაკუთრე მზადაა|[0,*]:count მესაკუთრე მზადაა',
+    'kpi_paused_not_counted' => ':number პაუზაზეა, არ ითვლება',
+    'kpi_hold_none' => 'არაფერი ელოდება',
+    'kpi_hold_waiting' => 'ელოდება: :amounts',
+    'kpi_review_sub' => 'გაყიდვის არხის მიერ დაუდასტურებელი ჩანაწერების მქონე მესაკუთრე: :number',
+    'schedule' => ':day სამუშაო დღე თვეში',
+    'ordinal_st' => ':number-ლი',
+    'ordinal_nd' => 'მე-:number',
+    'ordinal_rd' => 'მე-:number',
+    'ordinal_th' => 'მე-:number',
+    'role_manager' => 'ობიექტის მენეჯერი',
+    'role_accountant' => 'ბუღალტერი',
+    'role_owner' => 'მესაკუთრე',
+    'another_owner' => 'სხვა მესაკუთრე',
+];

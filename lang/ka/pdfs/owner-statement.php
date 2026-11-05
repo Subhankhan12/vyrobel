@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/pdfs/owner-statement.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'managed_with_vyrobel' => 'მართულია Vyrobel-ით',
+    'eyebrow' => 'მესაკუთრის ანგარიშგება',
+    'unit_count' => '{1}:count ერთეული|[0,*]:count ერთეული',
+    'issued' => 'გაცემის თარიღი: :date',
+    'prepared_for' => 'ადრესატი',
+    'net_payable_to_owner' => 'მესაკუთრისთვის გადასარიცხი თანხა',
+    'iban' => 'IBAN :iban',
+    'occupancy' => 'დატვირთვა',
+    'nights_sold' => 'გაყიდული ღამეები',
+    'avg_nightly_rate' => 'საშუალო ღამის ფასი',
+    'breakdown' => 'დეტალიზაცია',
+    'item' => 'დასახელება',
+    'detail' => 'დეტალები',
+    'amount' => 'თანხა',
+    'provisional' => '(წინასწარი)',
+    'performance_by_unit' => 'შედეგები ერთეულების მიხედვით',
+    'unit' => 'ერთეული',
+    'nights' => 'ღამეები',
+    'revenue' => 'შემოსავალი',
+    'total_gross_room_revenue' => 'სულ მთლიანი შემოსავალი ოთახებიდან',
+    'callout_heading' => 'გადარიცხვა.',
+    'settles_to_iban' => 'წმინდა თანხა (:amount) გადაირიცხება საბანკო გადარიცხვით IBAN-ზე :iban.',
+    'settles' => 'წმინდა თანხა (:amount) გადაირიცხება საბანკო გადარიცხვით.',
+    'fees_with_commission' => 'მართვის საკომისიო დაირიცხება ოთახებიდან მთლიანი შემოსავლის :pct% ოდენობით; გადახდისა და პლატფორმის საფასურები თვითღირებულებით გადაგეცემათ. ყველა თანხა მითითებულია ვალუტაში :currency და მოიცავს შესაბამის გადასახადებს, რომლებიც თქვენი სახელით აკრიფეს.',
+    'fees' => 'გადახდისა და პლატფორმის საფასურები თვითღირებულებით გადაგეცემათ. ყველა თანხა მითითებულია ვალუტაში :currency და მოიცავს შესაბამის გადასახადებს, რომლებიც თქვენი სახელით აკრიფეს.',
+    'fx_note' => 'კონვერტირებულია: :source, კურსი: :rate (წყარო: :src).',
+    'provisional_note' => 'ზოგი ჩანაწერი წინასწარია და არხებთან შეჯერებას ელოდება.',
+    'statement_ref' => 'ანგარიშგება :ref',
+    'sequence_no' => '№ :number',
+    'generated' => 'შექმნის თარიღი: <span style="white-space:nowrap;">:date</span>',
+    'questions' => 'გაქვთ კითხვები? :email',
+];

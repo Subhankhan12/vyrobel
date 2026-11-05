@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/admin/overview.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'title' => 'მიმოხილვა',
+    'subtitle_all' => 'ყველა ორგანიზაცია, მათ შორის Vyrobel-ის საკუთარი შიდა ორგანიზაციები.',
+    'subtitle_customers' => 'მხოლოდ კლიენტები – Vyrobel-ის საკუთარი შიდა ორგანიზაციები გამორიცხულია.',
+    'showing_all' => 'ნაჩვენებია <strong>ყველა</strong> ორგანიზაცია – მათ შორის შიდა: :internal.',
+    'internal_excluded' => '{1}შიდა ორგანიზაციები: :count – არ ითვლება ქვემოთ მოცემულ არცერთ მაჩვენებელში.|[0,*]შიდა ორგანიზაციები: :count – არ ითვლება ქვემოთ მოცემულ არცერთ მაჩვენებელში.',
+    'customers_only' => 'მხოლოდ კლიენტები',
+    'include_internal' => 'შიდა ორგანიზაციების ჩათვლით',
+    'no_customers_heading' => 'კლიენტები ჯერ არ არის',
+    'no_customers_body' => 'პლატფორმის ყველა ორგანიზაცია Vyrobel-ის საკუთარია (შიდა: :internal). პირველი რეალური რეგისტრაცია აქ გამოჩნდება.',
+    'kpi_organisations' => 'ორგანიზაციები',
+    'kpi_customers' => 'კლიენტები',
+    'kpi_account_status' => 'აქტიური: :active · წვდომა შეწყვეტილია: :suspended',
+    'kpi_subscriptions' => 'გამოწერები',
+    'kpi_subscriptions_sub' => 'აქტიური · უფასო საცდელ პერიოდზე: :trial',
+    'kpi_revenue' => 'შემოსავალი',
+    'no_live_billing' => 'რეალური ანგარიშსწორება ჯერ არ არის',
+    'no_live_billing_sub' => 'Stripe-ით ანგარიშსწორება არცერთ გამოწერაზე არ ხდება. საცდელი პერიოდის ტარიფის ფასი შემოსავალი არ არის.',
+    'billed_live' => '{1}:count რეალური ანგარიშსწორებით|[0,*]:count რეალური ანგარიშსწორებით',
+    'billed_live_sub' => 'გამოითვლება იმის მიხედვით, რაც Stripe-მა რეალურად ჩამოჭრა, და არასდროს ფასების სიიდან – იხ. <a class="ad-cell-link" href=":url">შემოსავალი</a>.',
+    'kpi_properties' => 'ობიექტები',
+    'kpi_reservations' => '{1}:count ჯავშანი|[0,*]:count ჯავშანი',
+    'new_organisations_heading' => 'ახალი ორგანიზაციები · ბოლო 6 თვე',
+    'new_customers_heading' => 'ახალი კლიენტები · ბოლო 6 თვე',
+    'no_signups' => 'ბოლო 6 თვეში რეგისტრაციები არ ყოფილა.',
+    'account_status_heading' => 'ანგარიშის სტატუსი',
+    'status_active' => 'აქტიური',
+    'status_suspended' => 'წვდომა შეწყვეტილია',
+    'status_cancelled' => 'გაუქმებული',
+    'status_trialing' => 'საცდელ პერიოდზე (ანგარიში)',
+    'free_trial_hint' => 'უფასო საცდელი პერიოდი გამოწერის მდგომარეობაა და არა ანგარიშის სტატუსი – ახლა უფასო საცდელ პერიოდზეა: :trial.',
+    'plans_in_use' => 'გამოყენებული ტარიფები <span class="ad-stat-sub" style="font-weight: 400;">· აქტიური ან საცდელი</span>',
+    'no_plans' => 'გამოყენებული ტარიფები ჯერ არ არის.',
+];

@@ -1,0 +1,38 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/booking/room.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'all_rooms' => 'ყველა ოთახი',
+    'kind_sleeps_up_to' => ':kind · იტევს :capacity სტუმრამდე',
+    'reviews_count' => '{1}:count შეფასება|[0,*]:count შეფასება',
+    'no_reviews_yet' => 'შეფასებები ჯერ არ არის',
+    'save_to_wishlist' => 'რჩეულებში დამატება',
+    'sleeps' => 'ტევადობა',
+    'adults' => 'ზრდასრულები',
+    'children' => 'ბავშვები',
+    'bedrooms' => 'საძინებლები',
+    'standard_occupancy' => 'სტანდარტული ტევადობა',
+    'amenities' => 'კეთილმოწყობა',
+    'not_yet_listed' => 'ჯერ არ არის მითითებული',
+    'amenities_not_published' => 'ამ ოთახის კეთილმოწყობა ჯერ არ არის გამოქვეყნებული.',
+    'guest_reviews' => 'სტუმრების შეფასებები',
+    'stars_aria' => ':rating ვარსკვლავი 5-დან',
+    'response_label' => 'პასუხი:',
+    'no_reviews_be_first' => 'შეფასებები ჯერ არ არის – იყავით პირველი, ვინც აქ დარჩება და შთაბეჭდილებას გაგვიზიარებს.',
+    'coming_soon' => 'მალე',
+    'description_soon' => 'სრული აღწერა და მდებარეობის რუკა მალე დაემატება – ზემოთ მოცემული მახასიათებლები, ხელმისაწვდომობა, ფასი და შეფასებები რეალურია.',
+    'per_night' => '/ ღამე',
+    'per_night_with_note' => '/ ღამე · :note',
+    'total_nights' => '{1}სულ :amount · :count ღამე|[0,*]სულ :amount · :count ღამე',
+    'left_for_your_dates' => 'თქვენს თარიღებზე დარჩა :count',
+    'book_this_room' => 'ამ ოთახის დაჯავშნა',
+    'nothing_reserved' => 'გადახდის ეტაპზე დადასტურებამდე არაფერი იჯავშნება.',
+    'your_dates' => 'თქვენი თარიღები',
+    'not_available' => 'ამ თარიღებზე ხელმისაწვდომი არ არის – სცადეთ სხვა თარიღები.',
+    'check_in' => 'ჩამოსვლა',
+    'check_out' => 'გამგზავრება',
+    'check_dates' => 'თარიღების შემოწმება',
+    'check_availability' => 'ხელმისაწვდომობისა და ფასის შემოწმება',
+    'see_price' => 'ფასის ნახვა',
+];

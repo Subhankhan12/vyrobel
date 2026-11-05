@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/livewire/owner/owner_unit_detail.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'date_range' => ':start – :end',
+    'guest_fallback' => 'სტუმარი',
+    'nights' => '{1}:count ღამე|[0,*]:count ღამე',
+    'block_reason_none' => 'დაბლოკილია',
+    'block_reason_maintenance' => 'ტექმომსახურება',
+    'block_reason_owner' => 'მესაკუთრე',
+    'block_reason_manual' => 'ხელით',
+    'block_reason_overbooking_protection' => 'ჭარბი დაჯავშნისგან დაცვა',
+    'cleaning_departure' => 'დასუფთავება გაწერის შემდეგ',
+    'cleaning_stayover' => 'დასუფთავება ყოფნისას',
+    'cleaning_deep' => 'გენერალური დასუფთავება',
+    'cleaning_arrival_prep' => 'მომზადება ჩამოსვლისთვის',
+    'cleaning_status_pending' => 'დაგეგმილი',
+    'cleaning_status_in_progress' => 'მიმდინარეობს',
+    'cleaning_status_clean' => 'დასუფთავებული',
+    'cleaning_status_inspected' => 'შემოწმებული',
+    'kind_room' => 'ოთახი',
+    'kind_apartment' => 'ბინა',
+    'kind_villa' => 'ვილა',
+    'kind_dorm_bed' => 'საწოლი საერთო ოთახში',
+    'condition_out_of_order' => 'მწყობრიდან გამოსული',
+    'condition_out_of_service' => 'შეკეთებაზე',
+    'status_enquiry' => 'შეკითხვა',
+    'status_tentative' => 'წინასწარი',
+    'status_confirmed' => 'დადასტურებული',
+    'status_checked_in' => 'ჩასახლებული',
+    'status_checked_out' => 'გაწერილი',
+    'status_cancelled' => 'გაუქმებული',
+    'status_no_show' => 'არ გამოცხადდა',
+    'terms_portfolio' => 'პორტფელის მასშტაბით მოქმედი პირობები',
+    'terms_unit' => 'ამ ერთეულის პირობები',
+];

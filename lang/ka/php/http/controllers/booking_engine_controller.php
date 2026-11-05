@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/http/controllers/booking_engine_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'guest_fallback_name' => 'თქვენ',
+    'total_part' => ':amount :name',
+    'total_includes' => 'მათ შორის: :items',
+    'nightly_excludes' => 'არ შეიცავს: :tax',
+    'sleeps' => 'ტევადობა: :count',
+    'studio' => 'სტუდიო',
+    'bedrooms' => '{1}:count საძინებელი|[0,*]:count საძინებელი',
+    'checkout_title' => 'დაჯავშნის დასრულება – :property',
+    'room_just_taken' => 'ეს ოთახი ახლახან სხვამ დაჯავშნა – გთხოვთ, აირჩიოთ სხვა ოთახი ან თარიღები.',
+    'payment_received' => 'გადახდა მიღებულია',
+    'payment_received_note' => 'სრულად გადახდილია.',
+    'payment_processing' => 'გადახდა მუშავდება',
+    'payment_processing_note' => 'ბარათით გადახდას ვადასტურებთ. ცოტა ხანში განაახლეთ ეს გვერდი, რომ შედეგი ნახოთ.',
+    'pay_on_arrival' => 'გადახდა ჩამოსვლისას',
+    'pay_on_arrival_note' => 'გადაიხადეთ ობიექტში ჩასახლებისას.',
+    'confirmed_title' => 'ჯავშანი დადასტურებულია – :property',
+    'kind_room' => 'ოთახი',
+    'kind_apartment' => 'ბინა',
+    'kind_villa' => 'ვილა',
+    'kind_dorm' => 'საერთო ოთახი',
+    'type_hotel' => 'სასტუმრო',
+    'type_aparthotel' => 'აპარტ-სასტუმრო',
+    'type_serviced_apartment' => 'აპარტამენტი მომსახურებით',
+    'type_apartment_building' => 'აპარტამენტების შენობა',
+    'type_apartment' => 'ბინა',
+    'type_villa' => 'ვილა',
+    'type_hostel' => 'ჰოსტელი',
+    'type_guest_house' => 'სასტუმრო სახლი',
+    'type_resort' => 'კურორტი',
+    'type_mixed' => 'შერეული',
+    'type_portfolio' => 'პორტფელი',
+];

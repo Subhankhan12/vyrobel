@@ -1,0 +1,37 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/livewire/operator/notification-preferences.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'შეტყობინებების პარამეტრები',
+    'subtitle' => 'როგორ დაგიკავშირდებათ Vyrobel',
+    'breadcrumb_label' => 'ნავიგაციის ბილიკი',
+    'crumb_settings' => 'პარამეტრები',
+    'crumb_notifications' => 'შეტყობინებები',
+    'channel_email' => 'ელფოსტა',
+    'channel_push' => 'Push-შეტყობინებები',
+    'channel_sms' => 'SMS',
+    'no_email_on_file' => 'ელფოსტა არ არის მითითებული',
+    'email_verified_title' => 'თქვენი შესვლის ელფოსტა დადასტურებულია',
+    'email_verified' => 'დადასტურებული',
+    'push_not_set_up_title' => 'Push-შეტყობინებები ჯერ არ არის გამართული',
+    'not_set_up_tag' => 'არ არის გამართული',
+    'push_not_available' => 'ბრაუზერისა და მოწყობილობის Push-შეტყობინებები ჯერ ხელმისაწვდომი არ არის',
+    'channel_off' => 'გამორთულია',
+    'sms_not_set_up_title' => 'SMS ჯერ არ არის გამართული',
+    'sms_no_provider' => 'SMS-ის პროვაიდერი ჯერ არ არის დაკავშირებული',
+    'notify_me_when' => 'შემატყობინეთ, როცა',
+    'always_on' => 'ყოველთვის ჩართულია',
+    'email_always_on_sr' => 'ელფოსტა ყოველთვის ჩართულია: :event',
+    'email_me_when_aria' => 'მომწერეთ ელფოსტით, როცა: :event',
+    'push_not_set_up_sr' => 'Push-შეტყობინებები არ არის გამართული',
+    'sms_not_set_up_sr' => 'SMS არ არის გამართული',
+    'quiet_hours' => 'მშვიდი საათები',
+    'quiet_hours_help' => 'ამ საათებში ჩვეულებრივი წერილები შეჩერდება – გადაუდებელი უსაფრთხოების შეტყობინებები მაინც მოვა, Vyrobel-ში შეტყობინებებზე კი ეს არ მოქმედებს.',
+    'quiet_from' => 'საწყისი დრო',
+    'quiet_to' => 'ბოლო დრო',
+    'digest_heading' => 'ყოველდღიური შემაჯამებელი წერილი',
+    'digest_help' => 'დილის შეჯამება დღის შესახებ. <span class="vy-np-soon">ჯერ არ იგზავნება</span> – პარამეტრი შენახულია იმ დროისთვის, როცა შემაჯამებელი წერილების გაგზავნა დაიწყება.',
+    'digest_off' => 'გამორთულია',
+    'digest_morning' => 'დილა · 08:00',
+];

@@ -1,0 +1,34 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/php/http/controllers/operator/payout_run_action_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'engine_disabled' => 'გადარიცხვების ავტომატური მექანიზმი გამორთულია (PAYOUT_ENGINE_ENABLED). გადარიცხვის გაშვებამდე ჩართეთ ის.',
+    'nothing_to_run' => 'გასაშვები არაფერია – არცერთ მესაკუთრეს არ აქვს გადასარიცხი ანგარიშგება ან შეკავებული გადარიცხვა:paused_note.',
+    'run_complete' => 'გადარიცხვების გაშვება დასრულდა (რეჟიმი: :mode) – შექმნილი: :created · გადარიცხული: :paid · შეკავებული: :held:paused_note.',
+    'create_failed' => 'გადარიცხვის შექმნა ვერ შესრულდა – :reason',
+    'already_has_payout' => 'ამ ანგარიშგებას უკვე აქვს გადარიცხვა – არაფერი შექმნილა.',
+    'one_payout_created' => 'შეიქმნა 1 გადარიცხვა.',
+    'pay_failed' => 'გადარიცხვა ვერ შესრულდა – :reason',
+    'one_payout_paid' => '1 გადარიცხვა მონიშნულია გადარიცხულად.',
+    'payout_failed_reason' => 'გადარიცხვა ვერ შესრულდა – :reason',
+    'payout_failed_no_reason' => 'გადარიცხვა ვერ შესრულდა – გადარიცხვის არხმა მიზეზი არ მიუთითა.',
+    'create_all_failed' => 'გადარიცხვების შექმნა ვერ შესრულდა – :reason',
+    'no_payout_created_paused' => 'გადარიცხვა არ შექმნილა:paused_note – გადარიცხვების გაგრძელება შეგიძლიათ მესაკუთრის გვერდზე.',
+    'nothing_ready' => 'გადასარიცხად არაფერია მზად – არცერთ საბოლოო ანგარიშგებას დადებითი გადასარიცხი თანხა არ აქვს:paused_note.',
+    'no_new_payouts' => 'ახალი გადარიცხვები არ არის – ყველა მზა ანგარიშგებას უკვე აქვს გადარიცხვა:paused_note.',
+    'payouts_created' => '{1}შეიქმნა :count გადარიცხვა:paused_note.|[0,*]შეიქმნა :count გადარიცხვა:paused_note.',
+    'some_not_created' => ':message ზოგი ვერ შეიქმნა – :reason',
+    'nothing_paid_paused' => 'არაფერი გადარიცხულა:paused_note – გადარიცხვების გაგრძელება შეგიძლიათ მესაკუთრის გვერდზე.',
+    'no_pending_payouts' => 'გადასარიცხად მოლოდინში მყოფი გადარიცხვები არ არის.',
+    'paid_only' => '{1}:count გადარიცხვა მონიშნულია გადარიცხულად:paused_note.|[0,*]:count გადარიცხვა მონიშნულია გადარიცხულად:paused_note.',
+    'failed_only' => '[0,*]:count ვერ შესრულდა გადარიცხვის არხზე:paused_note.',
+    'paid_and_failed' => '{1}:count გადარიცხვა მონიშნულია გადარიცხულად · :failed ვერ შესრულდა გადარიცხვის არხზე:paused_note.|[0,*]:count გადარიცხვა მონიშნულია გადარიცხულად · :failed ვერ შესრულდა გადარიცხვის არხზე:paused_note.',
+    'some_not_attempted' => ':message ზოგის გაშვება ვერ მოხერხდა – :reason',
+    'nothing_payable_negative' => 'გადასარიცხი არაფერია – ამ ანგარიშგების წმინდა შემოსავალი უარყოფითია, ამიტომ ნაშთი გადადის და მესაკუთრის შემდეგ ანგარიშგებაში გამოიქვითება.',
+    'nothing_payable_zero' => 'გადასარიცხი არაფერია – ამ ანგარიშგების წმინდა შემოსავალი ნულია, ამიტომ გადასახდელი არაფერია.',
+    'workspace_paused_until' => 'ორგანიზაცია პაუზაზეა – გადარიცხვები მხოლოდ ნახვის რეჟიმშია, ვადა: :date.',
+    'workspace_paused_for_now' => 'ორგანიზაცია პაუზაზეა – გადარიცხვები ამჟამად მხოლოდ ნახვის რეჟიმშია.',
+    'paused_note' => ' · :skipped',
+    'paused_owners_skipped' => '{1}გამოტოვებულია პაუზაზე მყოფი მესაკუთრე: :count|[0,*]გამოტოვებულია პაუზაზე მყოფი მესაკუთრე: :count',
+];

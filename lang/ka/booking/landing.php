@@ -1,0 +1,36 @@
+<?php
+
+// I18N-01 — ka translation of lang/en/booking/landing.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
+
+return [
+    'page_title' => 'განთავსება',
+    'book_direct' => 'პირდაპირ დაჯავშნა',
+    'nav_stays' => 'განთავსება',
+    'my_account' => 'ჩემი ანგარიში',
+    'sign_in' => 'შესვლა',
+    'rating_across' => '{1}:average · :count შეფასების მიხედვით|[0,*]:average · :count შეფასების მიხედვით',
+    'heading' => 'დაჯავშნეთ პირდაპირ:<br>:org.',
+    'subheading' => 'მოვლილი განთავსება, დაჯავშნილი პირდაპირ მასპინძელთან – საკომისიოს გარეშე, ჩვენი საუკეთესო ფასით და რეალური ადამიანით მეორე მხარეს.',
+    'where' => 'სად',
+    'check_in' => 'ჩამოსვლა',
+    'check_out' => 'გამგზავრება',
+    'adults' => 'ზრდასრულები',
+    'children' => 'ბავშვები',
+    'where_to_stay' => 'სად დარჩეთ',
+    'towns_lede' => '{1}ჩვენი მთავარი ბაზა.|[0,*]:count ქალაქი, თითოეული თავისი რიტმით.',
+    'from_price' => 'საწყისი ფასი: :price',
+    'featured_stays' => 'გამორჩეული ვარიანტები',
+    'featured_lede' => 'სტუმრების ფავორიტები მთელი კოლექციიდან.',
+    'per_night' => '/ ღამე',
+    'see_dates_for_pricing' => 'ფასის სანახავად აირჩიეთ თარიღები',
+    'browse_by_what_matters' => 'მოძებნეთ იმის მიხედვით, რაც მნიშვნელოვანია',
+    'why_book_direct' => 'რატომ პირდაპირ დაჯავშნა',
+    'recent_guests' => 'ბოლო სტუმრები',
+    'rating_short' => '{1}:average · :count შეფასება|[0,*]:average · :count შეფასება',
+    'stars_aria' => ':rating ვარსკვლავი 5-დან',
+    'review_quote' => '„:body“',
+    'no_reviews_yet' => 'შეფასებები ჯერ არ არის – იყავით პირველი, ვინც აქ დარჩება და შთაბეჭდილებას გაგვიზიარებს.',
+    'cta_heading' => 'იპოვეთ თქვენი ადგილი',
+    'cta_sub' => 'რეალური თარიღები, ფასები რეალურ დროში, მყისიერი დადასტურება.',
+    'browse_all_stays' => 'ყველა ვარიანტის ნახვა',
+];
