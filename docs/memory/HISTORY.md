@@ -1738,7 +1738,7 @@ sealed-statement reason; mode/interval/refund-method words; pause with no date i
 changed texts × 27 languages, 10,448 keys each; translator + check.php only). GitHub's first run of the 27-language code (run
 42075504542) FAILED — 23 tests red, `Class "Locale" not found`: the CI image had no ext-intl; fixed in `9edcda4e` (image installs it,
 contract asserts it). Gates (V): MySQL 4,619/4,619 (36,364) · MariaDB 11.8.9 4,619/4,619 (36,364) · PHPStan 0 · Pint clean · money gate
-FULL · render 929 pages × 10 languages 0 problems · 63 pages × 7 languages fetched signed in, no 5xx/raw key/raw Blade.
+FULL · render 929 pages × 10 languages 0 problems · 63 pages × 7 languages fetched signed in, no 5xx/raw key/raw Blade. Shipped as `rel_CI @ 1daeed71` (public checks 12/0/0). GitHub CI GREEN on `c92685bf` (run 42129793979) after two fixes (intl in the image; a case-sensitive font-name test assertion).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
