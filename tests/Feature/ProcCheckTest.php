@@ -10,6 +10,23 @@ use Symfony\Component\Process\Process;
 // Only a match whose working folder is READ and is OUTSIDE this repository (and whose command line does not name it) is "not ours"; everything
 // uncertain counts. These tests plant real processes with a unique name — never `pest`, since this very run matches that.
 
+/**
+ * ⚠️ `ops/proc-check.sh` reads the process list with `ps -eo pid,command` and a working folder with `lsof` — the two tools a developer's Mac has and the
+ * CI image (a slim Debian) does NOT (`sh: ps: not found`, 2026-11-11: GitHub's first run of these tests, 5 red). The script is local tooling (the mutation
+ * harness); without the tools its own positive control refuses (exit 3) — correct for the script, so these tests SKIP, loudly and with the reason, where
+ * the tools are absent, instead of asserting what cannot be measured. They run (and are mutation-proven, set `proc-check`) wherever `ps` and `lsof` exist.
+ */
+function pcToolsMissing(): ?string
+{
+    foreach (['ps', 'lsof'] as $tool) {
+        if (trim((string) shell_exec('command -v '.$tool.' 2>/dev/null')) === '') {
+            return "`{$tool}` is not installed here — ops/proc-check.sh needs `ps` and `lsof` (a developer machine has both; the CI image has neither)";
+        }
+    }
+
+    return null;
+}
+
 /** Start a long-lived process whose command line carries $marker, in $cwd; returns once `ps` can see it. */
 function pcPlant(string $marker, string $cwd): Process
 {
@@ -43,6 +60,10 @@ function pcCheck(string $flags, string $marker, array $env = []): array
 }
 
 it('⚠️⚠️ --here: a run in ANOTHER project\'s folder does not hold the harness; the same run without --here still does', function () {
+    if (($why = pcToolsMissing()) !== null) {
+        test()->markTestSkipped($why);
+    }
+
     $marker = 'vyplanted'.bin2hex(random_bytes(4));
     $foreign = realpath(sys_get_temp_dir());
     $p = pcPlant($marker, $foreign);
@@ -61,6 +82,10 @@ it('⚠️⚠️ --here: a run in ANOTHER project\'s folder does not hold the ha
 });
 
 it('⚠️⚠️ --here: a run in THIS repository still blocks', function () {
+    if (($why = pcToolsMissing()) !== null) {
+        test()->markTestSkipped($why);
+    }
+
     $marker = 'vyplanted'.bin2hex(random_bytes(4));
     $p = pcPlant($marker, base_path());
     try {
@@ -81,6 +106,10 @@ it('⚠️⚠️ --here: a run in THIS repository still blocks', function () {
 });
 
 it('⚠️⚠️ --here: a process that NAMES this repository counts, whatever its working folder', function () {
+    if (($why = pcToolsMissing()) !== null) {
+        test()->markTestSkipped($why);
+    }
+
     $marker = 'vyplanted'.bin2hex(random_bytes(4));
     $p = new Process(['bash', '-c', 'sleep 90; :', $marker, base_path('vendor/bin/pest')], realpath(sys_get_temp_dir()));
     $p->disableOutput();
@@ -95,6 +124,10 @@ it('⚠️⚠️ --here: a process that NAMES this repository counts, whatever i
 });
 
 it('⚠️⚠️ --here: when the working folder CANNOT be read, nobody is exempted (an uncertain match is ours)', function () {
+    if (($why = pcToolsMissing()) !== null) {
+        test()->markTestSkipped($why);
+    }
+
     $marker = 'vyplanted'.bin2hex(random_bytes(4));
     $p = pcPlant($marker, realpath(sys_get_temp_dir()));
     try {
@@ -119,6 +152,10 @@ it('⚠️⚠️ --here: when the working folder CANNOT be read, nobody is exemp
 });
 
 it('⚠️ --here: nothing matching at all is still a trusted zero (exit 0), and a vanished process is dropped', function () {
+    if (($why = pcToolsMissing()) !== null) {
+        test()->markTestSkipped($why);
+    }
+
     [$code] = pcCheck('-q --here', 'vyneverrunning'.bin2hex(random_bytes(4)));
     expect($code)->toBe(0);
 });
