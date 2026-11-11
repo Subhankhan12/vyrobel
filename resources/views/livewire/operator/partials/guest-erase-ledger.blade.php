@@ -4,7 +4,7 @@
 <div class="vy-rm-ledger">
     <div class="vy-rm-col is-goes">
         <h4>{{ __('livewire/operator/partials/guest-erase-ledger.erased_heading') }}</h4>
-        <ul><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_name_contact') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_city_preferences') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_documents_messages') }}</li></ul>
+        <ul><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_name_contact') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_city_preferences') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_documents_messages') }}</li><li>{{ __('livewire/operator/partials/guest-erase-ledger.erased_team_chat') }}</li></ul>
     </div>
     <div class="vy-rm-col is-kept">
         <h4>{{ __('livewire/operator/partials/guest-erase-ledger.kept_heading') }}</h4>

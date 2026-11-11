@@ -135,7 +135,7 @@ class FrontDesk extends Component
      */
     private function walkInCandidates(Property $property): array
     {
-        $todayAtProperty = BoardDate::today($property->timezone !== null ? (string) $property->timezone : null);
+        $todayAtProperty = BoardDate::today((string) $property->timezone);   // '' (none set) reads as the app's day
         $today = $todayAtProperty->toDateString();
         $tomorrow = $todayAtProperty->addDay()->toDateString();
 
@@ -275,7 +275,7 @@ class FrontDesk extends Component
             return BoardDate::resolve($param, false, null)->toDateString();
         }
 
-        $tz = $property->timezone !== null ? (string) $property->timezone : null;   // D-RACK-START-TZ: the property's own day
+        $tz = (string) $property->timezone;   // D-RACK-START-TZ: the property's own day
         $today = BoardDate::today($tz)->toDateString();
         $base = Reservation::query()
             ->where('property_id', $property->id)

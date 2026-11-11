@@ -8,6 +8,8 @@ use App\Exceptions\TeamChatRefused;
 use App\Models\TeamConversation;
 use App\Models\TeamConversationMember;
 use App\Models\TeamMessage;
+use App\Models\TeamMessageReaction;
+use App\Models\TeamTyping;
 use App\Models\User;
 use App\Notifications\Operator\TeamMessageNotification;
 use App\Support\Events\AuditEventRecorder;
@@ -35,6 +37,12 @@ final class TeamChatService
     public const MAX_BODY = 5000;
 
     public const MAX_MEMBERS = 30;
+
+    /** A person counts as "typing" for this long after their last keystroke was posted. */
+    public const TYPING_SECONDS = 6;
+
+    /** How long after sending an author may still change the words. After it, delete is the only change left. */
+    public const EDIT_WINDOW_MINUTES = 15;
 
     public function __construct(
         private DomainEventRecorder $events,
@@ -100,6 +108,8 @@ final class TeamChatService
                 }
 
                 $conversation->forceFill(['last_message_at' => $message->created_at])->save();
+                // sending ends "is typing…" at once — the message itself is the answer
+                TeamTyping::query()->where('conversation_id', $conversation->getKey())->where('user_id', $from->getKey())->delete();
                 // ⚠️ Sending reads nothing (the independent review, 2026-10-06): moving the sender's read position to their own
                 // message marked as read a colleague's message they had not yet been shown. Your own never count as unread.
 
@@ -107,13 +117,151 @@ final class TeamChatService
                 $this->audit->record('team_chat.message_sent', $message, null, $facts);
                 $this->events->record('team_chat.message_sent', $message, $facts);
 
-                return $message->load('media', 'sender');
+                return $message->load('media', 'sender', 'reactions.user:id,name');
             });
         } catch (Throwable $e) {
             foreach ($written as $path) {   // a refused message leaves no file behind
                 Storage::disk(TeamChatFiles::DISK)->delete((string) $path);
             }
             throw $e;
+        }
+    }
+
+    /**
+     * Change the words of YOUR OWN message, for {@see EDIT_WINDOW_MINUTES} minutes after it was sent. The page then shows
+     * "edited"; the old words are NOT kept (no history is stored). Files stay as they were. A change that would leave the
+     * message with nothing in it is refused — deleting is the way to remove it.
+     *
+     * ⚠️ The events say THAT it was edited and how long it now is, never the words (the audit trail is not a second copy
+     * of the conversation).
+     */
+    public function edit(TeamMessage $message, User $by, ?string $body): TeamMessage
+    {
+        $conversation = $this->conversationOf($message);
+        $this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.already_deleted'));
+        }
+        if ($message->created_at->copy()->addMinutes(self::EDIT_WINDOW_MINUTES)->isPast()) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.edit_window_over', ['minutes' => self::EDIT_WINDOW_MINUTES]));
+        }
+
+        $body = $body !== null ? trim(str_replace("\r\n", "\n", $body)) : '';
+        $files = $message->media()->whereIn('collection', [TeamChatFiles::FILES, TeamChatFiles::VOICE])->count();
+        if ($body === '' && $files === 0) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.edit_to_nothing'));
+        }
+        if (mb_strlen($body) > self::MAX_BODY) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));
+        }
+        if ($body === (string) $message->body) {
+            return $message->load('media', 'sender', 'reactions.user:id,name');   // nothing changed: no "edited" label, no event
+        }
+
+        return DB::transaction(function () use ($message, $conversation, $body, $files): TeamMessage {
+            $message->forceFill(['body' => $body !== '' ? $body : null, 'edited_at' => now()])->save();
+
+            $facts = ['conversation_id' => (string) $conversation->getKey(), 'characters' => mb_strlen($body), 'files' => $files];
+            $this->audit->record('team_chat.message_edited', $message, null, $facts);
+            $this->events->record('team_chat.message_edited', $message, $facts);
+
+            return $message->load('media', 'sender', 'reactions.user:id,name');
+        });
+    }
+
+    /**
+     * Delete YOUR OWN message, at any time. It stays as a TOMBSTONE — the row, without its words, files or reactions — so the
+     * order, the read positions and "Seen" keep pointing at real messages; every screen then shows "This message was
+     * deleted". Deleting twice changes nothing.
+     */
+    public function delete(TeamMessage $message, User $by): TeamMessage
+    {
+        $conversation = $this->conversationOf($message);
+        $this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            return $message;
+        }
+
+        return DB::transaction(function () use ($message, $conversation): TeamMessage {
+            $files = $this->files->erase($message);
+            TeamMessageReaction::query()->where('message_id', $message->getKey())->delete();
+            $message->forceFill(['body' => null, 'edited_at' => null, 'redacted_at' => null, 'deleted_at' => now()])->save();
+
+            $facts = ['conversation_id' => (string) $conversation->getKey(), 'files' => $files];
+            $this->audit->record('team_chat.message_deleted', $message, null, $facts);
+            $this->events->record('team_chat.message_deleted', $message, $facts);
+
+            return $message->load('media', 'sender', 'reactions.user:id,name');
+        });
+    }
+
+    /**
+     * Toggle YOUR emoji reaction on a message — the same tap adds it, and again removes it. Only an emoji on the fixed
+     * allow-list ({@see InboxService::REACTIONS}) is accepted, so no free text can reach a screen. Returns whether it is
+     * now on. The message is touched, so a screen that already holds it receives the change on its next poll.
+     *
+     * ⚠️ A FLAGGED EXCEPTION to "an audit row AND a domain event": a reaction records an AUDIT row only, exactly as the
+     * Inbox's own reactions do ({@see InboxService::toggleReaction()}) — an emoji tap is not a business fact worth an outbox
+     * row, and one per tap would be noise. Nobody is notified of a reaction.
+     */
+    public function react(TeamMessage $message, User $by, string $emoji): bool
+    {
+        $conversation = $this->conversationOf($message);
+        $this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        if (! in_array($emoji, InboxService::REACTIONS, true)) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.reaction_not_allowed'));
+        }
+        if ($message->deleted_at !== null) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.already_deleted'));
+        }
+
+        return DB::transaction(function () use ($message, $conversation, $by, $emoji): bool {
+            $existing = TeamMessageReaction::query()
+                ->where('message_id', $message->getKey())->where('user_id', $by->getKey())->where('emoji', $emoji)->first();
+            $facts = ['conversation_id' => (string) $conversation->getKey(), 'emoji' => $emoji];
+
+            if ($existing instanceof TeamMessageReaction) {
+                $existing->delete();
+                $this->audit->record('team_chat.reaction_removed', $message, $facts, null);
+                $on = false;
+            } else {
+                try {
+                    TeamMessageReaction::create(['message_id' => $message->getKey(), 'user_id' => $by->getKey(), 'emoji' => $emoji]);
+                    $this->audit->record('team_chat.reaction_added', $message, null, $facts);
+                } catch (UniqueConstraintViolationException) {
+                    // the same tap arrived twice at the same moment — the other one made it; it is on, once
+                }
+                $on = true;
+            }
+            $message->touch();
+
+            return $on;
+        });
+    }
+
+    /**
+     * "I am typing" — recorded as the moment, once a few seconds at most (the page decides how often). The poll shows the
+     * person for {@see TYPING_SECONDS} after it; sending clears it. There are no websockets here: this is the polling
+     * design's honest version, and a stale row is simply ignored. Refused while the workspace is paused, like every write.
+     */
+    public function typing(TeamConversation $conversation, User $by): void
+    {
+        $this->member($conversation, $by);
+        $this->refuseWhilePaused();
+
+        $where = ['conversation_id' => $conversation->getKey(), 'user_id' => $by->getKey()];
+        $updated = TeamTyping::query()->where($where)->update(['typed_at' => now(), 'updated_at' => now()]);
+        if ($updated === 0) {
+            try {
+                TeamTyping::create($where + ['typed_at' => now()]);
+            } catch (UniqueConstraintViolationException) {
+                TeamTyping::query()->where($where)->update(['typed_at' => now(), 'updated_at' => now()]);   // both made it at once
+            }
         }
     }
 
@@ -148,6 +296,22 @@ final class TeamChatService
         abort_unless($member instanceof TeamConversationMember, 404);
 
         return $member;
+    }
+
+    private function conversationOf(TeamMessage $message): TeamConversation
+    {
+        $conversation = $message->conversation;
+        abort_unless($conversation instanceof TeamConversation, 404);
+
+        return $conversation;
+    }
+
+    /** Only the person who wrote a message may change or delete it (a member who did not is told so, in words). */
+    private function refuseUnlessAuthor(TeamMessage $message, User $by): void
+    {
+        if ((string) $message->user_id !== (string) $by->getKey()) {
+            throw new TeamChatRefused(__('php/services/team_chat_service.only_author'));
+        }
     }
 
     /** A paused workspace is read-only for every write, as the Inbox is (a read position is not a write). */

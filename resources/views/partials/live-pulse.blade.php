@@ -11,14 +11,34 @@
      failing server (429, 5xx, no connection) only slows it, doubling the wait up to five minutes (the review, 2026-10-06).
 
      `window.VyLive` is shared with the pages: team chat tells it what it has already seen (`observe()`), so the pulse
-     does not chime a second time for the same message. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+     does not chime a second time for the same message.
+
+     DESKTOP NOTIFICATIONS (D-TC-LATER, 2026-11-11): the browser's own Notification API, switched on in team chat (`vy.desktop`,
+     beside `vy.sound`) by a CLICK — the only moment a browser lets a page ask for permission. When a count rises and the tab is
+     hidden or unfocused, one notification says HOW MANY messages are waiting — never who wrote or what (the pulse carries counts
+     only). `tag` makes a newer one REPLACE the older. ⚠️ HONEST LIMITS: it works only while a Vyrobel tab is open in the browser;
+     it is not available in Safari on an iPhone, and Chrome on Android refuses a notification made by a page. Real background push
+     (a service worker, VAPID keys, a push service and a new package) is NOT built.
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @auth
 @once
+@php
+    // a count's words are computed HERE, per count (a script cannot pluralise for every language); a count past 99 falls back to the many-form
+    $__lpUnread = collect(range(1, 99))->mapWithKeys(fn (int $n): array => [$n => trans_choice('partials/live-pulse.desktop_unread', $n, ['count' => $n])])->all();
+@endphp
 <script>
 (() => {
     if (window.VyLive) return;
     const PULSE = @js(route('app.pulse'));
     const SOUND_KEY = 'vy.sound';
+    const DESKTOP_KEY = 'vy.desktop';
+    const DESK = {
+        title: @js(__('partials/live-pulse.desktop_title')),
+        unread: @js($__lpUnread),
+        unreadOther: @js(trans_choice('partials/live-pulse.desktop_unread', 2, ['count' => ':count'])),
+        blocked: @js(__('partials/live-pulse.desktop_blocked')),
+        unsupported: @js(__('partials/live-pulse.desktop_unsupported')),
+    };
     const VISIBLE_MS = 20000, HIDDEN_MS = 60000, IDLE_MS = 30 * 60 * 1000;
     const baseTitle = document.title.replace(/^\(\d+\+?\)\s+/, '');
     let last = null, timer = null, busy = false, stopped = false, lastActive = Date.now(), lastChime = 0, ctx = null, gesture = false;
@@ -127,6 +147,48 @@
             render(last);
         },
         counts() { return last; },
+        /** Can this browser show a notification made by a page at all? (Not Safari on an iPhone, in a tab.) */
+        desktopSupported() { return typeof window.Notification === 'function'; },
+        /** On: the person chose it AND the browser still allows it (permission can be taken back in the site settings). */
+        desktopOn() { return this.desktopSupported() && window.Notification.permission === 'granted' && store.get(DESKTOP_KEY) === 'on'; },
+        /**
+         * Switch it. Turning ON must be called from a click: it asks the browser for permission then. Resolves to 'on', 'off',
+         * 'blocked' (the person, or the browser, said no) or 'unsupported'.
+         */
+        async setDesktop(on) {
+            if (!on) {
+                store.set(DESKTOP_KEY, 'off');
+                document.dispatchEvent(new CustomEvent('vy:desktop', { detail: { on: false } }));
+                return 'off';
+            }
+            if (!this.desktopSupported()) return 'unsupported';
+            if (window.Notification.permission === 'default') {
+                try { await window.Notification.requestPermission(); } catch (e) { /* older Safari takes a callback — the permission is read below either way */ }
+            }
+            if (window.Notification.permission !== 'granted') {
+                store.set(DESKTOP_KEY, 'off');
+                return 'blocked';
+            }
+            store.set(DESKTOP_KEY, 'on');
+            document.dispatchEvent(new CustomEvent('vy:desktop', { detail: { on: true } }));
+            return 'on';
+        },
+        /** The words for a refusal ('blocked' | 'unsupported'). */
+        desktopMessage(state) { return state === 'unsupported' ? DESK.unsupported : DESK.blocked; },
+        /**
+         * One notification — how many messages are waiting, nothing more — only when it is switched on and the person is NOT
+         * looking at this tab (the badge and the chime already tell someone who is).
+         */
+        desktopNotify() {
+            if (!this.desktopOn() || (!document.hidden && document.hasFocus())) return;
+            const n = ((last && last.team) || 0) + ((last && last.guests) || 0);
+            if (n <= 0) return;
+            const body = DESK.unread[n] !== undefined ? DESK.unread[n] : DESK.unreadOther.replace(':count', String(n));
+            try {
+                const note = new window.Notification(DESK.title, { body, tag: 'vy-messages' });   // the same tag: a newer one replaces the older
+                note.onclick = () => { window.focus(); note.close(); };
+            } catch (e) { /* a browser that refuses a page-made notification (Chrome on Android): the badge and the chime still work */ }
+        },
         /** Ask now — a page that has just changed what the counts read (the Inbox after it refreshed itself). */
         refresh() { tick(); },
         refreshBell: refreshBellSoon,
@@ -145,7 +207,7 @@
             document.dispatchEvent(new CustomEvent('vy:pulse', { detail: c }));
             if (before) {
                 const rose = (c.team || 0) > (before.team || 0) || (c.notifications || 0) > (before.notifications || 0) || (c.guests || 0) > (before.guests || 0);
-                if (rose) VyLive.chime();
+                if (rose) { VyLive.chime(); VyLive.desktopNotify(); }
                 if ((c.notifications || 0) !== (before.notifications || 0)) refreshBellSoon();
             }
         } catch (e) {

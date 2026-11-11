@@ -10,6 +10,7 @@ use App\Models\Owner;
 use App\Models\TeamConversation;
 use App\Models\TeamConversationMember;
 use App\Models\User;
+use App\Services\InboxService;
 use App\Support\Messaging\ChatFiles;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Platform\BreakGlass;
@@ -50,6 +51,8 @@ class OperatorTeamChat extends Component
         }
 
         $reader = app(TeamChatReader::class);
+        // the server's clock BEFORE anything is read: the page hands it back as `since`, so the poll finds what changed after it
+        $serverTime = now()->getTimestamp();
         $conversations = $reader->conversations($user);
         $wanted = is_string($request->query('c')) ? strtolower($request->query('c')) : null;
         $open = $wanted !== null && TeamConversationMember::query()->where('conversation_id', $wanted)->where('user_id', $user->getKey())->exists()
@@ -69,6 +72,11 @@ class OperatorTeamChat extends Component
                 'messages' => $open !== null ? $reader->messages($open, $user) : [],
                 'reads' => $open !== null ? $reader->reads($open, $user) : [],
                 'unread' => $unread,
+                'serverTime' => $serverTime,
+                // who of the people you talk to is online now — null when sessions are not kept in the database (no presence then)
+                'online' => $reader->online($user),
+                // the emojis a reaction may be (the Inbox's own fixed list — one definition)
+                'reactions' => InboxService::REACTIONS,
                 'page' => TeamChatReader::PAGE,
                 'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
                 'csrf' => csrf_token(),
@@ -78,6 +86,11 @@ class OperatorTeamChat extends Component
                     'start' => route('app.inbox.team.start'),
                     'send' => route('app.inbox.team.send', '__ID__'),
                     'read' => route('app.inbox.team.read', '__ID__'),
+                    // one URL each for a message's edit (PATCH), delete (DELETE) and reaction (POST), and a conversation's typing and search
+                    'message' => route('app.inbox.team.message.edit', '__ID__'),
+                    'react' => route('app.inbox.team.message.react', '__ID__'),
+                    'typing' => route('app.inbox.team.typing', '__ID__'),
+                    'search' => route('app.inbox.team.search', '__ID__'),
                     'roles' => $user->can('users.manage') ? route('app.roles') : null,
                 ],
                 'limits' => [

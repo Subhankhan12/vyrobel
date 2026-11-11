@@ -118,4 +118,55 @@ return [
     'reason_too_many' => 'Too many messages at once — wait a moment, then try again. Your message was kept.',
     'reason_failed' => 'Your message was not sent — something went wrong. It was kept; try again.',
     'nothing_recorded' => 'Nothing was recorded — try again.',
+
+    // EDIT, DELETE AND THE PRIVACY NOTE (2026-11-11)
+    'message_deleted' => 'This message was deleted',
+    'edited' => 'edited',
+    // shown under a message whose text had a guest's name, email or number removed when that guest was erased
+    'redacted_note' => 'Part of this message was removed to protect someone\'s privacy.',
+    'tools_aria' => 'Message actions',
+    'options_aria' => 'Message options',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'edit_aria' => 'Edit your message',
+    'edit_save' => 'Save',
+    'edit_hint' => 'Enter to save · Esc to cancel',
+    'delete_confirm' => 'Delete this message for everyone?',
+    'edit_empty' => 'A message cannot be left empty — delete it instead.',
+    'edit_failed' => 'The message could not be changed — try again.',
+    'delete_failed' => 'The message could not be deleted — try again.',
+
+    // REACTIONS
+    'react_aria' => 'Add a reaction',
+    'picker_aria' => 'Choose a reaction',
+    // :emoji is the reaction, :names who gave it
+    'reaction_chip_aria' => ':emoji — :names',
+    'reaction_failed' => 'The reaction could not be saved — try again.',
+
+    // SEARCH IN A CONVERSATION
+    'search_chat_open' => 'Search this conversation',
+    'search_chat_close' => 'Close search',
+    'search_chat_label' => 'Search messages in this conversation',
+    'search_chat_placeholder' => 'Search messages',
+    'search_go' => 'Go to message',
+    'search_you' => 'You',
+    'search_failed' => 'The search did not work — try again.',
+    'search_too_far' => 'That message is too far back to jump to. Scroll up to load earlier messages.',
+    'search_hint' => 'Type at least two characters.',
+
+    // TYPING AND ONLINE
+    // :name is a first name
+    'typing_one' => ':name is typing…',
+    // :a and :b are first names
+    'typing_two' => ':a and :b are typing…',
+    'typing_many' => 'Several people are typing…',
+    'online_now' => 'Online now',
+    'online_count' => '{1} :count online|[0,*] :count online',
+
+    // DESKTOP NOTIFICATIONS (the switch next to the sound; the words a notification says are in partials/live-pulse)
+    'desktop_on_aria' => 'Desktop notifications on — turn off',
+    'desktop_off_aria' => 'Desktop notifications off — turn on',
+    'desktop_on' => 'Desktop notifications on',
+    'desktop_off' => 'Desktop notifications off',
+    'desktop_help' => 'Desktop notifications appear only while a Vyrobel tab is open in this browser, and only when you are looking at another window. They say how many messages are waiting — never who wrote or what. They do not work in Safari on an iPhone.',
 ];

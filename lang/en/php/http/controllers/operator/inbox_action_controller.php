@@ -26,6 +26,8 @@ return [
     'message_resent' => 'Message re-sent.',
     'reservation_linked' => 'Reservation linked.',
     'conversation_started' => 'Conversation started.',
+    // :name is the owner — they cannot read a message until they have a sign-in to the owner portal
+    'owner_no_portal' => 'No portal sign-in yet — invite :name to the owner portal first.',
     'workspace_paused' => 'Workspace paused — messaging is read-only until :date.',
     'workspace_paused_for_now' => 'Workspace paused — messaging is read-only for now.',
 ];

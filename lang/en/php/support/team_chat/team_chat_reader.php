@@ -11,4 +11,6 @@ return [
     'preview_voice' => 'Voice message',
     'preview_photos' => '{1} Photo|[0,*] :count photos',
     'preview_files' => '{1} File|[0,*] :count files',
+    // the one-line preview of a message its author deleted
+    'preview_deleted' => 'This message was deleted',
 ];

@@ -13,6 +13,7 @@ use App\Support\Guest\GuestName;
 use App\Support\I18n\Locales;
 use App\Support\Inbox\MessageAttachments;
 use App\Support\Security\ActiveSessions;
+use App\Support\TeamChat\TeamChatErasure;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
@@ -308,6 +309,14 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
                 $guestDocument->forceDelete();
             });
 
+            // GDPR · TEAM CHAT (D-TC-PII, 2026-11-11): staff write ABOUT a guest in team chat ("room 12's guest, Ines Walk, wants
+            // …"), and a team message is not linked to a guest — so it is found by the guest's own words: the full name, the
+            // exact email, the phone digits. ⚠️ It runs HERE, while the name, email and phone are still on the model (the
+            // forceFill below nulls them), and only for THIS guest's workspace. Each match becomes a mark; the rest of the
+            // message stays. Only the COUNT goes to the audit row — never the words (an encrypted column copied into a plaintext
+            // trail is no longer encrypted). The limits of a text search are written down in TeamChatErasure.
+            $teamMessagesScrubbed = app(TeamChatErasure::class)->scrub($this);
+
             $anonymizedAt = now();
 
             $this->forceFill([
@@ -447,7 +456,7 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',
                 subject: $this,
-                after: ['anonymized_at' => $anonymizedAt->toIso8601String()],
+                after: ['anonymized_at' => $anonymizedAt->toIso8601String(), 'team_messages_scrubbed' => $teamMessagesScrubbed],
             );
             app(DomainEventRecorder::class)->record(
                 eventType: 'guest.anonymized',

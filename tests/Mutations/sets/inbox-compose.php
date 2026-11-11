@@ -10,6 +10,8 @@ declare(strict_types=1);
 // 390 px on production (seen on the live look of rel_AY) — the 🖥 walk at 320 to 1,280 px proved every word shows.
 
 $test = 'tests/Feature/InboxComposeRedesignTest.php';
+// IC-M1…M5 (2026-11-11, D-TC-LATER): starting a conversation with a unit owner from the back office.
+$ownerTest = 'tests/Feature/OperatorInboxComposeTest.php';
 
 return [
     [
@@ -40,7 +42,7 @@ return [
         'id' => 'IB-M4',
         'name' => 'a dead form when nobody can be messaged',
         'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
-        'old' => '                @if ($composeGuests !== [])
+        'old' => '                @if ($composeGuests !== [] || $composeOwners !== [])
 ',
         'new' => '                @if (true)
 ',
@@ -66,7 +68,7 @@ return [
         'id' => 'IB-M7',
         'name' => 'Start is clickable with no guest',
         'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
-        'old' => '<button type="submit" class="vy-btn vy-btn--accent" :disabled="! composeGuest">{{ __(\'livewire/operator/operator-inbox.start_conversation\') }}</button>',
+        'old' => '<button type="submit" class="vy-btn vy-btn--accent" @if ($composeOwners !== []) :disabled="composeKind === \'guest\' ? ! composeGuest : ! composeOwner" @else :disabled="! composeGuest" @endif>{{ __(\'livewire/operator/operator-inbox.start_conversation\') }}</button>',
         'new' => '<button type="submit" class="vy-btn vy-btn--accent">{{ __(\'livewire/operator/operator-inbox.start_conversation\') }}</button>',
         'tests' => [['file' => $test, 'filter' => 'lets a guest be found by name in the dialog']],
     ],
@@ -140,7 +142,7 @@ return [
         'id' => 'IB-M16',
         'name' => 'a guest checked in is not "In house"',
         'file' => 'app/Support/Reservations/StayLabel.php',
-        'old' => '            $own === ReservationStage::IN_HOUSE => __(\'php/support/reservations/stay_label.in_house\'),
+        'old' => '            $own === ReservationStage::IN_HOUSE => ReservationStage::meta(ReservationStage::IN_HOUSE)[\'label\'],   // D-STAY-WORD: the badge\'s own word, one spelling
 ',
         'new' => '',
         'tests' => [['file' => $test, 'filter' => 'says where each guest’s stay stands by the Guests list’s own rule']],
@@ -209,5 +211,63 @@ return [
         'old' => '@if ($filter === $tabKey) aria-current="page" @endif',
         'new' => 'aria-current="page"',
         'tests' => [['file' => $test, 'filter' => 'marks the filter it shows']],
+    ],
+    [
+        'id' => 'IC-M1',
+        'name' => 'a unit owner with no portal sign-in is "sent" a message nobody can read',
+        'file' => 'app/Http/Controllers/Operator/InboxActionController.php',
+        'old' => <<<'NOWDOC_END'
+        if ($owner->user === null) {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $ownerTest, 'filter' => 'refuses an owner with no portal sign-in']],
+    ],
+    [
+        'id' => 'IC-M2',
+        'name' => 'another workspace\'s owner can be started from here',
+        'file' => 'app/Http/Controllers/Operator/InboxActionController.php',
+        'old' => <<<'NOWDOC_END'
+        $owner = Owner::query()->where('status', 'active')->findOrFail($ownerId);   // tenant-scoped → cross-org 404
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        $owner = Owner::query()->withoutGlobalScopes()->findOrFail($ownerId);
+NOWDOC_END,
+        'tests' => [['file' => $ownerTest, 'filter' => 'keeps the owner start inside its workspace']],
+    ],
+    [
+        'id' => 'IC-M3',
+        'name' => 'a message can be started for a guest and an owner at once',
+        'file' => 'app/Http/Controllers/Operator/InboxActionController.php',
+        'old' => <<<'NOWDOC_END'
+            'owner_id' => ['nullable', 'string', 'required_without:guest_id', 'prohibits:guest_id'],
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            'owner_id' => ['nullable', 'string'],
+NOWDOC_END,
+        'tests' => [['file' => $ownerTest, 'filter' => 'keeps the owner start inside its workspace']],
+    ],
+    [
+        'id' => 'IC-M4',
+        'name' => 'starting with the same owner again opens a second conversation',
+        'file' => 'app/Http/Controllers/Operator/InboxActionController.php',
+        'old' => <<<'NOWDOC_END'
+        $thread = MessageThread::query()->where('owner_id', $owner->getKey())->where('channel', 'manual')->orderByDesc('last_message_at')->first();
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        $thread = null;
+NOWDOC_END,
+        'tests' => [['file' => $ownerTest, 'filter' => 'starts a conversation with a unit owner']],
+    ],
+    [
+        'id' => 'IC-M5',
+        'name' => 'an owner with no portal sign-in can be picked in the dialog',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => <<<'NOWDOC_END'
+@disabled(! $o['has_portal'])
+NOWDOC_END,
+        'new' => '',
+        'tests' => [['file' => $ownerTest, 'filter' => 'lists owners in the New message picker']],
     ],
 ];

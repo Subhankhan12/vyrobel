@@ -10,6 +10,17 @@ declare(strict_types=1);
 // ⚠️ How it looks and plays is what a browser does: these prove the rules; the 🖥 walk (two people, live) proved the rest.
 // ⚠️ Not provable here, and said so: the read position's ONE-statement update (two reads at once cannot move it back —
 // a race a feature test cannot stage) and the page's own cursor, merge and recorder (JavaScript — the 🖥 walk).
+// TC-M30…M59 (2026-11-11, D-TC-LATER + D-TC-PII): edit and delete (author only, the 15-minute window, a tombstone that keeps no words or
+// files and counts as no unread), the poll's "what changed since", reactions (the allow-list; the touch that delivers them), search
+// (members only, literal % and _), typing, "online now", and a guest's erasure reaching team chat (the full name, the email, the
+// phone, never a lone name, never another workspace). ⚠️ NOT PROVABLE HERE, and said so: desktop notifications (the browser's
+// Notification API, fired from the pulse), the page's merge-by-upsert, hover/long-press tools and the jump-to-message loop —
+// JavaScript and a browser; the page's INPUTS and WORDS are pinned in TeamChatTest ("gives the page its new inputs").
+// ⚠️ TC-M54 removes BOTH the explicit organisation clause and the global scope: either alone is defence in depth, so removing one
+// would survive by design.
+// ⚠️ TC-M38/M55/M56/M57 are the SERVICE's own membership check, which the controller's `messageFor()` check sits in front of: the controller
+// layer alone is an equivalent mutant while the service stands (a non-member is still refused there), so each layer has its own test —
+// the service's is called directly, with the controller out of the way.
 
 $test = 'tests/Feature/TeamChatTest.php';
 $service = 'app/Services/TeamChatService.php';
@@ -95,8 +106,8 @@ return [
         'id' => 'TC-M10',
         'name' => 'a Vyrobel support session reads staff conversations through the poll',
         'file' => $controller,
-        'old' => "        if (BreakGlass::hasStash(\$request)) {\n            return \$this->notFound();",
-        'new' => "        if (false) {\n            return \$this->notFound();",
+        'old' => "    public function poll(Request \$request): JsonResponse\n    {\n        if (BreakGlass::hasStash(\$request)) {",
+        'new' => "    public function poll(Request \$request): JsonResponse\n    {\n        if (false) {",
         'tests' => [['file' => $test, 'filter' => 'keeps team chat closed to a Vyrobel support session']],
     ],
     [
@@ -159,8 +170,8 @@ return [
         'id' => 'TC-M18',
         'name' => 'the live poll stops looking back — a message saved a moment late, behind the cursor, is never shown',
         'file' => $reader,
-        'old' => "            \$rows = \$query->where('id', '>', self::lookBackFrom(\$after))",
-        'new' => "            \$rows = \$query->where('id', '>', \$after)",
+        'old' => "                \$q->where('id', '>', self::lookBackFrom(\$after));",
+        'new' => "                \$q->where('id', '>', \$after);",
         'tests' => [['file' => $test, 'filter' => 'looks 30 seconds back'], ['file' => $test, 'filter' => 'never skips a colleague']],
     ],
     [
@@ -175,8 +186,8 @@ return [
         'id' => 'TC-M20',
         'name' => 'a message over 5,000 characters is kept',
         'file' => $service,
-        'old' => '        if (mb_strlen($body) > self::MAX_BODY) {',
-        'new' => '        if (false) {',
+        'old' => "        if (mb_strlen(\$body) > self::MAX_BODY) {\n            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));\n        }\n\n        \$written = [];",
+        'new' => "        if (false) {\n            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));\n        }\n\n        \$written = [];",
         'tests' => [['file' => $test, 'filter' => 'refuses an empty message and one over 5,000 characters']],
     ],
     [
@@ -252,5 +263,378 @@ return [
         'old' => "        \$name = (string) preg_replace('/[\\x00-\\x1F\\x7F\\p{Cf}]/u', '', \$name);",
         'new' => "        \$name = (string) preg_replace('/[\\x00-\\x1F\\x7F]/u', '', \$name);",
         'tests' => [['file' => $test, 'filter' => 'downloads a file under its own name']],
+    ],
+    [
+        'id' => 'TC-M30',
+        'name' => 'a teammate in the conversation can edit or delete a message they did not write',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+        if ((string) $message->user_id !== (string) $by->getKey()) {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'lets only the author edit or delete']],
+    ],
+    [
+        'id' => 'TC-M31',
+        'name' => 'the 15-minute edit window never closes',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+        if ($message->created_at->copy()->addMinutes(self::EDIT_WINDOW_MINUTES)->isPast()) {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'closes editing 15 minutes after sending']],
+    ],
+    [
+        'id' => 'TC-M32',
+        'name' => 'an edit can leave a message with nothing in it',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+        if ($body === '' && $files === 0) {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'closes editing 15 minutes after sending']],
+    ],
+    [
+        'id' => 'TC-M33',
+        'name' => 'the edit event carries the new words (the audit trail becomes a second copy of the conversation)',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+            $facts = ['conversation_id' => (string) $conversation->getKey(), 'characters' => mb_strlen($body), 'files' => $files];
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            $facts = ['conversation_id' => (string) $conversation->getKey(), 'characters' => mb_strlen($body), 'files' => $files, 'body' => $body];
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'lets the author change the words']],
+    ],
+    [
+        'id' => 'TC-M34',
+        'name' => 'a deleted message keeps its words',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+            $message->forceFill(['body' => null, 'edited_at' => null, 'redacted_at' => null, 'deleted_at' => now()])->save();
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            $message->forceFill(['deleted_at' => now()])->save();
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'deletes as a tombstone']],
+    ],
+    [
+        'id' => 'TC-M35',
+        'name' => 'a deleted message keeps its files — the rows and the bytes',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+            $files = $this->files->erase($message);
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            $files = 0;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'deletes as a tombstone']],
+    ],
+    [
+        'id' => 'TC-M36',
+        'name' => 'a deleted message still counts as unread',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+            ->whereNull('team_messages.deleted_at')   // a deleted message is nothing to read
+
+NOWDOC_END,
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'deletes as a tombstone']],
+    ],
+    [
+        'id' => 'TC-M37',
+        'name' => 'the poll never asks what changed since — an edit, a delete, a reaction or a removed name never reaches an open screen',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+                    $q->orWhere('updated_at', '>=', $changedFrom);
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+                    $q->orWhere('id', '<', '');
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'brings a change to a screen that already holds the message']],
+    ],
+    [
+        'id' => 'TC-M38',
+        'name' => 'a teammate outside the conversation can edit a message (the service takes the person on trust)',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+$this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            throw
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+$this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            throw
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'refuses a person outside the conversation at the SERVICE']],
+    ],
+    [
+        'id' => 'TC-M39',
+        'name' => 'any text is accepted as a reaction',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+        if (! in_array($emoji, InboxService::REACTIONS, true)) {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'toggles a reaction']],
+    ],
+    [
+        'id' => 'TC-M40',
+        'name' => 'a reaction does not touch its message — a screen holding it never hears',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+            $message->touch();
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            $message->getKey();
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'toggles a reaction']],
+    ],
+    [
+        'id' => 'TC-M41',
+        'name' => 'a % or _ typed in the search is a pattern, not a character',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+->where('body', 'like', '%'.addcslashes($term, '%_\\').'%');
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+->where('body', 'like', '%'.$term.'%');
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'searches one conversation']],
+    ],
+    [
+        'id' => 'TC-M42',
+        'name' => 'the search opens a conversation you are not in',
+        'file' => 'app/Http/Controllers/Operator/TeamChatController.php',
+        'old' => <<<'NOWDOC_END'
+        $isMember = TeamConversationMember::query()->where('conversation_id', $id)->where('user_id', $user->getKey())->exists();
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        $isMember = true;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'searches one conversation']],
+    ],
+    [
+        'id' => 'TC-M43',
+        'name' => '"typing" lasts ten minutes, not six seconds',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+    public const TYPING_SECONDS = 6;
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+    public const TYPING_SECONDS = 600;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'shows who is typing for six seconds']],
+    ],
+    [
+        'id' => 'TC-M44',
+        'name' => 'sending leaves "is typing…" on',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+                TeamTyping::query()->where('conversation_id', $conversation->getKey())->where('user_id', $from->getKey())->delete();
+
+NOWDOC_END,
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'shows who is typing for six seconds']],
+    ],
+    [
+        'id' => 'TC-M45',
+        'name' => 'you are told you are typing yourself',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+            ->where('user_id', '!=', $viewer->getKey())
+            ->where('typed_at', '>=', now()->subSeconds(TeamChatService::TYPING_SECONDS))
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            ->where('typed_at', '>=', now()->subSeconds(TeamChatService::TYPING_SECONDS))
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'shows who is typing for six seconds']],
+    ],
+    [
+        'id' => 'TC-M46',
+        'name' => '"online" lasts fifteen minutes, not ninety seconds',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+    public const ONLINE_SECONDS = 90;
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+    public const ONLINE_SECONDS = 900;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'shows who is online from the sessions table']],
+    ],
+    [
+        'id' => 'TC-M47',
+        'name' => 'presence names people you share no conversation with',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+        $others = TeamConversationMember::query()->whereIn('conversation_id', $mine)->where('user_id', '!=', $viewer->getKey())->pluck('user_id')->unique();
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        $others = User::query()->where('id', '!=', $viewer->getKey())->pluck('id');
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'shows who is online from the sessions table']],
+    ],
+    [
+        'id' => 'TC-M48',
+        'name' => 'presence is guessed on a driver that cannot tell',
+        'file' => 'app/Support/TeamChat/TeamChatReader.php',
+        'old' => <<<'NOWDOC_END'
+        if (config('session.driver') !== 'database') {
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        if (false) {
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'shows who is online from the sessions table']],
+    ],
+    [
+        'id' => 'TC-M49',
+        'name' => 'the poll trusts a `since` from the future (it can hide a change)',
+        'file' => 'app/Http/Controllers/Operator/TeamChatController.php',
+        'old' => <<<'NOWDOC_END'
+        return min($at, $now);
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        return $at;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'brings a change to a screen that already holds the message']],
+    ],
+    [
+        'id' => 'TC-M50',
+        'name' => 'erasure never looks in team chat',
+        'file' => 'app/Models/Guest.php',
+        'old' => <<<'NOWDOC_END'
+            $teamMessagesScrubbed = app(TeamChatErasure::class)->scrub($this);
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            $teamMessagesScrubbed = 0;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'scrubs a guest from team chat when they are erased']],
+    ],
+    [
+        'id' => 'TC-M51',
+        'name' => 'erasure takes a first name or a surname alone out of every message',
+        'file' => 'app/Support/TeamChat/TeamChatErasure.php',
+        'old' => <<<'NOWDOC_END'
+        return '/(?<![\p{L}\p{N}\p{Mn}])(?:'.$a.'\s+'.$b.'|'.$b.'\s*,?\s+'.$a.')(?![\p{L}\p{N}\p{Mn}])/iu';
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        return '/(?<![\p{L}\p{N}\p{Mn}])(?:'.$a.'|'.$b.')(?![\p{L}\p{N}\p{Mn}])/iu';
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'scrubs a guest from team chat when they are erased']],
+    ],
+    [
+        'id' => 'TC-M52',
+        'name' => 'erasure leaves the guest\'s email in team chat',
+        'file' => 'app/Support/TeamChat/TeamChatErasure.php',
+        'old' => <<<'NOWDOC_END'
+            $email !== '' ? $this->emailPattern($email) : null,
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+            null,
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'scrubs a guest from team chat when they are erased']],
+    ],
+    [
+        'id' => 'TC-M53',
+        'name' => 'erasure misses a phone number written with a trunk 0 and no country code',
+        'file' => 'app/Support/TeamChat/TeamChatErasure.php',
+        'old' => <<<'NOWDOC_END'
+        $tail = strlen($digits) > self::PHONE_TAIL_DIGITS ? '|0?'.$join(substr($digits, -self::PHONE_TAIL_DIGITS)) : '';
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        $tail = '';
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'scrubs a guest from team chat when they are erased']],
+    ],
+    [
+        'id' => 'TC-M54',
+        'name' => 'erasure reads every workspace\'s team chat, not the guest\'s own',
+        'file' => 'app/Support/TeamChat/TeamChatErasure.php',
+        'old' => <<<'NOWDOC_END'
+        return TeamMessage::query()->where('organization_id', $guest->organization_id)
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+        return TeamMessage::query()->withoutGlobalScopes()
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'leaves another workspace']],
+    ],
+    [
+        'id' => 'TC-M55',
+        'name' => 'a teammate outside the conversation can delete a message (the service takes the person on trust)',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+$this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            return $message;
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+$this->refuseWhilePaused();
+        $this->refuseUnlessAuthor($message, $by);
+        if ($message->deleted_at !== null) {
+            return $message;
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'refuses a person outside the conversation at the SERVICE']],
+    ],
+    [
+        'id' => 'TC-M56',
+        'name' => 'a person outside the conversation can react to its messages (the service takes the person on trust)',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+$this->member($conversation, $by);
+        $this->refuseWhilePaused();
+        if (! in_array($emoji
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+$this->refuseWhilePaused();
+        if (! in_array($emoji
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'refuses a person outside the conversation at the SERVICE']],
+    ],
+    [
+        'id' => 'TC-M57',
+        'name' => 'a person outside the conversation can say they are typing in it (the service takes the person on trust)',
+        'file' => 'app/Services/TeamChatService.php',
+        'old' => <<<'NOWDOC_END'
+$this->member($conversation, $by);
+        $this->refuseWhilePaused();
+
+        $where
+NOWDOC_END,
+        'new' => <<<'NOWDOC_END'
+$this->refuseWhilePaused();
+
+        $where
+NOWDOC_END,
+        'tests' => [['file' => $test, 'filter' => 'refuses a person outside the conversation at the SERVICE']],
+    ],
+    [
+        'id' => 'TC-M58',
+        'name' => 'an edit can make a message over 5,000 characters',
+        'file' => $service,
+        'old' => "        if (mb_strlen(\$body) > self::MAX_BODY) {\n            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));\n        }\n        if (\$body === (string) \$message->body) {",
+        'new' => "        if (false) {\n            throw new TeamChatRefused(__('php/services/team_chat_service.message_too_long'));\n        }\n        if (\$body === (string) \$message->body) {",
+        'tests' => [['file' => $test, 'filter' => 'closes editing 15 minutes after sending']],
+    ],
+    [
+        'id' => 'TC-M59',
+        'name' => 'a Vyrobel support session searches staff conversations',
+        'file' => $controller,
+        'old' => "    public function search(Request \$request, string \$conversation): JsonResponse\n    {\n        if (BreakGlass::hasStash(\$request)) {",
+        'new' => "    public function search(Request \$request, string \$conversation): JsonResponse\n    {\n        if (false) {",
+        'tests' => [['file' => $test, 'filter' => 'keeps team chat closed to a Vyrobel support session']],
     ],
 ];

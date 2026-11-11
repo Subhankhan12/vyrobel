@@ -1,0 +1,30 @@
+<?php
+// ADMIN 06 — READ-ONLY production facts. Counts and booleans only; no value, token, address or secret is printed.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+$c = fn (string $t, ?callable $w = null) => Schema::hasTable($t) ? ($w ? $w(DB::table($t)) : DB::table($t))->count() : 'no table';
+$out = [
+  'payments' => $c('payments'),
+  'payments_stripe' => $c('payments', fn ($q) => $q->where('gateway', 'stripe')),
+  'payment_authorizations' => $c('payment_authorizations'),
+  'payouts' => $c('payouts'),
+  'payout_runs_running' => $c('payout_runs', fn ($q) => $q->where('status', 'running')),
+  'webhook_events' => $c('webhook_events'),
+  'invoices' => $c('invoices'),
+  'subscriptions' => $c('subscriptions'),
+  'subscriptions_with_stripe_id' => $c('subscriptions', fn ($q) => $q->where(fn ($w) => $w->whereNotNull('stripe_subscription_id')->orWhereNotNull('stripe_customer_id'))),
+  'subscription_statuses' => DB::table('subscriptions')->select('status', DB::raw('count(*) n'))->groupBy('status')->pluck('n', 'status')->all(),
+  'orgs_with_connect_account' => $c('organizations', fn ($q) => $q->whereNotNull('stripe_connect_account_id')),
+  'owners_with_connect_account' => $c('owners', fn ($q) => $q->whereNotNull('stripe_connect_account_id')),
+  'brand_logos_referenced' => $c('properties', fn ($q) => $q->whereNotNull('brand_logo_path')),
+  'invites_pending_unexpired' => $c('owner_invites', fn ($q) => $q->where('status', 'pending')->where('expires_at', '>', now())),
+  'invites_pending_founder_unexpired' => $c('owner_invites', fn ($q) => $q->where('status', 'pending')->where('role', 'founder')->where('expires_at', '>', now())),
+  'owner_team_invites_pending_unexpired' => Schema::hasTable('owner_team_invites') ? DB::table('owner_team_invites')->where('status', 'pending')->where('expires_at', '>', now())->count() : 'no table',
+  'password_reset_tokens' => $c('password_reset_tokens'),
+  'fake_stripe' => (bool) config('services.stripe.fake'),
+  'stripe_secret_set' => (string) config('services.stripe.secret') !== '',
+  'mail_mailer' => (string) config('mail.default'),
+];
+$disk = storage_path('app/public/brand-logos');
+$out['brand_logo_files_on_disk'] = is_dir($disk) ? count(glob($disk.'/*') ?: []) : 'no folder';
+echo json_encode($out, JSON_PRETTY_PRINT), "\n";

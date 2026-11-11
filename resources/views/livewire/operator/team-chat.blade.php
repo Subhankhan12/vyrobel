@@ -45,6 +45,7 @@
                         <span class="vy-tc-row-body">
                             <span class="vy-tc-row-top">
                                 <span class="vy-tc-row-name" x-text="c.name"></span>
+                                <span class="vy-tc-dot" x-show="isOnline(c)" role="img" aria-label="{{ __('livewire/operator/team-chat.online_now') }}"></span>
                                 <span class="vy-tc-row-time" x-text="c.last ? railTime(c.last.at) : ''"></span>
                             </span>
                             <span class="vy-tc-row-bottom">
@@ -106,13 +107,42 @@
                         </span>
                         <span class="vy-tc-head-text">
                             <strong class="vy-tc-head-name" x-text="current.name"></strong>
-                            <span class="vy-tc-head-sub" x-text="headSub"></span>
+                            <span class="vy-tc-head-sub" :class="{ 'is-typing': typingLine }" x-text="typingLine || headSub"></span>
                         </span>
+                        <button type="button" class="vy-tc-icon" :class="{ 'is-on': searchOpen }" @click="toggleSearch()" :aria-expanded="searchOpen ? 'true' : 'false'" aria-controls="vy-tc-search-panel" aria-label="{{ __('livewire/operator/team-chat.search_chat_open') }}" title="{{ __('livewire/operator/team-chat.search_chat_open') }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                        </button>
+                        <button type="button" class="vy-tc-icon" :class="{ 'is-off': !desktop }" @click="toggleDesktop()" :aria-pressed="desktop ? 'true' : 'false'" :aria-label="desktop ? @js(__('livewire/operator/team-chat.desktop_on_aria')) : @js(__('livewire/operator/team-chat.desktop_off_aria'))" :title="desktop ? @js(__('livewire/operator/team-chat.desktop_on')) : @js(__('livewire/operator/team-chat.desktop_off'))">
+                            <svg x-show="desktop" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            <svg x-show="!desktop" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.9 17.9 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><path d="m1 1 22 22"/></svg>
+                        </button>
                         <button type="button" class="vy-tc-icon" :class="{ 'is-off': !sound }" @click="toggleSound()" :aria-pressed="sound ? 'true' : 'false'" :aria-label="sound ? @js(__('livewire/operator/team-chat.sound_on_aria')) : @js(__('livewire/operator/team-chat.sound_off_aria'))" :title="sound ? @js(__('livewire/operator/team-chat.sound_on')) : @js(__('livewire/operator/team-chat.sound_off'))">
                             <svg x-show="sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
                             <svg x-show="!sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
                         </button>
                     </header>
+
+                    <div class="vy-tc-find" id="vy-tc-search-panel" x-show="searchOpen" x-cloak>
+                        <div class="vy-tc-find-bar">
+                            <label class="vy-sr-only" for="vy-tc-find-input">{{ __('livewire/operator/team-chat.search_chat_label') }}</label>
+                            <input id="vy-tc-find-input" type="search" class="vy-tc-find-input" x-ref="findInput" x-model="chatQuery" @input.debounce.350ms="runSearch()" @keydown.escape.prevent="closeSearch()" placeholder="{{ __('livewire/operator/team-chat.search_chat_placeholder') }}" autocomplete="off" maxlength="100">
+                            <button type="button" class="vy-tc-icon" @click="closeSearch()" aria-label="{{ __('livewire/operator/team-chat.search_chat_close') }}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <p class="vy-tc-find-count" role="status" x-text="searchLine"></p>
+                        <ul class="vy-tc-find-list" x-show="found.length">
+                            <template x-for="r in found" :key="r.id">
+                                <li>
+                                    <button type="button" class="vy-tc-find-row" @click="goTo(r.id)">
+                                        <span class="vy-tc-find-top"><strong x-text="r.mine ? @js(__('livewire/operator/team-chat.search_you')) : r.sender"></strong><span x-text="railTime(r.at)"></span></span>
+                                        <span class="vy-tc-find-snippet" x-text="r.snippet"></span>
+                                        <span class="vy-tc-find-go">{{ __('livewire/operator/team-chat.search_go') }} →</span>
+                                    </button>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
 
                     <div class="vy-tc-banner" x-show="offline" role="alert">
                         <span x-text="offline"></span>
@@ -144,7 +174,12 @@
                                         <div class="vy-tc-run-body">
                                             <span class="vy-tc-who" x-show="!item.mine && current.kind === 'group'" x-text="item.sender.name"></span>
                                             <template x-for="m in item.items" :key="m.id">
-                                                <div class="vy-tc-msg" :class="{ 'is-pending': m.pending, 'is-failed': m.failed }">
+                                                <div class="vy-tc-msg" :class="{ 'is-pending': m.pending, 'is-failed': m.failed, 'is-deleted': m.deleted, 'is-tools': toolsFor === m.id, 'is-found': foundId === m.id }" :data-mid="m.id"
+                                                     @click="toolsFor = (toolsFor === m.id ? null : m.id)" @mouseleave="if (toolsFor === m.id && menuFor !== m.id && pickerFor !== m.id) toolsFor = null"
+                                                     @touchstart.passive="pressStart(m)" @touchend="pressEnd()" @touchmove.passive="pressEnd()" @touchcancel="pressEnd()">
+                                                    <template x-if="m.deleted">
+                                                        <p class="vy-tc-bubble vy-tc-bubble--deleted">{{ __('livewire/operator/team-chat.message_deleted') }}</p>
+                                                    </template>
                                                     <template x-if="m.files.filter(f => f.kind === 'image').length">
                                                         <div class="vy-tc-photos" :class="'n' + Math.min(4, m.files.filter(f => f.kind === 'image').length)">
                                                             <template x-for="f in m.files.filter(f => f.kind === 'image')" :key="f.id">
@@ -152,8 +187,21 @@
                                                             </template>
                                                         </div>
                                                     </template>
-                                                    <template x-if="m.body">
-                                                        <p class="vy-tc-bubble" x-text="m.body"></p>
+                                                    <template x-if="m.body && editing !== m.id">
+                                                        <p class="vy-tc-bubble"><span x-text="m.body"></span><span class="vy-tc-edited" x-show="m.edited">{{ __('livewire/operator/team-chat.edited') }}</span></p>
+                                                    </template>
+                                                    <template x-if="editing === m.id">
+                                                        <div class="vy-tc-edit" @click.stop>
+                                                            <label class="vy-sr-only" :for="'vy-tc-edit-' + m.id">{{ __('livewire/operator/team-chat.edit_aria') }}</label>
+                                                            <textarea class="vy-tc-edit-text" :id="'vy-tc-edit-' + m.id" rows="2" x-model="editText" :maxlength="limits.body" :disabled="editSaving"
+                                                                      @keydown.enter="editEnter($event)" @keydown.escape.prevent.stop="cancelEdit()"></textarea>
+                                                            <p class="vy-tc-error" x-show="editError" x-text="editError" role="alert"></p>
+                                                            <span class="vy-tc-edit-bar">
+                                                                <span class="vy-tc-edit-hint">{{ __('livewire/operator/team-chat.edit_hint') }}</span>
+                                                                <button type="button" class="vy-btn vy-btn--ghost" @click="cancelEdit()">{{ __('common.cancel') }}</button>
+                                                                <button type="button" class="vy-btn vy-btn--accent" @click="saveEdit()" :disabled="editSaving">{{ __('livewire/operator/team-chat.edit_save') }}</button>
+                                                            </span>
+                                                        </div>
                                                     </template>
                                                     <template x-for="f in m.files.filter(f => f.kind === 'file')" :key="f.id">
                                                         <a class="vy-tc-file" :href="m.pending ? null : f.url" :aria-label="@js(__('livewire/operator/team-chat.download_file_aria', ['name' => ':name'])).replace(':name', () => f.name)">
@@ -174,6 +222,53 @@
                                                     </template>
                                                     <p class="vy-tc-failed" x-show="m.failed"><span x-text="m.failed"></span></p>
                                                     <span class="vy-tc-progress" x-show="m.pending && m.progress !== null"><span :style="{ width: (m.progress || 0) + '%' }"></span></span>
+                                                    <p class="vy-tc-note" x-show="m.redacted">{{ __('livewire/operator/team-chat.redacted_note') }}</p>
+
+                                                    {{-- reactions: one chip per emoji; tapping yours takes it off --}}
+                                                    <div class="vy-tc-reacts" x-show="(m.reactions || []).length" @click.stop>
+                                                        <template x-for="r in (m.reactions || [])" :key="r.emoji">
+                                                            <button type="button" class="vy-tc-react" :class="{ 'is-mine': r.mine }" @click="react(m, r.emoji)" :disabled="readOnly" :aria-pressed="r.mine ? 'true' : 'false'"
+                                                                    :title="r.names.join(', ')" :aria-label="@js(__('livewire/operator/team-chat.reaction_chip_aria', ['emoji' => ':emoji', 'names' => ':names'])).replace(':emoji', () => r.emoji).replace(':names', () => r.names.join(', '))">
+                                                                <span aria-hidden="true" x-text="r.emoji"></span><span class="vy-tc-react-n" aria-hidden="true" x-text="r.count"></span>
+                                                            </button>
+                                                        </template>
+                                                    </div>
+
+                                                    {{-- what you can do with it: react to any message, edit or delete your own --}}
+                                                    <template x-if="!m.pending && !m.deleted && !readOnly">
+                                                        <div class="vy-tc-tools" role="toolbar" aria-label="{{ __('livewire/operator/team-chat.tools_aria') }}" @click.stop>
+                                                            <button type="button" class="vy-tc-tool" @click.stop="togglePicker(m)" :aria-expanded="pickerFor === m.id ? 'true' : 'false'" aria-haspopup="true" aria-label="{{ __('livewire/operator/team-chat.react_aria') }}" title="{{ __('livewire/operator/team-chat.react_aria') }}">
+                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
+                                                            </button>
+                                                            <template x-if="m.mine">
+                                                                <button type="button" class="vy-tc-tool" @click.stop="toggleMenu(m)" :aria-expanded="menuFor === m.id ? 'true' : 'false'" aria-haspopup="menu" aria-label="{{ __('livewire/operator/team-chat.options_aria') }}" title="{{ __('livewire/operator/team-chat.options_aria') }}">
+                                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+                                                                </button>
+                                                            </template>
+                                                            <div class="vy-tc-picker" x-show="pickerFor === m.id" x-cloak role="group" aria-label="{{ __('livewire/operator/team-chat.picker_aria') }}" @click.outside="if (pickerFor === m.id) pickerFor = null" @keydown.escape.stop="pickerFor = null">
+                                                                <template x-for="e in reactionList" :key="e">
+                                                                    <button type="button" class="vy-tc-pick-emoji" @click.stop="react(m, e)" :aria-label="e" x-text="e"></button>
+                                                                </template>
+                                                            </div>
+                                                            <div class="vy-tc-menu" x-show="menuFor === m.id" x-cloak role="menu" @click.outside="if (menuFor === m.id) closeMenu()" @keydown.escape.stop="closeMenu()">
+                                                                <template x-if="confirmDelete !== m.id">
+                                                                    <div class="vy-tc-menu-list">
+                                                                        <button type="button" role="menuitem" class="vy-tc-menu-item" x-show="canEdit(m)" @click.stop="startEdit(m)">{{ __('livewire/operator/team-chat.edit') }}</button>
+                                                                        <button type="button" role="menuitem" class="vy-tc-menu-item is-danger" @click.stop="confirmDelete = m.id">{{ __('livewire/operator/team-chat.delete') }}</button>
+                                                                    </div>
+                                                                </template>
+                                                                <template x-if="confirmDelete === m.id">
+                                                                    <div class="vy-tc-menu-confirm">
+                                                                        <p>{{ __('livewire/operator/team-chat.delete_confirm') }}</p>
+                                                                        <span>
+                                                                            <button type="button" class="vy-btn vy-btn--ghost" @click.stop="closeMenu()">{{ __('common.cancel') }}</button>
+                                                                            <button type="button" class="vy-btn vy-btn--danger" @click.stop="doDelete(m)">{{ __('livewire/operator/team-chat.delete') }}</button>
+                                                                        </span>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </template>
                                             <span class="vy-tc-meta">
@@ -256,7 +351,7 @@
                             <input type="file" x-ref="files" class="vy-sr-only" multiple :accept="limits.accept" @change="addFiles($event.target.files); $event.target.value = ''" tabindex="-1" aria-hidden="true">
                             <input type="file" x-ref="photos" class="vy-sr-only" multiple accept="image/jpeg,image/png,image/webp,image/gif" @change="addFiles($event.target.files); $event.target.value = ''" tabindex="-1" aria-hidden="true">
                             <label class="vy-sr-only" for="vy-tc-text">{{ __('livewire/operator/team-chat.message_label') }}</label>
-                            <textarea id="vy-tc-text" class="vy-tc-text" x-ref="text" rows="1" x-model="draft" @input="grow()" @keydown.enter="enter($event)" @paste="paste($event)" :maxlength="limits.body" :placeholder="current.kind === 'direct' ? @js(__('livewire/operator/team-chat.message_placeholder_direct', ['name' => ':name'])).replace(':name', () => current.name.split(' ')[0]) : @js(__('livewire/operator/team-chat.message_placeholder_group'))"></textarea>
+                            <textarea id="vy-tc-text" class="vy-tc-text" x-ref="text" rows="1" x-model="draft" @input="grow(); typingPing()" @keydown.enter="enter($event)" @paste="paste($event)" :maxlength="limits.body" :placeholder="current.kind === 'direct' ? @js(__('livewire/operator/team-chat.message_placeholder_direct', ['name' => ':name'])).replace(':name', () => current.name.split(' ')[0]) : @js(__('livewire/operator/team-chat.message_placeholder_group'))"></textarea>
                             <button type="button" class="vy-tc-send" x-show="draft.trim() || pending.length" @click="send()" :disabled="sending" aria-label="{{ __('livewire/operator/team-chat.send_aria') }}">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
                             </button>
@@ -344,6 +439,8 @@
             'unreadOther' => trans_choice('livewire/operator/team-chat.unread_aria', 2, ['count' => ':count']),
             'jump' => collect(range(1, 99))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.new_messages_jump', $n, ['count' => $n])])->all(),
             'jumpOther' => trans_choice('livewire/operator/team-chat.new_messages_jump', 2, ['count' => ':count']),
+            'online' => collect(range(1, max(1, count($boot['teammates']))))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.online_count', $n, ['count' => $n])])->all(),
+            'onlineOther' => trans_choice('livewire/operator/team-chat.online_count', 2, ['count' => ':count']),
             'files' => collect(range(1, max(1, (int) $boot['limits']['files'])))->mapWithKeys(fn (int $n): array => [$n => trans_choice('livewire/operator/team-chat.files_count', $n, ['count' => $n])])->all(),
             'filesOther' => trans_choice('livewire/operator/team-chat.files_count', 2, ['count' => ':count']),
         ];
@@ -385,6 +482,18 @@
                 reasonTooMany: @js(__('livewire/operator/team-chat.reason_too_many')),
                 reasonFailed: @js(__('livewire/operator/team-chat.reason_failed')),
                 nothingRecorded: @js(__('livewire/operator/team-chat.nothing_recorded')),
+                editEmpty: @js(__('livewire/operator/team-chat.edit_empty')),
+                editFailed: @js(__('livewire/operator/team-chat.edit_failed')),
+                deleteFailed: @js(__('livewire/operator/team-chat.delete_failed')),
+                reactionFailed: @js(__('livewire/operator/team-chat.reaction_failed')),
+                searchFailed: @js(__('livewire/operator/team-chat.search_failed')),
+                searchTooFar: @js(__('livewire/operator/team-chat.search_too_far')),
+                searchHint: @js(__('livewire/operator/team-chat.search_hint')),
+                typingOne: @js(__('livewire/operator/team-chat.typing_one', ['name' => ':name'])),
+                typingTwo: @js(__('livewire/operator/team-chat.typing_two', ['a' => ':a', 'b' => ':b'])),
+                typingMany: @js(__('livewire/operator/team-chat.typing_many')),
+                onlineNow: @js(__('livewire/operator/team-chat.online_now')),
+                desktopHelp: @js(__('livewire/operator/team-chat.desktop_help')),
             };
             const PL = @js($__tcPl);
             const plural = (map, other, n) => (map[n] !== undefined ? map[n] : other.replace(':count', String(n)));
@@ -394,6 +503,12 @@
             // the things that must never become reactive (the recorder, timers) live outside Alpine's state
             let recording = null, recToken = 0, pollTimer = null, readTimer = null;
             let lastActive = Date.now(), polling = false, tempSeq = 0, fails = 0;
+            // D-TC-LATER (2026-11-11): the SERVER's clock at the last poll answer — handed back as `since`, so the poll also
+            // returns what was edited, deleted, reacted to or scrubbed meanwhile (a message the page already holds)
+            let since = boot.serverTime || null;
+            // when "typing" was last sent (at most every 3 s), a touch-hold on a message, and the newest search
+            let lastTypingPost = 0, pressTimer = null, searchToken = 0, foundTimer = null;
+            const TYPING_EVERY = 3000;
             // ⚠️ THE CURSOR (the independent review, 2026-10-06): the newest message the SERVER has delivered to this page —
             // never one this page sent. The poll asks from it (the server looks 30 seconds further back) and every message is
             // kept once, by id, in id order; a colleague's message is never skipped because yours was newer.
@@ -440,7 +555,29 @@
                 dragging: false,
                 unseenBelow: 0,
                 sound: window.VyLive ? window.VyLive.soundOn() : true,
+                desktop: window.VyLive ? window.VyLive.desktopOn() : false,
                 rec: IDLE_REC(),
+                // edit · delete · reactions (D-TC-LATER): which message's tools, options menu, reaction picker or delete
+                // confirmation is open, and the edit in progress
+                toolsFor: null,
+                menuFor: null,
+                pickerFor: null,
+                confirmDelete: null,
+                // the id of the message being edited (or null), its words, and why a save was refused — scalars, so a binding never reads into null
+                editing: null,
+                editText: '',
+                editError: '',
+                editSaving: false,
+                reactionList: boot.reactions,
+                // typing, and who of the people you talk to is online (an empty list when the server cannot tell)
+                typing: [],
+                online: boot.online || [],
+                // search in this conversation
+                searchOpen: false,
+                chatQuery: '',
+                found: [],
+                searchLine: '',
+                foundId: null,
 
                 init() {
                     this.advance(this.messages);
@@ -457,6 +594,7 @@
                     }, { passive: true }));
                     window.addEventListener('focus', () => this.markReadSoon());
                     document.addEventListener('vy:sound', (e) => { this.sound = !!(e.detail && e.detail.on); });
+                    document.addEventListener('vy:desktop', (e) => { this.desktop = !!(e.detail && e.detail.on); });
                     window.addEventListener('popstate', () => {
                         const c = new URLSearchParams(location.search).get('c');
                         if (c && c !== this.active) this.open(c, false);
@@ -485,10 +623,29 @@
                 get headSub() {
                     const c = this.current;
                     if (!c) return '';
-                    if (c.kind === 'group') return plural(PL.members, PL.membersOther, c.members.length).replace(':names', () => c.members.filter((m) => m.id !== this.me.id).map((m) => m.name.split(' ')[0]).join(', '));
+                    if (c.kind === 'group') {
+                        const line = plural(PL.members, PL.membersOther, c.members.length).replace(':names', () => c.members.filter((m) => m.id !== this.me.id).map((m) => m.name.split(' ')[0]).join(', '));
+                        const here = c.members.filter((m) => m.id !== this.me.id && this.online.includes(m.id)).length;
+                        return here ? line + ' · ' + plural(PL.online, PL.onlineOther, here) : line;
+                    }
                     const other = c.members.find((m) => m.id !== this.me.id);
                     const mate = other && this.teammates.find((p) => p.id === other.id);
-                    return mate ? mate.role : T.formerTeammate;
+                    const line = mate ? mate.role : T.formerTeammate;
+                    return this.isOnline(c) ? line + ' · ' + T.onlineNow : line;
+                },
+                /** Who is typing in the open conversation, in words (first names) — empty when nobody is. */
+                get typingLine() {
+                    const names = this.typing.map((p) => p.name.split(' ')[0]);
+                    if (!names.length) return '';
+                    if (names.length === 1) return T.typingOne.replace(':name', () => names[0]);
+                    if (names.length === 2) return T.typingTwo.replace(':a', () => names[0]).replace(':b', () => names[1]);
+                    return T.typingMany;
+                },
+                /** The other person in a direct conversation is online now. */
+                isOnline(c) {
+                    if (!c || c.kind !== 'direct') return false;
+                    const other = c.members.find((m) => m.id !== this.me.id);
+                    return !!other && this.online.includes(other.id);
                 },
                 get timeline() {
                     const out = [];
@@ -582,11 +739,24 @@
                     Object.entries(params).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
                     return u.toString();
                 },
-                /** Messages the server sent, kept once each, in id order — the ones still sending stay last. Returns the new ones. */
+                /**
+                 * Messages the server sent, kept once each, in id order — the ones still sending stay last. Returns the new ones.
+                 * ⚠️ An UPSERT (D-TC-LATER, 2026-11-11): a message the page already holds is REPLACED by the server's copy — that is
+                 * how an edit, a delete, a reaction or a removed name reaches an open screen. One the page does not hold and
+                 * that is older than everything it has loaded is left out (it comes with "Load earlier messages", in its place).
+                 */
                 merge(list) {
-                    const have = new Set(this.messages.map((m) => m.id));
-                    const fresh = list.filter((m) => !have.has(m.id));
-                    if (fresh.length) this.messages = this.messages.filter((m) => !m.pending).concat(fresh).sort(byId).concat(this.messages.filter((m) => m.pending));
+                    const real = this.messages.filter((m) => !m.pending);
+                    const held = new Set(real.map((m) => m.id));
+                    const oldest = real.reduce((a, m) => (a === null || m.id < a ? m.id : a), null);
+                    const replaced = new Map(), fresh = [];
+                    for (const m of list) {
+                        if (held.has(m.id)) replaced.set(m.id, m);
+                        else if (oldest === null || m.id > oldest) fresh.push(m);
+                    }
+                    if (replaced.size || fresh.length) {
+                        this.messages = real.map((m) => replaced.get(m.id) || m).concat(fresh).sort(byId).concat(this.messages.filter((m) => m.pending));
+                    }
                     return fresh;
                 },
                 advance(list) { for (const m of list) if (!m.pending && (!cursor || m.id > cursor)) cursor = m.id; },
@@ -605,15 +775,18 @@
                     const openId = this.active;
                     try {
                         const before = Object.fromEntries(this.conversations.map((c) => [c.id, c.unread]));
-                        const { ok, data } = await this.request(this.pollUrl({ c: openId, after: openId ? cursor : null }));
+                        const { ok, data } = await this.request(this.pollUrl({ c: openId, after: openId ? cursor : null, since: openId ? since : null }));
                         if (!ok || !data) return;
                         this.conversations = data.conversations;
+                        this.online = data.online || [];
                         let chime = data.conversations.some((c) => c.unread > (before[c.id] || 0) && (c.id !== this.active || document.hidden));
                         if (openId && openId === this.active && !this.loading) {
                             this.reads = data.reads;
+                            this.typing = data.typing || [];
                             const near = this.nearBottom();
                             const fresh = this.merge(data.messages);
                             this.advance(data.messages);
+                            if (data.server_time) since = data.server_time;
                             if (fresh.length) {
                                 const incoming = fresh.filter((m) => !m.mine).length;
                                 if (incoming && document.hidden) chime = true;
@@ -621,8 +794,9 @@
                                 if (incoming) this.markReadSoon();
                             }
                         }
-                        if (chime && window.VyLive) window.VyLive.chime();
+                        // the shared counts first, so the desktop notification (if on, and you are elsewhere) says today's number
                         this.tellPulse(data);
+                        if (chime && window.VyLive) { window.VyLive.chime(); window.VyLive.desktopNotify(); }
                     } finally {
                         polling = false;
                     }
@@ -662,6 +836,10 @@
                     this.reads = [];
                     this.unseenBelow = 0;
                     cursor = null;
+                    since = null;
+                    lastTypingPost = 0;
+                    this.typing = [];
+                    this.resetTools();
                     this.restoreComposer(id);
                     this.loading = true;
                     if (push) history.pushState({ c: id }, '', this.urls.page + '?c=' + encodeURIComponent(id));
@@ -674,12 +852,15 @@
                     cursor = null;
                     this.advance(data.messages);
                     this.reads = data.reads;
+                    this.online = data.online || [];
+                    since = data.server_time || null;
                     this.hasOlder = data.messages.length >= boot.page;
                     this.$nextTick(() => { this.toBottom(); this.grow(); this.$refs.text && this.$refs.text.focus(); });
                     this.markReadSoon();
                 },
                 back() {
                     this.saveComposer();
+                    this.resetTools();
                     this.active = null;
                     history.pushState({}, '', this.urls.page);
                 },
@@ -777,6 +958,128 @@
                 dragOut(e) { if (!e.currentTarget.contains(e.relatedTarget)) this.dragging = false; },
                 dropFiles(e) { this.dragging = false; if (this.active && e.dataTransfer) this.addFiles(e.dataTransfer.files); },
 
+                /** "I am typing" — at most every 3 seconds, while there are words in the box. Fire and forget: it must never slow the poll. */
+                typingPing() {
+                    if (this.readOnly || !this.active || !this.draft.trim()) return;
+                    const now = Date.now();
+                    if (now - lastTypingPost < TYPING_EVERY) return;
+                    lastTypingPost = now;
+                    fetch(this.urls.typing.replace('__ID__', this.active), {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': boot.csrf },
+                    }).catch(() => {});
+                },
+
+                // ── edit, delete, react (D-TC-LATER) ─────────────────────────────────────────────────────
+                resetTools() {
+                    this.toolsFor = this.menuFor = this.pickerFor = this.confirmDelete = this.editing = null;
+                    this.searchOpen = false; this.chatQuery = ''; this.found = []; this.searchLine = ''; this.foundId = null;
+                },
+                replaceMessage(row) { this.messages = this.messages.map((x) => (x.id === row.id ? row : x)); },
+                /** Your own message, still inside the edit window (the server decides — this only hides the button). */
+                canEdit(m) { return !!(m.mine && !m.pending && !m.deleted && m.editable_until && Date.now() < Date.parse(m.editable_until)); },
+                toggleMenu(m) { this.pickerFor = null; this.confirmDelete = null; this.menuFor = this.menuFor === m.id ? null : m.id; },
+                closeMenu() { this.menuFor = null; this.confirmDelete = null; },
+                togglePicker(m) { this.closeMenu(); this.pickerFor = this.pickerFor === m.id ? null : m.id; },
+                /** A touch held on a message opens the reaction picker (there is no hover on a phone). */
+                pressStart(m) {
+                    clearTimeout(pressTimer);
+                    pressTimer = setTimeout(() => { if (!m.pending && !m.deleted && !this.readOnly) { this.toolsFor = m.id; this.menuFor = null; this.pickerFor = m.id; } }, 450);
+                },
+                pressEnd() { clearTimeout(pressTimer); },
+                startEdit(m) {
+                    this.closeMenu();
+                    this.toolsFor = null;
+                    this.editing = m.id;
+                    this.editText = m.body || '';
+                    this.editError = '';
+                    this.editSaving = false;
+                    this.$nextTick(() => {
+                        const box = document.getElementById('vy-tc-edit-' + m.id);
+                        if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+                    });
+                },
+                cancelEdit() { this.editing = null; },
+                editEnter(e) {
+                    if (e.shiftKey || e.isComposing) return;
+                    e.preventDefault();
+                    this.saveEdit();
+                },
+                async saveEdit() {
+                    const id = this.editing;
+                    if (!id || this.editSaving) return;
+                    const m = this.messages.find((x) => x.id === id);
+                    const text = this.editText.trim();
+                    if (m && text === (m.body || '').trim()) { this.editing = null; return; }   // nothing changed
+                    if (!text && !(m && m.files.length)) { this.editError = T.editEmpty; return; }
+                    if (text.length > this.limits.body) { this.editError = T.messageTooLong; return; }
+                    this.editSaving = true;
+                    this.editError = '';
+                    const { ok, status, data } = await this.request(this.urls.message.replace('__ID__', id), {
+                        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: text }),
+                    });
+                    if (this.editing !== id) return;   // moved on meanwhile
+                    this.editSaving = false;
+                    if (ok && data && data.message) { this.replaceMessage(data.message); this.editing = null; return; }
+                    this.editError = (data && data.message && (status === 422 || status === 404)) ? data.message : T.editFailed;
+                },
+                async doDelete(m) {
+                    this.closeMenu();
+                    this.toolsFor = null;
+                    const { ok, status, data } = await this.request(this.urls.message.replace('__ID__', m.id), { method: 'DELETE' });
+                    if (ok && data && data.message) { this.replaceMessage(data.message); return; }
+                    this.notice = (data && data.message && (status === 422 || status === 404)) ? data.message : T.deleteFailed;
+                    noticeFor = null;
+                },
+                async react(m, emoji) {
+                    this.pickerFor = null;
+                    this.toolsFor = null;
+                    if (this.readOnly || m.pending) return;
+                    const { ok, status, data } = await this.request(this.urls.react.replace('__ID__', m.id), {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ emoji }),
+                    });
+                    if (ok && data && data.message) { this.replaceMessage(data.message); return; }
+                    this.notice = (data && data.message && (status === 422 || status === 404)) ? data.message : T.reactionFailed;
+                    noticeFor = null;
+                },
+
+                // ── search in this conversation ──────────────────────────────────────────────────────────
+                toggleSearch() {
+                    if (this.searchOpen) { this.closeSearch(); return; }
+                    this.searchOpen = true;
+                    this.$nextTick(() => this.$refs.findInput && this.$refs.findInput.focus());
+                },
+                closeSearch() { this.searchOpen = false; },
+                async runSearch() {
+                    const q = this.chatQuery.trim(), mine = ++searchToken, convId = this.active;
+                    if (q.length < 2) { this.found = []; this.searchLine = q.length ? T.searchHint : ''; return; }
+                    const url = new URL(this.urls.search.replace('__ID__', convId), location.origin);
+                    url.searchParams.set('q', q);
+                    const { ok, data } = await this.request(url.toString());
+                    if (mine !== searchToken || convId !== this.active) return;   // a newer search, or another conversation
+                    if (!ok || !data || !data.results) { this.found = []; this.searchLine = (data && data.message) || T.searchFailed; return; }
+                    this.found = data.results;
+                    this.searchLine = data.summary;
+                },
+                /**
+                 * Take the stream to a found message. A message older than the page holds is reached by loading earlier pages one
+                 * after another (at most ten — 500 messages back); beyond that it says so. ⚠️ A server "load around this message"
+                 * would reach any age at once — a later step.
+                 */
+                async goTo(id) {
+                    let pages = 0;
+                    while (!this.messages.some((m) => m.id === id) && this.hasOlder && pages < 10) { await this.loadOlder(); pages++; }
+                    await this.$nextTick();
+                    const el = this.$refs.stream && this.$refs.stream.querySelector('[data-mid="' + id + '"]');
+                    if (!el) { this.notice = T.searchTooFar; noticeFor = null; return; }
+                    this.searchOpen = false;
+                    await this.$nextTick();
+                    el.scrollIntoView({ block: 'center', behavior: 'auto' });
+                    this.foundId = id;
+                    clearTimeout(foundTimer);
+                    foundTimer = setTimeout(() => { if (this.foundId === id) this.foundId = null; }, 2400);
+                },
+
                 async send() {
                     const c = this.current;
                     if (!c || this.sending) return;
@@ -815,6 +1118,7 @@
 
                     const res = await this.upload(this.urls.send.replace('__ID__', convId), form, temp);
                     this.sending = false;
+                    lastTypingPost = 0;   // sending ended "typing" on the server; the next keystroke says so again at once
                     const at = this.messages.findIndex((m) => m.id === temp.id);   // -1 when you have moved on meanwhile
                     if (res.status === 201 && res.data && res.data.message) {
                         const real = res.data.message;
@@ -924,6 +1228,15 @@
                 toggleSound() {
                     this.sound = !this.sound;
                     if (window.VyLive) window.VyLive.setSound(this.sound);
+                },
+                /** Desktop notifications: turning ON asks the browser for permission, here, on the click (it refuses to ask otherwise). */
+                async toggleDesktop() {
+                    if (!window.VyLive) return;
+                    if (this.desktop) { window.VyLive.setDesktop(false); return; }
+                    const state = await window.VyLive.setDesktop(true);
+                    this.desktop = state === 'on';
+                    this.notice = state === 'on' ? T.desktopHelp : window.VyLive.desktopMessage(state);
+                    noticeFor = null;
                 },
                 nearBottom() {
                     const el = this.$refs.stream;
@@ -1080,6 +1393,69 @@
     @media (prefers-reduced-motion: reduce) { .vy-tc-rec-dot { animation: none; } }
     .vy-tc-drop { position: absolute; inset: 8px; border: 2px dashed var(--vy-accent); border-radius: var(--vy-r-lg); background: rgba(255, 252, 248, 0.88); display: grid; place-items: center; z-index: 3; pointer-events: none; }
     .vy-tc-drop span { font-size: 15px; font-weight: 700; color: var(--vy-accent-text); }
+
+    /* D-TC-LATER (2026-11-11): edit, delete, reactions, search, typing, online. Warm glass, the one accent. */
+    .vy-tc-icon.is-on { background: rgba(194, 65, 12, 0.10); color: var(--vy-accent-text); }
+    .vy-tc-head-sub.is-typing { color: var(--vy-accent-text); font-weight: 600; }
+    .vy-tc-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #2FA66A; box-shadow: 0 0 0 2px #fff; }
+    .vy-tc-row-top { justify-content: flex-start; }
+    .vy-tc-row-top .vy-tc-row-name { flex: 0 1 auto; }
+    .vy-tc-row-top .vy-tc-row-time { margin-inline-start: auto; }
+
+    /* a message: its tools float at the top corner of the bubble, on hover, on keyboard focus, or after a tap */
+    .vy-tc-msg { position: relative; }
+    .vy-tc-tools { position: absolute; top: -17px; display: none; align-items: center; gap: 2px; padding: 2px; border-radius: var(--vy-r-pill); background: #fff; border: 1px solid var(--vy-hairline); box-shadow: var(--vy-shadow-sm); z-index: 3; }
+    .vy-tc-run.is-mine .vy-tc-tools { inset-inline-end: 6px; }
+    .vy-tc-run:not(.is-mine) .vy-tc-tools { inset-inline-start: 6px; }
+    .vy-tc-msg:hover > .vy-tc-tools, .vy-tc-msg:focus-within > .vy-tc-tools, .vy-tc-msg.is-tools > .vy-tc-tools { display: inline-flex; }
+    .vy-tc-tool { width: 28px; height: 28px; border: 0; border-radius: 50%; display: inline-grid; place-items: center; background: transparent; color: var(--vy-muted); cursor: pointer; }
+    .vy-tc-tool:hover { background: rgba(120, 70, 40, 0.08); color: var(--vy-ink); }
+    .vy-tc-tool:focus-visible, .vy-tc-react:focus-visible, .vy-tc-pick-emoji:focus-visible, .vy-tc-menu-item:focus-visible, .vy-tc-find-row:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+    .vy-tc-picker { position: absolute; top: 34px; display: flex; gap: 2px; padding: 4px; border-radius: var(--vy-r-pill); background: #fff; border: 1px solid var(--vy-hairline); box-shadow: var(--vy-shadow); }
+    .vy-tc-run.is-mine .vy-tc-picker { inset-inline-end: 0; }
+    .vy-tc-run:not(.is-mine) .vy-tc-picker { inset-inline-start: 0; }
+    .vy-tc-pick-emoji { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; font-size: 19px; line-height: 1; cursor: pointer; }
+    .vy-tc-pick-emoji:hover { background: rgba(194, 65, 12, 0.10); }
+    .vy-tc-menu { position: absolute; top: 34px; min-width: 168px; padding: 6px; border-radius: var(--vy-r-md); background: #fff; border: 1px solid var(--vy-hairline); box-shadow: var(--vy-shadow); }
+    .vy-tc-run.is-mine .vy-tc-menu { inset-inline-end: 0; }
+    .vy-tc-run:not(.is-mine) .vy-tc-menu { inset-inline-start: 0; }
+    .vy-tc-menu-list { display: flex; flex-direction: column; }
+    .vy-tc-menu-item { padding: 9px 12px; border: 0; border-radius: 8px; background: transparent; text-align: start; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--vy-ink); cursor: pointer; }
+    .vy-tc-menu-item:hover { background: rgba(120, 70, 40, 0.07); }
+    .vy-tc-menu-item.is-danger { color: #8E2A1F; }
+    .vy-tc-menu-confirm { display: flex; flex-direction: column; gap: 8px; padding: 6px; font-size: 13px; color: var(--vy-ink); }
+    .vy-tc-menu-confirm p { margin: 0; line-height: 1.4; }
+    .vy-tc-menu-confirm span { display: flex; gap: 6px; justify-content: flex-end; }
+
+    .vy-tc-bubble--deleted { background: transparent; border: 1px dashed var(--vy-hairline); color: var(--vy-faint); font-style: italic; box-shadow: none; }
+    .vy-tc-run.is-mine .vy-tc-bubble--deleted { background: transparent; color: var(--vy-faint); border-color: var(--vy-hairline); box-shadow: none; }
+    .vy-tc-edited { margin-inline-start: 6px; font-size: 11px; opacity: .7; white-space: nowrap; }
+    .vy-tc-note { margin: 0; max-width: 280px; font-size: 11.5px; line-height: 1.4; color: var(--vy-faint); }
+    .vy-tc-msg.is-found .vy-tc-bubble { box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.35); }
+    .vy-tc-reacts { display: flex; flex-wrap: wrap; gap: 4px; }
+    .vy-tc-run.is-mine .vy-tc-reacts { justify-content: flex-end; }
+    .vy-tc-react { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--vy-hairline); background: #fff; font: inherit; font-size: 13px; line-height: 1; cursor: pointer; color: var(--vy-ink); }
+    .vy-tc-react.is-mine { background: rgba(194, 65, 12, 0.10); border-color: rgba(194, 65, 12, 0.28); }
+    .vy-tc-react:disabled { cursor: default; }
+    .vy-tc-react-n { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--vy-muted); }
+    .vy-tc-edit { display: flex; flex-direction: column; gap: 6px; width: min(420px, 100%); }
+    .vy-tc-edit-text { width: 100%; min-height: 56px; max-height: 180px; resize: vertical; padding: 9px 12px; border-radius: 14px; border: 1px solid var(--vy-accent-border, rgba(217, 102, 46, .45)); background: #fff; font: inherit; font-size: 14px; line-height: 1.45; color: var(--vy-ink); outline: none; box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.15); }
+    .vy-tc-edit-bar { display: flex; align-items: center; gap: 8px; }
+    .vy-tc-edit-hint { flex: 1; font-size: 11.5px; color: var(--vy-faint); text-align: start; }
+
+    /* search in the conversation */
+    .vy-tc-find { padding: 10px 16px 8px; border-bottom: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.45); }
+    .vy-tc-find-bar { display: flex; align-items: center; gap: 6px; }
+    .vy-tc-find-input { flex: 1; min-width: 0; height: 38px; padding: 0 14px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-hairline); background: #fff; font: inherit; font-size: 14px; color: var(--vy-ink); outline: none; }
+    .vy-tc-find-input:focus { border-color: var(--vy-accent-border, rgba(217, 102, 46, .45)); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.15); }
+    .vy-tc-find-count { margin: 8px 4px 0; font-size: 12.5px; color: var(--vy-muted); min-height: 1em; }
+    .vy-tc-find-list { margin: 6px 0 0; padding: 0; list-style: none; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+    .vy-tc-find-row { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 8px 10px; border: 0; border-radius: var(--vy-r-md); background: transparent; text-align: start; font: inherit; color: var(--vy-ink); cursor: pointer; }
+    .vy-tc-find-row:hover { background: #fff; }
+    .vy-tc-find-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--vy-muted); }
+    .vy-tc-find-top strong { color: var(--vy-ink); }
+    .vy-tc-find-snippet { font-size: 13.5px; line-height: 1.4; overflow-wrap: anywhere; }
+    .vy-tc-find-go { font-size: 12px; font-weight: 600; color: var(--vy-accent-text); }
 
     /* nothing open, and a support session */
     .vy-tc-blank { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 340px; padding: 24px; text-align: center; color: var(--vy-muted); font-size: 13.5px; line-height: 1.5; }

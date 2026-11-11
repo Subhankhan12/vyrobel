@@ -6,6 +6,10 @@
 <div x-data="{
         assignOpen: false, linkOpen: false,
         composeOpen: false, composeGuest: null, composeTemplate: '', composeBody: '', composeFind: '',
+        composeKind: @js($composeGuests !== [] ? 'guest' : 'owner'), composeOwner: null, composeOwnerFind: '',
+        composeOwnerNames: @js(collect($composeOwners)->mapWithKeys(fn ($o) => [$o['id'] => $o['name']])),
+        composeOwnerName() { return this.composeOwner ? (this.composeOwnerNames[this.composeOwner] || @js(__('livewire/operator/operator-inbox.this_owner'))) : ''; },
+        setComposeKind(kind) { this.composeKind = kind; },
         composeData: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['templates']])),
         composeAccount: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['has_account']])),
         composeNames: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['name']])),
@@ -528,11 +532,13 @@
              the message — Direct keeps it in this inbox and the guest's own account; nothing is emailed. ───────────────────── --}}
         <div x-show="composeOpen" x-cloak class="vy-modal-backdrop" @click.self="composeOpen = false" @keydown.escape.window="composeOpen = false">
             <div class="vy-modal vy-modal-card vy-ibx-dlg vy-ibx-compose" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="composeOpen" aria-labelledby="vy-dlg-operator-inbox-composeopen-1">
-                @if ($composeGuests !== [])
+                @if ($composeGuests !== [] || $composeOwners !== [])
                     <form method="POST" action="{{ route('app.inbox.start') }}">
                         @csrf
-                        <input type="hidden" name="guest_id" :value="composeGuest">
-                        <input type="hidden" name="template" :value="composeTemplate">
+                        {{-- ONE recipient: a guest or a unit owner — only the picked kind's id is sent --}}
+                        <input type="hidden" name="guest_id" :value="composeKind === 'guest' ? composeGuest : ''">
+                        <input type="hidden" name="owner_id" :value="composeKind === 'owner' ? composeOwner : ''">
+                        <input type="hidden" name="template" :value="composeKind === 'guest' ? composeTemplate : ''">
                         <div class="vy-modal-head">
                             <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
                             <div class="vy-ibx-head-text">
@@ -542,7 +548,34 @@
                             <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                         </div>
                         <div class="vy-modal-body">
-                            <fieldset class="vy-ibx-pick">
+                            {{-- who it is for — shown only when this workspace has unit owners and guests to choose between --}}
+                            @if ($composeOwners !== [] && $composeGuests !== [])
+                                <div class="vy-ibx-kinds" role="group" aria-label="{{ __('livewire/operator/operator-inbox.compose_kind_legend') }}">
+                                    <button type="button" class="vy-template-chip" :class="composeKind === 'guest' ? 'is-on' : ''" :aria-pressed="composeKind === 'guest' ? 'true' : 'false'" @click="setComposeKind('guest')">{{ __('livewire/operator/operator-inbox.compose_tab_guest') }}</button>
+                                    <button type="button" class="vy-template-chip" :class="composeKind === 'owner' ? 'is-on' : ''" :aria-pressed="composeKind === 'owner' ? 'true' : 'false'" @click="setComposeKind('owner')">{{ __('livewire/operator/operator-inbox.compose_tab_owner') }}</button>
+                                </div>
+                            @endif
+                            @if ($composeOwners !== [])
+                                <fieldset class="vy-ibx-pick" x-show="composeKind === 'owner'" @if ($composeGuests !== []) x-cloak @endif>
+                                    <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.owner_legend') }}</legend>
+                                    <div class="vy-gl-search vy-ibx-find">
+                                        <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                        <label class="vy-sr-only" for="vy-ibx-find-owner">{{ __('livewire/operator/operator-inbox.find_owner') }}</label>
+                                        <input id="vy-ibx-find-owner" type="search" class="vy-gl-search-in" placeholder="{{ __('livewire/operator/operator-inbox.find_owner') }}" x-model="composeOwnerFind" autocomplete="off" @keydown.enter.prevent>
+                                    </div>
+                                    <div class="vy-ibx-options vy-ibx-guests">
+                                        @foreach ($composeOwners as $o)
+                                            <label class="vy-ibx-option @if (! $o['has_portal']) is-disabled @endif" x-show="composeOwnerFind.trim() === '' || @js(mb_strtolower($o['name'])).includes(composeOwnerFind.trim().toLowerCase())">
+                                                <input type="radio" name="_owner_pick" value="{{ $o['id'] }}" @disabled(! $o['has_portal']) @click="composeOwner = @js($o['id'])">
+                                                <span class="vy-conv-avatar vy-ibx-avatar" aria-hidden="true">{{ $o['initials'] }}</span>
+                                                <span class="vy-ibx-option-text"><strong>{{ $o['name'] }}</strong><span class="vy-ibx-option-sub">{{ $o['has_portal'] ? $o['meta'] : __('livewire/operator/operator-inbox.owner_no_portal') }}</span></span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </fieldset>
+                            @endif
+                            @if ($composeGuests !== [])
+                            <fieldset class="vy-ibx-pick" x-show="composeKind === 'guest'">
                                 <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.guest_legend') }}</legend>
                                 <div class="vy-gl-search vy-ibx-find">
                                     <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -559,7 +592,7 @@
                                     @endforeach
                                 </div>
                             </fieldset>
-                            <fieldset class="vy-ibx-pick vy-ibx-tpls">
+                            <fieldset class="vy-ibx-pick vy-ibx-tpls" x-show="composeKind === 'guest'">
                                 <legend class="vy-field-label">{{ __('livewire/operator/operator-inbox.template_legend') }}</legend>
                                 <div class="vy-template-row">
                                     @foreach ($templates as $t)
@@ -567,22 +600,31 @@
                                     @endforeach
                                 </div>
                             </fieldset>
+                            @endif
                             {{-- The REAL editable body — a template pre-fills it (merged for the picked guest); the operator reviews + edits,
                                  and this exact text is what sends (`body` wins over `template` server-side). --}}
                             <div class="vy-field vy-ibx-field">
                                 <label class="vy-field-label" for="vy-ibx-compose-body">{{ __('livewire/operator/operator-inbox.message_label') }}</label>
                                 <textarea id="vy-ibx-compose-body" name="body" x-model="composeBody" rows="5" class="vy-input vy-ibx-textarea" placeholder="{{ __('livewire/operator/operator-inbox.message_placeholder') }}"></textarea>
                             </div>
-                            <p class="vy-ibx-note" aria-live="polite">
+                            <p class="vy-ibx-note" aria-live="polite" x-show="composeKind === 'guest'">
                                 <span x-show="! composeGuest">{{ __('livewire/operator/operator-inbox.compose_where_unpicked') }}</span>
                                 <span x-show="composeGuest && composeAccount[composeGuest]" x-cloak>{!! __('livewire/operator/operator-inbox.compose_where_account', ['name' => '<span x-text="composeName()"></span>']) !!}</span>
                                 <span x-show="composeGuest && ! composeAccount[composeGuest]" x-cloak>{!! __('livewire/operator/operator-inbox.compose_where_no_account', ['name' => '<span x-text="composeName()"></span>']) !!}</span>
                                 {{ __('livewire/operator/operator-inbox.not_emailed') }}
                             </p>
+                            @if ($composeOwners !== [])
+                                {{-- an owner reads it in the owner portal, in the app — nothing is emailed --}}
+                                <p class="vy-ibx-note" aria-live="polite" x-show="composeKind === 'owner'" @if ($composeGuests !== []) x-cloak @endif>
+                                    <span x-show="! composeOwner">{{ __('livewire/operator/operator-inbox.compose_where_owner_unpicked') }}</span>
+                                    <span x-show="composeOwner" x-cloak>{!! __('livewire/operator/operator-inbox.compose_where_owner', ['name' => '<span x-text="composeOwnerName()"></span>']) !!}</span>
+                                </p>
+                            @endif
                         </div>
                         <div class="vy-modal-foot">
                             <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">{{ __('common.cancel') }}</button>
-                            <button type="submit" class="vy-btn vy-btn--accent" :disabled="! composeGuest">{{ __('livewire/operator/operator-inbox.start_conversation') }}</button>
+                            {{-- Start stays off until the picked kind of recipient has one (a workspace with no unit owners keeps its original rule) --}}
+                            <button type="submit" class="vy-btn vy-btn--accent" @if ($composeOwners !== []) :disabled="composeKind === 'guest' ? ! composeGuest : ! composeOwner" @else :disabled="! composeGuest" @endif>{{ __('livewire/operator/operator-inbox.start_conversation') }}</button>
                         </div>
                     </form>
                 @else
@@ -1055,6 +1097,10 @@
         .vy-ibx-option input { accent-color: var(--vy-accent); flex: none; margin: 0; }
         .vy-ibx-option strong { display: block; font-weight: 600; overflow-wrap: anywhere; }
         .vy-ibx-option-text { min-width: 0; }
+        /* the New message modal's Guest | Owner switch, and an owner with no portal sign-in yet (listed, not pickable) */
+        .vy-ibx-kinds { display: flex; gap: 8px; margin-bottom: 12px; }
+        .vy-ibx-option.is-disabled { cursor: not-allowed; opacity: .55; }
+        .vy-ibx-option.is-disabled:hover { background: transparent; }
         .vy-ibx-option-sub { display: block; font-size: 11.5px; color: var(--vy-on-grad); margin-top: 1px; }
         .vy-ibx-avatar { width: 32px; height: 32px; font-size: 11px; }
         .vy-ibx-field { margin-bottom: 0; }

@@ -3,16 +3,20 @@
 declare(strict_types=1);
 
 use App\Models\BreakGlassSession;
+use App\Models\Guest;
 use App\Models\Media;
 use App\Models\Membership;
 use App\Models\TeamConversation;
 use App\Models\TeamMessage;
 use App\Notifications\Operator\TeamMessageNotification;
+use App\Services\InboxService;
+use App\Services\TeamChatService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -20,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use PragmaRX\Google2FA\Google2FA;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Ulid;
 
 uses(DatabaseTransactions::class);
@@ -381,6 +386,8 @@ it('⚠️⚠️ keeps team chat closed to a Vyrobel support session — it borr
     $page = (string) $this->get(route('app.inbox.team', ['c' => $id]))->assertOk()->getContent();
     expect($page)->toContain('Team messages are private to the people in them')->not->toContain('Between us');
     $this->getJson(route('app.inbox.team.poll', ['c' => $id]))->assertNotFound();
+    // and it cannot search them either (D-TC-LATER): the same borrowed view, a GET that would otherwise answer
+    $this->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => 'Between']))->assertNotFound();
 });
 
 it('⚠️ allows the microphone on the two Messages pages only, and lets a recording be heard before it is sent', function () {
@@ -510,4 +517,557 @@ it('⚠️ downloads a file under its own name and the type its bytes say — ne
     // a file whose name and bytes agree keeps its own name — a CSV stays a CSV
     $csv = tcSend($s, 'max', $id, ['files' => [tcRealFile('rates.csv', "date,rate\n2026-10-06,120\n")]])->assertCreated();
     expect((string) $this->actingAs($s['anna'])->get($csv->json('message.files.0.url'))->assertOk()->headers->get('Content-Disposition'))->toContain('rates.csv');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// D-TC-LATER (2026-11-11, his go) — EDIT AND DELETE YOUR OWN MESSAGE, and the ONE way a change reaches an open screen.
+// 📖 Read first: delivery is polling only, and the page merged by id, ignoring any id it already held — so nothing could
+// reach another open screen after the message was first sent. Each write below bumps `updated_at`, and the poll (given
+// the server's own clock as `since`) returns what changed.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/** The facts recorded for one action, as one lowercase string — the trail must say THAT, never WHAT was written. */
+function tcTrail(string $action): string
+{
+    // the JSON columns come back as text with the database's own spacing — decode them so the check reads the facts, not the format
+    $decode = fn (array $row): array => array_map(fn ($v) => is_string($v) && in_array($v[0] ?? '', ['{', '['], true) ? json_decode($v, true) : $v, $row);
+    $audit = DB::table('audit_events')->where('action', $action)->get(['before', 'after', 'subject_id'])->map(fn ($r): array => $decode((array) $r))->all();
+    $events = DB::table('domain_events')->where('event_type', $action)->get(['payload', 'subject_id'])->map(fn ($r): array => $decode((array) $r))->all();
+
+    return strtolower((string) json_encode(['audit' => $audit, 'events' => $events]));
+}
+
+it('⚠️⚠️ lets the author change the words — "edited" on both screens, and only a count in the trail', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Room 12 needs towles'])->json('message.id');
+
+    $edit = $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Room 12 needs fresh towels'])->assertOk();
+    expect($edit->json('message.body'))->toBe('Room 12 needs fresh towels')->and($edit->json('message.edited'))->toBeTrue();
+
+    $row = collect($this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id]))->json('messages'))->firstWhere('id', $mid);
+    expect($row['body'])->toBe('Room 12 needs fresh towels')->and($row['edited'])->toBeTrue()->and($row['mine'])->toBeFalse()
+        ->and($row['editable_until'])->toBeNull();   // only the author is offered Edit
+
+    // the trail says THAT it was edited and how long it now is — never the words (before or after)
+    $trail = tcTrail('team_chat.message_edited');
+    expect($trail)->toContain('"characters":26')->not->toContain('towels')->not->toContain('towles');
+    expect(DB::table('audit_events')->where('action', 'team_chat.message_edited')->count())->toBe(1)
+        ->and(DB::table('domain_events')->where('event_type', 'team_chat.message_edited')->count())->toBe(1);
+    // an edit is not a new message: the bell is not rung again
+    expect($s['anna']->unreadNotifications()->where('type', TeamMessageNotification::class)->count())->toBe(1);
+
+    // saving the same words again changes nothing — no second event
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Room 12 needs fresh towels'])->assertOk();
+    expect(DB::table('audit_events')->where('action', 'team_chat.message_edited')->count())->toBe(1);
+});
+
+it('⚠️⚠️ lets only the author edit or delete — a teammate in the conversation is told so, someone outside it gets "not found"', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Mine'])->json('message.id');
+    $other = seedScenario(1);
+    $stranger = operatorUser($other, [], 'Hotel Manager');
+    app(TenantContext::class)->set($s['org']->id);
+
+    // PERMITTED actor beside the refused ones: Max, the author, can (above); Anna is in the conversation but did not write it
+    $this->actingAs($s['anna'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Hijacked'])
+        ->assertStatus(422)->assertJsonPath('message', 'You can change or delete only messages you wrote.');
+    $this->actingAs($s['anna'])->deleteJson(route('app.inbox.team.message.delete', $mid))
+        ->assertStatus(422)->assertJsonPath('message', 'You can change or delete only messages you wrote.');
+    // Ben works here, another workspace's manager does not — neither is in the conversation: not found, never a 403
+    foreach ([$s['ben'], $stranger] as $who) {
+        $this->actingAs($who)->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'No'])->assertNotFound();
+        $this->actingAs($who)->deleteJson(route('app.inbox.team.message.delete', $mid))->assertNotFound();
+    }
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', 'not-an-id'), ['body' => 'No'])->assertNotFound();
+
+    expect(DB::table('team_messages')->where('id', $mid)->first(['body', 'edited_at', 'deleted_at']))
+        ->body->toBe('Mine')->edited_at->toBeNull()->deleted_at->toBeNull();
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Mine, changed'])->assertOk();   // the author still can
+});
+
+it('⚠️ closes editing 15 minutes after sending — and refuses an edit that would leave nothing', function () {
+    Storage::fake('local');
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Plain text'])->json('message.id');
+    $withFile = (string) tcSend($s, 'max', $id, ['body' => 'With a picture', 'files' => [UploadedFile::fake()->image('a.png', 20, 20)]])->json('message.id');
+
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => '   '])
+        ->assertStatus(422)->assertJsonPath('message', 'A message cannot be left empty — delete it instead.');
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => str_repeat('a', 5001)])
+        ->assertStatus(422)->assertJsonPath('message', 'A message can be up to 5,000 characters.');
+    // a message that carries a file may lose its words — the file is still something
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $withFile), ['body' => ''])->assertOk()->assertJsonPath('message.body', '');
+
+    Carbon::setTestNow(now()->addMinutes(14)->addSeconds(50));
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Just in time'])->assertOk();
+    Carbon::setTestNow(now()->addMinutes(1));   // sixteen minutes after it was sent
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Too late'])
+        ->assertStatus(422)->assertJsonPath('message', 'A message can be edited for 15 minutes after it is sent. You can still delete it.');
+    expect(DB::table('team_messages')->where('id', $mid)->value('body'))->toBe('Just in time');
+    $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $mid))->assertOk();   // delete is allowed at any time
+});
+
+it('⚠️⚠️ deletes as a tombstone — the row stays, the words, the files and the bytes go, and it is no longer unread', function () {
+    Storage::fake('local');
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    tcSend($s, 'max', $id, ['body' => 'First']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Secret passcode 4411', 'files' => [UploadedFile::fake()->image('door.png', 30, 30)]])->json('message.id');
+    $file = Media::query()->where('mediable_id', $mid)->sole();
+    Storage::disk('local')->assertExists($file->path);
+    $before = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll'))->assertOk();
+    expect($before->json('unread_total'))->toBe(2);
+
+    $deleted = $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $mid))->assertOk();
+    expect($deleted->json('message.deleted'))->toBeTrue()->and($deleted->json('message.body'))->toBe('')->and($deleted->json('message.files'))->toBe([]);
+
+    // the row is KEPT (so order, read positions and "Seen" stay true); its words and files are not
+    expect(DB::table('team_messages')->where('id', $mid)->first(['body', 'deleted_at', 'conversation_id']))
+        ->body->toBeNull()->deleted_at->not->toBeNull()->conversation_id->toBe($id);
+    expect(Media::query()->whereKey($file->id)->exists())->toBeFalse();
+    Storage::disk('local')->assertMissing($file->path);
+
+    // it is no longer something to read; the list says so, and the open conversation shows the tombstone in its place
+    $after = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id]))->assertOk();
+    expect($after->json('unread_total'))->toBe(1)
+        ->and(collect($after->json('conversations'))->firstWhere('id', $id)['last']['text'])->toBe('This message was deleted');
+    $row = collect($after->json('messages'))->firstWhere('id', $mid);
+    expect($row['deleted'])->toBeTrue()->and($row['body'])->toBe('')->and($row['files'])->toBe([]);
+
+    // the trail: that it happened, and how many files — never the words
+    expect(tcTrail('team_chat.message_deleted'))->toContain('"files":1')->not->toContain('passcode')->not->toContain('4411');
+
+    // deleting again changes nothing; a deleted message cannot be edited
+    $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $mid))->assertOk();
+    expect(DB::table('audit_events')->where('action', 'team_chat.message_deleted')->count())->toBe(1);
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Back again'])
+        ->assertStatus(422)->assertJsonPath('message', 'This message was deleted.');
+});
+
+it('⚠️ keeps a paused workspace from editing or deleting — like sending', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Before the pause'])->json('message.id');
+    $s['org']->forceFill(['paused_until' => now()->addDays(10)])->save();
+
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $mid), ['body' => 'Changed'])
+        ->assertStatus(422)->assertJsonPath('message', 'This workspace is paused — messages can be read, not sent.');
+    $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $mid))
+        ->assertStatus(422)->assertJsonPath('message', 'This workspace is paused — messages can be read, not sent.');
+    expect(DB::table('team_messages')->where('id', $mid)->first(['body', 'deleted_at']))->body->toBe('Before the pause')->deleted_at->toBeNull();
+});
+
+it('⚠️⚠️ brings a change to a screen that already holds the message — the poll returns what changed since, whatever its id', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    app(TenantContext::class)->set($s['org']->id);
+
+    // two messages long ago (ids a few minutes older than the page's cursor), and a newer one the page has just been shown
+    $cursor = (string) tcSend($s, 'max', $id, ['body' => 'Newest on the page'])->json('message.id');
+    $at = Ulid::fromString($cursor)->getDateTime();
+    $old = [];
+    foreach (['Edited later' => 300, 'Left alone' => 400] as $body => $secondsBefore) {
+        $old[$body] = strtolower((string) Str::ulid($at->modify('-'.$secondsBefore.' seconds')));
+        (new TeamMessage)->forceFill([
+            'id' => $old[$body], 'organization_id' => $s['org']->id, 'conversation_id' => $id, 'user_id' => $s['max']->id, 'body' => $body,
+            'created_at' => now(), 'updated_at' => now()->subHour(),
+        ])->save();
+    }
+    $first = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor]))->assertOk();
+    $since = (int) $first->json('server_time');
+    expect($since)->toBe(now()->getTimestamp());
+    // nothing changed since the cursor and the clock → the old messages are not repeated
+    expect(collect($first->json('messages'))->pluck('body')->all())->not->toContain('Edited later')->not->toContain('Left alone');
+
+    Carbon::setTestNow(now()->addMinutes(2));
+    $this->actingAs($s['max'])->patchJson(route('app.inbox.team.message.edit', $old['Edited later']), ['body' => 'Edited now'])->assertOk();
+
+    // WITH `since`: the edited one comes back — and only that one; without it, the poll would never have shown it
+    $with = collect($this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor, 'since' => $since]))->json('messages'));
+    expect($with->pluck('body')->all())->toContain('Edited now')->not->toContain('Left alone')->not->toContain('Edited later');
+    $without = collect($this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor]))->json('messages'));
+    expect($without->pluck('body')->all())->not->toContain('Edited now');
+    // a `since` from the future (a wrong clock, a tampered link) is held to now — it cannot hide a change
+    $future = collect($this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor, 'since' => now()->getTimestamp() + 99999]))->json('messages'));
+    expect($future->pluck('body')->all())->toContain('Edited now');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// D-TC-PII (2026-11-11, his go) — A GUEST'S ERASURE REACHES TEAM CHAT. Staff write ABOUT a guest ("room 12's guest, Ines
+// Walk, wants a late check-out"); a team message is not linked to a guest, so erasure finds it by the guest's own words.
+// ⚠️ Read first: `Guest::anonymize()` cleared eleven stores and none of them was a team message — the words stayed in
+// plaintext after the erasure. Each test below failed first against that code.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+/** An organisation's guest, as staff would write about them. */
+function tcGuest(array $s, array $attributes = []): Guest
+{
+    app(TenantContext::class)->set($s['org']->id);
+
+    return Guest::create($attributes + [
+        'first_name' => 'Ines', 'last_name' => 'Walk', 'email' => 'ines.walk@example.test', 'phone' => '+351 910 000 123',
+    ]);
+}
+
+it('⚠️⚠️ scrubs a guest from team chat when they are erased — full name (any order, case, accent), email and phone — and nothing else', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $guest = tcGuest($s);
+    $said = [
+        'name' => "Room 12's guest, Ines Walk, wants a late check-out.",
+        'reversed' => 'The booking is under Walk, Ines — please check.',
+        'shouting' => 'INÉS WALK called again',
+        'email' => 'Send it to Ines.Walk@Example.test please',
+        'phone' => 'Her number is +351 910 000 123 and the other is 00351-910-000-123',
+        'local' => 'Or ring 0910 000 123 after six',
+        'firstOnly' => 'Ines said the tap drips',
+        'surnameOnly' => 'Walk to the lobby and wait',
+        'someoneElse' => 'Joanna Walker needs a cot',
+        'plain' => 'Towels for room 14, thanks',
+    ];
+    $ids = [];
+    foreach ($said as $key => $text) {
+        $ids[$key] = (string) tcSend($s, 'max', $id, ['body' => $text])->json('message.id');
+    }
+    app(TenantContext::class)->set($s['org']->id);
+
+    $guest->anonymize();
+
+    $body = fn (string $key): string => (string) DB::table('team_messages')->where('id', $ids[$key])->value('body');
+    foreach (['name', 'reversed', 'shouting', 'email', 'phone', 'local'] as $key) {
+        expect($body($key))->toContain('[…]')->and(DB::table('team_messages')->where('id', $ids[$key])->value('redacted_at'))->not->toBeNull();
+    }
+    // the rest of a message stays, so a colleague's conversation still reads
+    expect($body('name'))->toBe("Room 12's guest, […], wants a late check-out.")
+        ->and($body('reversed'))->toBe('The booking is under […] — please check.')
+        ->and($body('email'))->toBe('Send it to […] please')
+        ->and($body('phone'))->toBe('Her number is […] and the other is […]');
+    // ⚠️ a first name alone, a surname alone, and someone else with a similar name are other people's words — untouched
+    foreach (['firstOnly', 'surnameOnly', 'someoneElse', 'plain'] as $key) {
+        expect($body($key))->toBe($said[$key])->and(DB::table('team_messages')->where('id', $ids[$key])->value('redacted_at'))->toBeNull();
+    }
+
+    // raw-DB: nothing in the conversation still spells the identity
+    $blob = strtolower((string) json_encode(DB::table('team_messages')->where('conversation_id', $id)->pluck('body')->filter(fn ($b) => str_contains((string) $b, '[…]'))->all(), JSON_UNESCAPED_UNICODE));
+    expect($blob)->not->toContain('ines walk')->not->toContain('example.test')->not->toContain('910')->not->toContain('walk, ines');
+});
+
+it('⚠️⚠️ records only how many messages were scrubbed — never the words — and scrubs inside the erase\'s own transaction', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $guest = tcGuest($s);
+    tcSend($s, 'max', $id, ['body' => 'Ines Walk is arriving']);
+    tcSend($s, 'max', $id, ['body' => 'Also ines.walk@example.test']);
+    tcSend($s, 'max', $id, ['body' => 'Unrelated']);
+    app(TenantContext::class)->set($s['org']->id);
+
+    $guest->anonymize();
+
+    $after = json_decode((string) DB::table('audit_events')->where('action', 'guest.anonymized')->where('subject_id', $guest->id)->value('after'), true);
+    expect($after['team_messages_scrubbed'])->toBe(2);
+    $all = strtolower((string) json_encode(DB::table('audit_events')->where('subject_id', $guest->id)->get()->all()).json_encode(DB::table('domain_events')->where('subject_id', $guest->id)->get()->all()));
+    expect($all)->not->toContain('ines walk')->not->toContain('example.test');
+    // erasing again finds nothing left to look for, and changes nothing
+    $again = Guest::query()->whereKey($guest->id)->sole();
+    $again->anonymize();
+    expect(json_decode((string) DB::table('audit_events')->where('action', 'guest.anonymized')->where('subject_id', $guest->id)->latest('created_at')->value('after'), true)['team_messages_scrubbed'])->toBe(0);
+});
+
+it('⚠️⚠️ leaves another workspace\'s messages alone — the same name there is another person\'s', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $guest = tcGuest($s);
+    $mine = (string) tcSend($s, 'max', $id, ['body' => 'Ines Walk, room 3'])->json('message.id');
+
+    $other = seedScenario(1);
+    $otherMax = operatorUser($other, ['name' => 'Other Max'], 'Property Owner');
+    $otherAnna = operatorUser($other, ['name' => 'Other Anna'], 'Housekeeping');
+    app(TenantContext::class)->set($other['org']->id);
+    $otherId = (string) $this->actingAs($otherMax)->postJson(route('app.inbox.team.start'), ['members' => [(string) $otherAnna->id]])->json('conversation.id');
+    $theirs = (string) $this->actingAs($otherMax)->post(route('app.inbox.team.send', $otherId), ['body' => 'Ines Walk, ines.walk@example.test, +351 910 000 123'], ['Accept' => 'application/json'])->json('message.id');
+    expect($theirs)->not->toBe('');
+
+    app(TenantContext::class)->set($s['org']->id);
+    $guest->anonymize();
+
+    expect(DB::table('team_messages')->where('id', $mine)->value('body'))->toBe('[…], room 3')
+        ->and(DB::table('team_messages')->where('id', $theirs)->value('body'))->toBe('Ines Walk, ines.walk@example.test, +351 910 000 123')
+        ->and(DB::table('team_messages')->where('id', $theirs)->value('redacted_at'))->toBeNull();
+});
+
+it('⚠️ scrubs a guest who has only one name by email and phone alone — a lone name is never matched', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $guest = tcGuest($s, ['first_name' => 'Madonna', 'last_name' => null, 'email' => 'madonna@example.test', 'phone' => null]);
+    $name = (string) tcSend($s, 'max', $id, ['body' => 'Madonna asked for a late check-out'])->json('message.id');
+    $mail = (string) tcSend($s, 'max', $id, ['body' => 'Her address is madonna@example.test'])->json('message.id');
+    app(TenantContext::class)->set($s['org']->id);
+
+    $guest->anonymize();
+
+    expect(DB::table('team_messages')->where('id', $name)->value('body'))->toBe('Madonna asked for a late check-out')
+        ->and(DB::table('team_messages')->where('id', $mail)->value('body'))->toBe('Her address is […]');
+});
+
+it('⚠️ shows the open screen what was removed and says why — the poll delivers the cleaned message, never the old words', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $guest = tcGuest($s);
+    $cursor = (string) tcSend($s, 'max', $id, ['body' => 'A later message that the screen holds'])->json('message.id');
+    app(TenantContext::class)->set($s['org']->id);
+    $at = Ulid::fromString($cursor)->getDateTime();
+    $oldId = strtolower((string) Str::ulid($at->modify('-600 seconds')));
+    (new TeamMessage)->forceFill([
+        'id' => $oldId, 'organization_id' => $s['org']->id, 'conversation_id' => $id, 'user_id' => $s['max']->id,
+        'body' => 'Ines Walk wants a quiet room', 'created_at' => now()->subHour(), 'updated_at' => now()->subHour(),
+    ])->save();
+    $since = (int) $this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor]))->json('server_time');
+
+    Carbon::setTestNow(now()->addMinute());
+    $guest->anonymize();
+
+    $row = collect($this->actingAs($s['anna'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor, 'since' => $since]))->assertOk()->json('messages'))->firstWhere('id', $oldId);
+    expect($row['body'])->toBe('[…] wants a quiet room')->and($row['redacted'])->toBeTrue();
+    // and the page carries the words that explain it
+    $page = (string) $this->actingAs($s['anna'])->get(route('app.inbox.team', ['c' => $id]))->assertOk()->getContent();
+    expect($page)->toContain('Part of this message was removed to protect someone')->not->toContain('Ines Walk');
+});
+
+it('⚠️ names team chat in what an erasure removes — the screen says so before it is confirmed', function () {
+    $s = tcWorld();
+    $page = (string) $this->actingAs($s['max'])->get(route('app.guests'))->assertOk()->getContent();
+
+    expect($page)->toContain('Their name, email and phone number where team chat mentions them');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// D-TC-LATER (2026-11-11) · REACTIONS, SEARCH, TYPING, ONLINE NOW
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('⚠️⚠️ toggles a reaction — one per person and emoji, only the allow-list, and a screen already holding the message gets it by the poll', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna', 'ben']);
+    app(TenantContext::class)->set($s['org']->id);
+    $cursor = (string) tcSend($s, 'max', $id, ['body' => 'Newest on the page'])->json('message.id');
+    // the message being reacted to is OLDER than the page's cursor by minutes — only "what changed since" can bring it back
+    $first = strtolower((string) Str::ulid(Ulid::fromString($cursor)->getDateTime()->modify('-600 seconds')));
+    (new TeamMessage)->forceFill([
+        'id' => $first, 'organization_id' => $s['org']->id, 'conversation_id' => $id, 'user_id' => $s['max']->id, 'body' => 'Briefing at nine',
+        'created_at' => now()->subHour(), 'updated_at' => now()->subHour(),
+    ])->save();
+    $since = (int) $this->actingAs($s['max'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor]))->json('server_time');
+    expect(collect($this->actingAs($s['max'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor, 'since' => $since]))->json('messages'))->pluck('id')->all())->not->toContain($first);
+
+    Carbon::setTestNow(now()->addMinute());
+    $on = $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $first), ['emoji' => '👍'])->assertOk();
+    expect($on->json('message.reactions'))->toBe([['emoji' => '👍', 'count' => 1, 'mine' => true, 'names' => ['Anna Lee']]]);
+    $this->actingAs($s['ben'])->postJson(route('app.inbox.team.message.react', $first), ['emoji' => '👍'])->assertOk();
+    $this->actingAs($s['ben'])->postJson(route('app.inbox.team.message.react', $first), ['emoji' => '🎉'])->assertOk();
+
+    // the author's screen already holds the message — the poll brings its reactions (counted, who, and "mine" per viewer)
+    $rows = collect($this->actingAs($s['max'])->getJson(route('app.inbox.team.poll', ['c' => $id, 'after' => $cursor, 'since' => $since]))->assertOk()->json('messages'));
+    $row = $rows->firstWhere('id', $first);
+    expect($row['reactions'])->toBe([
+        ['emoji' => '👍', 'count' => 2, 'mine' => false, 'names' => ['Anna Lee', 'Ben Ortiz']],
+        ['emoji' => '🎉', 'count' => 1, 'mine' => false, 'names' => ['Ben Ortiz']],
+    ]);
+
+    // the same tap again removes it — one row per (message, person, emoji), never two
+    $off = $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $first), ['emoji' => '👍'])->assertOk();
+    expect($off->json('message.reactions.0.count'))->toBe(1)->and($off->json('message.reactions.0.mine'))->toBeFalse();
+    expect(DB::table('team_message_reactions')->where('message_id', $first)->count())->toBe(2);
+
+    // an emoji outside the fixed list is refused in words and stores nothing
+    $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $first), ['emoji' => '<b>hi</b>'])
+        ->assertStatus(422)->assertJsonPath('message', 'That reaction is not available.');
+    $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $first), [])->assertStatus(422);
+    expect(DB::table('team_message_reactions')->where('message_id', $first)->count())->toBe(2);
+    // the trail has an audit row per toggle and NO domain event (the flagged exception) — and nobody is rung
+    expect(DB::table('audit_events')->whereIn('action', ['team_chat.reaction_added', 'team_chat.reaction_removed'])->count())->toBe(4)
+        ->and(DB::table('domain_events')->where('event_type', 'like', 'team_chat.reaction%')->count())->toBe(0)
+        ->and($s['max']->unreadNotifications()->where('type', TeamMessageNotification::class)->count())->toBe(0);
+});
+
+it('⚠️ keeps reactions to the conversation\'s members — not found for anyone else, refused on a deleted message and in a paused workspace', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Hello'])->json('message.id');
+    $other = seedScenario(1);
+    $stranger = operatorUser($other, [], 'Hotel Manager');
+    app(TenantContext::class)->set($s['org']->id);
+
+    $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $mid), ['emoji' => '❤️'])->assertOk();   // a member can
+    foreach ([$s['ben'], $stranger] as $who) {
+        $this->actingAs($who)->postJson(route('app.inbox.team.message.react', $mid), ['emoji' => '❤️'])->assertNotFound();
+    }
+    expect(DB::table('team_message_reactions')->where('message_id', $mid)->count())->toBe(1);
+
+    $s['org']->forceFill(['paused_until' => now()->addDays(10)])->save();
+    $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $mid), ['emoji' => '👍'])
+        ->assertStatus(422)->assertJsonPath('message', 'This workspace is paused — messages can be read, not sent.');
+    $s['org']->forceFill(['paused_until' => null])->save();
+
+    // deleting a message takes its reactions with it, and a deleted message cannot be reacted to
+    $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $mid))->assertOk();
+    expect(DB::table('team_message_reactions')->where('message_id', $mid)->count())->toBe(0);
+    $this->actingAs($s['anna'])->postJson(route('app.inbox.team.message.react', $mid), ['emoji' => '👍'])
+        ->assertStatus(422)->assertJsonPath('message', 'This message was deleted.');
+});
+
+it('⚠️⚠️ searches one conversation — members only, at least two characters, the newest first, % and _ taken literally, deleted messages never found', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $other = (string) tcStart($s, 'max', ['ben']);
+    $texts = ['Towels for room 14', 'A 50% deposit was taken', 'The code is 500', 'Snake_case is not a word here', 'Snakecase either', 'Towels again, room 9'];
+    foreach ($texts as $t) {
+        tcSend($s, 'max', $id, ['body' => $t]);
+    }
+    tcSend($s, 'max', $other, ['body' => 'Towels in the other conversation']);
+    $gone = (string) tcSend($s, 'max', $id, ['body' => 'Towels that were deleted'])->json('message.id');
+    $this->actingAs($s['max'])->deleteJson(route('app.inbox.team.message.delete', $gone))->assertOk();
+
+    $found = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => 'towels']))->assertOk();
+    expect(collect($found->json('results'))->pluck('snippet')->all())->toBe(['Towels again, room 9', 'Towels for room 14'])   // newest first
+        ->and($found->json('total'))->toBe(2)
+        ->and($found->json('results.0.sender'))->toBe('Max Brown')->and($found->json('results.0.mine'))->toBeFalse();
+
+    // ⚠️ the characters a LIKE would treat as patterns are literal here
+    $pct = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => '50%']))->assertOk();
+    expect(collect($pct->json('results'))->pluck('snippet')->all())->toBe(['A 50% deposit was taken']);
+    $under = $this->actingAs($s['anna'])->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => 'Snake_case']))->assertOk();
+    expect(collect($under->json('results'))->pluck('snippet')->all())->toBe(['Snake_case is not a word here']);
+
+    // too short, in words; a conversation you are not in — or that is not a conversation — is not found
+    $this->actingAs($s['anna'])->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => 'a']))
+        ->assertStatus(422)->assertJsonPath('message', 'Type at least 2 characters to search.');
+    $this->actingAs($s['ben'])->getJson(route('app.inbox.team.search', ['conversation' => $id, 'q' => 'towels']))->assertNotFound();
+    $this->actingAs($s['anna'])->getJson(route('app.inbox.team.search', ['conversation' => 'nope', 'q' => 'towels']))->assertNotFound();
+    // and it only ever looks inside the conversation it was asked about
+    $in = $this->actingAs($s['max'])->getJson(route('app.inbox.team.search', ['conversation' => $other, 'q' => 'towels']))->assertOk();
+    expect(collect($in->json('results'))->pluck('snippet')->all())->toBe(['Towels in the other conversation']);
+});
+
+it('⚠️ shows who is typing for six seconds, never yourself, and ends it when they send', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna', 'ben'], 'Shift');
+
+    $this->actingAs($s['max'])->postJson(route('app.inbox.team.typing', $id))->assertOk();
+    $typing = fn (string $who): array => $this->actingAs($s[$who])->getJson(route('app.inbox.team.poll', ['c' => $id]))->assertOk()->json('typing');
+
+    expect($typing('anna'))->toBe([['id' => (string) $s['max']->id, 'name' => 'Max Brown']])
+        ->and($typing('max'))->toBe([]);   // you are never told you are typing
+
+    Carbon::setTestNow(now()->addSeconds(5));
+    expect($typing('anna'))->toHaveCount(1);
+    Carbon::setTestNow(now()->addSeconds(2));   // seven seconds since the last keystroke
+    expect($typing('anna'))->toBe([]);
+
+    // two people at once; and sending clears the sender's row at once
+    $this->actingAs($s['max'])->postJson(route('app.inbox.team.typing', $id))->assertOk();
+    $this->actingAs($s['ben'])->postJson(route('app.inbox.team.typing', $id))->assertOk();
+    expect(collect($typing('anna'))->pluck('name')->sort()->values()->all())->toBe(['Ben Ortiz', 'Max Brown']);
+    tcSend($s, 'max', $id, ['body' => 'Done typing']);
+    expect(collect($typing('anna'))->pluck('name')->all())->toBe(['Ben Ortiz'])
+        ->and(DB::table('team_typing')->where('conversation_id', $id)->count())->toBe(1);   // one row per person, kept — not a pile
+
+    // a person outside the conversation can neither say they are typing nor see who is; a paused workspace takes no writes
+    $this->actingAs($s['max'])->postJson(route('app.inbox.team.typing', 'nope'))->assertNotFound();
+    $direct = tcStart($s, 'max', ['anna']);
+    $this->actingAs($s['ben'])->postJson(route('app.inbox.team.typing', $direct))->assertNotFound();
+    $s['org']->forceFill(['paused_until' => now()->addDays(10)])->save();
+    $this->actingAs($s['ben'])->postJson(route('app.inbox.team.typing', $id))->assertStatus(422);
+});
+
+it('⚠️⚠️ shows who is online from the sessions table — a request within 90 seconds, only people you talk to, and nothing at all on another driver', function () {
+    $s = tcWorld();
+    tcStart($s, 'max', ['anna']);   // Max talks to Anna; Ben is in no conversation with Max
+    $session = fn (object $user, int $agoSeconds) => DB::table('sessions')->insert([
+        'id' => Str::random(40), 'user_id' => (string) $user->id, 'ip_address' => '127.0.0.1', 'user_agent' => 'test', 'payload' => '',
+        'last_activity' => now()->getTimestamp() - $agoSeconds,
+    ]);
+    $online = fn (): mixed => $this->actingAs($s['max'])->getJson(route('app.inbox.team.poll'))->assertOk()->json('online');
+
+    // the test suite keeps sessions in memory; presence is read only from the database driver — and says so by being null
+    expect($online())->toBeNull();
+
+    config(['session.driver' => 'database']);
+    expect($online())->toBe([]);
+    $session($s['anna'], 89);
+    $session($s['ben'], 5);          // online, but Max shares no conversation with Ben: never named to him
+    expect($online())->toBe([(string) $s['anna']->id]);
+
+    DB::table('sessions')->where('user_id', $s['anna']->id)->delete();
+    $session($s['anna'], 91);        // just past the boundary
+    expect($online())->toBe([]);
+    $session($s['anna'], 2);         // a second tab, active — one person, once
+    $session($s['anna'], 3);
+    expect($online())->toBe([(string) $s['anna']->id]);
+});
+
+it('⚠️⚠️ refuses a person outside the conversation at the SERVICE too — the controller is not the only door (edit, delete, react, typing)', function () {
+    // "MEMBERS ONLY, HERE AS WELL AS AT THE CONTROLLER": a job, a command or a future route calls the service with no controller
+    // in front of it. The HTTP tests above cannot tell the two layers apart (either one answers "not found"), so this calls it directly.
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    $mid = (string) tcSend($s, 'max', $id, ['body' => 'Between the two of us'])->json('message.id');
+    app(TenantContext::class)->set($s['org']->id);
+    $service = app(TeamChatService::class);
+    $message = TeamMessage::query()->findOrFail($mid);
+    $conversation = TeamConversation::query()->findOrFail($id);
+
+    // PERMITTED actors beside the refused one: the author edits and deletes, a member reacts and types
+    expect($service->edit($message, $s['max'], 'Between us two')->body)->toBe('Between us two')
+        ->and($service->react($message, $s['anna'], '👍'))->toBeTrue();
+    $service->typing($conversation, $s['anna']);
+
+    // Ben works here but is in no part of this conversation
+    expect(fn () => $service->edit($message, $s['ben'], 'No'))->toThrow(NotFoundHttpException::class)
+        ->and(fn () => $service->delete($message, $s['ben']))->toThrow(NotFoundHttpException::class)
+        ->and(fn () => $service->react($message, $s['ben'], '👍'))->toThrow(NotFoundHttpException::class)
+        ->and(fn () => $service->typing($conversation, $s['ben']))->toThrow(NotFoundHttpException::class);
+    expect(DB::table('team_message_reactions')->where('user_id', $s['ben']->id)->count())->toBe(0)
+        ->and(DB::table('team_typing')->where('user_id', $s['ben']->id)->count())->toBe(0);
+});
+
+// ── THE PAGE (2026-11-11): what the browser is given — a script cannot be run here, so its inputs and its words are pinned ──
+
+it('⚠️ gives the page its new inputs — the message, reaction, typing and search routes, the allow-list, the server clock — and the words for each control', function () {
+    $s = tcWorld();
+    $id = tcStart($s, 'max', ['anna']);
+    tcSend($s, 'max', $id, ['body' => 'Hello']);
+
+    $page = (string) $this->actingAs($s['anna'])->get(route('app.inbox.team', ['c' => $id]))->assertOk()->getContent();
+    expect(preg_match('~<script type="application/json" id="vy-team-chat-data">(.*?)</script>~s', $page, $m))->toBe(1);
+    $boot = json_decode($m[1], true);
+
+    expect($boot['urls']['message'])->toEndWith('/inbox/team/messages/__ID__')
+        ->and($boot['urls']['react'])->toEndWith('/inbox/team/messages/__ID__/reactions')
+        ->and($boot['urls']['typing'])->toEndWith('/inbox/team/__ID__/typing')
+        ->and($boot['urls']['search'])->toEndWith('/inbox/team/__ID__/search')
+        ->and($boot['reactions'])->toBe(InboxService::REACTIONS)
+        ->and($boot['serverTime'])->toBeInt()->toBeGreaterThan(0)
+        ->and($boot['online'])->toBeNull()                                   // sessions are not in the database here: no presence, not a guess
+        ->and($boot['messages'][0])->toHaveKeys(['deleted', 'edited', 'redacted', 'editable_until', 'reactions']);
+
+    // every control says what it does, in words (the script reads them from here)
+    foreach (['Message options', 'Add a reaction', 'This message was deleted', 'Search this conversation', 'Desktop notifications off',
+        'Delete this message for everyone?', 'Go to message', 'is typing…', 'Online now'] as $words) {
+        expect($page)->toContain($words);
+    }
+});
+
+it('⚠️ gives every back-office page the desktop notification — counts only, on a click, a newer one replacing the older', function () {
+    $s = tcWorld();
+    $page = (string) $this->actingAs($s['anna'])->get(route('app.dashboard'))->assertOk()->getContent();
+    expect(preg_match('~const DESK = \{(.*?)\};~s', $page, $m))->toBe(1);
+    $desk = $m[1];
+
+    expect($desk)->toContain('unread message')->toContain('Notifications are blocked in this browser')->toContain('This browser cannot show desktop notifications.')
+        // counts only: the words never carry a name, and the script builds the body from the two counts
+        ->not->toContain('Max Brown')->not->toContain('Anna Lee');
+    expect($page)->toContain("store.get(DESKTOP_KEY) === 'on'")->toContain("tag: 'vy-messages'")->toContain('window.Notification.requestPermission()')
+        ->toContain('VyLive.desktopNotify()');
 });

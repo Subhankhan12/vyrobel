@@ -7,10 +7,16 @@ namespace App\Support\TeamChat;
 use App\Models\TeamConversation;
 use App\Models\TeamConversationMember;
 use App\Models\TeamMessage;
+use App\Models\TeamMessageReaction;
+use App\Models\TeamTyping;
 use App\Models\User;
+use App\Services\InboxService;
+use App\Services\TeamChatService;
 use App\Support\I18n\ListJoin;
 use App\Support\Schedule\StaffRoster;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\Uid\Ulid;
 
 /**
@@ -78,6 +84,7 @@ final class TeamChatReader
         }
 
         return TeamMessage::query()->where('conversation_id', $conversation->getKey())
+            ->whereNull('deleted_at')   // a deleted message is nothing to read
             ->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', '!=', $viewer->getKey()))
             ->when($member->last_read_message_id !== null, fn ($q) => $q->where('id', '>', $member->last_read_message_id))
             ->count();
@@ -87,14 +94,26 @@ final class TeamChatReader
      * Messages in one of the person's conversations: the latest page, those after a message (the live poll — with
      * {@see LOOK_BACK_SECONDS} before it again), or those before one ("Load earlier messages"). Oldest first.
      *
+     * ⚠️ THE POLL ALSO ASKS WHAT CHANGED (D-TC-LATER, 2026-11-11): `$since` is the server's own clock at the poll before
+     * (epoch seconds — never the browser's). A message edited, deleted, reacted to or scrubbed since then is returned AGAIN,
+     * whatever its id, because each of those writes bumps `updated_at`; the page replaces the copy it holds. ONE mechanism
+     * delivers all four, and the same {@see LOOK_BACK_SECONDS} covers a write whose second was not yet visible.
+     *
      * @return list<array<string, mixed>>
      */
-    public function messages(TeamConversation $conversation, User $viewer, ?string $after = null, ?string $before = null): array
+    public function messages(TeamConversation $conversation, User $viewer, ?string $after = null, ?string $before = null, ?int $since = null): array
     {
-        $query = TeamMessage::query()->where('conversation_id', $conversation->getKey())->with(['media', 'sender:id,name']);
+        $query = TeamMessage::query()->where('conversation_id', $conversation->getKey())
+            ->with(['media', 'sender:id,name', 'reactions.user:id,name']);
 
         if ($after !== null) {
-            $rows = $query->where('id', '>', self::lookBackFrom($after))->orderBy('id')->limit(200)->get();
+            $changedFrom = $since !== null ? Carbon::createFromTimestamp($since - self::LOOK_BACK_SECONDS)->setTimezone((string) config('app.timezone')) : null;
+            $rows = $query->where(function ($q) use ($after, $changedFrom): void {
+                $q->where('id', '>', self::lookBackFrom($after));
+                if ($changedFrom !== null) {
+                    $q->orWhere('updated_at', '>=', $changedFrom);
+                }
+            })->orderBy('id')->limit(200)->get();
         } else {
             $rows = $query->when($before !== null, fn ($q) => $q->where('id', '<', $before))
                 ->orderByDesc('id')->limit(self::PAGE)->get()->reverse()->values();
@@ -129,6 +148,98 @@ final class TeamChatReader
     }
 
     /**
+     * Who else is typing in this conversation right now — people whose "typing" was posted under
+     * {@see TeamChatService::TYPING_SECONDS} seconds ago, never the viewer. Read-only: a GET never writes.
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    public function typing(TeamConversation $conversation, User $viewer): array
+    {
+        return TeamTyping::query()->where('conversation_id', $conversation->getKey())
+            ->where('user_id', '!=', $viewer->getKey())
+            ->where('typed_at', '>=', now()->subSeconds(TeamChatService::TYPING_SECONDS))
+            ->with('user:id,name')->orderBy('typed_at')->get()
+            ->map(fn (TeamTyping $t): array => ['id' => (string) $t->user_id, 'name' => (string) ($t->user->name ?? __('php/support/team_chat/team_chat_reader.former_teammate'))])
+            ->values()->all();
+    }
+
+    /** A request within this many seconds is "online now". */
+    public const ONLINE_SECONDS = 90;
+
+    /**
+     * Which of the people the viewer talks to are online NOW — a request from them within {@see ONLINE_SECONDS}. Read from
+     * the `sessions` table (every request of a signed-in person refreshes its `last_activity`), so it exists ONLY while
+     * sessions live in the database; on any other driver this returns null and the page shows nothing rather than a guess.
+     * ⚠️ Only members of the viewer's OWN conversations are ever named — presence is not a directory of the workspace.
+     * ⚠️ It is "has a page open and recently asked the server", not "is looking at the screen": a tab left open in the
+     * background polls less often but still counts.
+     *
+     * @return list<string>|null user ids; null = presence is not available here
+     */
+    public function online(User $viewer): ?array
+    {
+        if (config('session.driver') !== 'database') {
+            return null;
+        }
+        $mine = TeamConversationMember::query()->where('user_id', $viewer->getKey())->pluck('conversation_id');
+        if ($mine->isEmpty()) {
+            return [];
+        }
+        $others = TeamConversationMember::query()->whereIn('conversation_id', $mine)->where('user_id', '!=', $viewer->getKey())->pluck('user_id')->unique();
+        if ($others->isEmpty()) {
+            return [];
+        }
+
+        return DB::table('sessions')->whereIn('user_id', $others->all())
+            ->where('last_activity', '>=', now()->getTimestamp() - self::ONLINE_SECONDS)
+            ->distinct()->pluck('user_id')->map(fn ($id): string => (string) $id)->values()->all();
+    }
+
+    /** How many results a search returns — the newest first. */
+    public const SEARCH_LIMIT = 30;
+
+    /** The shortest search that is run (one letter would match nearly everything). */
+    public const SEARCH_MIN = 2;
+
+    /**
+     * Search ONE conversation's messages — newest first, at most {@see SEARCH_LIMIT} — with how many matched in all.
+     * A deleted message is nothing to find. The `%` and `_` the person types are literal characters, not patterns.
+     *
+     * @return array{results: list<array<string, mixed>>, total: int}
+     */
+    public function search(TeamConversation $conversation, User $viewer, string $term): array
+    {
+        $term = trim($term);
+        $base = TeamMessage::query()->where('conversation_id', $conversation->getKey())
+            ->whereNull('deleted_at')->whereNotNull('body')
+            ->where('body', 'like', '%'.addcslashes($term, '%_\\').'%');
+        $total = (clone $base)->count();
+        $rows = $base->with('sender:id,name')->orderByDesc('id')->limit(self::SEARCH_LIMIT)->get();
+
+        return [
+            'results' => $rows->map(fn (TeamMessage $m): array => [
+                'id' => (string) $m->getKey(),
+                'snippet' => $this->snippet((string) $m->body, $term),
+                'mine' => $m->user_id !== null && $m->user_id === (string) $viewer->getKey(),
+                'sender' => (string) ($m->sender->name ?? __('php/support/team_chat/team_chat_reader.former_teammate')),
+                'at' => $m->created_at->toIso8601String(),
+            ])->values()->all(),
+            'total' => $total,
+        ];
+    }
+
+    /** About 140 characters of the message around the first match (or its start), on one line. */
+    private function snippet(string $body, string $term): string
+    {
+        $flat = trim((string) preg_replace('/\s+/u', ' ', $body));
+        $at = mb_stripos($flat, $term);
+        $from = $at === false ? 0 : max(0, $at - 40);
+        $cut = mb_substr($flat, $from, 140);
+
+        return ($from > 0 ? '…' : '').$cut.($from + 140 < mb_strlen($flat) ? '…' : '');
+    }
+
+    /**
      * Who the person can start a conversation with: the workspace's back-office staff, themselves excepted.
      *
      * @return list<array{id: string, name: string, initials: string, role: string}>
@@ -154,17 +265,50 @@ final class TeamChatReader
     public function messageRow(TeamMessage $m, User $viewer): array
     {
         $sender = $m->sender;
+        $deleted = $m->deleted_at !== null;
+        $mine = $m->user_id !== null && $m->user_id === (string) $viewer->getKey();
 
         return [
             'id' => (string) $m->getKey(),
-            'body' => (string) ($m->body ?? ''),
-            'mine' => $m->user_id !== null && $m->user_id === (string) $viewer->getKey(),
+            'body' => $deleted ? '' : (string) ($m->body ?? ''),
+            'mine' => $mine,
+            'deleted' => $deleted,
+            'edited' => ! $deleted && $m->edited_at !== null,
+            'redacted' => ! $deleted && $m->redacted_at !== null,
+            // until when the author may still change the words (the server decides; this only hides the button)
+            'editable_until' => $mine && ! $deleted ? $m->created_at->copy()->addMinutes(TeamChatService::EDIT_WINDOW_MINUTES)->toIso8601String() : null,
+            'reactions' => $deleted ? [] : $this->reactionRows($m, $viewer),
             'sender' => $sender instanceof User
                 ? ['id' => (string) $sender->getKey(), 'name' => (string) $sender->name, 'initials' => StaffRoster::initials((string) $sender->name)]
                 : ['id' => null, 'name' => __('php/support/team_chat/team_chat_reader.former_teammate'), 'initials' => '?'],
             'at' => $m->created_at->toIso8601String(),
-            'files' => $this->files->rows($m),
+            'files' => $deleted ? [] : $this->files->rows($m),
         ];
+    }
+
+    /**
+     * A message's reactions, grouped by emoji in the allow-list's order: how many, whether YOU gave it, and who.
+     *
+     * @return list<array{emoji: string, count: int, mine: bool, names: list<string>}>
+     */
+    private function reactionRows(TeamMessage $m, User $viewer): array
+    {
+        $byEmoji = $m->reactions->groupBy('emoji');
+        $out = [];
+        foreach (InboxService::REACTIONS as $emoji) {
+            $group = $byEmoji->get($emoji);
+            if ($group === null || $group->isEmpty()) {
+                continue;
+            }
+            $out[] = [
+                'emoji' => $emoji,
+                'count' => $group->count(),
+                'mine' => $group->contains(fn (TeamMessageReaction $r): bool => (string) $r->user_id === (string) $viewer->getKey()),
+                'names' => $group->map(fn (TeamMessageReaction $r): string => (string) ($r->user->name ?? __('php/support/team_chat/team_chat_reader.former_teammate')))->values()->all(),
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -183,6 +327,7 @@ final class TeamChatReader
             ->join('team_conversation_members as m', function ($join) use ($viewer): void {
                 $join->on('m.conversation_id', '=', 'team_messages.conversation_id')->where('m.user_id', '=', $viewer->getKey());
             })
+            ->whereNull('team_messages.deleted_at')   // a deleted message is nothing to read
             ->where(fn ($q) => $q->whereNull('team_messages.user_id')->orWhere('team_messages.user_id', '!=', $viewer->getKey()))
             ->where(fn ($q) => $q->whereNull('m.last_read_message_id')->orWhereColumn('team_messages.id', '>', 'm.last_read_message_id'))
             ->groupBy('team_messages.conversation_id')
@@ -249,6 +394,9 @@ final class TeamChatReader
     /** One line for the list: the text, or what was sent instead of it. */
     private function preview(TeamMessage $m): string
     {
+        if ($m->deleted_at !== null) {
+            return __('php/support/team_chat/team_chat_reader.preview_deleted');
+        }
         $text = trim((string) preg_replace('/\s+/u', ' ', (string) $m->body));
         if ($text !== '') {
             return mb_strlen($text) > 90 ? mb_substr($text, 0, 89).'…' : $text;

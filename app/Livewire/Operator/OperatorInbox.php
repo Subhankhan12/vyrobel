@@ -125,6 +125,7 @@ class OperatorInbox extends Component
             'messages' => $messages,
             'staff' => app(StaffRoster::class)->staff(),
             'composeGuests' => $this->composeGuests(),
+            'composeOwners' => $this->composeOwners(),
             'templates' => [
                 ['key' => 'pre-arrival', 'label' => __('php/livewire/operator/operator_inbox.template_pre_arrival')],
                 ['key' => 'payment-reminder', 'label' => __('php/livewire/operator/operator_inbox.template_payment_reminder')],
@@ -669,6 +670,34 @@ class OperatorInbox extends Component
 
             return $r;
         }, $rows);
+    }
+
+    /**
+     * Unit owners the back office can start a conversation with (D-TC-LATER, 2026-11-11) — NAME and unit names only; the owner's
+     * contact details are never read (#28). An owner with no owner-portal sign-in is listed but cannot be picked: nobody could
+     * read the message ({@see InboxActionController::start()} says the same, in words).
+     *
+     * @return list<array{id: string, name: string, initials: string, meta: string, has_portal: bool}>
+     */
+    private function composeOwners(): array
+    {
+        $owners = Owner::query()->where('status', 'active')
+            ->with(['units' => fn ($q) => $q->orderBy('name'), 'user:id'])
+            ->orderBy('name')->get();
+
+        return $owners->map(function (Owner $owner): array {
+            $names = $owner->units->map(fn ($unit): string => (string) ($unit->name ?: $unit->code))->filter()->values();
+            $name = (string) ($owner->name ?: __('php/livewire/operator/operator_inbox.owner_fallback'));
+
+            return [
+                'id' => (string) $owner->getKey(),
+                'name' => $name,
+                'initials' => $this->initials($name),
+                // the units they own, as names (up to three; an ellipsis when there are more)
+                'meta' => $names->take(3)->implode(' · ').($names->count() > 3 ? ' · …' : ''),
+                'has_portal' => $owner->user !== null,
+            ];
+        })->values()->all();
     }
 
     // ── Shared helpers ───────────────────────────────────────────────────────────────────────────

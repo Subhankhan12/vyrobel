@@ -10,6 +10,7 @@ use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Message;
 use App\Models\MessageThread;
+use App\Models\Owner;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
@@ -297,10 +298,16 @@ class InboxActionController extends Controller
         }
 
         $validated = $request->validate([
-            'guest_id' => ['required', 'string'],
+            // ONE recipient: a guest, or (D-TC-LATER, 2026-11-11) a unit owner — never both, never neither
+            'guest_id' => ['nullable', 'string', 'required_without:owner_id'],
+            'owner_id' => ['nullable', 'string', 'required_without:guest_id', 'prohibits:guest_id'],
             'template' => ['nullable', 'string', 'in:pre-arrival,payment-reminder,review-request'],
             'body' => ['nullable', 'string', 'max:5000'],
         ]);
+
+        if (! empty($validated['owner_id'])) {
+            return $this->startWithOwner($request, $inbox, (string) $validated['owner_id'], trim((string) ($validated['body'] ?? '')));
+        }
 
         $guest = Guest::query()->findOrFail($validated['guest_id']);   // tenant-scoped → cross-org 404
 
@@ -325,6 +332,45 @@ class InboxActionController extends Controller
         $body = trim((string) ($validated['body'] ?? ''));
         if ($body === '' && ! empty($validated['template'])) {
             $body = $this->templateBody((string) $validated['template'], $guest, $reservation);
+        }
+
+        if ($body !== '') {
+            $author = $request->user();
+            try {
+                $inbox->sendOutbound($thread, $body, $author instanceof User ? $author : null);
+            } catch (RuntimeException $e) {
+                return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_error', __('php/http/controllers/operator/inbox_action_controller.could_not_send', ['reason' => $e->getMessage()]));
+            }
+        }
+
+        return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_notice', __('php/http/controllers/operator/inbox_action_controller.conversation_started'));
+    }
+
+    /**
+     * START WITH A UNIT OWNER (D-TC-LATER, 2026-11-11) — the back office writes first. An owner conversation is the `manual`
+     * channel with an `owner_id` (what the owner portal's own start makes): internal delivery, recording IS the delivery, and
+     * the existing `inbox.message_sent` handler rings the owner's portal.
+     *
+     * ⚠️ THAT HANDLER RINGS ONLY AN OWNER WITH A PORTAL SIGN-IN (`owners.user_id`). An owner without one would be "sent" a
+     * message nobody can ever read — so it is refused here, in words, before anything is created; the picker shows such an
+     * owner disabled for the same reason. ⚠️ The owner is found through the tenant scope (another workspace's id is a 404) and
+     * must be active; nothing of the owner's contact details is read or shown (#28). The route's own gate is `guests.view`,
+     * exactly as for a guest.
+     */
+    private function startWithOwner(Request $request, InboxService $inbox, string $ownerId, string $body): RedirectResponse
+    {
+        $owner = Owner::query()->where('status', 'active')->findOrFail($ownerId);   // tenant-scoped → cross-org 404
+        if ($owner->user === null) {
+            return redirect()->route('app.inbox')->with('inbox_error', __('php/http/controllers/operator/inbox_action_controller.owner_no_portal', ['name' => (string) $owner->name]));
+        }
+
+        $thread = MessageThread::query()->where('owner_id', $owner->getKey())->where('channel', 'manual')->orderByDesc('last_message_at')->first();
+        if ($thread === null) {
+            $thread = $inbox->startThread([
+                'channel' => 'manual',
+                'owner_id' => (string) $owner->getKey(),
+                'assigned_to' => (string) ($request->user()?->getAuthIdentifier() ?? '') ?: null,
+            ]);
         }
 
         if ($body !== '') {

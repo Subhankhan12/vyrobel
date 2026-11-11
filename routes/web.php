@@ -1193,6 +1193,18 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::post('/inbox/team/conversations', [TeamChatController::class, 'start'])->middleware('throttle:team-chat-write')->name('inbox.team.start');
     Route::post('/inbox/team/{conversation}/messages', [TeamChatController::class, 'send'])->middleware('throttle:team-chat-write')->name('inbox.team.send');
     Route::post('/inbox/team/{conversation}/read', [TeamChatController::class, 'read'])->middleware('throttle:team-chat-poll')->name('inbox.team.read');
+    // EDIT AND DELETE YOUR OWN MESSAGE (D-TC-LATER, 2026-11-11): the same named write limiter and the same membership rule —
+    // {message} is a plain string id, checked through its conversation (a message you cannot see is a JSON 404), never bound.
+    Route::patch('/inbox/team/messages/{message}', [TeamChatController::class, 'edit'])->middleware('throttle:team-chat-write')->name('inbox.team.message.edit');
+    Route::delete('/inbox/team/messages/{message}', [TeamChatController::class, 'destroy'])->middleware('throttle:team-chat-write')->name('inbox.team.message.delete');
+    // REACTIONS (a toggle — the same tap again removes it) on the write limiter, like sending.
+    Route::post('/inbox/team/messages/{message}/reactions', [TeamChatController::class, 'react'])->middleware('throttle:team-chat-write')->name('inbox.team.message.react');
+    // "IS TYPING…": posted at most every three seconds while someone types. ⚠️ On the POLL limiter, not the write one — it
+    // writes only a moment, and a 429 from the write limiter would slow every poll of the page (its client treats 429 as
+    // "the server is busy"); 20 a minute of typing sits far under the poll limiter's 120.
+    Route::post('/inbox/team/{conversation}/typing', [TeamChatController::class, 'typing'])->middleware('throttle:team-chat-poll')->name('inbox.team.typing');
+    // SEARCH one conversation — a GET, so it writes nothing; members only, a JSON 404 for anyone else.
+    Route::get('/inbox/team/{conversation}/search', [TeamChatController::class, 'search'])->middleware('throttle:team-chat-poll')->name('inbox.team.search');
     Route::get('/inbox/team/files/{media}', TeamChatFileController::class)->name('inbox.team.file');
     // THE GUESTS SIDE, LIVE — the open Inbox's small stamp (changes when anything it shows changes). Its own permission.
     Route::get('/inbox/live', InboxLiveController::class)->middleware(['can:guests.view', 'throttle:inbox-live'])->name('inbox.live');

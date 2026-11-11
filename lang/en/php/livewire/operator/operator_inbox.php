@@ -35,6 +35,8 @@ return [
     'reservation_dates' => ':check_in – :check_out',
     // a guest with neither first nor last name
     'guest_fallback' => 'Guest',
+    // an owner with no name on file, in the New message picker
+    'owner_fallback' => 'Owner',
     // the day divider in a conversation (today is common.today)
     'yesterday' => 'Yesterday',
 ];

@@ -105,6 +105,18 @@ return [
     'compose_sub' => 'Guests staying now, arriving soon, or who left in the last 14 days.',
     'guest_legend' => 'Guest',
     'find_guest' => 'Find a guest',
+    // START WITH A UNIT OWNER (2026-11-11): the New message modal's second side
+    'compose_kind_legend' => 'Who is it for?',
+    'compose_tab_guest' => 'Guest',
+    'compose_tab_owner' => 'Owner',
+    'owner_legend' => 'Owner',
+    'find_owner' => 'Find an owner',
+    'this_owner' => 'This owner',
+    // shown under an owner who has no sign-in to the owner portal yet — nobody could read the message
+    'owner_no_portal' => 'No portal sign-in yet',
+    'compose_where_owner_unpicked' => 'Read in the owner portal — pick an owner. It isn’t emailed.',
+    // :name is the owner
+    'compose_where_owner' => 'This goes to :name’s owner portal. Nothing is emailed.',
     'template_legend' => 'Start from a template · optional',
     'message_label' => 'Message',
     'message_placeholder' => 'Write your message…',

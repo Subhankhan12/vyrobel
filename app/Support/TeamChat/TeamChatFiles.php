@@ -8,8 +8,10 @@ use App\Models\Media;
 use App\Models\TeamConversationMember;
 use App\Models\TeamMessage;
 use App\Models\User;
+use App\Services\TeamChatService;
 use App\Support\Messaging\ChatFiles;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -76,6 +78,29 @@ final class TeamChatFiles
         }
 
         return $media;
+    }
+
+    /**
+     * A deleted message's files go with it — the rows AND the bytes on the disk (D-TC-LATER, 2026-11-11). Returns how many
+     * files there were. The bytes are removed once the delete is kept: a rolled-back delete must not leave rows pointing at
+     * nothing. Called inside {@see TeamChatService::delete()}'s transaction.
+     */
+    public function erase(TeamMessage $message): int
+    {
+        $media = $message->media()->whereIn('collection', [self::FILES, self::VOICE])->get();
+        if ($media->isEmpty()) {
+            return 0;
+        }
+        Media::query()->whereKey($media->modelKeys())->forceDelete();
+        $folder = 'team-chat/'.$message->conversation_id.'/'.$message->getKey();
+        DB::afterCommit(function () use ($media, $folder): void {
+            foreach ($media as $m) {
+                Storage::disk((string) $m->disk)->delete((string) $m->path);
+            }
+            Storage::disk(self::DISK)->deleteDirectory($folder);
+        });
+
+        return $media->count();
     }
 
     /** The file behind this id, if it is in one of the viewer's own conversations — otherwise a 404. */
