@@ -102,4 +102,8 @@ return [
     'export_pdf' => 'Export folio (PDF)',
     'export_csv_print' => 'Export CSV · print',
     'room_moves_note' => 'A room move is checked for availability so a room is never booked twice, and it is saved straight away.',
+    // D-HOLD-STUCK (2026-11-11): release a card hold
+    'hold_release_button' => 'Release hold',
+    'hold_releasing' => 'Releasing…',
+    'hold_release_confirm' => 'Release this hold? The guest\'s card is freed and nothing is charged.',
 ];

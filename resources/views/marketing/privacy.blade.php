@@ -76,7 +76,7 @@
              register the platform console reads (`SubProcessors`), so "active" follows the configured mailer instead
              of a sentence typed once. The static line it replaces named Postmark and said nothing was delivered —
              both became false the moment mail was switched on, and nothing would have gone red. --}}
-        @php($mailProcessor = collect(\App\Support\Privacy\SubProcessors::register())->firstWhere('name', 'Hostinger (email)'))
+        @php($mailProcessor = collect(\App\Support\Privacy\SubProcessors::register())->firstWhere('key', 'hostinger_email'))   {{-- by the row's stable key — its NAME is said in the reader's language --}}
         <li><strong>Hostinger (email)</strong> — transactional email: booking confirmations, account verification, password resets and invitations, sent from a vyrobel.com mailbox. It receives the recipient's address and the message itself.
           @if ($mailProcessor['active'])
             Active.

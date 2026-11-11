@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Models\Concerns\BelongsToOrganization;
+use App\Support\I18n\StoredEnglish;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,6 +53,18 @@ class FolioItem extends Model
             'service_date' => 'date',
             'posted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * This line's description in the READER's language when it is one of the sentences the system writes (see lang/en/php/models/folio_item.php) — the
+     * row is a record and is never rewritten; an English reader, and any line the system did not write, gets the stored description exactly as it is.
+     * ⚠️ On the SCREENS and the operator's folio PDF, which mirror each other. The guest's tax invoice is a legal printout: it prints what was recorded.
+     */
+    public function label(): string
+    {
+        $stored = (string) $this->description;
+
+        return StoredEnglish::say('php/models/folio_item', $stored) ?? $stored;
     }
 
     public function folio(): BelongsTo

@@ -30,6 +30,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Owns the folio as an APPEND-ONLY ledger. All money is integer minor units end-to-end (Money
@@ -859,6 +860,48 @@ class FolioService
         $this->domainEvents->record('deposit.captured', $capture, ['amount_minor' => $captureAmount->amountMinor()]);
 
         return $capture;
+    }
+
+    /**
+     * RELEASE a card hold (D-HOLD-STUCK, 2026-11-11, his go): the hold is cancelled at the processor — the guest's card is freed and NOTHING is
+     * charged — and the authorization's own lifecycle advances `authorized → released`. Like a capture, it leaves the `deposit_hold` payment row
+     * as it was written (the authorization carries the lifecycle) and posts no folio line: a hold was never counted as paid, so nothing in the
+     * totals moves. Only an `authorized` hold can be released.
+     *
+     * ⚠️ EXACTLY ONCE. The authorization row is locked and re-read FIRST, and the processor is asked while the lock is held: a double click or a
+     * raced second request waits, then finds the hold already released and is refused in words — the processor is never asked to cancel the same
+     * hold twice. If the processor refuses (or errors), the transaction rolls back and nothing is written: the hold stays `authorized`, and the
+     * refusal is said, never swallowed.
+     *
+     * @throws RuntimeException the hold is not open any more, or the processor refused to release it
+     */
+    public function releaseDeposit(PaymentAuthorization $authorization): PaymentAuthorization
+    {
+        $released = DB::transaction(function () use ($authorization): PaymentAuthorization {
+            /** @var PaymentAuthorization $locked */
+            $locked = PaymentAuthorization::query()->lockForUpdate()->findOrFail($authorization->getKey());
+            if ((string) $locked->status !== 'authorized') {
+                throw new RuntimeException(__('php/services/folio_service.hold_not_open'));
+            }
+            $holdPayment = $locked->payment;
+            if ($holdPayment === null) {
+                throw new InvalidArgumentException('Authorization has no underlying hold payment.');
+            }
+
+            $result = $this->gateway->void((string) $holdPayment->gateway_ref);
+            if (! $result->successful) {
+                throw new RuntimeException(__('php/services/folio_service.hold_release_failed'));
+            }
+
+            $locked->update(['status' => 'released']);
+            $this->audit->record('deposit.released', $locked, ['status' => 'authorized'], ['status' => 'released']);
+
+            return $locked;
+        });
+
+        $this->domainEvents->record('deposit.released', $released, ['amount_minor' => (int) $released->authorized_minor]);
+
+        return $released;
     }
 
     /**

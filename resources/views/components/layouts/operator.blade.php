@@ -2138,6 +2138,11 @@
         /* Modal */
         .vy-modal-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(66, 40, 22, 0.34); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; }
         .vy-modal { width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; background: var(--vy-glass); backdrop-filter: blur(30px) saturate(1.2); -webkit-backdrop-filter: blur(30px) saturate(1.2); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); }
+        /* D-MODAL-PAD (2026-11-11): the OLDER `.vy-modal` rule above gives every dialog 26px of its own, and the head / body / foot sections below add
+           their own 24px — so a sectioned dialog stacked 50px a side (a 350px phone dialog held 233px of fields; measured in a browser). A dialog that
+           HAS those sections lets them carry the padding. A dialog with no head keeps its 26px. (Maintenance, the rack and the Inbox's dialogs scoped
+           the same fix to themselves earlier: `.vyr-dlg`, `.vyo-dlg`.) */
+        .vy-modal:has(.vy-modal-head) { padding: 0; }
         .vy-modal-head { display: flex; align-items: flex-start; gap: 14px; padding: 22px 24px 14px; }
         .vy-modal-ico { width: 42px; height: 42px; border-radius: var(--vy-r-md); background: var(--vy-grad); color: #fff; display: grid; place-items: center; flex: none; box-shadow: var(--vy-shadow-accent); }
         .vy-modal-title { font-family: var(--vy-display); font-size: 19px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }

@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Listeners\RecordAuthActivity;
+use App\Support\Security\SignInProblems;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
  * SUPER ADMIN · BUILD 2 · GATE 1 — a single auth security-signal row (see the migration for the privacy posture:
- * security-monitoring purpose, 90-day retention, /admin-only access). Written ONLY by
+ * security-monitoring purpose, 90-day retention; access: the /admin realm, and each person's own lockouts on their own Security page — see
+ * {@see SignInProblems}). Written ONLY by
  * {@see RecordAuthActivity} (added onto the framework auth events; the tenant login flow is not
  * modified). Immutable.
  *

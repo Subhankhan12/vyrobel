@@ -1408,6 +1408,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
         ->middleware('can:payments.record')->name('reservations.payment');
     Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])
         ->middleware('can:payments.refund')->name('reservations.refund');
+    // D-HOLD-STUCK (2026-11-11) — RELEASE a card hold: the guest's card is freed, nothing is charged. Gated like a refund (it gives the guest's money back).
+    Route::post('/reservations/{reservation}/holds/{authorization}/release', [ReservationFolioActionController::class, 'releaseHold'])
+        ->middleware('can:payments.refund')->whereUlid(['reservation', 'authorization'])->name('reservations.hold-release');
     // Batch C · GATE 2 — ADD CHARGE: a new folio line via the append-only FolioService::postCharge (#17).
     Route::post('/reservations/{reservation}/charge', [ReservationFolioActionController::class, 'addCharge'])
         ->middleware('can:folios.manage')->name('reservations.charge');

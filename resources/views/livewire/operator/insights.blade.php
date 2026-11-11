@@ -135,7 +135,7 @@
                                 <div class="vy-ins-ob-t">{{ $card['title'] }}</div>
                                 <p class="vy-ins-ob-b">{{ $card['body'] }}</p>
                                 @if ($card['link'])
-                                    <a class="vy-ins-ob-a" href="{{ $card['link']['url'] }}">{{ $card['link']['label'] }} →</a>
+                                    <a class="vy-ins-ob-a" href="{{ $card['link']['url'] }}">{{ $card['link']['label'] }} <span class="vy-flip-rtl" aria-hidden="true">→</span></a>
                                 @endif
                             </div>
                         </div>

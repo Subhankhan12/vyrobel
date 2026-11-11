@@ -15,4 +15,6 @@ return [
     'refund_issued' => 'Refund issued.',
     'billed_to_account' => 'Billed to :account. The balance stays owed until they pay.',
     'returned_to_guest' => 'Returned to the guest’s folio.',
+    // D-HOLD-STUCK (2026-11-11)
+    'hold_released' => 'Hold released — the guest\'s card was freed and nothing was charged.',
 ];

@@ -106,8 +106,11 @@ it('says review tags in the reader\'s language on every list — English is the 
 });
 
 it('says an agreement\'s rule codes in words — English is exactly the headline it always printed', function () {
+    // ⚠️ two labels are RULED, not headlined (2026-11-11, his go on D-AGREEMENT-BEARER-WORD): these rules decide who RECEIVES the fee — the owner is
+    //    CREDITED it — so "Cleaning Fee Bearer: Owner" said the opposite of what it did. German and Arabic always said what the rule does.
+    $ruled = ['cleaning_fee_bearer' => 'Cleaning fee goes to', 'addon_bearer' => 'Add-ons go to'];
     foreach ((array) __('php/livewire/owner/owner_agreement.rules') as $code => $english) {
-        expect($english)->toBe((string) preg_replace('/\bOta\b/', 'OTA', Str::headline($code)));
+        expect($english)->toBe($ruled[$code] ?? (string) preg_replace('/\bOta\b/', 'OTA', Str::headline($code)));
     }
     foreach ((array) __('php/livewire/owner/owner_agreement.rule_values') as $code => $english) {
         expect($english)->toBe(Str::headline($code));

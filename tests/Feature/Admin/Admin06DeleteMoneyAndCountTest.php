@@ -448,9 +448,10 @@ it('⚠️⚠️ D-HOLD-STUCK — a hold is judged by its AUTHORIZATION: a close
     $w = a06World();
     $orgId = (string) $w['org']->id;
 
-    // still open at Stripe → refuses, by its OWN sentence (it says there is no button to release one — the truth)
+    // still open at Stripe → refuses, by its OWN sentence (it says how to close it — the hotel's "Release hold" button, built 2026-11-11; the
+    // sentence used to say Vyrobel had no such button, and this pin was changed WITH that fact, not to make a check pass)
     $payment = a06Hold($orgId, 'authorized');
-    expect(a06Refusal($orgId))->toContain('card hold')->toContain('no button to release')->not->toContain('Let it settle');
+    expect(a06Refusal($orgId))->toContain('card hold')->toContain('Release hold')->not->toContain('no button')->not->toContain('Let it settle');
     a06RefusedEverywhere($this, $w['org'], 'card hold');
 
     // closed by Vyrobel's own lifecycle → no longer blocks, whatever the never-advanced payment row still says

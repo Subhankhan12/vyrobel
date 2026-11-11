@@ -96,7 +96,7 @@ class GuestReservationView
 
     private static function itemLabel(FolioItem $item): string
     {
-        $description = trim((string) $item->description);
+        $description = trim($item->label());   // said in the reader's language where the system wrote it (D-I18N-STORED-RECORDS)
         if ($description !== '') {
             return $description;
         }

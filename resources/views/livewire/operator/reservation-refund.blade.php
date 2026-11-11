@@ -28,7 +28,7 @@
                     </div>
                     <div class="vy-facts" style="margin-top: 14px;">
                         <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.guest') }}</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}</div></div>
-                        <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.stay') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/operator/reservation-refund.stay') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} <span class="vy-flip-rtl">→</span> {{ $reservation['check_out'] }}</div></div>
                     </div>
                 </div>
 

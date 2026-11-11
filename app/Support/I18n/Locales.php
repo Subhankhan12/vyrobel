@@ -131,6 +131,17 @@ final class Locales
     }
 
     /**
+     * A FORWARD ARROW for a TEXT a view or a class builds ("5 Oct → 8 Oct", a date range, a before→after), pointing the way the page reads: `→` in a
+     * left-to-right language, `←` in Arabic and Persian (D-RTL-TEXT-ARROWS, 2026-11-11). An arrow in a page's own markup carries `class="vy-flip-rtl"`
+     * instead (the stylesheet turns it round); this is for the places that cannot carry a class — a string a controller joins, a label a script
+     * assembles. An arrow inside a translation is the translator's to choose (ar and fa already write `←`).
+     */
+    public static function forward(?string $code = null): string
+    {
+        return self::isRtl($code) ? '←' : '→';
+    }
+
+    /**
      * The <html> tag's language attributes: `lang="en"` in English (byte-for-byte what every page printed before), plus
      * `dir="rtl"` for Arabic and Persian. One definition for every shell, email and PDF.
      */

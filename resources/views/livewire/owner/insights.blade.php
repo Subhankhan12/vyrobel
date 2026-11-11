@@ -128,7 +128,7 @@
                                 <div>
                                     <div style="font-weight:600;font-size:13.5px">{{ $i['title'] }}</div>
                                     <div class="vy-line-sub" style="margin-top:2px">{{ $i['body'] }}</div>
-                                    <a href="{{ $i['href'] }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600;display:inline-block;margin-top:6px">{{ $i['cta'] }} →</a>
+                                    <a href="{{ $i['href'] }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600;display:inline-block;margin-top:6px">{{ $i['cta'] }} <span class="vy-flip-rtl" aria-hidden="true">→</span></a>
                                 </div>
                             </div>
                         @endforeach

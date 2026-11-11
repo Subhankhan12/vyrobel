@@ -13,8 +13,8 @@ return [
     'checkout_unreported_card' => 'A live Stripe payment page for a guest’s card payment was opened :opened and closed :closed, but no report of whether it was paid has been applied here. Check the page in Stripe’s dashboard; if it was paid, cancel what it started there first. Stripe retries a report it could not deliver for up to 3 days — try again once it is applied. If Stripe already reported it and the report could not be applied, resolve it by hand.',
     'refund_processing' => 'A card refund is still being processed at Stripe. Wait until Stripe confirms it, then try again.',
     'card_payment_open' => 'A card payment or card hold is still open. Let it settle, or release it, first.',
-    // D-HOLD-STUCK: a hold still `authorized` at Stripe. Vyrobel has no button that releases one, so the way out is named honestly.
-    'card_hold_open' => 'A card hold on a guest’s card is still open at Stripe, and Vyrobel has no button to release one yet — it has to be closed (captured or released) before this deletion can go ahead. Ask the developer.',
+    // D-HOLD-STUCK: a hold still `authorized` at Stripe. The hotel releases it from the reservation (the "Release hold" button, 2026-11-11) — the way out is named.
+    'card_hold_open' => 'A card hold on a guest’s card is still open at Stripe. It has to be closed before this deletion can go ahead: the hotel can release it from the reservation’s payments (“Release hold”), or it can be captured.',
     'dispute_open' => 'A card payment is being disputed at Stripe (since :since). Answer it in Stripe, and try again once Stripe reports the dispute closed. If Stripe’s dashboard already shows it closed, the report never arrived — resolve it by hand.',
     'payouts_in_transit' => '{1} A payout to an owner is in transit at Stripe (since :since).|[0,*] :count payouts to owners are in transit at Stripe (since :since).',
     'payout_transit_stale' => 'That is longer than it should take — resolve it with Stripe by hand first.',

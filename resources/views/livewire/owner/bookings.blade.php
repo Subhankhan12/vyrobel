@@ -34,7 +34,7 @@
     if (($filters['range'] ?? null) !== null) {
         $dateLabel = $ranges[$filters['range']] ?? __('livewire/owner/bookings.any_dates');
     } elseif (($filters['from'] ?? null) !== null || ($filters['to'] ?? null) !== null) {
-        $dateLabel = ($filters['from'] ?? '…').' → '.($filters['to'] ?? '…');
+        $dateLabel = ($filters['from'] ?? '…').' '.\App\Support\I18n\Locales::forward().' '.($filters['to'] ?? '…');
     }
 
     // Chart geometry — points for the net-revenue line, in a 0–100 viewBox.

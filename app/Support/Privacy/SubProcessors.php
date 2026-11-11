@@ -20,10 +20,11 @@ use App\Support\Platform\MailDelivery;
  */
 final class SubProcessors
 {
-    public const AGREEMENT_NONE = 'None on file';
+    /** The lang group every sentence of the register is said from (I18N-01 — the console reads it in the founder's language). */
+    private const LANG = 'php/support/privacy/sub_processors';
 
     /**
-     * @return list<array{name: string, purpose: string, data: string, active: bool, state: string, agreement: string}>
+     * @return list<array{key: string, name: string, purpose: string, data: string, active: bool, state: string, agreement: string}>
      */
     public static function register(): array
     {
@@ -34,22 +35,41 @@ final class SubProcessors
         $channexOff = (bool) config('services.channex.fake', true) || blank(config('services.channex.api_key'));
 
         return [
-            self::row('Hostinger (hosting)', 'Runs the application and its database.', 'Everything the product stores — every account, hotel and guest record.', true, 'Active — the production host'),
-            self::row('Hostinger CDN', 'Serves and caches the public site in front of the host.', 'Every request passing through it: IP addresses, URLs, cookies in transit.', true, 'Active — observed on every response'),
-            self::row('Google (sign-in)', 'Sign in and sign up with a Google account.', 'The person’s Google identity: account id, email, name.', isset($social['google']), isset($social['google']) ? 'Active — switched on' : 'Not active'),
-            self::row('X (sign-in)', 'Sign in and sign up with an X account.', 'The person’s X identity: account id, handle, name.', isset($social['twitter']), isset($social['twitter']) ? 'Active — switched on' : 'Not active'),
+            self::row('hostinger_hosting', true, self::say('hostinger_hosting.state')),
+            self::row('hostinger_cdn', true, self::say('hostinger_cdn.state')),
+            self::row('google', isset($social['google']), self::say(isset($social['google']) ? 'state_switched_on' : 'state_not_active')),
+            self::row('x', isset($social['twitter']), self::say(isset($social['twitter']) ? 'state_switched_on' : 'state_not_active')),
             // MAIL 02 (2026-09-25) — the founder chose Hostinger's own mail over Postmark, so email goes to the SAME company
             //    as hosting, through a separate service; Postmark receives nothing and is no longer listed.
-            self::row('Hostinger (email)', 'Delivers every transactional email, from the vyrobel.com mailbox.', 'Recipient addresses and message contents — guest names, booking references, dates.', $mail === 'smtp', $mail === 'smtp' ? 'Active — the mailer' : 'Not active — mail is “'.$mail.'”'),
-            self::row('Stripe (payments & billing)', 'Subscription billing, guest card payments, owner payouts (Connect).', 'Billing contacts, amounts, booking references; for owner payouts, identity for KYC.', ! $stripeFake, $stripeFake ? 'Not active — a fake client is bound' : 'Configured'),
-            self::row('Anthropic (AI assistant)', 'Answers questions in the AI assistant.', 'The question asked and the context sent with it.', ! $llmOff, $llmOff ? 'Not active — fake client or no key' : 'Configured'),
-            self::row('Channex (channel manager)', 'Syncs rates, availability and bookings with OTAs.', 'Booking and guest details exchanged with channels.', ! $channexOff, $channexOff ? 'Not connected' : 'Configured'),
+            self::row('hostinger_email', $mail === 'smtp', $mail === 'smtp' ? self::say('hostinger_email.state_active') : self::say('hostinger_email.state_inactive', ['mailer' => $mail])),
+            self::row('stripe', ! $stripeFake, self::say($stripeFake ? 'stripe.state_fake' : 'state_configured')),
+            self::row('anthropic', ! $llmOff, self::say($llmOff ? 'anthropic.state_off' : 'state_configured')),
+            self::row('channex', ! $channexOff, self::say($channexOff ? 'channex.state_off' : 'state_configured')),
         ];
     }
 
-    /** @return array{name: string, purpose: string, data: string, active: bool, state: string, agreement: string} */
-    private static function row(string $name, string $purpose, string $data, bool $active, string $state): array
+    /**
+     * One register row. `key` is the row's stable identity (a page that picks a row picks it by THIS, never by its name, which is said in the
+     * reader's language); the name, purpose and what they get are read from the language files by that key.
+     *
+     * @return array{key: string, name: string, purpose: string, data: string, active: bool, state: string, agreement: string}
+     */
+    private static function row(string $key, bool $active, string $state): array
     {
-        return ['name' => $name, 'purpose' => $purpose, 'data' => $data, 'active' => $active, 'state' => $state, 'agreement' => self::AGREEMENT_NONE];
+        return [
+            'key' => $key,
+            'name' => self::say($key.'.name'),
+            'purpose' => self::say($key.'.purpose'),
+            'data' => self::say($key.'.data'),
+            'active' => $active,
+            'state' => $state,
+            'agreement' => self::say('agreement_none'),
+        ];
+    }
+
+    /** @param  array<string, string>  $replace */
+    private static function say(string $key, array $replace = []): string
+    {
+        return (string) __(self::LANG.'.'.$key, $replace);
     }
 }

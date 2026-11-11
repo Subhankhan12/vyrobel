@@ -17,6 +17,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\HousekeepingService;
 use App\Support\I18n\LocalDate;
+use App\Support\Property\PropertyDay;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Schedule\StaffRoster;
 use App\Support\StayTime;
@@ -83,7 +84,10 @@ class HousekeepingBoard extends Component
     {
         $readIds = $this->currentReadIds;
         $now = CarbonImmutable::now();
-        $today = CarbonImmutable::today();
+        // ⚠️ D-DAY-ELSEWHERE (2026-11-11): "today" is the day it is AT EACH ROOM'S PROPERTY — Today / Tomorrow / Overdue and the "guest arriving
+        //    today" urgency read it (the app's day is UTC, hours off elsewhere); "all properties" can span timezones, so it is per property
+        $todays = PropertyDay::todays($readIds);
+        $defaultToday = $todays[$this->currentPropertyId] ?? ($todays !== [] ? reset($todays) : CarbonImmutable::today()->toDateString());
 
         $crewFilter = is_string(request()->query('crew')) ? (string) request()->query('crew') : null;
         $search = mb_substr(trim((string) request()->query('q', '')), 0, 80);
@@ -96,12 +100,12 @@ class HousekeepingBoard extends Component
             ->get();
 
         $arrivals = $this->arrivalsForTasks($tasks);         // #87 prefs/VIP + D8-2 the ready-by deadline
-        $todayArrivals = $this->todayArrivals($readIds, $today);  // unit_id → arriving reservation status (urgency)
+        $todayArrivals = $this->todayArrivals($readIds);  // unit_id → arriving reservation status (urgency), each against its own property's day
         $photos = $this->photosForTasks($tasks);                  // taskId → list of proof photos
         $checkInTimes = $this->checkInTimes($readIds);             // D8-2 — property id → its own check-in time
 
         // Every card (unfiltered) — the tallies + crew load must read the whole workspace, not the filtered view.
-        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes))->all();
+        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes, CarbonImmutable::parse($todays[(string) $t->property_id] ?? $defaultToday)))->all();
 
         $outOfOrder = $this->outOfOrderCount($readIds);
         // ⚠️ 2026-10-05 — each filter chip counts exactly what clicking it shows: the rooms that pass the search (the chips carry it),
@@ -172,7 +176,7 @@ class HousekeepingBoard extends Component
      * @param  array<string, list<array{id: string, url: string}>>  $photos  taskId → proof photos
      * @return array<string, mixed>
      */
-    private function card(HousekeepingTask $task, array $arrivals, array $todayArrivals, array $photos, CarbonImmutable $now, array $checkInTimes = []): array
+    private function card(HousekeepingTask $task, array $arrivals, array $todayArrivals, array $photos, CarbonImmutable $now, array $checkInTimes = [], ?CarbonImmutable $today = null): array
     {
         $assignee = $task->assignedTo;
         $priority = $this->priorityMeta((string) $task->priority);
@@ -219,7 +223,7 @@ class HousekeepingBoard extends Component
             'date' => CarbonImmutable::parse($task->date)->translatedFormat(LocalDate::pattern('j M')),
             // ⚠️ 2026-10-05 — which DAY this room is for. The page lists every day's cleaning (no date filter), and said "Today's":
             //    tomorrow's rooms read as today's. Today · Tomorrow · Overdue · <date> (not done, its day passed) · <weekday date>
-            ...$this->day((string) $task->date, $status, $now->startOfDay()),
+            ...$this->day((string) $task->date, $status, $today ?? $now->startOfDay()),
             'assignee' => $assignee instanceof User ? (string) $assignee->name : null,
             'assignee_initials' => $assignee instanceof User ? $this->initials((string) $assignee->name) : null,
             'assigned_to' => $assignee instanceof User ? (string) $assignee->getKey() : null,
@@ -388,15 +392,9 @@ class HousekeepingBoard extends Component
      *
      * @return array<string, string>
      */
-    private function todayArrivals(array $readIds, CarbonImmutable $today): array
+    private function todayArrivals(array $readIds): array
     {
-        $lines = ReservationUnit::query()
-            ->where('status', 'active')
-            ->whereNotNull('unit_id')
-            ->whereDate('check_in', $today->toDateString())
-            ->whereHas('reservation', fn ($q) => $q->whereIn('property_id', $readIds)->whereNotIn('status', ['cancelled', 'no_show']))
-            ->with('reservation:id,status')
-            ->get(['id', 'unit_id', 'reservation_id', 'check_in', 'status']);
+        $lines = PropertyDay::arrivingToday($readIds);
 
         $map = [];
         foreach ($lines as $line) {

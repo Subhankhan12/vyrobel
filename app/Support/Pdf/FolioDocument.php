@@ -83,7 +83,7 @@ final class FolioDocument
                 'ts' => CarbonImmutable::parse($item->posted_at ?? $item->created_at)->getTimestamp(),
                 'line' => [
                     'label' => self::itemTypeLabel((string) $item->type),
-                    'desc' => (string) $item->description,
+                    'desc' => $item->label(),
                     'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat(LocalDate::pattern('j M')),
                     'amount' => ($amount < 0 ? '' : '+').MoneyFormatter::display($amount, $currency),
                     'is_negative' => $amount < 0,

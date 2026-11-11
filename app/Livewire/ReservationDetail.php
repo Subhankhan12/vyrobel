@@ -111,7 +111,7 @@ class ReservationDetail extends Component
 
         $folioModel = Folio::query()
             ->where('reservation_id', $reservation->id)
-            ->with(['items', 'payments'])
+            ->with(['items', 'payments.authorization'])
             ->first();
 
         $folio = $folioModel !== null ? $this->buildFolio($folioModel, $currency) : null;
@@ -533,7 +533,7 @@ class ReservationDetail extends Component
                 'ts' => CarbonImmutable::parse($item->posted_at ?? $item->created_at)->getTimestamp(),
                 'entry' => [
                     'label' => $this->folioItemLabel((string) $item->type),
-                    'desc' => (string) $item->description,
+                    'desc' => $item->label(),
                     'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->translatedFormat(LocalDate::pattern('j M')),
                     'amount' => ($amount < 0 ? '' : '+').$this->money($amount, $currency),
                     'tone' => $amount < 0 ? 'refund' : 'charge',
@@ -610,9 +610,18 @@ class ReservationDetail extends Component
             return ['label' => __('php/livewire/reservation_detail.type_refund'), 'desc' => __('php/livewire/reservation_detail.reverses_payment'), 'date' => $date, 'amount' => '+'.$this->money($amount, $currency), 'tone' => 'refund', 'flag' => null, 'refundable' => false, 'payment_id' => null];
         }
 
-        // A real deposit/pre-authorization hold (shown only because the row genuinely exists).
+        // A hold that has been RELEASED (D-HOLD-STUCK, 2026-11-11): the guest's card was freed and nothing was charged. The hold's own payment row
+        // stays as written (`authorized`) — the authorization carries the lifecycle — so it is read from there, or the line would say "Hold" for ever.
+        if ($type === 'deposit_hold' && (string) $payment->authorization?->status === 'released') {
+            return ['label' => __('php/livewire/reservation_detail.type_deposit_hold'), 'desc' => __('php/livewire/reservation_detail.hold_released_desc'), 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'muted', 'flag' => __('php/livewire/reservation_detail.flag_released'), 'refundable' => false, 'payment_id' => null];
+        }
+
+        // A real deposit/pre-authorization hold (shown only because the row genuinely exists). Releasable only while its authorization is still
+        // `authorized` — the button is offered for exactly that (the route is gated `payments.refund`; the view checks it too).
         if ($type === 'deposit_hold' && $status === 'authorized') {
-            return ['label' => __('php/livewire/reservation_detail.type_deposit_hold'), 'desc' => __('php/livewire/reservation_detail.pre_authorized'), 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'hold', 'flag' => __('php/livewire/reservation_detail.flag_hold'), 'refundable' => false, 'payment_id' => null];
+            $open = $payment->authorization !== null && (string) $payment->authorization->status === 'authorized';
+
+            return ['label' => __('php/livewire/reservation_detail.type_deposit_hold'), 'desc' => __('php/livewire/reservation_detail.pre_authorized'), 'date' => $date, 'amount' => $this->money($amount, $currency), 'tone' => 'hold', 'flag' => __('php/livewire/reservation_detail.flag_hold'), 'refundable' => false, 'payment_id' => null, 'release_authorization_id' => $open ? (string) $payment->authorization->id : null];
         }
 
         // Pending (3DS/processing) or failed/voided — real rows, no balance effect, flagged honestly.

@@ -304,7 +304,7 @@ class OwnerMessages extends Component
     {
         $grouped = [];
         foreach ($message->reactions as $reaction) {
-            $emoji = (string) $reaction->emoji;
+            $emoji = InboxService::reactionEmoji((string) $reaction->emoji);   // what the row stands for (a stored key, or an older row's emoji)
             $grouped[$emoji] ??= ['emoji' => $emoji, 'count' => 0, 'mine' => false];
             $grouped[$emoji]['count']++;
             if ((string) $reaction->user_id === $viewerId) {

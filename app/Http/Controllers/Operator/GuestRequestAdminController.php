@@ -10,6 +10,7 @@ use App\Services\GuestChangeRequestService;
 use App\Support\Guest\GuestName;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\Locales;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -87,7 +88,7 @@ class GuestRequestAdminController extends Controller
         $payload = $request->payload;
 
         return match ((string) $request->type) {
-            GuestChangeRequest::TYPE_DATE_CHANGE => (string) ($payload['new_check_in'] ?? '').' → '.(string) ($payload['new_check_out'] ?? ''),
+            GuestChangeRequest::TYPE_DATE_CHANGE => (string) ($payload['new_check_in'] ?? '').' '.Locales::forward().' '.(string) ($payload['new_check_out'] ?? ''),
             GuestChangeRequest::TYPE_ADD_ON => ListJoin::join((array) ($payload['add_ons'] ?? [])),
             GuestChangeRequest::TYPE_CANCELLATION => (string) ($payload['reason'] ?? ''),
         };

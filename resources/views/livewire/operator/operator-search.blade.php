@@ -68,7 +68,7 @@
                     {{ __('livewire/operator/operator-search.dates') }}
                 </span>
                 <x-date-field name="from" :value="$filters['from'] ?? ''" :label="__('livewire/operator/operator-search.checkin_from')" :placeholder="__('livewire/operator/operator-search.from')" />
-                <span class="vys-dash">→</span>
+                <span class="vys-dash vy-flip-rtl">→</span>
                 <x-date-field name="to" :value="$filters['to'] ?? ''" :label="__('livewire/operator/operator-search.checkin_to')" :placeholder="__('livewire/operator/operator-search.to')" />
             </div>
         </form>

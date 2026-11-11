@@ -81,7 +81,7 @@ it('renders the exact-match Reviews page on REAL aggregates + the operator respo
     $res = $this->actingAs($user)->get('/owner/reviews')->assertOk()
         // The exact-match sections
         ->assertSee('Overall rating')->assertSee('Response rate')->assertSee('Last 30 days')
-        ->assertSee('By villa')->assertSee('Recent reviews')->assertSee('Rating breakdown')->assertSee('Handled for you')
+        ->assertSee('By unit')->assertSee('Recent reviews')->assertSee('Rating breakdown')->assertSee('Handled for you')
         // REAL aggregates: 3 reviews, avg (5+4+3)/3 = 4.0; response rate 2/3 = 67%
         ->assertSee('4.0')->assertSee('67%')
         // The operator's REAL response is shown read-only; an un-responded review is honestly "Awaiting a reply"

@@ -49,3 +49,9 @@
 @endif
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">
+{{-- A8 (2026-11-11): the structured-data types whose values are REAL — Organization + WebSite on the home page, a BreadcrumbList elsewhere — and
+     only when the site's address is a real public one (never `localhost`). Product / Offer / rating stay refused (App\Support\Marketing\StructuredData). --}}
+@php($__ld = \App\Support\Marketing\StructuredData::graph($canonical, $index))
+@if ($__ld !== null)
+<script type="application/ld+json">{!! json_encode($__ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+@endif

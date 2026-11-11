@@ -7,14 +7,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Models\HousekeepingTask;
 use App\Models\Media;
-use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\HousekeepingService;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Property\PropertyDay;
 use App\Support\Property\PropertyScope;
 use App\Support\Schedule\StaffRoster;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -195,22 +194,24 @@ class HousekeepingActionController extends Controller
 
         // The units with a guest arriving today → their tasks go first ("guest waiting" priority). A reservation
         // has no direct unit — the assigned unit is on the `reservation_units` line — so read the active lines.
-        $arrivingUnitIds = ReservationUnit::query()
-            ->where('status', 'active')
-            ->whereNotNull('unit_id')
-            ->whereDate('check_in', CarbonImmutable::today()->toDateString())
-            ->whereHas('reservation', fn ($q) => $q->whereIn('property_id', $readIds)->whereNotIn('status', ['cancelled', 'no_show']))
-            ->pluck('unit_id')->filter()->all();
+        // ⚠️ D-DAY-ELSEWHERE (2026-11-11): "today" is the day it is AT EACH PROPERTY, the same rule the board's urgency uses.
+        $arrivingUnitIds = PropertyDay::arrivingToday($readIds)->pluck('unit_id')->filter()->all();
+
+        $arrivingSet = array_flip(array_map('strval', $arrivingUnitIds));
+        $waiting = fn (HousekeepingTask $t): bool => isset($arrivingSet[(string) $t->unit_id]);
 
         $tasks = HousekeepingTask::query()
             ->whereIn('property_id', $readIds)
             ->whereIn('status', ['pending', 'in_progress'])
             ->whereNull('assigned_to')
             ->get()
+            // ⚠️ `sortBy([...])` calls a closure as a COMPARATOR (two rooms), never as a key: these three were one-argument "key" closures, so each
+            //    looked at the first room only and returned 0/1 — an order that held by luck on two rooms and not on six (found 2026-11-11).
+            //    A waiting guest first, then a high priority, then the earlier date.
             ->sortBy([
-                fn (HousekeepingTask $t): int => in_array((string) $t->unit_id, array_map('strval', $arrivingUnitIds), true) ? 0 : 1,
-                fn (HousekeepingTask $t): int => $t->priority === 'high' ? 0 : 1,
-                fn (HousekeepingTask $t): string => (string) $t->date,
+                fn (HousekeepingTask $a, HousekeepingTask $b): int => ($waiting($a) ? 0 : 1) <=> ($waiting($b) ? 0 : 1),
+                fn (HousekeepingTask $a, HousekeepingTask $b): int => ($a->priority === 'high' ? 0 : 1) <=> ($b->priority === 'high' ? 0 : 1),
+                fn (HousekeepingTask $a, HousekeepingTask $b): int => (string) $a->date <=> (string) $b->date,
             ]);
 
         // Capture the ids assignAll will touch (all of $tasks when housekeepers exist) so Undo can revert exactly them.

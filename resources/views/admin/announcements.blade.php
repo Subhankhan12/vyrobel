@@ -19,7 +19,7 @@
                         <tr>
                             <td style="max-width: 360px;"><strong>{{ $a->title }}</strong><div style="font-size: 12px; color: var(--ad-muted);">{{ \Illuminate\Support\Str::limit($a->body, 140) }}</div></td>
                             <td>{{ $a->audience === 'all' ? __('admin/announcements.audience_all') : __('admin/announcements.audience_chosen_count', ['number' => count((array) $a->organization_ids)]) }}</td>
-                            <td><x-admin.time :at="$a->starts_at" /> → <x-admin.time :at="$a->ends_at" :empty="__('admin/announcements.no_end')" /></td>
+                            <td><x-admin.time :at="$a->starts_at" /> <span class="vy-flip-rtl">→</span> <x-admin.time :at="$a->ends_at" :empty="__('admin/announcements.no_end')" /></td>
                             <td>{{ $a->withdrawn_at ? __('admin/announcements.state_withdrawn') : ($a->isLive() ? __('admin/announcements.state_showing') : ($a->starts_at->isFuture() ? __('admin/announcements.state_scheduled') : __('admin/announcements.state_ended'))) }}</td>
                             @if ($canPublish)
                                 <td>

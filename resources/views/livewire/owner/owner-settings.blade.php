@@ -433,7 +433,7 @@
                     <h2 class="vy-set-h2">{{ __('livewire/owner/owner-settings.security_heading') }}</h2>
                     <p style="font-size:12.5px;color:var(--vy-muted);margin:0">{{ __('livewire/owner/owner-settings.security_sub') }}</p>
                 </div>
-                <span style="color:var(--vy-accent-text);font-size:18px">→</span>
+                <span class="vy-flip-rtl" style="color:var(--vy-accent-text);font-size:18px" aria-hidden="true">→</span>
             </a>
         </div>
     </div>

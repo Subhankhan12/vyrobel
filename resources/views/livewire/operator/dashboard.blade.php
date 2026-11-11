@@ -186,7 +186,7 @@
                                             @endif
                                             <span class="vy-task-label">{{ $t['label'] }}</span>
                                             <span class="vy-task-meta">{{ $t['meta'] }}</span>
-                                            <span class="vy-task-go" aria-hidden="true">→</span>
+                                            <span class="vy-task-go vy-flip-rtl" aria-hidden="true">→</span>
                                         </a>
                                     </div>
                                 @endforeach

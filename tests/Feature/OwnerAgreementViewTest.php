@@ -197,15 +197,15 @@ it('renders a per-unit agreement against its real unit and lists only the stored
     $this->actingAs($a['user'])->get('/owner/agreement')
         ->assertOk()
         ->assertSee('Portfolio-wide')          // the portfolio-wide agreement headlines
-        ->assertSee('Terms by villa')          // the wireframe's per-villa surface (#82)
+        ->assertSee('Terms by unit')          // the wireframe's per-unit surface (#82) — said "villa" for any kind of unit until 2026-11-11 (D-OWNER-VILLA-COLUMN)
         ->assertSee($a['unit']->code)          // the per-villa row names its REAL owner-scoped unit
         ->assertSee('12.25%')                  // the REAL per-unit commission (resolveFor — the same the engine uses)
         // the REAL stored override keys/values — and nothing else
         ->assertSee('OTA Cost Bearer')
-        ->assertSee('Cleaning Fee Bearer')
+        ->assertSee('Cleaning fee goes to')   // said "Cleaning Fee Bearer" until 2026-11-11 — the owner is CREDITED the fee (D-AGREEMENT-BEARER-WORD)
         ->assertSee('Operator')
         ->assertDontSee('Standard attribution')   // this agreement DOES carry overrides
-        ->assertDontSee('Addon Bearer');          // never stored → never listed as an agreed term
+        ->assertDontSee('Add-ons go to');          // never stored → never listed as an agreed term
 });
 
 // ── 6. No overrides stored → the honest "standard attribution", not an invented rule list ────────
@@ -217,7 +217,7 @@ it('says standard attribution when the agreement stores no overrides', function 
         ->assertOk()
         ->assertSee('Standard attribution')
         ->assertDontSee('OTA Cost Bearer')
-        ->assertDontSee('Cleaning Fee Bearer');
+        ->assertDontSee('Cleaning fee goes to');
 });
 
 // ── 7. No unrendered Blade leaks to the owner ────────────────────────────────────────────────────

@@ -72,7 +72,7 @@
                     <div class="vy-facts" style="margin-top: 14px;">
                         <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.guest') }}</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}@if (($reservation['guest_id'] ?? null) && auth()->user()?->can('guests.view'))<a href="{{ route('app.guests.show', $reservation['guest_id']) }}" style="margin-left:8px;font-size:12px;font-weight:600;color:var(--vy-accent)">{{ __('livewire/reservation-detail.view_profile') }}</a>@endif</div></div>
                         <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.source') }}</div><div class="vy-fact-val">{{ $reservation['source'] }}</div></div>
-                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.check_in_out') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
+                        <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.check_in_out') }}</div><div class="vy-fact-val">{{ $reservation['check_in'] }} <span class="vy-flip-rtl">→</span> {{ $reservation['check_out'] }}</div></div>
                         <div><div class="vy-fact-label">{{ __('livewire/reservation-detail.nights_guests') }}</div><div class="vy-fact-val">{{ __('livewire/reservation-detail.nights_and_guests', ['nights' => trans_choice('livewire/reservation-detail.nights_count', $reservation['nights'], ['count' => $reservation['nights']]), 'guests' => trans_choice('livewire/reservation-detail.guests_count', $reservation['guests'], ['count' => $reservation['guests']])]) }}</div></div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                         <div class="vy-unit-row">
                             <div>
                                 <div class="vy-um-name">{{ $unit['room_type'] }} · {{ $unit['unit'] ? __('livewire/reservation-detail.unit_code', ['code' => $unit['unit']]) : __('livewire/reservation-detail.unassigned') }}</div>
-                                <div class="vy-um-sub">{{ $unit['check_in'] }} → {{ $unit['check_out'] }} · {{ $unit['status_label'] }}</div>
+                                <div class="vy-um-sub">{{ $unit['check_in'] }} <span class="vy-flip-rtl">→</span> {{ $unit['check_out'] }} · {{ $unit['status_label'] }}</div>
                             </div>
                             <div class="vy-ledger-amt tone-charge">{{ $unit['price'] }}</div>
                         </div>
@@ -164,6 +164,15 @@
                                             @csrf
                                             <input type="hidden" name="payment" value="{{ $line['payment_id'] }}">
                                             <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.refund_button') }}</button>
+                                        </form>
+                                    @endif
+                                    {{-- D-HOLD-STUCK (2026-11-11): a card hold still open can be RELEASED — the guest's card is freed and nothing is charged.
+                                         Gated like a refund (the route is `payments.refund`); asks first; one press records one release. --}}
+                                    @if (($line['release_authorization_id'] ?? null) && auth()->user()?->can('payments.refund'))
+                                        <form method="POST" action="{{ route('app.reservations.hold-release', [$reservation['id'], $line['release_authorization_id']]) }}" class="vy-refund-btn" data-guard-submit
+                                              onsubmit="return confirm(@js(__('livewire/reservation-detail.hold_release_confirm')))">
+                                            @csrf
+                                            <x-busy-btn class="vy-act vy-act--ghost" :busy-label="__('livewire/reservation-detail.hold_releasing')">{{ __('livewire/reservation-detail.hold_release_button') }}</x-busy-btn>
                                         </form>
                                     @endif
                                 </div>

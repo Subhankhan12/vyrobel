@@ -91,7 +91,7 @@
                         @foreach ($citations as $c)
                             @php $c = \App\Support\Help\HelpKnowledgeBase::translatedArticle((string) ($c['id'] ?? '')) ?? $c; @endphp
                             <div>
-                                <a href="{{ route($c['route']) }}">{{ $c['question'] }} → {{ $c['label'] }}</a>
+                                <a href="{{ route($c['route']) }}">{{ $c['question'] }} <span class="vy-flip-rtl">→</span> {{ $c['label'] }}</a>
                                 @unless ($answered)
                                     <div class="body">{{ $c['answer'] }}</div>
                                 @endunless

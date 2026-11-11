@@ -15,6 +15,10 @@ Artisan::command('inspire', function () {
 // never-activated artifacts (conservative + idempotent; see OwnerInviteService::pruneExpired()).
 Schedule::command('invites:prune-expired')->daily();
 
+// Team chat — D-TC-TYPING-SWEEP: the "is typing…" rows are read for a few seconds; one a person left behind an hour ago is dead weight
+// (one row per person per conversation, so it never piled up — this just keeps it from lingering). Idempotent, tenant-free.
+Schedule::command('team-chat:prune-typing')->hourly();
+
 // Phase 3 · Sub-gate 4 — daily guest payment reminders for balances due before arrival (the real trigger; the
 // email is genuine via Mailpit in dev / a real provider in prod).
 Schedule::command('emails:send-payment-reminders')->dailyAt('09:00');

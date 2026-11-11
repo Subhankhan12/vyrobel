@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Schema;
  *     This is a security signal tied to AUTH events, NOT ambient tracking or browsing surveillance.
  *   - RETENTION: rows are PURGED after 90 days by the scheduled `platform:prune-activity` command (the IP + all).
  *   - LAWFUL BASIS: legitimate interest (account security / fraud prevention).
- *   - ACCESS: the platform /admin realm ONLY.
+ *   - ACCESS: the platform /admin realm — and, since 2026-10-24 (D-SX-IP, his go 2026-11-11), a signed-in staff member or owner sees on their OWN Security
+ *     page the lockouts recorded on their own sign-in address (device, time and the visitor's IP; within the retention window; never another person's).
+ *     (This comment said "/admin realm ONLY" when the table was made; the Security page's "Sign-in blocked" card made that no longer true.)
  *
  * `identifier` is the login email attempted/used (the account being accessed/targeted — the security signal);
  * we NEVER store passwords. `subject_*` identifies the actor on a SUCCESSFUL login.

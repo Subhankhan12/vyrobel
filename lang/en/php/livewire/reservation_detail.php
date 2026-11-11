@@ -58,4 +58,7 @@ return [
     'flag_authorized' => 'Authorized',
     'flag_captured' => 'Captured',
     'flag_voided' => 'Voided',
+    // D-HOLD-STUCK (2026-11-11): a card hold that was released
+    'hold_released_desc' => 'Released — the card was freed, nothing was charged',
+    'flag_released' => 'Released',
 ];

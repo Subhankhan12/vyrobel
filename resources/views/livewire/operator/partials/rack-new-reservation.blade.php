@@ -18,7 +18,7 @@
 @php
     $__rnr = $newRes;
     $__rnrPre = collect($__rnr['units'])->firstWhere('unit_id', $__rnr['preselect']);
-    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')).' → '
+    $__rnrDates = \Carbon\CarbonImmutable::parse($__rnr['form']['check_in'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')).' '.\App\Support\I18n\Locales::forward().' '
         .\Carbon\CarbonImmutable::parse($__rnr['form']['check_out'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'));
     $__rnrNights = trans_choice('livewire/operator/partials/rack-new-reservation.nights', $__rnr['nights'], ['count' => $__rnr['nights']]);
     $__rnrBack = '?start='.$window['start'].'&days='.$window['selected_days'].$window['rt_q'];
@@ -90,7 +90,7 @@
                 <div class="vyo-dlg-head">
                     <h3 class="vy-modal-title" id="vy-rnr-title" x-text="confirmSeason ? @js(__('livewire/operator/partials/rack-new-reservation.apply_season_title')) : @js(__('livewire/operator/partials/rack-new-reservation.title'))">{{ __('livewire/operator/partials/rack-new-reservation.title') }}</h3>
                     <p class="vyo-dlg-sub" x-show="! confirmSeason">{{ __('livewire/operator/partials/rack-new-reservation.subtitle', ['property' => $property['name']]) }}</p>
-                    <p class="vyo-dlg-sub" x-show="confirmSeason" x-cloak x-text="confirmSeason ? confirmSeason.name + ' · ' + confirmSeason.nightly + ' · ' + confirmSeason.from + ' → ' + confirmSeason.to : ''"></p>
+                    <p class="vyo-dlg-sub" x-show="confirmSeason" x-cloak x-text="confirmSeason ? confirmSeason.name + ' · ' + confirmSeason.nightly + ' · ' + confirmSeason.from + ' ' + @js(\App\Support\I18n\Locales::forward()) + ' ' + confirmSeason.to : ''"></p>
                 </div>
                 <button type="button" class="vy-modal-x" x-on:click="close()" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>

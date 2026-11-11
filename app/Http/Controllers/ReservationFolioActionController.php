@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Models\CompanyAccount;
 use App\Models\Payment;
+use App\Models\PaymentAuthorization;
 use App\Models\Reservation;
 use App\Services\CompanyAccountService;
 use App\Services\FolioService;
@@ -16,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Reservation folio money actions — REAL, append-only, driven from the styled Reservation Detail
@@ -198,6 +200,29 @@ class ReservationFolioActionController extends Controller
         }
 
         return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.refund_issued'));
+    }
+
+    /**
+     * RELEASE a card hold on this reservation (D-HOLD-STUCK, 2026-11-11, his go) — the guest's card is freed and nothing is charged. The hold must
+     * belong to THIS reservation (and is tenant-scoped itself) — another reservation's, or another organisation's, is a 404. The service is the
+     * authority on what may be released (only an `authorized` hold) and a processor that refuses is SAID, never swallowed. Not read-only-guarded,
+     * like a refund: giving a guest's money back is allowed while the workspace is paused. Gated `payments.refund` — the same decision as a refund.
+     */
+    public function releaseHold(FolioService $folios, string $reservation, string $authorization): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);
+
+        $hold = PaymentAuthorization::query()
+            ->whereHas('payment', fn ($q) => $q->where('reservation_id', $model->id)->where('type', 'deposit_hold'))
+            ->findOrFail($authorization);
+
+        try {
+            $folios->releaseDeposit($hold);
+        } catch (RuntimeException $e) {
+            return $this->back($model->id, $e->getMessage(), refused: true);
+        }
+
+        return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.hold_released'));
     }
 
     /**

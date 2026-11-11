@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Occupancy & pricing insights',
-    'subtitle' => 'How your villas are filling, what your rates are earning, and where the headroom is.',
+    'subtitle' => 'How your units are filling, what your rates are earning, and where the headroom is.',
     'no_units_linked' => 'No units linked to your account yet.',
     // occupancy by month
     'occupancy_heading' => 'Occupancy by month',

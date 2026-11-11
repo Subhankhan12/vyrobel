@@ -368,13 +368,34 @@ class InboxService
     public const REACTIONS = ['👍', '❤️', '😂', '🎉', '🙏', '👀'];
 
     /**
+     * ⚠️ D-INBOX-REACTION-COLLATION (found 2026-11-11, 🔬 measured on MySQL 8; fixed 2026-11-11, his go). WHAT IS STORED for each reaction: a plain ASCII
+     * key, never the emoji itself. `message_reactions.emoji` is `utf8mb4_unicode_ci`, under which every emoji outside the basic plane compares EQUAL
+     * to every other — a second, different reaction by the same person found the first and took it off, and the unique index would have refused it.
+     * Changing the column would be a schema change `ops/release.sh` refuses (it ships additive migrations only), so the VALUE is made safe instead: six
+     * distinct ASCII keys compare distinct under ANY collation (MySQL, MariaDB, whatever the host's default), with no migration at all. Rows written
+     * before this hold the emoji itself — they are still read (see {@see reactionEmoji()}) and still toggled off (see {@see toggleReaction()}).
+     */
+    public const REACTION_KEYS = ['👍' => 'thumbs_up', '❤️' => 'heart', '😂' => 'laugh', '🎉' => 'party', '🙏' => 'thanks', '👀' => 'eyes'];
+
+    /** The emoji a STORED reaction value stands for — a key from {@see REACTION_KEYS}, or an older row's emoji as it was written. */
+    public static function reactionEmoji(string $stored): string
+    {
+        $emoji = array_search($stored, self::REACTION_KEYS, true);
+
+        return $emoji === false ? $stored : (string) $emoji;
+    }
+
+    /**
      * Toggle one user's emoji reaction on a message (GATE 2). Idempotent by the `unique(message_id, user_id,
      * emoji)` index — a second tap of the same emoji REMOVES the row (returns false); a first tap adds it
      * (returns true). The emoji is validated against {@see self::REACTIONS} first; anything else is a no-op.
      *
+     * ⚠️ "The same emoji" is decided HERE, in PHP, by exact comparison of what each stored row stands for — never by a database `=` (whose collation
+     * cannot tell two emoji apart; see {@see REACTION_KEYS}). A person has at most six rows on a message, so reading them is cheap.
+     *
      * A reaction is a lightweight, operator-visible annotation → it records an AUDIT row (who did what) but no
      * domain event: it is not an outbox-worthy business fact, and a domain_events row per emoji tap would be
-     * noise. Same pragmatism as read-position (which records neither).
+     * noise. (Delete + create — a reaction row has no state to update.)
      */
     public function toggleReaction(Message $message, User $user, string $emoji): bool
     {
@@ -385,8 +406,8 @@ class InboxService
         $existing = MessageReaction::query()
             ->where('message_id', $message->getKey())
             ->where('user_id', $user->getKey())
-            ->where('emoji', $emoji)
-            ->first();
+            ->get()
+            ->first(fn (MessageReaction $r): bool => self::reactionEmoji((string) $r->emoji) === $emoji);
 
         if ($existing !== null) {
             $existing->delete();
@@ -398,7 +419,7 @@ class InboxService
         MessageReaction::create([
             'message_id' => $message->getKey(),
             'user_id' => $user->getKey(),
-            'emoji' => $emoji,
+            'emoji' => self::REACTION_KEYS[$emoji],
         ]);
         $this->audit->record('inbox.reaction_added', $message, null, ['emoji' => $emoji]);
 

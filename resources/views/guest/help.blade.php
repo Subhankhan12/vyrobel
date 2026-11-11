@@ -105,7 +105,7 @@
                     <summary>{{ $article['question'] }}</summary>
                     <div class="vy-hlp-ans">
                         {{ $article['answer'] }}
-                        <div style="margin-top:10px"><a href="{{ route($article['route']) }}">{{ $article['label'] }} →</a></div>
+                        <div style="margin-top:10px"><a href="{{ route($article['route']) }}">{{ $article['label'] }} <span class="vy-flip-rtl" aria-hidden="true">→</span></a></div>
                     </div>
                 </details>
             @endforeach

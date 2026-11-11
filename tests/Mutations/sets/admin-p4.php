@@ -155,8 +155,8 @@ return [
         'id' => 'P4-P5',
         'name' => 'agreement claimed',
         'file' => 'app/Support/Privacy/SubProcessors.php',
-        'old' => '    public const AGREEMENT_NONE = \'None on file\';',
-        'new' => '    public const AGREEMENT_NONE = \'Signed\';',
+        'old' => '            \'agreement\' => self::say(\'agreement_none\'),',
+        'new' => '            \'agreement\' => \'Signed\',',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformFunnelAndPrivacyTest.php']],
     ],
     [

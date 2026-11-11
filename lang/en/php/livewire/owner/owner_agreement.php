@@ -43,8 +43,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Non Deductible Categories',
         'ota_cost_bearer' => 'OTA Cost Bearer',
-        'cleaning_fee_bearer' => 'Cleaning Fee Bearer',
-        'addon_bearer' => 'Addon Bearer',
+        'cleaning_fee_bearer' => 'Cleaning fee goes to',
+        'addon_bearer' => 'Add-ons go to',
     ],
     'rule_values' => [
         'owner' => 'Owner',

@@ -28,7 +28,7 @@ return [
     'current_sub' => 'Live nightly rates across your units',
     'no_room_types' => 'You don’t have any room types to price here.',
     'no_room_types_hint' => 'Rates are set per room type; where your unit shares a room type with another party, your management team sets the rate.',
-    'col_villa' => 'Villa',
+    'col_villa' => 'Unit',
     'col_base' => 'Base',
     'col_weekend' => 'Weekend',
     'col_peak' => 'Peak',

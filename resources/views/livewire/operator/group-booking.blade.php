@@ -189,7 +189,7 @@
                                      label plus the → between them, not invented. --}}
                                 <label class="vy-sr-only" for="vy-lbl-group-booking-check-in">{{ __('livewire/operator/group-booking.stay_dates_check_in') }}</label>
                                 <input type="date" id="vy-lbl-group-booking-check-in" class="vy-gb-input" x-model="ci">
-                                <span class="vy-gb-dates-arrow" aria-hidden="true">→</span>
+                                <span class="vy-gb-dates-arrow vy-flip-rtl" aria-hidden="true">→</span>
                                 <label class="vy-sr-only" for="vy-lbl-group-booking-check-out">{{ __('livewire/operator/group-booking.stay_dates_check_out') }}</label>
                                 <input type="date" id="vy-lbl-group-booking-check-out" class="vy-gb-input" x-model="co">
                                 <button type="button" class="vy-gb-datesbtn" x-on:click="applyDates()" x-bind:disabled="! ci || ! co || co <= ci">{{ __('livewire/operator/group-booking.check_availability') }}</button>

@@ -38,6 +38,9 @@ class FakeStripeClient implements StripeClientInterface
     /** @var list<string> */
     public array $voids = [];
 
+    /** @var bool when true, cancelPaymentIntent() leaves the intent as it was (the processor refuses) — tests only. */
+    public bool $refuseCancel = false;
+
     /**
      * Force the status of the NEXT createPaymentIntent (then auto-clears). Use 'requires_action'
      * to simulate an SCA/3DS challenge.
@@ -134,6 +137,10 @@ class FakeStripeClient implements StripeClientInterface
 
     public function cancelPaymentIntent(string $intentId): StripeIntent
     {
+        // a processor that declines to cancel (the intent keeps its status, nothing is recorded as voided) — for the hold-release refusal test
+        if ($this->refuseCancel) {
+            return new StripeIntent($intentId, (string) ($this->intents[$intentId]['status'] ?? 'requires_capture'), livemode: $this->livemode);
+        }
         $this->intents[$intentId]['status'] = 'canceled';
         $this->voids[] = $intentId;
 

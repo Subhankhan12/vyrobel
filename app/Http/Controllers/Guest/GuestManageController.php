@@ -13,6 +13,7 @@ use App\Services\AssignmentService;
 use App\Services\GuestChangeRequestService;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
+use App\Support\I18n\Locales;
 use App\Support\Reservations\CancellationPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -189,7 +190,7 @@ class GuestManageController extends Controller
         $payload = $request->payload;
 
         return match ((string) $request->type) {
-            GuestChangeRequest::TYPE_DATE_CHANGE => (string) ($payload['new_check_in'] ?? '').' → '.(string) ($payload['new_check_out'] ?? ''),
+            GuestChangeRequest::TYPE_DATE_CHANGE => (string) ($payload['new_check_in'] ?? '').' '.Locales::forward().' '.(string) ($payload['new_check_out'] ?? ''),
             // ⚠️ WAVE 3 — reads `add_on_ids`, the key GuestChangeRequestService actually WRITES (:77) and
             // reads back (:127). This read `add_ons`, which nothing ever writes, so every pending add-on row
             // rendered BLANK. Resolved to real NAMES too — the ids are ULIDs and mean nothing to a guest.

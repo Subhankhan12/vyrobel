@@ -92,11 +92,24 @@
         .vy-star-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:41; width:300px; max-height:340px; overflow-y:auto; padding:8px; border-radius:16px; background:rgba(255,252,248,.98); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,.85); box-shadow:0 20px 54px rgba(120,70,40,.26); }
         .vy-star-row { display:flex; gap:9px; padding:9px 10px; border-radius:11px; text-decoration:none; color:inherit; }
         .vy-star-row:hover { background:rgba(255,255,255,.7); }
+        /* the browser's own refusal of a file that is too big / too many, above the composer */
+        .vy-msg-fileerror { margin:0 0 8px; padding:8px 12px; border-radius:10px; background:rgba(180,64,15,.1); color:#B4400F; font-size:12.5px; }
     </style>
 
     @php
         $avGrad = ['linear-gradient(140deg,#E8703A,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,var(--vy-amber-text))', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
         $activeId = $active['id'] ?? null;
+        // ⚠️ D-UPLOAD-LIMITS · the browser's half (2026-11-11, his go): a file is checked against THIS server's real ceilings BEFORE it is sent. Past
+        //    PHP's request ceiling the whole POST is dropped and only a 419 can answer — so the page says it first, in the Inbox's own sentences.
+        $uploadLimits = \App\Support\Messaging\ChatFiles::limits();
+        $uploadCfg = [
+            'max' => \App\Support\Messaging\ChatFiles::MAX_FILES,
+            'mb' => $uploadLimits['mb'],
+            'post' => $uploadLimits['post_bytes'],
+            'tooMany' => trans_choice('livewire/operator/operator-inbox.too_many_files', \App\Support\Messaging\ChatFiles::MAX_FILES, ['count' => \App\Support\Messaging\ChatFiles::MAX_FILES]),
+            'tooLarge' => __('livewire/operator/operator-inbox.file_too_large', ['name' => ':name', 'mb' => $uploadLimits['mb']]),
+            'over' => __('livewire/operator/operator-inbox.files_over_limit', ['mb' => (int) floor($uploadLimits['post_bytes'] / 1048576)]),
+        ];
     @endphp
 
     @if (session('owner_notice'))<div style="margin-bottom:12px;padding:10px 14px;border-radius:12px;background:rgba(79,122,70,.12);color:#3F6A38;font-size:13px">{{ session('owner_notice') }}</div>@endif
@@ -196,17 +209,20 @@
                         <div style="font-size:12.5px;max-width:260px">{{ __('livewire/owner/messages.start_with_hint') }}</div>
                     </div>
                 </div>
-                <form method="POST" action="{{ route('owner.messages.start') }}" enctype="multipart/form-data" class="vy-msg-composer" x-data="{ files: 0 }" style="margin-top:14px">
+                <div x-data="{ files: 0, fileError: '', cfg: @js($uploadCfg) }" style="margin-top:14px">
+                <p class="vy-msg-fileerror" x-show="fileError" x-cloak x-text="fileError" role="alert"></p>
+                <form method="POST" action="{{ route('owner.messages.start') }}" enctype="multipart/form-data" class="vy-msg-composer">
                     @csrf
                     <input type="hidden" name="staff_id" value="{{ $composeStaff['id'] }}">
                     <button type="button" class="vy-msg-attach" title="{{ __('livewire/owner/messages.attach_file') }}" aria-label="{{ __('livewire/owner/messages.attach_file') }}" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
-                    <input type="file" name="attachments[]" multiple x-ref="file" class="sr-only" style="display:none" @change="files = $refs.file.files.length">
+                    <input type="file" name="attachments[]" multiple x-ref="file" class="sr-only" style="display:none" @change="fileError = vyOwnerFileCheck($refs.file, cfg); if (fileError) $refs.file.value = ''; files = $refs.file.files.length">
                     <input type="text" name="body" required maxlength="5000" placeholder="{{ __('livewire/owner/messages.message_placeholder', ['name' => explode(' ', $composeStaff['name'])[0]]) }}" aria-label="{{ __('livewire/owner/messages.message_aria') }}">
                     <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap">{!! __('livewire/owner/messages.files_selected') !!}</span>
                     <button type="submit" class="vy-msg-send" aria-label="{{ __('livewire/owner/messages.send') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
                 </form>
+                </div>
             @elseif ($active !== null)
-                <div x-data="{ replyTo: null, star: false, reactFor: null, files: 0 }">
+                <div x-data="{ replyTo: null, star: false, reactFor: null, files: 0, fileError: '', cfg: @js($uploadCfg) }">
                     {{-- Active thread header (staff correspondent — presence honestly omitted) + starred panel toggle --}}
                     <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;flex-shrink:0">
                         <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $active['initials'] }}</span>
@@ -379,11 +395,12 @@
                     </div>
 
                     {{-- Composer --}}
+                    <p class="vy-msg-fileerror" x-show="fileError" x-cloak x-text="fileError" role="alert"></p>
                     <form method="POST" action="{{ route('owner.messages.reply', $active['id']) }}" enctype="multipart/form-data" class="vy-msg-composer">
                         @csrf
                         <input type="hidden" name="reply_to_message_id" :value="replyTo?.id ?? ''">
                         <button type="button" class="vy-msg-attach" title="{{ __('livewire/owner/messages.attach_file') }}" aria-label="{{ __('livewire/owner/messages.attach_file') }}" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
-                        <input type="file" name="attachments[]" multiple x-ref="file" style="display:none" @change="files = $refs.file.files.length">
+                        <input type="file" name="attachments[]" multiple x-ref="file" style="display:none" @change="fileError = vyOwnerFileCheck($refs.file, cfg); if (fileError) $refs.file.value = ''; files = $refs.file.files.length">
                         <input type="text" name="body" x-ref="body" maxlength="5000" placeholder="{{ __('livewire/owner/messages.message_placeholder', ['name' => $active['first_name']]) }}" aria-label="{{ __('livewire/owner/messages.message_aria') }}">
                         <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap">{!! __('livewire/owner/messages.files_selected') !!}</span>
                         <button type="submit" class="vy-msg-send" aria-label="{{ __('livewire/owner/messages.send') }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
@@ -407,4 +424,18 @@
             @endif
         </section>
     </div>
+
+    <script>
+        // D-UPLOAD-LIMITS (2026-11-11): the files a person just chose, against this server's ceilings — '' when they fit, else the sentence.
+        // The whole choice is dropped on a refusal (never half of it, silently), and the message says which rule it broke.
+        window.vyOwnerFileCheck = window.vyOwnerFileCheck || function (input, cfg) {
+            const list = Array.from((input && input.files) || []);
+            if (list.length > cfg.max) return cfg.tooMany;
+            for (const f of list) {
+                if (f.size > cfg.mb * 1048576) return cfg.tooLarge.replace(':name', () => f.name);
+            }
+            if (list.reduce((n, f) => n + f.size, 0) > cfg.post) return cfg.over;
+            return '';
+        };
+    </script>
 </x-owner.shell>

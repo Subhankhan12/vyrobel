@@ -35,7 +35,8 @@
         ->filter()->take(2)->map(fn ($w) => \App\Support\I18n\LocalText::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
     $__viewerInitials = $__viewerInitials !== '' ? $__viewerInitials : 'S';
     $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
-    $__todayLabel = \Carbon\CarbonImmutable::now()->translatedFormat(\App\Support\I18n\LocalDate::pattern('D · j M'));
+    // ⚠️ D-DAY-ELSEWHERE (2026-11-11): the day it is AT THE WORKING PROPERTY, not the app's (UTC) — and the same on a page load and on a Livewire update
+    $__todayLabel = \App\Support\Property\PropertyDay::workingToday()->translatedFormat(\App\Support\I18n\LocalDate::pattern('D · j M'));
     // #84 read-only workspace — resolved once, used by BOTH the topbar read-only pill and the banner below.
     $__workspace = app(\App\Support\Operator\OperatorWorkspace::class);
 @endphp
