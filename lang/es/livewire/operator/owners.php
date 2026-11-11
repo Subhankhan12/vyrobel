@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Todos los extractos cerrados pendientes de liquidar podrán liquidarse de nuevo desde el proceso de liquidación y en el próximo proceso automático.',
     'fact_audit' => 'Se guarda en el registro de auditoría.',
     'copied' => 'Copiado: :email',
+    'portal_off_chip' => 'Portal desactivado',
 ];

@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Không tìm thấy khách đó — vui lòng tìm lại.',
     'choose_or_name_guest' => 'Vui lòng chọn một khách hiện có, hoặc nhập tên cho khách mới.',
     'invalid_guest_email' => 'Địa chỉ email của khách không hợp lệ.',
+    'guest_email_exists' => 'Đã có khách với email này (:name). Vui lòng nhập lại email rồi chọn “Dùng khách này” hoặc “Tạo khách mới”.',
 ];

@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Undangan kedaluwarsa',
     'portal_invite_revoked' => 'Undangan dicabut',
     'portal_none' => 'Tidak ada akses portal',
+    'portal_off' => 'Akses portal nonaktif',
+    'portal_off_since' => 'Dinonaktifkan pada :date — pemilik dan timnya tidak dapat masuk ke portal pemilik.',
     'invite_expires' => 'Berlaku hingga :date',
     'invite_expired' => 'Kedaluwarsa :date',
 ];

@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Setiap rekap tertutup yang masih terutang dapat dicairkan lagi dari proses pencairan, dan oleh proses otomatis berikutnya.',
     'fact_audit' => 'Dicatat di log audit.',
     'copied' => 'Disalin: :email',
+    'portal_off_chip' => 'Portal nonaktif',
 ];

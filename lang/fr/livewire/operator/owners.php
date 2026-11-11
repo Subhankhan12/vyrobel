@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Chaque relevé clôturé encore dû peut de nouveau être versé depuis le lot de versements, ainsi que par la prochaine exécution automatique.',
     'fact_audit' => 'Enregistré dans le journal d’audit.',
     'copied' => 'Copié : :email',
+    'portal_off_chip' => 'Portail désactivé',
 ];

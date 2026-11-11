@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Đã liên kết đặt phòng.',
     'conversation_started' => 'Đã bắt đầu hội thoại.',
     'owner_no_portal' => 'Chưa có tài khoản cổng thông tin — vui lòng mời :name vào cổng thông tin chủ sở hữu trước.',
+    'owner_portal_off' => 'Quyền truy cập cổng thông tin của chủ sở hữu :name đang tắt — hãy bật lại từ trang của họ trước khi nhắn tin cho họ.',
     'workspace_paused' => 'Tổ chức đang tạm dừng — tin nhắn ở chế độ chỉ đọc đến :date.',
     'workspace_paused_for_now' => 'Tổ chức đang tạm dừng — tin nhắn tạm thời ở chế độ chỉ đọc.',
 ];

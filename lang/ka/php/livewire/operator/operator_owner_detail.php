@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'მოწვევის ვადა ამოიწურა',
     'portal_invite_revoked' => 'მოწვევა გაუქმებულია',
     'portal_none' => 'პორტალზე წვდომა არ არის',
+    'portal_off' => 'პორტალზე წვდომა გამორთულია',
+    'portal_off_since' => 'გამორთულია: :date – მესაკუთრე და მისი გუნდი მესაკუთრის პორტალში ვერ შედიან.',
     'invite_expires' => 'ვადა: :date',
     'invite_expired' => 'ვადა ამოიწურა: :date',
 ];

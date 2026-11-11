@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Todo extrato fechado ainda devido poderá ser pago novamente pelo lote de repasses e pela próxima execução automática.',
     'fact_audit' => 'Consta no registro de auditoria.',
     'copied' => 'Copiado: :email',
+    'portal_off_chip' => 'Portal desativado',
 ];

@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Mọi bảng đối soát đã chốt còn nợ có thể được chi trả trở lại từ đợt chi trả, và trong đợt chi trả tự động tiếp theo.',
     'fact_audit' => 'Được ghi vào nhật ký kiểm tra.',
     'copied' => 'Đã sao chép :email',
+    'portal_off_chip' => 'Cổng đã tắt',
 ];

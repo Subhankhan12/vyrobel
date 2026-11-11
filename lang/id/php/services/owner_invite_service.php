@@ -4,4 +4,5 @@
 
 return [
     'invite_used_or_cancelled' => 'Undangan tersebut sudah digunakan atau dibatalkan.',
+    'owner_portal_off' => 'Akses portal pemilik ini dinonaktifkan, jadi undangan tidak dapat dikirim. Aktifkan kembali dari halaman pemilik terlebih dahulu.',
 ];

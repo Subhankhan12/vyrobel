@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => '所有仍应付的已关闭结算单均可恢复通过打款批次打款，下一次自动打款也会处理。',
     'fact_audit' => '已记录在审计日志中。',
     'copied' => '已复制 :email',
+    'portal_off_chip' => '门户已关闭',
 ];

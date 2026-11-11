@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Hâlâ ödenmemiş her kapatılmış hesap özeti, toplu hakediş ödemesinden ve bir sonraki otomatik toplu ödemede yeniden ödenebilir.',
     'fact_audit' => 'Denetim günlüğüne kaydedilir.',
     'copied' => 'Kopyalandı: :email',
+    'portal_off_chip' => 'Portal kapalı',
 ];

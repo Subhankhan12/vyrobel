@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => '所有仍應付的已關帳結算單都可以再次透過撥款批次撥款，下一次自動撥款也會處理。',
     'fact_audit' => '已記錄於稽核紀錄。',
     'copied' => '已複製 :email',
+    'portal_off_chip' => '業主專區已關閉',
 ];

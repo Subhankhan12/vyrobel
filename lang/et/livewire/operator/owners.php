@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Iga suletud väljavõtte, mille summa on veel võlgnetav, saab taas välja maksta koondväljamakse kaudu ja järgmise automaatse koondväljamaksega.',
     'fact_audit' => 'Salvestatakse auditilogisse.',
     'copied' => 'Kopeeritud: :email',
+    'portal_off_chip' => 'Portaal väljas',
 ];

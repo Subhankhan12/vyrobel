@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Ftesa ka skaduar',
     'portal_invite_revoked' => 'Ftesa u anulua',
     'portal_none' => 'Pa qasje në portal',
+    'portal_off' => 'Qasja në portal është fikur',
+    'portal_off_since' => 'Fikur më :date — pronari dhe ekipi i vet nuk mund të hyjnë në portalin e pronarit.',
     'invite_expires' => 'Skadon më :date',
     'invite_expired' => 'Skaduar më :date',
 ];

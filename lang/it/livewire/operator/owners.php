@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Ogni rendiconto chiuso ancora dovuto potrà di nuovo essere pagato dal ciclo di versamenti e dal prossimo ciclo automatico.',
     'fact_audit' => 'Operazione registrata nel registro di audit.',
     'copied' => 'Copiato: :email',
+    'portal_off_chip' => 'Portale disattivato',
 ];

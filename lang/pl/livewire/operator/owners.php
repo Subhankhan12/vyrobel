@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Każde zamknięte rozliczenie, które jest nadal do zapłaty, można znów wypłacić w ramach wypłaty zbiorczej, a także podczas następnej automatycznej wypłaty zbiorczej.',
     'fact_audit' => 'Zapisywane w dzienniku audytu.',
     'copied' => 'Skopiowano: :email',
+    'portal_off_chip' => 'Portal wyłączony',
 ];

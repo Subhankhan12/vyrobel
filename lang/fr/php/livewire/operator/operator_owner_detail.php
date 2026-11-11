@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Invitation expirée',
     'portal_invite_revoked' => 'Invitation révoquée',
     'portal_none' => 'Aucun accès au portail',
+    'portal_off' => 'Accès au portail désactivé',
+    'portal_off_since' => 'Désactivé le :date — le propriétaire et son équipe ne peuvent pas se connecter au portail propriétaire.',
     'invite_expires' => 'Expire le :date',
     'invite_expired' => 'Expirée le :date',
 ];

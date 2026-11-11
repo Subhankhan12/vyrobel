@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Uitnodiging verlopen',
     'portal_invite_revoked' => 'Uitnodiging ingetrokken',
     'portal_none' => 'Geen portaaltoegang',
+    'portal_off' => 'Portaaltoegang uit',
+    'portal_off_since' => 'Uitgeschakeld op :date — de eigenaar en het eigenaarsteam kunnen niet inloggen op het eigenaarsportaal.',
     'invite_expires' => 'Verloopt op :date',
     'invite_expired' => 'Verlopen op :date',
 ];

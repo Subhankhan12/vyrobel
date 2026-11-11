@@ -95,6 +95,7 @@ return [
     'find_owner' => 'オーナーを検索',
     'this_owner' => 'このオーナー',
     'owner_no_portal' => 'ポータルのログインがまだありません',
+    'owner_portal_off' => 'ポータルアクセスがオフです',
     'compose_where_owner_unpicked' => 'オーナーポータルで読まれます。オーナーを選択してください。メールでは送信されません。',
     'compose_where_owner' => ':nameのオーナーポータルに届きます。メールは送信されません。',
     'template_legend' => 'テンプレートから作成 · 任意',

@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Oaspetele nu a fost găsit — căutați-l din nou.',
     'choose_or_name_guest' => 'Alegeți un oaspete existent sau introduceți numele unui oaspete nou.',
     'invalid_guest_email' => 'Adresa de e-mail a oaspetelui nu este validă.',
+    'guest_email_exists' => 'Există deja un oaspete cu acest e-mail (:name). Introduceți din nou adresa de e-mail și alegeți „Utilizare oaspete” sau „Creare oaspete nou”.',
 ];

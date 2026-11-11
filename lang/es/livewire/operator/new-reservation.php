@@ -220,4 +220,9 @@ return [
     'aria_full' => 'completo',
     'aria_check_in' => 'llegada',
     'aria_check_out' => 'salida',
+    'dup_title' => 'Ya existe un huésped con este correo electrónico',
+    'dup_use' => 'Usar este huésped',
+    'dup_new' => 'Crear uno nuevo',
+    'dup_note' => 'Al usar un huésped existente se mantienen sus datos guardados: lo que escribió aquí (teléfono, país, notas) no se agrega a su perfil.',
+    'miss_dup_choice' => 'Ya existe un huésped con este correo electrónico: use ese huésped o elija “Crear uno nuevo”.',
 ];

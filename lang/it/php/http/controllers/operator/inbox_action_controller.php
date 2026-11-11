@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Prenotazione collegata.',
     'conversation_started' => 'Conversazione avviata.',
     'owner_no_portal' => 'Accesso al portale non ancora attivo: invitare prima :name al portale proprietari.',
+    'owner_portal_off' => 'L’accesso al portale di :name è disattivato: prima di inviare un messaggio, riattivarlo dalla pagina del proprietario.',
     'workspace_paused' => 'Organizzazione in pausa — la messaggistica è in sola lettura (ripresa: :date).',
     'workspace_paused_for_now' => 'Organizzazione in pausa — per il momento la messaggistica è in sola lettura.',
 ];

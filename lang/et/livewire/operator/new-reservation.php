@@ -220,4 +220,9 @@ return [
     'aria_full' => 'täis',
     'aria_check_in' => 'saabumine',
     'aria_check_out' => 'lahkumine',
+    'dup_title' => 'Selle e-posti aadressiga külaline on juba olemas',
+    'dup_use' => 'Kasuta seda külalist',
+    'dup_new' => 'Loo uus külaline',
+    'dup_note' => 'Olemasoleva külalise kasutamisel jäävad tema salvestatud andmed samaks — siia sisestatud andmeid (telefon, riik, märkmed) tema profiilile ei lisata.',
+    'miss_dup_choice' => 'Selle e-posti aadressiga külaline on juba olemas — kasutage olemasolevat külalist või valige „Loo uus külaline“.',
 ];

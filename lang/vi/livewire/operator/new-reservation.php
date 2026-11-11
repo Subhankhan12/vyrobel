@@ -220,4 +220,9 @@ return [
     'aria_full' => 'hết phòng',
     'aria_check_in' => 'nhận phòng',
     'aria_check_out' => 'trả phòng',
+    'dup_title' => 'Đã có khách với email này',
+    'dup_use' => 'Dùng khách này',
+    'dup_new' => 'Tạo khách mới',
+    'dup_note' => 'Khi dùng khách đã có, thông tin đã lưu của họ được giữ nguyên — những gì bạn nhập ở đây (số điện thoại, quốc gia, ghi chú) sẽ không được thêm vào hồ sơ của họ.',
+    'miss_dup_choice' => 'Đã có khách với email này — hãy dùng khách đó, hoặc chọn “Tạo khách mới”.',
 ];

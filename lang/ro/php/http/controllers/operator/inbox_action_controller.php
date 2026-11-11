@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Rezervare asociată.',
     'conversation_started' => 'Conversație începută.',
     'owner_no_portal' => 'Încă fără acces la portal — invitați mai întâi proprietarul :name în portalul proprietarilor.',
+    'owner_portal_off' => 'Accesul proprietarului :name la portal este dezactivat — reactivați-l din pagina sa înainte de a-i trimite un mesaj.',
     'workspace_paused' => 'Organizație în pauză — mesageria este doar în citire până la :date.',
     'workspace_paused_for_now' => 'Organizație în pauză — mesageria este deocamdată doar în citire.',
 ];

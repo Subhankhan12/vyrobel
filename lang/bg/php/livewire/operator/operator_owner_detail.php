@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Поканата е изтекла',
     'portal_invite_revoked' => 'Поканата е оттеглена',
     'portal_none' => 'Няма достъп до портала',
+    'portal_off' => 'Достъп до портала: изключен',
+    'portal_off_since' => 'Достъпът е изключен на :date – собственикът и екипът му не могат да влизат в портала за собственици.',
     'invite_expires' => 'Изтича на :date',
     'invite_expired' => 'Изтекла на :date',
 ];

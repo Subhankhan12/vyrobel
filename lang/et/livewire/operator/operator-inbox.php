@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Otsi omanikku',
     'this_owner' => 'See omanik',
     'owner_no_portal' => 'Portaali ligipääsu veel pole',
+    'owner_portal_off' => 'Portaali ligipääs välja lülitatud',
     'compose_where_owner_unpicked' => 'Omanik loeb seda omanikuportaalis — valige omanik. E-kirja ei saadeta.',
     'compose_where_owner' => 'See läheb omanikuportaali (omanik: :name). E-kirja ei saadeta.',
     'template_legend' => 'Alustage mallist · valikuline',

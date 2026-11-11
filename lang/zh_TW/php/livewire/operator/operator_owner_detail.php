@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => '邀請已過期',
     'portal_invite_revoked' => '邀請已收回',
     'portal_none' => '無業主專區存取權',
+    'portal_off' => '業主專區存取權已關閉',
+    'portal_off_since' => '已於 :date 關閉——對方及其團隊無法登入業主專區。',
     'invite_expires' => '將於 :date 過期',
     'invite_expired' => '已於 :date 過期',
 ];

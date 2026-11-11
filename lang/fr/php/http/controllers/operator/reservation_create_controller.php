@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Ce client est introuvable — recherchez-le de nouveau.',
     'choose_or_name_guest' => 'Choisissez un client existant, ou saisissez un nom pour un nouveau client.',
     'invalid_guest_email' => 'L’adresse e-mail du client n’est pas valide.',
+    'guest_email_exists' => 'Un client avec cette adresse e-mail existe déjà (:name). Saisissez de nouveau l’adresse e-mail et choisissez « Utiliser ce client » ou « Créer un nouveau client ».',
 ];

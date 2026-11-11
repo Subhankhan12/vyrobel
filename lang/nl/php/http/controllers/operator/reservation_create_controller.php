@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Die gast is niet gevonden — zoek opnieuw.',
     'choose_or_name_guest' => 'Kies een bestaande gast, of voer een naam in voor een nieuwe gast.',
     'invalid_guest_email' => 'Dat e-mailadres van de gast is niet geldig.',
+    'guest_email_exists' => 'Er bestaat al een gast met dit e-mailadres (:name). Typ het e-mailadres opnieuw en kies “Deze gast gebruiken” of “Nieuwe gast aanmaken”.',
 ];

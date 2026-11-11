@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Căutare proprietar',
     'this_owner' => 'Acest proprietar',
     'owner_no_portal' => 'Încă fără acces la portal',
+    'owner_portal_off' => 'Acces la portal dezactivat',
     'compose_where_owner_unpicked' => 'Se citește în portalul proprietarilor — alegeți un proprietar. Nu se trimite prin e-mail.',
     'compose_where_owner' => 'Mesajul ajunge în portalul proprietarului :name. Nu se trimite nimic prin e-mail.',
     'template_legend' => 'Pornire de la un șablon · opțional',

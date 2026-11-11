@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Zaproszenie wygasło',
     'portal_invite_revoked' => 'Zaproszenie wycofane',
     'portal_none' => 'Brak dostępu do portalu',
+    'portal_off' => 'Dostęp do portalu wyłączony',
+    'portal_off_since' => 'Wyłączono: :date – właściciel i jego zespół nie mogą logować się do portalu właściciela.',
     'invite_expires' => 'Wygasa: :date',
     'invite_expired' => 'Wygasło: :date',
 ];

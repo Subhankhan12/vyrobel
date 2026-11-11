@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Znajdź właściciela',
     'this_owner' => 'Ten właściciel',
     'owner_no_portal' => 'Brak dostępu do portalu',
+    'owner_portal_off' => 'Dostęp do portalu wyłączony',
     'compose_where_owner_unpicked' => 'Wiadomość będzie do przeczytania w portalu właściciela – wybierz właściciela. Nie jest wysyłana e-mailem.',
     'compose_where_owner' => 'Wiadomość trafi do portalu właściciela: :name. Nic nie jest wysyłane e-mailem.',
     'template_legend' => 'Zacznij od szablonu · opcjonalnie',

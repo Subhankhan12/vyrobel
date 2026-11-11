@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => '招待期限切れ',
     'portal_invite_revoked' => '招待無効化済み',
     'portal_none' => 'ポータルへのアクセスなし',
+    'portal_off' => 'ポータルアクセスがオフ',
+    'portal_off_since' => ':dateにオフにしました。オーナーとそのチームは、オーナーポータルにログインできません。',
     'invite_expires' => '有効期限：:date',
     'invite_expired' => '期限切れ：:date',
 ];

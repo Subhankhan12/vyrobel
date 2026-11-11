@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Fiecare decont finalizat încă datorat poate fi plătit din nou din ciclul de viramente, precum și la următorul ciclu automat.',
     'fact_audit' => 'Se înregistrează în jurnalul de audit.',
     'copied' => 'Copiat: :email',
+    'portal_off_chip' => 'Portal dezactivat',
 ];

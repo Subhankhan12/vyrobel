@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Ky vizitor nuk u gjet — kërkojeni përsëri.',
     'choose_or_name_guest' => 'Zgjidhni një vizitor ekzistues ose shkruani emrin e një vizitori të ri.',
     'invalid_guest_email' => 'Adresa e email-it e vizitorit nuk është e vlefshme.',
+    'guest_email_exists' => 'Ekziston tashmë një vizitor me këtë email (:name). Shkruani përsëri email-in dhe zgjidhni «Përdor këtë vizitor» ose «Krijo një të ri».',
 ];

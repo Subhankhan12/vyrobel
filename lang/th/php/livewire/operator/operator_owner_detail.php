@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'คำเชิญหมดอายุแล้ว',
     'portal_invite_revoked' => 'เพิกถอนคำเชิญแล้ว',
     'portal_none' => 'ไม่มีสิทธิ์เข้าพอร์ทัล',
+    'portal_off' => 'สิทธิ์เข้าพอร์ทัลปิดอยู่',
+    'portal_off_since' => 'ปิดเมื่อ :date — ทั้งเจ้าของห้องพักและสมาชิกทีมเข้าสู่ระบบพอร์ทัลเจ้าของห้องพักไม่ได้',
     'invite_expires' => 'หมดอายุ :date',
     'invite_expired' => 'หมดอายุเมื่อ :date',
 ];

@@ -220,4 +220,9 @@ return [
     'aria_full' => 'brak miejsc',
     'aria_check_in' => 'zameldowanie',
     'aria_check_out' => 'wymeldowanie',
+    'dup_title' => 'Gość z tym adresem e-mail już istnieje',
+    'dup_use' => 'Użyj tego gościa',
+    'dup_new' => 'Utwórz nowego',
+    'dup_note' => 'Wybranie istniejącego gościa zachowuje jego zapisane dane – to, co zostało tu wpisane (telefon, kraj, notatki), nie zostanie dodane do jego profilu.',
+    'miss_dup_choice' => 'Gość z tym adresem e-mail już istnieje – użyj tego gościa lub wybierz „Utwórz nowego”.',
 ];

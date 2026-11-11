@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Eigenaar zoeken',
     'this_owner' => 'Deze eigenaar',
     'owner_no_portal' => 'Nog geen inlog voor het portaal',
+    'owner_portal_off' => 'Portaaltoegang uitgeschakeld',
     'compose_where_owner_unpicked' => 'Te lezen in het eigenaarsportaal — kies een eigenaar. Het wordt niet gemaild.',
     'compose_where_owner' => 'Dit gaat naar het eigenaarsportaal van :name. Er wordt niets gemaild.',
     'template_legend' => 'Begin met een sjabloon · optioneel',

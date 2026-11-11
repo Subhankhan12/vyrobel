@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Davet süresi doldu',
     'portal_invite_revoked' => 'Davet iptal edildi',
     'portal_none' => 'Portal erişimi yok',
+    'portal_off' => 'Portal erişimi kapalı',
+    'portal_off_since' => ':date tarihinde kapatıldı — kendisi ve ekibi mülk sahibi portalında oturum açamaz.',
     'invite_expires' => 'Son geçerlilik: :date',
     'invite_expired' => 'Süresi doldu: :date',
 ];

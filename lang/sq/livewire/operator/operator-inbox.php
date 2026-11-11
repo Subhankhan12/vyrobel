@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Gjej një pronar',
     'this_owner' => 'Ky pronar',
     'owner_no_portal' => 'Ende pa hyrje në portal',
+    'owner_portal_off' => 'Qasja në portal është fikur',
     'compose_where_owner_unpicked' => 'Lexohet në portalin e pronarit — zgjidhni një pronar. Nuk dërgohet me email.',
     'compose_where_owner' => 'Shkon te portali i pronarit :name. Nuk dërgohet asnjë email.',
     'template_legend' => 'Nisni nga një shabllon · opsional',

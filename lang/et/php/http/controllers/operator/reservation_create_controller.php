@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Seda külalist ei leitud — otsige teda uuesti.',
     'choose_or_name_guest' => 'Valige olemasolev külaline või sisestage uue külalise nimi.',
     'invalid_guest_email' => 'See külalise e-posti aadress ei ole kehtiv.',
+    'guest_email_exists' => 'Selle e-posti aadressiga külaline on juba olemas (:name). Sisestage e-posti aadress uuesti ja valige „Kasuta seda külalist“ või „Loo uus külaline“.',
 ];

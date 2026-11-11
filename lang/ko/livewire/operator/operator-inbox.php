@@ -95,6 +95,7 @@ return [
     'find_owner' => '소유주 찾기',
     'this_owner' => '이 소유주',
     'owner_no_portal' => '아직 포털 로그인 없음',
+    'owner_portal_off' => '포털 액세스 꺼짐',
     'compose_where_owner_unpicked' => '소유주 포털에서 읽게 됩니다 — 소유주를 선택하세요. 이메일은 발송되지 않습니다.',
     'compose_where_owner' => ':name 소유주의 포털로 전달됩니다. 이메일은 발송되지 않습니다.',
     'template_legend' => '템플릿으로 시작 · 선택 사항',

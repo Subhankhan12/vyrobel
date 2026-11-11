@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Invitación caducada',
     'portal_invite_revoked' => 'Invitación revocada',
     'portal_none' => 'Sin acceso al portal',
+    'portal_off' => 'Acceso al portal desactivado',
+    'portal_off_since' => 'Desactivado el :date: ni el propietario ni su equipo pueden iniciar sesión en el portal del propietario.',
     'invite_expires' => 'Caduca el :date',
     'invite_expired' => 'Caducó el :date',
 ];

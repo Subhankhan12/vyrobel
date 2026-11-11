@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Impossibile trovare l’ospite: cercarlo di nuovo.',
     'choose_or_name_guest' => 'Selezionare un ospite esistente oppure inserire il nome di un nuovo ospite.',
     'invalid_guest_email' => 'L’indirizzo e-mail dell’ospite non è valido.',
+    'guest_email_exists' => 'Esiste già un ospite con questo indirizzo e-mail (:name). Digitare di nuovo l’indirizzo e scegliere il pulsante «Usa questo ospite» oppure «Crea un nuovo ospite».',
 ];

@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Позивница је истекла',
     'portal_invite_revoked' => 'Позивница је отказана',
     'portal_none' => 'Нема приступа порталу',
+    'portal_off' => 'Приступ порталу је искључен',
+    'portal_off_since' => 'Искључено: :date – власник и његов тим не могу да се пријаве на портал за власнике.',
     'invite_expires' => 'Истиче: :date',
     'invite_expired' => 'Истекло: :date',
 ];

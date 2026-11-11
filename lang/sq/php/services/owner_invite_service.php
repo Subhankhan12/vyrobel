@@ -4,4 +4,5 @@
 
 return [
     'invite_used_or_cancelled' => 'Kjo ftesë është përdorur ose anuluar tashmë.',
+    'owner_portal_off' => 'Qasja në portal e pronarit është fikur, ndaj nuk mund të dërgohet asnjë ftesë. Fillimisht ndizeni përsëri nga faqja e këtij pronari.',
 ];

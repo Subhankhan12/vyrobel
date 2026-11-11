@@ -25,4 +25,5 @@ return [
     'guest_not_found' => '找不到该客人——请重新搜索。',
     'choose_or_name_guest' => '请选择现有客人，或输入新客人的姓名。',
     'invalid_guest_email' => '该客人邮箱地址无效。',
+    'guest_email_exists' => '已存在使用此邮箱的客人（:name）。请重新输入邮箱，并选择“使用此客人”或“新建客人”。',
 ];

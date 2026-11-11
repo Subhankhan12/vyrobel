@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Encontrar um proprietário',
     'this_owner' => 'Este proprietário',
     'owner_no_portal' => 'Ainda sem acesso ao portal',
+    'owner_portal_off' => 'Acesso ao portal desativado',
     'compose_where_owner_unpicked' => 'Lida no portal do proprietário — escolha um proprietário. Não é enviada por e-mail.',
     'compose_where_owner' => 'Vai para o portal do proprietário de :name. Não é enviado nenhum e-mail.',
     'template_legend' => 'Começar a partir de um modelo · opcional',

@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Buchung verknüpft.',
     'conversation_started' => 'Unterhaltung begonnen.',
     'owner_no_portal' => 'Noch kein Portalzugang — laden Sie :name zuerst ins Eigentümerportal ein.',
+    'owner_portal_off' => 'Der Portalzugang von :name ist ausgeschaltet — schalten Sie ihn auf der Seite des Eigentümers wieder ein, bevor Sie ihm schreiben.',
     'workspace_paused' => 'Organisation pausiert — bei Nachrichten besteht bis :date nur Lesezugriff.',
     'workspace_paused_for_now' => 'Organisation pausiert — bei Nachrichten besteht vorerst nur Lesezugriff.',
 ];

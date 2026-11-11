@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => '邀请已过期',
     'portal_invite_revoked' => '邀请已撤回',
     'portal_none' => '无门户访问权限',
+    'portal_off' => '门户访问权限已关闭',
+    'portal_off_since' => '已于 :date 关闭——对方及其团队无法登录业主门户。',
     'invite_expires' => '到期：:date',
     'invite_expired' => '已过期：:date',
 ];

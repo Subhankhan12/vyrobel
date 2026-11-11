@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Mülk sahibi bul',
     'this_owner' => 'Bu mülk sahibi',
     'owner_no_portal' => 'Henüz portal hesabı yok',
+    'owner_portal_off' => 'Portal erişimi kapatıldı',
     'compose_where_owner_unpicked' => 'Mülk sahibi portalında okunur — bir mülk sahibi seçin. E-postayla gönderilmez.',
     'compose_where_owner' => 'Bu mesaj :name adlı mülk sahibinin portalına gider. Hiçbir şey e-postayla gönderilmez.',
     'template_legend' => 'Bir şablonla başlayın · isteğe bağlı',

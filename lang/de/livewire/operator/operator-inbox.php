@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Eigentümer suchen',
     'this_owner' => 'Dieser Eigentümer',
     'owner_no_portal' => 'Noch kein Portalzugang',
+    'owner_portal_off' => 'Portalzugang ausgeschaltet',
     'compose_where_owner_unpicked' => 'Wird im Eigentümerportal gelesen — wählen Sie einen Eigentümer. Es wird keine E-Mail gesendet.',
     'compose_where_owner' => 'Dies geht an das Eigentümerportal von :name. Es wird keine E-Mail gesendet.',
     'template_legend' => 'Mit einer Vorlage beginnen · optional',

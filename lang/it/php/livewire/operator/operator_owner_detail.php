@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Invito scaduto',
     'portal_invite_revoked' => 'Invito revocato',
     'portal_none' => 'Nessun accesso al portale',
+    'portal_off' => 'Accesso al portale disattivato',
+    'portal_off_since' => 'Disattivato in data :date — il proprietario e il suo team non possono accedere al portale proprietari.',
     'invite_expires' => 'Scadenza: :date',
     'invite_expired' => 'Scaduto: :date',
 ];

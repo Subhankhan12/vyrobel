@@ -4,4 +4,5 @@
 
 return [
     'invite_used_or_cancelled' => 'Questo invito è già stato utilizzato o annullato.',
+    'owner_portal_off' => 'L’accesso al portale del proprietario è disattivato, quindi non è possibile inviare l’invito. Riattivarlo prima dalla pagina del proprietario.',
 ];

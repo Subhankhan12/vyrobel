@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Reservering gekoppeld.',
     'conversation_started' => 'Gesprek gestart.',
     'owner_no_portal' => 'Nog geen inlog voor het portaal — nodig :name eerst uit voor het eigenaarsportaal.',
+    'owner_portal_off' => 'De portaaltoegang van :name is uitgeschakeld — schakel die weer in via de pagina van deze eigenaar voordat u een bericht stuurt.',
     'workspace_paused' => 'Organisatie gepauzeerd — berichten zijn tot :date alleen-lezen.',
     'workspace_paused_for_now' => 'Organisatie gepauzeerd — berichten zijn voorlopig alleen-lezen.',
 ];

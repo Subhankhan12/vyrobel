@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Elke afgesloten afrekening die nog openstaat, kan weer worden uitbetaald via de uitbetalingsrun en bij de volgende automatische run.',
     'fact_audit' => 'Vastgelegd in het auditlogboek.',
     'copied' => ':email gekopieerd',
+    'portal_off_chip' => 'Portaal uit',
 ];

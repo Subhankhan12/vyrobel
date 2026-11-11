@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'आमंत्रण की अवधि समाप्त',
     'portal_invite_revoked' => 'आमंत्रण रद्द किया गया',
     'portal_none' => 'पोर्टल एक्सेस नहीं',
+    'portal_off' => 'पोर्टल एक्सेस बंद',
+    'portal_off_since' => ':date को बंद किया गया — वे और उनकी टीम मालिक पोर्टल में लॉग इन नहीं कर सकते।',
     'invite_expires' => 'समाप्ति: :date',
     'invite_expired' => ':date को समाप्त हो गया',
 ];

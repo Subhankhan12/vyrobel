@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Tìm chủ sở hữu',
     'this_owner' => 'Chủ sở hữu này',
     'owner_no_portal' => 'Chưa có tài khoản cổng thông tin',
+    'owner_portal_off' => 'Đã tắt quyền truy cập cổng thông tin',
     'compose_where_owner_unpicked' => 'Tin được đọc trong cổng thông tin chủ sở hữu — chọn một chủ sở hữu. Tin không được gửi qua email.',
     'compose_where_owner' => 'Tin này được gửi đến cổng thông tin dành cho chủ sở hữu :name. Không có email nào được gửi.',
     'template_legend' => 'Bắt đầu từ mẫu · không bắt buộc',

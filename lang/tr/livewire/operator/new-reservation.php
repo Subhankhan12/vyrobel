@@ -220,4 +220,9 @@ return [
     'aria_full' => 'dolu',
     'aria_check_in' => 'giriş',
     'aria_check_out' => 'çıkış',
+    'dup_title' => 'Bu e-posta adresiyle kayıtlı bir misafir zaten var',
+    'dup_use' => 'Bu misafiri kullan',
+    'dup_new' => 'Yenisini oluştur',
+    'dup_note' => 'Mevcut bir misafiri kullanırsanız kayıtlı bilgileri korunur — burada yazdıklarınız (telefon, ülke, notlar) misafirin profiline eklenmez.',
+    'miss_dup_choice' => 'Bu e-posta adresiyle kayıtlı bir misafir zaten var — onu kullanın veya “Yenisini oluştur” düğmesine basın.',
 ];

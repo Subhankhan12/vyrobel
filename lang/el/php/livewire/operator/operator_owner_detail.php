@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Πρόσκληση που έληξε',
     'portal_invite_revoked' => 'Πρόσκληση που ανακλήθηκε',
     'portal_none' => 'Χωρίς πρόσβαση στην πύλη',
+    'portal_off' => 'Απενεργοποιημένη πρόσβαση στην πύλη',
+    'portal_off_since' => 'Απενεργοποιήθηκε στις :date — ο ίδιος και η ομάδα του δεν μπορούν να συνδεθούν στην πύλη ιδιοκτήτη.',
     'invite_expires' => 'Λήξη: :date',
     'invite_expired' => 'Έληξε στις :date',
 ];

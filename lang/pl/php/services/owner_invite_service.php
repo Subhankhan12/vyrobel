@@ -4,4 +4,5 @@
 
 return [
     'invite_used_or_cancelled' => 'To zaproszenie zostało już wykorzystane lub anulowane.',
+    'owner_portal_off' => 'Dostęp właściciela do portalu jest wyłączony, więc nie można wysłać zaproszenia. Najpierw należy ponownie włączyć dostęp na stronie właściciela.',
 ];

@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => '아직 지급되지 않은 마감된 정산서는 모두 일괄 지급과 다음 자동 실행에서 다시 지급될 수 있습니다.',
     'fact_audit' => '감사 로그에 기록됩니다.',
     'copied' => '복사됨: :email',
+    'portal_off_chip' => '포털 꺼짐',
 ];

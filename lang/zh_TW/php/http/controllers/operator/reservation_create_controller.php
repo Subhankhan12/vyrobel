@@ -25,4 +25,5 @@ return [
     'guest_not_found' => '找不到該房客——請重新搜尋。',
     'choose_or_name_guest' => '請選擇現有房客，或輸入新房客的姓名。',
     'invalid_guest_email' => '該房客的電子郵件地址無效。',
+    'guest_email_exists' => '已有房客使用此電子郵件（:name）。請重新輸入電子郵件，並選擇「使用此房客」或「建立新房客」。',
 ];

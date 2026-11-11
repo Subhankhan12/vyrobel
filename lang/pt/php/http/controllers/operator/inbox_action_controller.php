@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Reserva associada.',
     'conversation_started' => 'Conversa iniciada.',
     'owner_no_portal' => 'Ainda sem acesso ao portal — convide primeiro :name para o portal do proprietário.',
+    'owner_portal_off' => 'O acesso de :name ao portal está desativado — volte a ativá-lo na respetiva página antes de enviar uma mensagem.',
     'workspace_paused' => 'Organização em pausa — as mensagens ficam em modo só de leitura até :date.',
     'workspace_paused_for_now' => 'Organização em pausa — as mensagens estão, por agora, em modo só de leitura.',
 ];

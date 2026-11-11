@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Rezervimi u lidh.',
     'conversation_started' => 'Biseda u nis.',
     'owner_no_portal' => 'Ende pa hyrje në portal — fillimisht ftoni pronarin :name në portalin e pronarit.',
+    'owner_portal_off' => 'Qasja në portal e pronarit :name është fikur — ndizeni përsëri nga faqja e pronarit para se të dërgoni mesazh.',
     'workspace_paused' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim deri më :date.',
     'workspace_paused_for_now' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim për momentin.',
 ];

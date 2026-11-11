@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Nie znaleziono tego gościa – wyszukaj go ponownie.',
     'choose_or_name_guest' => 'Wybierz istniejącego gościa lub wpisz imię i nazwisko nowego.',
     'invalid_guest_email' => 'Adres e-mail gościa jest nieprawidłowy.',
+    'guest_email_exists' => 'Gość z tym adresem e-mail już istnieje (:name). Wpisz adres e-mail jeszcze raz i wybierz „Użyj tego gościa” lub „Utwórz nowego”.',
 ];

@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Dieser Gast wurde nicht gefunden — bitte suchen Sie erneut.',
     'choose_or_name_guest' => 'Wählen Sie einen bestehenden Gast, oder geben Sie einen Namen für einen neuen Gast ein.',
     'invalid_guest_email' => 'Die E-Mail-Adresse des Gastes ist ungültig.',
+    'guest_email_exists' => 'Es gibt bereits einen Gast mit dieser E-Mail-Adresse (:name). Geben Sie die E-Mail-Adresse erneut ein und wählen Sie „Diesen Gast verwenden“ oder „Neuen Gast anlegen“.',
 ];

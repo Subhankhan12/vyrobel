@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => '초대 만료됨',
     'portal_invite_revoked' => '초대 회수됨',
     'portal_none' => '포털 액세스 없음',
+    'portal_off' => '포털 액세스 꺼짐',
+    'portal_off_since' => ':date에 꺼짐 — 소유주와 그 팀은 소유주 포털에 로그인할 수 없습니다.',
     'invite_expires' => '만료일: :date',
     'invite_expired' => '만료됨: :date',
 ];

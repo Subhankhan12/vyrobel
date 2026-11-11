@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Kutse aegunud',
     'portal_invite_revoked' => 'Kutse tühistatud',
     'portal_none' => 'Portaali ligipääsu pole',
+    'portal_off' => 'Portaali ligipääs väljas',
+    'portal_off_since' => 'Välja lülitatud kuupäeval :date — nad ja nende meeskond ei saa omanikuportaali sisse logida.',
     'invite_expires' => 'Aegub :date',
     'invite_expired' => 'Aegus :date',
 ];

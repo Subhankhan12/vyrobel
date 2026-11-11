@@ -4,4 +4,5 @@
 
 return [
     'invite_used_or_cancelled' => 'Este convite já foi usado ou cancelado.',
+    'owner_portal_off' => 'O acesso dele ao portal está desativado, por isso não é possível enviar um convite. Reative-o primeiro na página dele.',
 ];

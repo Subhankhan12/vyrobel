@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'No se encontró a ese huésped: vuelva a buscarlo.',
     'choose_or_name_guest' => 'Elija un huésped existente o introduzca un nombre para uno nuevo.',
     'invalid_guest_email' => 'El correo electrónico de ese huésped no es válido.',
+    'guest_email_exists' => 'Ya existe un huésped con este correo electrónico (:name). Vuelva a escribir el correo electrónico y elija “Usar este huésped” o “Crear uno nuevo”.',
 ];

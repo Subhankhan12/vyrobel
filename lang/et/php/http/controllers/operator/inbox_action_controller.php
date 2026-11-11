@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Broneering on seotud.',
     'conversation_started' => 'Vestlus on alustatud.',
     'owner_no_portal' => 'Portaali ligipääsu veel pole — kutsuge omanikku :name esmalt omanikuportaali.',
+    'owner_portal_off' => 'Omaniku :name portaali ligipääs on välja lülitatud — lülitage see tema lehelt tagasi sisse, enne kui talle sõnumi saadate.',
     'workspace_paused' => 'Organisatsioon on peatatud — sõnumeid saab kuni :date ainult lugeda.',
     'workspace_paused_for_now' => 'Organisatsioon on peatatud — sõnumeid saab praegu ainult lugeda.',
 ];

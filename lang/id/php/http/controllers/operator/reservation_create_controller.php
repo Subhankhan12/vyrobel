@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Tamu tersebut tidak ditemukan — cari lagi.',
     'choose_or_name_guest' => 'Pilih tamu yang sudah ada, atau masukkan nama untuk tamu baru.',
     'invalid_guest_email' => 'Alamat email tamu tersebut tidak valid.',
+    'guest_email_exists' => 'Tamu dengan email ini sudah ada (:name). Ketik ulang email tersebut lalu pilih “Gunakan tamu ini”, atau “Buat tamu baru”.',
 ];

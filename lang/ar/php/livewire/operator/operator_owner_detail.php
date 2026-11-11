@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'انتهت صلاحية الدعوة',
     'portal_invite_revoked' => 'تم سحب الدعوة',
     'portal_none' => 'لا يوجد وصول إلى البوابة',
+    'portal_off' => 'الوصول إلى البوابة معطّل',
+    'portal_off_since' => 'تم التعطيل في :date — ولا يستطيع المالك ولا فريقه تسجيل الدخول إلى بوابة الملاك.',
     'invite_expires' => 'تنتهي الصلاحية: :date',
     'invite_expired' => 'انتهت الصلاحية: :date',
 ];

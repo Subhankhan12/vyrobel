@@ -220,4 +220,9 @@ return [
     'aria_full' => 'completo',
     'aria_check_in' => 'arrivo',
     'aria_check_out' => 'partenza',
+    'dup_title' => 'Esiste già un ospite con questo indirizzo e-mail',
+    'dup_use' => 'Usa questo ospite',
+    'dup_new' => 'Crea un nuovo ospite',
+    'dup_note' => 'Usando un ospite esistente restano invariati i suoi dati salvati: ciò che è stato digitato qui (telefono, paese, note) non viene aggiunto al suo profilo.',
+    'miss_dup_choice' => 'Esiste già un ospite con questo indirizzo e-mail — usare l’ospite esistente oppure scegliere il pulsante «Crea un nuovo ospite».',
 ];

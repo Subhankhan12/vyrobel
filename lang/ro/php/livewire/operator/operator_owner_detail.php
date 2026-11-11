@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Invitație expirată',
     'portal_invite_revoked' => 'Invitație revocată',
     'portal_none' => 'Fără acces la portal',
+    'portal_off' => 'Acces la portal dezactivat',
+    'portal_off_since' => 'Dezactivat pe :date — proprietarul și echipa sa nu se pot conecta la portalul proprietarilor.',
     'invite_expires' => 'Expiră pe :date',
     'invite_expired' => 'A expirat pe :date',
 ];

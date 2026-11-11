@@ -220,4 +220,9 @@ return [
     'aria_full' => 'complet',
     'aria_check_in' => 'sosire',
     'aria_check_out' => 'plecare',
+    'dup_title' => 'Există deja un oaspete cu acest e-mail',
+    'dup_use' => 'Utilizare oaspete',
+    'dup_new' => 'Creare oaspete nou',
+    'dup_note' => 'Dacă utilizați un oaspete existent, se păstrează datele sale salvate — ceea ce ați introdus aici (telefon, țară, note) nu se adaugă la profilul său.',
+    'miss_dup_choice' => 'Există deja un oaspete cu acest e-mail — utilizați-l sau alegeți „Creare oaspete nou”.',
 ];

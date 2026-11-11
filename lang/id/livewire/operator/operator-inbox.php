@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Cari pemilik',
     'this_owner' => 'Pemilik ini',
     'owner_no_portal' => 'Belum punya akun portal',
+    'owner_portal_off' => 'Akses portal dinonaktifkan',
     'compose_where_owner_unpicked' => 'Dibaca di portal pemilik — pilih pemilik. Tidak dikirim lewat email.',
     'compose_where_owner' => 'Pesan ini masuk ke portal pemilik :name. Tidak ada yang dikirim lewat email.',
     'template_legend' => 'Mulai dari templat · opsional',

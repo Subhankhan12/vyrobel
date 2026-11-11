@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Jede abgeschlossene, noch offene Abrechnung kann wieder über den Auszahlungslauf und beim nächsten automatischen Lauf ausgezahlt werden.',
     'fact_audit' => 'Wird im Audit-Log gespeichert.',
     'copied' => 'Kopiert: :email',
+    'portal_off_chip' => 'Portalzugang aus',
 ];

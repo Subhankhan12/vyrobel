@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => '締め済みで未払いの収支報告書はすべて、一括送金から、また次回の自動実行で再び送金できます。',
     'fact_audit' => '監査ログに記録されます。',
     'copied' => ':emailをコピーしました',
+    'portal_off_chip' => 'ポータルオフ',
 ];

@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Todos os extratos fechados ainda em dívida podem voltar a ser pagos a partir do lote de transferências e na próxima execução automática.',
     'fact_audit' => 'Fica no registo de auditoria.',
     'copied' => 'Copiado: :email',
+    'portal_off_chip' => 'Portal desativado',
 ];

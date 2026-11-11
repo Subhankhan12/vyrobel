@@ -26,6 +26,7 @@ return [
     'reservation_linked' => '已关联预订。',
     'conversation_started' => '对话已发起。',
     'owner_no_portal' => '尚无门户登录账号——请先邀请 :name 加入业主门户。',
+    'owner_portal_off' => ':name 的门户访问权限已关闭——请先在其页面重新开启，再给对方发消息。',
     'workspace_paused' => '组织已暂停——消息在 :date 之前为只读。',
     'workspace_paused_for_now' => '组织已暂停——消息目前为只读。',
 ];

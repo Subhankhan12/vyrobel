@@ -95,6 +95,7 @@ return [
     'find_owner' => '尋找業主',
     'this_owner' => '此業主',
     'owner_no_portal' => '尚無業主專區登入帳號',
+    'owner_portal_off' => '業主專區存取權已關閉',
     'compose_where_owner_unpicked' => '對方會在業主專區中閱讀——請選擇業主。不會寄送電子郵件。',
     'compose_where_owner' => '此訊息會傳送到 :name 的業主專區，不會寄送電子郵件。',
     'template_legend' => '從範本開始 · 選填',

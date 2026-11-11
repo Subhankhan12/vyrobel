@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Срок приглашения истёк',
     'portal_invite_revoked' => 'Приглашение отозвано',
     'portal_none' => 'Нет доступа к порталу',
+    'portal_off' => 'Доступ к порталу отключён',
+    'portal_off_since' => 'Отключён :date — собственник и его команда не могут входить в портал собственника.',
     'invite_expires' => 'Истекает :date',
     'invite_expired' => 'Истекло :date',
 ];

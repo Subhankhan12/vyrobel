@@ -220,4 +220,9 @@ return [
     'aria_full' => 'plot',
     'aria_check_in' => 'mbërritja',
     'aria_check_out' => 'largimi',
+    'dup_title' => 'Ekziston tashmë një vizitor me këtë email',
+    'dup_use' => 'Përdor këtë vizitor',
+    'dup_new' => 'Krijo një të ri',
+    'dup_note' => 'Përdorimi i një vizitori ekzistues i ruan të dhënat e tij të ruajtura — ato që keni shkruar këtu (telefoni, shteti, shënimet) nuk shtohen në profilin e tij.',
+    'miss_dup_choice' => 'Ekziston tashmë një vizitor me këtë email — përdoreni, ose zgjidhni «Krijo një të ri».',
 ];

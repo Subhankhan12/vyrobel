@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Einladung abgelaufen',
     'portal_invite_revoked' => 'Einladung widerrufen',
     'portal_none' => 'Kein Portalzugang',
+    'portal_off' => 'Portalzugang aus',
+    'portal_off_since' => 'Ausgeschaltet am :date — der Eigentümer und sein Team können sich nicht im Eigentümerportal anmelden.',
     'invite_expires' => 'Läuft am :date ab',
     'invite_expired' => 'Abgelaufen am :date',
 ];

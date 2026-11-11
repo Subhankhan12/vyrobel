@@ -220,4 +220,9 @@ return [
     'aria_full' => 'complet',
     'aria_check_in' => 'arrivée',
     'aria_check_out' => 'départ',
+    'dup_title' => 'Un client avec cette adresse e-mail existe déjà',
+    'dup_use' => 'Utiliser ce client',
+    'dup_new' => 'Créer un nouveau client',
+    'dup_note' => 'Si vous utilisez un client existant, ses informations enregistrées sont conservées — ce que vous avez saisi ici (téléphone, pays, notes) n’est pas ajouté à son profil.',
+    'miss_dup_choice' => 'Un client avec cette adresse e-mail existe déjà — utilisez ce client, ou choisissez « Créer un nouveau client ».',
 ];

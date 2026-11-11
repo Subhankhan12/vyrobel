@@ -95,6 +95,7 @@ return [
     'find_owner' => 'Trouver un propriétaire',
     'this_owner' => 'Ce propriétaire',
     'owner_no_portal' => 'Pas encore d’accès au portail',
+    'owner_portal_off' => 'Accès au portail désactivé',
     'compose_where_owner_unpicked' => 'Le message sera lu dans le portail propriétaire — choisissez un propriétaire. Il n’est pas envoyé par e-mail.',
     'compose_where_owner' => ':name recevra ce message dans son portail propriétaire. Rien n’est envoyé par e-mail.',
     'template_legend' => 'Partir d’un modèle · facultatif',

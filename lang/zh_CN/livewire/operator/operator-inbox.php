@@ -95,6 +95,7 @@ return [
     'find_owner' => '查找业主',
     'this_owner' => '此业主',
     'owner_no_portal' => '尚无门户登录账号',
+    'owner_portal_off' => '门户访问权限已关闭',
     'compose_where_owner_unpicked' => '对方将在业主门户中阅读——请选择业主。不会通过邮件发送。',
     'compose_where_owner' => '此消息将发送到 :name 的业主门户。不会发送任何邮件。',
     'template_legend' => '从模板开始 · 选填',

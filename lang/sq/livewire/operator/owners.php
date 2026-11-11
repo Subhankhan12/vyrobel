@@ -135,4 +135,5 @@ return [
     'resume_fact_engine' => 'Çdo pasqyrë e finalizuar që ende nuk është paguar mund të paguhet përsëri nga cikli i derdhjeve dhe nga ekzekutimi automatik i radhës.',
     'fact_audit' => 'Evidentohet në regjistrin e auditimit.',
     'copied' => 'U kopjua: :email',
+    'portal_off_chip' => 'Portali i fikur',
 ];

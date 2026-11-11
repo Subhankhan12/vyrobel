@@ -25,4 +25,5 @@ return [
     'guest_not_found' => 'Bu misafir bulunamadı — yeniden arayın.',
     'choose_or_name_guest' => 'Mevcut bir misafir seçin veya yeni misafir için bir ad girin.',
     'invalid_guest_email' => 'Misafirin e-posta adresi geçerli değil.',
+    'guest_email_exists' => 'Bu e-posta adresiyle kayıtlı bir misafir zaten var (:name). E-posta adresini yeniden yazın ve “Bu misafiri kullan” veya “Yenisini oluştur” düğmelerinden birine basın.',
 ];

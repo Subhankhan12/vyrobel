@@ -220,4 +220,9 @@ return [
     'aria_full' => 'penuh',
     'aria_check_in' => 'kedatangan',
     'aria_check_out' => 'keberangkatan',
+    'dup_title' => 'Tamu dengan email ini sudah ada',
+    'dup_use' => 'Gunakan tamu ini',
+    'dup_new' => 'Buat tamu baru',
+    'dup_note' => 'Menggunakan tamu yang sudah ada berarti data tersimpannya tetap dipakai — apa yang Anda ketik di sini (telepon, negara, catatan) tidak ditambahkan ke profilnya.',
+    'miss_dup_choice' => 'Tamu dengan email ini sudah ada — gunakan tamu tersebut, atau pilih “Buat tamu baru”.',
 ];

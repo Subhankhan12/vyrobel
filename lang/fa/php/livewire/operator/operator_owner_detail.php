@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'دعوت منقضی‌شده',
     'portal_invite_revoked' => 'دعوت لغوشده',
     'portal_none' => 'بدون دسترسی به پرتال',
+    'portal_off' => 'دسترسی به پرتال غیرفعال',
+    'portal_off_since' => 'غیرفعال‌شده در :date — او و تیم او نمی‌توانند وارد پرتال مالکان شوند.',
     'invite_expires' => 'انقضا: :date',
     'invite_expired' => 'منقضی‌شده در :date',
 ];

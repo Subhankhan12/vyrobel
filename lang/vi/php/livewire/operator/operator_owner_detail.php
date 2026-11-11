@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Lời mời đã hết hạn',
     'portal_invite_revoked' => 'Đã thu hồi lời mời',
     'portal_none' => 'Không có quyền truy cập cổng',
+    'portal_off' => 'Đã tắt truy cập cổng',
+    'portal_off_since' => 'Đã tắt vào :date — họ và nhóm của họ không thể đăng nhập vào cổng thông tin chủ sở hữu.',
     'invite_expires' => 'Hết hạn: :date',
     'invite_expired' => 'Đã hết hạn: :date',
 ];

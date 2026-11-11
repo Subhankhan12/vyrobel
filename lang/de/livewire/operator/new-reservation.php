@@ -220,4 +220,9 @@ return [
     'aria_full' => 'voll',
     'aria_check_in' => 'Check-in',
     'aria_check_out' => 'Check-out',
+    'dup_title' => 'Es gibt bereits einen Gast mit dieser E-Mail-Adresse',
+    'dup_use' => 'Diesen Gast verwenden',
+    'dup_new' => 'Neuen Gast anlegen',
+    'dup_note' => 'Wenn Sie einen bestehenden Gast verwenden, bleiben dessen gespeicherte Angaben erhalten — was Sie hier eingegeben haben (Telefon, Land, Notizen), wird nicht in sein Profil übernommen.',
+    'miss_dup_choice' => 'Es gibt bereits einen Gast mit dieser E-Mail-Adresse — verwenden Sie ihn oder wählen Sie „Neuen Gast anlegen“.',
 ];

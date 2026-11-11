@@ -26,6 +26,7 @@ return [
     'reservation_linked' => '已連結訂房。',
     'conversation_started' => '已開始對話。',
     'owner_no_portal' => '尚無業主專區登入帳號——請先邀請 :name 加入業主專區。',
+    'owner_portal_off' => ':name 的業主專區存取權已關閉——請先到其頁面重新開啟，再傳送訊息給對方。',
     'workspace_paused' => '組織已暫停——至 :date 前，訊息功能為唯讀。',
     'workspace_paused_for_now' => '組織已暫停——目前訊息功能為唯讀。',
 ];

@@ -38,6 +38,8 @@ return [
     'portal_invite_expired' => 'Convite expirado',
     'portal_invite_revoked' => 'Convite revogado',
     'portal_none' => 'Sem acesso ao portal',
+    'portal_off' => 'Acesso ao portal desativado',
+    'portal_off_since' => 'Desativado em :date — ele e a equipe dele não podem entrar no portal do proprietário.',
     'invite_expires' => 'Expira em :date',
     'invite_expired' => 'Expirou em :date',
 ];

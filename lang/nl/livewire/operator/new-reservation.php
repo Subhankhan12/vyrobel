@@ -220,4 +220,9 @@ return [
     'aria_full' => 'vol',
     'aria_check_in' => 'aankomst',
     'aria_check_out' => 'vertrek',
+    'dup_title' => 'Er bestaat al een gast met dit e-mailadres',
+    'dup_use' => 'Deze gast gebruiken',
+    'dup_new' => 'Nieuwe gast aanmaken',
+    'dup_note' => 'Als u een bestaande gast gebruikt, blijven de opgeslagen gegevens van die gast behouden — wat u hier hebt ingevuld (telefoon, land, notities) wordt niet aan het profiel toegevoegd.',
+    'miss_dup_choice' => 'Er bestaat al een gast met dit e-mailadres — gebruik die gast, of kies “Nieuwe gast aanmaken”.',
 ];

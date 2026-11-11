@@ -26,6 +26,7 @@ return [
     'reservation_linked' => 'Rezervasyon bağlandı.',
     'conversation_started' => 'Konuşma başlatıldı.',
     'owner_no_portal' => 'Henüz portal hesabı yok — önce :name adlı kişiyi mülk sahibi portalına davet edin.',
+    'owner_portal_off' => ':name için portal erişimi kapatılmış durumda — mesaj göndermeden önce mülk sahibinin sayfasından yeniden açın.',
     'workspace_paused' => 'Kuruluş duraklatıldı — mesajlaşma :date tarihine kadar salt okunur.',
     'workspace_paused_for_now' => 'Kuruluş duraklatıldı — mesajlaşma şimdilik salt okunur.',
 ];
