@@ -1,0 +1,78 @@
+<?php
+// THE OPEN-LIST PASS (2026-11-11) — READ-ONLY preflight from the STAGED release (stdin; writes nothing — the database read-only).
+// Yes/no, counts, types and timings only — never a message, a guest name, a session id or a secret.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v, 'session driver' => config('session.driver'),
+    'locales' => count((array) config('app.available_locales')), 'intl' => extension_loaded('intl')];
+
+// the question every "email sent" claim now asks — production's mailer is `log` until the founder turns mail on
+$out['email reaches real inboxes now (MailSafetyGuard::sendingNow)'] = \App\Support\Mail\MailSafetyGuard::sendingNow();
+
+// the new routes: their gates and their own limiters
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['routes'] = [
+    'team message edit — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.edit'), true),
+    'team message delete — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.delete'), true),
+    'team message react — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.react'), true),
+    'team typing — poll limiter' => in_array('throttle:team-chat-poll', $mw('inbox.team.typing'), true),
+    'team search — poll limiter' => in_array('throttle:team-chat-poll', $mw('inbox.team.search'), true),
+    'Inbox start still needs guests.view' => in_array('can:guests.view', $mw('app.inbox.start'), true),
+    'Portfolio update needs properties.manage' => in_array('can:properties.manage', $mw('app.portfolio.update'), true),
+    'maintenance start needs maintenance.manage' => in_array('can:maintenance.manage', $mw('app.maintenance.start'), true),
+    'housekeeping status needs housekeeping.manage' => in_array('can:housekeeping.manage', $mw('app.housekeeping.status'), true),
+    'rate proposal store needs rates.manage' => in_array('can:rates.manage', $mw('app.rate-proposals.store'), true),
+];
+
+// the migrations: additive. false is expected BEFORE `migrate`, true after
+$out['tables (before migrate: false is expected)'] = [
+    'team_message_reactions' => Schema::hasTable('team_message_reactions'),
+    'team_typing' => Schema::hasTable('team_typing'),
+    'team_messages.edited_at' => Schema::hasColumn('team_messages', 'edited_at'),
+    'team_messages.deleted_at' => Schema::hasColumn('team_messages', 'deleted_at'),
+    'team_messages.redacted_at' => Schema::hasColumn('team_messages', 'redacted_at'),
+];
+
+// EVERY view compiles AND its compiled PHP token-parses (a compile that parses is not a render, but a view that cannot parse can never render)
+$bad = [];
+$n = 0;
+foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS)) as $f) {
+    if (! str_ends_with((string) $f->getFilename(), '.blade.php')) {
+        continue;
+    }
+    $n++;
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE);
+    } catch (Throwable $e) {
+        $bad[] = str_replace(resource_path('views').'/', '', $f->getPathname()).' — '.$e->getMessage();
+    }
+}
+$out['views parsed'] = $n;
+$out['views that fail'] = $bad;
+
+// the language files load (a syntax error in one would 500 every page in that language)
+$langBad = [];
+foreach ((array) config('app.available_locales') as $locale) {
+    foreach (glob(resource_path('../lang/'.$locale.'/*.php')) ?: [] as $file) {
+        try { (static function (string $f) { return include $f; })($file); } catch (Throwable $e) { $langBad[] = $locale.'/'.basename($file); }
+    }
+}
+$out['lang files that fail to load'] = $langBad;
+
+// the facts the new code reads on THIS host (counts only)
+$out['sessions rows (online-now reads them)'] = Schema::hasTable('sessions') ? DB::table('sessions')->count() : 'no table';
+$out['team conversations'] = Schema::hasTable('team_conversations') ? DB::table('team_conversations')->count() : 'no table';
+$out['team messages'] = Schema::hasTable('team_messages') ? DB::table('team_messages')->count() : 'no table';
+$out['owners with a portal sign-in (the Inbox owner tab can offer them)'] = Schema::hasTable('owners') ? DB::table('owners')->whereNotNull('user_id')->count() : 'no table';
+$out['brand logos referenced / replaced-logo history rows'] = [Schema::hasTable('properties') ? DB::table('properties')->whereNotNull('brand_logo_path')->count() : 0,
+    Schema::hasTable('media') ? DB::table('media')->where('collection', 'brand_logo_history')->count() : 0];
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
