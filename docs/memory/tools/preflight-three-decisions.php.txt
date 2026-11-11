@@ -1,0 +1,93 @@
+<?php
+// THE THREE-DECISIONS PASS (2026-11-12: DEC-r guest match · DEC-o owner portal switch · DEC-p give a unit) — READ-ONLY preflight from the STAGED
+// release (stdin; writes nothing — the database read-only). Yes/no, counts, types and timings only — never a name, an email, a session id or a secret.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v, 'locales' => count((array) config('app.available_locales'))];
+
+// the two new columns: ABSENT before `migrate`, present after — both answers are right at their own time
+$out['owners.portal_disabled_at exists'] = Schema::hasColumn('owners', 'portal_disabled_at');
+$out['units.owner_since exists'] = Schema::hasColumn('units', 'owner_since');
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['routes'] = [
+    'guest-match needs reservations.create + throttled' => in_array('can:reservations.create', $mw('app.reservations.guest-match'), true)
+        && count(array_filter($mw('app.reservations.guest-match'), fn ($m) => str_starts_with((string) $m, 'throttle:'))) === 1,
+    'portal-access needs users.manage + throttled' => in_array('can:users.manage', $mw('app.owners.portal-access'), true)
+        && count(array_filter($mw('app.owners.portal-access'), fn ($m) => str_starts_with((string) $m, 'throttle:'))) === 1,
+    'give-a-unit needs users.manage + throttled' => in_array('can:users.manage', $mw('app.owners.units.assign'), true)
+        && count(array_filter($mw('app.owners.units.assign'), fn ($m) => str_starts_with((string) $m, 'throttle:'))) === 1,
+];
+
+// the pieces load
+$out['pieces'] = [
+    'GuestEmailMatch' => class_exists(\App\Support\Guest\GuestEmailMatch::class),
+    'OwnerPortalAccess' => class_exists(\App\Support\Owner\OwnerPortalAccess::class),
+    'UnitOwnerAssignmentService' => class_exists(\App\Services\UnitOwnerAssignmentService::class),
+];
+
+// what the switch and the give-a-unit would meet on production's own data — counts only
+$out['owners'] = Schema::hasTable('owners') ? [
+    'rows' => DB::table('owners')->count(),
+    'with a portal login linked' => Schema::hasColumn('owners', 'user_id') ? DB::table('owners')->whereNotNull('user_id')->count() : 'no user_id column',
+    'portal switched off (before migrate: column absent)' => Schema::hasColumn('owners', 'portal_disabled_at') ? DB::table('owners')->whereNotNull('portal_disabled_at')->count() : 'column absent',
+] : 'no table';
+$out['units'] = Schema::hasTable('units') ? [
+    'rows' => DB::table('units')->count(),
+    'with no owner (what Give a unit would offer)' => DB::table('units')->whereNull('owner_id')->count(),
+    'with an owner' => DB::table('units')->whereNotNull('owner_id')->count(),
+    'with an owner_since date (before migrate: column absent)' => Schema::hasColumn('units', 'owner_since') ? DB::table('units')->whereNotNull('owner_since')->count() : 'column absent',
+] : 'no table';
+
+// the guest lookup's subject: how many guests carry the blind index (a count — the index itself is never read out)
+$out['guests'] = Schema::hasTable('guests') ? [
+    'rows' => DB::table('guests')->count(),
+    'with an email blind index' => DB::table('guests')->whereNotNull('email_hash')->count(),
+] : 'no table';
+$t0 = microtime(true);
+DB::table('guests')->where('email_hash', str_repeat('0', 64))->limit(3)->get(['id']);
+$out['blind-index lookup timing (ms, a hash that matches nothing)'] = round((microtime(true) - $t0) * 1000, 1);
+
+// the new sentences exist in EVERY language (a missing one would print its key)
+$groups = ['livewire/operator/new-reservation.dup_title', 'livewire/operator/new-reservation.dup_use', 'livewire/operator/new-reservation.dup_new',
+    'livewire/operator/owner-detail.give_unit_label', 'php/services/unit_owner_assignment_service.unit_already_owned',
+    'php/http/middleware/ensure_owner_portal_access.message', 'php/http/controllers/operator/owner_unit_assign_controller.given'];
+$missing = [];
+foreach ((array) config('app.available_locales') as $locale) {
+    foreach ($groups as $key) {
+        if (! Lang::has($key, $locale, false)) { $missing[] = $locale.':'.$key; }
+    }
+}
+$out['new sentences missing in a language'] = $missing;
+
+// EVERY view compiles AND its compiled PHP token-parses
+$bad = []; $n = 0;
+foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS)) as $f) {
+    if (! str_ends_with((string) $f->getFilename(), '.blade.php')) { continue; }
+    $n++;
+    try { token_get_all(app('blade.compiler')->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE); }
+    catch (Throwable $e) { $bad[] = str_replace(resource_path('views').'/', '', $f->getPathname()).' — '.$e->getMessage(); }
+}
+$out['views parsed'] = $n;
+$out['views that fail'] = $bad;
+
+// the language files load
+$langBad = [];
+foreach ((array) config('app.available_locales') as $locale) {
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path('lang/'.$locale), FilesystemIterator::SKIP_DOTS)) as $f) {
+        if (! str_ends_with((string) $f->getFilename(), '.php')) { continue; }
+        try { (static function (string $p) { return include $p; })($f->getPathname()); } catch (Throwable $e) { $langBad[] = $locale.'/'.basename($f->getPathname()); }
+    }
+}
+$out['lang files that fail to load'] = $langBad;
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

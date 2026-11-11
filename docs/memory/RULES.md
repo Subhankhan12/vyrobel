@@ -55,7 +55,11 @@ them. Ten of these rules are repeated at the top of `CLAUDE.md`.
   control: 2026-08-20 → 10-04, 106 runs and not one gate (`OPEN.md` D-CI-NEVER-RAN).
 - **Founder said (2026-10-04): no GitHub push per task.** Each task ships live from LOCAL commits (`ops/release.sh` needs no
   GitHub) and is pushed only at the very end, when he says — then under the four hard stops.
-- If any public check fails after a deploy, roll back first and diagnose second.
+- If any public check FAILS after a deploy, roll back first and diagnose second. **A FAIL is a probe that failed from this Mac AND from the server
+  itself, asking through the public hostname** (`ops/public-checks.sh` asks the second time — D-EDGE-CHECKS; his ruling DEC-t, 2026-11-11). **`COULD NOT
+  MEASURE` is not a FAIL and is never rolled back on its own** — it is the edge (the CDN's bot check, a 504 from the edge) and the server's own answer was
+  right: re-run it and read both answers. If the server cannot be asked, the FAIL stands (no evidence, no downgrade). A control run against the server is
+  the first step, never a reason to wait on a real FAIL.
 - Don't change the social sign-in rules, the verify gate, `RefuseEmailTaken` or `throttle:5,1` unless a brief says so.
 
 **Hard rules the planning side's list does not carry (added by MEMORY 01, each with where it is written):**

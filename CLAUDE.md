@@ -25,8 +25,7 @@ organisations). The map is `docs/memory/SYSTEMS.md`.
 6. **The money gate FULL stays unmoved.** Never re-baseline a figure or a fixture to make a check pass.
 7. **One suite at a time, and no edits while it runs.** Run long runs under `caffeinate`: the Mac sleeps, and other
    projects share the laptop.
-8. **Additive migrations only. Deploy only through L12k (`ops/release.sh`).** If a public check fails after a deploy, roll
-   back first and diagnose second.
+8. **Additive migrations only. Deploy only through L12k (`ops/release.sh`).** If a public check FAILS after a deploy (failed from this Mac AND from the server itself — `ops/public-checks.sh` asks the second time; `COULD NOT MEASURE (edge)` is not a FAIL; DEC-t, 2026-11-11), roll back first and diagnose second.
 9. **Identifiers are read, never written:** the release comes from `.release`, hashes from git, numbers from the gate's
    own output.
 10. **Every fact says how it is known:** Verified, Reported or Founder said. A claim is not a measurement.
