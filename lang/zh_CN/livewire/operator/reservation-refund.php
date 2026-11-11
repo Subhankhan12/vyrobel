@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => '退款作为一条新分录单独记入台账。原付款永远不会被编辑或删除。',
     'owner_statement_title' => '业主结算单相应调整',
     'owner_statement_body' => '对于归属业主的住宿，业主在此退款中应承担的净额将记入其台账，并计入其下一期结算单。',
+    'guest_not_emailed' => 'Vyrobel 目前尚未发送邮件，因此客人不会收到退款确认——请自行告知客人。正式上线前，银行卡退款在测试模式下运行——暂不会转移真实资金。',
     'guest_emailed' => '退款成功后，系统会自动向客人发送退款确认邮件。正式上线前，银行卡退款在测试模式下运行——暂不会转移真实资金。',
     'not_yet_available' => '暂不可用',
     'refund_by_charge' => '按单项消费退款',

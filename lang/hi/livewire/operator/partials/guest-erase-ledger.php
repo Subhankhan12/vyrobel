@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'नाम और संपर्क विवरण',
     'erased_city_preferences' => 'शहर, राष्ट्रीयता और प्राथमिकताएँ',
     'erased_documents_messages' => 'पहचान पत्र, नोट और संदेश',
+    'erased_team_chat' => 'टीम चैट में जहाँ उनका उल्लेख है, वहाँ उनका नाम, ईमेल और फ़ोन नंबर',
     'kept_heading' => 'बिना नाम के रखा गया',
     'kept_bookings' => 'बुकिंग और ठहराव',
     'kept_invoices' => 'इनवॉइस, भुगतान और बकाया राशि',

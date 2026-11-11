@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Pesan suara maksimal :size MB.',
     'voice_unreadable' => 'Pesan suara tersebut tidak dapat dibaca — rekam ulang.',
     'conversation_not_found' => 'Percakapan tersebut tidak ditemukan.',
+    'message_not_found' => 'Pesan tersebut tidak ditemukan.',
+    'choose_reaction' => 'Pilih reaksi.',
+    'search_too_short' => 'Ketik minimal :min karakter untuk mencari.',
+    'search_too_long' => 'Pencarian maksimal 100 karakter.',
+    'search_summary' => '{0}Tidak ada pesan yang ditemukan|{1}:count pesan ditemukan|[2,*]:count pesan ditemukan',
+    'search_summary_capped' => '[0,*]Menampilkan :shown pesan terbaru dari :count pesan',
 ];

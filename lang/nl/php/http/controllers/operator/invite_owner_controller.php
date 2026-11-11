@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1} :units heeft al een eigenaar. De eigenaar van een eenheid bepaalt wie ervoor wordt betaald, dus een uitnodiging kan alleen eenheden zonder eigenaar toewijzen.|[0,*] :units hebben al een eigenaar. De eigenaar van een eenheid bepaalt wie ervoor wordt betaald, dus een uitnodiging kan alleen eenheden zonder eigenaar toewijzen.',
     'email_cannot_be_invited' => 'Dat e-mailadres kan niet worden uitgenodigd — mogelijk heeft het al een Vyrobel-account.',
     'invite_sent' => 'Uitnodiging verstuurd naar :email.',
+    'invite_saved_no_mail' => 'Uitnodiging opgeslagen voor :email. Vyrobel verstuurt nog geen e-mail, dus deze persoon is nog niet ingelicht.',
 ];

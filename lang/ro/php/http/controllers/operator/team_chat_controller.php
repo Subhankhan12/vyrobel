@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Un mesaj vocal poate avea cel mult :size MB.',
     'voice_unreadable' => 'Mesajul vocal nu a putut fi citit — înregistrați-l din nou.',
     'conversation_not_found' => 'Conversația nu a fost găsită.',
+    'message_not_found' => 'Mesajul nu a fost găsit.',
+    'choose_reaction' => 'Alegeți o reacție.',
+    'search_too_short' => 'Număr minim de caractere pentru căutare: :min.',
+    'search_too_long' => 'Căutarea poate avea cel mult 100 de caractere.',
+    'search_summary' => '{1}:count mesaj găsit|:count mesaje găsite|:count de mesaje găsite|{0}Niciun mesaj găsit',
+    'search_summary_capped' => '{1}Se afișează cele mai noi :shown din :count mesaj|Se afișează cele mai noi :shown din :count mesaje|Se afișează cele mai noi :shown din :count de mesaje',
 ];

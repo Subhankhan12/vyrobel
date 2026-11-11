@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'پیام صوتی',
     'preview_photos' => '{1}عکس|[0,*]:count عکس',
     'preview_files' => '{1}فایل|[0,*]:count فایل',
+    'preview_deleted' => 'این پیام حذف شده است',
 ];

@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Coût',
     'bulk_assigned_skipped' => '{1} :count bon d’intervention attribué · ignorés (déjà clôturés) : :skipped|[0,*] :count bons d’intervention attribués · ignorés (déjà clôturés) : :skipped',
     'bulk_assigned' => '{1} :count bon d’intervention attribué.|[0,*] :count bons d’intervention attribués.',
+    'bulk_unassigned_skipped' => '{1} Attribution retirée pour :count bon d’intervention · ignorés (déjà clôturés) : :skipped|[0,*] Attribution retirée pour :count bons d’intervention · ignorés (déjà clôturés) : :skipped',
+    'bulk_unassigned' => '{1} Attribution retirée pour :count bon d’intervention.|[0,*] Attribution retirée pour :count bons d’intervention.',
     'bulk_resolved_skipped' => '{1} :count bon d’intervention résolu · ignorés (déjà clôturés) : :skipped|[0,*] :count bons d’intervention résolus · ignorés (déjà clôturés) : :skipped',
     'bulk_resolved' => '{1} :count bon d’intervention résolu.|[0,*] :count bons d’intervention résolus.',
     'cannot_start' => 'Ce ticket ne peut pas être démarré — il n’est plus ouvert.',

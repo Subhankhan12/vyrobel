@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count hồ sơ khách|[0,*]:count hồ sơ khách',
     'anonymized_guest' => 'Khách đã ẩn danh',
     'unnamed_guest' => 'Khách chưa có tên',
-    'in_house' => 'Đang lưu trú',
     'country_as_saved' => ':country (như đã lưu)',
     'chip_in_house' => 'Đang lưu trú',
     'chip_upcoming' => 'Sắp tới',

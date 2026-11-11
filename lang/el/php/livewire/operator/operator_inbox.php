@@ -24,5 +24,6 @@ return [
     'via_channel' => 'μέσω του καναλιού :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Επισκέπτης',
+    'owner_fallback' => 'Ιδιοκτήτης',
     'yesterday' => 'Χθες',
 ];

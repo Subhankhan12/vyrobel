@@ -13,4 +13,10 @@ return [
     'voice_too_big' => '语音留言最大 :size MB。',
     'voice_unreadable' => '无法读取该语音留言——请重新录制。',
     'conversation_not_found' => '找不到该对话。',
+    'message_not_found' => '找不到该消息。',
+    'choose_reaction' => '请选择表情回应。',
+    'search_too_short' => '请至少输入 :min 个字符后再搜索。',
+    'search_too_long' => '搜索内容最多 100 个字符。',
+    'search_summary' => '{0}未找到消息|{1}找到 :count 条消息|[2,*]找到 :count 条消息',
+    'search_summary_capped' => '[0,*]共 :count 条消息，显示最新的 :shown 条',
 ];

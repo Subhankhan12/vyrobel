@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'ข้อความเสียงมีขนาดได้ไม่เกิน :size MB',
     'voice_unreadable' => 'ไม่สามารถอ่านข้อความเสียงนั้นได้ — โปรดบันทึกอีกครั้ง',
     'conversation_not_found' => 'ไม่พบการสนทนานั้น',
+    'message_not_found' => 'ไม่พบข้อความนั้น',
+    'choose_reaction' => 'เลือกปฏิกิริยา',
+    'search_too_short' => 'พิมพ์อย่างน้อย :min ตัวอักษรเพื่อค้นหา',
+    'search_too_long' => 'ค้นหาได้ไม่เกิน 100 ตัวอักษร',
+    'search_summary' => '{0}ไม่พบข้อความ|{1}พบข้อความ :count รายการ|[2,*]พบข้อความ :count รายการ',
+    'search_summary_capped' => '[0,*]แสดง :shown รายการล่าสุดจากข้อความทั้งหมด :count รายการ',
 ];

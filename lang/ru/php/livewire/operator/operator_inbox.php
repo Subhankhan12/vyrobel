@@ -24,5 +24,6 @@ return [
     'via_channel' => 'канал: :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Гость',
+    'owner_fallback' => 'Собственник',
     'yesterday' => 'Вчера',
 ];

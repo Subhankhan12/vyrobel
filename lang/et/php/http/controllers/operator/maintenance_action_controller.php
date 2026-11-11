@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Kulu',
     'bulk_assigned_skipped' => '{1}Vastutaja määratud: :count töökäsk · vahele jäetud: :skipped (juba lõpetatud)|[0,*]Vastutaja määratud: :count töökäsku · vahele jäetud: :skipped (juba lõpetatud)',
     'bulk_assigned' => '{1}Vastutaja määratud: :count töökäsk.|[0,*]Vastutaja määratud: :count töökäsku.',
+    'bulk_unassigned_skipped' => '{1}Vastutaja eemaldatud: :count töökäsk · vahele jäetud: :skipped (juba lõpetatud)|[0,*]Vastutaja eemaldatud: :count töökäsku · vahele jäetud: :skipped (juba lõpetatud)',
+    'bulk_unassigned' => '{1}Vastutaja eemaldatud: :count töökäsk.|[0,*]Vastutaja eemaldatud: :count töökäsku.',
     'bulk_resolved_skipped' => '{1}Lahendatud: :count töökäsk · vahele jäetud: :skipped (juba lõpetatud)|[0,*]Lahendatud: :count töökäsku · vahele jäetud: :skipped (juba lõpetatud)',
     'bulk_resolved' => '{1}Lahendatud: :count töökäsk.|[0,*]Lahendatud: :count töökäsku.',
     'cannot_start' => 'Selle rikketeate puhul ei saa tööd alustada — see ei ole enam avatud.',

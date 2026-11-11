@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'mot de passe actuel',
     'already_on_team' => 'Cette personne fait déjà partie de votre équipe.',
     'invite_sent' => 'Invitation envoyée à :email.',
+    'invite_saved_no_mail' => 'Invitation enregistrée pour :email. Vyrobel n’envoie pas encore d’e-mails : cette personne n’a donc pas été prévenue.',
     'role_updated' => 'Rôle mis à jour.',
     'member_removed' => 'Membre retiré.',
     'invite_revoked' => 'Invitation révoquée.',

@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Tin nhắn thoại tối đa :size MB.',
     'voice_unreadable' => 'Không đọc được tin nhắn thoại đó — vui lòng ghi âm lại.',
     'conversation_not_found' => 'Không tìm thấy hội thoại đó.',
+    'message_not_found' => 'Không tìm thấy tin nhắn đó.',
+    'choose_reaction' => 'Vui lòng chọn một cảm xúc.',
+    'search_too_short' => 'Vui lòng nhập ít nhất :min ký tự để tìm kiếm.',
+    'search_too_long' => 'Chỉ có thể tìm kiếm tối đa 100 ký tự.',
+    'search_summary' => '{0}Không tìm thấy tin nhắn nào|{1}Tìm thấy :count tin nhắn|[2,*]Tìm thấy :count tin nhắn',
+    'search_summary_capped' => '[0,*]Hiển thị :shown tin nhắn mới nhất trong tổng số :count tin nhắn',
 ];

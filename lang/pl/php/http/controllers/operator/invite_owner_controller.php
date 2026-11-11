@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}Jednostka :units ma już właściciela. Właściciel jednostki decyduje, komu przysługuje za nią wypłata, więc zaproszenie może obejmować tylko jednostki bez właściciela.|Te jednostki mają już właścicieli: :units. Właściciel jednostki decyduje, komu przysługuje za nią wypłata, więc zaproszenie może obejmować tylko jednostki bez właściciela.|Te jednostki mają już właścicieli: :units. Właściciel jednostki decyduje, komu przysługuje za nią wypłata, więc zaproszenie może obejmować tylko jednostki bez właściciela.',
     'email_cannot_be_invited' => 'Nie można zaprosić tego adresu e-mail – być może ma już konto w systemie Vyrobel.',
     'invite_sent' => 'Wysłano zaproszenie na adres :email.',
+    'invite_saved_no_mail' => 'Zapisano zaproszenie dla adresu :email. Vyrobel nie wysyła jeszcze e-maili, więc ta osoba nie została o nim poinformowana.',
 ];

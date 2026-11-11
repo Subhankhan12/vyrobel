@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Khoản hoàn tiền được ghi thành một bút toán mới riêng trên sổ cái. Khoản thanh toán ban đầu không bao giờ bị sửa hoặc xóa.',
     'owner_statement_title' => 'Bảng đối soát chủ sở hữu được điều chỉnh',
     'owner_statement_body' => 'Với kỳ lưu trú thuộc về chủ sở hữu, phần ròng của chủ sở hữu trong khoản hoàn tiền được ghi vào sổ cái của họ và xuất hiện khi chốt bảng đối soát kỳ tiếp theo.',
+    'guest_not_emailed' => 'Vyrobel chưa gửi email, nên khách sẽ không nhận được xác nhận hoàn tiền — vui lòng tự thông báo cho khách. Hoàn tiền qua thẻ chạy ở chế độ kiểm thử cho đến khi chính thức hoạt động — chưa có tiền thật nào được chuyển.',
     'guest_emailed' => 'Khách tự động nhận email xác nhận hoàn tiền khi hoàn tiền thành công. Hoàn tiền qua thẻ chạy ở chế độ kiểm thử cho đến khi chính thức hoạt động — chưa có tiền thật nào được chuyển.',
     'not_yet_available' => 'Chưa khả dụng',
     'refund_by_charge' => 'Hoàn tiền theo từng khoản phí',

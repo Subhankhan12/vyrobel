@@ -68,7 +68,7 @@ it('⚠️⚠️ turns the inline chevrons round on a right-to-left PAGE — and
         $page = (string) test()->get('/__i18n/rtl-chevron-probe?lang='.$lang)->getContent();
         expect($page)->toContain('<style data-rtl-chevrons>')
             ->toContain('svg path[d="M9 6l6 6-6 6"]')->toContain('svg path[d="M15 6l-6 6 6 6"]')
-            ->toContain('transform:scaleX(-1)')
+            ->toContain('transform:scaleX(-1)')->toContain('.vy-flip-rtl{display:inline-block;transform:scaleX(-1)}')   // and a text arrow a view adds itself
             ->not->toContain('m6 9 6 6 6-6"]');   // a DOWN chevron is not in the rule
     }
 

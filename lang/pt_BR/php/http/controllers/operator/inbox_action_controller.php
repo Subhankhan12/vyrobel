@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Mensagem reenviada.',
     'reservation_linked' => 'Reserva vinculada.',
     'conversation_started' => 'Conversa iniciada.',
+    'owner_no_portal' => 'Ainda sem login no portal — convide :name para o portal do proprietário primeiro.',
     'workspace_paused' => 'Organização em pausa — as mensagens ficam em modo somente leitura até :date.',
     'workspace_paused_for_now' => 'Organização em pausa — as mensagens ficam em modo somente leitura por enquanto.',
 ];

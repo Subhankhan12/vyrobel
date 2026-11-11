@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Kosten',
     'bulk_assigned_skipped' => '{1} :count Arbeitsauftrag zugewiesen · :skipped übersprungen (bereits abgeschlossen)|[0,*] :count Arbeitsaufträge zugewiesen · :skipped übersprungen (bereits abgeschlossen)',
     'bulk_assigned' => '{1} :count Arbeitsauftrag zugewiesen.|[0,*] :count Arbeitsaufträge zugewiesen.',
+    'bulk_unassigned_skipped' => '{1} Zuweisung für :count Arbeitsauftrag aufgehoben · :skipped übersprungen (bereits abgeschlossen)|[0,*] Zuweisung für :count Arbeitsaufträge aufgehoben · :skipped übersprungen (bereits abgeschlossen)',
+    'bulk_unassigned' => '{1} Zuweisung für :count Arbeitsauftrag aufgehoben.|[0,*] Zuweisung für :count Arbeitsaufträge aufgehoben.',
     'bulk_resolved_skipped' => '{1} :count Arbeitsauftrag erledigt · :skipped übersprungen (bereits abgeschlossen)|[0,*] :count Arbeitsaufträge erledigt · :skipped übersprungen (bereits abgeschlossen)',
     'bulk_resolved' => '{1} :count Arbeitsauftrag erledigt.|[0,*] :count Arbeitsaufträge erledigt.',
     'cannot_start' => 'Dieser Auftrag kann nicht begonnen werden — er ist nicht mehr offen.',

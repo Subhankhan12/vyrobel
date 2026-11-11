@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count profil vizitori|[0,*]:count profile vizitorësh',
     'anonymized_guest' => 'Vizitor i anonimizuar',
     'unnamed_guest' => 'Vizitor pa emër',
-    'in_house' => 'Akomoduar',
     'country_as_saved' => ':country (siç është ruajtur)',
     'chip_in_house' => 'Të akomoduar',
     'chip_upcoming' => 'Të ardhshëm',

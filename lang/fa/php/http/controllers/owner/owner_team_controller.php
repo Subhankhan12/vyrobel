@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'رمز عبور فعلی',
     'already_on_team' => 'این شخص از قبل عضو تیم شماست.',
     'invite_sent' => 'دعوت برای :email ارسال شد.',
+    'invite_saved_no_mail' => 'دعوت برای :email ذخیره شد. ارسال ایمیل از Vyrobel هنوز فعال نیست، بنابراین به او اطلاع داده نشده است.',
     'role_updated' => 'نقش به‌روزرسانی شد.',
     'member_removed' => 'عضو از تیم خارج شد.',
     'invite_revoked' => 'دعوت لغو شد.',

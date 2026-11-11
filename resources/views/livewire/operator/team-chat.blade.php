@@ -137,7 +137,7 @@
                                     <button type="button" class="vy-tc-find-row" @click="goTo(r.id)">
                                         <span class="vy-tc-find-top"><strong x-text="r.mine ? @js(__('livewire/operator/team-chat.search_you')) : r.sender"></strong><span x-text="railTime(r.at)"></span></span>
                                         <span class="vy-tc-find-snippet" x-text="r.snippet"></span>
-                                        <span class="vy-tc-find-go">{{ __('livewire/operator/team-chat.search_go') }} →</span>
+                                        <span class="vy-tc-find-go">{{ __('livewire/operator/team-chat.search_go') }} <span class="vy-flip-rtl" aria-hidden="true">→</span></span>
                                     </button>
                                 </li>
                             </template>

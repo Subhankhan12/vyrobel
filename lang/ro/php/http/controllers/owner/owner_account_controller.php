@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'Fotografia a fost eliminată.',
     'attr_email' => 'adresa de e-mail',
     'attr_current_password' => 'parola actuală',
+    'email_change_no_mail' => 'Vyrobel nu trimite încă e-mailuri, așa că nu putem trimite linkul care confirmă noua adresă. Nu s-a modificat nimic.',
     'email_change_sent' => 'Verificați noua adresă de e-mail — v-am trimis un link pentru a confirma modificarea. Adresa de e-mail rămâne aceeași până când dați clic pe el.',
     'email_change_cancelled' => 'Modificarea adresei de e-mail a fost anulată.',
     'email_link_invalid' => 'Linkul pentru modificarea adresei de e-mail nu mai este valid. Vă rugăm să solicitați unul nou.',

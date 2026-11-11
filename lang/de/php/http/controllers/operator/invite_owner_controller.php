@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1} :units hat bereits einen Eigentümer. Der Eigentümer einer Einheit bestimmt, wer dafür bezahlt wird, daher kann eine Einladung nur Einheiten ohne Eigentümer vergeben.|[0,*] :units haben bereits Eigentümer. Der Eigentümer einer Einheit bestimmt, wer dafür bezahlt wird, daher kann eine Einladung nur Einheiten ohne Eigentümer vergeben.',
     'email_cannot_be_invited' => 'Diese E-Mail-Adresse kann nicht eingeladen werden — möglicherweise besteht dafür bereits ein Vyrobel-Konto.',
     'invite_sent' => 'Einladung an :email gesendet.',
+    'invite_saved_no_mail' => 'Einladung für :email gespeichert. Vyrobel versendet noch keine E-Mails, daher wurde die Person noch nicht informiert.',
 ];

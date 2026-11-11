@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Bericht opnieuw verstuurd.',
     'reservation_linked' => 'Reservering gekoppeld.',
     'conversation_started' => 'Gesprek gestart.',
+    'owner_no_portal' => 'Nog geen inlog voor het portaal — nodig :name eerst uit voor het eigenaarsportaal.',
     'workspace_paused' => 'Organisatie gepauzeerd — berichten zijn tot :date alleen-lezen.',
     'workspace_paused_for_now' => 'Organisatie gepauzeerd — berichten zijn voorlopig alleen-lezen.',
 ];

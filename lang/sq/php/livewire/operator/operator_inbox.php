@@ -24,5 +24,6 @@ return [
     'via_channel' => 'nëpërmjet kanalit :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Vizitor',
+    'owner_fallback' => 'Pronar',
     'yesterday' => 'Dje',
 ];

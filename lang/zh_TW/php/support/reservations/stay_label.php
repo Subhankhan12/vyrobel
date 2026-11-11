@@ -3,7 +3,6 @@
 // I18N-01 — zh_TW translation of lang/en/php/support/reservations/stay_label.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
-    'in_house' => '住宿中',
     'left' => '已於 :date 離店',
     'tentative' => '暫定 · :date',
     'arrives' => ':date 抵達',

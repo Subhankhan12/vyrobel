@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Mesazh zanor',
     'preview_photos' => '{1}Fotografi|[0,*]:count fotografi',
     'preview_files' => '{1}Skedar|[0,*]:count skedarë',
+    'preview_deleted' => 'Ky mesazh u fshi',
 ];

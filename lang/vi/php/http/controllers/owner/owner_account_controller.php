@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'Đã xóa ảnh của bạn.',
     'attr_email' => 'địa chỉ email',
     'attr_current_password' => 'mật khẩu hiện tại',
+    'email_change_no_mail' => 'Vyrobel chưa gửi email, nên chúng tôi không thể gửi liên kết xác nhận địa chỉ mới. Không có gì thay đổi.',
     'email_change_sent' => 'Vui lòng kiểm tra hộp thư mới — chúng tôi đã gửi một liên kết để xác nhận thay đổi. Email của bạn được giữ nguyên cho đến khi bạn bấm vào liên kết đó.',
     'email_change_cancelled' => 'Đã hủy thay đổi email.',
     'email_link_invalid' => 'Liên kết thay đổi email đó không còn hợp lệ. Vui lòng yêu cầu liên kết mới.',

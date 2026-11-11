@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'Fotografia juaj u fshi.',
     'attr_email' => 'adresa e email-it',
     'attr_current_password' => 'fjalëkalimi aktual',
+    'email_change_no_mail' => 'Vyrobel nuk dërgon ende email, ndaj nuk mund të dërgojmë lidhjen që konfirmon adresën e re. Asgjë nuk u ndryshua.',
     'email_change_sent' => 'Kontrolloni kutinë tuaj hyrëse të re — ju dërguam një lidhje për ta konfirmuar ndryshimin. Email-i juaj mbetet i njëjtë derisa të klikoni lidhjen.',
     'email_change_cancelled' => 'Ndryshimi i email-it u anulua.',
     'email_link_invalid' => 'Kjo lidhje për ndryshimin e email-it nuk është më e vlefshme. Ju lutemi, kërkoni një të re.',

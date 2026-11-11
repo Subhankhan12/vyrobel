@@ -25,6 +25,7 @@ return [
     'message_resent' => '메시지를 재전송했습니다.',
     'reservation_linked' => '예약을 연결했습니다.',
     'conversation_started' => '대화를 시작했습니다.',
+    'owner_no_portal' => '아직 포털 로그인이 없습니다 — 먼저 :name 소유주를 소유주 포털에 초대하세요.',
     'workspace_paused' => '워크스페이스가 일시 중지되었습니다 — :date까지 메시지는 읽기 전용입니다.',
     'workspace_paused_for_now' => '워크스페이스가 일시 중지되었습니다 — 현재 메시지는 읽기 전용입니다.',
 ];

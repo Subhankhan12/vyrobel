@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} uygulamak, daha önce uygulanmış çakışan sezonlardaki :count geceyi de yeniden yazar|[0,*] uygulamak, daha önce uygulanmış çakışan sezonlardaki :count geceyi de yeniden yazar',
     'season_applied' => 'Uygulandı: :date',
     'season_saved' => 'Kaydedildi · fiyat yazılmadı',
+    'seasons_unapplied_banner' => '{1} :count sezon kaydedildi ama uygulanmadı — siz uygulayana kadar hiçbir fiyat yazılmaz.|[0,*] :count sezon kaydedildi ama uygulanmadı — siz uygulayana kadar hiçbir fiyat yazılmaz.',
+    'seasons_unapplied_link' => 'Sezonlara git',
     'apply_again' => 'Yeniden uygula',
     'seasons_empty_cta' => 'Henüz sezon yok — aşağıdan bir sezon kaydedin, rakamlar doğru göründüğünde uygulayın.',
     'seasons_empty' => 'Henüz sezon yok.',

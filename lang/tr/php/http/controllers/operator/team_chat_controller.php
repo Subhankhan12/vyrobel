@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Sesli not en fazla :size MB olabilir.',
     'voice_unreadable' => 'Bu sesli not okunamadı — yeniden kaydedin.',
     'conversation_not_found' => 'Konuşma bulunamadı.',
+    'message_not_found' => 'Mesaj bulunamadı.',
+    'choose_reaction' => 'Bir tepki seçin.',
+    'search_too_short' => 'Aramak için en az :min karakter yazın.',
+    'search_too_long' => 'Arama en fazla 100 karakter olabilir.',
+    'search_summary' => '{0} Mesaj bulunamadı|{1} :count mesaj bulundu|[2,*] :count mesaj bulundu',
+    'search_summary_capped' => '[0,*] :count mesajdan en yeni :shown tanesi gösteriliyor',
 ];

@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Spraakbericht',
     'preview_photos' => '{1} Foto|[0,*] :count foto’s',
     'preview_files' => '{1} Bestand|[0,*] :count bestanden',
+    'preview_deleted' => 'Dit bericht is verwijderd',
 ];

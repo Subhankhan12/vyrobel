@@ -12,6 +12,7 @@ return [
     'checkout_unreported_card' => '房客信用卡付款的正式模式 Stripe 付款頁面已於 :opened 開啟、於 :closed 關閉，但此處尚未套用任何有關是否已付款的回報。請在 Stripe 管理平台查看該頁面；如果已付款，請先在 Stripe 取消由此頁面啟動的項目。Stripe 對無法送達的回報最多會重試 3 天——待回報套用後再試一次。如果 Stripe 已回報、但回報無法套用，請手動處理。',
     'refund_processing' => '有一筆信用卡退款仍在 Stripe 處理中。請等到 Stripe 確認後再試。',
     'card_payment_open' => '仍有未完成的信用卡付款或預先授權。請先等待其結算完成，或將其釋放。',
+    'card_hold_open' => '房客信用卡上的預先授權在 Stripe 仍未結束，而 Vyrobel 目前還沒有釋放預先授權的按鈕——必須先將其結束（請款或釋放），才能進行此次刪除。請洽開發人員。',
     'dispute_open' => '有一筆信用卡付款在 Stripe 被提出爭議（自 :since 起）。請在 Stripe 回應，待 Stripe 回報爭議已結束後再試。如果 Stripe 管理平台已顯示爭議結束，表示該回報從未送達——請手動處理。',
     'payouts_in_transit' => '{1}有一筆撥款給業主，正在 Stripe 轉帳中（自 :since 起）。|[0,*]有 :count 筆撥款給業主，正在 Stripe 轉帳中（自 :since 起）。',
     'payout_transit_stale' => '這比正常所需的時間更久——請先與 Stripe 手動處理。',

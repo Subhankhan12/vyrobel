@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count 份房客檔案|[0,*]:count 份房客檔案',
     'anonymized_guest' => '已匿名化的房客',
     'unnamed_guest' => '未命名的房客',
-    'in_house' => '住宿中',
     'country_as_saved' => ':country（依儲存內容）',
     'chip_in_house' => '住宿中',
     'chip_upcoming' => '即將抵達',

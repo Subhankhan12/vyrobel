@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'ხმოვანი შეტყობინება',
     'preview_photos' => '{1}ფოტო|[0,*]:count ფოტო',
     'preview_files' => '{1}ფაილი|[0,*]:count ფაილი',
+    'preview_deleted' => 'ეს შეტყობინება წაიშალა',
 ];

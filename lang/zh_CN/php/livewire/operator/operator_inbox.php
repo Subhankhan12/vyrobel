@@ -24,5 +24,6 @@ return [
     'via_channel' => '通过 :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => '客人',
+    'owner_fallback' => '业主',
     'yesterday' => '昨天',
 ];

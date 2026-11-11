@@ -24,5 +24,6 @@ return [
     'via_channel' => ':channel üzerinden',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Misafir',
+    'owner_fallback' => 'Mülk sahibi',
     'yesterday' => 'Dün',
 ];

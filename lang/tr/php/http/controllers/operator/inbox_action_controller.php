@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Mesaj yeniden gönderildi.',
     'reservation_linked' => 'Rezervasyon bağlandı.',
     'conversation_started' => 'Konuşma başlatıldı.',
+    'owner_no_portal' => 'Henüz portal hesabı yok — önce :name adlı kişiyi mülk sahibi portalına davet edin.',
     'workspace_paused' => 'Kuruluş duraklatıldı — mesajlaşma :date tarihine kadar salt okunur.',
     'workspace_paused_for_now' => 'Kuruluş duraklatıldı — mesajlaşma şimdilik salt okunur.',
 ];

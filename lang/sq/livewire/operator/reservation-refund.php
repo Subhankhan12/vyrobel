@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Rimbursimi evidentohet si një rresht i ri më vete në libër. Pagesa fillestare nuk redaktohet dhe nuk hiqet kurrë.',
     'owner_statement_title' => 'Pasqyra e pronarit rregullohet',
     'owner_statement_body' => 'Për një qëndrim që i përket një pronari, pjesa neto e pronarit nga rimbursimi evidentohet në librin e tij kontabël dhe hyn në pasqyrën e ardhshme kur të mbyllet periudha.',
+    'guest_not_emailed' => 'Vyrobel nuk dërgon ende email, ndaj vizitori nuk do të marrë konfirmim rimbursimi — njoftojeni vetë. Rimbursimet me kartë funksionojnë në modalitetin e testimit deri në nisjen zyrtare — ende nuk lëvizin para reale.',
     'guest_emailed' => 'Vizitorit i dërgohet automatikisht me email një konfirmim rimbursimi kur rimbursimi kryhet me sukses. Rimbursimet me kartë funksionojnë në modalitetin e testimit deri në nisjen zyrtare — ende nuk lëvizin para reale.',
     'not_yet_available' => 'Nuk disponohet ende',
     'refund_by_charge' => 'Rimbursim sipas debitimit individual',

@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Wiadomość głosowa',
     'preview_photos' => '{1}Zdjęcie|:count zdjęcia|:count zdjęć',
     'preview_files' => '{1}Plik|:count pliki|:count plików',
+    'preview_deleted' => 'Ta wiadomość została usunięta',
 ];

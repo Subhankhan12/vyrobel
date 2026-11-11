@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'رسالة صوتية',
     'preview_photos' => '{0} :count صور|صورة|صورتان|:count صور|:count صورةً|:count صورة',
     'preview_files' => '{0} :count ملفات|ملف|ملفان|:count ملفات|:count ملفًا|:count ملف',
+    'preview_deleted' => 'تم حذف هذه الرسالة',
 ];

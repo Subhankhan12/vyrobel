@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'كلمة المرور الحالية',
     'already_on_team' => 'هذا الشخص موجود بالفعل في فريقك.',
     'invite_sent' => 'تم إرسال الدعوة إلى :email.',
+    'invite_saved_no_mail' => 'تم حفظ الدعوة إلى :email. لا يتم إرسال البريد الإلكتروني من Vyrobel بعد، لذا لم يتم إبلاغ المدعو.',
     'role_updated' => 'تم تحديث الدور.',
     'member_removed' => 'تمت إزالة العضو.',
     'invite_revoked' => 'تم سحب الدعوة.',

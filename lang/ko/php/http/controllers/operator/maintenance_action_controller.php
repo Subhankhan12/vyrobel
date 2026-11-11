@@ -19,6 +19,8 @@ return [
     'col_cost' => '비용',
     'bulk_assigned_skipped' => '{1}작업 지시서 :count건 할당 · :skipped건 건너뜀(이미 종료됨)|[0,*]작업 지시서 :count건 할당 · :skipped건 건너뜀(이미 종료됨)',
     'bulk_assigned' => '{1}작업 지시서 :count건을 할당했습니다.|[0,*]작업 지시서 :count건을 할당했습니다.',
+    'bulk_unassigned_skipped' => '{1}작업 지시서 :count건 할당 해제 · :skipped건 건너뜀(이미 종료됨)|[0,*]작업 지시서 :count건 할당 해제 · :skipped건 건너뜀(이미 종료됨)',
+    'bulk_unassigned' => '{1}작업 지시서 :count건의 할당을 해제했습니다.|[0,*]작업 지시서 :count건의 할당을 해제했습니다.',
     'bulk_resolved_skipped' => '{1}작업 지시서 :count건 해결 · :skipped건 건너뜀(이미 종료됨)|[0,*]작업 지시서 :count건 해결 · :skipped건 건너뜀(이미 종료됨)',
     'bulk_resolved' => '{1}작업 지시서 :count건을 해결했습니다.|[0,*]작업 지시서 :count건을 해결했습니다.',
     'cannot_start' => '이 티켓은 더 이상 미해결 상태가 아니어서 작업을 시작할 수 없습니다.',

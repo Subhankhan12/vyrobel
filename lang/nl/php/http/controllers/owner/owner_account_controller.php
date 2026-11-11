@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'Uw foto is verwijderd.',
     'attr_email' => 'e-mailadres',
     'attr_current_password' => 'huidig wachtwoord',
+    'email_change_no_mail' => 'Vyrobel verstuurt nog geen e-mail, dus we kunnen de link om een nieuw e-mailadres te bevestigen niet versturen. Er is niets gewijzigd.',
     'email_change_sent' => 'Kijk in uw nieuwe inbox — we hebben een link gestuurd om de wijziging te bevestigen. Uw e-mailadres blijft hetzelfde totdat u erop klikt.',
     'email_change_cancelled' => 'De wijziging van het e-mailadres is geannuleerd.',
     'email_link_invalid' => 'Die link om uw e-mailadres te wijzigen is niet meer geldig. Vraag een nieuwe aan.',

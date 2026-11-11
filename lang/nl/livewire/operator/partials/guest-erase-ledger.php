@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Naam en contactgegevens',
     'erased_city_preferences' => 'Woonplaats, nationaliteit en voorkeuren',
     'erased_documents_messages' => 'Identiteitsdocumenten, notities en berichten',
+    'erased_team_chat' => 'Naam, e-mailadres en telefoonnummer waar de teamchat de gast noemt',
     'kept_heading' => 'Bewaard, zonder naam',
     'kept_bookings' => 'Reserveringen en verblijven',
     'kept_invoices' => 'Facturen, betalingen en saldi',

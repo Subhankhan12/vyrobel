@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}適用すると、適用済みの重複するシーズンの:count泊も書き換えられます|[0,*]適用すると、適用済みの重複するシーズンの:count泊も書き換えられます',
     'season_applied' => ':dateに適用済み',
     'season_saved' => '保存済み · 料金は未書き込み',
+    'seasons_unapplied_banner' => '{1}:count件のシーズンが保存済みですが、未適用です。適用するまで料金は書き込まれません。|[0,*]:count件のシーズンが保存済みですが、未適用です。適用するまで料金は書き込まれません。',
+    'seasons_unapplied_link' => 'シーズンへ移動',
     'apply_again' => '再適用',
     'seasons_empty_cta' => 'シーズンはまだありません。下で保存し、数値に問題がなければ適用してください。',
     'seasons_empty' => 'シーズンはまだありません。',

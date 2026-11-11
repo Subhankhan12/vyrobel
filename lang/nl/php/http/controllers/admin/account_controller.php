@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'Tweefactorauthenticatie is nog niet actief.',
     'recovery_codes_generated' => 'Nieuwe herstelcodes aangemaakt — sla ze nu op.',
     'email_attribute' => 'e-mailadres',
+    'email_change_no_mail' => 'Vyrobel verstuurt nog geen e-mail, dus we kunnen de link om een nieuw e-mailadres te bevestigen niet versturen. Er is niets gewijzigd.',
     'email_change_sent' => 'Kijk in uw nieuwe inbox — we hebben een link gemaild om de wijziging te bevestigen. Uw e-mailadres blijft hetzelfde totdat u die link opent.',
     'email_change_cancelled' => 'De wijziging van het e-mailadres is geannuleerd.',
     'email_link_invalid' => 'Die link om het e-mailadres te wijzigen is niet meer geldig. Vraag een nieuwe aan.',

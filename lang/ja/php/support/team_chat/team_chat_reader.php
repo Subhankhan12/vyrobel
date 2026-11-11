@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'ボイスメッセージ',
     'preview_photos' => '{1}写真|[0,*]写真:count枚',
     'preview_files' => '{1}ファイル|[0,*]ファイル:count件',
+    'preview_deleted' => 'このメッセージは削除されました',
 ];

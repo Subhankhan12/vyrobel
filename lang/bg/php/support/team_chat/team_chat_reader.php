@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Гласово съобщение',
     'preview_photos' => '{1}Снимка|[0,*]:count снимки',
     'preview_files' => '{1}Файл|[0,*]:count файла',
+    'preview_deleted' => 'Това съобщение е изтрито',
 ];

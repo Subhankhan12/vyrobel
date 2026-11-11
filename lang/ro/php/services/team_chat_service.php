@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Scrieți un mesaj sau adăugați un fișier ori un mesaj vocal.',
     'message_too_long' => 'Un mesaj poate avea cel mult 5.000 de caractere.',
     'workspace_paused' => 'Această organizație este în pauză — mesajele pot fi citite, dar nu și trimise.',
+    'only_author' => 'Puteți modifica sau șterge doar mesajele scrise de dumneavoastră.',
+    'already_deleted' => 'Acest mesaj a fost șters.',
+    'edit_window_over' => 'Un mesaj poate fi editat timp de :minutes min după ce a fost trimis. Îl puteți totuși șterge.',
+    'reaction_not_allowed' => 'Această reacție nu este disponibilă.',
+    'edit_to_nothing' => 'Un mesaj nu poate fi lăsat gol — ștergeți-l în schimb.',
 ];

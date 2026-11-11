@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'वॉइस संदेश',
     'preview_photos' => '{1}फ़ोटो|[2,*]:count फ़ोटो',
     'preview_files' => '{1}फ़ाइल|[2,*]:count फ़ाइलें',
+    'preview_deleted' => 'यह संदेश मिटा दिया गया',
 ];

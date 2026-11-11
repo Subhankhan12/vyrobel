@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Голосовое сообщение',
     'preview_photos' => '{21}:count фото|:count фото|:count фото|{1}Фото',
     'preview_files' => '{21}:count файл|:count файла|:count файлов|{1}Файл',
+    'preview_deleted' => 'Это сообщение удалено',
 ];

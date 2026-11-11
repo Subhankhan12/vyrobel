@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Numele și datele de contact',
     'erased_city_preferences' => 'Orașul, cetățenia și preferințele',
     'erased_documents_messages' => 'Actele de identitate, notele și mesajele',
+    'erased_team_chat' => 'Numele, e-mailul și numărul de telefon din chatul echipei, acolo unde persoana este menționată',
     'kept_heading' => 'Păstrate, fără nume',
     'kept_bookings' => 'Rezervările și sejururile',
     'kept_invoices' => 'Facturile, plățile și soldurile',

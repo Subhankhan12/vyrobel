@@ -24,5 +24,6 @@ return [
     'via_channel' => ':channel 경유',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => '고객',
+    'owner_fallback' => '소유주',
     'yesterday' => '어제',
 ];

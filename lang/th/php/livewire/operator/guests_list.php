@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}โปรไฟล์ผู้เข้าพัก :count คน|[0,*]โปรไฟล์ผู้เข้าพัก :count คน',
     'anonymized_guest' => 'ผู้เข้าพักที่ลบข้อมูลส่วนบุคคลแล้ว',
     'unnamed_guest' => 'ผู้เข้าพักที่ไม่ระบุชื่อ',
-    'in_house' => 'กำลังเข้าพัก',
     'country_as_saved' => ':country (ตามที่บันทึกไว้)',
     'chip_in_house' => 'กำลังเข้าพัก',
     'chip_upcoming' => 'กำลังจะมาถึง',

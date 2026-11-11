@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'A sua fotografia foi removida.',
     'attr_email' => 'endereço de e-mail',
     'attr_current_password' => 'palavra-passe atual',
+    'email_change_no_mail' => 'A Vyrobel ainda não está a enviar e-mails, por isso não podemos enviar a ligação que confirma o novo endereço. Não foi alterado nada.',
     'email_change_sent' => 'Consulte a sua nova caixa de entrada — enviámos-lhe uma ligação para confirmar a alteração. O seu e-mail mantém-se até clicar nela.',
     'email_change_cancelled' => 'A alteração de e-mail foi cancelada.',
     'email_link_invalid' => 'Essa ligação para alterar o e-mail já não é válida. Peça uma nova.',

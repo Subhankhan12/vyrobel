@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Ponownie wysłano wiadomość.',
     'reservation_linked' => 'Powiązano rezerwację.',
     'conversation_started' => 'Rozpoczęto rozmowę.',
+    'owner_no_portal' => 'Brak dostępu do portalu – najpierw zaproś właściciela :name do portalu.',
     'workspace_paused' => 'Organizacja wstrzymana – wiadomości są tylko do odczytu do :date.',
     'workspace_paused_for_now' => 'Organizacja wstrzymana – wiadomości są na razie tylko do odczytu.',
 ];

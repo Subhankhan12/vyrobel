@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count profil tamu|[0,*]:count profil tamu',
     'anonymized_guest' => 'Tamu dianonimkan',
     'unnamed_guest' => 'Tamu tanpa nama',
-    'in_house' => 'Sedang menginap',
     'country_as_saved' => ':country (sesuai data tersimpan)',
     'chip_in_house' => 'Sedang menginap',
     'chip_upcoming' => 'Akan datang',

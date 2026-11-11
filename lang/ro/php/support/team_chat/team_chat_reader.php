@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Mesaj vocal',
     'preview_photos' => '{1}Fotografie|:count fotografii|:count de fotografii',
     'preview_files' => '{1}Fișier|:count fișiere|:count de fișiere',
+    'preview_deleted' => 'Acest mesaj a fost șters',
 ];

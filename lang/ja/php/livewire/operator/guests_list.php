@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}ゲストプロフィール:count件|[0,*]ゲストプロフィール:count件',
     'anonymized_guest' => '匿名化済みゲスト',
     'unnamed_guest' => '名前未登録のゲスト',
-    'in_house' => '滞在中',
     'country_as_saved' => ':country（登録時の表記）',
     'chip_in_house' => '滞在中',
     'chip_upcoming' => '今後の予約',

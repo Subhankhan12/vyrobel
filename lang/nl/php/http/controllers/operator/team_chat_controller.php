@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Een spraakbericht mag maximaal :size MB zijn.',
     'voice_unreadable' => 'Dat spraakbericht kon niet worden gelezen — neem het opnieuw op.',
     'conversation_not_found' => 'Dat gesprek is niet gevonden.',
+    'message_not_found' => 'Dat bericht is niet gevonden.',
+    'choose_reaction' => 'Kies een reactie.',
+    'search_too_short' => 'Typ minstens :min tekens om te zoeken.',
+    'search_too_long' => 'Zoek met maximaal 100 tekens.',
+    'search_summary' => '{0} Geen berichten gevonden|{1} :count bericht gevonden|[2,*] :count berichten gevonden',
+    'search_summary_capped' => '[0,*] Getoond: de nieuwste :shown van :count berichten',
 ];

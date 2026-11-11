@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Die Rückerstattung wird als eigener neuer Eintrag im Konto erfasst. Die ursprüngliche Zahlung wird nie bearbeitet oder entfernt.',
     'owner_statement_title' => 'Die Eigentümerabrechnung wird angepasst',
     'owner_statement_body' => 'Bei einem dem Eigentümer zugeordneten Aufenthalt wird sein Nettoanteil an der Rückerstattung auf seinem Eigentümerkonto erfasst und erscheint beim nächsten Abrechnungsabschluss.',
+    'guest_not_emailed' => 'Vyrobel versendet noch keine E-Mails, daher erhält der Gast keine Bestätigung der Rückerstattung — informieren Sie den Gast selbst. Kartenerstattungen laufen bis zum Go-live im Testmodus — es wird noch kein echtes Geld bewegt.',
     'guest_emailed' => 'Der Gast erhält automatisch eine Bestätigung der Rückerstattung per E-Mail, sobald sie erfolgreich ist. Kartenerstattungen laufen bis zum Go-live im Testmodus — es wird noch kein echtes Geld bewegt.',
     'not_yet_available' => 'Noch nicht verfügbar',
     'refund_by_charge' => 'Rückerstattung nach einzelnen Posten',

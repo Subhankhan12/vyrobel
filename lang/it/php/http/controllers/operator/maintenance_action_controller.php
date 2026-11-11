@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Costo',
     'bulk_assigned_skipped' => '{1} :count intervento assegnato · esclusi (già chiusi): :skipped|[0,*] :count interventi assegnati · esclusi (già chiusi): :skipped',
     'bulk_assigned' => '{1} :count intervento assegnato.|[0,*] :count interventi assegnati.',
+    'bulk_unassigned_skipped' => '{1} Assegnazione rimossa da :count intervento · esclusi (già chiusi): :skipped|[0,*] Assegnazione rimossa da :count interventi · esclusi (già chiusi): :skipped',
+    'bulk_unassigned' => '{1} Assegnazione rimossa da :count intervento.|[0,*] Assegnazione rimossa da :count interventi.',
     'bulk_resolved_skipped' => '{1} :count intervento risolto · esclusi (già chiusi): :skipped|[0,*] :count interventi risolti · esclusi (già chiusi): :skipped',
     'bulk_resolved' => '{1} :count intervento risolto.|[0,*] :count interventi risolti.',
     'cannot_start' => 'Impossibile avviare il ticket: non è più aperto.',

@@ -24,5 +24,6 @@ return [
     'via_channel' => 'არხი: :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'სტუმარი',
+    'owner_fallback' => 'მესაკუთრე',
     'yesterday' => 'გუშინ',
 ];

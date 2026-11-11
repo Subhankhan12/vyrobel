@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Message renvoyé.',
     'reservation_linked' => 'Réservation liée.',
     'conversation_started' => 'Conversation démarrée.',
+    'owner_no_portal' => 'Pas encore d’accès au portail — invitez d’abord :name à rejoindre le portail propriétaire.',
     'workspace_paused' => 'Organisation en pause — la messagerie est en lecture seule jusqu’au :date.',
     'workspace_paused_for_now' => 'Organisation en pause — la messagerie est en lecture seule pour l’instant.',
 ];

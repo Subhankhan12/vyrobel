@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}:units are deja un proprietar. Proprietarul unei unități decide cine este plătit pentru ea, așa că o invitație poate include doar unități fără proprietar.|:units au deja proprietari. Proprietarul unei unități decide cine este plătit pentru ea, așa că o invitație poate include doar unități fără proprietar.|:units au deja proprietari. Proprietarul unei unități decide cine este plătit pentru ea, așa că o invitație poate include doar unități fără proprietar.',
     'email_cannot_be_invited' => 'Această adresă de e-mail nu poate fi invitată — poate avea deja un cont Vyrobel.',
     'invite_sent' => 'Invitația a fost trimisă la :email.',
+    'invite_saved_no_mail' => 'Invitația a fost salvată pentru :email. Vyrobel nu trimite încă e-mailuri, așa că persoana nu a fost înștiințată.',
 ];

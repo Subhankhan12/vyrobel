@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Bir mesaj yazın ya da bir dosya veya sesli not ekleyin.',
     'message_too_long' => 'Bir mesaj en fazla 5.000 karakter olabilir.',
     'workspace_paused' => 'Bu kuruluş duraklatıldı — mesajlar okunabilir, ancak gönderilemez.',
+    'only_author' => 'Yalnızca kendi yazdığınız mesajları değiştirebilir veya silebilirsiniz.',
+    'already_deleted' => 'Bu mesaj silindi.',
+    'edit_window_over' => 'Bir mesaj, gönderildikten sonra :minutes dakika boyunca düzenlenebilir. Mesajı yine de silebilirsiniz.',
+    'reaction_not_allowed' => 'Bu tepki kullanılamıyor.',
+    'edit_to_nothing' => 'Mesaj boş bırakılamaz — bunun yerine mesajı silin.',
 ];

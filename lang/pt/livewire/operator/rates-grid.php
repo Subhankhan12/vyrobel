@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} aplicar também reescreve :count noite de épocas sobrepostas já aplicadas|[0,*] aplicar também reescreve :count noites de épocas sobrepostas já aplicadas',
     'season_applied' => 'Aplicada: :date',
     'season_saved' => 'Guardada · nenhum preço gravado',
+    'seasons_unapplied_banner' => '{1} :count época guardada mas não aplicada — nenhum preço é gravado até a aplicar.|[0,*] :count épocas guardadas mas não aplicadas — nenhum preço é gravado até as aplicar.',
+    'seasons_unapplied_link' => 'Ir para as épocas',
     'apply_again' => 'Aplicar novamente',
     'seasons_empty_cta' => 'Ainda não há épocas — guarde uma abaixo e aplique-a quando os valores estiverem corretos.',
     'seasons_empty' => 'Ainda não há épocas.',

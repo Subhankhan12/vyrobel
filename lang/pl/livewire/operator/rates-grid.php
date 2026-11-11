@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}zastosowanie nadpisze też :count noc z nakładających się, już zastosowanych sezonów|zastosowanie nadpisze też :count noce z nakładających się, już zastosowanych sezonów|zastosowanie nadpisze też :count nocy z nakładających się, już zastosowanych sezonów',
     'season_applied' => 'Zastosowano: :date',
     'season_saved' => 'Zapisano · ceny bez zmian',
+    'seasons_unapplied_banner' => '{1}:count sezon jest zapisany, ale nie został zastosowany – żadna cena nie zostanie zapisana, dopóki nie zostanie zastosowany.|:count sezony są zapisane, ale nie zostały zastosowane – żadna cena nie zostanie zapisana, dopóki nie zostaną zastosowane.|:count sezonów jest zapisanych, ale nie zostało zastosowanych – żadna cena nie zostanie zapisana, dopóki nie zostaną zastosowane.',
+    'seasons_unapplied_link' => 'Przejdź do sezonów',
     'apply_again' => 'Zastosuj ponownie',
     'seasons_empty_cta' => 'Brak sezonów – zapisz sezon poniżej, a potem zastosuj go, gdy wartości będą się zgadzać.',
     'seasons_empty' => 'Brak sezonów.',

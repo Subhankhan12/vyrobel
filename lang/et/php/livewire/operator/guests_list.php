@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count külalisprofiil|[0,*]:count külalisprofiili',
     'anonymized_guest' => 'Anonüümitud külaline',
     'unnamed_guest' => 'Nimetu külaline',
-    'in_house' => 'Majutatud',
     'country_as_saved' => ':country (salvestatud kujul)',
     'chip_in_house' => 'Majutatud',
     'chip_upcoming' => 'Eelseisvad',

@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'Foto Anda berhasil dihapus.',
     'attr_email' => 'alamat email',
     'attr_current_password' => 'kata sandi saat ini',
+    'email_change_no_mail' => 'Vyrobel belum mengirim email, jadi kami tidak dapat mengirim tautan untuk mengonfirmasi alamat baru. Tidak ada yang diubah.',
     'email_change_sent' => 'Periksa kotak masuk baru Anda — kami telah mengirim tautan untuk mengonfirmasi perubahan. Email Anda tidak berubah sampai Anda mengklik tautan tersebut.',
     'email_change_cancelled' => 'Perubahan email dibatalkan.',
     'email_link_invalid' => 'Tautan perubahan email tersebut sudah tidak berlaku. Silakan minta tautan baru.',

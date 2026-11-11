@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Wiadomość głosowa może mieć maksymalnie :size MB.',
     'voice_unreadable' => 'Nie udało się odczytać wiadomości głosowej – nagraj ją ponownie.',
     'conversation_not_found' => 'Nie znaleziono tej rozmowy.',
+    'message_not_found' => 'Nie znaleziono tej wiadomości.',
+    'choose_reaction' => 'Wybierz reakcję.',
+    'search_too_short' => 'Minimalna liczba znaków do wyszukania: :min.',
+    'search_too_long' => 'Wyszukiwana fraza może mieć najwyżej 100 znaków.',
+    'search_summary' => '{1}Znaleziono :count wiadomość|Znaleziono :count wiadomości|Znaleziono :count wiadomości|{0}Nie znaleziono wiadomości',
+    'search_summary_capped' => '[0,*] Wyświetlono :shown najnowszych z :count wiadomości',
 ];

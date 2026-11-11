@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}:units 已有業主。房間的業主決定誰會收到該房間的撥款，因此邀請只能指定尚無業主的房間。|[0,*]:units 已有業主。房間的業主決定誰會收到該房間的撥款，因此邀請只能指定尚無業主的房間。',
     'email_cannot_be_invited' => '無法邀請此電子郵件——它可能已有 Vyrobel 帳號。',
     'invite_sent' => '邀請已寄送至 :email。',
+    'invite_saved_no_mail' => '已儲存 :email 的邀請。Vyrobel 目前尚未寄送電子郵件，因此對方尚未收到通知。',
 ];

@@ -6,6 +6,7 @@ return [
     'attr_current_password' => '目前密碼',
     'already_on_team' => '對方已在您的團隊中。',
     'invite_sent' => '邀請已寄送至 :email。',
+    'invite_saved_no_mail' => '已儲存 :email 的邀請。Vyrobel 目前尚未寄送電子郵件，因此對方尚未收到通知。',
     'role_updated' => '角色已更新。',
     'member_removed' => '成員已移除。',
     'invite_revoked' => '邀請已收回。',

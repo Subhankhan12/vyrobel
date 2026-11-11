@@ -8,4 +8,5 @@ return [
     'preview_voice' => '語音訊息',
     'preview_photos' => '{1}照片|[0,*]:count 張照片',
     'preview_files' => '{1}檔案|[0,*]:count 個檔案',
+    'preview_deleted' => '此訊息已刪除',
 ];

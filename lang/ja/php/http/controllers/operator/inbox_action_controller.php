@@ -25,6 +25,7 @@ return [
     'message_resent' => 'メッセージを再送信しました。',
     'reservation_linked' => '予約をリンクしました。',
     'conversation_started' => '会話を開始しました。',
+    'owner_no_portal' => 'ポータルのログインがまだありません。先に:nameをオーナーポータルに招待してください。',
     'workspace_paused' => 'ワークスペースが一時停止中のため、:dateまでメッセージは読み取り専用です。',
     'workspace_paused_for_now' => 'ワークスペースが一時停止中のため、現在、メッセージは読み取り専用です。',
 ];

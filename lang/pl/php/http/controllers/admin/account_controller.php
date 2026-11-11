@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'Uwierzytelnianie dwuskładnikowe nie jest jeszcze aktywne.',
     'recovery_codes_generated' => 'Wygenerowano nowe kody zapasowe – zapisz je teraz.',
     'email_attribute' => 'adres e-mail',
+    'email_change_no_mail' => 'Vyrobel nie wysyła jeszcze e-maili, więc nie możemy wysłać linku potwierdzającego nowy adres. Nic nie zostało zmienione.',
     'email_change_sent' => 'Sprawdź nową skrzynkę – wysłaliśmy link do potwierdzenia zmiany. Do czasu otwarcia linku adres e-mail się nie zmienia.',
     'email_change_cancelled' => 'Zmiana adresu e-mail została anulowana.',
     'email_link_invalid' => 'Ten link do zmiany adresu e-mail jest już nieważny. Poproś o nowy.',

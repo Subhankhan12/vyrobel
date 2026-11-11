@@ -24,5 +24,6 @@ return [
     'via_channel' => 'tramite :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Ospite',
+    'owner_fallback' => 'Proprietario',
     'yesterday' => 'Ieri',
 ];

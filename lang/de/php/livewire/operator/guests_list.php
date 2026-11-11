@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1} :count Gästeprofil|[0,*] :count Gästeprofile',
     'anonymized_guest' => 'Anonymisierter Gast',
     'unnamed_guest' => 'Gast ohne Namen',
-    'in_house' => 'Im Haus',
     'country_as_saved' => ':country (wie gespeichert)',
     'chip_in_house' => 'Im Haus',
     'chip_upcoming' => 'Bevorstehend',

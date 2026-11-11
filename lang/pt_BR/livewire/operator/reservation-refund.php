@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'O reembolso é registrado como um novo lançamento próprio no razão. O pagamento original nunca é editado nem removido.',
     'owner_statement_title' => 'O extrato do proprietário é ajustado',
     'owner_statement_body' => 'Em uma estadia atribuída a um proprietário, a parte líquida do reembolso que cabe a ele é lançada no razão dele e entra no próximo fechamento de extrato.',
+    'guest_not_emailed' => 'A Vyrobel ainda não está enviando e-mails, então o hóspede não receberá a confirmação do reembolso — avise o hóspede você mesmo. Os reembolsos no cartão funcionam em modo de teste até a entrada em produção — nenhum dinheiro real é movimentado por enquanto.',
     'guest_emailed' => 'O hóspede recebe automaticamente um e-mail de confirmação quando o reembolso é concluído. Os reembolsos no cartão funcionam em modo de teste até a entrada em produção — nenhum dinheiro real é movimentado por enquanto.',
     'not_yet_available' => 'Ainda não disponível',
     'refund_by_charge' => 'Reembolso por lançamento',

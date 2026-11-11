@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}고객 프로필 :count개|[0,*]고객 프로필 :count개',
     'anonymized_guest' => '개인정보 파기된 고객',
     'unnamed_guest' => '이름 없는 고객',
-    'in_house' => '투숙 중',
     'country_as_saved' => ':country(저장된 값)',
     'chip_in_house' => '투숙 중',
     'chip_upcoming' => '예정',

@@ -19,6 +19,8 @@ return [
     'col_cost' => '成本',
     'bulk_assigned_skipped' => '{1}已分配 :count 个工单 · 已跳过 :skipped 个（已关闭）|[0,*]已分配 :count 个工单 · 已跳过 :skipped 个（已关闭）',
     'bulk_assigned' => '{1}已分配 :count 个工单。|[0,*]已分配 :count 个工单。',
+    'bulk_unassigned_skipped' => '{1}已取消分配 :count 个工单 · 已跳过 :skipped 个（已关闭）|[0,*]已取消分配 :count 个工单 · 已跳过 :skipped 个（已关闭）',
+    'bulk_unassigned' => '{1}已取消分配 :count 个工单。|[0,*]已取消分配 :count 个工单。',
     'bulk_resolved_skipped' => '{1}已解决 :count 个工单 · 已跳过 :skipped 个（已关闭）|[0,*]已解决 :count 个工单 · 已跳过 :skipped 个（已关闭）',
     'bulk_resolved' => '{1}已解决 :count 个工单。|[0,*]已解决 :count 个工单。',
     'cannot_start' => '无法开始处理该工单——它已不再是未完成状态。',

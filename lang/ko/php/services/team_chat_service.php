@@ -8,4 +8,9 @@ return [
     'empty_message' => '메시지를 입력하거나 파일 또는 음성 메모를 추가하세요.',
     'message_too_long' => '메시지는 최대 5,000자까지 입력할 수 있습니다.',
     'workspace_paused' => '이 워크스페이스는 일시 중지되었습니다 — 메시지를 읽을 수는 있지만 보낼 수는 없습니다.',
+    'only_author' => '직접 작성한 메시지만 수정하거나 삭제할 수 있습니다.',
+    'already_deleted' => '이 메시지는 삭제되었습니다.',
+    'edit_window_over' => '메시지는 전송 후 :minutes분 동안만 수정할 수 있습니다. 삭제는 여전히 가능합니다.',
+    'reaction_not_allowed' => '사용할 수 없는 반응입니다.',
+    'edit_to_nothing' => '메시지를 비워 둘 수 없습니다 — 대신 삭제하세요.',
 ];

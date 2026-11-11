@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'پیام صوتی می‌تواند حداکثر :size مگابایت باشد.',
     'voice_unreadable' => 'این پیام صوتی خوانده نشد — دوباره آن را ضبط کنید.',
     'conversation_not_found' => 'این گفتگو پیدا نشد.',
+    'message_not_found' => 'این پیام پیدا نشد.',
+    'choose_reaction' => 'یک واکنش انتخاب کنید.',
+    'search_too_short' => 'برای جستجو حداقل :min کاراکتر تایپ کنید.',
+    'search_too_long' => 'عبارت جستجو می‌تواند حداکثر 100 کاراکتر باشد.',
+    'search_summary' => '{0}پیامی پیدا نشد|{1}:count پیام پیدا شد|[2,*]:count پیام پیدا شد',
+    'search_summary_capped' => '[0,*]نمایش جدیدترین :shown پیام از :count پیام',
 ];

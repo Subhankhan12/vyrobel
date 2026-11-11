@@ -8,4 +8,9 @@ return [
     'empty_message' => '请输入消息，或添加文件或语音留言。',
     'message_too_long' => '消息最多 5,000 个字符。',
     'workspace_paused' => '此组织已暂停——消息只能查看，无法发送。',
+    'only_author' => '您只能修改或删除自己发送的消息。',
+    'already_deleted' => '此消息已删除。',
+    'edit_window_over' => '消息发送后 :minutes 分钟内可以编辑。您仍可删除该消息。',
+    'reaction_not_allowed' => '该表情回应不可用。',
+    'edit_to_nothing' => '消息不能为空——请改为删除。',
 ];

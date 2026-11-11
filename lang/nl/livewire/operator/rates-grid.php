@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} toepassen herschrijft ook :count nacht van overlappende seizoenen die al zijn toegepast|[0,*] toepassen herschrijft ook :count nachten van overlappende seizoenen die al zijn toegepast',
     'season_applied' => 'Toegepast: :date',
     'season_saved' => 'Opgeslagen · geen prijzen weggeschreven',
+    'seasons_unapplied_banner' => '{1} :count seizoen opgeslagen maar niet toegepast — er wordt pas een prijs weggeschreven zodra u het toepast.|[0,*] :count seizoenen opgeslagen maar niet toegepast — er worden pas prijzen weggeschreven zodra u ze toepast.',
+    'seasons_unapplied_link' => 'Naar seizoenen',
     'apply_again' => 'Opnieuw toepassen',
     'seasons_empty_cta' => 'Nog geen seizoenen — sla er hieronder een op en pas het toe zodra de cijfers kloppen.',
     'seasons_empty' => 'Nog geen seizoenen.',

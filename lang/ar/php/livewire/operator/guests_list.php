@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{0} :count ملفات ضيوف|ملف ضيف واحد|ملفان للضيوف|:count ملفات ضيوف|:count ملفًا للضيوف|:count ملف ضيف',
     'anonymized_guest' => 'ضيف مجهول الهوية',
     'unnamed_guest' => 'ضيف بلا اسم',
-    'in_house' => 'مقيم',
     'country_as_saved' => ':country (كما تم حفظه)',
     'chip_in_house' => 'المقيمون',
     'chip_upcoming' => 'القادمون',

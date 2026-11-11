@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1} Esta unidad ya tiene propietario: :units. El propietario de una unidad determina a quién se le paga por ella, así que una invitación solo puede incluir unidades que no tengan ninguno.|[0,*] Estas unidades ya tienen propietario: :units. El propietario de una unidad determina a quién se le paga por ella, así que una invitación solo puede incluir unidades que no tengan ninguno.',
     'email_cannot_be_invited' => 'No se puede invitar a esa dirección de correo electrónico: es posible que ya tenga una cuenta de Vyrobel.',
     'invite_sent' => 'Se envió la invitación a :email.',
+    'invite_saved_no_mail' => 'Se guardó la invitación para :email. Vyrobel todavía no envía correos electrónicos, así que no se le ha avisado.',
 ];

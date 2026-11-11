@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'ボイスメモは:size MBまでです。',
     'voice_unreadable' => 'ボイスメモを読み込めませんでした。もう一度録音してください。',
     'conversation_not_found' => '会話が見つかりませんでした。',
+    'message_not_found' => 'メッセージが見つかりませんでした。',
+    'choose_reaction' => 'リアクションを選択してください。',
+    'search_too_short' => '検索するには、:min文字以上入力してください。',
+    'search_too_long' => '検索できるのは100文字までです。',
+    'search_summary' => '{0}メッセージが見つかりません|{1}:count件のメッセージが見つかりました|[2,*]:count件のメッセージが見つかりました',
+    'search_summary_capped' => '[0,*]:count件のメッセージのうち、最新の:shown件を表示しています',
 ];

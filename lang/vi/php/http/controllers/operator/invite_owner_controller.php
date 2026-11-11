@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '[0,*]Phòng đã có chủ sở hữu: :units. Chủ sở hữu của một phòng quyết định ai được nhận tiền từ phòng đó, nên lời mời chỉ có thể giao những phòng chưa có chủ sở hữu.|{1}Phòng đã có chủ sở hữu: :units. Chủ sở hữu của một phòng quyết định ai được nhận tiền từ phòng đó, nên lời mời chỉ có thể giao những phòng chưa có chủ sở hữu.',
     'email_cannot_be_invited' => 'Không thể mời email này — có thể email đã có tài khoản Vyrobel.',
     'invite_sent' => 'Đã gửi lời mời đến :email.',
+    'invite_saved_no_mail' => 'Đã lưu lời mời cho :email. Vyrobel chưa gửi email, nên họ chưa được thông báo.',
 ];

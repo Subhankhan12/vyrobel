@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}应用时还会重写已应用的重叠季节中的 :count 晚|[0,*]应用时还会重写已应用的重叠季节中的 :count 晚',
     'season_applied' => '已应用：:date',
     'season_saved' => '已保存 · 未写入价格',
+    'seasons_unapplied_banner' => '{1}:count 个季节已保存但尚未应用——应用前不会写入任何价格。|[0,*]:count 个季节已保存但尚未应用——应用前不会写入任何价格。',
+    'seasons_unapplied_link' => '前往“季节定价”',
     'apply_again' => '再次应用',
     'seasons_empty_cta' => '暂无季节——请在下方保存一个，确认数据无误后再应用。',
     'seasons_empty' => '暂无季节。',

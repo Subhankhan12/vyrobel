@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Rambursarea este înregistrată ca o intrare nouă, separată, în registru. Plata inițială nu este niciodată modificată sau eliminată.',
     'owner_statement_title' => 'Decontul proprietarului se ajustează',
     'owner_statement_body' => 'Pentru un sejur atribuit unui proprietar, partea netă a proprietarului din rambursare este înregistrată în registrul său și apare în următorul său decont finalizat.',
+    'guest_not_emailed' => 'Vyrobel nu trimite încă e-mailuri, așa că oaspetele nu va primi o confirmare a rambursării — anunțați-l dumneavoastră. Rambursările pe card rulează în modul de testare până la lansare — încă nu se transferă bani reali.',
     'guest_emailed' => 'Oaspetele primește automat pe e-mail o confirmare a rambursării, când aceasta reușește. Rambursările pe card rulează în modul de testare până la lansare — încă nu se transferă bani reali.',
     'not_yet_available' => 'Încă indisponibil',
     'refund_by_charge' => 'Rambursare pe debite individuale',

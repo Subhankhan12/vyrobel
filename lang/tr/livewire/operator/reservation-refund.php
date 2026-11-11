@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'İade, hesapta kendi başına yeni bir kayıt olarak işlenir. Asıl ödeme hiçbir zaman düzenlenmez veya silinmez.',
     'owner_statement_title' => 'Mülk sahibinin hesap özeti güncellenir',
     'owner_statement_body' => 'Mülk sahibine ait bir konaklamada, iadenin mülk sahibine düşen net payı hesap defterine işlenir ve bir sonraki hesap özeti kapanışına yansır.',
+    'guest_not_emailed' => 'Vyrobel henüz e-posta göndermiyor; bu nedenle misafir iade onayı almayacak — bunu misafire kendiniz bildirin. Kart iadeleri canlıya geçişe kadar test modunda çalışır — henüz gerçek para hareket etmez.',
     'guest_emailed' => 'İade başarılı olduğunda misafire otomatik olarak bir iade onayı e-postası gönderilir. Kart iadeleri canlıya geçişe kadar test modunda çalışır — henüz gerçek para hareket etmez.',
     'not_yet_available' => 'Henüz kullanılamıyor',
     'refund_by_charge' => 'Kaleme göre iade',

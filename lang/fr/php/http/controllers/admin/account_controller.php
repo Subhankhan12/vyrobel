@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'La double authentification n’est pas encore activée.',
     'recovery_codes_generated' => 'Nouveaux codes de récupération générés — enregistrez-les maintenant.',
     'email_attribute' => 'adresse e-mail',
+    'email_change_no_mail' => 'Vyrobel n’envoie pas encore d’e-mails : nous ne pouvons donc pas envoyer le lien qui confirme une nouvelle adresse. Rien n’a été modifié.',
     'email_change_sent' => 'Consultez votre nouvelle boîte de réception — nous avons envoyé un lien pour confirmer la modification. Votre adresse e-mail reste la même tant que vous ne l’avez pas ouvert.',
     'email_change_cancelled' => 'La modification de l’adresse e-mail a été annulée.',
     'email_link_invalid' => 'Ce lien de modification d’adresse e-mail n’est plus valide. Veuillez en demander un nouveau.',

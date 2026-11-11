@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Tulis pesan, atau tambahkan berkas atau pesan suara.',
     'message_too_long' => 'Pesan dapat berisi hingga 5.000 karakter.',
     'workspace_paused' => 'Organisasi ini sedang dijeda — pesan dapat dibaca, tetapi tidak dapat dikirim.',
+    'only_author' => 'Anda hanya dapat mengubah atau menghapus pesan yang Anda tulis.',
+    'already_deleted' => 'Pesan ini telah dihapus.',
+    'edit_window_over' => 'Pesan dapat diubah selama :minutes menit setelah dikirim. Anda tetap dapat menghapusnya.',
+    'reaction_not_allowed' => 'Reaksi itu tidak tersedia.',
+    'edit_to_nothing' => 'Pesan tidak boleh kosong — hapus saja pesan ini.',
 ];

@@ -8,6 +8,7 @@ return [
     'photo_removed' => '사진이 삭제되었습니다.',
     'attr_email' => '이메일 주소',
     'attr_current_password' => '현재 비밀번호',
+    'email_change_no_mail' => '아직 Vyrobel에서 이메일을 보내지 않으므로 새 주소를 확인하는 링크를 보낼 수 없습니다. 변경된 내용은 없습니다.',
     'email_change_sent' => '새 받은 편지함을 확인하세요 — 변경을 확인하는 링크를 이메일로 보냈습니다. 링크를 클릭하기 전까지 이메일은 변경되지 않습니다.',
     'email_change_cancelled' => '이메일 변경이 취소되었습니다.',
     'email_link_invalid' => '이 이메일 변경 링크는 더 이상 유효하지 않습니다. 새 링크를 요청하세요.',

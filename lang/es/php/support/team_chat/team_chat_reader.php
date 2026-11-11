@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Mensaje de voz',
     'preview_photos' => '{1} Foto|[0,*] :count fotos',
     'preview_files' => '{1} Archivo|[0,*] :count archivos',
+    'preview_deleted' => 'Se eliminó este mensaje',
 ];

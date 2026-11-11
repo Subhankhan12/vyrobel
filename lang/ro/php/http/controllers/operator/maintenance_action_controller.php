@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Cost',
     'bulk_assigned_skipped' => '{1}A fost atribuită :count comandă de lucru · omise: :skipped (deja închise)|Au fost atribuite :count comenzi de lucru · omise: :skipped (deja închise)|Au fost atribuite :count de comenzi de lucru · omise: :skipped (deja închise)',
     'bulk_assigned' => '{1}A fost atribuită :count comandă de lucru.|Au fost atribuite :count comenzi de lucru.|Au fost atribuite :count de comenzi de lucru.',
+    'bulk_unassigned_skipped' => '{1}Atribuirea a fost anulată pentru :count comandă de lucru · omise: :skipped (deja închise)|Atribuirea a fost anulată pentru :count comenzi de lucru · omise: :skipped (deja închise)|Atribuirea a fost anulată pentru :count de comenzi de lucru · omise: :skipped (deja închise)',
+    'bulk_unassigned' => '{1}Atribuirea a fost anulată pentru :count comandă de lucru.|Atribuirea a fost anulată pentru :count comenzi de lucru.|Atribuirea a fost anulată pentru :count de comenzi de lucru.',
     'bulk_resolved_skipped' => '{1}A fost rezolvată :count comandă de lucru · omise: :skipped (deja închise)|Au fost rezolvate :count comenzi de lucru · omise: :skipped (deja închise)|Au fost rezolvate :count de comenzi de lucru · omise: :skipped (deja închise)',
     'bulk_resolved' => '{1}A fost rezolvată :count comandă de lucru.|Au fost rezolvate :count comenzi de lucru.|Au fost rezolvate :count de comenzi de lucru.',
     'cannot_start' => 'Lucrul la acest tichet nu poate începe — nu mai este deschis.',

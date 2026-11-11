@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Napisz wiadomość albo dodaj plik lub wiadomość głosową.',
     'message_too_long' => 'Wiadomość może mieć najwyżej 5000 znaków.',
     'workspace_paused' => 'Organizacja jest wstrzymana – wiadomości można czytać, ale nie można ich wysyłać.',
+    'only_author' => 'Zmieniać lub usuwać można tylko własne wiadomości.',
+    'already_deleted' => 'Ta wiadomość została usunięta.',
+    'edit_window_over' => 'Wiadomość można edytować przez :minutes min od wysłania. Nadal można ją usunąć.',
+    'reaction_not_allowed' => 'Ta reakcja nie jest dostępna.',
+    'edit_to_nothing' => 'Wiadomość nie może być pusta – zamiast tego ją usuń.',
 ];

@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Tin nhắn thoại',
     'preview_photos' => '[0,*]:count ảnh|{1}Ảnh',
     'preview_files' => '[0,*]:count tệp|{1}Tệp',
+    'preview_deleted' => 'Tin nhắn này đã bị xóa',
 ];

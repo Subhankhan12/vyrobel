@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Biaya',
     'bulk_assigned_skipped' => '{1}:count perintah kerja ditugaskan · :skipped dilewati (sudah ditutup)|[0,*]:count perintah kerja ditugaskan · :skipped dilewati (sudah ditutup)',
     'bulk_assigned' => '{1}:count perintah kerja ditugaskan.|[0,*]:count perintah kerja ditugaskan.',
+    'bulk_unassigned_skipped' => '{1}Penugasan dicabut untuk :count perintah kerja · :skipped dilewati (sudah ditutup)|[0,*]Penugasan dicabut untuk :count perintah kerja · :skipped dilewati (sudah ditutup)',
+    'bulk_unassigned' => '{1}Penugasan dicabut untuk :count perintah kerja.|[0,*]Penugasan dicabut untuk :count perintah kerja.',
     'bulk_resolved_skipped' => '{1}:count perintah kerja diselesaikan · :skipped dilewati (sudah ditutup)|[0,*]:count perintah kerja diselesaikan · :skipped dilewati (sudah ditutup)',
     'bulk_resolved' => '{1}:count perintah kerja diselesaikan.|[0,*]:count perintah kerja diselesaikan.',
     'cannot_start' => 'Tiket tersebut tidak dapat dimulai — tiket sudah tidak terbuka.',

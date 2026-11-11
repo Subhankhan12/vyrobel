@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'mevcut şifre',
     'already_on_team' => 'Bu kişi zaten ekibinizde.',
     'invite_sent' => ':email adresine davet gönderildi.',
+    'invite_saved_no_mail' => ':email için davet kaydedildi. Vyrobel henüz e-posta göndermiyor; bu nedenle kişi bilgilendirilmedi.',
     'role_updated' => 'Rol güncellendi.',
     'member_removed' => 'Üye kaldırıldı.',
     'invite_revoked' => 'Davet iptal edildi.',

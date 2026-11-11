@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Pesan suara',
     'preview_photos' => '[0,*]:count foto|{1}Foto',
     'preview_files' => '[0,*]:count berkas|{1}Berkas',
+    'preview_deleted' => 'Pesan ini telah dihapus',
 ];

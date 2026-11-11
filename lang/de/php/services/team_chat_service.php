@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Schreiben Sie eine Nachricht oder fügen Sie eine Datei oder eine Sprachnachricht hinzu.',
     'message_too_long' => 'Eine Nachricht darf bis zu 5.000 Zeichen lang sein.',
     'workspace_paused' => 'Diese Organisation ist pausiert — Nachrichten können gelesen, aber nicht gesendet werden.',
+    'only_author' => 'Sie können nur Nachrichten ändern oder löschen, die Sie geschrieben haben.',
+    'already_deleted' => 'Diese Nachricht wurde gelöscht.',
+    'edit_window_over' => 'Eine Nachricht kann nach dem Senden :minutes Minuten lang bearbeitet werden. Löschen können Sie sie weiterhin.',
+    'reaction_not_allowed' => 'Diese Reaktion ist nicht verfügbar.',
+    'edit_to_nothing' => 'Eine Nachricht darf nicht leer bleiben — löschen Sie sie stattdessen.',
 ];

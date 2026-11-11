@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}적용하면 이미 적용된 겹치는 시즌의 :count박도 다시 기록됩니다|[0,*]적용하면 이미 적용된 겹치는 시즌의 :count박도 다시 기록됩니다',
     'season_applied' => '적용일: :date',
     'season_saved' => '저장됨 · 기록된 요금 없음',
+    'seasons_unapplied_banner' => '{1}시즌 :count개가 저장되었지만 적용되지 않았습니다 — 적용하기 전까지는 요금이 기록되지 않습니다.|[0,*]시즌 :count개가 저장되었지만 적용되지 않았습니다 — 적용하기 전까지는 요금이 기록되지 않습니다.',
+    'seasons_unapplied_link' => '시즌으로 이동',
     'apply_again' => '다시 적용',
     'seasons_empty_cta' => '아직 시즌이 없습니다 — 아래에서 시즌을 저장한 다음 수치가 맞으면 적용하세요.',
     'seasons_empty' => '아직 시즌이 없습니다.',

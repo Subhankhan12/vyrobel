@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Imię, nazwisko i dane kontaktowe',
     'erased_city_preferences' => 'Miasto, obywatelstwo i preferencje',
     'erased_documents_messages' => 'Dokumenty tożsamości, notatki i wiadomości',
+    'erased_team_chat' => 'Imię, nazwisko, adres e-mail i numer telefonu tam, gdzie wspomina o nich czat zespołu',
     'kept_heading' => 'Zachowane, bez imienia i nazwiska',
     'kept_bookings' => 'Rezerwacje i pobyty',
     'kept_invoices' => 'Faktury, płatności i salda',

@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count профил госта|:count профила гостију|:count профила гостију',
     'anonymized_guest' => 'Анонимизован гост',
     'unnamed_guest' => 'Гост без имена',
-    'in_house' => 'У боравку',
     'country_as_saved' => ':country (како је сачувано)',
     'chip_in_house' => 'У боравку',
     'chip_upcoming' => 'Предстојећи',

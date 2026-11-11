@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'De terugbetaling wordt als nieuwe, afzonderlijke boeking in het grootboek gezet. De oorspronkelijke betaling wordt nooit gewijzigd of verwijderd.',
     'owner_statement_title' => 'De eigenaarsafrekening wordt aangepast',
     'owner_statement_body' => 'Bij een verblijf dat aan een eigenaar is toegerekend, wordt het netto-eigenaarsaandeel van de terugbetaling in het grootboek van de eigenaar geboekt en komt het op de eerstvolgende afgesloten afrekening.',
+    'guest_not_emailed' => 'Vyrobel verstuurt nog geen e-mail, dus de gast krijgt geen bevestiging van de terugbetaling — laat het de gast zelf weten. Kaartterugbetalingen draaien in testmodus tot de livegang — er wordt nog geen echt geld overgemaakt.',
     'guest_emailed' => 'De gast krijgt automatisch een bevestiging per e-mail zodra de terugbetaling is gelukt. Kaartterugbetalingen draaien in testmodus tot de livegang — er wordt nog geen echt geld overgemaakt.',
     'not_yet_available' => 'Nog niet beschikbaar',
     'refund_by_charge' => 'Terugbetalen per post',

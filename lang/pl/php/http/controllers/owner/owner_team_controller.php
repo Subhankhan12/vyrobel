@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'obecne hasło',
     'already_on_team' => 'Ta osoba jest już w zespole.',
     'invite_sent' => 'Wysłano zaproszenie na adres :email.',
+    'invite_saved_no_mail' => 'Zapisano zaproszenie dla adresu :email. Vyrobel nie wysyła jeszcze e-maili, więc ta osoba nie została o nim poinformowana.',
     'role_updated' => 'Zaktualizowano rolę.',
     'member_removed' => 'Usunięto członka zespołu.',
     'invite_revoked' => 'Wycofano zaproszenie.',

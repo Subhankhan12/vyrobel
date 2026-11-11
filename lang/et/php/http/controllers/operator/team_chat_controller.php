@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Häälsõnum võib olla kuni :size MB suur.',
     'voice_unreadable' => 'Seda häälsõnumit ei õnnestunud lugeda — salvestage see uuesti.',
     'conversation_not_found' => 'Seda vestlust ei leitud.',
+    'message_not_found' => 'Seda sõnumit ei leitud.',
+    'choose_reaction' => 'Valige reaktsioon.',
+    'search_too_short' => 'Otsimiseks tippige vähemalt :min märki.',
+    'search_too_long' => 'Otsing võib olla kuni 100 märki pikk.',
+    'search_summary' => '{1}Leiti :count sõnum|[2,*]Leiti :count sõnumit|{0}Sõnumeid ei leitud',
+    'search_summary_capped' => '[0,*]Kuvatakse uusimaid sõnumeid: :shown / :count',
 ];

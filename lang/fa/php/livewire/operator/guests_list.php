@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count نمایه مهمان|[0,*]:count نمایه مهمان',
     'anonymized_guest' => 'مهمان ناشناس‌سازی‌شده',
     'unnamed_guest' => 'مهمان بدون نام',
-    'in_house' => 'مقیم',
     'country_as_saved' => 'کشور: :country (به‌صورت ثبت‌شده)',
     'chip_in_house' => 'مقیم',
     'chip_upcoming' => 'پیش‌رو',

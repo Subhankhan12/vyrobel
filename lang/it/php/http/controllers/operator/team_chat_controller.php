@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'Dimensione massima di un messaggio vocale: :size MB.',
     'voice_unreadable' => 'Impossibile leggere il messaggio vocale: registrarlo di nuovo.',
     'conversation_not_found' => 'Conversazione non trovata.',
+    'message_not_found' => 'Quel messaggio non è stato trovato.',
+    'choose_reaction' => 'Scegliere una reazione.',
+    'search_too_short' => 'Digitare almeno :min caratteri per cercare.',
+    'search_too_long' => 'Il testo da cercare può contenere al massimo 100 caratteri.',
+    'search_summary' => '{0} Nessun messaggio trovato|{1} :count messaggio trovato|[2,*] :count messaggi trovati',
+    'search_summary_capped' => '[0,*] Mostrati i messaggi più recenti: :shown su :count',
 ];

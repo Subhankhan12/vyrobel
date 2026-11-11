@@ -25,6 +25,7 @@ return [
     'message_resent' => 'پیام دوباره ارسال شد.',
     'reservation_linked' => 'رزرو متصل شد.',
     'conversation_started' => 'گفتگو شروع شد.',
+    'owner_no_portal' => 'هنوز دسترسی به پرتال ندارد — ابتدا :name را به پرتال مالکان دعوت کنید.',
     'workspace_paused' => 'فضای کاری متوقف است — پیام‌رسانی تا :date فقط خواندنی است.',
     'workspace_paused_for_now' => 'فضای کاری متوقف است — پیام‌رسانی فعلاً فقط خواندنی است.',
 ];

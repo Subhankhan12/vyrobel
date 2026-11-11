@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}Rakendamine kirjutab uuesti üle ka :count öö kattuvatest, juba rakendatud hooaegadest|[0,*]Rakendamine kirjutab uuesti üle ka :count ööd kattuvatest, juba rakendatud hooaegadest',
     'season_applied' => 'Rakendatud :date',
     'season_saved' => 'Salvestatud · hindu pole kirjutatud',
+    'seasons_unapplied_banner' => '{1}:count hooaeg on salvestatud, kuid rakendamata — enne selle rakendamist ei kirjutata ühtegi hinda.|[0,*]:count hooaega on salvestatud, kuid rakendamata — enne nende rakendamist ei kirjutata ühtegi hinda.',
+    'seasons_unapplied_link' => 'Mine hooaegade juurde',
     'apply_again' => 'Rakenda uuesti',
     'seasons_empty_cta' => 'Hooaegu veel pole — salvestage allpool üks ja rakendage see, kui arvud tunduvad õiged.',
     'seasons_empty' => 'Hooaegu veel pole.',

@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count 份客人档案|[0,*]:count 份客人档案',
     'anonymized_guest' => '已匿名化的客人',
     'unnamed_guest' => '未命名客人',
-    'in_house' => '在住',
     'country_as_saved' => ':country（按原保存值）',
     'chip_in_house' => '在住',
     'chip_upcoming' => '即将入住',

@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => '雙重驗證尚未啟用。',
     'recovery_codes_generated' => '已產生新的復原碼——請立即儲存。',
     'email_attribute' => '電子郵件地址',
+    'email_change_no_mail' => 'Vyrobel 目前尚未寄送電子郵件，因此無法寄出確認新電子郵件地址的連結。未變更任何內容。',
     'email_change_sent' => '請查看新信箱——我們已寄出確認變更的連結。在您開啟該連結之前，您的電子郵件不會變更。',
     'email_change_cancelled' => '已取消電子郵件變更。',
     'email_link_invalid' => '該電子郵件變更連結已失效。請重新申請。',

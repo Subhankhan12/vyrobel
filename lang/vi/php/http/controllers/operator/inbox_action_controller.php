@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Đã gửi lại tin nhắn.',
     'reservation_linked' => 'Đã liên kết đặt phòng.',
     'conversation_started' => 'Đã bắt đầu hội thoại.',
+    'owner_no_portal' => 'Chưa có tài khoản cổng thông tin — vui lòng mời :name vào cổng thông tin chủ sở hữu trước.',
     'workspace_paused' => 'Tổ chức đang tạm dừng — tin nhắn ở chế độ chỉ đọc đến :date.',
     'workspace_paused_for_now' => 'Tổ chức đang tạm dừng — tin nhắn tạm thời ở chế độ chỉ đọc.',
 ];

@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}:units sudah memiliki pemilik. Pemilik unit menentukan siapa yang menerima pencairan untuk unit tersebut, jadi undangan hanya dapat memberikan unit yang belum memiliki pemilik.|[0,*]:units sudah memiliki pemilik. Pemilik unit menentukan siapa yang menerima pencairan untuk unit tersebut, jadi undangan hanya dapat memberikan unit yang belum memiliki pemilik.',
     'email_cannot_be_invited' => 'Email tersebut tidak dapat diundang — mungkin sudah memiliki akun Vyrobel.',
     'invite_sent' => 'Undangan berhasil dikirim ke :email.',
+    'invite_saved_no_mail' => 'Undangan untuk :email berhasil disimpan. Vyrobel belum mengirim email, jadi mereka belum diberi tahu.',
 ];

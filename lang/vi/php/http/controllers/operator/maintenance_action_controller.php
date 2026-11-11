@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Chi phí',
     'bulk_assigned_skipped' => '{1}Đã phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)|[0,*]Đã phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)',
     'bulk_assigned' => '{1}Đã phân công :count phiếu công việc.|[0,*]Đã phân công :count phiếu công việc.',
+    'bulk_unassigned_skipped' => '{1}Đã bỏ phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)|[0,*]Đã bỏ phân công :count phiếu công việc · bỏ qua :skipped (đã đóng)',
+    'bulk_unassigned' => '{1}Đã bỏ phân công :count phiếu công việc.|[0,*]Đã bỏ phân công :count phiếu công việc.',
     'bulk_resolved_skipped' => '{1}Đã xử lý xong :count phiếu công việc · bỏ qua :skipped (đã đóng)|[0,*]Đã xử lý xong :count phiếu công việc · bỏ qua :skipped (đã đóng)',
     'bulk_resolved' => '{1}Đã xử lý xong :count phiếu công việc.|[0,*]Đã xử lý xong :count phiếu công việc.',
     'cannot_start' => 'Không thể bắt đầu phiếu này — phiếu không còn mở.',

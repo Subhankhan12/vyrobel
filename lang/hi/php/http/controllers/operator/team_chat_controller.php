@@ -13,4 +13,10 @@ return [
     'voice_too_big' => 'वॉइस नोट अधिकतम :size MB का हो सकता है।',
     'voice_unreadable' => 'वह वॉइस नोट पढ़ा नहीं जा सका — उसे फिर से रिकॉर्ड करें।',
     'conversation_not_found' => 'वह बातचीत नहीं मिली।',
+    'message_not_found' => 'वह संदेश नहीं मिला।',
+    'choose_reaction' => 'रिएक्शन चुनें।',
+    'search_too_short' => 'खोजने के लिए कम से कम :min अक्षर टाइप करें।',
+    'search_too_long' => 'खोज में अधिकतम 100 अक्षर हो सकते हैं।',
+    'search_summary' => '{0}कोई संदेश नहीं मिला|{1}:count संदेश मिला|[2,*]:count संदेश मिले',
+    'search_summary_capped' => '[0,*]सबसे नए :shown संदेश दिखाए जा रहे हैं (कुल संदेश: :count)',
 ];

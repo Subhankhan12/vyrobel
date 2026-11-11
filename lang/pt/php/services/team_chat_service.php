@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Escreva uma mensagem, ou adicione um ficheiro ou uma nota de voz.',
     'message_too_long' => 'Uma mensagem pode ter até 5000 caracteres.',
     'workspace_paused' => 'Esta organização está em pausa — é possível ler mensagens, mas não enviá-las.',
+    'only_author' => 'Só pode alterar ou eliminar as mensagens que escreveu.',
+    'already_deleted' => 'Esta mensagem foi eliminada.',
+    'edit_window_over' => 'Pode editar uma mensagem durante :minutes minutos depois de a enviar. Continua a poder eliminá-la.',
+    'reaction_not_allowed' => 'Essa reação não está disponível.',
+    'edit_to_nothing' => 'Uma mensagem não pode ficar vazia — elimine-a em vez disso.',
 ];

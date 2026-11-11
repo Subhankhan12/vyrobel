@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count სტუმრის პროფილი|[0,*]:count სტუმრის პროფილი',
     'anonymized_guest' => 'ანონიმიზებული სტუმარი',
     'unnamed_guest' => 'უსახელო სტუმარი',
-    'in_house' => 'ჩასახლებულია',
     'country_as_saved' => ':country (შენახული სახით)',
     'chip_in_house' => 'ჩასახლებულები',
     'chip_upcoming' => 'მომავალი',

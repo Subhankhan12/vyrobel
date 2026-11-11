@@ -24,5 +24,6 @@ return [
     'via_channel' => 'qua :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Khách',
+    'owner_fallback' => 'Chủ sở hữu',
     'yesterday' => 'Hôm qua',
 ];

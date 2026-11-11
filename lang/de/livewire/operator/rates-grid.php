@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} beim Anwenden wird auch :count Nacht aus überlappenden, bereits angewendeten Saisons überschrieben|[0,*] beim Anwenden werden auch :count Nächte aus überlappenden, bereits angewendeten Saisons überschrieben',
     'season_applied' => 'Angewendet am :date',
     'season_saved' => 'Gespeichert · keine Preise gesetzt',
+    'seasons_unapplied_banner' => '{1} :count Saison gespeichert, aber nicht angewendet — es wird kein Preis gesetzt, bis Sie sie anwenden.|[0,*] :count Saisons gespeichert, aber nicht angewendet — es wird kein Preis gesetzt, bis Sie sie anwenden.',
+    'seasons_unapplied_link' => 'Zu den Saisons',
     'apply_again' => 'Erneut anwenden',
     'seasons_empty_cta' => 'Noch keine Saisons — speichern Sie unten eine und wenden Sie sie an, wenn die Zahlen stimmen.',
     'seasons_empty' => 'Noch keine Saisons.',

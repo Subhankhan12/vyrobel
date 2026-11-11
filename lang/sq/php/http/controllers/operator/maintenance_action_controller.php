@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Kostoja',
     'bulk_assigned_skipped' => '{1}U caktua :count urdhër pune · anashkaluar: :skipped (tashmë të mbyllur)|[0,*]U caktuan :count urdhra pune · anashkaluar: :skipped (tashmë të mbyllur)',
     'bulk_assigned' => '{1}U caktua :count urdhër pune.|[0,*]U caktuan :count urdhra pune.',
+    'bulk_unassigned_skipped' => '{1}U hoq caktimi për :count urdhër pune · anashkaluar: :skipped (tashmë të mbyllur)|[0,*]U hoq caktimi për :count urdhra pune · anashkaluar: :skipped (tashmë të mbyllur)',
+    'bulk_unassigned' => '{1}U hoq caktimi për :count urdhër pune.|[0,*]U hoq caktimi për :count urdhra pune.',
     'bulk_resolved_skipped' => '{1}U zgjidh :count urdhër pune · anashkaluar: :skipped (tashmë të mbyllur)|[0,*]U zgjidhën :count urdhra pune · anashkaluar: :skipped (tashmë të mbyllur)',
     'bulk_resolved' => '{1}U zgjidh :count urdhër pune.|[0,*]U zgjidhën :count urdhra pune.',
     'cannot_start' => 'Ky urdhër pune nuk mund të nisë — nuk është më i hapur.',

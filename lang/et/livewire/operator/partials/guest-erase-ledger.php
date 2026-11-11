@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Nimi ja kontaktandmed',
     'erased_city_preferences' => 'Linn, kodakondsus ja eelistused',
     'erased_documents_messages' => 'Isikut tõendavad dokumendid, märkmed ja sõnumid',
+    'erased_team_chat' => 'Nende nimi, e-post ja telefoninumber meeskonna vestluses, kus neid mainitakse',
     'kept_heading' => 'Säilitatakse ilma nimeta',
     'kept_bookings' => 'Broneeringud ja viibimised',
     'kept_invoices' => 'Arved, maksed ja saldod',

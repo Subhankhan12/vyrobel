@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Maliyet',
     'bulk_assigned_skipped' => '{1} Atanan iş emri: :count · atlanan: :skipped (zaten kapatılmış)|[0,*] Atanan iş emri: :count · atlanan: :skipped (zaten kapatılmış)',
     'bulk_assigned' => '{1} Atanan iş emri: :count.|[0,*] Atanan iş emri: :count.',
+    'bulk_unassigned_skipped' => '{1} Ataması kaldırılan iş emri: :count · atlanan: :skipped (zaten kapatılmış)|[0,*] Ataması kaldırılan iş emri: :count · atlanan: :skipped (zaten kapatılmış)',
+    'bulk_unassigned' => '{1} Ataması kaldırılan iş emri: :count.|[0,*] Ataması kaldırılan iş emri: :count.',
     'bulk_resolved_skipped' => '{1} Çözülen iş emri: :count · atlanan: :skipped (zaten kapatılmış)|[0,*] Çözülen iş emri: :count · atlanan: :skipped (zaten kapatılmış)',
     'bulk_resolved' => '{1} Çözülen iş emri: :count.|[0,*] Çözülen iş emri: :count.',
     'cannot_start' => 'Bu bakım kaydında çalışma başlatılamaz — kayıt artık açık değil.',

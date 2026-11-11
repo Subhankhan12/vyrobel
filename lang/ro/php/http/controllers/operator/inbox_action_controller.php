@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Mesaj retrimis.',
     'reservation_linked' => 'Rezervare asociată.',
     'conversation_started' => 'Conversație începută.',
+    'owner_no_portal' => 'Încă fără acces la portal — invitați mai întâi proprietarul :name în portalul proprietarilor.',
     'workspace_paused' => 'Organizație în pauză — mesageria este doar în citire până la :date.',
     'workspace_paused_for_now' => 'Organizație în pauză — mesageria este deocamdată doar în citire.',
 ];

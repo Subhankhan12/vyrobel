@@ -24,5 +24,6 @@ return [
     'via_channel' => 'عبر :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'ضيف',
+    'owner_fallback' => 'المالك',
     'yesterday' => 'أمس',
 ];

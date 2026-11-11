@@ -92,7 +92,6 @@ return [
     'rate_plan_for' => 'Rate plan for :name',
     'for_the_stay' => ':amount for the stay',
     // a saved season never applied (:name, :nightly price, :from → :to its dates)
-    'season_saved_all' => '<strong>:name · :nightly</strong> · :from → :to — saved but not applied yet, so these nights have no price.',
     'season_saved_some' => '<strong>:name · :nightly</strong> · :from → :to — saved but not applied yet. It would price :prices of the :count nights that have none.',
     'apply_season' => 'Apply :name…',
     'season_writes_plan' => 'It writes :nightly on the season’s nights on the :plan plan, as Apply on the Rates page does — you see everything it replaces before anything is written.',
@@ -222,7 +221,6 @@ return [
     'estimate_fine' => 'An estimate — the exact total, with any wallet credit, is on the reservation’s folio once it’s created.',
     // the "Apply this season?" dialog
     'apply_season_title' => 'Apply this season?',
-    'season_for_booking' => '{1} For this booking: it prices :prices of the :count night of the stay that have no price.|[0,*] For this booking: it prices :prices of the :count nights of the stay that have no price.',
     'apply_overwrite' => 'Apply and overwrite those nights',
     // the wizard's script: counts (each computed per count on the server)
     'children_count' => '{1} :count child|[0,*] :count children',

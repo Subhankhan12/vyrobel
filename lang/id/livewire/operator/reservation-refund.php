@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Pengembalian dana dicatat sebagai entri baru tersendiri di buku besar. Pembayaran awal tidak pernah diubah atau dihapus.',
     'owner_statement_title' => 'Rekap pemilik disesuaikan',
     'owner_statement_body' => 'Untuk masa inap yang diatribusikan ke pemilik, bagian bersih pemilik dari pengembalian dana dicatat di buku besarnya dan masuk ke rekap berikutnya saat ditutup.',
+    'guest_not_emailed' => 'Vyrobel belum mengirim email, jadi tamu tidak akan menerima konfirmasi pengembalian dana — beri tahu tamu secara langsung. Pengembalian dana kartu berjalan dalam mode tes hingga mode live diaktifkan — belum ada uang sungguhan yang berpindah.',
     'guest_emailed' => 'Tamu otomatis menerima email konfirmasi pengembalian dana saat pengembalian berhasil. Pengembalian dana kartu berjalan dalam mode tes hingga mode live diaktifkan — belum ada uang sungguhan yang berpindah.',
     'not_yet_available' => 'Belum tersedia',
     'refund_by_charge' => 'Pengembalian dana per tagihan',

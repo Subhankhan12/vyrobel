@@ -13,4 +13,10 @@ return [
     'voice_too_big' => '語音訊息大小上限為 :size MB。',
     'voice_unreadable' => '無法讀取該語音訊息——請重新錄製。',
     'conversation_not_found' => '找不到該對話。',
+    'message_not_found' => '找不到該訊息。',
+    'choose_reaction' => '請選擇表情回應。',
+    'search_too_short' => '請至少輸入 :min 個字元才能搜尋。',
+    'search_too_long' => '搜尋內容最多 100 個字元。',
+    'search_summary' => '{0}找不到訊息|{1}找到 :count 則訊息|[2,*]找到 :count 則訊息',
+    'search_summary_capped' => '[0,*]共 :count 則訊息，顯示最新的 :shown 則',
 ];

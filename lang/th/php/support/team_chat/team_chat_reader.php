@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'ข้อความเสียง',
     'preview_photos' => '{1}รูปภาพ|[0,*]รูปภาพ :count รูป',
     'preview_files' => '{1}ไฟล์|[0,*]ไฟล์ :count ไฟล์',
+    'preview_deleted' => 'ลบข้อความนี้แล้ว',
 ];

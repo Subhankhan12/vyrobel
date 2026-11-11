@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'A autenticação de dois fatores ainda não está ativa.',
     'recovery_codes_generated' => 'Foram gerados novos códigos de recuperação — guarde-os agora.',
     'email_attribute' => 'endereço de e-mail',
+    'email_change_no_mail' => 'A Vyrobel ainda não está a enviar e-mails, por isso não podemos enviar a ligação que confirma o novo endereço. Não foi alterado nada.',
     'email_change_sent' => 'Consulte a sua nova caixa de entrada — enviámos uma ligação para confirmar a alteração. O seu e-mail mantém-se até abrir essa ligação.',
     'email_change_cancelled' => 'A alteração de e-mail foi cancelada.',
     'email_link_invalid' => 'Essa ligação de alteração de e-mail já não é válida. Peça uma nova.',

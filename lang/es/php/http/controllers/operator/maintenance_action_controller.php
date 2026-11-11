@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Coste',
     'bulk_assigned_skipped' => '{1} Se asignó :count orden de trabajo · omitidas: :skipped (ya cerradas)|[0,*] Se asignaron :count órdenes de trabajo · omitidas: :skipped (ya cerradas)',
     'bulk_assigned' => '{1} Se asignó :count orden de trabajo.|[0,*] Se asignaron :count órdenes de trabajo.',
+    'bulk_unassigned_skipped' => '{1} Se quitó la asignación de :count orden de trabajo · omitidas: :skipped (ya cerradas)|[0,*] Se quitó la asignación de :count órdenes de trabajo · omitidas: :skipped (ya cerradas)',
+    'bulk_unassigned' => '{1} Se quitó la asignación de :count orden de trabajo.|[0,*] Se quitó la asignación de :count órdenes de trabajo.',
     'bulk_resolved_skipped' => '{1} Se resolvió :count orden de trabajo · omitidas: :skipped (ya cerradas)|[0,*] Se resolvieron :count órdenes de trabajo · omitidas: :skipped (ya cerradas)',
     'bulk_resolved' => '{1} Se resolvió :count orden de trabajo.|[0,*] Se resolvieron :count órdenes de trabajo.',
     'cannot_start' => 'Esa incidencia no se puede iniciar: ya no está abierta.',

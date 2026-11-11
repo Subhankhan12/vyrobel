@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => '姓名和联系方式',
     'erased_city_preferences' => '城市、国籍和偏好',
     'erased_documents_messages' => '证件、备注和消息',
+    'erased_team_chat' => '团队聊天中提及对方的姓名、邮箱和电话号码',
     'kept_heading' => '匿名保留',
     'kept_bookings' => '预订和住宿',
     'kept_invoices' => '发票、付款和余额',

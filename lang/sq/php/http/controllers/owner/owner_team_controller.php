@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'fjalëkalimi aktual',
     'already_on_team' => 'Ky person është tashmë në ekipin tuaj.',
     'invite_sent' => 'Ftesa u dërgua te :email.',
+    'invite_saved_no_mail' => 'Ftesa për adresën :email u ruajt. Vyrobel nuk dërgon ende email, ndaj nuk janë njoftuar.',
     'role_updated' => 'Roli u përditësua.',
     'member_removed' => 'Anëtari u hoq.',
     'invite_revoked' => 'Ftesa u anulua.',

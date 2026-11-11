@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Custo',
     'bulk_assigned_skipped' => '{1} :count ordem de serviço atribuída · ignoradas: :skipped (já encerradas)|[0,*] :count ordens de serviço atribuídas · ignoradas: :skipped (já encerradas)',
     'bulk_assigned' => '{1} :count ordem de serviço atribuída.|[0,*] :count ordens de serviço atribuídas.',
+    'bulk_unassigned_skipped' => '{1} Responsável removido de :count ordem de serviço · ignoradas: :skipped (já encerradas)|[0,*] Responsável removido de :count ordens de serviço · ignoradas: :skipped (já encerradas)',
+    'bulk_unassigned' => '{1} Responsável removido de :count ordem de serviço.|[0,*] Responsável removido de :count ordens de serviço.',
     'bulk_resolved_skipped' => '{1} :count ordem de serviço resolvida · ignoradas: :skipped (já encerradas)|[0,*] :count ordens de serviço resolvidas · ignoradas: :skipped (já encerradas)',
     'bulk_resolved' => '{1} :count ordem de serviço resolvida.|[0,*] :count ordens de serviço resolvidas.',
     'cannot_start' => 'Não é possível iniciar este chamado — ele não está mais aberto.',

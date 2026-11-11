@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'huidig wachtwoord',
     'already_on_team' => 'Deze persoon zit al in uw team.',
     'invite_sent' => 'Uitnodiging verstuurd naar :email.',
+    'invite_saved_no_mail' => 'Uitnodiging opgeslagen voor :email. Vyrobel verstuurt nog geen e-mail, dus deze persoon is nog niet ingelicht.',
     'role_updated' => 'Rol bijgewerkt.',
     'member_removed' => 'Teamlid weggehaald.',
     'invite_revoked' => 'Uitnodiging ingetrokken.',

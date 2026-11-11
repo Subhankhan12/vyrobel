@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}套用時，也會重新寫入已套用且重疊的季節中的 :count 晚|[0,*]套用時，也會重新寫入已套用且重疊的季節中的 :count 晚',
     'season_applied' => '已於 :date 套用',
     'season_saved' => '已儲存 · 尚未寫入房價',
+    'seasons_unapplied_banner' => '{1}已儲存 :count 個季節，但尚未套用——套用之前不會寫入任何房價。|[0,*]已儲存 :count 個季節，但尚未套用——套用之前不會寫入任何房價。',
+    'seasons_unapplied_link' => '前往季節房價',
     'apply_again' => '再次套用',
     'seasons_empty_cta' => '尚無季節——請在下方儲存一個季節，確認數字無誤後再套用。',
     'seasons_empty' => '尚無季節。',

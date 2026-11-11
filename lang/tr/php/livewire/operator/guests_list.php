@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1} :count misafir profili|[0,*] :count misafir profili',
     'anonymized_guest' => 'Anonimleştirilmiş misafir',
     'unnamed_guest' => 'Adsız misafir',
-    'in_house' => 'Konaklayan',
     'country_as_saved' => ':country (kaydedildiği gibi)',
     'chip_in_house' => 'Konaklayanlar',
     'chip_upcoming' => 'Yaklaşan',

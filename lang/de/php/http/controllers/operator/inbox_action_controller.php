@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Nachricht erneut gesendet.',
     'reservation_linked' => 'Buchung verknüpft.',
     'conversation_started' => 'Unterhaltung begonnen.',
+    'owner_no_portal' => 'Noch kein Portalzugang — laden Sie :name zuerst ins Eigentümerportal ein.',
     'workspace_paused' => 'Organisation pausiert — bei Nachrichten besteht bis :date nur Lesezugriff.',
     'workspace_paused_for_now' => 'Organisation pausiert — bei Nachrichten besteht vorerst nur Lesezugriff.',
 ];

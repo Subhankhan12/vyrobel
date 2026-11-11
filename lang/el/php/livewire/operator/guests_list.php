@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count προφίλ επισκέπτη|[0,*]:count προφίλ επισκεπτών',
     'anonymized_guest' => 'Ανωνυμοποιημένος επισκέπτης',
     'unnamed_guest' => 'Επισκέπτης χωρίς όνομα',
-    'in_house' => 'Διαμένει',
     'country_as_saved' => ':country (όπως αποθηκεύτηκε)',
     'chip_in_house' => 'Διαμένοντες',
     'chip_upcoming' => 'Επερχόμενοι',

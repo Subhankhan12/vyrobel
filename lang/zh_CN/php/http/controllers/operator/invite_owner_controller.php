@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}:units 已有业主。房间的业主决定款项打给谁，因此邀请只能分配尚无业主的房间。|[0,*]:units 已有业主。房间的业主决定款项打给谁，因此邀请只能分配尚无业主的房间。',
     'email_cannot_be_invited' => '无法邀请此邮箱——它可能已有 Vyrobel 账号。',
     'invite_sent' => '邀请已发送至 :email。',
+    'invite_saved_no_mail' => '已为 :email 保存邀请。Vyrobel 目前尚未发送邮件，因此对方尚未收到通知。',
 ];

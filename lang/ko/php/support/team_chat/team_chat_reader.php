@@ -8,4 +8,5 @@ return [
     'preview_voice' => '음성 메모',
     'preview_photos' => '{1}사진|[0,*]사진 :count장',
     'preview_files' => '{1}파일|[0,*]파일 :count개',
+    'preview_deleted' => '이 메시지는 삭제되었습니다',
 ];

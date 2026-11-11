@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Kosten',
     'bulk_assigned_skipped' => '{1} :count werkorder toegewezen · :skipped overgeslagen (al gesloten)|[0,*] :count werkorders toegewezen · :skipped overgeslagen (al gesloten)',
     'bulk_assigned' => '{1} :count werkorder toegewezen.|[0,*] :count werkorders toegewezen.',
+    'bulk_unassigned_skipped' => '{1} Toewijzing van :count werkorder opgeheven · :skipped overgeslagen (al gesloten)|[0,*] Toewijzing van :count werkorders opgeheven · :skipped overgeslagen (al gesloten)',
+    'bulk_unassigned' => '{1} Toewijzing van :count werkorder opgeheven.|[0,*] Toewijzing van :count werkorders opgeheven.',
     'bulk_resolved_skipped' => '{1} :count werkorder afgehandeld · :skipped overgeslagen (al gesloten)|[0,*] :count werkorders afgehandeld · :skipped overgeslagen (al gesloten)',
     'bulk_resolved' => '{1} :count werkorder afgehandeld.|[0,*] :count werkorders afgehandeld.',
     'cannot_start' => 'Aan die melding kan niet worden begonnen — die staat niet meer open.',

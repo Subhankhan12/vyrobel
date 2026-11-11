@@ -24,5 +24,6 @@ return [
     'via_channel' => 'kanali :channel kaudu',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Külaline',
+    'owner_fallback' => 'Omanik',
     'yesterday' => 'Eile',
 ];

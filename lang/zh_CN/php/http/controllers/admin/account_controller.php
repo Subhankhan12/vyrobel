@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => '双重身份验证尚未启用。',
     'recovery_codes_generated' => '已生成新的恢复码——请立即保存。',
     'email_attribute' => '邮箱地址',
+    'email_change_no_mail' => 'Vyrobel 目前尚未发送邮件，因此无法发送用于确认新邮箱地址的链接。未做任何更改。',
     'email_change_sent' => '请查收新邮箱——我们已发送一封邮件，其中的链接用于确认此更改。在您打开该链接之前，您的邮箱保持不变。',
     'email_change_cancelled' => '邮箱更改已取消。',
     'email_link_invalid' => '该邮箱更改链接已失效。请重新申请。',

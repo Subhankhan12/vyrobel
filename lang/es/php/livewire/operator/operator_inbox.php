@@ -24,5 +24,6 @@ return [
     'via_channel' => 'por :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Huésped',
+    'owner_fallback' => 'Propietario',
     'yesterday' => 'Ayer',
 ];

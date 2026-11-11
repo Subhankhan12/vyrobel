@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Tagasimakse kantakse pearaamatusse eraldi uue kandena. Algset makset ei muudeta ega eemaldata kunagi.',
     'owner_statement_title' => 'Omaniku väljavõte korrigeeritakse',
     'owner_statement_body' => 'Omanikule omistatud viibimise korral kantakse tagasimakse omaniku netoosa tema pearaamatusse ja see kajastub tema järgmisel väljavõtte sulgemisel.',
+    'guest_not_emailed' => 'Vyrobel ei saada veel e-kirju, seega külaline ei saa tagasimakse kinnituskirja — andke talle sellest ise teada. Kaardi tagasimaksed toimuvad testrežiimis kuni teenuse käivitamiseni — päris raha ei liigu veel.',
     'guest_emailed' => 'Kui tagasimakse õnnestub, saadetakse külalisele automaatselt tagasimakse kinnituskiri. Kaardi tagasimaksed toimuvad testrežiimis kuni teenuse käivitamiseni — päris raha ei liigu veel.',
     'not_yet_available' => 'Veel pole saadaval',
     'refund_by_charge' => 'Tagasimakse üksiku tasu kohta',

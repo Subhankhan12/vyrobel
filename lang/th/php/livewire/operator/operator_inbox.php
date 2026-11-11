@@ -24,5 +24,6 @@ return [
     'via_channel' => 'ผ่าน :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'ผู้เข้าพัก',
+    'owner_fallback' => 'เจ้าของห้องพัก',
     'yesterday' => 'เมื่อวาน',
 ];

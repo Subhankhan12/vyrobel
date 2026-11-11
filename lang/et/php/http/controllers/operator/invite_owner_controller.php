@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}Majutusüksusel on juba omanik: :units. Majutusüksuse omanik määrab, kellele selle eest makstakse, seega saab kutsega anda ainult majutusüksusi, millel omanikku pole.|[0,*]Majutusüksustel on juba omanikud: :units. Majutusüksuse omanik määrab, kellele selle eest makstakse, seega saab kutsega anda ainult majutusüksusi, millel omanikku pole.',
     'email_cannot_be_invited' => 'Seda e-posti aadressi ei saa kutsuda — sellel võib juba olla Vyrobeli konto.',
     'invite_sent' => 'Kutse on saadetud aadressile :email.',
+    'invite_saved_no_mail' => 'Kutse on salvestatud aadressile :email. Vyrobel ei saada veel e-kirju, seega pole kutsutule sellest teada antud.',
 ];

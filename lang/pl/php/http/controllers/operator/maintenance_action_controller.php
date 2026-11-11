@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Koszt',
     'bulk_assigned_skipped' => '{1}Przydzielono :count zlecenie naprawy · pominięto (już zamknięte): :skipped|Przydzielono :count zlecenia naprawy · pominięto (już zamknięte): :skipped|Przydzielono :count zleceń naprawy · pominięto (już zamknięte): :skipped',
     'bulk_assigned' => '{1}Przydzielono :count zlecenie naprawy.|Przydzielono :count zlecenia naprawy.|Przydzielono :count zleceń naprawy.',
+    'bulk_unassigned_skipped' => '{1}Cofnięto przypisanie dla :count zlecenia naprawy · pominięto (już zamknięte): :skipped|Cofnięto przypisanie dla :count zleceń naprawy · pominięto (już zamknięte): :skipped|Cofnięto przypisanie dla :count zleceń naprawy · pominięto (już zamknięte): :skipped',
+    'bulk_unassigned' => '{1}Cofnięto przypisanie dla :count zlecenia naprawy.|Cofnięto przypisanie dla :count zleceń naprawy.|Cofnięto przypisanie dla :count zleceń naprawy.',
     'bulk_resolved_skipped' => '{1}Zakończono :count zlecenie naprawy · pominięto (już zamknięte): :skipped|Zakończono :count zlecenia naprawy · pominięto (już zamknięte): :skipped|Zakończono :count zleceń naprawy · pominięto (już zamknięte): :skipped',
     'bulk_resolved' => '{1}Zakończono :count zlecenie naprawy.|Zakończono :count zlecenia naprawy.|Zakończono :count zleceń naprawy.',
     'cannot_start' => 'Nie można rozpocząć pracy nad tym zgłoszeniem – nie jest już otwarte.',

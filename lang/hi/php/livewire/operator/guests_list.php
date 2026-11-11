@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count मेहमान प्रोफ़ाइल|[0,*]:count मेहमान प्रोफ़ाइल',
     'anonymized_guest' => 'गुमनाम मेहमान',
     'unnamed_guest' => 'बिना नाम का मेहमान',
-    'in_house' => 'ठहरे हुए',
     'country_as_saved' => ':country (जैसा सहेजा गया)',
     'chip_in_house' => 'ठहरे हुए',
     'chip_upcoming' => 'आने वाले',

@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}khi áp dụng cũng ghi đè :count đêm của các mùa trùng lặp đã áp dụng|[0,*]khi áp dụng cũng ghi đè :count đêm của các mùa trùng lặp đã áp dụng',
     'season_applied' => 'Đã áp dụng: :date',
     'season_saved' => 'Đã lưu · chưa ghi giá nào',
+    'seasons_unapplied_banner' => '{1}:count mùa đã lưu nhưng chưa áp dụng — chưa có giá nào được ghi cho đến khi bạn áp dụng.|[0,*]:count mùa đã lưu nhưng chưa áp dụng — chưa có giá nào được ghi cho đến khi bạn áp dụng.',
+    'seasons_unapplied_link' => 'Đến phần giá theo mùa',
     'apply_again' => 'Áp dụng lại',
     'seasons_empty_cta' => 'Chưa có mùa nào — lưu một mùa bên dưới, rồi áp dụng khi số liệu đã ổn.',
     'seasons_empty' => 'Chưa có mùa nào.',

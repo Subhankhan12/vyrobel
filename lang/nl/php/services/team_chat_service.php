@@ -8,4 +8,9 @@ return [
     'empty_message' => 'Schrijf een bericht, of voeg een bestand of spraakbericht toe.',
     'message_too_long' => 'Een bericht mag maximaal 5.000 tekens bevatten.',
     'workspace_paused' => 'Deze organisatie is gepauzeerd — berichten kunnen worden gelezen, maar niet verstuurd.',
+    'only_author' => 'U kunt alleen berichten wijzigen of verwijderen die u zelf hebt geschreven.',
+    'already_deleted' => 'Dit bericht is verwijderd.',
+    'edit_window_over' => 'Een bericht kan tot :minutes min na het verzenden worden bewerkt. Verwijderen kan nog altijd.',
+    'reaction_not_allowed' => 'Die reactie is niet beschikbaar.',
+    'edit_to_nothing' => 'Een bericht kan niet leeg blijven — verwijder het in plaats daarvan.',
 ];

@@ -19,6 +19,8 @@ return [
     'col_cost' => '費用',
     'bulk_assigned_skipped' => '{1}作業指示:count件を割り当てました · :skipped件をスキップ（終了済み）|[0,*]作業指示:count件を割り当てました · :skipped件をスキップ（終了済み）',
     'bulk_assigned' => '{1}作業指示:count件を割り当てました。|[0,*]作業指示:count件を割り当てました。',
+    'bulk_unassigned_skipped' => '{1}作業指示:count件の割り当てを解除しました · :skipped件をスキップ（終了済み）|[0,*]作業指示:count件の割り当てを解除しました · :skipped件をスキップ（終了済み）',
+    'bulk_unassigned' => '{1}作業指示:count件の割り当てを解除しました。|[0,*]作業指示:count件の割り当てを解除しました。',
     'bulk_resolved_skipped' => '{1}作業指示:count件を完了にしました · :skipped件をスキップ（終了済み）|[0,*]作業指示:count件を完了にしました · :skipped件をスキップ（終了済み）',
     'bulk_resolved' => '{1}作業指示:count件を完了にしました。|[0,*]作業指示:count件を完了にしました。',
     'cannot_start' => 'このメンテナンス依頼は未着手の状態ではなくなったため、作業を開始できません。',

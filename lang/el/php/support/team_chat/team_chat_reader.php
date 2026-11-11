@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Φωνητικό μήνυμα',
     'preview_photos' => '{1}Φωτογραφία|[0,*]:count φωτογραφίες',
     'preview_files' => '{1}Αρχείο|[0,*]:count αρχεία',
+    'preview_deleted' => 'Αυτό το μήνυμα διαγράφηκε',
 ];

@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Mesazhi u ridërgua.',
     'reservation_linked' => 'Rezervimi u lidh.',
     'conversation_started' => 'Biseda u nis.',
+    'owner_no_portal' => 'Ende pa hyrje në portal — fillimisht ftoni pronarin :name në portalin e pronarit.',
     'workspace_paused' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim deri më :date.',
     'workspace_paused_for_now' => 'Organizata është në pauzë — mesazhet janë vetëm për lexim për momentin.',
 ];

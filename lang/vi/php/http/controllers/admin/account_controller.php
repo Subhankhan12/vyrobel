@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'Xác thực hai yếu tố chưa được bật.',
     'recovery_codes_generated' => 'Đã tạo mã khôi phục mới — hãy lưu lại ngay.',
     'email_attribute' => 'địa chỉ email',
+    'email_change_no_mail' => 'Vyrobel chưa gửi email, nên chúng tôi không thể gửi liên kết xác nhận địa chỉ mới. Không có gì thay đổi.',
     'email_change_sent' => 'Vui lòng kiểm tra hộp thư mới — chúng tôi đã gửi liên kết để xác nhận thay đổi. Email của bạn vẫn giữ nguyên cho đến khi bạn mở liên kết đó.',
     'email_change_cancelled' => 'Đã hủy thay đổi email.',
     'email_link_invalid' => 'Liên kết đổi email này không còn hợp lệ. Vui lòng yêu cầu liên kết mới.',

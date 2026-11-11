@@ -144,7 +144,9 @@ final class RtlCss
         $paths = ['M9 6l6 6-6 6', 'M15 6l-6 6 6 6', 'M15 18l-6-6 6-6', 'M9 18l6-6-6-6', 'm9 6 6 6-6 6', 'm9 18 6-6-6-6'];
         $selector = implode(',', array_map(fn (string $d): string => 'svg path[d="'.$d.'"]', $paths));
 
-        return '<style data-rtl-chevrons>'.$selector.'{transform-box:fill-box;transform-origin:center;transform:scaleX(-1)}</style>';
+        // ⚠️ and a TEXT arrow a view writes beside a translated label (`<span class="vy-flip-rtl">→</span>`): an arrow in a language file is the
+        // translator's to swap, but one the view adds itself cannot be — so it carries this class and turns round here
+        return '<style data-rtl-chevrons>'.$selector.'{transform-box:fill-box;transform-origin:center;transform:scaleX(-1)}.vy-flip-rtl{display:inline-block;transform:scaleX(-1)}</style>';
     }
 
     public static function flipHtml(string $html): string

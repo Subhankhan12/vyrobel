@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1}Njësia ka tashmë një pronar: :units. Pronari i një njësie përcakton kush paguhet për të, ndaj një ftesë mund të japë vetëm njësi që nuk kanë pronar.|[0,*]Njësitë kanë tashmë pronarë: :units. Pronari i një njësie përcakton kush paguhet për të, ndaj një ftesë mund të japë vetëm njësi që nuk kanë pronar.',
     'email_cannot_be_invited' => 'Ky email nuk mund të ftohet — mund të ketë tashmë një llogari Vyrobel.',
     'invite_sent' => 'Ftesa u dërgua te :email.',
+    'invite_saved_no_mail' => 'Ftesa për adresën :email u ruajt. Vyrobel nuk dërgon ende email, ndaj nuk janë njoftuar.',
 ];

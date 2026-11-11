@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'El reembolso se registra como un asiento nuevo en el registro contable. El pago original nunca se edita ni se elimina.',
     'owner_statement_title' => 'El extracto del propietario se ajusta',
     'owner_statement_body' => 'En una estancia atribuida a un propietario, la parte neta del reembolso que le corresponde se registra en su cuenta y aparece en el próximo cierre de su extracto.',
+    'guest_not_emailed' => 'Vyrobel todavía no envía correos electrónicos, así que el huésped no recibirá una confirmación del reembolso: avísele personalmente. Los reembolsos con tarjeta funcionan en modo de prueba hasta la puesta en marcha: todavía no se mueve dinero real.',
     'guest_emailed' => 'Cuando el reembolso se completa, el huésped recibe automáticamente una confirmación por correo electrónico. Los reembolsos con tarjeta funcionan en modo de prueba hasta la puesta en marcha: todavía no se mueve dinero real.',
     'not_yet_available' => 'Todavía no disponible',
     'refund_by_charge' => 'Reembolsar por cargo individual',

@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'İki faktörlü doğrulama henüz etkin değil.',
     'recovery_codes_generated' => 'Yeni kurtarma kodları oluşturuldu — şimdi kaydedin.',
     'email_attribute' => 'e-posta adresi',
+    'email_change_no_mail' => 'Vyrobel henüz e-posta göndermiyor; bu nedenle yeni adresi onaylayan bağlantıyı gönderemiyoruz. Hiçbir şey değiştirilmedi.',
     'email_change_sent' => 'Yeni gelen kutunuzu kontrol edin — değişikliği onaylamanız için bir bağlantı gönderdik. Bağlantıyı açana kadar e-posta adresiniz değişmez.',
     'email_change_cancelled' => 'E-posta adresi değişikliği iptal edildi.',
     'email_link_invalid' => 'Bu e-posta değişikliği bağlantısı artık geçerli değil. Lütfen yeni bir bağlantı isteyin.',

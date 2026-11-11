@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}aplicarea rescrie și :count noapte din sezoane suprapuse deja aplicate|aplicarea rescrie și :count nopți din sezoane suprapuse deja aplicate|aplicarea rescrie și :count de nopți din sezoane suprapuse deja aplicate',
     'season_applied' => 'Aplicat pe :date',
     'season_saved' => 'Salvat · niciun preț scris',
+    'seasons_unapplied_banner' => '{1}:count sezon salvat, dar neaplicat — niciun preț nu se scrie până când nu îl aplicați.|:count sezoane salvate, dar neaplicate — niciun preț nu se scrie până când nu le aplicați.|:count de sezoane salvate, dar neaplicate — niciun preț nu se scrie până când nu le aplicați.',
+    'seasons_unapplied_link' => 'Accesare sezoane',
     'apply_again' => 'Reaplicare',
     'seasons_empty_cta' => 'Încă nu există sezoane — salvați unul mai jos, apoi aplicați-l când cifrele arată corect.',
     'seasons_empty' => 'Încă nu există sezoane.',

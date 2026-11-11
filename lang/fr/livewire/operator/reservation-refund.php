@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Le remboursement est enregistré comme une nouvelle écriture distincte. Le paiement initial n’est jamais modifié ni supprimé.',
     'owner_statement_title' => 'Le relevé propriétaire est ajusté',
     'owner_statement_body' => 'Pour un séjour attribué à un propriétaire, la part nette du remboursement qui lui revient est inscrite à son compte et apparaît à la clôture de son prochain relevé.',
+    'guest_not_emailed' => 'Vyrobel n’envoie pas encore d’e-mails : le client ne recevra pas de confirmation de remboursement — prévenez-le vous-même. Les remboursements par carte fonctionnent en mode test jusqu’à la mise en service — aucun argent réel n’est encore transféré.',
     'guest_emailed' => 'Le client reçoit automatiquement une confirmation de remboursement par e-mail dès que le remboursement aboutit. Les remboursements par carte fonctionnent en mode test jusqu’à la mise en service — aucun argent réel n’est encore transféré.',
     'not_yet_available' => 'Pas encore disponible',
     'refund_by_charge' => 'Remboursement par prestation',

@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} applicandola, viene riscritta anche :count notte di stagioni sovrapposte già applicate|[0,*] applicandola, vengono riscritte anche :count notti di stagioni sovrapposte già applicate',
     'season_applied' => 'Applicata: :date',
     'season_saved' => 'Salvata · nessun prezzo scritto',
+    'seasons_unapplied_banner' => '{1} :count stagione salvata ma non applicata: non viene scritto alcun prezzo finché non la si applica.|[0,*] :count stagioni salvate ma non applicate: non viene scritto alcun prezzo finché non le si applica.',
+    'seasons_unapplied_link' => 'Vai alle stagioni',
     'apply_again' => 'Applica di nuovo',
     'seasons_empty_cta' => 'Ancora nessuna stagione: salvarne una qui sotto, poi applicarla quando i valori sono corretti.',
     'seasons_empty' => 'Ancora nessuna stagione.',

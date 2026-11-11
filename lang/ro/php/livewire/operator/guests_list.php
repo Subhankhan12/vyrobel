@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1}:count profil de oaspete|:count profiluri de oaspeți|:count de profiluri de oaspeți',
     'anonymized_guest' => 'Oaspete anonimizat',
     'unnamed_guest' => 'Oaspete fără nume',
-    'in_house' => 'Cazare în curs',
     'country_as_saved' => ':country (valoare salvată)',
     'chip_in_house' => 'Cazați',
     'chip_upcoming' => 'Viitori',

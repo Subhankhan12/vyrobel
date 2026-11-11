@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} l’application réécrit aussi :count nuit issue de saisons qui se chevauchent, déjà appliquées|[0,*] l’application réécrit aussi :count nuits issues de saisons qui se chevauchent, déjà appliquées',
     'season_applied' => 'Appliquée le :date',
     'season_saved' => 'Enregistrée · aucun prix modifié',
+    'seasons_unapplied_banner' => '{1} :count saison enregistrée mais non appliquée — aucun prix n’est modifié tant que vous ne l’appliquez pas.|[0,*] :count saisons enregistrées mais non appliquées — aucun prix n’est modifié tant que vous ne les appliquez pas.',
+    'seasons_unapplied_link' => 'Aller aux saisons',
     'apply_again' => 'Appliquer de nouveau',
     'seasons_empty_cta' => 'Aucune saison pour l’instant — enregistrez-en une ci-dessous, puis appliquez-la quand les chiffres vous conviennent.',
     'seasons_empty' => 'Aucune saison pour l’instant.',

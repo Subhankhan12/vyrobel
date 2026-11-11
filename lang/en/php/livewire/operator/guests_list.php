@@ -7,7 +7,6 @@ return [
     'anonymized_guest' => 'Anonymized guest',
     'unnamed_guest' => 'Unnamed guest',
     // the Stay cell for a guest checked in right now
-    'in_house' => 'In house',
     // a saved nationality the country list does not have, offered in Edit as it was saved
     'country_as_saved' => ':country (as saved)',
     // the filter chips (All is common.all)

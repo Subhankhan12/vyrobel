@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1} al aplicarla también se reescribe :count noche de temporadas superpuestas ya aplicadas|[0,*] al aplicarla también se reescriben :count noches de temporadas superpuestas ya aplicadas',
     'season_applied' => 'Aplicada el :date',
     'season_saved' => 'Guardada · no se escribió ningún precio',
+    'seasons_unapplied_banner' => '{1} :count temporada guardada, pero sin aplicar: no se escribe ningún precio hasta que la aplique.|[0,*] :count temporadas guardadas, pero sin aplicar: no se escribe ningún precio hasta que las aplique.',
+    'seasons_unapplied_link' => 'Ir a las temporadas',
     'apply_again' => 'Volver a aplicar',
     'seasons_empty_cta' => 'Todavía no hay temporadas: guarde una abajo y aplíquela cuando las cifras sean correctas.',
     'seasons_empty' => 'Todavía no hay temporadas.',

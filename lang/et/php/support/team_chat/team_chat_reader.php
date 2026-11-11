@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Häälsõnum',
     'preview_photos' => '{1}Foto|[0,*]:count fotot',
     'preview_files' => '{1}Fail|[0,*]:count faili',
+    'preview_deleted' => 'See sõnum on kustutatud',
 ];

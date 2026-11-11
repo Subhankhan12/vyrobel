@@ -6,6 +6,7 @@ return [
     'attr_current_password' => 'praegune parool',
     'already_on_team' => 'See isik on juba teie meeskonnas.',
     'invite_sent' => 'Kutse on saadetud aadressile :email.',
+    'invite_saved_no_mail' => 'Kutse on salvestatud aadressile :email. Vyrobel ei saada veel e-kirju, seega pole kutsutule sellest teada antud.',
     'role_updated' => 'Roll on uuendatud.',
     'member_removed' => 'Liige on eemaldatud.',
     'invite_revoked' => 'Kutse on tühistatud.',

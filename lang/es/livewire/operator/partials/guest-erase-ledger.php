@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Nombre y datos de contacto',
     'erased_city_preferences' => 'Ciudad, nacionalidad y preferencias',
     'erased_documents_messages' => 'Documentos de identidad, notas y mensajes',
+    'erased_team_chat' => 'Nombre, correo electrónico y teléfono allí donde el chat del equipo menciona al huésped',
     'kept_heading' => 'Se conserva, sin nombre',
     'kept_bookings' => 'Reservas y estancias',
     'kept_invoices' => 'Facturas, pagos y saldos',

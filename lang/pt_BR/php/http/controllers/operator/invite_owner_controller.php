@@ -15,4 +15,5 @@ return [
     'units_already_owned' => '{1} :units já tem proprietário. O proprietário de uma unidade define quem recebe por ela, por isso um convite só pode incluir unidades sem proprietário.|[0,*] :units já têm proprietários. O proprietário de uma unidade define quem recebe por ela, por isso um convite só pode incluir unidades sem proprietário.',
     'email_cannot_be_invited' => 'Não é possível convidar este e-mail — talvez ele já tenha uma conta Vyrobel.',
     'invite_sent' => 'Convite enviado para :email.',
+    'invite_saved_no_mail' => 'Convite salvo para :email. A Vyrobel ainda não está enviando e-mails, então a pessoa ainda não foi avisada.',
 ];

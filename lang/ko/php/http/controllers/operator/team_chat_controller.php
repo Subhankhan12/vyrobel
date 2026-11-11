@@ -13,4 +13,10 @@ return [
     'voice_too_big' => '음성 메모는 최대 :size MB까지 가능합니다.',
     'voice_unreadable' => '음성 메모를 읽을 수 없습니다 — 다시 녹음하세요.',
     'conversation_not_found' => '대화를 찾을 수 없습니다.',
+    'message_not_found' => '메시지를 찾을 수 없습니다.',
+    'choose_reaction' => '반응을 선택하세요.',
+    'search_too_short' => '검색하려면 :min자 이상 입력하세요.',
+    'search_too_long' => '검색어는 최대 100자까지 입력할 수 있습니다.',
+    'search_summary' => '{0}메시지를 찾지 못했습니다|{1}메시지 :count개를 찾았습니다|[2,*]메시지 :count개를 찾았습니다',
+    'search_summary_capped' => '[0,*]메시지 :count개 중 최신 :shown개 표시',
 ];

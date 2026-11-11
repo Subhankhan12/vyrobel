@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Sesli mesaj',
     'preview_photos' => '{1} Fotoğraf|[0,*] :count fotoğraf',
     'preview_files' => '{1} Dosya|[0,*] :count dosya',
+    'preview_deleted' => 'Bu mesaj silindi',
 ];

@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => 'Tên và thông tin liên hệ',
     'erased_city_preferences' => 'Thành phố, quốc tịch và sở thích',
     'erased_documents_messages' => 'Giấy tờ tùy thân, ghi chú và tin nhắn',
+    'erased_team_chat' => 'Tên, email và số điện thoại của họ ở những nơi trò chuyện nhóm nhắc đến họ',
     'kept_heading' => 'Được giữ lại, không kèm tên',
     'kept_bookings' => 'Đặt phòng và kỳ lưu trú',
     'kept_invoices' => 'Hóa đơn, khoản thanh toán và số dư',

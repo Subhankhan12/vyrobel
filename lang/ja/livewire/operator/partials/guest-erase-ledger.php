@@ -7,6 +7,7 @@ return [
     'erased_name_contact' => '氏名と連絡先',
     'erased_city_preferences' => '市区町村、国籍、希望事項',
     'erased_documents_messages' => '身分証、メモ、メッセージ',
+    'erased_team_chat' => 'チームチャットで言及されている氏名、メールアドレス、電話番号',
     'kept_heading' => '名前を伏せて保持されるデータ',
     'kept_bookings' => '予約と宿泊',
     'kept_invoices' => '請求書、支払い、残額',

@@ -19,6 +19,8 @@ return [
     'col_cost' => '費用',
     'bulk_assigned_skipped' => '{1}已指派 :count 張工單 · 略過 :skipped 張（已結案）|[0,*]已指派 :count 張工單 · 略過 :skipped 張（已結案）',
     'bulk_assigned' => '{1}已指派 :count 張工單。|[0,*]已指派 :count 張工單。',
+    'bulk_unassigned_skipped' => '{1}已取消指派 :count 張工單 · 略過 :skipped 張（已結案）|[0,*]已取消指派 :count 張工單 · 略過 :skipped 張（已結案）',
+    'bulk_unassigned' => '{1}已取消指派 :count 張工單。|[0,*]已取消指派 :count 張工單。',
     'bulk_resolved_skipped' => '{1}已結案 :count 張工單 · 略過 :skipped 張（原本就已結案）|[0,*]已結案 :count 張工單 · 略過 :skipped 張（原本就已結案）',
     'bulk_resolved' => '{1}已結案 :count 張工單。|[0,*]已結案 :count 張工單。',
     'cannot_start' => '無法開始處理此工單——它已不是尚未開始的狀態。',

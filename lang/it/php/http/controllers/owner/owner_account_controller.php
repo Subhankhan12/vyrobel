@@ -8,6 +8,7 @@ return [
     'photo_removed' => 'La Sua foto è stata eliminata.',
     'attr_email' => 'indirizzo e-mail',
     'attr_current_password' => 'password attuale',
+    'email_change_no_mail' => 'Vyrobel non sta ancora inviando e-mail, quindi non possiamo inviare il link che conferma il nuovo indirizzo. Non è stato modificato nulla.',
     'email_change_sent' => 'Controlli la nuova casella di posta: Le abbiamo inviato un link per confermare la modifica. Il Suo indirizzo e-mail resta invariato finché non fa clic sul link.',
     'email_change_cancelled' => 'La modifica dell’indirizzo e-mail è stata annullata.',
     'email_link_invalid' => 'Il link per modificare l’indirizzo e-mail non è più valido. Ne richieda uno nuovo.',

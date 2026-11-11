@@ -6,7 +6,6 @@ return [
     'subtitle_profiles' => '{1} :count fiche client|[0,*] :count fiches clients',
     'anonymized_guest' => 'Client anonymisé',
     'unnamed_guest' => 'Client sans nom',
-    'in_house' => 'En séjour',
     'country_as_saved' => ':country (tel qu’enregistré)',
     'chip_in_house' => 'En séjour',
     'chip_upcoming' => 'À venir',

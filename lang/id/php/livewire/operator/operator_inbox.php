@@ -24,5 +24,6 @@ return [
     'via_channel' => 'melalui :channel',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'Tamu',
+    'owner_fallback' => 'Pemilik',
     'yesterday' => 'Kemarin',
 ];

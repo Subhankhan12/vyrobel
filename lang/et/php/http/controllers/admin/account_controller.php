@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'Kaheastmeline autentimine ei ole veel aktiivne.',
     'recovery_codes_generated' => 'Uued varukoodid on loodud — salvestage need kohe.',
     'email_attribute' => 'e-posti aadress',
+    'email_change_no_mail' => 'Vyrobel ei saada veel e-kirju, seega me ei saa saata linki, millega uus aadress kinnitatakse. Midagi ei muudetud.',
     'email_change_sent' => 'Kontrollige oma uut e-postkasti — saatsime sinna lingi muudatuse kinnitamiseks. Teie e-posti aadress jääb samaks, kuni avate selle lingi.',
     'email_change_cancelled' => 'E-posti muutmine on tühistatud.',
     'email_link_invalid' => 'See e-posti muutmise link ei kehti enam. Taotlege uus link.',

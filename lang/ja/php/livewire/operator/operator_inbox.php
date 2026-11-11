@@ -24,5 +24,6 @@ return [
     'via_channel' => 'チャネル：:channel',
     'reservation_dates' => ':check_in〜:check_out',
     'guest_fallback' => 'ゲスト',
+    'owner_fallback' => 'オーナー',
     'yesterday' => '昨日',
 ];

@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}penerapan ini juga menulis ulang :count malam dari musim tumpang tindih yang sudah diterapkan|[0,*]penerapan ini juga menulis ulang :count malam dari musim tumpang tindih yang sudah diterapkan',
     'season_applied' => 'Diterapkan :date',
     'season_saved' => 'Disimpan · belum ada harga yang diubah',
+    'seasons_unapplied_banner' => '{1}:count musim sudah disimpan tetapi belum diterapkan — tidak ada harga yang diubah sampai Anda menerapkannya.|[0,*]:count musim sudah disimpan tetapi belum diterapkan — tidak ada harga yang diubah sampai Anda menerapkannya.',
+    'seasons_unapplied_link' => 'Buka bagian musim',
     'apply_again' => 'Terapkan lagi',
     'seasons_empty_cta' => 'Belum ada musim — simpan satu di bawah, lalu terapkan saat angkanya sudah tepat.',
     'seasons_empty' => 'Belum ada musim.',

@@ -25,6 +25,7 @@ return [
     'message_resent' => 'Pesan berhasil dikirim ulang.',
     'reservation_linked' => 'Reservasi berhasil ditautkan.',
     'conversation_started' => 'Percakapan dimulai.',
+    'owner_no_portal' => 'Belum punya akun portal — undang :name ke portal pemilik terlebih dahulu.',
     'workspace_paused' => 'Organisasi dijeda — pesan hanya baca hingga :date.',
     'workspace_paused_for_now' => 'Organisasi dijeda — pesan hanya baca untuk sementara.',
 ];

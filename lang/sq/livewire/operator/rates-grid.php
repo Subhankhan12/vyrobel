@@ -66,6 +66,8 @@ return [
     'season_rewritten' => '{1}zbatimi rishkruan edhe :count natë nga sezonet e mbivendosura që janë zbatuar tashmë|[0,*]zbatimi rishkruan edhe :count netë nga sezonet e mbivendosura që janë zbatuar tashmë',
     'season_applied' => 'Zbatuar më :date',
     'season_saved' => 'Ruajtur · pa çmime të shkruara',
+    'seasons_unapplied_banner' => '{1}:count sezon u ruajt, por nuk është zbatuar — asnjë çmim nuk shkruhet derisa të zbatohet.|[0,*]:count sezone u ruajtën, por nuk janë zbatuar — asnjë çmim nuk shkruhet derisa të zbatohen.',
+    'seasons_unapplied_link' => 'Shko te sezonet',
     'apply_again' => 'Zbato përsëri',
     'seasons_empty_cta' => 'Ende pa sezone — ruani një më poshtë, pastaj zbatojeni kur shifrat duken të sakta.',
     'seasons_empty' => 'Ende pa sezone.',

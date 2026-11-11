@@ -9,6 +9,7 @@ return [
     'two_factor_not_active' => 'Die Zwei-Faktor-Authentifizierung ist noch nicht aktiv.',
     'recovery_codes_generated' => 'Neue Wiederherstellungscodes erzeugt — speichern Sie sie jetzt.',
     'email_attribute' => 'E-Mail-Adresse',
+    'email_change_no_mail' => 'Vyrobel versendet noch keine E-Mails, daher können wir den Link zur Bestätigung der neuen Adresse nicht senden. Es wurde nichts geändert.',
     'email_change_sent' => 'Prüfen Sie den Posteingang der neuen Adresse — wir haben einen Link zur Bestätigung der Änderung gesendet. Ihre E-Mail-Adresse bleibt unverändert, bis Sie ihn öffnen.',
     'email_change_cancelled' => 'Die Änderung der E-Mail-Adresse wurde abgebrochen.',
     'email_link_invalid' => 'Dieser Link zur Änderung der E-Mail-Adresse ist nicht mehr gültig. Bitte fordern Sie einen neuen an.',

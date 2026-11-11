@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Il rimborso viene registrato come una nuova scrittura a sé nel registro. Il pagamento originale non viene mai modificato né rimosso.',
     'owner_statement_title' => 'Il rendiconto del proprietario viene rettificato',
     'owner_statement_body' => 'Per un soggiorno attribuito a un proprietario, la quota netta del rimborso a suo carico viene registrata nel suo registro contabile e compare alla chiusura del suo prossimo rendiconto.',
+    'guest_not_emailed' => 'L’invio di e-mail da Vyrobel non è ancora attivo, quindi l’ospite non riceverà la conferma del rimborso: va avvisato direttamente. I rimborsi con carta funzionano in modalità di test fino alla messa in produzione: per ora non viene spostato denaro reale.',
     'guest_emailed' => 'Quando il rimborso va a buon fine, l’ospite riceve automaticamente un’e-mail di conferma del rimborso. I rimborsi con carta funzionano in modalità di test fino alla messa in produzione: per ora non viene spostato denaro reale.',
     'not_yet_available' => 'Non ancora disponibile',
     'refund_by_charge' => 'Rimborso per singolo addebito',

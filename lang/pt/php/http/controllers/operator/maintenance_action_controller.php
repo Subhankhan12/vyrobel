@@ -19,6 +19,8 @@ return [
     'col_cost' => 'Custo',
     'bulk_assigned_skipped' => '{1} Ordens de trabalho atribuídas: :count · ignoradas: :skipped (já fechadas)|[0,*] Ordens de trabalho atribuídas: :count · ignoradas: :skipped (já fechadas)',
     'bulk_assigned' => '{1} Ordens de trabalho atribuídas: :count.|[0,*] Ordens de trabalho atribuídas: :count.',
+    'bulk_unassigned_skipped' => '{1} Ordens de trabalho deixadas por atribuir: :count · ignoradas: :skipped (já fechadas)|[0,*] Ordens de trabalho deixadas por atribuir: :count · ignoradas: :skipped (já fechadas)',
+    'bulk_unassigned' => '{1} Ordens de trabalho deixadas por atribuir: :count.|[0,*] Ordens de trabalho deixadas por atribuir: :count.',
     'bulk_resolved_skipped' => '{1} Ordens de trabalho resolvidas: :count · ignoradas: :skipped (já fechadas)|[0,*] Ordens de trabalho resolvidas: :count · ignoradas: :skipped (já fechadas)',
     'bulk_resolved' => '{1} Ordens de trabalho resolvidas: :count.|[0,*] Ordens de trabalho resolvidas: :count.',
     'cannot_start' => 'Não é possível iniciar esse pedido — já não está em aberto.',

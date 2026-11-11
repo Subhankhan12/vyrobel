@@ -53,6 +53,7 @@ return [
     'reversing_entry_body' => 'Zwrot jest księgowany jako osobny, nowy zapis w księdze. Pierwotna płatność nigdy nie jest edytowana ani usuwana.',
     'owner_statement_title' => 'Rozliczenie właściciela zostaje skorygowane',
     'owner_statement_body' => 'W przypadku pobytu przypisanego właścicielowi jego udział w zwrocie jest księgowany w księdze właściciela i trafia do najbliższego zamykanego rozliczenia.',
+    'guest_not_emailed' => 'Vyrobel nie wysyła jeszcze e-maili, więc gość nie otrzyma potwierdzenia zwrotu – poinformuj go o tym samodzielnie. Do czasu uruchomienia systemu zwroty kartą działają w trybie testowym – żadne prawdziwe pieniądze nie są jeszcze przesyłane.',
     'guest_emailed' => 'Gdy zwrot się powiedzie, gość automatycznie otrzyma e-mail z potwierdzeniem zwrotu. Do czasu uruchomienia systemu zwroty kartą działają w trybie testowym – żadne prawdziwe pieniądze nie są jeszcze przesyłane.',
     'not_yet_available' => 'Jeszcze niedostępne',
     'refund_by_charge' => 'Zwrot według pojedynczych obciążeń',

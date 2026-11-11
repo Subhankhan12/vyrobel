@@ -3,7 +3,6 @@
 // I18N-01 — es translation of lang/en/php/support/reservations/stay_label.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
-    'in_house' => 'En curso',
     'left' => 'Salida: :date',
     'tentative' => 'Provisional · :date',
     'arrives' => 'Llegada: :date',

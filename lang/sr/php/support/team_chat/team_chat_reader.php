@@ -8,4 +8,5 @@ return [
     'preview_voice' => 'Гласовна порука',
     'preview_photos' => '{21}:count фотографија|:count фотографије|:count фотографија|{1}Фотографија',
     'preview_files' => '{21}:count датотека|:count датотеке|:count датотека|{1}Датотека',
+    'preview_deleted' => 'Ова порука је избрисана',
 ];

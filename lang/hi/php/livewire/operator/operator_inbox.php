@@ -24,5 +24,6 @@ return [
     'via_channel' => ':channel के ज़रिए',
     'reservation_dates' => ':check_in – :check_out',
     'guest_fallback' => 'मेहमान',
+    'owner_fallback' => 'मालिक',
     'yesterday' => 'बीता कल',
 ];
