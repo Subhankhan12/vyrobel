@@ -134,7 +134,8 @@ if ($sets === []) {
 // A test run that has just FINISHED can still be exiting for a moment — re-check a few times before refusing, so the
 // refusal means "another run is active", not "the last one had not quite gone yet".
 for ($try = 0; $try < 5; $try++) {
-    exec('bash ops/proc-check.sh -q '.escapeshellarg('pest|artisan test').' 2>&1', $o, $busy);
+    // ⚠️ A7: `--here` — only a run that is THIS repository's counts (by its working folder); another project's test run no longer holds the harness
+    exec('bash ops/proc-check.sh -q --here '.escapeshellarg('pest|artisan test').' 2>&1', $o, $busy);
     if ($busy === 0) {
         break;
     }

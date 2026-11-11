@@ -6,6 +6,7 @@ use App\Models\MessageReaction;
 use App\Models\MessageStar;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Messaging\ChatFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -191,4 +192,48 @@ it('refuses star and pin on another owner’s thread (owner-scoped 404)', functi
 
     expect(MessageStar::query()->count())->toBe(0)
         ->and($thread->fresh()->pinned_message_id)->toBeNull();
+});
+
+// ── ⚠️ D-UPLOAD-LIMITS (measured 2026-10-06; fixed 2026-11-11, his "do all") ──────────────────────────────────────────────────
+// The owner composer validated a typed "10 MB" and used Laravel's own refusal words — and the page never printed `$errors`, so a file that
+// was too big, the wrong type, or one too many bounced back with NO visible reason. The limits are now the server's real ceilings
+// (ChatFiles::limits(), as the Inbox and team chat read them) and every refusal is said on the page, in the Inbox's own sentences.
+it('⚠️⚠️ D-UPLOAD-LIMITS — a file that is too big, the wrong type, or one too many is REFUSED IN WORDS on the page, and nothing is written', function () {
+    Storage::fake('local');
+    $s = seedScenario(1);
+    $a = inboxOwner($s, 'Amara Okafor', 0);
+    $thread = ownerThread($a['owner']);
+    $mb = ChatFiles::limits()['mb'];
+    $before = Message::query()->where('thread_id', $thread->id)->count();
+
+    // too big: one KB over THIS server's ceiling — said with that number
+    $this->actingAs($a['user'])->post('/owner/messages/'.$thread->id, ['body' => 'Here', 'attachments' => [UploadedFile::fake()->create('big.pdf', ($mb * 1024) + 1, 'application/pdf')]])
+        ->assertSessionHas('owner_error', "Each file can be up to {$mb} MB.");
+    // the wrong type
+    $this->actingAs($a['user'])->post('/owner/messages/'.$thread->id, ['body' => 'Here', 'attachments' => [UploadedFile::fake()->create('run.exe', 10, 'application/x-msdownload')]])
+        ->assertSessionHas('owner_error');
+    // one too many (a sixth)
+    $six = array_map(fn (int $i) => UploadedFile::fake()->create("f{$i}.pdf", 10, 'application/pdf'), range(1, 6));
+    $this->actingAs($a['user'])->post('/owner/messages/'.$thread->id, ['body' => 'Here', 'attachments' => $six])
+        ->assertSessionHas('owner_error', fn (string $m): bool => str_contains($m, (string) ChatFiles::MAX_FILES));
+    expect(Message::query()->where('thread_id', $thread->id)->count())->toBe($before);   // nothing written
+
+    // the NEW-conversation form says the same
+    $this->actingAs($a['user'])->post('/owner/messages', ['body' => 'Hello', 'attachments' => [UploadedFile::fake()->create('big.pdf', ($mb * 1024) + 1, 'application/pdf')]])
+        ->assertSessionHas('owner_error', "Each file can be up to {$mb} MB.");
+
+    // …and the page SHOWS it (the notice it never printed)
+    $page = $this->actingAs($a['user'])->withSession(['owner_error' => "Each file can be up to {$mb} MB."])->get('/owner/messages?c='.$thread->id)->assertOk()->getContent();
+    expect($page)->toContain("Each file can be up to {$mb} MB.");
+
+    // CONTROL: a normal PDF goes through
+    $this->actingAs($a['user'])->post('/owner/messages/'.$thread->id, ['body' => 'Here', 'attachments' => [UploadedFile::fake()->create('ok.pdf', 100, 'application/pdf')]])
+        ->assertSessionMissing('owner_error')->assertRedirect();
+    expect(Message::query()->where('thread_id', $thread->id)->count())->toBe($before + 1);
+});
+
+it('D-UPLOAD-LIMITS — the controller no longer types its own number', function () {
+    $source = (string) file_get_contents(app_path('Http/Controllers/Owner/OwnerMessageActionController.php'));
+
+    expect($source)->not->toContain('ATTACH_MAX_KB')->not->toContain('= 10240')->toContain('ChatFiles::limits()');
 });

@@ -42,6 +42,8 @@
 #   ops/proc-check.sh -q 'pestphp/pest'       # quiet: exit status only
 #   ops/proc-check.sh --kill 'pestphp/pest'   # exit 0 = all killed and confirmed dead · 1 = nothing matched
 #                                             #      · 3 = blind · 4 = REFUSED (the pattern matches us)
+#   ops/proc-check.sh -q --here '[p]est|[a]rtisan test'
+#                                             # ⚠️ A7 (2026-11-11): count only a match that is THIS repository's — see "--here" below
 #
 # ⚠️ EVERY NON-ZERO STOPS THE `&&`, including 3 (blind). The fail-safe direction is deliberate: refusing to
 #   start is cheap, and starting a second run corrupts the shared test database in a way that looks like real
@@ -57,16 +59,18 @@ PS_CMD=${VY_PS_CMD:-"ps -eo pid,command"}
 
 QUIET=0
 KILL=0
+HERE=0
 while [ $# -gt 0 ]; do
   case "${1:-}" in
     -q)     QUIET=1; shift ;;
     --kill) KILL=1; shift ;;
+    --here) HERE=1; shift ;;
     *)      break ;;
   esac
 done
 
 if [ $# -lt 1 ]; then
-  echo "usage: ops/proc-check.sh [-q] [--kill] <extended-regex>" >&2
+  echo "usage: ops/proc-check.sh [-q] [--kill] [--here] <extended-regex>" >&2
   exit 2
 fi
 PATTERN="$1"
@@ -153,6 +157,55 @@ MATCHES="$(${PS_CMD} 2>/dev/null \
   | awk -v me="$$" -v parent="${PPID:-0}" '$1 != me && $1 != parent' \
   || true)"
 COUNT="$(printf '%s' "${MATCHES}" | grep -c . || true)"
+
+# ── ⚠️⚠️ `--here` — A7 (2026-11-11, his "do all"): ONLY A RUN THAT IS THIS REPOSITORY'S COUNTS ───────────────────────────────────
+#
+# The mutation harness refused to start while ANY `pest` ran anywhere on the Mac, so another project's test run (advisor-platform, restiox/admin,
+# each on its own database) held it for half an hour — and a hurried session could be tempted to weaken the guard. RULES.md says it plainly: identify a
+# process by its WORKING FOLDER, never by the look of its command line. A match is NOT ours only when ALL of these hold:
+#   · its working folder is READ (lsof) and is outside this repository, and
+#   · its command line does not name this repository, and
+#   · the VERIFIER passed its own control: lsof must report THIS shell's own working folder correctly. If it cannot, nobody is exempted
+#     — a check that cannot see is not allowed to say "someone else's" (the same rule as the process listing's positive control above).
+# Everything else is ours and counts: a working folder that cannot be read, a process that is ours by cwd OR by name, a permission refusal.
+# A match whose process has gone by the time it is asked about is dropped (it is no longer running). Without `--here` nothing changes.
+if [ "${HERE}" -eq 1 ] && [ "${COUNT}" -gt 0 ]; then
+  REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+  LSOF_CMD=${VY_LSOF_CMD:-lsof}
+  cwd_of() { ${LSOF_CMD} -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
+
+  VERIFIER_OK=0
+  if [ "$(cwd_of $$)" = "$(pwd -P)" ] && [ -n "$(pwd -P)" ]; then VERIFIER_OK=1; fi
+
+  OURS=""; FOREIGN=0
+  while IFS= read -r _line; do
+    [ -n "${_line}" ] || continue
+    _pid="$(printf '%s' "${_line}" | awk '{print $1}')"
+    if ! ps -p "${_pid}" -o pid= >/dev/null 2>&1; then continue; fi          # it exited while we looked
+    _foreign=0
+    if [ "${VERIFIER_OK}" -eq 1 ]; then
+      _cwd="$(cwd_of "${_pid}")"
+      if [ -n "${_cwd}" ]; then
+        case "${_cwd}/" in
+          "${REPO_ROOT}"/*) _foreign=0 ;;
+          *) if printf '%s' "${_line}" | grep -qF "${REPO_ROOT}"; then _foreign=0; else _foreign=1; fi ;;
+        esac
+      fi
+    fi
+    if [ "${_foreign}" -eq 1 ]; then
+      FOREIGN=$((FOREIGN + 1))
+      say "  ↪ not ours (working folder ${_cwd}): $(printf '%s' "${_line}" | cut -c1-110)"
+    else
+      OURS="${OURS}${OURS:+
+}${_line}"
+    fi
+  done <<< "${MATCHES}"
+  MATCHES="${OURS}"
+  COUNT="$(printf '%s' "${MATCHES}" | grep -c . || true)"
+  if [ "${VERIFIER_OK}" -eq 0 ]; then
+    say "  ⚠️ --here: lsof could not report this shell's own working folder, so NO match was exempted (a blind verifier exempts nobody)"
+  fi
+fi
 
 if [ "${KILL}" -eq 0 ]; then
   # ⚠️⚠️ THE EXIT CODES WERE INVERTED ON 2026-09-22, AND THE REASON IS THE WHOLE POINT OF THIS SCRIPT.

@@ -18,6 +18,7 @@ use App\Support\Owner\OwnerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 /**
@@ -35,10 +36,32 @@ use Illuminate\Validation\Rule;
  */
 class OwnerMessageActionController extends Controller
 {
-    /** Attachment limits — mirror the Add-Unit upload posture (generated ULID name, capped size + count). */
-    private const ATTACH_MAX_KB = 10240;   // 10 MB per file
+    /**
+     * ⚠️ D-UPLOAD-LIMITS (2026-11-11, his "do all"): the limits are {@see ChatFiles}'s — this server's real ceilings (ours, or PHP's upload ceiling when lower),
+     * the same the Inbox and team chat use — never a number typed here ("10 MB") that a host on PHP's defaults cannot honour. And a refusal is SAID: this
+     * page never printed `$errors`, so a file that was too big, the wrong type or one too many bounced back with no visible reason at all.
+     *
+     * @return array{rules: array<string, mixed>, messages: array<string, string>}
+     */
+    private function attachmentRules(): array
+    {
+        $mb = ChatFiles::limits()['mb'];
 
-    private const ATTACH_MAX = 5;
+        return [
+            'rules' => [
+                'attachments' => ['nullable', 'array', 'max:'.ChatFiles::MAX_FILES],
+                'attachments.*' => ['file', 'max:'.($mb * 1024), 'mimes:'.ChatFiles::FILE_EXTENSIONS],
+            ],
+            // the Inbox's own sentences (already said in every language) — one wording for one refusal
+            'messages' => [
+                'body.max' => __('php/http/controllers/operator/inbox_action_controller.body_max'),
+                'attachments.max' => __('php/http/controllers/operator/inbox_action_controller.attachments_max', ['max' => ChatFiles::MAX_FILES]),
+                'attachments.*.max' => __('php/http/controllers/operator/inbox_action_controller.attachment_too_big', ['mb' => $mb]),
+                'attachments.*.mimes' => __('php/http/controllers/operator/inbox_action_controller.attachment_type'),
+                'attachments.*.file' => __('php/http/controllers/operator/inbox_action_controller.attachment_unreadable', ['mb' => $mb]),
+            ],
+        ];
+    }
 
     /**
      * The owner's reply. Posted as `inbound` (into the org) by
@@ -53,14 +76,17 @@ class OwnerMessageActionController extends Controller
     {
         $model = MessageThread::query()->findOrFail($thread);   // owner-scoped → cross-owner/guest 404
 
-        $validated = $request->validate([
+        $limits = $this->attachmentRules();
+        $check = Validator::make($request->all(), [
             // Body OR at least one attachment — a message can be a lone file. Guarded by the after-hook below.
             'body' => ['nullable', 'string', 'max:5000'],
             // The quoted message must be a REAL message on THIS thread (never a cross-thread/owner id).
             'reply_to_message_id' => ['nullable', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
-            'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
-            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:'.ChatFiles::FILE_EXTENSIONS],
-        ]);
+        ] + $limits['rules'], $limits['messages']);
+        if ($check->fails()) {
+            return back()->withErrors($check)->with('owner_error', (string) $check->errors()->first());   // said on the page — it never printed $errors
+        }
+        $validated = $check->validated();
 
         $files = $request->file('attachments', []);
         $body = trim((string) ($validated['body'] ?? ''));
@@ -142,15 +168,18 @@ class OwnerMessageActionController extends Controller
      */
     public function start(Request $request, InboxService $inbox): RedirectResponse
     {
-        $validated = $request->validate([
+        $limits = $this->attachmentRules();
+        $check = Validator::make($request->all(), [
             'body' => ['required', 'string', 'max:5000'],
             'subject' => ['nullable', 'string', 'max:160'],
             // The picked recipient (exact-match compose) — a REAL back-office staff member of this org, NEVER a
             // guest. Re-resolved through the tenant scope + the back-office allow-list, never trusted from the body.
             'staff_id' => ['nullable', 'string'],
-            'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
-            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:'.ChatFiles::FILE_EXTENSIONS],
-        ]);
+        ] + $limits['rules'], $limits['messages'] + ['body.required' => __('php/http/controllers/owner/owner_message_action_controller.empty_message')]);
+        if ($check->fails()) {
+            return back()->withErrors($check)->with('owner_error', (string) $check->errors()->first());   // said on the page — it never printed $errors
+        }
+        $validated = $check->validated();
 
         $owner = $this->resolveOwnerId();
 
