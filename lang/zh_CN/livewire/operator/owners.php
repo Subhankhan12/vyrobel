@@ -94,7 +94,6 @@ return [
     'optional' => '可选',
     'unit_taken_title' => '房间的业主决定款项付给谁——无法通过邀请转移',
     'owned_by' => '业主：:owner',
-    'units_hint_none' => '未选择——只能在邀请中为业主分配现有房间。',
     'units_hint' => '{1}:count 间房——邀请被接受后归此业主所有。|[0,*]:count 间房——邀请被接受后归此业主所有。',
     'commission_label' => '管理佣金',
     'commission_other' => '其他',

@@ -364,11 +364,11 @@ return [
     ],
     [
         'id' => 'OM-M40',
-        'name' => 'the hint promises units can be given later from the owner’s page',
+        'name' => 'the hint with no unit chosen says the invite is the only way to give an owner units (false since DEC-p built Give a unit)',
         'file' => $ownersView,
-        'old' => "[__('livewire/operator/owners.units_hint_none')]",
-        'new' => "['None chosen — you can give units later from the owner’s page.']",
-        'tests' => [['file' => $ownersTest, 'filter' => 'never says units can be given to an owner later']],
+        'old' => "\$vyUnitHints = [''];",
+        'new' => "\$vyUnitHints = ['None chosen — an owner is given existing units only in their invite.'];",
+        'tests' => [['file' => $ownersTest, 'filter' => 'never says an owner is given units only in their invite']],
     ],
 
     // ── The review's findings (2026-10-03) — each puts the old behaviour back ───────────────────────

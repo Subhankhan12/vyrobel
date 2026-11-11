@@ -81,4 +81,12 @@ return [
         'new' => "->middleware(['can:reservations.create'])->name('reservations.guest-match');",
         'tests' => [['file' => $test, 'filter' => 'gated like the booking itself']],
     ],
+    [
+        'id' => 'GM-M10',
+        'name' => 'a blank email is validated again — the app renders errors as JSON only under /api, so the answer is a REDIRECT',
+        'file' => 'app/Http/Controllers/Operator/GuestMatchController.php',
+        'old' => '        $matches = is_string($email) && strlen($email) <= 254 ? GuestEmailMatch::for($email) : [];',
+        'new' => "        \$matches = GuestEmailMatch::for(\$request->validate(['email' => ['required', 'string', 'max:254']])['email']);",
+        'tests' => [['file' => $test, 'filter' => 'blank, missing or over-long email']],
+    ],
 ];

@@ -65,6 +65,19 @@ it('finds the guest whatever the email\'s case or stray spaces, and no one for a
         ->and(GuestEmailMatch::for(''))->toBe([]);
 });
 
+it('⚠️ a blank, missing or over-long email is answered with an empty JSON list — never a redirect (found live 2026-11-12: this app renders errors as JSON only under /api)', function () {
+    $w = gem_world();
+    $url = route('app.reservations.guest-match');
+
+    foreach ([['email' => ''], [], ['email' => str_repeat('a', 250).'@example.test'], ['email' => ['x']]] as $body) {
+        $r = test()->actingAs($w['operator'])->postJson($url, $body);
+        expect($r->getStatusCode())->toBe(200)->and($r->json('matches'))->toBe([])
+            ->and((string) $r->headers->get('Cache-Control'))->toContain('no-store');
+    }
+    // …and the permitted actor still finds a real guest (the answer above is not just a broken fixture)
+    expect(gem_lookup($w, GEM_EMAIL)->json('matches'))->toHaveCount(1);
+});
+
 it('⚠️⚠️ never offers another organisation\'s guest, an erased guest, or one whose erasure is scheduled', function () {
     $w = gem_world();
     $other = gem_world();   // a second organisation holding the SAME email on its own guest

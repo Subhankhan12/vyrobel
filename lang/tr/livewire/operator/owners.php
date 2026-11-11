@@ -94,7 +94,6 @@ return [
     'optional' => 'isteğe bağlı',
     'unit_taken_title' => 'Bir birimin hakedişi, o birimin kayıtlı mülk sahibine ödenir — birim davetle başkasına aktarılamaz',
     'owned_by' => 'Sahibi: :owner',
-    'units_hint_none' => 'Seçilmedi — mülk sahibine mevcut birimler yalnızca davetinde verilir.',
     'units_hint' => '{1} :count birim — davet kabul edildiğinde bu mülk sahibinin olur.|[0,*] :count birim — davet kabul edildiğinde bu mülk sahibinin olur.',
     'commission_label' => 'Yönetim komisyonu',
     'commission_other' => 'Diğer',

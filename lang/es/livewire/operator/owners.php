@@ -94,7 +94,6 @@ return [
     'optional' => 'opcional',
     'unit_taken_title' => 'El propietario de una unidad decide quién cobra por ella: no se puede trasladar mediante una invitación',
     'owned_by' => 'Propietario: :owner',
-    'units_hint_none' => 'Sin selección: a un propietario solo se le asignan unidades existentes en su invitación.',
     'units_hint' => '{1} :count unidad: pasa a ser de este propietario cuando acepte la invitación.|[0,*] :count unidades: pasan a ser de este propietario cuando acepte la invitación.',
     'commission_label' => 'Comisión de gestión',
     'commission_other' => 'Otra',

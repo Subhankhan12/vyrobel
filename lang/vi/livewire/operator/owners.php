@@ -94,7 +94,6 @@ return [
     'optional' => 'không bắt buộc',
     'unit_taken_title' => 'Chủ sở hữu của phòng quyết định ai được chi trả cho phòng đó — không thể chuyển phòng qua lời mời',
     'owned_by' => 'Chủ sở hữu: :owner',
-    'units_hint_none' => 'Chưa chọn — chủ sở hữu chỉ được giao phòng hiện có thông qua lời mời.',
     'units_hint' => '{1}:count phòng — sẽ thuộc về chủ sở hữu này khi lời mời được chấp nhận.|[0,*]:count phòng — sẽ thuộc về chủ sở hữu này khi lời mời được chấp nhận.',
     'commission_label' => 'Hoa hồng quản lý',
     'commission_other' => 'Khác',

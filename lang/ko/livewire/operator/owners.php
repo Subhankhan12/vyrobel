@@ -94,7 +94,6 @@ return [
     'optional' => '선택 사항',
     'unit_taken_title' => '객실의 소유주가 해당 객실의 지급 대상을 결정합니다 — 초대로 이전할 수 없습니다',
     'owned_by' => '소유주: :owner',
-    'units_hint_none' => '선택 안 함 — 소유주에게는 초대할 때에만 기존 객실을 배정할 수 있습니다.',
     'units_hint' => '{1}객실 :count개 — 초대를 수락하면 이 소유주의 객실이 됩니다.|[0,*]객실 :count개 — 초대를 수락하면 이 소유주의 객실이 됩니다.',
     'commission_label' => '위탁 운영 수수료',
     'commission_other' => '기타',

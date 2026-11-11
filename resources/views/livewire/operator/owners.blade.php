@@ -48,7 +48,9 @@
             $vyErrorsOnTop = $errors->any() && ! $vyInviteRetry && $vyResendInvite === null;
             $vySent = session('owner_invite_sent');
             // The units hint under the picker, for every count the dialog can show (rule 12: plurals on the server).
-            $vyUnitHints = [__('livewire/operator/owners.units_hint_none')];
+            // ⚠️ With NO unit chosen it says nothing (DEC-p, 2026-11-12). It used to say the invite was the one way to give an owner units — true until the
+            //    owner's page could give a unit later; a sentence promising that would need a new text in every language, so the false one is simply gone.
+            $vyUnitHints = [''];
             for ($vyN = 1; $vyN <= count($inviteUnits); $vyN++) {
                 $vyUnitHints[$vyN] = trans_choice('livewire/operator/owners.units_hint', $vyN, ['count' => $vyN]);
             }

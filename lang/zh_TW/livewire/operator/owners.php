@@ -94,7 +94,6 @@ return [
     'optional' => '選填',
     'unit_taken_title' => '房間的業主決定款項撥給誰——無法透過邀請轉移',
     'owned_by' => '業主：:owner',
-    'units_hint_none' => '未選擇——只能在邀請中將現有房間分配給業主。',
     'units_hint' => '{1}:count 間房——邀請被接受後即歸此業主所有。|[0,*]:count 間房——邀請被接受後即歸此業主所有。',
     'commission_label' => '管理佣金',
     'commission_other' => '其他',

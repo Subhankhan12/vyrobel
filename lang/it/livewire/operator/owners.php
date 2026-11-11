@@ -94,7 +94,6 @@ return [
     'optional' => 'facoltativo',
     'unit_taken_title' => 'Il proprietario di un’unità determina chi riceve i versamenti — la proprietà non può essere trasferita tramite un invito',
     'owned_by' => 'Proprietario: :owner',
-    'units_hint_none' => 'Nessuna selezionata — a un proprietario si assegnano unità esistenti solo nel suo invito.',
     'units_hint' => '{1} :count unità — diventa di questo proprietario quando l’invito viene accettato.|[0,*] :count unità — diventano di questo proprietario quando l’invito viene accettato.',
     'commission_label' => 'Commissione di gestione',
     'commission_other' => 'Altro',

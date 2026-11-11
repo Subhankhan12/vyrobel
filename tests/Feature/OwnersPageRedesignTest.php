@@ -103,14 +103,15 @@ it('⚠️ says so in one line when every unit already has an owner, instead of 
         ->and($html)->toContain('Every unit here already has an owner');
 });
 
-it('⚠️⚠️ never says units can be given to an owner later — only their invite gives an owner existing units (2026-10-03)', function () {
-    // 🔬 the hint read "None chosen — you can give units later from the owner’s page", and no screen does that: a unit's
-    //    owner is written only when an invite is accepted (OwnerInviteService) or a requested unit is approved, and cleared
-    //    only when the owner is removed.
+it('⚠️⚠️ never says an owner is given units only in their invite — the owner’s page can give one later (DEC-p, 2026-11-12; was the 2026-10-03 pin)', function () {
+    // 🔬 2026-10-03 the hint read "None chosen — you can give units later from the owner’s page", and no screen did that, so it was changed to say the
+    //    invite was the one way. DEC-p (his "yes", 2026-11-11) built "Give a unit" on the owner's page, which made THAT sentence false. With no unit
+    //    chosen the dialog now says nothing; promising "later" would need a new text in all 27 languages (OPEN.md D-HINT-LATER). Neither claim may
+    //    come back by accident: not the false "only in their invite", and not a promise this dialog does not keep for an owner who has not accepted yet.
     $source = i18nEnglishSource(resource_path('views/livewire/operator/owners.blade.php'));   // I18N-01: the words as read
 
-    expect($source)->not->toContain('give units later')
-        ->and($source)->toContain('an owner is given existing units only in their invite');
+    expect($source)->not->toContain('only in their invite')
+        ->and($source)->not->toContain('give units later');
 });
 
 // ── The page ─────────────────────────────────────────────────────────────────────────────────────

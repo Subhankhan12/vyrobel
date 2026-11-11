@@ -18,10 +18,13 @@ class GuestMatchController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $validated = $request->validate(['email' => ['required', 'string', 'max:254']]);
+        // ⚠️ A blank, missing or over-long email is not an error: nobody is offered, and the answer is still JSON. (This app renders errors as JSON only under
+        //    `/api`, so `validate()` here would answer a bad call with a REDIRECT — seen on the live site 2026-11-12 with an empty email.)
+        $email = $request->input('email');
+        $matches = is_string($email) && strlen($email) <= 254 ? GuestEmailMatch::for($email) : [];
 
         return response()
-            ->json(['matches' => GuestEmailMatch::for($validated['email'])])
+            ->json(['matches' => $matches])
             ->header('Cache-Control', 'no-store, private');
     }
 }

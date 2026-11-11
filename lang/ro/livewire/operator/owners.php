@@ -94,7 +94,6 @@ return [
     'optional' => 'opțional',
     'unit_taken_title' => 'Proprietarul unei unități decide cine este plătit pentru ea — unitatea nu poate fi mutată printr-o invitație',
     'owned_by' => 'Proprietar: :owner',
-    'units_hint_none' => 'Nicio unitate aleasă — unui proprietar i se pot atribui unități existente doar prin invitație.',
     'units_hint' => '{1}:count unitate — devine a acestui proprietar când invitația este acceptată.|:count unități — devin ale acestui proprietar când invitația este acceptată.|:count de unități — devin ale acestui proprietar când invitația este acceptată.',
     'commission_label' => 'Comision de administrare',
     'commission_other' => 'Altul',

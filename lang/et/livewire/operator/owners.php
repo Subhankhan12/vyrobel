@@ -94,7 +94,6 @@ return [
     'optional' => 'valikuline',
     'unit_taken_title' => 'Majutusüksuse omanik otsustab, kellele selle eest makstakse — seda ei saa kutsega üle viia',
     'owned_by' => 'Omanik: :owner',
-    'units_hint_none' => 'Valimata — omanikule saab olemasolevaid majutusüksusi anda ainult kutses.',
     'units_hint' => '{1}:count majutusüksus — see läheb sellele omanikule, kui kutse vastu võetakse.|[0,*]:count majutusüksust — need lähevad sellele omanikule, kui kutse vastu võetakse.',
     'commission_label' => 'Halduse komisjonitasu',
     'commission_other' => 'Muu',
