@@ -1,0 +1,89 @@
+<?php
+// THE SECOND OPEN-LIST PASS (2026-11-11) — READ-ONLY preflight from the STAGED release (stdin; writes nothing — the database read-only).
+// Yes/no, counts, types and timings only — never a message, a guest name, a session id or a secret.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v, 'locales' => count((array) config('app.available_locales')), 'intl' => extension_loaded('intl')];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['routes'] = [
+    'hold release exists and needs payments.refund' => in_array('can:payments.refund', $mw('app.reservations.hold-release'), true),
+    'refund still needs payments.refund' => in_array('can:payments.refund', $mw('app.reservations.refund'), true),
+];
+
+// the typing sweep is on the schedule, hourly
+$out['team-chat:prune-typing scheduled hourly'] = collect(app(Illuminate\Console\Scheduling\Schedule::class)->events())
+    ->contains(fn ($e) => str_contains((string) $e->command, 'team-chat:prune-typing') && $e->expression === '0 * * * *');
+
+// A8 — what structured data would say on THIS host: the host name only (a public address, no secret), and which types
+$site = \App\Support\Marketing\StructuredData::siteUrl();
+$out['structured data'] = ['site address is a real public https host' => $site !== null, 'host' => $site === null ? null : parse_url($site, PHP_URL_HOST),
+    'home types' => $site === null ? [] : array_map(fn ($n) => $n['@type'], \App\Support\Marketing\StructuredData::graph('/')['@graph'] ?? []),
+    'pricing breadcrumb' => $site === null ? null : (\App\Support\Marketing\StructuredData::graph('/pricing')['@type'] ?? null),
+    'logo file exists' => is_file(public_path('favicon.svg'))];
+
+// Inbox reactions: how many rows hold an older emoji, how many a key (counts only) — and the column's collation, for the record
+$out['message_reactions'] = Schema::hasTable('message_reactions') ? [
+    'rows' => DB::table('message_reactions')->count(),
+    'rows holding the emoji itself (written before this release)' => DB::table('message_reactions')->whereRaw("emoji NOT REGEXP '^[a-z_]+$'")->count(),
+    'collation' => DB::selectOne("SELECT COLLATION_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'message_reactions' AND COLUMN_NAME = 'emoji'")->c ?? null,
+] : 'no table';
+
+// card holds: how many are `authorized` right now (the release button's subject) — a count, nothing else
+$out['card holds'] = Schema::hasTable('payment_authorizations') ? DB::table('payment_authorizations')->selectRaw('status, COUNT(*) AS n')->groupBy('status')->pluck('n', 'status')->all() : 'no table';
+
+// the property's own day: timezones in use (a count per zone — no property names)
+$out['property timezones in use'] = Schema::hasTable('properties') ? DB::table('properties')->selectRaw('timezone, COUNT(*) AS n')->groupBy('timezone')->pluck('n', 'timezone')->all() : 'no table';
+$t0 = microtime(true);
+$ids = DB::table('properties')->pluck('id')->map(fn ($i) => (string) $i)->all();
+$out['PropertyDay::todays timing (ms, all properties, tenant-free read)'] = null;
+try {
+    app(\App\Support\Tenancy\TenantContext::class)->runAsSuperAdmin(function () use ($ids, &$out, $t0): void {
+        \App\Support\Property\PropertyDay::todays($ids);
+        $out['PropertyDay::todays timing (ms, all properties, tenant-free read)'] = round((microtime(true) - $t0) * 1000, 1);
+    });
+} catch (Throwable $e) { $out['PropertyDay::todays timing (ms, all properties, tenant-free read)'] = 'failed: '.get_class($e); }
+
+// the new sentences exist in EVERY language and say something different from the key (a missing one would print its key)
+$groups = ['php/models/folio_item.wallet_credit', 'php/support/privacy/sub_processors.agreement_none', 'php/support/privacy/sub_processors.stripe.name',
+    'livewire/reservation-detail.hold_release_button', 'php/services/folio_service.hold_not_open'];
+$missing = [];
+foreach ((array) config('app.available_locales') as $locale) {
+    foreach ($groups as $key) {
+        if (! Lang::has($key, $locale, false)) { $missing[] = $locale.':'.$key; }
+    }
+}
+$out['new sentences missing in a language'] = $missing;
+$out['console register in German (name of the Stripe row)'] = (string) __('php/support/privacy/sub_processors.stripe.name', [], 'de');
+
+// EVERY view compiles AND its compiled PHP token-parses
+$bad = []; $n = 0;
+foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS)) as $f) {
+    if (! str_ends_with((string) $f->getFilename(), '.blade.php')) { continue; }
+    $n++;
+    try { token_get_all(app('blade.compiler')->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE); }
+    catch (Throwable $e) { $bad[] = str_replace(resource_path('views').'/', '', $f->getPathname()).' — '.$e->getMessage(); }
+}
+$out['views parsed'] = $n;
+$out['views that fail'] = $bad;
+
+// the language files load
+$langBad = [];
+foreach ((array) config('app.available_locales') as $locale) {
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path('lang/'.$locale), FilesystemIterator::SKIP_DOTS)) as $f) {
+        if (! str_ends_with((string) $f->getFilename(), '.php')) { continue; }
+        try { (static function (string $p) { return include $p; })($f->getPathname()); } catch (Throwable $e) { $langBad[] = $locale.'/'.basename($f->getPathname()); }
+    }
+}
+$out['lang files that fail to load'] = $langBad;
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

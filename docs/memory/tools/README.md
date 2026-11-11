@@ -32,3 +32,4 @@ artisan exits 255 under it.
 ⚠️ **The two `*-ids.json` files on the server hold the probe's address. They are not copied here, and are deleted after
 the final after-run** (`../OPEN.md` A3). Treat anything these tools write as private: keep it in the 700 folder, mode
 600.
+| `preflight-open-list-2.php.txt` | Saved 2026-11-11 (the second open-list pass): the hold-release route's gate, the typing sweep on the schedule, what structured data would say on this host (host name + types), the Inbox reactions' stored kinds and collation, card holds by status, the property timezones in use and the day-lookup timing, the new sentences present in every language, every view parsed, every language file loaded | read-only, from the staged release |
