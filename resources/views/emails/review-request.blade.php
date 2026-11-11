@@ -62,7 +62,10 @@
                 </td>
             </tr>
         </table>
-    @else
+    @elseif (! empty($brand->replyTo))
+        {{-- ⚠️ D-REVIEW-REPLY (2026-11-11, his "do all"): "reply to this email" is printed ONLY when a reply reaches the property — the email
+             carries the property's Reply-To header exactly when the property has set one ({@see \App\Mail\Concerns\BrandsGuestMail::brandedEnvelope}).
+             Without one a reply goes to Vyrobel's own sender, where nobody reads it, so the line was an invitation to write into the void. --}}
         <p style="margin:0 0 20px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">{{ __('emails/review-request.reply_instead') }}</p>
     @endif
 

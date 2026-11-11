@@ -17,6 +17,7 @@ use App\Mail\WinbackMail;
 use App\Models\Folio;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
 use App\Support\Guest\MarketingUnsubscribe;
@@ -141,6 +142,7 @@ class EmailPreviewController extends Controller
                 $propertyName,
                 $reservation->leadGuest !== null ? MarketingUnsubscribe::url($reservation->leadGuest) : null,
                 $reservation->leadGuest !== null ? MarketingUnsubscribe::oneClickUrl($reservation->leadGuest) : null,
+                PropertyBrand::for($reservation->property)->replyTo,   // the preview says what a send would
             ),
             'verify-email' => new VerifyEmailMail($guestName, url('/verify-email/sample-token')),
             default => abort(404),   // unreachable — callers guard on the KEYS first

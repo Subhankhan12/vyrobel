@@ -7,6 +7,7 @@ namespace App\Mail;
 use App\Support\Guest\MarketingUnsubscribe;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
@@ -30,11 +31,16 @@ class WinbackMail extends Mailable
         public readonly ?string $propertyName = null,
         public readonly ?string $unsubscribeUrl = null,
         public readonly ?string $unsubscribeOneClickUrl = null,
+        // D-REVIEW-REPLY (2026-11-11): the property's reply-to — "Reply any time" is printed, and the header set, only when one exists
+        public readonly ?string $replyToAddress = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('php/mail/winback_mail.subject'));
+        return new Envelope(
+            replyTo: ($this->replyToAddress !== null && $this->replyToAddress !== '') ? [new Address($this->replyToAddress)] : [],
+            subject: __('php/mail/winback_mail.subject'),
+        );
     }
 
     /** RFC 2369/8058 unsubscribe headers — present ONLY on a marketing send (empty otherwise). */
@@ -54,6 +60,7 @@ class WinbackMail extends Mailable
             with: [
                 'guestName' => $this->guestName,
                 'place' => $place,
+                'replyTo' => $this->replyToAddress,
                 'unsubscribeUrl' => $this->unsubscribeUrl,
             ],
         );

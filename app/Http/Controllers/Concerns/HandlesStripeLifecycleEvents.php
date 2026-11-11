@@ -12,6 +12,7 @@ use App\Support\Billing\CheckoutSessions;
 use App\Support\Tenancy\TenantContext;
 use App\Support\Webhooks\WebhookEventClaim;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 /**
  * ⚠️⚠️ ADMIN 06 — what BOTH Stripe receivers do with an event that is not simply applied, in ONE place.
@@ -58,7 +59,19 @@ trait HandlesStripeLifecycleEvents
     {
         $org = CheckoutSessions::organizationFor($event, $tenant);
         if ($org === null) {
-            return $this->unresolved($event, $tenant, 'a Checkout page this deployment has no record of — never opened here, or its organisation was deleted');
+            // ⚠️ D-R3-3 / DEC-g (2026-11-11, his "do all"): A TEST-MODE PAGE'S EXPIRY, ARRIVING AFTER ITS ORGANISATION WAS DELETED, IS ROUTINE.
+            //    It names the organisation (so it was recorded `failed`, and the daily reconciliation showed one red row) for a page that moved
+            //    no money. Recorded `ignored` — with the same reason — only when ALL of: it is an EXPIRY (a page that was paid after the
+            //    deletion is an anomaly, `.completed` stays `failed`); Stripe says it is TEST mode (a live event, or one that says nothing,
+            //    stays `failed` — money may be involved); it names an organisation; and that organisation is really GONE (one that still
+            //    exists, an archived one included, has no record of this page, which is a real problem).
+            $named = $event->metadataOrganizationId();
+            $routine = $event->type === 'checkout.session.expired'
+                && $event->livemode() === false
+                && $named !== null
+                && ! $tenant->runAsSuperAdmin(fn () => DB::table('organizations')->where('id', $named)->exists());
+
+            return $this->unresolved($event, $tenant, 'a Checkout page this deployment has no record of — never opened here, or its organisation was deleted', routine: $routine);
         }
 
         return $tenant->forOrganization($org, fn (): JsonResponse => $this->once($event, fn () => CheckoutSessions::closeFromEvent($event)));

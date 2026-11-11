@@ -278,3 +278,38 @@ it('renders the verify email with the real 1-hour expiry and no fabricated welco
         ->not->toContain('credit')                       // no welcome-credit feature → never teased
         ->not->toContain('waiting for you');
 });
+
+// ── ⚠️ D-REVIEW-REPLY (found 2026-10-05 by the Guests review; fixed 2026-11-11, his "do all") ──────────────────────────────────
+// "Simply reply to this email and tell us about your stay — we read every message" was printed whether or not the property has a reply-to
+// address. Without one the reply goes to Vyrobel's own sender, where nothing reads it — an invitation to write into the void. The line is
+// printed only when a reply reaches the property (its Reply-To header is set from the same brand value).
+it('⚠️ D-REVIEW-REPLY — the review request invites a reply only when the reply reaches the property', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    // no review page (reviews off) and no reply-to: nothing to invite
+    $bare = (new ReviewRequestMail($reservation))->render();
+    expect($bare)->not->toContain('reply to this email')->and($bare)->toContain('Thanks for staying with us');
+    expect((new ReviewRequestMail($reservation))->envelope()->replyTo)->toBe([]);
+
+    // with the property's reply-to the line returns, and the header is set from the SAME value
+    $s['property']->forceFill(['brand_reply_to' => 'stay@seaside.test'])->save();
+    $reservation = $reservation->fresh();
+    $mail = new ReviewRequestMail($reservation);
+    expect($mail->render())->toContain('reply to this email');
+    expect(collect($mail->envelope()->replyTo)->map(fn ($a) => $a->address)->all())->toBe(['stay@seaside.test']);
+
+    // a review PAGE (the stars) needs no reply invitation either way
+    $withStars = (new ReviewRequestMail($reservation->fresh(), route('guest.review', $reservation->getKey())))->render();
+    expect($withStars)->toContain('rating=');
+});
+
+it('⚠️ D-REVIEW-REPLY — the win-back email says "reply any time" only with a reply-to, and sets that header', function () {
+    expect((new WinbackMail('Ada', 'Seaside'))->render())->not->toContain('Reply any time')
+        ->and((new WinbackMail('Ada', 'Seaside'))->envelope()->replyTo)->toBe([]);
+
+    $mail = new WinbackMail('Ada', 'Seaside', null, null, 'stay@seaside.test');
+    expect($mail->render())->toContain('Reply any time')
+        ->and(collect($mail->envelope()->replyTo)->map(fn ($a) => $a->address)->all())->toBe(['stay@seaside.test']);
+});

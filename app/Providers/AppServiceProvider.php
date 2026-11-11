@@ -419,7 +419,8 @@ class AppServiceProvider extends ServiceProvider
         // outside `production`, downgraded to `log`, so no dev/CI run can ever email a real person — even with
         // MAIL_MAILER=postmark in a stray .env. Enforced in code, not by convention. See MailSafetyGuard.
         $configuredMailer = (string) config('mail.default');
-        $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer, (string) config('mail.mailers.smtp.host'));
+        // D-MAIL-GUARD-SHAPES: the mailer is judged by the transport behind its name, read from the config the way Laravel builds it
+        $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer, (string) config('mail.mailers.smtp.host'), (array) config('mail.mailers'));
         if ($safeMailer !== $configuredMailer) {
             config(['mail.default' => $safeMailer]);
             Log::warning('MailSafetyGuard downgraded a real mail transport outside production.', [

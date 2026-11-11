@@ -10,12 +10,10 @@ return [
         'id' => 'MAIL-M1',
         'name' => 'the guard forgets that SMTP to a real host is real sending',
         'file' => 'app/Support/Mail/MailSafetyGuard.php',
-        'old' => '        if ($mailer === \'smtp\') {
-            return ! self::isLocalSmtpHost($smtpHost);
-        }
-
-',
-        'new' => '',
+        'old' => '            return [$name === \'smtp\'
+                ? (self::isLocalSmtpHost($smtpHost) ? self::SAFE : self::REAL)',
+        'new' => '            return [$name === \'smtp\'
+                ? self::SAFE',
         'tests' => [['file' => 'tests/Feature/MailHostingerSmtpTest.php', 'filter' => 'SMTP to a REAL host']],
     ],
     [

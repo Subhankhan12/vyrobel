@@ -177,38 +177,41 @@ class SettingsActionController extends Controller
             }
             throw $e;
         }
-        // ⚠️ ADMIN 06 — the REPLACED logo goes once the new one is saved: before this, every replacement left the old
-        // file on the public disk forever, reachable by its URL, with no row naming it.
+        // ⚠️⚠️ DEC-f / D-LOGO (2026-11-11, his "do all" — this REVERSES the part of ADMIN 06 that removed a replaced logo): THE REPLACED LOGO
+        // STAYS ON DISK. Emails already sent carry the logo as a link to its file (`APP_URL/media/brand-logos/<hash>.png`), so deleting the file
+        // when the logo was replaced broke the picture in every earlier email, for ever. It is recorded as a `media` row on the property
+        // (collection `brand_logo_history`) so it is still OWNED: an organisation's deletion removes every media file of the organisation —
+        // the current logo and each replaced one — and its preview counts them. Without the row a kept file would have no record and would
+        // survive a deletion (the privacy gap that "just stop deleting" leaves).
         if (is_string($new) && is_string($old) && $old !== '' && $old !== $new) {
-            $this->removeReplacedLogo($old);
+            $this->keepReplacedLogo($property, $old);
         }
 
         return $this->back(__('php/http/controllers/operator/settings_action_controller.brand_saved'));
     }
 
     /**
-     * Remove a logo no property uses any more — never one another property still shows (a demo seed can share one
-     * file between tenants, so the check reads EVERY organisation, not the tenant scope). A disk that will not remove
-     * it is logged with the path, the only record of the file once no row names it; the save itself stands.
+     * Keep a replaced logo, recorded as a media row of the property so the organisation still owns it (see {@see updateBrand}). One row per
+     * path; the file is not touched. A failure to record it is logged and never undoes the save — the file is still on disk, only its record is
+     * missing, and the log names the path.
      */
-    private function removeReplacedLogo(string $path): void
+    private function keepReplacedLogo(Property $property, string $path): void
     {
         try {
-            if (DB::table('properties')->where('brand_logo_path', $path)->exists()) {
+            if ($property->media()->where('collection', 'brand_logo_history')->where('path', $path)->exists()) {
                 return;
             }
             $disk = Storage::disk('public');
-            if (! $disk->exists($path)) {
-                return;   // already gone
-            }
-            // delete it, then confirm it is gone: a disk that refuses reports false, or leaves the file behind
-            if ($disk->delete($path) && $disk->missing($path)) {
-                return;
-            }
-            Log::warning('ADMIN 06 — a replaced brand logo could not be removed; remove it by hand.', ['disk' => 'public', 'path' => $path]);
+            $property->media()->create([
+                'collection' => 'brand_logo_history',
+                'disk' => 'public',
+                'path' => $path,
+                'mime' => $disk->exists($path) ? (string) $disk->mimeType($path) : null,
+                'size' => $disk->exists($path) ? (int) $disk->size($path) : null,
+            ]);
         } catch (Throwable $e) {
             report($e);
-            Log::warning('ADMIN 06 — a replaced brand logo could not be removed; remove it by hand.', ['disk' => 'public', 'path' => $path, 'why' => $e::class]);
+            Log::warning('DEC-f — a replaced brand logo could not be recorded; it stays on disk and a deletion would not find it.', ['disk' => 'public', 'path' => $path, 'why' => $e::class]);
         }
     }
 

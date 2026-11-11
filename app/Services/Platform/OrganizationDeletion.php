@@ -151,8 +151,26 @@ final class OrganizationDeletion
         if ((clone $open)->where('type', 'refund')->exists()) {
             return __('php/services/platform/organization_deletion.refund_processing');
         }
-        if ($open->exists() || DB::table('payment_authorizations')->where('organization_id', $organizationId)->where('status', 'authorized')->exists()) {
+        // ⚠️⚠️ D-HOLD-STUCK (2026-11-11, his "do all"): A HOLD IS JUDGED BY ITS AUTHORIZATION, NOT BY ITS PAYMENT ROW. A card hold has two
+        //    rows — the `deposit_hold` payment, which is written `authorized` and NEVER advanced (a capture is a NEW payment), and the
+        //    authorization, which carries the real lifecycle (authorized → captured / released / voided / expired). Reading the payment row
+        //    meant a hold that had been CAPTURED still read "open" for ever, so it refused a delete for ever, with no way out. So:
+        //      · a deposit_hold payment WITH an authorization row is left to that row (below);
+        //      · one WITHOUT an authorization row is unknown, so it still refuses (refusing beats deleting wrongly — it is money);
+        //      · an authorization blocks only while it is `authorized` AND its payment is a STRIPE one — a manual hold has no object at Stripe.
+        $holdWithAuthorization = fn ($q) => $q->where('payments.type', 'deposit_hold')
+            ->whereExists(fn ($a) => $a->select(DB::raw(1))->from('payment_authorizations')->whereColumn('payment_authorizations.payment_id', 'payments.id'));
+        $openPayments = (clone $open)->whereNot($holdWithAuthorization);
+        if ($openPayments->exists()) {
             return __('php/services/platform/organization_deletion.card_payment_open');
+        }
+        $openHold = DB::table('payment_authorizations')
+            ->join('payments', 'payments.id', '=', 'payment_authorizations.payment_id')
+            ->where('payment_authorizations.organization_id', $organizationId)
+            ->where('payment_authorizations.status', 'authorized')
+            ->where('payments.gateway', 'stripe');
+        if ($openHold->exists()) {
+            return __('php/services/platform/organization_deletion.card_hold_open');
         }
         // any status Stripe does not call finished — an unknown one included (REVIEW 2, D-R2-7)
         $disputes = DB::table('payment_disputes')->where('organization_id', $organizationId)->whereNotIn('status', PaymentDispute::CLOSED_STATUSES);

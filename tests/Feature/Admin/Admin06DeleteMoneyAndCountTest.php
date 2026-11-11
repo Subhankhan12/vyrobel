@@ -431,6 +431,47 @@ it('⚠️⚠️ refuses while a card payment, a card hold or a refund is still 
     a06RefusedEverywhere($this, $w['org'], 'card refund is still being processed');
 })->group('security');
 
+/** A card hold the way FolioService::authorizeDeposit writes it: a `deposit_hold` payment (never advanced) + its authorization. */
+function a06Hold(string $orgId, string $authorizationStatus, string $gateway = 'stripe'): string
+{
+    $payment = a06Payment($orgId, ['type' => 'deposit_hold', 'status' => 'authorized', 'gateway' => $gateway]);
+    DB::table('payment_authorizations')->insert(['id' => (string) Str::ulid(), 'organization_id' => $orgId, 'payment_id' => $payment, 'currency' => 'EUR',
+        'status' => $authorizationStatus, 'created_at' => now(), 'updated_at' => now()]);
+
+    return $payment;
+}
+
+it('⚠️⚠️ D-HOLD-STUCK — a hold is judged by its AUTHORIZATION: a closed one no longer blocks a delete for ever, an open one still does', function () {
+    // 2026-11-11 (his "do all"). A hold's payment row is written `authorized` and never advanced (a capture is a NEW payment), so a CAPTURED
+    // hold read "open" for ever and refused a delete with no way out. Refusing beats deleting wrongly where money is involved — so only a
+    // hold the authorization still calls `authorized` at STRIPE refuses; one with no authorization row at all is unknown, and still does.
+    $w = a06World();
+    $orgId = (string) $w['org']->id;
+
+    // still open at Stripe → refuses, by its OWN sentence (it says there is no button to release one — the truth)
+    $payment = a06Hold($orgId, 'authorized');
+    expect(a06Refusal($orgId))->toContain('card hold')->toContain('no button to release')->not->toContain('Let it settle');
+    a06RefusedEverywhere($this, $w['org'], 'card hold');
+
+    // closed by Vyrobel's own lifecycle → no longer blocks, whatever the never-advanced payment row still says
+    foreach (['captured', 'released', 'voided', 'expired'] as $closed) {
+        DB::table('payment_authorizations')->where('payment_id', $payment)->update(['status' => $closed]);
+        expect(a06Refusal($orgId))->toBeNull("a $closed hold");
+    }
+
+    // a hold payment with NO authorization row is unknown → still refuses (the safe direction)
+    DB::table('payments')->where('id', $payment)->delete();
+    DB::table('payment_authorizations')->where('payment_id', $payment)->delete();
+    $orphan = a06Payment($orgId, ['type' => 'deposit_hold', 'status' => 'authorized']);
+    expect(a06Refusal($orgId))->toContain('card payment or card hold is still open');
+    DB::table('payments')->where('id', $orphan)->delete();
+    expect(a06Refusal($orgId))->toBeNull();
+
+    // a MANUAL hold has no object at Stripe — it never blocks
+    a06Hold($orgId, 'authorized', 'manual');
+    expect(a06Refusal($orgId))->toBeNull();
+})->group('security');
+
 it('⚠️⚠️ refuses while ANY card dispute is open — a payment can carry more than one', function () {
     $w = a06World();
     $orgId = (string) $w['org']->id;
@@ -577,14 +618,15 @@ it('⚠️⚠️ #2 — a REFUND takes its payment\'s mode (Stripe\'s Refund car
 it('⚠️⚠️ a signed event for an organisation that no longer exists is RECORDED and answered 2xx — on BOTH endpoints', function () {
     $w = a06World();
     $orgId = (string) $w['org']->id;
+    $stillThere = (string) a06World()['org']->id;   // another organisation, which stays
     $payment = a06Payment($orgId, ['status' => 'succeeded']);
     $intent = (string) DB::table('payments')->where('id', $payment)->value('gateway_ref');
     a06Delete($orgId);
     // the event's own row, read back: recorded (never dropped), with a reason, and in the right state
     $row = fn (): ?object => DB::table('webhook_events')->orderByDesc('created_at')->orderByDesc('id')->first(['event_type', 'status', 'error']);
-    $posted = function (string $path, string $type, array $object, string $expect) use ($row): void {
+    $posted = function (string $path, string $type, array $object, string $expect, bool $livemode = false) use ($row): void {
         $before = DB::table('webhook_events')->count();
-        a06PostStripe($path, $type, $object)->assertStatus(202)->assertJson(['status' => 'unresolved']);
+        a06PostStripe($path, $type, $object, livemode: $livemode)->assertStatus(202)->assertJson(['status' => 'unresolved']);
         $r = $row();
         expect(DB::table('webhook_events')->count())->toBe($before + 1, "{$path} {$type}: written down, never dropped")
             ->and($r->event_type)->toBe($type)
@@ -596,8 +638,16 @@ it('⚠️⚠️ a signed event for an organisation that no longer exists is REC
     foreach (['/webhooks/stripe', '/webhooks/stripe/connect'] as $path) {
         // a dispute months after the charge — its payment is gone with the organisation: someone's money, so `failed`
         $posted($path, 'charge.dispute.created', ['id' => 'dp_a06_'.Str::random(8), 'object' => 'dispute', 'payment_intent' => $intent, 'status' => 'needs_response'], 'failed');
+        // ⚠️ D-R3-3 / DEC-g (his ruling, 2026-11-11): a TEST-MODE page's expiry arriving after its organisation was deleted moved no money —
+        //    recorded (never dropped, with its reason) but `ignored`, so the reconciliation's list stays a list of real problems
+        $posted($path, 'checkout.session.expired', ['id' => 'cs_a06_gone_'.Str::random(6), 'object' => 'checkout.session', 'metadata' => $ours], 'ignored');
+        // …but only that: a LIVE-mode expiry, a page that was PAID after the deletion, and an expiry that names an organisation that still
+        // exists (which has no record of this page — a real problem) all stay `failed`
+        $posted($path, 'checkout.session.expired', ['id' => 'cs_a06_live_'.Str::random(6), 'object' => 'checkout.session', 'metadata' => $ours, 'livemode' => true], 'failed', livemode: true);
+        $posted($path, 'checkout.session.completed', ['id' => 'cs_a06_paid_'.Str::random(6), 'object' => 'checkout.session', 'metadata' => $ours], 'failed');
+        $posted($path, 'checkout.session.expired', ['id' => 'cs_a06_alive_'.Str::random(6), 'object' => 'checkout.session', 'metadata' => ['organization_id' => (string) $stillThere]], 'failed');
         // an object the app created (it names the organisation) for something that is gone: `failed`
-        $posted($path, 'checkout.session.expired', ['id' => 'cs_a06_gone_'.Str::random(6), 'object' => 'checkout.session', 'metadata' => $ours], 'failed');
+        $posted($path, 'payment_intent.succeeded', ['id' => 'pi_a06_gone_'.Str::random(6), 'object' => 'payment_intent', 'status' => 'succeeded', 'metadata' => $ours], 'failed');
         $posted($path, 'payment_intent.succeeded', ['id' => $intent, 'object' => 'payment_intent', 'status' => 'succeeded', 'metadata' => $ours], 'failed');
         // one that names no organisation of ours — a subscription invoice's intent, say: recorded `ignored`, not a failure
         $posted($path, 'payment_intent.succeeded', ['id' => 'pi_a06_notours_'.Str::random(6), 'object' => 'payment_intent', 'status' => 'succeeded'], 'ignored');
@@ -701,28 +751,61 @@ it('⚠️ a live billing event wins over a test-mode one stored on the same sub
 
 // ══ #3 · FILES — A REPLACED LOGO GOES ══════════════════════════════════════════════════════════════════════════
 
-it('⚠️ a REPLACED brand logo is removed once the new one is saved — never one another property still shows', function () {
+it('⚠️⚠️ DEC-f — a REPLACED brand logo STAYS on disk (emails already sent link to it), is recorded as the property\'s, and is removed with the ORGANISATION', function () {
+    // 2026-11-11 (his "do all") — this REVERSES the old "a replaced logo is removed": an email already sent carries the logo as a link to its
+    // file, so removing the file on replacement broke the picture in every earlier email, for ever. The file is kept, and a `media` row records
+    // it so an organisation's deletion still finds it (a kept file with no record would survive a deletion).
     Storage::fake('public');
     $s = seedScenario(1);
     $owner = operatorUser($s, [], 'Property Owner');
     $brand = fn () => $this->actingAs($owner)->post(route('app.settings.brand'), ['logo' => UploadedFile::fake()->image('logo.png', 120, 40)])->assertSessionHasNoErrors();
     $logo = fn (): string => (string) DB::table('properties')->where('id', $s['property']->id)->value('brand_logo_path');
+    $history = fn (): array => DB::table('media')->where('organization_id', $s['org']->id)->where('collection', 'brand_logo_history')->pluck('path')->all();
 
     $brand();
     $first = $logo();
-    Storage::disk('public')->assertExists($first);
+    expect($history())->toBe([]);                                       // nothing replaced yet
     $brand();
     $second = $logo();
     expect($second)->not->toBe($first);
     Storage::disk('public')->assertExists($second);
-    Storage::disk('public')->assertMissing($first);
+    Storage::disk('public')->assertExists($first);                      // ← THE CHANGE: the replaced file is still there
+    expect($history())->toBe([$first]);                                 // …and recorded, so it is still owned
 
-    // a file another property still points at (a demo seed can share one) stays
-    $other = seedScenario(1);
-    DB::table('properties')->where('id', $other['property']->id)->update(['brand_logo_path' => $second]);
+    // the same replaced path is never recorded twice; a third replacement adds the second
     $brand();
-    Storage::disk('public')->assertExists($second);
-    Storage::disk('public')->assertExists($logo());
+    $third = $logo();
+    expect($history())->toEqualCanonicalizing([$first, $second]);
+    foreach ([$first, $second, $third] as $path) {
+        Storage::disk('public')->assertExists($path);
+    }
+
+    // the old email's link still answers: the public media route serves a kept logo
+    $this->get('/media/'.$first)->assertOk();
+
+    // DELETING THE ORGANISATION removes the current logo AND every replaced one (the privacy side of keeping them)
+    a06Suspend((string) $s['org']->id);   // only a suspended organisation can be deleted
+    $report = a06Delete((string) $s['org']->id);
+    foreach ([$first, $second, $third] as $path) {
+        Storage::disk('public')->assertMissing($path);
+    }
+    expect($report)->toBeArray();
+})->group('security');
+
+it('⚠️ a logo file another organisation\'s rows still name is NOT removed by this organisation\'s deletion', function () {
+    Storage::fake('public');
+    $s = seedScenario(1);
+    $owner = operatorUser($s, [], 'Property Owner');
+    $this->actingAs($owner)->post(route('app.settings.brand'), ['logo' => UploadedFile::fake()->image('logo.png', 120, 40)])->assertSessionHasNoErrors();
+    $mine = (string) DB::table('properties')->where('id', $s['property']->id)->value('brand_logo_path');
+
+    // a demo seed can share one file between tenants: another organisation's property names the same file
+    $other = seedScenario(1);
+    DB::table('properties')->where('id', $other['property']->id)->update(['brand_logo_path' => $mine]);
+
+    a06Suspend((string) $s['org']->id);
+    a06Delete((string) $s['org']->id);
+    Storage::disk('public')->assertExists($mine);
 })->group('security');
 
 // ══ #5 · A SIGN-IN LINK IS A CREDENTIAL ═══════════════════════════════════════════════════════════════════════
