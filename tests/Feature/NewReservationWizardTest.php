@@ -221,7 +221,9 @@ it('⚠️ uses no inline style — every display is a class, and every class ha
     foreach ($m[1] as $attr) {
         $attr = (string) preg_replace('/\{\{.*?\}\}|@[a-z]+\s*\(.*?\)|@end[a-z]+/s', ' ', $attr);
         foreach (preg_split('/\s+/', $attr, -1, PREG_SPLIT_NO_EMPTY) as $token) {
-            if (! str_ends_with($token, '-') && preg_match('/^vyn?[a-z]*-[a-z0-9-]+$/', $token)
+            // `vy-flip-rtl` (2026-11-11, D-RTL-TEXT-ARROWS) is a hook, not a style: the right-to-left middleware adds its rule to an Arabic or Persian
+            // page (App\Support\I18n\RtlCss::chevronRule) — in a left-to-right page a text arrow needs no rule at all
+            if ($token !== 'vy-flip-rtl' && ! str_ends_with($token, '-') && preg_match('/^vyn?[a-z]*-[a-z0-9-]+$/', $token)
                 && preg_match('/\.'.preg_quote($token, '/').'(?![a-zA-Z0-9_-])/', $css) !== 1) {
                 $missing[] = $token;
             }
