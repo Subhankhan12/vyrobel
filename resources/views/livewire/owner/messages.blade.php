@@ -7,6 +7,8 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-owner.shell active="messages" :title="__('livewire/owner/messages.title')" :subtitle="$subtitle" :viewer="$viewer">
     <style>
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the reply bar's flex lives in a class. */
+        .vy-msg-replybar { flex-shrink:0; margin-top:10px; display:flex; align-items:center; gap:9px; padding:8px 13px; border-radius:12px; background:rgba(120,70,40,.06); border:1px solid rgba(120,70,40,.12); }
         .vy-msg-wrap { display:flex; gap:18px; align-items:stretch; height:calc(100vh - 150px); min-height:460px; }
         .vy-msg-rail { width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; min-height:0; }
         .vy-msg-pane { flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; }
@@ -370,7 +372,7 @@
                     </div>
 
                     {{-- reply-to context banner (Alpine) --}}
-                    <div x-show="replyTo" x-cloak style="flex-shrink:0;margin-top:10px;display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.12)">
+                    <div x-show="replyTo" x-cloak class="vy-msg-replybar">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>
                         <span style="flex:1;min-width:0;font-size:12px;color:var(--vy-muted)">{!! __('livewire/owner/messages.replying_to') !!}</span>
                         <button type="button" @click="replyTo = null" title="{{ __('livewire/owner/messages.cancel_reply') }}" aria-label="{{ __('livewire/owner/messages.cancel_reply') }}" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:15px;line-height:1">&times;</button>

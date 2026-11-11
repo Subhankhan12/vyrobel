@@ -94,6 +94,7 @@
         .vy-cal-brow { display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-top:1px solid rgba(120,70,40,.1); }
         .vy-cal-brow:first-of-type { border-top:none; }
         .vy-cal-series { display:inline-flex; align-items:center; gap:4px; padding:1px 7px; border-radius:var(--vy-r-pill); background:rgba(232,112,58,.12); color:var(--vy-accent-tint-text); font-size:10px; font-weight:600; }
+        .vy-cal-confirm { display:inline-flex; gap:6px; } /* ⚠️ a class, not an inline display: x-show erases that */
         .vy-cal-remove { border:none; background:none; color:var(--vy-muted); cursor:pointer; font-size:14px; line-height:1; padding:4px 6px; border-radius:8px; }
         .vy-cal-remove:hover { color:var(--vy-accent); background:rgba(232,112,58,.12); }
         .vy-cal-toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:14px; padding:12px 18px; border-radius:14px; background:var(--vy-grad-dark); color:#fff; box-shadow:0 14px 40px rgba(60,30,15,.34); font-size:13px; animation:vyCalToastIn .3s cubic-bezier(.22,.61,.36,1) both; }
@@ -324,7 +325,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="button" class="vy-cal-remove" x-show="!confirming" @click="confirming = true" aria-label="{{ __('livewire/owner/block-calendar.remove_aria') }}">✕</button>
-                                    <span x-show="confirming" x-cloak style="display:inline-flex;gap:6px">
+                                    <span x-show="confirming" x-cloak class="vy-cal-confirm">
                                         <button type="submit" style="border:none;background:var(--vy-grad);color:#fff;padding:5px 11px;border-radius:var(--vy-r-pill);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ __('common.remove') }}</button>
                                         <button type="button" style="border:1px solid rgba(120,70,40,.18);background:rgba(255,255,255,.7);color:var(--vy-muted);padding:5px 11px;border-radius:var(--vy-r-pill);font-family:var(--vy-sans);font-size:11.5px;font-weight:500;cursor:pointer" @click="confirming = false">{{ __('livewire/owner/block-calendar.keep') }}</button>
                                     </span>

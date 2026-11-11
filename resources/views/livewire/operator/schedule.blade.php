@@ -221,7 +221,7 @@
                                                 $dropOk = $canManage && ! $readOnly && ! $pureLeave;
                                             @endphp
                                             <div style="min-height:58px;border-radius:13px;padding:3px;transition:box-shadow .12s,background .12s;{{ $cell['today'] ?? false ? 'background:rgba(217,102,46,.04)' : '' }}"
-                                                 :style="overKey === '{{ $key }}' ? 'box-shadow:inset 0 0 0 2px rgba(232,112,58,.65);background:rgba(217,102,46,.12)' : ''"
+                                                 :style="overKey === '{{ $key }}' ? { boxShadow: 'inset 0 0 0 2px rgba(232,112,58,.65)', background: 'rgba(217,102,46,.12)' } : {}"
                                                  @if ($dropOk)
                                                      @dragover="over('{{ $sid }}','{{ $cell['date'] }}', $event, {{ $pureLeave ? 'true' : 'false' }})"
                                                      @dragleave="leaveCell('{{ $sid }}','{{ $cell['date'] }}')"
@@ -297,7 +297,7 @@
                                             <label style="flex:1;min-width:70px;text-align:center;cursor:pointer">
                                                 <input type="radio" name="shift_type" value="{{ $t }}" x-model="mType" style="position:absolute;opacity:0;pointer-events:none">
                                                 <span style="display:block;padding:8px 6px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid var(--vy-hairline)"
-                                                      :style="mType === '{{ $t }}' ? 'background:var(--vy-accent);color:#fff;border-color:var(--vy-accent)' : 'color:var(--vy-muted)'">
+                                                      :style="mType === '{{ $t }}' ? { background: 'var(--vy-accent)', color: '#fff', border: '1px solid var(--vy-accent)' } : { color: 'var(--vy-muted)' }">
                                                     {{ \App\Support\Schedule\ShiftType::label($t) }}
                                                     @if ($t !== 'off')<span style="display:block;font-size:9.5px;font-weight:500;opacity:.7">{{ \App\Support\Schedule\ShiftType::hours($t) }}</span>@endif
                                                 </span>
@@ -362,7 +362,7 @@
                         <button type="button" class="vy-btn vy-btn--ghost" style="width:100%;font-size:11.5px;padding:7px 0;justify-content:center;margin-bottom:4px" @click="addOpen = !addOpen">{{ __('livewire/operator/schedule.add_open_shift') }}</button>
                     @endunless
                     @unless ($readOnly)
-                        <form x-show="addOpen" x-cloak method="POST" action="{{ route('app.schedule.open.create') }}" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">
+                        <form x-show="addOpen" x-cloak method="POST" action="{{ route('app.schedule.open.create') }}" class="vy-sch-addform">
                             @csrf
                             <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
                             <input type="date" name="date" class="vy-input" required aria-label="{{ __('common.date') }}" style="min-width:150px">

@@ -304,7 +304,7 @@
 
                         {{-- Retention modal (Pause instead / Cancel for good / yearly offer) --}}
                         <div x-show="open" x-cloak class="vy-modal-scrim" x-on:click.self="open = false">
-                            <div class="vy-modal">
+                            <div class="vy-modal vy-modal-card">
                                 <h3 style="font-family:var(--vy-display);font-size:18px;font-weight:600;margin:0">{{ __('livewire/operator/billing.before_you_go') }}</h3>
                                 <p class="vy-line-sub" style="margin:6px 0 16px">{{ trans_choice('livewire/operator/billing.retention_summary', $pricing['units'], ['plan' => $plan['name'], 'count' => $pricing['units']]) }}</p>
 

@@ -409,7 +409,7 @@
                                 </div>
                             </a>
                         @endforeach
-                        <div x-show="!anyVisible" x-cloak style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 8px 18px;text-align:center">
+                        <div x-show="!anyVisible" x-cloak class="vy-ov-nomatch">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4B8AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
                             <div style="font-size:12.5px;color:var(--vy-muted)">{{ __('livewire/owner/dashboard.no_stays_match') }}</div>
                             <button type="button" @click="src = 'all'; status = 'all'" style="margin-top:2px;padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ __('livewire/owner/dashboard.clear_filters') }}</button>

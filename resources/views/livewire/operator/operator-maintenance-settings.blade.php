@@ -56,7 +56,7 @@
                         <span class="vyms-switch-track"><span class="vyms-switch-knob"></span></span>
                     </label>
                 </div>
-                <div class="vyms-grid2" style="margin-top: 14px;" :style="autoAssign ? '' : 'opacity:.5; pointer-events:none;'">
+                <div class="vyms-grid2" style="margin-top: 14px;" :style="autoAssign ? {} : { opacity: '.5', pointerEvents: 'none' }">
                     @foreach ($categories as $category)
                         @php $field = 'assignee_'.$category.'_id'; @endphp
                         <div class="vy-field" style="margin: 0;">

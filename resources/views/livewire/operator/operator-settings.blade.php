@@ -305,8 +305,8 @@
             {{-- Remove-property confirm modal (Alpine) --}}
             @if ($removal !== null && ! $removal['scheduled'] && $canManageProperty && ! $readOnly)
                 <div x-data="{ open: false, typed: '' }" x-on:open-remove.window="open = true" x-cloak>
-                    <div x-show="open" style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" @click.self="open = false" @keydown.escape.window="open = false">
-                        <div class="vy-card" style="max-width: 460px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="open" aria-labelledby="vy-dlg-operator-settings-open-1">
+                    <div x-show="open" class="vy-modal-backdrop" @click.self="open = false" @keydown.escape.window="open = false">
+                        <div class="vy-card vy-modal-card" style="max-width: 460px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="open" aria-labelledby="vy-dlg-operator-settings-open-1">
                             <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;" id="vy-dlg-operator-settings-open-1">{{ __('livewire/operator/operator-settings.remove_title', ['name' => $removal['name']]) }}</h3>
                             <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 12px;">{{ trans_choice('livewire/operator/operator-settings.unit_count', $removal['units'], ['count' => $removal['units']]) }}@if ($removal['in_house'] > 0)<span> · {{ trans_choice('livewire/operator/operator-settings.guests_in_house', $removal['in_house'], ['count' => $removal['in_house']]) }}</span>@endif</div>
                             <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">

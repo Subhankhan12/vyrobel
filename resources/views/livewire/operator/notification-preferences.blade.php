@@ -110,7 +110,7 @@
                     <div><h2 class="vy-card-title" style="margin: 0;">{{ __('livewire/operator/notification-preferences.quiet_hours') }}</h2><p style="font-size: 12.5px; color: var(--vy-muted); margin: 3px 0 0;">{{ __('livewire/operator/notification-preferences.quiet_hours_help') }}</p></div>
                     <label class="vyms-switch"><input type="checkbox" name="quiet_hours_enabled" value="1" x-model="quietOn" @checked($quietOn)><span class="vyms-switch-track"><span class="vyms-switch-knob"></span></span></label>
                 </div>
-                <div class="vyn-grid3" style="margin-top: 12px;" :style="quietOn ? '' : 'opacity:.5;pointer-events:none;'">
+                <div class="vyn-grid3" style="margin-top: 12px;" :style="quietOn ? {} : { opacity: '.5', pointerEvents: 'none' }">
                     <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qs">{{ __('livewire/operator/notification-preferences.quiet_from') }}</label><input id="qs" type="time" name="quiet_start" value="{{ $quietStart }}" class="vy-input"></div>
                     <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="qe">{{ __('livewire/operator/notification-preferences.quiet_to') }}</label><input id="qe" type="time" name="quiet_end" value="{{ $quietEnd }}" class="vy-input"></div>
                 </div>

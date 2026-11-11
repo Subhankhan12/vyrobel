@@ -10,6 +10,8 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
 <x-owner.shell active="units" :title="$unit['name']" :viewer="$viewer" :breadcrumb="[['label' => __('livewire/owner/unit-detail.breadcrumb_units'), 'url' => route('owner.units')], ['label' => $unit['name']]]">
     <style>
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the block form lays out by class. */
+        .vy-ud-blockform { margin-top:16px; padding-top:16px; border-top:1px solid var(--vy-hairline); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
         .vy-ud-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
         .vy-ud-status { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:30px; font-size:11.5px; font-weight:500; }
         {{-- The design's tint assumes the pill sits on a light card; in the header it sits on the PAGE GRADIENT,
@@ -169,7 +171,7 @@
 
             {{-- Block composer — appears when an open day is selected; a REAL block (OwnerBlockService, $capActions #20) --}}
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
-                <form method="POST" action="{{ route('owner.calendar.block') }}" x-show="sel" x-cloak style="margin-top:16px;padding-top:16px;border-top:1px solid var(--vy-hairline);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <form method="POST" action="{{ route('owner.calendar.block') }}" x-show="sel" x-cloak class="vy-ud-blockform">
                     @csrf
                     <input type="hidden" name="unit_id" value="{{ $unit['id'] }}">
                     <input type="hidden" name="first_night" :value="sel">

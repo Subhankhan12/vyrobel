@@ -358,7 +358,8 @@ it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one 
     $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
     expect($shell)->toMatch('/\.vy-modal\.vy-modal-card \{[^}]*background: rgba\(255, 252, 248, 0\.94\)/');
     foreach (['livewire/operator/guests-list.blade.php', 'livewire/operator/guest-profile.blade.php', 'livewire/operator/portfolio.blade.php',
-        'livewire/maintenance-list.blade.php', 'livewire/units-list.blade.php'] as $f) {
+        'livewire/maintenance-list.blade.php', 'livewire/units-list.blade.php',
+        'livewire/operator/billing.blade.php'] as $f) {   // Billing: 2026-11-11 (A9)
         $src = (string) i18nEnglishSource(resource_path('views/'.$f));
         // Every panel's class list, read whole — a first draft counted `class="vy-modal "` WITH a trailing space and never
         // saw a panel whose class is exactly `vy-modal` (the mutation harness found it: GL-M21 stayed green).

@@ -20,14 +20,23 @@ declare(strict_types=1);
 // and reports, maintenance settings, email previews) — 10 until the five-page pass (2026-10-05) turned the housekeeping lane's
 // arrow with a class. Each needs looking at in a browser, and that sweep is its own pass (asked for, not assumed). The
 // ceiling lets the number fall and never rise.
+// ✅ 0 after the A10 sweep (2026-11-11, his "do all"): the last nine became object bindings with the same values — a ZERO now.
 
-const VY_STRING_STYLE_CEILING = 9;
+const VY_STRING_STYLE_CEILING = 0;
 
 /** The views this pattern was removed from — it must stay gone from these entirely. */
 const VY_STRING_STYLE_FIXED_VIEWS = [
     'livewire/maintenance-list.blade.php',
     'livewire/maintenance-ticket-detail.blade.php',   // 2026-09-29 — both dialogs and the update composer (14 sites)
     'livewire/housekeeping-board.blade.php',           // 2026-10-05 — the lane's arrow
+    // 2026-11-11, the A10 sweep — the last nine:
+    'livewire/owner/reports.blade.php',
+    'livewire/owner/units.blade.php',
+    'livewire/owner/notification-preferences.blade.php',
+    'livewire/operator/operator-maintenance-settings.blade.php',
+    'livewire/operator/schedule.blade.php',
+    'livewire/operator/notification-preferences.blade.php',
+    'operator/email-previews.blade.php',
 ];
 
 /**
@@ -97,10 +106,10 @@ function vyStringStyleBindings(string $source, string $label): array
 }
 
 /** @return list<string> */
-function vyStringStyleCensus(): array
+function vyStringStyleCensus(?string $root = null): array
 {
     $hits = [];
-    $root = resource_path('views');
+    $root ??= resource_path('views');
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)) as $file) {
         if (! $file->isFile() || ! str_ends_with((string) $file->getFilename(), '.blade.php')) {
@@ -116,7 +125,7 @@ function vyStringStyleCensus(): array
     return $hits;
 }
 
-it('⚠️⚠️ leaves no string :style beside a static style on the Maintenance pages', function () {
+it('⚠️⚠️ leaves no string :style beside a static style on the pages that were fixed (Maintenance, Housekeeping, and the nine of the A10 sweep)', function () {
     $offenders = array_values(array_filter(
         vyStringStyleCensus(),
         fn (string $hit): bool => in_array(explode(':', $hit)[0], VY_STRING_STYLE_FIXED_VIEWS, true),
@@ -145,6 +154,15 @@ it('actually detects the shape it is guarding — and not the shapes that are fi
         ->and(vyStringStyleBindings("<button :style=\"on ? 'opacity:.5' : ''\">", 'probe'))->toBe([])
         ->and(vyStringStyleBindings("{{-- <b style=\"x\" :style=\"'y:z'\"> --}}", 'probe'))->toBe([]);
 
-    // and the census walks the real views — it finds the other screens' sites, so it is reading something
-    expect(count(vyStringStyleCensus()))->toBeGreaterThan(0);
+    // ⚠️ The census is at ZERO now, so "it finds the other screens' sites" can no longer prove it reads anything. It is proved
+    // on a planted tree instead — the SAME walk the real census uses — and the real census must still be walking real files.
+    $tmp = realpath(sys_get_temp_dir()).'/vy-style-'.bin2hex(random_bytes(4));
+    mkdir($tmp.'/nested', 0777, true);
+    file_put_contents($tmp.'/nested/planted.blade.php', "<span style=\"a:b\" :style=\"on ? 'c:d' : 'e:f'\">x</span>");
+    expect(vyStringStyleCensus($tmp))->toBe(['nested/planted.blade.php:1']);
+    unlink($tmp.'/nested/planted.blade.php');
+    rmdir($tmp.'/nested');
+    rmdir($tmp);
+
+    expect(glob(resource_path('views/livewire/owner/*.blade.php')))->not->toBeEmpty();
 });

@@ -7,6 +7,8 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-owner.shell active="rates" :title="__('livewire/owner/rates.title')" :subtitle="__('livewire/owner/rates.subtitle')" :viewer="$viewer">
     <style>
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the counter form lays out by class. */
+        .vy-rt-counter-form { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
         /* ⚠️ This page was written with the prototype's RAW pre-AA greys (#A69A92, #8A8079) rather than the
            tokens — 21 measured AA failures, the worst of the owner realm so far, on the copy that explains
            what the guardrail actually does. All moved to --vy-muted (4.80-6.76 across this page's
@@ -102,7 +104,7 @@
                         <button type="button" class="vy-rt-btn vy-rt-counter" @click="counter = ! counter">{{ __('livewire/owner/rates.counter_button') }}</button>
                     </div>
                     {{-- Counter form (BUILT #81) — the owner proposes a different nightly rate back to the operator. --}}
-                    <form method="POST" action="{{ route('owner.rate-proposals.counter', $p['id']) }}" x-show="counter" x-cloak style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+                    <form method="POST" action="{{ route('owner.rate-proposals.counter', $p['id']) }}" x-show="counter" x-cloak class="vy-rt-counter-form">
                         @csrf
                         <div style="flex:1;min-width:150px">
                             <div class="vy-rt-eyebrow" style="margin-bottom:6px">{{ __('livewire/owner/rates.your_counter', ['symbol' => $currencySymbol]) }}</div>

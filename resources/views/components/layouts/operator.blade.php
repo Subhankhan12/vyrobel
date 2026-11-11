@@ -473,6 +473,8 @@
         .vy-seg.vy-seg--inline { display: inline-flex; }
         .vy-seg--inline > .vy-seg-opt { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; }
 
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the open-shift form lays out by class. */
+        .vy-sch-addform { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-top: 12px; }
         /* ---- Team schedule (.vy-sch) ---------------------------------------------------------------
            The design puts the roster grid beside a 224px rail (coverage + open shifts) rather than
            stacking full-width cards down the page — the at-a-glance numbers belong next to the grid

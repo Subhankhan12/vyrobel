@@ -34,7 +34,7 @@
         <div class="vy-fade" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
             @foreach ($catalog as $key => $email)
                 <button type="button" @click="tab = '{{ $key }}'"
-                        :style="tab === '{{ $key }}' ? 'background:var(--vy-accent);color:#fff;border-color:var(--vy-accent)' : 'background:var(--vy-card,#fff);color:var(--vy-muted)'"
+                        :style="tab === '{{ $key }}' ? { background: 'var(--vy-accent)', color: '#fff', borderColor: 'var(--vy-accent)' } : { background: 'var(--vy-card,#fff)', color: 'var(--vy-muted)' }"
                         class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px;">{{ $email['title'] }}</button>
             @endforeach
         </div>

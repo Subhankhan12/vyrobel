@@ -591,6 +591,10 @@
         .vy-ov-stay-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; }
         .vy-ov-stay-status { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
         .vy-ov-stay-date { font-size: 11.5px; color: var(--vy-faint); }
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest) — these two lay out by CLASS: the Overview's "no stays match"
+           notice and the My Units calendar's summary row. */
+        .vy-ov-nomatch { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 8px 18px; text-align: center; }
+        .vy-mu-cal-sum { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .vy-ov-stays-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(120, 70, 40, .09); }
         .vy-ov-stays-foot-l { font-size: 10.5px; color: var(--vy-muted); letter-spacing: .01em; }
         .vy-ov-viewall { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; flex: none; }

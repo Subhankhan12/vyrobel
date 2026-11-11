@@ -167,8 +167,8 @@
                 </div>
 
                 {{-- New-role modal — honest (the back-office catalogue is fixed) --}}
-                <div x-show="newRoleOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="newRoleOpen = false" x-on:keydown.escape.window="newRoleOpen = false">
-                    <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="newRoleOpen" aria-labelledby="vy-dlg-operator-roles-newroleopen-2">
+                <div x-show="newRoleOpen" x-cloak class="vy-modal-backdrop" x-on:click.self="newRoleOpen = false" x-on:keydown.escape.window="newRoleOpen = false">
+                    <div class="vy-card vy-modal-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="newRoleOpen" aria-labelledby="vy-dlg-operator-roles-newroleopen-2">
                         <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-newroleopen-2">{{ __('livewire/operator/operator-roles.new_role_heading') }}</h3>
                         <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">{!! __('livewire/operator/operator-roles.new_role_body') !!}</p>
                         <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="newRoleOpen = false">{{ __('livewire/operator/operator-roles.got_it') }}</button></div>
@@ -176,8 +176,8 @@
                 </div>
 
                 {{-- Delete-role modal — honest --}}
-                <div x-show="deleteOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="deleteOpen = false" x-on:keydown.escape.window="deleteOpen = false">
-                    <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="deleteOpen" aria-labelledby="vy-dlg-operator-roles-deleteopen-1">
+                <div x-show="deleteOpen" x-cloak class="vy-modal-backdrop" x-on:click.self="deleteOpen = false" x-on:keydown.escape.window="deleteOpen = false">
+                    <div class="vy-card vy-modal-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="deleteOpen" aria-labelledby="vy-dlg-operator-roles-deleteopen-1">
                         <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-deleteopen-1">{{ __('livewire/operator/operator-roles.delete_role_heading') }}</h3>
                         <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">{{ __('livewire/operator/operator-roles.delete_role_body') }}</p>
                         <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="deleteOpen = false">{{ __('livewire/operator/operator-roles.got_it') }}</button></div>

@@ -219,7 +219,7 @@
                     </div>
                     <div class="vy-rep-range-foot">
                         <a class="vy-btn vy-btn--ghost" href="{{ route('owner.reports') }}" style="padding:6px 13px;font-size:12.5px">{{ __('common.clear') }}</a>
-                        <button type="button" class="vy-btn vy-btn--accent" style="padding:6px 15px;font-size:12.5px" :style="(!from || !to) ? 'opacity:.5;cursor:not-allowed' : ''" @click="if (from && to) window.location = @js(route('owner.reports')) + '?from=' + from + '&to=' + to">{{ __('common.apply') }}</button>
+                        <button type="button" class="vy-btn vy-btn--accent" style="padding:6px 15px;font-size:12.5px" :style="(!from || !to) ? { opacity: '.5', cursor: 'not-allowed' } : {}" @click="if (from && to) window.location = @js(route('owner.reports')) + '?from=' + from + '&to=' + to">{{ __('common.apply') }}</button>
                     </div>
                 </div>
             </div>

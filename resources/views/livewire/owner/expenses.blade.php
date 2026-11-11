@@ -25,6 +25,8 @@
 --}}
 <x-owner.shell active="expenses" :title="__('livewire/owner/expenses.title')" :subtitle="__('livewire/owner/expenses.subtitle')" :viewer="$viewer">
     <style>
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the query form lays out by class. */
+        .vy-ex-queryform { margin:0; display:flex; gap:6px; align-items:center; }
         /* PAGE-SCOPED contrast overrides. The KPI band and the rows are translucent over the hero gradient,
            so these shell greys composite onto a saturated peach (≈236,153,110) and measure 3.05–4.35 — the
            O14/O17 case where no grey reaches AA on a tint. The shell's own definitions are NOT touched:
@@ -77,7 +79,7 @@
                                         <button type="submit" class="vy-btn vy-btn--accent" style="padding:6px 14px;font-size:12px">{{ __('livewire/owner/expenses.approve') }}</button>
                                     </form>
                                     <button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px" @click="q = !q">{{ __('livewire/owner/expenses.query') }}</button>
-                                    <form method="POST" action="{{ route('owner.expenses.query', $a['id']) }}" x-show="q" x-cloak style="margin:0;display:flex;gap:6px;align-items:center">
+                                    <form method="POST" action="{{ route('owner.expenses.query', $a['id']) }}" x-show="q" x-cloak class="vy-ex-queryform">
                                         @csrf
                                         <label class="vy-sr-only" for="vy-lbl-expenses-note">{{ __('livewire/owner/expenses.question_placeholder') }}</label>
                                         <input id="vy-lbl-expenses-note" type="text" name="note" placeholder="{{ __('livewire/owner/expenses.question_placeholder') }}" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">

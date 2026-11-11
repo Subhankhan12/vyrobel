@@ -25,8 +25,11 @@ declare(strict_types=1);
 // passkey card's remove row (shared with the owner page) off an inline display.
 // Most are panels whose content happens to lay out acceptably as `block`; each needs looking at in a browser, and that
 // sweep is its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
+// ✅ 0 after the A8 sweep (2026-11-11, his "do all"): the last twelve — eight owner-portal pages, the roles and settings dialogs,
+// the schedule's open-shift form — moved their display into a class (the dialogs onto `.vy-modal-backdrop`). The ceiling is now a
+// ZERO: any new element that carries both an x-show and an inline display fails here.
 
-const VY_XSHOW_INLINE_DISPLAY_CEILING = 12;
+const VY_XSHOW_INLINE_DISPLAY_CEILING = 0;
 
 /** The views the Guests, Maintenance, Units and Rates passes fixed — the pattern must be gone from these entirely. */
 const VY_XSHOW_FIXED_VIEWS = [
@@ -44,6 +47,18 @@ const VY_XSHOW_FIXED_VIEWS = [
     'livewire/operator/operator-security.blade.php',  // 2026-10-05, the same pass (four dialogs)
     'components/auth/passkeys.blade.php',             // 2026-10-05, the same pass (the remove row)
     'livewire/owner/owner-security.blade.php',        // 2026-10-24, the Security redesign (its two inline remove rows)
+    // 2026-11-11, the A8 sweep — the last twelve:
+    'livewire/owner/messages.blade.php',
+    'livewire/owner/dashboard.blade.php',
+    'livewire/owner/rates.blade.php',
+    'livewire/owner/block-calendar.blade.php',
+    'livewire/owner/units.blade.php',
+    'livewire/owner/unit-detail.blade.php',
+    'livewire/owner/expenses.blade.php',
+    'livewire/owner/notification-preferences.blade.php',
+    'livewire/operator/operator-settings.blade.php',
+    'livewire/operator/operator-roles.blade.php',
+    'livewire/operator/schedule.blade.php',
 ];
 
 /**
@@ -109,10 +124,10 @@ function vyXShowInlineDisplay(string $source, string $label): array
 }
 
 /** @return list<string> */
-function vyXShowInlineDisplayCensus(): array
+function vyXShowInlineDisplayCensus(?string $root = null): array
 {
     $hits = [];
-    $root = resource_path('views');
+    $root ??= resource_path('views');
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)) as $file) {
         if (! $file->isFile() || ! str_ends_with((string) $file->getFilename(), '.blade.php')) {
@@ -157,6 +172,16 @@ it('actually detects the shape it is guarding — and not the shapes that are fi
         ->and(vyXShowInlineDisplay('<div style="display: flex">', 'probe'))->toBe([])
         ->and(vyXShowInlineDisplay('{{-- <div x-show="open" style="display: flex"> --}}', 'probe'))->toBe([]);
 
-    // and the census walks the real views — it finds the other screens' sites, so it is reading something
-    expect(count(vyXShowInlineDisplayCensus()))->toBeGreaterThan(0);
+    // ⚠️ The census is at ZERO now, so "it finds the other screens' sites" can no longer prove it reads anything. It is proved
+    // on a planted tree instead: a view carrying the pattern, in a nested folder, must be found by the SAME walk the real census
+    // uses — and the real census must still be walking real files.
+    $tmp = realpath(sys_get_temp_dir()).'/vy-xshow-'.bin2hex(random_bytes(4));
+    mkdir($tmp.'/nested', 0777, true);
+    file_put_contents($tmp.'/nested/planted.blade.php', '<div x-show="open" style="display:flex">x</div>');
+    expect(vyXShowInlineDisplayCensus($tmp))->toBe(['nested/planted.blade.php:1']);
+    unlink($tmp.'/nested/planted.blade.php');
+    rmdir($tmp.'/nested');
+    rmdir($tmp);
+
+    expect(glob(resource_path('views/livewire/owner/*.blade.php')))->not->toBeEmpty();
 });

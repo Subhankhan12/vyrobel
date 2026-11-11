@@ -97,7 +97,7 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px">
                         <div style="display:flex;gap:6px">
                             @foreach (['all' => __('common.all'), 'warn' => __('livewire/owner/units.tone_action'), 'info' => __('livewire/owner/units.tone_review')] as $val => $lbl)
-                                <button type="button" @click="filter = '{{ $val }}'" :style="filter === '{{ $val }}' ? 'background:var(--vy-grad);color:#fff;border-color:transparent' : ''" style="padding:5px 12px;border-radius:var(--vy-r-pill);border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ $lbl }}</button>
+                                <button type="button" @click="filter = '{{ $val }}'" :style="filter === '{{ $val }}' ? { background: 'var(--vy-grad)', color: '#fff', border: '1px solid rgba(0,0,0,0)' } : {}" style="padding:5px 12px;border-radius:var(--vy-r-pill);border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ $lbl }}</button>
                             @endforeach
                         </div>
                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
@@ -455,7 +455,7 @@
 
             <div class="vy-mu-cal-foot">
                 {{-- summary (no day selected) --}}
-                <div x-show="sel === null" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div x-show="sel === null" class="vy-mu-cal-sum">
                     <div style="display:inline-flex;align-items:center;gap:10px">
                         <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-muted)">{{ __('livewire/owner/units.legend_booked') }}</span>
                         <div style="display:inline-flex;gap:4px">

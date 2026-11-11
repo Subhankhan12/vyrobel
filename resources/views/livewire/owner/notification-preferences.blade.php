@@ -14,6 +14,8 @@
                :subtitle="__('livewire/owner/notification-preferences.subtitle')"
                :viewer="$viewer">
     <style>
+        /* ⚠️ x-show ERASES an inline display (XShowInlineDisplayContractTest): the quiet-hours times lay out by class. */
+        .vy-nt-times { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
         .vy-nt-wrap { max-width:760px; }
         .vy-nt-card { background:rgba(255,252,248,.58); backdrop-filter:blur(22px) saturate(1.15); border:1px solid rgba(255,255,255,.75); border-radius:20px; box-shadow:0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); }
         .vy-nt-h2 { font-family:var(--vy-display); font-weight:500; font-size:16px; letter-spacing:-.01em; }
@@ -75,7 +77,7 @@
             <div class="vy-nt-card" style="padding:8px 22px 16px;margin-bottom:20px">
                 <div class="vy-nt-row" style="padding:16px 0 10px">
                     <span class="vy-nt-h2">{{ __('livewire/owner/notification-preferences.what_you_hear_about') }}</span>
-                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase" :style="emailOn ? 'color:var(--vy-accent-text)' : 'color:var(--vy-muted)'">{{ __('livewire/owner/notification-preferences.channel_email') }}</span>
+                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase" :style="{ color: emailOn ? 'var(--vy-accent-text)' : 'var(--vy-muted)' }">{{ __('livewire/owner/notification-preferences.channel_email') }}</span>
                     {{-- ⚠️ This header measured 1.63 — the worst contrast on the page, on the label of the column
                          the owner most needs explained. It also said only "SMS", leaving the whole empty column
                          unexplained inside the grid; the state now travels with the header. --}}
@@ -138,7 +140,7 @@
                     <span style="font-weight:600;font-size:13.5px;color:var(--vy-ink)">{{ __('livewire/owner/notification-preferences.quiet_hours') }}</span>
                 </label>
                 <p style="font-size:11.5px;color:var(--vy-muted);margin:6px 0 10px">{{ __('livewire/owner/notification-preferences.quiet_hours_note') }}</p>
-                <div x-show="on" x-cloak style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <div x-show="on" x-cloak class="vy-nt-times">
                     <label style="font-size:12px;color:var(--vy-muted)">{{ __('livewire/owner/notification-preferences.quiet_from') }} <input type="time" name="quiet_start" value="{{ $quiet['start'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
                     <label style="font-size:12px;color:var(--vy-muted)">{{ __('livewire/owner/notification-preferences.quiet_to') }} <input type="time" name="quiet_end" value="{{ $quiet['end'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
                 </div>
@@ -146,7 +148,7 @@
 
             {{-- ══ SAVE ══ --}}
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px">
-                <span style="font-size:12px;margin-right:auto" :style="dirty ? 'color:#B4400F' : 'color:var(--vy-muted)'" x-text="dirty ? @js(__('livewire/owner/notification-preferences.unsaved_changes')) : @js(__('livewire/owner/notification-preferences.all_saved'))">{{ __('livewire/owner/notification-preferences.all_saved') }}</span>
+                <span style="font-size:12px;margin-right:auto" :style="{ color: dirty ? '#B4400F' : 'var(--vy-muted)' }" x-text="dirty ? @js(__('livewire/owner/notification-preferences.unsaved_changes')) : @js(__('livewire/owner/notification-preferences.all_saved'))">{{ __('livewire/owner/notification-preferences.all_saved') }}</span>
                 <button type="submit" style="padding:11px 22px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);border:none;color:#fff;font-family:var(--vy-body,Inter),sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 6px 18px rgba(194,65,12,.35)">{{ __('common.save_changes') }}</button>
             </div>
         </form>
