@@ -176,6 +176,9 @@
                                             <template x-for="m in item.items" :key="m.id">
                                                 <div class="vy-tc-msg" :class="{ 'is-pending': m.pending, 'is-failed': m.failed, 'is-deleted': m.deleted, 'is-tools': toolsFor === m.id, 'is-found': foundId === m.id }" :data-mid="m.id"
                                                      @click="toolsFor = (toolsFor === m.id ? null : m.id)" @mouseleave="if (toolsFor === m.id && menuFor !== m.id && pickerFor !== m.id) toolsFor = null"
+                                                     {{-- ⚠️ THE KEYBOARD PATH (found by KeyboardReachabilityContractTest in the full run): the tools are `display: none` until the row is hovered or opened, so Tab could never reach
+                                                          the buttons inside them and `:focus-within` could never fire. The ROW is the stop — Enter or Space opens its tools and moves focus to the first one; Escape closes them. --}}
+                                                     tabindex="0" @keydown.enter.self.prevent="toolsFor = (toolsFor === m.id ? null : m.id); if (toolsFor === m.id) $nextTick(() => $el.querySelector('.vy-tc-tool')?.focus())" @keydown.space.self.prevent="toolsFor = (toolsFor === m.id ? null : m.id); if (toolsFor === m.id) $nextTick(() => $el.querySelector('.vy-tc-tool')?.focus())" @keydown.escape="if (toolsFor === m.id) { toolsFor = null; $el.focus() }"
                                                      @touchstart.passive="pressStart(m)" @touchend="pressEnd()" @touchmove.passive="pressEnd()" @touchcancel="pressEnd()">
                                                     <template x-if="m.deleted">
                                                         <p class="vy-tc-bubble vy-tc-bubble--deleted">{{ __('livewire/operator/team-chat.message_deleted') }}</p>

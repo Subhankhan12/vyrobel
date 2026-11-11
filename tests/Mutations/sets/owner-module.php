@@ -400,8 +400,8 @@ return [
         'id' => 'OM-M45',
         'name' => 'a save at the newest row’s rate leaves stacked rows as they are',
         'file' => $change,
-        'old' => '            if ($covering->count() === 1 && $governing->commission_pct !== null',
-        'new' => '            if ($governing !== null && $governing->commission_pct !== null',
+        'old' => '            if ($pct !== null && $covering->count() === 1 && $governing->commission_pct !== null',
+        'new' => '            if ($pct !== null && $governing !== null && $governing->commission_pct !== null',
         'tests' => [['file' => $fixes, 'filter' => 'collapses agreements an older write left on the same day into one']],
     ],
     [

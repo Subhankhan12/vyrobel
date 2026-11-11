@@ -85,9 +85,9 @@ return [
     [
         'id' => 'MB-M8',
         'name' => 'Edit forgets the property allow-list — a manager scoped to one property edits another\'s work order',
-        'file' => $ctl,
-        'old' => '        abort_unless(in_array((string) $model->unit?->property_id, app(PropertyContext::class)->accessibleIds(), true), 404);',
-        'new' => '        // the allow-list is gone',
+        'file' => 'app/Support/Property/PropertyScope.php',   // DEC-j (2026-11-11): the rule moved into the ONE helper every maintenance write shares
+        'old' => '        return MaintenanceTicket::query()->whereHas(\'unit\', fn (Builder $u) => $u->whereIn(\'property_id\', $ids));',
+        'new' => '        return MaintenanceTicket::query();',
         'tests' => [['file' => $t, 'filter' => 'gates Edit like every']],
     ],
     [

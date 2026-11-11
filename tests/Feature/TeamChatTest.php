@@ -773,7 +773,7 @@ it('⚠️⚠️ records only how many messages were scrubbed — never the word
     // erasing again finds nothing left to look for, and changes nothing
     $again = Guest::query()->whereKey($guest->id)->sole();
     $again->anonymize();
-    expect(json_decode((string) DB::table('audit_events')->where('action', 'guest.anonymized')->where('subject_id', $guest->id)->latest('created_at')->value('after'), true)['team_messages_scrubbed'])->toBe(0);
+    expect(json_decode((string) DB::table('audit_events')->where('action', 'guest.anonymized')->where('subject_id', $guest->id)->orderByDesc('id')->value('after'), true)['team_messages_scrubbed'])->toBe(0);
 });
 
 it('⚠️⚠️ leaves another workspace\'s messages alone — the same name there is another person\'s', function () {

@@ -6,7 +6,8 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 
 ## ✅ SHIPPED 2026-11-05 — I18N-01, all 27 languages; leftovers fixed + shipped 2026-11-06 (see HISTORY)
 - **Founder said (2026-11-02):** finish every language on localhost, then ship them all in ONE release; no per-language releases.
-  Live is still `rel_CG @ 7dde368e` (Russian). Nothing below is on production. ⚠️ Not pushed.
+  ✅ **Corrected 2026-11-11:** that was true when it was written (live was `rel_CG @ 7dde368e`, Russian). All of it then shipped — `rel_CH`
+  (all 27 languages, 2026-11-05) and `rel_CI` (the leftovers, 2026-11-06) — and was pushed; the live release and what is pushed are in the **Live** section below.
 - **R/V — committed locally, newest last (each: 10,433 of 10,433 texts, machine translation with AI review, no native check):**
   Romanian `c6a4b22d`, Polish `d7892071`, Bulgarian `77205f47`, Traditional Chinese `cec04865`, Hindi `0a940b01`, Persian
   `74aa9af2`, Thai `32013c9a`, Serbian (Cyrillic) `e1a66dac`, Estonian `f0036e2c`, Albanian `dd66961e`, Greek `75f44f96`,
@@ -22,7 +23,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
   decimal marks and list separators · **Thai/Chinese/Korean PDFs printed no characters** (`storage/fonts` did not exist on a
   fresh checkout; a CJK font also needed more than 128M once) · a Georgian title/month inside an English guest tax invoice.
   ⚠️ **His call:** the 24-hour change also moves LIVE Arabic from 12-hour to 24-hour time (hi, zh_TW are not live yet).
-- **Before the single release:** (1) the production SSH block (82.25.102.188:65002 was closed from this Mac on 2026-11-02) must
+- **(Historical — every step below was done for `rel_CH`/`rel_CI`; kept as the record.) Before the single release:** (1) the production SSH block (82.25.102.188:65002 was closed from this Mac on 2026-11-02) must
   be solved; (2) saved-language count (read-only) → `./ops/release.sh stage` → preflight with ALL new codes in both loops →
   swap → `bash ops/public-checks.sh` → `/login?lang=<l>` for each; (3) render the new languages once more on the staged
   commit; (4) production needs `storage/fonts` writable (created on first PDF).
