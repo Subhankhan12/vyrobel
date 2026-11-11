@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Análises de ocupação e preços',
-    'subtitle' => 'Como as suas moradias estão a encher, o que as suas tarifas estão a render e onde há margem.',
+    'subtitle' => 'Como as suas unidades estão a encher, o que as suas tarifas estão a render e onde há margem.',
     'no_units_linked' => 'Ainda não há unidades associadas à sua conta.',
     'occupancy_heading' => 'Ocupação por mês',
     'occupancy_sub' => ':range · realizada e já reservada',

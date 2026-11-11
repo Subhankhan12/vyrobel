@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Tautan baru dikirim ke :email. Tautan lama tidak berlaku lagi.',
     'send_again' => 'Kirim ulang',
     'cancel_invite_title' => 'Batalkan undangan?',
-    'cancel_invite_sub' => 'Tautan yang dikirim ke :email tidak berlaku lagi.',
+    'cancel_invite_sub' => 'Undangan untuk :email tidak berlaku lagi.',
     'cancel_invite_removes' => ':name belum pernah menerima undangan, jadi juga dikeluarkan dari daftar pemilik Anda.',
     'cancel_invite_again_later' => 'Anda dapat mengundangnya lagi nanti.',
     'keep_invite' => 'Pertahankan undangan',

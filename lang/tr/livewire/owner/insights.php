@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Doluluk ve fiyat içgörüleri',
-    'subtitle' => 'Villalarınızın ne kadar dolduğu, fiyatlarınızın ne kazandırdığı ve nerede artış payı olduğu.',
+    'subtitle' => 'Birimlerinizin ne kadar dolduğu, fiyatlarınızın ne kazandırdığı ve nerede artış payı olduğu.',
     'no_units_linked' => 'Hesabınıza henüz bağlı birim yok.',
     'occupancy_heading' => 'Aylara göre doluluk',
     'occupancy_sub' => ':range · gerçekleşen ve eldeki rezervasyonlar',

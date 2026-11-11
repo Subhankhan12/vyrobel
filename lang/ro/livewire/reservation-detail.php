@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Exportare notă de plată (PDF)',
     'export_csv_print' => 'Exportare CSV · imprimare',
     'room_moves_note' => 'La o mutare de cameră se verifică disponibilitatea, astfel încât o cameră să nu fie rezervată de două ori, iar mutarea se salvează imediat.',
+    'hold_release_button' => 'Eliberare preautorizare',
+    'hold_releasing' => 'Se eliberează…',
+    'hold_release_confirm' => 'Eliberați această preautorizare? Suma blocată pe cardul oaspetelui este deblocată și nu se debitează nimic.',
 ];

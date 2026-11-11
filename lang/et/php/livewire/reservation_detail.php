@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autoriseeritud',
     'flag_captured' => 'Debiteeritud',
     'flag_voided' => 'Annulleeritud',
+    'hold_released_desc' => 'Vabastatud — kaart vabastati, midagi ei debiteeritud',
+    'flag_released' => 'Vabastatud',
 ];

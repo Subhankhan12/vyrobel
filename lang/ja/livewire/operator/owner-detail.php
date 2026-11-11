@@ -134,7 +134,7 @@ return [
     'resend_sub' => '新しいリンクが:emailに送信されます。以前のリンクは無効になります。',
     'send_again' => '再送信',
     'cancel_invite_title' => '招待をキャンセルしますか？',
-    'cancel_invite_sub' => ':emailに送信したリンクは無効になります。',
+    'cancel_invite_sub' => ':emailへの招待は無効になります。',
     'cancel_invite_removes' => ':nameは招待を承諾していないため、オーナー一覧からも除外されます。',
     'cancel_invite_again_later' => '後で再度招待できます。',
     'keep_invite' => '招待を残す',

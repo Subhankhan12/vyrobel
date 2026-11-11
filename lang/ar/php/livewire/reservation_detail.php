@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'مفوضة',
     'flag_captured' => 'محصلة',
     'flag_voided' => 'ملغاة',
+    'hold_released_desc' => 'تم التحرير — تم فك التجميد عن البطاقة ولم يتم تحصيل أي مبلغ',
+    'flag_released' => 'محررة',
 ];

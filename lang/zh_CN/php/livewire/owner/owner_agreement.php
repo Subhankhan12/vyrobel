@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => '不可抵扣类别',
         'ota_cost_bearer' => 'OTA 成本承担方',
-        'cleaning_fee_bearer' => '清洁费承担方',
-        'addon_bearer' => '附加服务承担方',
+        'cleaning_fee_bearer' => '清洁费归属',
+        'addon_bearer' => '附加服务归属',
     ],
     'rule_values' => [
         'owner' => '业主',

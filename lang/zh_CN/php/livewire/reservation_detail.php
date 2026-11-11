@@ -47,4 +47,6 @@ return [
     'flag_authorized' => '已授权',
     'flag_captured' => '已扣款',
     'flag_voided' => '已作废',
+    'hold_released_desc' => '已释放——银行卡已被释放，未扣款',
+    'flag_released' => '已释放',
 ];

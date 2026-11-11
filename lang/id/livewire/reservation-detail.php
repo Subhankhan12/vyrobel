@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Ekspor folio (PDF)',
     'export_csv_print' => 'Ekspor CSV · cetak',
     'room_moves_note' => 'Pindah unit diperiksa ketersediaannya agar kamar tidak pernah dipesan dua kali, dan langsung disimpan.',
+    'hold_release_button' => 'Lepaskan praotorisasi',
+    'hold_releasing' => 'Melepaskan…',
+    'hold_release_confirm' => 'Lepaskan praotorisasi ini? Kartu tamu dibebaskan dan tidak ada dana yang dibebankan.',
 ];

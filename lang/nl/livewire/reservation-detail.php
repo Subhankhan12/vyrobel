@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Folio exporteren (PDF)',
     'export_csv_print' => 'CSV exporteren · afdrukken',
     'room_moves_note' => 'Een kamerwissel wordt gecontroleerd op beschikbaarheid, zodat een kamer nooit dubbel wordt geboekt, en wordt direct opgeslagen.',
+    'hold_release_button' => 'Pre-autorisatie vrijgeven',
+    'hold_releasing' => 'Vrijgeven…',
+    'hold_release_confirm' => 'Deze pre-autorisatie vrijgeven? De kaart van de gast komt weer vrij en er wordt niets afgeschreven.',
 ];

@@ -24,7 +24,7 @@ return [
     'current_sub' => 'Aktuelle Preise pro Nacht für Ihre Einheiten',
     'no_room_types' => 'Sie haben keine Zimmerkategorien, für die Sie hier Preise festlegen können.',
     'no_room_types_hint' => 'Preise werden pro Zimmerkategorie festgelegt; teilt Ihre Einheit eine Zimmerkategorie mit einer anderen Partei, legt Ihr Verwaltungsteam den Preis fest.',
-    'col_villa' => 'Villa',
+    'col_villa' => 'Einheit',
     'col_base' => 'Basis',
     'col_weekend' => 'Wochenende',
     'col_peak' => 'Hochsaison',

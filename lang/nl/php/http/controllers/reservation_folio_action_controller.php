@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Terugbetaling uitgevoerd.',
     'billed_to_account' => 'Op rekening gezet bij :account. Het saldo blijft openstaan tot er is betaald.',
     'returned_to_guest' => 'Teruggezet naar de folio van de gast.',
+    'hold_released' => 'Pre-autorisatie vrijgegeven — de kaart van de gast is weer vrij en er is niets afgeschreven.',
 ];

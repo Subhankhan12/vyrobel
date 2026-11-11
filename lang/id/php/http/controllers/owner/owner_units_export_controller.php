@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Total unit',
     'col_booked_pct' => '% dipesan',
     'month_total' => 'Total bulan',
-    'total_nights' => ':count malam',
-    'total_units' => ':count unit',
+    'total_nights' => '{1}:count malam|[0,*]:count malam',
+    'total_units' => '{1}:count unit|[0,*]:count unit',
 ];

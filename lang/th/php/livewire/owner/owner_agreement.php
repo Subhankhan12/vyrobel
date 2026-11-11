@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'หมวดค่าใช้จ่ายที่หักไม่ได้',
         'ota_cost_bearer' => 'ผู้รับภาระค่าคอมมิชชันช่องทางขาย',
-        'cleaning_fee_bearer' => 'ผู้รับภาระค่าทำความสะอาด',
-        'addon_bearer' => 'ผู้รับภาระบริการเสริม',
+        'cleaning_fee_bearer' => 'ค่าทำความสะอาดเป็นของ',
+        'addon_bearer' => 'บริการเสริมเป็นของ',
     ],
     'rule_values' => [
         'owner' => 'เจ้าของห้องพัก',

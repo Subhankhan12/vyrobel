@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'É enviada uma nova ligação para :email. A anterior deixa de funcionar.',
     'send_again' => 'Reenviar',
     'cancel_invite_title' => 'Cancelar o convite?',
-    'cancel_invite_sub' => 'A ligação enviada para :email deixa de funcionar.',
+    'cancel_invite_sub' => 'O convite para :email deixa de funcionar.',
     'cancel_invite_removes' => ':name nunca aceitou, por isso também sai da sua lista de proprietários.',
     'cancel_invite_again_later' => 'Pode voltar a convidar esta pessoa mais tarde.',
     'keep_invite' => 'Manter convite',

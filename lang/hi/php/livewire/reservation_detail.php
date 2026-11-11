@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'ऑथराइज़्ड',
     'flag_captured' => 'कैप्चर किया गया',
     'flag_voided' => 'वॉयड किया गया',
+    'hold_released_desc' => 'रिलीज़ किया गया — कार्ड से रोक हट गई, कोई शुल्क नहीं लिया गया',
+    'flag_released' => 'रिलीज़ किया गया',
 ];

@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autorizzato',
     'flag_captured' => 'Incassato',
     'flag_voided' => 'Annullato',
+    'hold_released_desc' => 'Sbloccato — la carta è stata liberata, nessun addebito',
+    'flag_released' => 'Sbloccato',
 ];

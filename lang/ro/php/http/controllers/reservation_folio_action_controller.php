@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Rambursarea a fost efectuată.',
     'billed_to_account' => 'Facturat către :account. Soldul rămâne de plată până când este achitat.',
     'returned_to_guest' => 'Mutat înapoi pe nota de plată a oaspetelui.',
+    'hold_released' => 'Preautorizarea a fost eliberată — suma blocată pe cardul oaspetelui a fost deblocată și nu s-a debitat nimic.',
 ];

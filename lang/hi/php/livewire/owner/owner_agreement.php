@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'पेआउट से न कटने वाली श्रेणियाँ',
         'ota_cost_bearer' => 'OTA लागत वहन करने वाला',
-        'cleaning_fee_bearer' => 'सफ़ाई शुल्क वहन करने वाला',
-        'addon_bearer' => 'अतिरिक्त सेवा लागत वहन करने वाला',
+        'cleaning_fee_bearer' => 'सफ़ाई शुल्क पाने वाला',
+        'addon_bearer' => 'अतिरिक्त सेवा शुल्क पाने वाला',
     ],
     'rule_values' => [
         'owner' => 'मालिक',

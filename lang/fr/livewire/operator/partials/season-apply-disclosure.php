@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1} un propriétaire|[0,*] :count propriétaires',
     'losing_nights' => 'Nuits régies par la saison :season, qui l’emporte selon la règle et sera appliquée en dernier : :nights.',
     'rewritten_nights' => 'L’application réécrit aussi des nuits de saisons chevauchantes déjà appliquées : :nights.',
-    'count_scope' => 'Ce décompte ne voit que les tarifs convenus via une proposition, et seulement tant que le prix correspond encore à ce qui a été convenu. Un tarif fixé par un propriétaire lui-même, ou qui a changé depuis, n’est pas compté ici.',
+    'count_scope' => 'Les nuits convenues avec le propriétaire ne sont comptées que si l’accord est passé par une proposition, et seulement tant que le prix correspond encore à ce qui a été convenu. Un tarif fixé par un propriétaire lui-même, ou qui a changé depuis, n’est pas compté ici.',
     'booked_keep_price' => 'Les séjours déjà réservés gardent le prix auquel ils ont été réservés — ceci change ce qui est proposé à partir de maintenant.',
 ];

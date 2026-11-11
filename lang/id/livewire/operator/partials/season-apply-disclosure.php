@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '[0,*]:count pemilik|{1}seorang pemilik',
     'losing_nights' => ':nights dari malam tersebut diatur oleh :season, yang diutamakan menurut aturan dan akan ditulis terakhir.',
     'rewritten_nights' => 'Penerapan ini juga menulis ulang :nights malam dari musim tumpang tindih yang sudah diterapkan.',
-    'count_scope' => 'Hitungan itu hanya mencakup tarif yang disepakati melalui usulan tarif, dan hanya selama harganya masih sama dengan yang disepakati. Tarif yang diatur sendiri oleh pemilik, atau yang sudah berubah sejak itu, tidak dihitung di sini.',
+    'count_scope' => 'Malam yang disepakati dengan pemilik hanya dihitung jika disepakati melalui usulan tarif, dan hanya selama harganya masih sama dengan yang disepakati. Tarif yang diatur sendiri oleh pemilik, atau yang sudah berubah sejak itu, tidak dihitung di sini.',
     'booked_keep_price' => 'Masa inap yang sudah dipesan tetap memakai harga saat dipesan — perubahan ini hanya berlaku untuk penawaran mulai sekarang.',
 ];

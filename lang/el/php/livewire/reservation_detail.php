@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Εξουσιοδοτήθηκε',
     'flag_captured' => 'Εισπράχθηκε',
     'flag_voided' => 'Ακυρώθηκε',
+    'hold_released_desc' => 'Αποδεσμεύτηκε — η κάρτα ελευθερώθηκε, δεν έγινε καμία χρέωση',
+    'flag_released' => 'Αποδεσμεύτηκε',
 ];

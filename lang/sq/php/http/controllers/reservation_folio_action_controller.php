@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Rimbursimi u krye.',
     'billed_to_account' => 'U faturua në llogarinë :account. Detyrimi mbetet i hapur derisa të paguajnë.',
     'returned_to_guest' => 'U kthye te llogaria e qëndrimit e vizitorit.',
+    'hold_released' => 'Paraautorizimi u lirua — karta e vizitorit u lirua dhe nuk u debitua asgjë.',
 ];

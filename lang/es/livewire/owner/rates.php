@@ -24,7 +24,7 @@ return [
     'current_sub' => 'Tarifas por noche vigentes en sus unidades',
     'no_room_types' => 'No tiene tipos de habitación a los que poner precio aquí.',
     'no_room_types_hint' => 'Las tarifas se fijan por tipo de habitación; cuando su unidad comparte tipo de habitación con otra parte, la tarifa la fija su equipo de gestión.',
-    'col_villa' => 'Villa',
+    'col_villa' => 'Unidad',
     'col_base' => 'Base',
     'col_weekend' => 'Fin de semana',
     'col_peak' => 'Temporada alta',

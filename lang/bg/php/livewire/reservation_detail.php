@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Авторизирано',
     'flag_captured' => 'Приключено',
     'flag_voided' => 'Обезсилено',
+    'hold_released_desc' => 'Освободено – картата е свободна, нищо не е таксувано',
+    'flag_released' => 'Освободено',
 ];

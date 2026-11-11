@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Tổng số căn',
     'col_booked_pct' => '% đã đặt',
     'month_total' => 'Tổng tháng',
-    'total_nights' => ':count đêm',
-    'total_units' => ':count căn',
+    'total_nights' => '{1}:count đêm|[0,*]:count đêm',
+    'total_units' => '{1}:count căn|[0,*]:count căn',
 ];

@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Toplam birim',
     'col_booked_pct' => 'Rezerve %',
     'month_total' => 'Ay toplamı',
-    'total_nights' => ':count gece',
-    'total_units' => ':count birim',
+    'total_nights' => '{1} :count gece|[0,*] :count gece',
+    'total_units' => '{1} :count birim|[0,*] :count birim',
 ];

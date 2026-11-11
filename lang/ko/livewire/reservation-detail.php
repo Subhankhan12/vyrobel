@@ -84,4 +84,7 @@ return [
     'export_pdf' => '폴리오 내보내기(PDF)',
     'export_csv_print' => 'CSV 내보내기 · 인쇄',
     'room_moves_note' => '객실 변경 시 잔여 객실을 확인하므로 같은 객실이 중복 예약되지 않으며, 변경 내용은 즉시 저장됩니다.',
+    'hold_release_button' => '가승인 해제',
+    'hold_releasing' => '해제 중…',
+    'hold_release_confirm' => '이 가승인을 해제하시겠습니까? 고객 카드의 가승인이 풀리며 아무 금액도 결제되지 않습니다.',
 ];

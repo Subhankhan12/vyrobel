@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => '공제 불가 카테고리',
         'ota_cost_bearer' => '채널 수수료 부담 주체',
-        'cleaning_fee_bearer' => '청소비 부담 주체',
-        'addon_bearer' => '추가 서비스 부담 주체',
+        'cleaning_fee_bearer' => '청소비 귀속 대상',
+        'addon_bearer' => '추가 서비스 귀속 대상',
     ],
     'rule_values' => [
         'owner' => '소유주',

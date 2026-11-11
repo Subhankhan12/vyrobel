@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'إجمالي الوحدات',
     'col_booked_pct' => 'نسبة الحجز %',
     'month_total' => 'إجمالي الشهر',
-    'total_nights' => 'عدد الليالي: :count',
-    'total_units' => 'عدد الوحدات: :count',
+    'total_nights' => '{0} :count ليالٍ|ليلة واحدة|ليلتان|:count ليالٍ|:count ليلةً|:count ليلة',
+    'total_units' => '{0} :count وحدات|وحدة واحدة|وحدتان|:count وحدات|:count وحدةً|:count وحدة',
 ];

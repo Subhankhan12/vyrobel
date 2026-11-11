@@ -47,4 +47,6 @@ return [
     'flag_authorized' => '与信済み',
     'flag_captured' => '売上確定済み',
     'flag_voided' => '無効化済み',
+    'hold_released_desc' => '解放済み — カードの利用枠が元に戻り、請求は発生していません',
+    'flag_released' => '解放済み',
 ];

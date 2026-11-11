@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Gjithsej njësi',
     'col_booked_pct' => 'Të rezervuara %',
     'month_total' => 'Totali i muajit',
-    'total_nights' => 'Netë: :count',
-    'total_units' => 'Njësi: :count',
+    'total_nights' => '{1}:count natë|[0,*]:count netë',
+    'total_units' => '{1}:count njësi|[0,*]:count njësi',
 ];

@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1} een eigenaar|[0,*] :count eigenaren',
     'losing_nights' => 'Van die nachten vallen er :nights onder :season, dat volgens de regel voorgaat en als laatste wordt geschreven.',
     'rewritten_nights' => 'Toepassen herschrijft ook nachten van overlappende seizoenen die al zijn toegepast: :nights.',
-    'count_scope' => 'Die telling ziet alleen tarieven die via een voorstel zijn afgesproken, en alleen zolang de prijs nog overeenkomt met wat is afgesproken. Een tarief dat een eigenaar zelf heeft ingesteld, of een tarief dat sindsdien is gewijzigd, wordt hier niet meegeteld.',
+    'count_scope' => 'Nachten die met de eigenaar zijn afgesproken, worden alleen meegeteld als dat via een voorstel is gebeurd, en alleen zolang de prijs nog overeenkomt met wat is afgesproken. Een tarief dat een eigenaar zelf heeft ingesteld, of een tarief dat sindsdien is gewijzigd, wordt hier niet meegeteld.',
     'booked_keep_price' => 'Verblijven die al geboekt zijn, houden de prijs waarvoor ze geboekt zijn — dit verandert wat er vanaf nu wordt aangeboden.',
 ];

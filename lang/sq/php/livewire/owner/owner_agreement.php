@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Kategoritë që nuk zbriten nga derdhja',
         'ota_cost_bearer' => 'Kush mbulon kostot e OTA-ve',
-        'cleaning_fee_bearer' => 'Kush mbulon tarifën e pastrimit',
-        'addon_bearer' => 'Kush mbulon shërbimet shtesë',
+        'cleaning_fee_bearer' => 'Tarifa e pastrimit shkon te',
+        'addon_bearer' => 'Shërbimet shtesë shkojnë te',
     ],
     'rule_values' => [
         'owner' => 'Pronari',

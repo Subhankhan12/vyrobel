@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Rückerstattung ausgeführt.',
     'billed_to_account' => 'Auf :account abgerechnet. Der Saldo bleibt offen, bis die Zahlung eingeht.',
     'returned_to_guest' => 'Zurück auf das Folio des Gastes übertragen.',
+    'hold_released' => 'Vorautorisierung freigegeben — die Karte des Gastes ist wieder frei, es wurde nichts belastet.',
 ];

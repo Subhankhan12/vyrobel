@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'کل واحدها',
     'col_booked_pct' => 'درصد رزرو',
     'month_total' => 'جمع ماه',
-    'total_nights' => ':count شب',
-    'total_units' => ':count واحد',
+    'total_nights' => '{1}:count شب|[0,*]:count شب',
+    'total_units' => '{1}:count واحد|[0,*]:count واحد',
 ];

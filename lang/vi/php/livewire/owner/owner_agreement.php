@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Hạng mục không được khấu trừ',
         'ota_cost_bearer' => 'Bên chịu phí OTA',
-        'cleaning_fee_bearer' => 'Bên nhận phí dọn dẹp',
-        'addon_bearer' => 'Bên nhận tiền dịch vụ thêm',
+        'cleaning_fee_bearer' => 'Phí dọn dẹp thuộc về',
+        'addon_bearer' => 'Tiền dịch vụ thêm thuộc về',
     ],
     'rule_values' => [
         'owner' => 'Chủ sở hữu',

@@ -8,6 +8,6 @@ return [
     'col_total_units' => '전체 객실',
     'col_booked_pct' => '예약률(%)',
     'month_total' => '월 합계',
-    'total_nights' => ':count박',
-    'total_units' => '객실 :count개',
+    'total_nights' => '{1}:count박|[0,*]:count박',
+    'total_units' => '{1}객실 :count개|[0,*]객실 :count개',
 ];

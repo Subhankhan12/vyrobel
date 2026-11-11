@@ -134,7 +134,7 @@ return [
     'resend_sub' => ':email adresine yeni bir bağlantı gönderilir. Eskisi artık çalışmaz.',
     'send_again' => 'Yeniden gönder',
     'cancel_invite_title' => 'Davet iptal edilsin mi?',
-    'cancel_invite_sub' => ':email adresine gönderilen bağlantı artık çalışmaz.',
+    'cancel_invite_sub' => ':email adresi için davet artık çalışmaz.',
     'cancel_invite_removes' => ':name daveti hiç kabul etmediği için mülk sahipleri listenizden de çıkar.',
     'cancel_invite_again_later' => 'Daha sonra yeniden davet edebilirsiniz.',
     'keep_invite' => 'Vazgeç',

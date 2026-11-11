@@ -15,4 +15,5 @@ return [
     'refund_issued' => '退款已发放。',
     'billed_to_account' => '已记入 :account。在对方付款之前，余额仍为欠款。',
     'returned_to_guest' => '已退回客人账单。',
+    'hold_released' => '预授权已释放——客人的银行卡已被释放，未产生任何扣款。',
 ];

@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Ein neuer Link geht an :email. Der alte funktioniert dann nicht mehr.',
     'send_again' => 'Erneut senden',
     'cancel_invite_title' => 'Einladung widerrufen?',
-    'cancel_invite_sub' => 'Der an :email gesendete Link funktioniert dann nicht mehr.',
+    'cancel_invite_sub' => 'Die Einladung für :email funktioniert dann nicht mehr.',
     'cancel_invite_removes' => ':name hat die Einladung nie angenommen und wird daher auch aus Ihrer Eigentümerliste entfernt.',
     'cancel_invite_again_later' => 'Sie können die Person später erneut einladen.',
     'keep_invite' => 'Einladung behalten',

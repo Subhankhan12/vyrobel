@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'یک پیوند جدید به :email ارسال می‌شود. پیوند قبلی دیگر کار نمی‌کند.',
     'send_again' => 'ارسال دوباره',
     'cancel_invite_title' => 'دعوت لغو شود؟',
-    'cancel_invite_sub' => 'پیوندی که به :email ارسال شده بود دیگر کار نمی‌کند.',
+    'cancel_invite_sub' => 'دعوت برای :email دیگر کار نمی‌کند.',
     'cancel_invite_removes' => 'چون :name هرگز دعوت را نپذیرفته است، از فهرست مالکان شما هم خارج می‌شود.',
     'cancel_invite_again_later' => 'بعداً می‌توانید دوباره او را دعوت کنید.',
     'keep_invite' => 'بستن',

@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Categorie non deducibili',
         'ota_cost_bearer' => 'Costi OTA a carico di',
-        'cleaning_fee_bearer' => 'Costo delle pulizie spettante a',
-        'addon_bearer' => 'Extra spettanti a',
+        'cleaning_fee_bearer' => 'Costo delle pulizie a favore di',
+        'addon_bearer' => 'Extra a favore di',
     ],
     'rule_values' => [
         'owner' => 'Proprietario',

@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Ауторизовано',
     'flag_captured' => 'Наплаћено',
     'flag_voided' => 'Поништено',
+    'hold_released_desc' => 'Ослобођена – картица је ослобођена, ништа није наплаћено',
+    'flag_released' => 'Ослобођена',
 ];

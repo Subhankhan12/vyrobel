@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Общо единици',
     'col_booked_pct' => 'Резервирани, %',
     'month_total' => 'Общо за месеца',
-    'total_nights' => 'Нощувки: :count',
-    'total_units' => 'Единици: :count',
+    'total_nights' => '{1}:count нощувка|[0,*]:count нощувки',
+    'total_units' => '{1}:count единица|[0,*]:count единици',
 ];

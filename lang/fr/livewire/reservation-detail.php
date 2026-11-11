@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Exporter le folio (PDF)',
     'export_csv_print' => 'Export CSV · impression',
     'room_moves_note' => 'Un changement de chambre est vérifié côté disponibilité pour qu’une chambre ne soit jamais réservée deux fois, et il est enregistré immédiatement.',
+    'hold_release_button' => 'Libérer l’empreinte',
+    'hold_releasing' => 'Libération…',
+    'hold_release_confirm' => 'Libérer cette empreinte ? La carte du client est libérée et rien n’est débité.',
 ];

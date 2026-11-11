@@ -84,4 +84,7 @@ return [
     'export_pdf' => '匯出帳單（PDF）',
     'export_csv_print' => '匯出 CSV · 列印',
     'room_moves_note' => '換房時會檢查可售房數，確保同一間房不會重複訂房，且會立即儲存。',
+    'hold_release_button' => '釋放預先授權',
+    'hold_releasing' => '釋放中…',
+    'hold_release_confirm' => '要釋放此預先授權嗎？房客的信用卡將恢復可用額度，且不會扣款。',
 ];

@@ -24,7 +24,7 @@ return [
     'current_sub' => 'Birimlerinizin yayındaki gecelik fiyatları',
     'no_room_types' => 'Burada fiyatlandırabileceğiniz bir oda tipiniz yok.',
     'no_room_types_hint' => 'Fiyatlar oda tipi başına belirlenir; biriminiz başka bir tarafla aynı oda tipini paylaşıyorsa fiyatı yönetim ekibiniz belirler.',
-    'col_villa' => 'Villa',
+    'col_villa' => 'Birim',
     'col_base' => 'Temel',
     'col_weekend' => 'Hafta sonu',
     'col_peak' => 'Yoğun sezon',

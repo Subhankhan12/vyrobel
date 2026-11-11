@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1} un proprietario|[0,*] :count proprietari',
     'losing_nights' => 'Notti regolate dalla stagione :season, che prevale secondo la regola e verrà scritta per ultima: :nights.',
     'rewritten_nights' => 'L’applicazione riscrive anche le notti di stagioni sovrapposte già applicate: :nights.',
-    'count_scope' => 'Il conteggio include solo le tariffe concordate tramite una proposta, e solo finché il prezzo corrisponde ancora a quanto concordato. Una tariffa impostata dal proprietario stesso, o modificata in seguito, non viene conteggiata qui.',
+    'count_scope' => 'Le notti concordate con il proprietario vengono conteggiate solo se l’accordo è avvenuto tramite una proposta, e solo finché il prezzo corrisponde ancora a quanto concordato. Una tariffa impostata dal proprietario stesso, o modificata in seguito, non viene conteggiata qui.',
     'booked_keep_price' => 'I soggiorni già prenotati mantengono il prezzo con cui sono stati prenotati — la modifica riguarda solo ciò che viene offerto da ora in poi.',
 ];

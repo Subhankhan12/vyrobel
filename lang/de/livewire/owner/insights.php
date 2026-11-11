@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Analysen zu Auslastung & Preisen',
-    'subtitle' => 'Wie sich Ihre Villen füllen, was Ihre Preise einbringen und wo noch Spielraum ist.',
+    'subtitle' => 'Wie sich Ihre Einheiten füllen, was Ihre Preise einbringen und wo noch Spielraum ist.',
     'no_units_linked' => 'Mit Ihrem Konto sind noch keine Einheiten verknüpft.',
     'occupancy_heading' => 'Auslastung nach Monat',
     'occupancy_sub' => ':range · erreicht und im Buchungsstand',

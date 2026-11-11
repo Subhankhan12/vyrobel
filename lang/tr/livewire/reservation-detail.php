@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Folyoyu dışa aktar (PDF)',
     'export_csv_print' => 'CSV dışa aktar · yazdır',
     'room_moves_note' => 'Oda değişikliğinde müsaitlik kontrol edilir, böylece bir oda hiçbir zaman iki kez rezerve edilmez; değişiklik hemen kaydedilir.',
+    'hold_release_button' => 'Provizyonu serbest bırak',
+    'hold_releasing' => 'Serbest bırakılıyor…',
+    'hold_release_confirm' => 'Bu provizyon serbest bırakılsın mı? Misafirin kartı serbest kalır ve hiçbir tutar tahsil edilmez.',
 ];

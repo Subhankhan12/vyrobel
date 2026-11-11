@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'يتم إرسال رابط جديد إلى :email، ويتوقف الرابط القديم عن العمل.',
     'send_again' => 'إعادة الإرسال',
     'cancel_invite_title' => 'إلغاء الدعوة؟',
-    'cancel_invite_sub' => 'يتوقف الرابط المرسل إلى :email عن العمل.',
+    'cancel_invite_sub' => 'تتوقف الدعوة إلى :email عن العمل.',
     'cancel_invite_removes' => 'لم يقبل :name الدعوة، لذا تتم إزالته من قائمة الملاك أيضًا.',
     'cancel_invite_again_later' => 'يمكن دعوته مرة أخرى لاحقًا.',
     'keep_invite' => 'الإبقاء على الدعوة',

@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Pengembalian dana berhasil diproses.',
     'billed_to_account' => 'Ditagihkan ke :account. Saldo tetap terutang hingga akun tersebut membayar.',
     'returned_to_guest' => 'Dikembalikan ke folio tamu.',
+    'hold_released' => 'Praotorisasi berhasil dilepas — kartu tamu dibebaskan dan tidak ada dana yang dibebankan.',
 ];

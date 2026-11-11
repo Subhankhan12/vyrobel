@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autoryzowano',
     'flag_captured' => 'Pobrano',
     'flag_voided' => 'Unieważniono',
+    'hold_released_desc' => 'Zwolniono – środki na karcie zostały zwolnione, nic nie pobrano',
+    'flag_released' => 'Zwolniono',
 ];

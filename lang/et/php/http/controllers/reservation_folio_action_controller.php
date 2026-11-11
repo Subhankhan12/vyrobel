@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Tagasimakse on tehtud.',
     'billed_to_account' => 'Arve on esitatud kontole :account. Tasumata summa jääb alles, kuni arve on tasutud.',
     'returned_to_guest' => 'Tagastatud külalise foliole.',
+    'hold_released' => 'Eelautoriseerimine on vabastatud — külalise kaart vabastati ja midagi ei debiteeritud.',
 ];

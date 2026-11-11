@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1}un proprietar|:count proprietari|:count de proprietari',
     'losing_nights' => 'Pentru :nights dintre aceste nopți are prioritate sezonul :season, conform regulii, și va fi aplicat ultimul.',
     'rewritten_nights' => 'Aplicarea rescrie și prețurile din sezoanele suprapuse deja aplicate — nopți: :nights.',
-    'count_scope' => 'Acest număr include doar tarifele convenite printr-o propunere și doar cât timp prețul corespunde încă celui convenit. Un tarif setat chiar de proprietar sau unul care s-a modificat între timp nu este numărat aici.',
+    'count_scope' => 'Nopțile convenite cu proprietarul sunt numărate doar dacă au fost convenite printr-o propunere și doar cât timp prețul corespunde încă celui convenit. Un tarif setat chiar de proprietar sau unul care s-a modificat între timp nu este numărat aici.',
     'booked_keep_price' => 'Sejururile deja rezervate își păstrează prețul cu care au fost rezervate — modificarea schimbă doar ce se oferă de acum înainte.',
 ];

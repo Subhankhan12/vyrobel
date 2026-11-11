@@ -8,6 +8,6 @@ return [
     'col_total_units' => '物件数',
     'col_booked_pct' => '予約率',
     'month_total' => '月合計',
-    'total_nights' => ':count泊',
-    'total_units' => ':count件の物件',
+    'total_nights' => '{1}:count泊|[0,*]:count泊',
+    'total_units' => '{1}:count件の物件|[0,*]:count件の物件',
 ];

@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Geautoriseerd',
     'flag_captured' => 'Afgeschreven',
     'flag_voided' => 'Ongeldig gemaakt',
+    'hold_released_desc' => 'Vrijgegeven — de kaart is weer vrij, er is niets afgeschreven',
+    'flag_released' => 'Vrijgegeven',
 ];

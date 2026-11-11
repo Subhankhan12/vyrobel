@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Majutusüksusi kokku',
     'col_booked_pct' => 'Broneeritud %',
     'month_total' => 'Kuu kokku',
-    'total_nights' => 'Öid: :count',
-    'total_units' => 'Majutusüksusi: :count',
+    'total_nights' => '{1}:count öö|[0,*]:count ööd',
+    'total_units' => '{1}:count majutusüksus|[0,*]:count majutusüksust',
 ];

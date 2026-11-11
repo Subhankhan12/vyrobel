@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Análisis de ocupación y precios',
-    'subtitle' => 'Cómo se están llenando sus villas, qué rinden sus tarifas y dónde hay margen.',
+    'subtitle' => 'Cómo se están llenando sus unidades, qué rinden sus tarifas y dónde hay margen.',
     'no_units_linked' => 'Todavía no hay unidades vinculadas a su cuenta.',
     'occupancy_heading' => 'Ocupación por mes',
     'occupancy_sub' => ':range · lograda y en cartera',

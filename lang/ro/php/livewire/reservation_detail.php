@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autorizată',
     'flag_captured' => 'Încasată',
     'flag_voided' => 'Anulată',
+    'hold_released_desc' => 'Eliberat — suma blocată pe card a fost deblocată, nu s-a debitat nimic',
+    'flag_released' => 'Eliberat',
 ];

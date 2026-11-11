@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autorisé',
     'flag_captured' => 'Encaissé',
     'flag_voided' => 'Annulé',
+    'hold_released_desc' => 'Libérée — la carte a été libérée, rien n’a été débité',
+    'flag_released' => 'Libérée',
 ];

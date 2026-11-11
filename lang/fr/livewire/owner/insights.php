@@ -4,7 +4,7 @@
 
 return [
     'title' => 'Analyses d’occupation et de tarifs',
-    'subtitle' => 'Comment vos villas se remplissent, ce que rapportent vos tarifs et où se trouve votre marge de progression.',
+    'subtitle' => 'Comment vos unités se remplissent, ce que rapportent vos tarifs et où se trouve votre marge de progression.',
     'no_units_linked' => 'Aucune unité n’est encore liée à votre compte.',
     'occupancy_heading' => 'Occupation par mois',
     'occupancy_sub' => ':range · réalisé et déjà réservé',

@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Eksporto llogarinë e qëndrimit (PDF)',
     'export_csv_print' => 'Eksporto CSV · printo',
     'room_moves_note' => 'Zhvendosja e dhomës kontrollohet për disponueshmëri, që dhoma të mos rezervohet dy herë, dhe ruhet menjëherë.',
+    'hold_release_button' => 'Liro paraautorizimin',
+    'hold_releasing' => 'Po lirohet…',
+    'hold_release_confirm' => 'Të lirohet ky paraautorizim? Karta e vizitorit lirohet dhe nuk debitohet asgjë.',
 ];

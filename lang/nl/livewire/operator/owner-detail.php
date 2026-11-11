@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Er gaat een nieuwe link naar :email. De oude werkt dan niet meer.',
     'send_again' => 'Opnieuw versturen',
     'cancel_invite_title' => 'Uitnodiging annuleren?',
-    'cancel_invite_sub' => 'De link die naar :email is gestuurd, werkt niet meer.',
+    'cancel_invite_sub' => 'De uitnodiging voor :email werkt niet meer.',
     'cancel_invite_removes' => ':name heeft nooit geaccepteerd en verdwijnt dus ook uit uw lijst met eigenaren.',
     'cancel_invite_again_later' => 'U kunt deze persoon later opnieuw uitnodigen.',
     'keep_invite' => 'Uitnodiging behouden',

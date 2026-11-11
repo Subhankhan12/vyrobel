@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Kategori yang tidak dapat dikurangkan',
         'ota_cost_bearer' => 'Penanggung biaya OTA',
-        'cleaning_fee_bearer' => 'Penanggung biaya kebersihan',
-        'addon_bearer' => 'Penanggung layanan tambahan',
+        'cleaning_fee_bearer' => 'Biaya kebersihan masuk ke',
+        'addon_bearer' => 'Layanan tambahan masuk ke',
     ],
     'rule_values' => [
         'owner' => 'Pemilik',

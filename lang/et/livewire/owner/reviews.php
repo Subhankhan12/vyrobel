@@ -14,7 +14,7 @@ return [
     'last_30_days' => 'Viimased 30 päeva',
     'last_30_avg' => 'keskmine :rating',
     'new_reviews' => '{1}uus arvustus|[0,*]uut arvustust',
-    'by_villa' => 'Majutusüksuse kaupa',
+    'by_villa' => 'Majutusüksuste kaupa',
     'villa_reviews' => '{1}:count arvustus|[0,*]:count arvustust',
     'trend_steady' => '— stabiilne',
     'recent_reviews' => 'Viimased arvustused',

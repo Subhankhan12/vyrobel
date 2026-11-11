@@ -15,4 +15,5 @@ return [
     'refund_issued' => '返金しました。',
     'billed_to_account' => ':accountに請求しました。支払われるまで残額は未払いのままです。',
     'returned_to_guest' => 'ゲストのフォリオに戻しました。',
+    'hold_released' => '与信を解放しました。ゲストのカードの利用枠が元に戻り、請求は発生していません。',
 ];

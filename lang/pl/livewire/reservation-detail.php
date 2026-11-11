@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Eksportuj folio (PDF)',
     'export_csv_print' => 'Eksport CSV · drukowanie',
     'room_moves_note' => 'Przeniesienie do innego pokoju jest sprawdzane pod kątem dostępności, aby pokój nigdy nie został zarezerwowany dwukrotnie, i zapisuje się od razu.',
+    'hold_release_button' => 'Zwolnij preautoryzację',
+    'hold_releasing' => 'Zwalnianie…',
+    'hold_release_confirm' => 'Czy zwolnić tę preautoryzację? Środki zablokowane na karcie gościa zostaną zwolnione, a żadna kwota nie zostanie pobrana.',
 ];

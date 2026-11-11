@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '[0,*]:count chủ sở hữu|{1}một chủ sở hữu',
     'losing_nights' => ':nights trong số những đêm đó thuộc mùa :season, mùa này được ưu tiên theo quy tắc và sẽ được ghi sau cùng.',
     'rewritten_nights' => 'Khi áp dụng, :nights đêm từ các mùa chồng lấn đã áp dụng cũng sẽ được ghi lại.',
-    'count_scope' => 'Số lượng này chỉ tính giá đã thỏa thuận qua đề xuất giá, và chỉ khi giá vẫn khớp với mức đã thỏa thuận. Giá do chủ sở hữu tự đặt, hoặc giá đã thay đổi sau đó, không được tính ở đây.',
+    'count_scope' => 'Đêm có giá đã thỏa thuận với chủ sở hữu chỉ được tính khi giá đó được thỏa thuận qua đề xuất giá, và chỉ khi giá vẫn khớp với mức đã thỏa thuận. Giá do chủ sở hữu tự đặt, hoặc giá đã thay đổi sau đó, không được tính ở đây.',
     'booked_keep_price' => 'Kỳ lưu trú đã đặt giữ nguyên giá lúc đặt — thay đổi này chỉ áp dụng cho giá chào bán từ bây giờ.',
 ];

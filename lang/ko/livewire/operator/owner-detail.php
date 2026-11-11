@@ -134,7 +134,7 @@ return [
     'resend_sub' => '새 링크가 :email 주소로 발송됩니다. 이전 링크는 더 이상 작동하지 않습니다.',
     'send_again' => '다시 보내기',
     'cancel_invite_title' => '초대를 취소하시겠습니까?',
-    'cancel_invite_sub' => ':email 주소로 보낸 링크가 더 이상 작동하지 않습니다.',
+    'cancel_invite_sub' => ':email 주소의 초대가 더 이상 작동하지 않습니다.',
     'cancel_invite_removes' => ':name 사용자는 초대를 수락하지 않았으므로 소유주 목록에서도 제거됩니다.',
     'cancel_invite_again_later' => '나중에 다시 초대할 수 있습니다.',
     'keep_invite' => '초대 유지',

@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => '不從撥款扣除的類別',
         'ota_cost_bearer' => 'OTA 通路費用承擔方',
-        'cleaning_fee_bearer' => '清潔費承擔方',
-        'addon_bearer' => '加購項目承擔方',
+        'cleaning_fee_bearer' => '清潔費歸屬對象',
+        'addon_bearer' => '加購項目歸屬對象',
     ],
     'rule_values' => [
         'owner' => '業主',

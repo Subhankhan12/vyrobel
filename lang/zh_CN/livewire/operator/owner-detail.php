@@ -134,7 +134,7 @@ return [
     'resend_sub' => '新链接将发送至 :email，旧链接将失效。',
     'send_again' => '重新发送',
     'cancel_invite_title' => '取消邀请？',
-    'cancel_invite_sub' => '发送至 :email 的链接将失效。',
+    'cancel_invite_sub' => ':email 的邀请将失效。',
     'cancel_invite_removes' => ':name 从未接受邀请，因此也会从您的业主列表中移除。',
     'cancel_invite_again_later' => '您以后可以再次邀请。',
     'keep_invite' => '保留邀请',

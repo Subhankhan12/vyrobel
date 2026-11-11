@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autorizuar',
     'flag_captured' => 'Arkëtuar',
     'flag_voided' => 'Shfuqizuar',
+    'hold_released_desc' => 'Liruar — karta u lirua, nuk u debitua asgjë',
+    'flag_released' => 'Liruar',
 ];

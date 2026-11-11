@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Невычитаемые категории',
         'ota_cost_bearer' => 'Кто несёт расходы на OTA',
-        'cleaning_fee_bearer' => 'Кто несёт плату за уборку',
-        'addon_bearer' => 'Кто несёт расходы на доп. услуги',
+        'cleaning_fee_bearer' => 'Кому идёт плата за уборку',
+        'addon_bearer' => 'Кому идёт плата за доп. услуги',
     ],
     'rule_values' => [
         'owner' => 'Собственник',

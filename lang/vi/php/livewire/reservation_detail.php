@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Đã cấp phép',
     'flag_captured' => 'Đã thu tiền',
     'flag_voided' => 'Đã hủy giao dịch',
+    'hold_released_desc' => 'Đã giải phóng — thẻ đã được giải phóng, không bị trừ tiền',
+    'flag_released' => 'Đã giải phóng',
 ];

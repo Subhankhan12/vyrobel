@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Reembolso emitido.',
     'billed_to_account' => 'Faturado a :account. O saldo continua em dívida até ser pago.',
     'returned_to_guest' => 'Devolvido ao folio do hóspede.',
+    'hold_released' => 'Pré-autorização libertada — o cartão do hóspede ficou livre e não foi cobrado nada.',
 ];

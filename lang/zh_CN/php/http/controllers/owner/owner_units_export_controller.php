@@ -8,6 +8,6 @@ return [
     'col_total_units' => '房源总数',
     'col_booked_pct' => '预订率（%）',
     'month_total' => '月合计',
-    'total_nights' => ':count 晚',
-    'total_units' => ':count 个房源',
+    'total_nights' => '{1}:count 晚|[0,*]:count 晚',
+    'total_units' => '{1}:count 个房源|[0,*]:count 个房源',
 ];

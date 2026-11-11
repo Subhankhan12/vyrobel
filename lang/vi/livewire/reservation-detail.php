@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Xuất folio (PDF)',
     'export_csv_print' => 'Xuất CSV · in',
     'room_moves_note' => 'Việc chuyển phòng được kiểm tra tình trạng phòng trống để một phòng không bao giờ bị đặt trùng, và được lưu ngay.',
+    'hold_release_button' => 'Giải phóng khoản cấp phép trước',
+    'hold_releasing' => 'Đang giải phóng…',
+    'hold_release_confirm' => 'Giải phóng khoản cấp phép trước này không? Thẻ của khách sẽ được giải phóng và không bị trừ tiền.',
 ];

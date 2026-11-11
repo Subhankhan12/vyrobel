@@ -134,7 +134,7 @@ return [
     'resend_sub' => '新連結將寄至 :email，舊連結將失效。',
     'send_again' => '重新寄送',
     'cancel_invite_title' => '取消邀請？',
-    'cancel_invite_sub' => '寄至 :email 的連結將失效。',
+    'cancel_invite_sub' => ':email 的邀請將失效。',
     'cancel_invite_removes' => ':name 從未接受邀請，因此也會從您的業主清單中移除。',
     'cancel_invite_again_later' => '您日後可以再次邀請對方。',
     'keep_invite' => '保留邀請',

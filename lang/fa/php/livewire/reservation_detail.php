@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'مجوزگرفته',
     'flag_captured' => 'برداشت‌شده',
     'flag_voided' => 'باطل‌شده',
+    'hold_released_desc' => 'آزاد شد — کارت آزاد شد و مبلغی برداشت نشد',
+    'flag_released' => 'آزادشده',
 ];

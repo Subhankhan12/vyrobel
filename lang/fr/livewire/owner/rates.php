@@ -24,7 +24,7 @@ return [
     'current_sub' => 'Tarifs par nuit en vigueur pour vos unités',
     'no_room_types' => 'Vous n’avez aucun type de chambre à tarifer ici.',
     'no_room_types_hint' => 'Les tarifs sont fixés par type de chambre ; lorsque votre unité partage un type de chambre avec un tiers, c’est votre équipe de gestion qui fixe le tarif.',
-    'col_villa' => 'Villa',
+    'col_villa' => 'Unité',
     'col_base' => 'Base',
     'col_weekend' => 'Week-end',
     'col_peak' => 'Haute saison',

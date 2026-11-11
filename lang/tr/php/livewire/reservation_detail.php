@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Provizyon alındı',
     'flag_captured' => 'Tahsil edildi',
     'flag_voided' => 'Geçersiz kılındı',
+    'hold_released_desc' => 'Serbest bırakıldı — kart serbest kaldı, hiçbir tutar tahsil edilmedi',
+    'flag_released' => 'Serbest bırakıldı',
 ];

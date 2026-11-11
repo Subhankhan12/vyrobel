@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Se envía un enlace nuevo a :email. El anterior deja de funcionar.',
     'send_again' => 'Volver a enviar',
     'cancel_invite_title' => '¿Cancelar la invitación?',
-    'cancel_invite_sub' => 'El enlace enviado a :email deja de funcionar.',
+    'cancel_invite_sub' => 'La invitación para :email deja de funcionar.',
     'cancel_invite_removes' => ':name nunca la aceptó, así que también sale de su lista de propietarios.',
     'cancel_invite_again_later' => 'Puede volver a enviarle una invitación más adelante.',
     'keep_invite' => 'Conservar invitación',

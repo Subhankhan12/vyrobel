@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Një lidhje e re dërgohet te :email. Lidhja e vjetër nuk funksionon më.',
     'send_again' => 'Dërgo përsëri',
     'cancel_invite_title' => 'Të anulohet ftesa?',
-    'cancel_invite_sub' => 'Lidhja e dërguar te :email nuk funksionon më.',
+    'cancel_invite_sub' => 'Ftesa për adresën :email nuk funksionon më.',
     'cancel_invite_removes' => ':name nuk e pranoi kurrë, ndaj largohet edhe nga lista juaj e pronarëve.',
     'cancel_invite_again_later' => 'Mund ta ftoni përsëri më vonë.',
     'keep_invite' => 'Mbaje ftesën',

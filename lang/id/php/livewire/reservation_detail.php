@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Diotorisasi',
     'flag_captured' => 'Dibebankan',
     'flag_voided' => 'Dianulir',
+    'hold_released_desc' => 'Dilepas — kartu dibebaskan, tidak ada dana yang dibebankan',
+    'flag_released' => 'Dilepas',
 ];

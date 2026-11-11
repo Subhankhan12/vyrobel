@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Esporta conto (PDF)',
     'export_csv_print' => 'Esporta CSV · stampa',
     'room_moves_note' => 'A ogni spostamento di camera viene controllata la disponibilità, così una camera non viene mai prenotata due volte, e la modifica è salvata subito.',
+    'hold_release_button' => 'Sblocca preautorizzazione',
+    'hold_releasing' => 'Sblocco in corso…',
+    'hold_release_confirm' => 'Sbloccare questa preautorizzazione? La carta dell’ospite viene liberata e non viene addebitato nulla.',
 ];

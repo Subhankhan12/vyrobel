@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'Unità totali',
     'col_booked_pct' => '% prenotate',
     'month_total' => 'Totale del mese',
-    'total_nights' => 'Notti: :count',
-    'total_units' => 'Unità: :count',
+    'total_nights' => '{1} :count notte|[0,*] :count notti',
+    'total_units' => '{1} :count unità|[0,*] :count unità',
 ];

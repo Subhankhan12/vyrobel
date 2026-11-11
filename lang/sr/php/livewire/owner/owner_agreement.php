@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Категорије на терет управљачке компаније',
         'ota_cost_bearer' => 'Ко сноси трошкове OTA',
-        'cleaning_fee_bearer' => 'Ко сноси накнаду за чишћење',
-        'addon_bearer' => 'Ко сноси додатке',
+        'cleaning_fee_bearer' => 'Накнаду за чишћење прима',
+        'addon_bearer' => 'Приход од додатака прима',
     ],
     'rule_values' => [
         'owner' => 'Власник',

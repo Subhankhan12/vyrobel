@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Autorisiert',
     'flag_captured' => 'Eingezogen',
     'flag_voided' => 'Storniert',
+    'hold_released_desc' => 'Freigegeben — die Karte ist wieder frei, es wurde nichts belastet',
+    'flag_released' => 'Freigegeben',
 ];

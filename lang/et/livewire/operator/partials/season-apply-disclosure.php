@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1}ühe omanikuga|[0,*]:count omanikuga',
     'losing_nights' => 'Neist :nights ööl kehtib hooaeg :season, mis on reegli järgi ülimuslik ja kirjutatakse viimasena.',
     'rewritten_nights' => 'Rakendamine kirjutab uuesti üle ka kattuvate, juba rakendatud hooaegade ööd (öid: :nights).',
-    'count_scope' => 'See arv hõlmab ainult ettepaneku kaudu kokku lepitud hindu ja ainult seni, kuni hind vastab kokkulepitule. Omaniku enda määratud või hiljem muutunud hinda siin ei arvestata.',
+    'count_scope' => 'Omanikuga kokku lepitud öid arvestatakse ainult siis, kui need lepiti kokku ettepaneku kaudu, ja ainult seni, kuni hind vastab kokkulepitule. Omaniku enda määratud või hiljem muutunud hinda siin ei arvestata.',
     'booked_keep_price' => 'Juba broneeritud viibimised säilitavad broneerimisaegse hinna — see muudab ainult edaspidi pakutavat hinda.',
 ];

@@ -15,4 +15,5 @@ return [
     'refund_issued' => '退款已辦理。',
     'billed_to_account' => '已記入帳戶 :account。在對方付款前，餘額仍為待付金額。',
     'returned_to_guest' => '已退回房客的帳單。',
+    'hold_released' => '預先授權已釋放——房客的信用卡已恢復可用額度，未扣款。',
 ];

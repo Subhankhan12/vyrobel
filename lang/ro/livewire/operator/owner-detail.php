@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Un link nou va fi trimis la :email. Cel vechi nu va mai funcționa.',
     'send_again' => 'Retrimitere',
     'cancel_invite_title' => 'Anulați invitația?',
-    'cancel_invite_sub' => 'Linkul trimis la :email nu va mai funcționa.',
+    'cancel_invite_sub' => 'Invitația pentru :email nu va mai funcționa.',
     'cancel_invite_removes' => ':name nu a acceptat-o niciodată, așa că dispare și din lista de proprietari.',
     'cancel_invite_again_later' => 'Puteți trimite din nou o invitație mai târziu.',
     'keep_invite' => 'Păstrare invitație',

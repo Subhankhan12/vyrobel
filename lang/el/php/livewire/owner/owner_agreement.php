@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Κατηγορίες που δεν χρεώνονται στην εκταμίευση',
         'ota_cost_bearer' => 'Επιβάρυνση κόστους OTA',
-        'cleaning_fee_bearer' => 'Επιβάρυνση χρέωσης καθαρισμού',
-        'addon_bearer' => 'Επιβάρυνση πρόσθετων υπηρεσιών',
+        'cleaning_fee_bearer' => 'Δικαιούχος χρέωσης καθαρισμού',
+        'addon_bearer' => 'Δικαιούχος πρόσθετων υπηρεσιών',
     ],
     'rule_values' => [
         'owner' => 'Ιδιοκτήτης',

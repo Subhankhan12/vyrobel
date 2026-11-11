@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Exportar fólio (PDF)',
     'export_csv_print' => 'Exportar CSV · imprimir',
     'room_moves_note' => 'A mudança de quarto é verificada quanto à disponibilidade para que um quarto nunca seja reservado duas vezes, e é salva imediatamente.',
+    'hold_release_button' => 'Liberar pré-autorização',
+    'hold_releasing' => 'Liberando…',
+    'hold_release_confirm' => 'Liberar esta pré-autorização? O cartão do hóspede é liberado e nada é cobrado.',
 ];

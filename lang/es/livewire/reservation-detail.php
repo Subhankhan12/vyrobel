@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Exportar folio (PDF)',
     'export_csv_print' => 'Exportar CSV · imprimir',
     'room_moves_note' => 'Al trasladar una habitación se comprueba la disponibilidad para que nunca se reserve dos veces, y el cambio se guarda de inmediato.',
+    'hold_release_button' => 'Liberar preautorización',
+    'hold_releasing' => 'Liberando…',
+    'hold_release_confirm' => '¿Liberar esta preautorización? La tarjeta del huésped quedará libre y no se cobrará nada.',
 ];

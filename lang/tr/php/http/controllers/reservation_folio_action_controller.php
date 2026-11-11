@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'İade yapıldı.',
     'billed_to_account' => 'Hesaba faturalandı: :account. Hesap ödeme yapana kadar bakiye ödenmemiş olarak kalır.',
     'returned_to_guest' => 'Misafirin folyosuna geri aktarıldı.',
+    'hold_released' => 'Provizyon serbest bırakıldı — misafirin kartı serbest kaldı ve hiçbir tutar tahsil edilmedi.',
 ];

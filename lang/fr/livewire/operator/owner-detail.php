@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Un nouveau lien est envoyé à :email. L’ancien ne fonctionne plus.',
     'send_again' => 'Renvoyer',
     'cancel_invite_title' => 'Annuler l’invitation ?',
-    'cancel_invite_sub' => 'Le lien envoyé à :email ne fonctionne plus.',
+    'cancel_invite_sub' => 'L’invitation pour :email ne fonctionne plus.',
     'cancel_invite_removes' => 'L’invitation n’ayant jamais été acceptée par :name, cette personne quitte aussi votre liste de propriétaires.',
     'cancel_invite_again_later' => 'Vous pourrez l’inviter de nouveau plus tard.',
     'keep_invite' => 'Conserver l’invitation',

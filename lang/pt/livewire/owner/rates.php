@@ -24,7 +24,7 @@ return [
     'current_sub' => 'Tarifas por noite em vigor nas suas unidades',
     'no_room_types' => 'Não tem tipos de quarto para definir preços aqui.',
     'no_room_types_hint' => 'As tarifas são definidas por tipo de quarto; quando a sua unidade partilha um tipo de quarto com outra parte, é a sua equipa de gestão que define a tarifa.',
-    'col_villa' => 'Moradia',
+    'col_villa' => 'Unidade',
     'col_base' => 'Base',
     'col_weekend' => 'Fim de semana',
     'col_peak' => 'Época alta',

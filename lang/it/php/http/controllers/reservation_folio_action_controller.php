@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Rimborso emesso.',
     'billed_to_account' => 'Addebitato a :account. Il saldo resta dovuto finché l’azienda non paga.',
     'returned_to_guest' => 'Riportato sul conto dell’ospite.',
+    'hold_released' => 'Preautorizzazione sbloccata — la carta dell’ospite è stata liberata e non è stato addebitato nulla.',
 ];

@@ -84,4 +84,7 @@ return [
     'export_pdf' => '导出账单（PDF）',
     'export_csv_print' => '导出 CSV · 打印',
     'room_moves_note' => '换房时会检查可售房量，确保同一房间不会被重复预订，并立即保存。',
+    'hold_release_button' => '释放预授权',
+    'hold_releasing' => '正在释放…',
+    'hold_release_confirm' => '释放此预授权？客人的银行卡将被释放，不会产生任何扣款。',
 ];

@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'სულ ერთეულები',
     'col_booked_pct' => 'დაჯავშნილი %',
     'month_total' => 'თვის ჯამი',
-    'total_nights' => ':count ღამე',
-    'total_units' => ':count ერთეული',
+    'total_nights' => '{1}:count ღამე|[0,*]:count ღამე',
+    'total_units' => '{1}:count ერთეული|[0,*]:count ერთეული',
 ];

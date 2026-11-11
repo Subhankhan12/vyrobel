@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'Авторизовано',
     'flag_captured' => 'Списано',
     'flag_voided' => 'Аннулировано',
+    'hold_released_desc' => 'Снято — карта освобождена, ничего не списано',
+    'flag_released' => 'Снято',
 ];

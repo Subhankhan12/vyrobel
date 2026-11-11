@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'دسته‌های غیرقابل کسر از واریز',
         'ota_cost_bearer' => 'هزینه OTA بر عهده',
-        'cleaning_fee_bearer' => 'هزینه نظافت بر عهده',
-        'addon_bearer' => 'خدمات اضافی بر عهده',
+        'cleaning_fee_bearer' => 'هزینه نظافت به نفع',
+        'addon_bearer' => 'خدمات اضافی به نفع',
     ],
     'rule_values' => [
         'owner' => 'مالک',

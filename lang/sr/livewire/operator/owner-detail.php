@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Нови линк иде на :email. Стари престаје да важи.',
     'send_again' => 'Пошаљи поново',
     'cancel_invite_title' => 'Отказати позивницу?',
-    'cancel_invite_sub' => 'Линк послат на :email престаје да важи.',
+    'cancel_invite_sub' => 'Позивница за адресу :email престаје да важи.',
     'cancel_invite_removes' => 'Власник :name није прихватио позивницу, па се уклања и са вашег списка власника.',
     'cancel_invite_again_later' => 'Касније га можете поново позвати.',
     'keep_invite' => 'Задржи позивницу',

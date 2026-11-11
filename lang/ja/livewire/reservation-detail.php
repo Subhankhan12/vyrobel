@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'フォリオをエクスポート（PDF）',
     'export_csv_print' => 'CSVエクスポート · 印刷',
     'room_moves_note' => '部屋移動では空室状況が確認されるため、客室が二重に予約されることはありません。変更はすぐに保存されます。',
+    'hold_release_button' => '与信を解放',
+    'hold_releasing' => '解放中…',
+    'hold_release_confirm' => 'この与信を解放しますか？ゲストのカードの利用枠が元に戻り、請求は発生しません。',
 ];

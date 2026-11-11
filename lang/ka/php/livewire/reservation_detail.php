@@ -47,4 +47,6 @@ return [
     'flag_authorized' => 'ავტორიზებული',
     'flag_captured' => 'ჩამოჭრილი',
     'flag_voided' => 'ანულირებული',
+    'hold_released_desc' => 'ანულირდა – ბარათი გათავისუფლდა, თანხა არ ჩამოიჭრა',
+    'flag_released' => 'ანულირებული',
 ];

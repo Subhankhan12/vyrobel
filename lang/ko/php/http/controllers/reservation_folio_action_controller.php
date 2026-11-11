@@ -15,4 +15,5 @@ return [
     'refund_issued' => '환불이 처리되었습니다.',
     'billed_to_account' => ':account 계정으로 청구했습니다. 결제될 때까지 잔액은 미결제 상태로 남습니다.',
     'returned_to_guest' => '고객 폴리오로 되돌렸습니다.',
+    'hold_released' => '가승인이 해제되었습니다 — 고객 카드의 가승인이 풀렸으며 아무 금액도 결제되지 않았습니다.',
 ];

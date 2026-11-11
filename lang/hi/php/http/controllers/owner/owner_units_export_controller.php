@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'कुल यूनिट',
     'col_booked_pct' => 'बुक %',
     'month_total' => 'माह का कुल',
-    'total_nights' => 'रातें: :count',
-    'total_units' => 'यूनिट: :count',
+    'total_nights' => '{1}:count रात|[2,*]:count रातें',
+    'total_units' => '{1}:count यूनिट|[0,*]:count यूनिट',
 ];

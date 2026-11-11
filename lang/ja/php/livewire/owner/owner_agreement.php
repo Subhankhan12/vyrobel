@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => '控除対象外のカテゴリ',
         'ota_cost_bearer' => 'OTA費用の負担者',
-        'cleaning_fee_bearer' => '清掃料の負担者',
-        'addon_bearer' => 'オプションの負担者',
+        'cleaning_fee_bearer' => '清掃料の受取先',
+        'addon_bearer' => 'オプション料金の受取先',
     ],
     'rule_values' => [
         'owner' => 'オーナー',

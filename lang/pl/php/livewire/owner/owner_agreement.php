@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Kategorie niepodlegające odliczeniu',
         'ota_cost_bearer' => 'Koszty OTA ponosi',
-        'cleaning_fee_bearer' => 'Opłatę za sprzątanie ponosi',
-        'addon_bearer' => 'Koszty dodatków ponosi',
+        'cleaning_fee_bearer' => 'Opłatę za sprzątanie otrzymuje',
+        'addon_bearer' => 'Wpływy z dodatków otrzymuje',
     ],
     'rule_values' => [
         'owner' => 'Właściciel',

@@ -12,7 +12,7 @@ return [
     'checkout_unreported_card' => '一个用于客人银行卡付款的正式模式 Stripe 付款页面已关闭（打开时间：:opened，关闭时间：:closed），但此处尚未应用任何关于其是否已付款的通知。请在 Stripe 管理平台中查看该页面；如果已付款，请先在 Stripe 中取消由此产生的内容。Stripe 会在最长 3 天内重试未能送达的通知——通知应用后请重试。如果 Stripe 已发送通知但未能应用，请手动处理。',
     'refund_processing' => '一笔银行卡退款仍在 Stripe 处理中。请等待 Stripe 确认后重试。',
     'card_payment_open' => '仍有一笔银行卡付款或预授权未完成。请先等待其结算，或将其释放。',
-    'card_hold_open' => '一笔客人银行卡上的预授权在 Stripe 仍未结束，而 Vyrobel 目前还没有释放预授权的按钮——必须先将其关闭（扣款或释放），才能继续此次删除。请联系开发人员。',
+    'card_hold_open' => '一笔客人银行卡上的预授权在 Stripe 仍未结束。必须先将其关闭，才能继续此次删除：酒店可以在该预订的付款记录中释放它（“释放预授权”），也可以对其扣款。',
     'dispute_open' => '一笔银行卡付款在 Stripe 存在争议（开始时间：:since）。请在 Stripe 中回应，待 Stripe 通知争议已关闭后重试。如果 Stripe 管理平台已显示争议关闭，说明通知未送达——请手动处理。',
     'payouts_in_transit' => '{1}一笔给业主的打款正在 Stripe 转账中（开始时间：:since）。|[0,*]:count 笔给业主的打款正在 Stripe 转账中（开始时间：:since）。',
     'payout_transit_stale' => '这已超出正常所需时间——请先手动在 Stripe 处理此问题。',

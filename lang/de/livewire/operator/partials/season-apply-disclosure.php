@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1} einem Eigentümer|[0,*] :count Eigentümern',
     'losing_nights' => 'Für :nights dieser Nächte gilt :season — diese Saison hat nach der Regel Vorrang und wird zuletzt geschrieben.',
     'rewritten_nights' => 'Beim Anwenden werden außerdem :nights Nächte aus überlappenden, bereits angewendeten Saisons neu geschrieben.',
-    'count_scope' => 'Diese Zahl erfasst nur Preise, die über einen Vorschlag vereinbart wurden, und nur solange der Preis noch dem vereinbarten entspricht. Ein Preis, den ein Eigentümer selbst festgelegt hat oder der sich inzwischen geändert hat, wird hier nicht gezählt.',
+    'count_scope' => 'Nächte mit einem vom Eigentümer vereinbarten Preis werden nur gezählt, wenn der Preis über einen Vorschlag vereinbart wurde und solange er noch dem vereinbarten entspricht. Ein Preis, den ein Eigentümer selbst festgelegt hat oder der sich inzwischen geändert hat, wird hier nicht gezählt.',
     'booked_keep_price' => 'Bereits gebuchte Aufenthalte behalten den Preis, zu dem sie gebucht wurden — dies ändert nur, was ab jetzt angeboten wird.',
 ];

@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Remboursement effectué.',
     'billed_to_account' => 'Facturé à :account. Le solde reste dû jusqu’à son règlement.',
     'returned_to_guest' => 'Renvoyé sur le folio du client.',
+    'hold_released' => 'Empreinte libérée — la carte du client a été libérée et rien n’a été débité.',
 ];

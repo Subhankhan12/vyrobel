@@ -47,4 +47,6 @@ return [
     'flag_authorized' => '승인됨',
     'flag_captured' => '결제 확정됨',
     'flag_voided' => '승인 취소됨',
+    'hold_released_desc' => '해제됨 — 카드의 가승인이 풀렸으며 결제된 금액 없음',
+    'flag_released' => '해제됨',
 ];

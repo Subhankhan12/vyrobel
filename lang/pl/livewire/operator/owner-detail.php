@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Nowy link zostanie wysłany na adres :email. Poprzedni przestanie działać.',
     'send_again' => 'Wyślij ponownie',
     'cancel_invite_title' => 'Anulować zaproszenie?',
-    'cancel_invite_sub' => 'Link wysłany na adres :email przestanie działać.',
+    'cancel_invite_sub' => 'Zaproszenie dla adresu :email przestanie działać.',
     'cancel_invite_removes' => 'Zaproszenie nie zostało przyjęte, więc :name zniknie również z listy właścicieli.',
     'cancel_invite_again_later' => 'Później można ponownie wysłać zaproszenie.',
     'keep_invite' => 'Zachowaj zaproszenie',

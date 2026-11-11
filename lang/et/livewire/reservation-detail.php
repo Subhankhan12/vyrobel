@@ -84,4 +84,7 @@ return [
     'export_pdf' => 'Ekspordi folio (PDF)',
     'export_csv_print' => 'Ekspordi CSV · prindi',
     'room_moves_note' => 'Ümberpaigutuse puhul kontrollitakse saadavust, et tuba ei broneeritaks kunagi kaks korda, ja see salvestatakse kohe.',
+    'hold_release_button' => 'Vabasta eelautoriseerimine',
+    'hold_releasing' => 'Vabastamine…',
+    'hold_release_confirm' => 'Kas vabastada see eelautoriseerimine? Külalise kaart vabastatakse ja midagi ei debiteerita.',
 ];

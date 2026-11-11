@@ -11,6 +11,6 @@ return [
     'agreed_owners' => '{1} bir mülk sahibi|[0,*] :count mülk sahibi',
     'losing_nights' => 'Bu gecelerden :nights tanesinde :season sezonu geçerli; kurala göre öncelik onda ve en son o yazılacak.',
     'rewritten_nights' => 'Uygulama, zaten uygulanmış çakışan sezonlardaki :nights geceyi de yeniden yazar.',
-    'count_scope' => 'Bu sayı yalnızca bir fiyat önerisi aracılığıyla kabul edilmiş fiyatları ve yalnızca fiyat hâlâ kabul edilenle aynıyken sayar. Mülk sahibinin kendi belirlediği ya da sonradan değişmiş bir fiyat burada sayılmaz.',
+    'count_scope' => 'Mülk sahibiyle anlaşılan geceler yalnızca bir fiyat önerisi aracılığıyla anlaşıldıysa ve yalnızca fiyat hâlâ anlaşılanla aynıyken sayılır. Mülk sahibinin kendi belirlediği ya da sonradan değişmiş bir fiyat burada sayılmaz.',
     'booked_keep_price' => 'Zaten rezerve edilmiş konaklamalar rezerve edildikleri fiyatı korur — bu, bundan sonra sunulan fiyatı değiştirir.',
 ];

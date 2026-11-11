@@ -8,6 +8,6 @@ return [
     'col_total_units' => 'ห้องพักทั้งหมด',
     'col_booked_pct' => 'จองแล้ว %',
     'month_total' => 'ยอดรวมของเดือน',
-    'total_nights' => ':count คืน',
-    'total_units' => 'ห้องพัก :count ห้อง',
+    'total_nights' => '{1}:count คืน|[0,*]:count คืน',
+    'total_units' => '{1}ห้องพัก :count ห้อง|[0,*]ห้องพัก :count ห้อง',
 ];

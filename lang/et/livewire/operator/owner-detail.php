@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Aadressile :email saadetakse uus link. Vana link lakkab töötamast.',
     'send_again' => 'Saada uuesti',
     'cancel_invite_title' => 'Kas tühistada kutse?',
-    'cancel_invite_sub' => 'Aadressile :email saadetud link lakkab töötamast.',
+    'cancel_invite_sub' => 'Aadressile :email saadetud kutse lakkab töötamast.',
     'cancel_invite_removes' => ':name ei võtnud kutset vastu, seega eemaldatakse ta ka teie omanike loendist.',
     'cancel_invite_again_later' => 'Saate ta hiljem uuesti kutsuda.',
     'keep_invite' => 'Jäta kutse alles',

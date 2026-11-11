@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Đã hoàn tiền.',
     'billed_to_account' => 'Đã ghi nợ vào tài khoản :account. Số dư vẫn được ghi nợ cho đến khi bên đó thanh toán.',
     'returned_to_guest' => 'Đã chuyển lại vào folio của khách.',
+    'hold_released' => 'Đã giải phóng khoản cấp phép trước — thẻ của khách đã được giải phóng và không bị trừ tiền.',
 ];

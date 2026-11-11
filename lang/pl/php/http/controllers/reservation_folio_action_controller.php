@@ -15,4 +15,5 @@ return [
     'refund_issued' => 'Wykonano zwrot.',
     'billed_to_account' => 'Obciążono konto firmowe: :account. Saldo pozostaje do zapłaty, dopóki firma go nie ureguluje.',
     'returned_to_guest' => 'Przywrócono do folio gościa.',
+    'hold_released' => 'Preautoryzacja zwolniona – środki na karcie gościa zostały zwolnione, a żadna kwota nie została pobrana.',
 ];

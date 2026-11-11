@@ -47,4 +47,6 @@ return [
     'flag_authorized' => '已授權',
     'flag_captured' => '已請款',
     'flag_voided' => '已作廢',
+    'hold_released_desc' => '已釋放——信用卡已恢復可用額度，未扣款',
+    'flag_released' => '已釋放',
 ];

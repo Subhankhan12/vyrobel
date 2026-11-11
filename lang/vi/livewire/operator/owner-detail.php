@@ -134,7 +134,7 @@ return [
     'resend_sub' => 'Liên kết mới sẽ được gửi đến :email. Liên kết cũ sẽ ngừng hoạt động.',
     'send_again' => 'Gửi lại',
     'cancel_invite_title' => 'Hủy lời mời không?',
-    'cancel_invite_sub' => 'Liên kết đã gửi đến :email sẽ ngừng hoạt động.',
+    'cancel_invite_sub' => 'Lời mời gửi đến :email sẽ ngừng hoạt động.',
     'cancel_invite_removes' => 'Vì :name chưa chấp nhận lời mời, họ cũng sẽ bị gỡ khỏi danh sách chủ sở hữu.',
     'cancel_invite_again_later' => 'Bạn có thể mời lại họ sau.',
     'keep_invite' => 'Giữ lời mời',

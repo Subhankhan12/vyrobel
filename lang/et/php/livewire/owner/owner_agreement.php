@@ -40,8 +40,8 @@ return [
     'rules' => [
         'non_deductible_categories' => 'Väljamaksest maha arvamata kategooriad',
         'ota_cost_bearer' => 'OTA kulude kandja',
-        'cleaning_fee_bearer' => 'Koristustasu kandja',
-        'addon_bearer' => 'Lisateenuste kandja',
+        'cleaning_fee_bearer' => 'Koristustasu saaja',
+        'addon_bearer' => 'Lisateenuste tulu saaja',
     ],
     'rule_values' => [
         'owner' => 'Omanik',
