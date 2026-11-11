@@ -20,11 +20,11 @@ $out['email reaches real inboxes now (MailSafetyGuard::sendingNow)'] = \App\Supp
 // the new routes: their gates and their own limiters
 $mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
 $out['routes'] = [
-    'team message edit — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.edit'), true),
-    'team message delete — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.delete'), true),
-    'team message react — own write limiter' => in_array('throttle:team-chat-write', $mw('inbox.team.message.react'), true),
-    'team typing — poll limiter' => in_array('throttle:team-chat-poll', $mw('inbox.team.typing'), true),
-    'team search — poll limiter' => in_array('throttle:team-chat-poll', $mw('inbox.team.search'), true),
+    'team message edit — own write limiter' => in_array('throttle:team-chat-write', $mw('app.inbox.team.message.edit'), true),
+    'team message delete — own write limiter' => in_array('throttle:team-chat-write', $mw('app.inbox.team.message.delete'), true),
+    'team message react — own write limiter' => in_array('throttle:team-chat-write', $mw('app.inbox.team.message.react'), true),
+    'team typing — poll limiter' => in_array('throttle:team-chat-poll', $mw('app.inbox.team.typing'), true),
+    'team search — poll limiter' => in_array('throttle:team-chat-poll', $mw('app.inbox.team.search'), true),
     'Inbox start still needs guests.view' => in_array('can:guests.view', $mw('app.inbox.start'), true),
     'Portfolio update needs properties.manage' => in_array('can:properties.manage', $mw('app.portfolio.update'), true),
     'maintenance start needs maintenance.manage' => in_array('can:maintenance.manage', $mw('app.maintenance.start'), true),
