@@ -137,10 +137,10 @@ return [
     // ── A8 ──
     [
         'id' => 'OL2-M16',
-        'name' => 'a localhost address reaches structured data',
+        'name' => 'a host with no dot (an intranet name such as https://intranet) is accepted as the site (the `localhost` check is redundant behind it — both refuse localhost — so the dot rule is what is mutated)',
         'file' => 'app/Support/Marketing/StructuredData.php',
-        'old' => " || \$host === 'localhost' ||",
-        'new' => ' ||',
+        'old' => "! str_contains(\$host, '.') || ",
+        'new' => '',
         'tests' => [['file' => 'tests/Feature/MarketingStructuredDataTest.php']],
     ],
     [
