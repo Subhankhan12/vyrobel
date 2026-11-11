@@ -367,3 +367,34 @@ it('records who priced units individually — and counts NIGHTS in what it tells
 
     expect(DB::table('audit_events')->where('action', 'unit_rate.applied')->where('subject_id', $s['ratePlan']->id)->count())->toBe(1);
 });
+
+it('⚠️⚠️ D-RATE-DERIVED-PRIMARY — no price is written onto a derived MAIN plan: the editor and the bulk edit refuse it, as the chosen-plan path always did', function () {
+    // 2026-11-11 (his "do all"): when a room type's main plan is a DERIVED plan, the editor's main-plan path (and with it the New
+    // reservation wizard's price box) wrote a price straight onto it — which the chosen-plan path refuses.
+    $s = seedScenario(1);
+    $derived = RatePlan::create(['property_id' => $s['property']->id, 'room_type_id' => $s['roomType']->id, 'name' => 'Non-refundable',
+        'currency' => 'EUR', 'derived_from_rate_plan_id' => $s['ratePlan']->id, 'adjustment' => ['pct' => -10]]);
+    $s['roomType']->update(['default_rate_plan_id' => $derived->id]);
+    $night = CarbonImmutable::today()->addDays(11)->toDateString();
+    $manager = operatorUser($s);
+    $sentence = 'A derived plan follows its base plan’s price — set the base plan instead.';
+
+    $this->actingAs($manager)->post(route('app.rates.update'), ['room_type_id' => $s['roomType']->id, 'start_date' => $night, 'end_date' => $night, 'set_rate' => '1', 'rate' => '99'])
+        ->assertSessionHas('rates_error', $sentence);
+    $this->actingAs($manager)->post(route('app.rates.update'), ['room_type_id' => 'all', 'start_date' => $night, 'end_date' => $night, 'set_rate' => '1', 'rate' => '99'])
+        ->assertSessionHas('rates_error', $sentence);
+    $this->actingAs($manager)->post(route('app.rates.bulk'), ['room_type_id' => $s['roomType']->id, 'start_date' => $night, 'end_date' => $night, 'mode' => 'set_exact', 'amount' => '150', 'nights' => 'whole'])
+        ->assertSessionHas('rates_error', $sentence);
+
+    expect(nightRate($derived, $night))->toBeNull()->and(nightRate($s['ratePlan'], $night))->toBeNull();   // nothing landed anywhere
+
+    // an edit that sets only a RESTRICTION (no price) on that room type is not a price write and still works
+    $this->actingAs($manager)->post(route('app.rates.update'), ['room_type_id' => $s['roomType']->id, 'start_date' => $night, 'end_date' => $night, 'set_min_stay' => '1', 'min_stay' => '2'])
+        ->assertSessionMissing('rates_error');
+
+    // CONTROL: with the BASE plan as the main plan the same request writes the price
+    $s['roomType']->update(['default_rate_plan_id' => $s['ratePlan']->id]);
+    $this->actingAs($manager)->post(route('app.rates.update'), ['room_type_id' => $s['roomType']->id, 'start_date' => $night, 'end_date' => $night, 'set_rate' => '1', 'rate' => '99'])
+        ->assertSessionMissing('rates_error');
+    expect(nightRate($s['ratePlan'], $night))->toBe(9900);
+})->group('security');

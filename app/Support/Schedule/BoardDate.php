@@ -23,14 +23,26 @@ use Carbon\CarbonImmutable;
  */
 final class BoardDate
 {
-    public static function resolve(mixed $param, bool $hasCurrentOrFuture, ?string $latestOnOrBefore): CarbonImmutable
+    /**
+     * THE PROPERTY'S OWN "TODAY" (D-RACK-START-TZ, 2026-11-11, his "do all"): the board's day is the day it is AT THE PROPERTY, not in the
+     * app's timezone (UTC). Far from UTC the two differ for hours every day — seen live, a Paris property at 00:15 Monday opened its
+     * Calendar on Sunday — and the walk-in's "tonight" would have been the wrong night. With no property (or a blank timezone) it is the
+     * app's day, exactly as before. A date, no time: `2026-10-05`.
+     */
+    public static function today(?string $timezone = null): CarbonImmutable
+    {
+        // no timezone → `now()` in PHP's default zone, which Laravel sets to config('app.timezone') at boot (this class stays free of the container: a pure unit test reads it)
+        return CarbonImmutable::parse(CarbonImmutable::now(($timezone !== null && $timezone !== '') ? $timezone : null)->toDateString());
+    }
+
+    public static function resolve(mixed $param, bool $hasCurrentOrFuture, ?string $latestOnOrBefore, ?string $timezone = null): CarbonImmutable
     {
         if (is_string($param) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $param) === 1) {
             return CarbonImmutable::parse($param)->startOfDay();
         }
 
         if ($hasCurrentOrFuture || $latestOnOrBefore === null) {
-            return CarbonImmutable::today();
+            return self::today($timezone);
         }
 
         return CarbonImmutable::parse($latestOnOrBefore)->startOfDay();

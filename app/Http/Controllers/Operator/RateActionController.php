@@ -179,6 +179,14 @@ class RateActionController extends Controller
             }
         }
 
+        // ⚠️ D-RATE-DERIVED-PRIMARY (2026-11-11, his "do all"): the editor's MAIN-plan path wrote a price straight onto a room type whose main
+        //    plan is a DERIVED one, which the chosen-plan path above has always refused ("set the base plan instead"). A derived plan follows
+        //    its base; a price written onto it is overwritten by the next recompute, or worse, left disagreeing with its base. Refused BEFORE
+        //    any write, so a multi-room-type apply cannot half-apply.
+        if ($setRate && $chosenPlan === null && $this->hasDerivedPrimary($roomTypes)) {
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.derived_plan_follows_base'));
+        }
+
         $updateDerived = $request->boolean('update_derived');
         $applied = 0;
         $missingPlan = 0;
@@ -317,6 +325,11 @@ class RateActionController extends Controller
             return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.choose_room_types'));
         }
 
+        // ⚠️ D-RATE-DERIVED-PRIMARY — the same refusal for the bulk edit, which also prices each room type's MAIN plan.
+        if ($this->hasDerivedPrimary($roomTypes)) {
+            return $this->refuse($request, $fromParam, __('php/http/controllers/operator/rate_action_controller.derived_plan_follows_base'));
+        }
+
         $result = $bulk->apply(
             $roomTypes, $start, $endExclusive, $mode, $pct, $exactMinor, $nights,
             $request->boolean('skip_booked', true), $request->boolean('update_derived'),
@@ -340,6 +353,23 @@ class RateActionController extends Controller
         }
 
         return $this->done($request, $fromParam, $msg);
+    }
+
+    /**
+     * Is any of these room types priced through a DERIVED main plan? ({@see RoomType::primaryRatePlan()} — nothing writes
+     * `default_rate_plan_id`, so it falls back to the oldest active plan, and a base plan can be taken off sale.)
+     *
+     * @param  list<RoomType>  $roomTypes
+     */
+    private function hasDerivedPrimary(array $roomTypes): bool
+    {
+        foreach ($roomTypes as $roomType) {
+            if ($roomType->primaryRatePlan()?->derived_from_rate_plan_id !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Read-only guard (task #100 — was missing on the rate write, a gap vs peer controllers). */

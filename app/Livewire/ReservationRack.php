@@ -119,7 +119,7 @@ class ReservationRack extends Component
         // constrained to the allowed set (default 14). Navigation is GET-based, so re-resolving each request is safe.
         $this->days = $this->resolveDays();
 
-        $start = $this->resolveStart($roomTypes->isEmpty() ? $allRoomTypes : $roomTypes);
+        $start = $this->resolveStart($roomTypes->isEmpty() ? $allRoomTypes : $roomTypes, $property?->timezone !== null ? (string) $property->timezone : null);
         $end = $start->addDays(max(1, $this->days));
 
         // The property's own today — the first night a new booking may start (guest-facing day logic, in its timezone).
@@ -636,16 +636,17 @@ class ReservationRack extends Component
         return in_array($days, CalendarReturn::RANGES, true) ? $days : 14;   // the one list (the review, L8)
     }
 
-    private function resolveStart(Collection $roomTypes): CarbonImmutable
+    private function resolveStart(Collection $roomTypes, ?string $timezone = null): CarbonImmutable
     {
         $param = request()->query('start');
         $roomTypeIds = $roomTypes->pluck('id')->all();
 
         if ($roomTypeIds === []) {
-            return BoardDate::resolve($param, false, null);
+            return BoardDate::resolve($param, false, null, $timezone);
         }
 
-        $today = CarbonImmutable::today()->toDateString();
+        // ⚠️ D-RACK-START-TZ: the PROPERTY's today (the board's marked "today" column already was)
+        $today = BoardDate::today($timezone)->toDateString();
         $base = ReservationUnit::query()->whereIn('room_type_id', $roomTypeIds)->where('status', 'active');
 
         $hasCurrentOrFuture = (clone $base)->where('check_out', '>', $today)->exists();
@@ -653,7 +654,7 @@ class ReservationRack extends Component
 
         // Shared rule with the Front Desk (F-OP-1): today when there's current/upcoming occupancy, else the most
         // recent PAST arrival for a stale dataset, NEVER the furthest-future booking. {@see BoardDate}
-        return BoardDate::resolve($param, $hasCurrentOrFuture, $latestOnOrBefore !== null ? (string) $latestOnOrBefore : null);
+        return BoardDate::resolve($param, $hasCurrentOrFuture, $latestOnOrBefore !== null ? (string) $latestOnOrBefore : null, $timezone);
     }
 
     /**

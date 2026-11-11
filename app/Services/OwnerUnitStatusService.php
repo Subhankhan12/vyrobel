@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Availability;
 use App\Models\Unit;
 use App\Support\Events\AuditEventRecorder;
 use Illuminate\Support\Carbon;
@@ -113,9 +114,27 @@ class OwnerUnitStatusService
             return;   // already in the desired state — nothing to do (idempotent)
         }
 
-        $unit->forceFill(['is_active' => $active])->save();
-        $this->recompute((string) $unit->room_type_id);
-        $this->record($unit, $active, $event, $actorId);
+        // ⚠️ D-UNIT-SINGLE-TXN (2026-11-11, his "do all"): ONE TRANSACTION. The flag, the recomputed availability and the audit row
+        // used to be three separate commits — a failure in the recompute left the unit flipped with stale availability and no audit
+        // row. Now all three happen, or none does (the bulk action already worked this way; the owner portal's pause shares THIS path).
+        DB::transaction(function () use ($unit, $active, $event, $actorId): void {
+            // ⚠️ LOCK ORDER. A booking (AssignmentService) locks the room type's availability rows in date order FIRST, then writes
+            // `reservation_units`, whose foreign key takes a shared lock on the units row. This write used to take the units row first
+            // and the availability rows second — in one transaction that is the opposite order, and a booking of this room type racing
+            // a pause could deadlock (InnoDB aborts one side, error 1213, a 500). So the availability rows are locked first, in the same
+            // order, and only then the unit. Cost: bookings of this room type wait for the recompute (~0.5 s measured).
+            $today = Carbon::today();
+            Availability::query()
+                ->where('room_type_id', (string) $unit->room_type_id)
+                ->whereBetween('date', [$today->toDateString(), $today->copy()->addDays(self::WINDOW_DAYS)->toDateString()])
+                ->orderBy('date')
+                ->lockForUpdate()
+                ->get(['id']);
+
+            $unit->forceFill(['is_active' => $active])->save();
+            $this->recompute((string) $unit->room_type_id);
+            $this->record($unit, $active, $event, $actorId);
+        });
     }
 
     /** The operator realm's event names — one place, so the single and the bulk action cannot drift apart. */

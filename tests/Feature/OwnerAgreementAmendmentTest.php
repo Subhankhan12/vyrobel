@@ -172,3 +172,90 @@ it('downloads the agreement PDF and an acknowledged amendment PDF', function () 
     $this->actingAs($o['user'])->get(route('owner.agreement.amendments.pdf', $amendment->id))
         ->assertOk()->assertHeader('content-type', 'application/pdf');
 });
+
+// ── ⚠️ D-AMEND-PLANNED (found 2026-10-03 by the owners-module review; fixed 2026-11-11, his "do all") ──────────────────────────
+// An acknowledged amendment was written open-ended, ignored a change already planned for later, dropped a fixed end date, and bounded
+// only ONE of the agreements covering its day — so two open-ended owner-wide agreements could cover the same days and the payout maths
+// took whichever the database returned. It now goes through the ONE rule that changes an owner's owner-wide terms (CommissionChange).
+
+/** How many owner-wide agreements GOVERN a day (active and covering it). Exactly one is the rule; more is the defect. */
+function amendCovering(string $ownerId, string $date): int
+{
+    return ManagementAgreement::query()->where('owner_id', $ownerId)->whereNull('unit_id')->where('status', 'active')->effectiveOn($date)->count();
+}
+
+function amendAck(array $o, string $effective, float $pct): void
+{
+    $amendment = AgreementAmendment::factory()->create([
+        'owner_id' => $o['owner']->id, 'version' => 'v-'.$effective, 'effective_date' => $effective,
+        'new_terms' => ['commission_pct' => $pct], 'status' => AgreementAmendment::STATUS_PUBLISHED,
+    ]);
+    test()->actingAs($o['user'])->post(route('owner.agreement.amendments.acknowledge', $amendment->id))->assertRedirect();
+}
+
+it('⚠️⚠️ an amendment ends the day before a change ALREADY PLANNED for later — never open-ended over it', function () {
+    $s = seedScenario(1);
+    $o = amendmentOwner($s, 0);   // 18% from 2026-01-01, open-ended
+
+    // the owner already agreed 15% from 1 Dec (a planned change), bounding the 18% at 30 Nov
+    $o['agreement']->update(['effective_to' => '2026-11-30']);
+    $planned = ManagementAgreement::factory()->create(['owner_id' => $o['owner']->id, 'unit_id' => null, 'commission_pct' => 15.00,
+        'effective_from' => '2026-12-01', 'effective_to' => null, 'status' => 'active']);
+
+    amendAck($o, '2026-10-01', 17.00);   // a NEW amendment, 17% from 1 Oct
+
+    $new = ManagementAgreement::query()->where('owner_id', $o['owner']->id)->whereDate('effective_from', '2026-10-01')->firstOrFail();
+    expect($new->effective_to?->toDateString())->toBe('2026-11-30')   // stops where the planned change starts — NOT null
+        ->and($planned->fresh()->effective_from->toDateString())->toBe('2026-12-01');
+
+    // every day has exactly ONE governing agreement, and the right rate governs it
+    foreach (['2026-09-30', '2026-10-01', '2026-11-30', '2026-12-01', '2027-03-01'] as $day) {
+        expect(amendCovering((string) $o['owner']->id, $day))->toBe(1, "on $day");
+    }
+    expect((string) ManagementAgreement::resolveFor((string) $o['owner']->id, null, '2026-09-30')->commission_pct)->toBe('18.00')
+        ->and((string) ManagementAgreement::resolveFor((string) $o['owner']->id, null, '2026-11-30')->commission_pct)->toBe('17.00')
+        ->and((string) ManagementAgreement::resolveFor((string) $o['owner']->id, null, '2026-12-01')->commission_pct)->toBe('15.00');   // the planned change still governs its own start
+})->group('security');
+
+it('⚠️ a fixed-term agreement keeps its end date through an amendment', function () {
+    $s = seedScenario(1);
+    $o = amendmentOwner($s, 0);
+    $o['agreement']->update(['effective_to' => '2027-06-30']);   // a fixed term
+
+    amendAck($o, '2026-10-01', 17.00);
+
+    $new = ManagementAgreement::query()->where('owner_id', $o['owner']->id)->whereDate('effective_from', '2026-10-01')->firstOrFail();
+    expect($new->effective_to?->toDateString())->toBe('2027-06-30')   // the replaced agreement's end is carried, not dropped
+        ->and($o['agreement']->fresh()->effective_to?->toDateString())->toBe('2026-09-30')
+        ->and(amendCovering((string) $o['owner']->id, '2026-12-01'))->toBe(1);
+});
+
+it('⚠️ agreements an older write left STACKED on the same day are all bounded, not just one', function () {
+    $s = seedScenario(1);
+    $o = amendmentOwner($s, 0);
+    // an older write left a second open-ended owner-wide agreement beside the first
+    $stacked = ManagementAgreement::factory()->create(['owner_id' => $o['owner']->id, 'unit_id' => null, 'commission_pct' => 19.00,
+        'effective_from' => '2026-03-01', 'effective_to' => null, 'status' => 'active']);
+    expect(amendCovering((string) $o['owner']->id, '2026-09-01'))->toBe(2);
+
+    amendAck($o, '2026-10-01', 17.00);
+
+    // both ended the day before; from 1 Oct exactly one governs
+    expect($o['agreement']->fresh()->effective_to?->toDateString())->toBe('2026-09-30')
+        ->and($stacked->fresh()->effective_to?->toDateString())->toBe('2026-09-30')
+        ->and(amendCovering((string) $o['owner']->id, '2026-10-01'))->toBe(1)
+        ->and(amendCovering((string) $o['owner']->id, '2026-12-01'))->toBe(1);
+});
+
+it('⚠️ an agreement that would only have STARTED on the effective day is ENDED, not left active with backwards dates', function () {
+    $s = seedScenario(1);
+    $o = amendmentOwner($s, 0);
+    $later = ManagementAgreement::factory()->create(['owner_id' => $o['owner']->id, 'unit_id' => null, 'commission_pct' => 16.00,
+        'effective_from' => '2026-10-01', 'effective_to' => null, 'status' => 'active']);
+
+    amendAck($o, '2026-10-01', 17.00);
+
+    expect($later->fresh()->status)->toBe('ended')
+        ->and($later->fresh()->effective_to?->toDateString())->toBe('2026-09-30')
+        ->and(amendCovering((string) $o['owner']->id, '2026-10-01'))->toBe(1);
+});

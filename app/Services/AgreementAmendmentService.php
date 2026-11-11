@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\AgreementAmendment;
 use App\Models\AgreementAmendmentAcknowledgment;
 use App\Models\ManagementAgreement;
+use App\Models\Owner;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Owner\CommissionChange;
@@ -111,35 +112,15 @@ class AgreementAmendmentService
             return;
         }
 
-        $effectiveFrom = $amendment->effective_date;
-
-        // The portfolio-wide agreement in effect on the effective date is the one being superseded
-        // (per-unit overrides are their own effective-dated rows and are untouched — most-specific-wins).
-        $current = ManagementAgreement::query()
-            ->where('owner_id', $amendment->owner_id)
-            ->whereNull('unit_id')
-            ->effectiveOn($effectiveFrom)
-            ->orderByDesc('effective_from')
-            ->first();
-
-        // Clone the current fields (so unchanged terms carry forward), then override with the amendment.
-        $base = $current instanceof ManagementAgreement
-            ? $current->only(self::TERM_KEYS)
-            : [];
-
-        ManagementAgreement::create(array_merge($base, $terms, [
-            'organization_id' => $amendment->organization_id,
-            'owner_id' => $amendment->owner_id,
-            'unit_id' => null,
-            'effective_from' => $effectiveFrom,
-            'effective_to' => null,
-            'status' => 'active',
-        ]));
-
-        // Bound the superseded agreement the day before the new terms take effect — never delete it, so
-        // attribution for past nights is preserved (append-only history, not a rewrite).
-        if ($current instanceof ManagementAgreement) {
-            $current->update(['effective_to' => $effectiveFrom->copy()->subDay()]);
-        }
+        // ⚠️ D-AMEND-PLANNED: through the ONE rule that changes an owner's owner-wide terms ({@see CommissionChange}) — it bounds EVERY
+        //    agreement covering the effective day the day before, keeps the fixed end date of the one it replaces, stops at a change already
+        //    planned for later, and never deletes a row (attribution for past nights is preserved — append-only history, not a rewrite).
+        //    (Per-unit overrides are their own effective-dated rows and are untouched — most-specific-wins.)
+        CommissionChange::applyAmendment(
+            Owner::query()->findOrFail($amendment->owner_id),
+            $amendment->effective_date,
+            $terms,
+            (string) $amendment->organization_id,
+        );
     }
 }

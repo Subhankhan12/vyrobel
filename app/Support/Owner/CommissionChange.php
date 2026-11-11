@@ -91,20 +91,45 @@ final class CommissionChange
      */
     public static function apply(Owner $owner, float $pct, ?CarbonInterface $today = null): bool
     {
+        return self::supersede($owner, round($pct, 2), null, [], null, $today);
+    }
+
+    /**
+     * ⚠️ D-AMEND-PLANNED (2026-11-11, his "do all"): the terms of an AMENDMENT the owner acknowledges, from its effective date — through
+     * the SAME write as {@see apply()}. {@see AgreementAmendmentService::applyTerms()} used to write its own agreement: open-ended (it
+     * ignored a change already planned for later, so two open-ended owner-wide agreements covered the same days and the payout maths
+     * took whichever row the database returned), it dropped the fixed end date of the agreement it replaced, and it bounded only ONE
+     * of the agreements covering the day. One rule now: every covering agreement is bounded the day before, the new one ends where the
+     * one it replaces ended or the day before a planned change, and a row that would only have started that day is ended.
+     *
+     * @param  array<string, mixed>  $terms  the amendment's new terms (only {@see AgreementAmendmentService::TERM_KEYS}); the rest carry forward
+     */
+    public static function applyAmendment(Owner $owner, CarbonInterface $effectiveFrom, array $terms, ?string $organizationId = null): void
+    {
+        self::supersede($owner, null, self::day($effectiveFrom), array_intersect_key($terms, array_flip(AgreementAmendmentService::TERM_KEYS)), $organizationId, null);
+    }
+
+    /**
+     * The one write behind a change of an owner's owner-wide terms (the commission from their page, or an acknowledged amendment).
+     * `$pct` null = the terms come from the amendment, not a single rate; `$startsOnOverride` null = the day {@see startsOn()} gives.
+     *
+     * @param  array<string, mixed>  $overrideTerms
+     */
+    private static function supersede(Owner $owner, ?float $pct, ?CarbonImmutable $startsOnOverride, array $overrideTerms, ?string $organizationId, ?CarbonInterface $today): bool
+    {
         $ownerId = (string) $owner->getKey();
         $today = self::day($today);
-        $pct = round($pct, 2);
 
-        return DB::transaction(function () use ($owner, $ownerId, $today, $pct): bool {
+        return DB::transaction(function () use ($owner, $ownerId, $today, $pct, $startsOnOverride, $overrideTerms, $organizationId): bool {
             // ⚠️ One save at a time per owner: two at once (two tabs, two people) would each read the same agreements and both
             //    write — the stacked rows this rule exists to prevent. Every read below happens under this lock.
             Owner::query()->whereKey($ownerId)->lockForUpdate()->first();
 
-            $startsOn = self::startsOn($ownerId, $today);
+            $startsOn = $startsOnOverride ?? self::startsOn($ownerId, $today);
             $covering = self::covering($ownerId, $startsOn);
             $governing = $covering->first();
 
-            if ($covering->count() === 1 && $governing->commission_pct !== null && round((float) $governing->commission_pct, 2) === $pct) {
+            if ($pct !== null && $covering->count() === 1 && $governing->commission_pct !== null && round((float) $governing->commission_pct, 2) === $pct) {
                 return false;
             }
 
@@ -129,12 +154,11 @@ final class CommissionChange
 
             $terms = $base instanceof ManagementAgreement ? $base->only(AgreementAmendmentService::TERM_KEYS) : [];
 
-            ManagementAgreement::create(array_merge($terms, [
+            ManagementAgreement::create(array_merge($terms, $overrideTerms, $pct !== null ? ['commission_pct' => $pct] : [], $organizationId !== null ? ['organization_id' => $organizationId] : [], [
                 'owner_id' => $owner->getKey(),
                 'unit_id' => null,
-                'commission_pct' => $pct,
-                'payout_schedule' => $terms['payout_schedule'] ?? 'monthly',
-                'payout_currency' => $terms['payout_currency'] ?? $owner->payout_currency,
+                'payout_schedule' => $overrideTerms['payout_schedule'] ?? $terms['payout_schedule'] ?? 'monthly',
+                'payout_currency' => $overrideTerms['payout_currency'] ?? $terms['payout_currency'] ?? $owner->payout_currency,
                 'effective_from' => $startsOn->toDateString(),
                 'effective_to' => $endsOn?->toDateString(),
                 'status' => 'active',

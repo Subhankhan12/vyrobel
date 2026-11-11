@@ -218,6 +218,19 @@ class BookingEngineService
         } catch (BookingException) {
             // Someone took the last unit between hold and book — fail gracefully, never overbook.
             return ['status' => 'unavailable', 'reservation' => null, 'payment' => null, 'folio' => null, 'client_secret' => null];
+        } finally {
+            // ⚠️⚠️ D-STOREFRONT-ORPHAN-GUEST (2026-11-11, his "do all"): A REFUSED BOOKING LEAVES NO GUEST BEHIND — the same rule the New
+            //    reservation wizard has had since D-NEWRES-ORPHAN-GUEST (2026-10-04). The guest is created above, before the booking is
+            //    tried; when the unit was just taken (or anything else stops the booking) that record — a name, and the email in its
+            //    encrypted column and its blind-index hash — stayed with no stay at all, from a visitor's own form. It was made a moment
+            //    ago by a plain insert (this method never matches a returning guest), so it is removed outright — never soft-deleted with
+            //    its details kept (#28).
+            //    ⚠️ ONLY IF NO BOOKING POINTS AT IT: createBooking() commits, THEN records its events and audit row — a failure there leaves a
+            //    saved booking and no `$reservation` here, and deleting its guest would null that booking's lead guest (nullOnDelete).
+            if (! isset($reservation) && $guest->wasRecentlyCreated
+                && ! Reservation::withTrashed()->where('lead_guest_id', $guest->getKey())->exists()) {
+                $guest->forceDelete();
+            }
         }
 
         $folio = $this->folios->openFolio($reservation);

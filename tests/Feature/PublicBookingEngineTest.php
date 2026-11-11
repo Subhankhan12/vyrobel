@@ -2,6 +2,7 @@
 
 use App\Models\Channel;
 use App\Models\ChannelMapping;
+use App\Models\Guest;
 use App\Models\Reservation;
 use App\Services\BookingEngineService;
 use App\Services\Channex\ChannelManagerClient;
@@ -112,6 +113,29 @@ it('two advisory holds on the last unit both succeed, but only ONE conversion se
         ->and($r2['status'])->toBe('unavailable')                  // direct rejects when full
         ->and(soldOn($s['roomType']->id, '2026-09-01'))->toBe(1)   // never 2 — no overbook
         ->and(Reservation::query()->where('property_id', $s['property']->id)->where('status', 'confirmed')->count())->toBe(1);
+});
+
+it('⚠️⚠️ D-STOREFRONT-ORPHAN-GUEST — a refused storefront booking leaves NO guest behind; a confirmed one keeps its guest', function () {
+    // 2026-11-11 (his "do all"): the guest is created before the booking is tried, so when the last unit was just taken the visitor's
+    // name and (encrypted) email stayed on file with no stay at all — the orphan D-NEWRES-ORPHAN-GUEST closed on the operator's wizard.
+    $s = publicPropertyScenario(units: 1);
+    onboardOrgForCards($s);
+    $engine = app(BookingEngineService::class);
+    $before = Guest::withTrashed()->count();
+
+    $q1 = $engine->quote($s['property'], $s['roomType']->id, $s['ratePlan']->id, '2026-09-01', '2026-09-03', 2, 0, 'a@example.com');
+    $q2 = $engine->quote($s['property'], $s['roomType']->id, $s['ratePlan']->id, '2026-09-01', '2026-09-03', 2, 0, 'b@example.com');
+
+    $r1 = $engine->book($q1, 'pm_card_visa', ['email' => 'a@example.com', 'first_name' => 'Winner']);
+    $r2 = $engine->book($q2, 'pm_card_visa', ['email' => 'b@example.com', 'first_name' => 'Loser']);
+
+    expect($r1['status'])->toBe('confirmed')->and($r2['status'])->toBe('unavailable')
+        // exactly ONE guest was added — the booked one; the refused visitor's record is gone, not soft-deleted
+        ->and(Guest::withTrashed()->count())->toBe($before + 1)
+        ->and(Guest::withTrashed()->where('first_name', 'Loser')->exists())->toBeFalse()
+        // the confirmed booking still has its lead guest (the guard that never deletes a guest a booking points at)
+        ->and((string) $r1['reservation']->lead_guest_id)->not->toBe('')
+        ->and(Guest::query()->whereKey($r1['reservation']->lead_guest_id)->value('first_name'))->toBe('Winner');
 });
 
 it('public tenant isolation: a request in property A\'s context cannot read or book property B\'s data', function () {

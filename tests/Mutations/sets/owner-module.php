@@ -43,7 +43,7 @@ return [
         'id' => 'OM-M2',
         'name' => 'the same rate as the one coming is written again',
         'file' => $change,
-        'old' => '            if ($covering->count() === 1 && $governing->commission_pct !== null && round((float) $governing->commission_pct, 2) === $pct) {',
+        'old' => '            if ($pct !== null && $covering->count() === 1 && $governing->commission_pct !== null && round((float) $governing->commission_pct, 2) === $pct) {',
         'new' => '            if (false) {',
         'tests' => [['file' => $fixes, 'filter' => 'writes nothing when the rate set is the one already coming']],
     ],

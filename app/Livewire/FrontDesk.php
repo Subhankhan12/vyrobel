@@ -81,6 +81,9 @@ class FrontDesk extends Component
         }
 
         $day = CarbonImmutable::parse($date);
+        // ⚠️ D-RACK-START-TZ (2026-11-11): "today" on this board is the PROPERTY's today — the default day, the Today link, the is-today
+        // flag, the timeline's now-marker and the walk-in's "tonight" all read the one value (the app's day is UTC, hours off elsewhere)
+        $propertyToday = BoardDate::today($property?->timezone !== null ? (string) $property->timezone : null)->toDateString();
 
         return view('livewire.front-desk', [
             'viewer' => $this->viewer(),
@@ -90,8 +93,8 @@ class FrontDesk extends Component
                 'label' => $day->translatedFormat(LocalDate::pattern('l, j M Y')),
                 'prev' => $day->subDay()->toDateString(),
                 'next' => $day->addDay()->toDateString(),
-                'today' => CarbonImmutable::today()->toDateString(),
-                'is_today' => $date === CarbonImmutable::today()->toDateString(),
+                'today' => $propertyToday,
+                'is_today' => $date === $propertyToday,
             ],
             // ⚠️⚠️ THE ACCOUNTS THE PICKER CAN OFFER — org-scoped by the global scope, ACTIVE only (the service
             //    refuses a closed one, so offering it would invite a refusal the UI could have prevented).
@@ -115,10 +118,10 @@ class FrontDesk extends Component
             'departures' => $departures,
             'inHouse' => $inHouse,
             'summary' => $this->summary($arrivals, $departures, $inHouse),
-            'timeline' => $this->timeline($property, $arrivals, $departures, $date === CarbonImmutable::today()->toDateString()),
+            'timeline' => $this->timeline($property, $arrivals, $departures, $date === $propertyToday),
             'walkin' => $property !== null
                 ? $this->walkInCandidates($property)
-                : ['today' => CarbonImmutable::today()->toDateString(), 'units' => []],
+                : ['today' => $propertyToday, 'units' => []],
         ]);
     }
 
@@ -132,8 +135,9 @@ class FrontDesk extends Component
      */
     private function walkInCandidates(Property $property): array
     {
-        $today = CarbonImmutable::today()->toDateString();
-        $tomorrow = CarbonImmutable::today()->addDay()->toDateString();
+        $todayAtProperty = BoardDate::today($property->timezone !== null ? (string) $property->timezone : null);
+        $today = $todayAtProperty->toDateString();
+        $tomorrow = $todayAtProperty->addDay()->toDateString();
 
         $units = [];
         foreach (app(UnitAvailabilityService::class)->availableRoomTypes((string) $property->id, $today, $tomorrow) as $rt) {
@@ -271,7 +275,8 @@ class FrontDesk extends Component
             return BoardDate::resolve($param, false, null)->toDateString();
         }
 
-        $today = CarbonImmutable::today()->toDateString();
+        $tz = $property->timezone !== null ? (string) $property->timezone : null;   // D-RACK-START-TZ: the property's own day
+        $today = BoardDate::today($tz)->toDateString();
         $base = Reservation::query()
             ->where('property_id', $property->id)
             ->whereIn('status', ['confirmed', 'checked_in', 'checked_out']);
@@ -283,6 +288,7 @@ class FrontDesk extends Component
             $param,
             $hasCurrentOrFuture,
             $latestOnOrBefore !== null ? (string) $latestOnOrBefore : null,
+            $tz,
         )->toDateString();
     }
 
