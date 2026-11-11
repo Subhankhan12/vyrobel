@@ -51,7 +51,7 @@ it('renders each preview as the real mailable', function () {
 
 // ── 3. Test-send delivers the real email to the operator's OWN inbox, and is capability-gated ────────
 it('test-sends the real email to the operator’s own inbox only, gated properties.manage', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     previewBooking($s);
     $admin = operatorUser($s, ['email' => 'boss@demo.test'], 'Property Owner');

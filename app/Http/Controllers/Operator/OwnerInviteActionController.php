@@ -10,6 +10,7 @@ use App\Models\OwnerInvite;
 use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerInviteService;
 use App\Support\I18n\LocalDate;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,12 @@ class OwnerInviteActionController extends Controller
                 'current_password.current_password' => __('php/http/controllers/operator/owner_invite_action_controller.password_wrong'),
             ],
         );
+
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11): a resend mints a FRESH link and mails it — while email is not sent from Vyrobel that would invalidate the old link and deliver
+        //    nothing. Refused, the invite unchanged.
+        if (! MailSafetyGuard::sendingNow()) {
+            return $this->back($request, $model)->with('owners_error', __('php/http/controllers/operator/guest_bulk_action_controller.email_not_sent'));
+        }
 
         try {
             $result = $invites->resend($model);

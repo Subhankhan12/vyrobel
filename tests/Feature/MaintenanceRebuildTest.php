@@ -208,7 +208,7 @@ it('streams a real CSV of billable line items and audits the export', function (
 
 // ── Email-to-me sends the PDF report to the operator's OWN address ────────────────────────────────
 it('emails the costs report to the acting operator', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     $manager = mtManager($s);
 

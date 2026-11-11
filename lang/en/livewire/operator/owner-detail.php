@@ -150,7 +150,7 @@ return [
     'send_again' => 'Send again',
     // dialog: cancel the invite
     'cancel_invite_title' => 'Cancel the invite?',
-    'cancel_invite_sub' => 'The link sent to :email stops working.',
+    'cancel_invite_sub' => 'The invite for :email stops working.',   // D-MAIL-CLAIMS: neutral — it said a link had been sent
     'cancel_invite_removes' => ':name never accepted, so they leave your owners list too.',
     'cancel_invite_again_later' => 'You can invite them again later.',
     'keep_invite' => 'Keep invite',

@@ -12,6 +12,7 @@ use App\Services\FolioService;
 use App\Services\OwnerAttributionService;
 use App\Support\Folio\FolioTotals;
 use App\Support\I18n\LocalDate;
+use App\Support\Mail\MailSafetyGuard;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -125,6 +126,7 @@ class ReservationRefund extends Component
             ->first();
 
         return view('livewire.operator.reservation-refund', [
+            'mailSends' => MailSafetyGuard::sendingNow(),   // D-MAIL-CLAIMS: the page says the guest is emailed only while email IS sent
             'isOwnerAttributed' => $isOwnerAttributed,
             'viewer' => $this->viewer(),
             'reservation' => [

@@ -9,6 +9,7 @@ use App\Mail\AdminEmailChangeMail;
 use App\Models\PlatformAdmin;
 use App\Support\Auth\PasswordPolicy;
 use App\Support\I18n\Locales;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminPasswordPolicy;
 use App\Support\Platform\PlatformAdminSessions;
@@ -132,6 +133,12 @@ class AccountController extends Controller
         ], [], ['email' => __('php/http/controllers/admin/account_controller.email_attribute')] + ConsoleFields::names());
 
         $newEmail = (string) $data['email'];
+
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11): the same rule as the owner portal — the confirmation link is MAILED; while email is not sent it can never arrive, so nothing is parked
+        if (! MailSafetyGuard::sendingNow()) {
+            return back()->withInput($request->except('current_password'))->withErrors(['email' => __('php/http/controllers/admin/account_controller.email_change_no_mail')]);
+        }
+
         $admin->forceFill(['pending_email' => $newEmail])->save();
 
         // Signed, expiring, bound to the parked address (a later change auto-invalidates any older link).

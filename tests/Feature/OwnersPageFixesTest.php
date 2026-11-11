@@ -72,7 +72,7 @@ it('⚠️⚠️ gives an invite only units inside the properties the person may
 // ── Invites can be resent and cancelled, and every one leaves a trail ────────────────────────────
 
 it('⚠️ resends a waiting invite with a fresh link — only with your password — and records it', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     $admin = owpAdmin($s);
     opfInvite($s, $admin, ['name' => 'Marisol Vaz', 'email' => 'marisol@owner.test', 'role' => 'owner', 'commission_pct' => '15'])
@@ -121,7 +121,7 @@ it('⚠️ cancels a waiting invite — the link stops working and the never-act
 });
 
 it('⚠️⚠️ resends without a unit that gained an owner since — the second layer behind acceptance', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(2);
     $admin = owpAdmin($s);
     opfInvite($s, $admin, ['name' => 'Two Units', 'email' => 'two@owner.test', 'role' => 'owner',
@@ -137,7 +137,7 @@ it('⚠️⚠️ resends without a unit that gained an owner since — the secon
 })->group('money');
 
 it('⚠️ resends only an invite still waiting — a used one says so and sends nothing', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     $admin = owpAdmin($s);
     app(OwnerInviteService::class)->invite('Used Invite', 'used@owner.test', [], null, 'owner');

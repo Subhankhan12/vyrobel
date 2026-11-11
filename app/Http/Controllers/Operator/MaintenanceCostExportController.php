@@ -12,6 +12,7 @@ use App\Services\PdfService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
 use App\Support\Export\Workbook;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Maintenance\MaintenancePeriod;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
@@ -226,6 +227,12 @@ class MaintenanceCostExportController extends Controller
         $email = (string) $request->user()->email;
         if ($email === '') {
             return redirect()->route('app.maintenance.costs')->with('mt_error', __('php/http/controllers/operator/maintenance_cost_export_controller.no_email'));
+        }
+
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11, his "do all"): the action IS the email — while email is not sent from Vyrobel, say so BEFORE building a report
+        //    nobody will receive, instead of "Costs report emailed to <address>".
+        if (! MailSafetyGuard::sendingNow()) {
+            return redirect()->route('app.maintenance.costs')->with('mt_error', __('php/http/controllers/operator/guest_bulk_action_controller.email_not_sent'));
         }
 
         [$ids, $from, $to] = $this->scope($request);

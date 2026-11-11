@@ -17,4 +17,6 @@ return [
     'units_already_owned' => '{1} :units already has an owner. A unit’s owner decides who is paid for it, so an invite can only give units that have none.|[0,*] :units already have owners. A unit’s owner decides who is paid for it, so an invite can only give units that have none.',
     'email_cannot_be_invited' => 'That email can’t be invited — it may already have a Vyrobel account.',
     'invite_sent' => 'Invite sent to :email.',
+    // D-MAIL-CLAIMS: while email is not sent from Vyrobel
+    'invite_saved_no_mail' => 'Invite saved for :email. Email isn’t being sent from Vyrobel yet, so they haven’t been told.',
 ];

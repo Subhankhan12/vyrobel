@@ -190,7 +190,7 @@
                         <div class="vy-callout-title">{{ __('livewire/operator/reservation-refund.owner_statement_title') }}</div>
                         {{ __('livewire/operator/reservation-refund.owner_statement_body') }}
                     </div>
-                    <div class="vy-recon" style="margin-top: 10px;">{{ __('livewire/operator/reservation-refund.guest_emailed') }}</div>
+                    <div class="vy-recon" style="margin-top: 10px;">{{ __(($mailSends ?? false) ? 'livewire/operator/reservation-refund.guest_emailed' : 'livewire/operator/reservation-refund.guest_not_emailed') }}</div>   {{-- D-MAIL-CLAIMS: "emailed automatically" only while email IS sent --}}
                 </div>
 
                 <div class="vy-card">

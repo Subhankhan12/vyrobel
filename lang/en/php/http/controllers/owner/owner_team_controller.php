@@ -7,6 +7,8 @@ return [
     'attr_current_password' => 'current password',
     'already_on_team' => 'That person is already on your team.',
     'invite_sent' => 'Invite sent to :email.',
+    // D-MAIL-CLAIMS: while email is not sent from Vyrobel
+    'invite_saved_no_mail' => 'Invite saved for :email. Email isn’t being sent from Vyrobel yet, so they haven’t been told.',
     'role_updated' => 'Role updated.',
     'member_removed' => 'Member removed.',
     'invite_revoked' => 'Invite revoked.',

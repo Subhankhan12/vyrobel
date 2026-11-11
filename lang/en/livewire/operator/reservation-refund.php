@@ -61,6 +61,8 @@ return [
     'reversing_entry_body' => 'The refund is posted as its own new entry on the ledger. The original payment is never edited or removed.',
     'owner_statement_title' => 'The owner statement adjusts',
     'owner_statement_body' => 'For an owner-attributed stay, the owner\'s net share of the refund is posted to their ledger and lands on their next statement close.',
+    // D-MAIL-CLAIMS: while email is not sent from Vyrobel — and the test-mode sentence stays
+    'guest_not_emailed' => 'Email isn’t being sent from Vyrobel yet, so the guest won’t get a refund confirmation — tell them yourself. Card refunds run in test mode until go-live — no real money moves yet.',
     'guest_emailed' => 'The guest is emailed a refund confirmation automatically when the refund succeeds. Card refunds run in test mode until go-live — no real money moves yet.',
     // the right rail: what is not built
     'not_yet_available' => 'Not yet available',

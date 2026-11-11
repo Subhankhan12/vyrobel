@@ -11,6 +11,7 @@ use App\Models\OwnerTeamInvite;
 use App\Models\OwnerUser;
 use App\Models\User;
 use App\Services\OwnerTeamInviteService;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLoginLifecycle;
 use App\Support\Owner\OwnerTeamRole;
@@ -95,7 +96,8 @@ class OwnerTeamController extends Controller
             return back()->with('team_error', $e->getMessage());
         }
 
-        return back()->with('team_status', __('php/http/controllers/owner/owner_team_controller.invite_sent', ['email' => $email]));
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11): saved either way; "sent" only while email IS sent from Vyrobel
+        return back()->with('team_status', __(MailSafetyGuard::sendingNow() ? 'php/http/controllers/owner/owner_team_controller.invite_sent' : 'php/http/controllers/owner/owner_team_controller.invite_saved_no_mail', ['email' => $email]));
     }
 
     /** Change a member's owner-team role. */

@@ -9,6 +9,7 @@ use App\Mail\OwnerEmailChangeMail;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\I18n\Locales;
+use App\Support\Mail\MailSafetyGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -131,6 +132,14 @@ class OwnerAccountController extends Controller
         ], [], ['email' => __('php/http/controllers/owner/owner_account_controller.attr_email'), 'current_password' => __('php/http/controllers/owner/owner_account_controller.attr_current_password')]);
 
         $newEmail = (string) $data['email'];
+
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11, his "do all"): the change is confirmed by a link MAILED to the new address. While email is not sent from Vyrobel that link
+        //    can never arrive — parking the address would show "we emailed a link" and leave a pending change nobody can confirm. Refused: nothing parked,
+        //    the login email unchanged.
+        if (! MailSafetyGuard::sendingNow()) {
+            return back()->withInput($request->except('current_password'))->withErrors(['email' => __('php/http/controllers/owner/owner_account_controller.email_change_no_mail')]);
+        }
+
         $user->forceFill(['pending_email' => $newEmail])->save();
 
         $url = URL::temporarySignedRoute('owner.account.email.verify', now()->addHour(), [

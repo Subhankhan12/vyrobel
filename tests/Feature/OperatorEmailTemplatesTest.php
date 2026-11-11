@@ -269,7 +269,7 @@ it('keeps the section switches real, focusable checkboxes with a label (2.1.1)',
 });
 
 it('sends a test only to the operator\'s OWN address, never a guest\'s (#28)', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     $s['guest']->update(['email' => 'the.guest@hidden.test']);
     book($s, ['unit_id' => $s['units'][0]->id]);

@@ -103,6 +103,11 @@ class EmailPreviewController extends Controller
         $email = (string) $request->user()->email;
         abort_if($email === '', 422, __('php/http/controllers/operator/email_preview_controller.no_email_address'));
 
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11): "Test email sent to <address>" while email is not sent from Vyrobel was untrue — said so instead, nothing sent
+        if (! MailSafetyGuard::sendingNow()) {
+            return redirect()->route('app.email-previews')->with('email_preview_notice', __('php/http/controllers/operator/guest_bulk_action_controller.email_not_sent'));
+        }
+
         Mail::to($email)->locale($request->user()->preferredLocale())->send($this->buildMailable($key, $reservation));
 
         return redirect()->route('app.email-previews')->with('email_preview_notice', __('php/http/controllers/operator/email_preview_controller.test_sent', ['email' => $email]));

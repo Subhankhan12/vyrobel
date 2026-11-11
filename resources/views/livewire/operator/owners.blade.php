@@ -595,9 +595,16 @@
                     <div class="vy-modal vy-modal-card vyo-dlg" x-show="sentOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyo-sent-t" tabindex="-1" x-trap.noscroll="sentOpen">
                         <div class="vyo-sent">
                             <span class="vyo-sent-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></span>
-                            <h3 class="vy-modal-title" id="vyo-sent-t">{{ __('livewire/operator/owners.sent_title') }}</h3>
-                            <p class="vyo-sent-sub">{!! __('livewire/operator/owners.sent_text', ['email' => e($vySent['email'] ?? '')]) !!}</p>
-                            <p class="vyo-sent-note">{!! __('livewire/operator/owners.sent_note', ['expires' => e($vySent['expires'] ?? __('livewire/operator/owners.sent_expires_fallback'))]) !!}</p>
+                            {{-- ⚠️ D-MAIL-CLAIMS (2026-11-11): "We emailed <address> a link" only while email IS sent from Vyrobel; otherwise the invite is saved and nothing went out --}}
+                            @if (($vySent['mail_sends'] ?? true) === false)
+                                <h3 class="vy-modal-title" id="vyo-sent-t">{{ __('livewire/operator/owners.saved_title') }}</h3>
+                                <p class="vyo-sent-sub">{!! __('livewire/operator/owners.saved_text', ['email' => e($vySent['email'] ?? '')]) !!}</p>
+                                <p class="vyo-sent-note">{!! __('livewire/operator/owners.saved_note') !!}</p>
+                            @else
+                                <h3 class="vy-modal-title" id="vyo-sent-t">{{ __('livewire/operator/owners.sent_title') }}</h3>
+                                <p class="vyo-sent-sub">{!! __('livewire/operator/owners.sent_text', ['email' => e($vySent['email'] ?? '')]) !!}</p>
+                                <p class="vyo-sent-note">{!! __('livewire/operator/owners.sent_note', ['expires' => e($vySent['expires'] ?? __('livewire/operator/owners.sent_expires_fallback'))]) !!}</p>
+                            @endif
                         </div>
                         <div class="vy-modal-foot">
                             <a class="vy-btn vy-btn--ghost" href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener">{{ __('livewire/operator/owners.preview_email') }}</a>

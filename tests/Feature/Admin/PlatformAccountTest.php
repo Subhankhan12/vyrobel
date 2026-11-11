@@ -79,7 +79,7 @@ it('regenerating recovery codes requires the current password + is audited', fun
 
 // ── GATE 2 — email change (re-verified) ──────────────────────────────────────────────────────────────
 it('an email change REQUIRES the current password, parks pending_email, and DOES NOT switch the login yet', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $admin = platformAdmin(['email' => 'old@x.test']);
 
     // Wrong current password → rejected.

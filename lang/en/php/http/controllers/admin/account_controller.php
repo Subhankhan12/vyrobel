@@ -11,6 +11,8 @@ return [
     'recovery_codes_generated' => 'New recovery codes generated — save them now.',
     // the field's name inside a validation message
     'email_attribute' => 'email address',
+    // D-MAIL-CLAIMS: while email is not sent from Vyrobel the confirmation link could never arrive
+    'email_change_no_mail' => 'Email isn’t being sent from Vyrobel yet, so we can’t send the link that confirms a new address. Nothing was changed.',
     'email_change_sent' => 'Check your new inbox — we emailed a link to confirm the change. Your email stays the same until you open it.',
     'email_change_cancelled' => 'The email change was cancelled.',
     'email_link_invalid' => 'That email-change link is no longer valid. Please request a new one.',

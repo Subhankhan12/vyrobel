@@ -75,7 +75,7 @@ it('refuses an owner email change with the wrong password', function () {
 // ⚠️ A refusal-only test cannot tell a working rule from a broken form. This is why the password input was
 // added to the owner settings view in the same change: a rule with no field is a feature that always fails.
 it('accepts an owner email change with the correct password', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $user = reauthOwnerActor();
 
     $this->actingAs($user)

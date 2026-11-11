@@ -42,7 +42,7 @@ if (! function_exists('inviteAdmin')) {
 
 // ── The invite PRG flashes the real email + expiry for the "Invite sent" confirmation view ─────────
 it('sends an owner invite and renders the exact "Invite sent" confirmation with the real email + expiry', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $s = seedScenario(1);
     app(OrganizationRoleProvisioner::class)->provision($s['org']);
     $op = inviteAdmin($s);

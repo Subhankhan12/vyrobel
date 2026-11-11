@@ -125,6 +125,10 @@ return [
     'sent_title' => 'Invite sent',
     'sent_text' => 'We emailed <strong>:email</strong> a link to set their password. They show as <strong>Invited</strong> until they do.',
     'sent_note' => 'The link works until :expires. Send it again or cancel it from <strong>Invites waiting</strong>.',
+    // D-MAIL-CLAIMS: the same dialog while email is not sent from Vyrobel — the invite is saved, nobody has been told
+    'saved_title' => 'Invite saved',
+    'saved_text' => 'We saved the invite for <strong>:email</strong>, but email isn’t being sent from Vyrobel yet, so they haven’t been told. They show as <strong>Invited</strong>.',
+    'saved_note' => 'Nothing has been sent, so there is no link yet. Send it again once email is on, or cancel it from <strong>Invites waiting</strong>.',
     'sent_expires_fallback' => 'in 7 days',
     'preview_email' => 'Preview the email',
     // resend

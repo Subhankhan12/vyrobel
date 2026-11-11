@@ -97,7 +97,7 @@ it('refuses the owner-party (business) update to every sub-user, allows the prim
 
 // ── 4. EMAIL CHANGE RE-VERIFIES before it switches ───────────────────────────────────────────────────
 it('parks a new email + mails a verify link WITHOUT switching the login email', function () {
-    Mail::fake();
+    emailIsBeingSent();   // D-MAIL-CLAIMS: this path SAYS an email was sent, so email must be sent
     $c = accountCast();
     $before = (string) $c['owner']->email;
 

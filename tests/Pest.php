@@ -104,6 +104,7 @@ require_once __DIR__.'/Support/payout_reversal_helpers.php';
 require_once __DIR__.'/Support/auth_helpers.php';
 require_once __DIR__.'/Support/queuing_refund_gateway.php';
 require_once __DIR__.'/Support/connect_helpers.php';
+require_once __DIR__.'/Support/mail_helpers.php';
 require_once __DIR__.'/Support/marketing_helpers.php';
 require_once __DIR__.'/Support/heading_helpers.php';
 require_once __DIR__.'/Support/i18n_helpers.php';

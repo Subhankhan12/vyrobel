@@ -11,6 +11,7 @@ use App\Services\OwnerInviteService;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\OwnerListParams;
 use App\Support\Property\PropertyContext;
@@ -108,10 +109,15 @@ class InviteOwnerController extends Controller
                 ->with('owners_error', __('php/http/controllers/operator/invite_owner_controller.email_cannot_be_invited'));
         }
 
+        // ⚠️ D-MAIL-CLAIMS (2026-11-11, his "do all"): the invite is created either way, but "Invite sent to <address>" is said only while email IS sent from
+        //    Vyrobel; otherwise it says it was saved and that nobody has been told (production's mailer is `log` until the founder turns mail on).
+        $mailSends = MailSafetyGuard::sendingNow();
+
         // Feed the "Invite sent" confirmation view (rendered on this PRG): the real invited email + the real 7-day expiry.
         return (OwnerListParams::redirect($request) ?? redirect()->route('app.owners'))
-            ->with('owners_notice', __('php/http/controllers/operator/invite_owner_controller.invite_sent', ['email' => $validated['email']]))
+            ->with('owners_notice', __($mailSends ? 'php/http/controllers/operator/invite_owner_controller.invite_sent' : 'php/http/controllers/operator/invite_owner_controller.invite_saved_no_mail', ['email' => $validated['email']]))
             ->with('owner_invite_sent', [
+                'mail_sends' => $mailSends,
                 'email' => $validated['email'],
                 'expires' => $result['invite']->expires_at?->translatedFormat(LocalDate::pattern('j M Y')),
             ]);
