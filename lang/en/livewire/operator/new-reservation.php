@@ -235,6 +235,9 @@ return [
     // what a step still needs before Next
     'miss_dates' => 'Pick the check-in and check-out dates first.',
     'miss_unit' => 'Pick a unit for these dates to continue.',
+    // D-NR2-NEXT-NOPRICE: no unit can be picked because none has a price for these dates
+    'miss_unit_no_price' => 'No unit has a price for these dates yet — set one above.',
+    'miss_unit_no_price_ask' => 'No unit has a price for these dates yet — ask someone who manages rates to set one.',
     'miss_guest_pick' => 'Choose the guest from the list — or switch to New guest.',
     'miss_guest_name' => 'Enter the guest’s first or last name.',
     'miss_email' => 'That email address doesn’t look right — check it, or leave it empty.',

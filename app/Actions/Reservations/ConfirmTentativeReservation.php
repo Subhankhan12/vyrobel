@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AssignmentService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -143,11 +144,11 @@ class ConfirmTentativeReservation
         }
 
         throw new RuntimeException(match ($from) {
-            'cancelled', 'no_show' => __('php/actions/reservations/confirm_tentative_reservation.refused_closed', ['status' => $from]),
+            'cancelled', 'no_show' => __('php/actions/reservations/confirm_tentative_reservation.refused_closed', ['status' => ReservationStatusLabel::for((string) $from)]),
             'checked_in' => __('php/actions/reservations/confirm_tentative_reservation.refused_checked_in'),
             'checked_out' => __('php/actions/reservations/confirm_tentative_reservation.refused_checked_out'),
             'enquiry' => __('php/actions/reservations/confirm_tentative_reservation.refused_enquiry'),
-            default => __('php/actions/reservations/confirm_tentative_reservation.refused_other', ['status' => $from]),
+            default => __('php/actions/reservations/confirm_tentative_reservation.refused_other', ['status' => ReservationStatusLabel::for((string) $from)]),
         });
     }
 }

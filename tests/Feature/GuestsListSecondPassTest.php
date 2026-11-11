@@ -72,11 +72,11 @@ it('⚠️⚠️ lets the table fit its card at every width — a narrow card st
     $html = gp2Page($s);
 
     // 🔬 before: a 760 px table in a 732 px card at 1,024 px — Status cut to "No booki…"; on a phone, Nationality under the menu
-    expect($html)->toContain('<td class="vy-gl-c-nat" data-label="Nationality">')
-        ->toContain('<td class="is-num vy-gl-c-stays" data-label="Stays">')
-        ->toContain('<td class="vy-gl-c-stay" data-label="Stay">')
-        ->toContain('<td class="is-num vy-gl-c-life" data-label="Lifetime">')
-        ->toContain('<td class="vy-gl-c-status" data-label="Status">');
+    expect($html)->toContain('<td class="vy-gl-c-nat" data-label="Nationality" role="cell">')
+        ->toContain('<td class="is-num vy-gl-c-stays" data-label="Stays" role="cell">')
+        ->toContain('<td class="vy-gl-c-stay" data-label="Stay" role="cell">')
+        ->toContain('<td class="is-num vy-gl-c-life" data-label="Lifetime" role="cell">')
+        ->toContain('<td class="vy-gl-c-status" data-label="Status" role="cell">');
 
     // the card is a size container, and a narrow one turns each row into a stacked card — no sideways scrolling, nothing hidden
     expect(gp2Css())->toMatch('~\.vy-gst \.vy-gl-card \{[^}]*container: vy-gst-list / inline-size~')
@@ -118,12 +118,12 @@ it('⚠️ stacks before the full table can outgrow its card — and lets only a
     // ⚠️ Names come from ICU (`ext-intl`: here and on production). GitHub's check image leaves it out ON PURPOSE (DEPLOYMENT §7.5.1b,
     //    `ops/runtime-contract.sh`: "absent — alpha-2 codes. Correct, by design"), so there the documented fallback is asserted.
     if (extension_loaded('intl')) {
-        expect($html)->toContain('<td class="vy-gl-c-nat is-long" data-label="Nationality">')
-            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*United Kingdom~');
+        expect($html)->toContain('<td class="vy-gl-c-nat is-long" data-label="Nationality" role="cell">')
+            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality" role="cell">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*United Kingdom~');
     } else {
         // without names every cell is a two-letter code, and a code is never long
         expect($html)->not->toContain('vy-gl-c-nat is-long')
-            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*GB~');
+            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality" role="cell">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*GB~');
     }
 });
 

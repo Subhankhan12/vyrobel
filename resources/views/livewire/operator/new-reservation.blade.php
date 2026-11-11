@@ -383,7 +383,7 @@
                                                  page's own Apply, in a form OUTSIDE the booking form, joined by script). --}}
                                             @foreach ($rt['seasons'] as $season)
                                                 <div class="vy-nr-season">
-                                                    <p class="vy-nr-season-why">{!! $season['prices'] === $season['missing'] ? __('livewire/operator/new-reservation.season_saved_all', ['name' => e($season['name']), 'nightly' => e($season['nightly']), 'from' => e($season['from']), 'to' => e($season['to'])]) : trans_choice('livewire/operator/new-reservation.season_saved_some', $season['missing'], ['name' => e($season['name']), 'nightly' => e($season['nightly']), 'from' => e($season['from']), 'to' => e($season['to']), 'prices' => e($season['prices']), 'count' => $season['missing']]) !!}</p>
+                                                    <p class="vy-nr-season-why">{!! $season['prices'] === $season['missing'] ? trans_choice('livewire/operator/partials/rack-new-reservation.season_saved_all', $season['missing'], ['season' => e($season['name']), 'nightly' => e($season['nightly']), 'from' => e($season['from']), 'to' => e($season['to'])]) : trans_choice('livewire/operator/new-reservation.season_saved_some', $season['missing'], ['name' => e($season['name']), 'nightly' => e($season['nightly']), 'from' => e($season['from']), 'to' => e($season['to']), 'prices' => e($season['prices']), 'count' => $season['missing']]) !!}</p>
                                                     @if ($canSetPrice)
                                                         {{-- ⚠️⚠️ THROUGH THE SAME "Apply this season?" DISCLOSURE AS THE RATES PAGE (the review, H2): this button
                                                              only opens it — what is overwritten, that it cannot be undone, and what somebody negotiated. --}}
@@ -414,7 +414,10 @@
                                                                 x-text="priceBusy === {{ $__rtIndex }} ? @js(__('livewire/operator/new-reservation.setting_price')) : @js(__('livewire/operator/new-reservation.set_price'))">{{ __('livewire/operator/new-reservation.set_price') }}</button>
                                                     </div>
                                                     <p class="vy-nr-miss" x-show="priceErr[{{ $__rtIndex }}]" x-text="priceErr[{{ $__rtIndex }}]" x-cloak role="alert"></p>
-                                                    <p class="vy-nr-fine">{{ $rt['plan_name'] !== '' ? __('livewire/operator/new-reservation.same_price_plan', ['from' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($lastNight)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'plan' => $rt['plan_name']]) : __('livewire/operator/new-reservation.same_price', ['from' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($lastNight)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'))]) }}</p>
+                                                    {{-- D-NR2-ONE-NIGHT (2026-11-11): a ONE-night stay is "the night of 10 Oct", never "from 10 Oct to 10 Oct" — the Calendar dialog's own words (already translated). --}}
+                                                    <p class="vy-nr-fine">{{ $nights === 1
+                                                        ? ($rt['plan_name'] !== '' ? __('livewire/operator/partials/rack-new-reservation.price_goes_one_plan', ['date' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'plan' => $rt['plan_name']]) : __('livewire/operator/partials/rack-new-reservation.price_goes_one', ['date' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'))]))
+                                                        : ($rt['plan_name'] !== '' ? __('livewire/operator/new-reservation.same_price_plan', ['from' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($lastNight)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'plan' => $rt['plan_name']]) : __('livewire/operator/new-reservation.same_price', ['from' => \Carbon\CarbonImmutable::parse($checkIn)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M')), 'to' => \Carbon\CarbonImmutable::parse($lastNight)->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M'))])) }}</p>
                                                 </div>
                                             @elseif ($rt['has_plan'] && $rt['seasons'] === [])
                                                 <p class="vy-nr-noprice">{{ __('livewire/operator/new-reservation.no_price_ask', ['name' => $rt['name']]) }}</p>
@@ -710,7 +713,7 @@
                                 </div>
                                 <div class="vy-modal-body vyr-prose">
                                     @include('livewire.operator.partials.season-apply-disclosure')
-                                    <p>{{ trans_choice('livewire/operator/new-reservation.season_for_booking', $season['missing'], ['prices' => $season['prices'], 'count' => $season['missing']]) }}</p>
+                                    <p>{{ trans_choice('livewire/operator/partials/rack-new-reservation.for_this_booking', $season['missing'], ['prices' => $season['prices'], 'count' => $season['missing']]) }}</p>
                                 </div>
                                 <form method="POST" action="{{ $season['apply_url'] }}" class="vy-modal-foot" data-guard-submit x-on:submit="persist()">
                                     @csrf
@@ -760,6 +763,7 @@
                 const T = {
                     missDates: @js(__('livewire/operator/new-reservation.miss_dates')),
                     missUnit: @js(__('livewire/operator/new-reservation.miss_unit')),
+                    missUnitNoPrice: @js(__($canSetPrice ? 'livewire/operator/new-reservation.miss_unit_no_price' : 'livewire/operator/new-reservation.miss_unit_no_price_ask')),
                     missGuestPick: @js(__('livewire/operator/new-reservation.miss_guest_pick')),
                     missGuestName: @js(__('livewire/operator/new-reservation.miss_guest_name')),
                     missEmail: @js(__('livewire/operator/new-reservation.miss_email')),
@@ -846,7 +850,7 @@
                     problem(n) {
                         if (n === 1) {
                             if (! BOOT.datesValid) return T.missDates;
-                            if (! this.unitId) return T.missUnit;
+                            if (! this.unitId) return BOOT.waitingForPrice ? T.missUnitNoPrice : T.missUnit;
                         }
                         if (n === 2) {
                             if (this.guestMode === 'existing') return this.existingGuestId ? '' : T.missGuestPick;

@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\MaintenanceTicket;
 use App\Models\Media;
 use App\Models\Membership;
-use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\Operator\MaintenanceReassignedNotification;
 use App\Notifications\Operator\MaintenanceResolvedNotification;
@@ -18,7 +17,7 @@ use App\Support\I18n\LocalNumber;
 use App\Support\Maintenance\MaintenanceListParams;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
-use App\Support\Property\PropertyContext;
+use App\Support\Property\PropertyScope;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -69,8 +68,9 @@ class MaintenanceActionController extends Controller
             'takes_out_of_service' => ['sometimes', 'boolean'],
         ]);
 
-        // Tenant-scope the unit: a foreign unit id 404s (never opens a ticket on another org's unit).
-        $unit = Unit::query()->findOrFail($validated['unit_id']);
+        // The unit is found inside the person's properties (DEC-j): another organisation's unit, or one on a property outside their
+        // allow-list, is a 404 — never a work order raised on it.
+        $unit = app(PropertyScope::class)->unit($validated['unit_id']);
 
         $ticket = $maintenance->open([
             'unit_id' => $unit->id,
@@ -95,7 +95,7 @@ class MaintenanceActionController extends Controller
             'notify' => ['sometimes', 'boolean'],
         ]);
 
-        $model = MaintenanceTicket::query()->with('unit', 'assignedTo')->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->ticket($ticket, ['unit', 'assignedTo']);   // inside the person's properties (DEC-j) → 404 otherwise
         $previousAssignee = $model->assignedTo;
 
         if ($this->paused()) {
@@ -197,8 +197,8 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        // Tenant-scoped whereIn — a foreign/unknown id is silently absent (never acted on).
-        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])->get();
+        // Scoped whereIn (tenant + the person's properties) — a foreign/unknown/out-of-scope id is silently absent (never acted on).
+        $tickets = app(PropertyScope::class)->tickets()->whereIn('id', $validated['ticket_ids'])->get();
         [$done, $skipped] = [0, 0];
         foreach ($tickets as $t) {
             try {
@@ -209,7 +209,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('assigned', $done, $skipped));
+        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice($userId === null ? 'unassigned' : 'assigned', $done, $skipped));
     }
 
     /**
@@ -229,7 +229,7 @@ class MaintenanceActionController extends Controller
             'ticket_ids.*' => ['string'],
         ]);
 
-        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])->with('unit.property')->get();
+        $tickets = app(PropertyScope::class)->tickets()->whereIn('id', $validated['ticket_ids'])->with('unit.property')->get();
         [$done, $skipped] = [0, 0];
         foreach ($tickets as $t) {
             try {
@@ -262,7 +262,7 @@ class MaintenanceActionController extends Controller
             'ticket_ids.*' => ['string'],
         ]);
 
-        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])
+        $tickets = app(PropertyScope::class)->tickets()->whereIn('id', $validated['ticket_ids'])
             ->with('unit.property', 'assignedTo')->orderByDesc('opened_at')->get();
 
         // the headings are read in the viewer's language, before the download streams
@@ -297,6 +297,9 @@ class MaintenanceActionController extends Controller
         return match (true) {
             $action === 'assigned' && $skipped > 0 => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_assigned_skipped', $done, ['count' => $done, 'skipped' => $skipped]),
             $action === 'assigned' => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_assigned', $done, ['count' => $done]),
+            // D-MT-COPY: assigning to "No one" is an UNASSIGN — it said "Assigned 2 work orders."
+            $action === 'unassigned' && $skipped > 0 => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_unassigned_skipped', $done, ['count' => $done, 'skipped' => $skipped]),
+            $action === 'unassigned' => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_unassigned', $done, ['count' => $done]),
             $skipped > 0 => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_resolved_skipped', $done, ['count' => $done, 'skipped' => $skipped]),
             default => trans_choice('php/http/controllers/operator/maintenance_action_controller.bulk_resolved', $done, ['count' => $done]),
         };
@@ -305,7 +308,7 @@ class MaintenanceActionController extends Controller
     /** Start work on an OPEN ticket (guarded: illegal from any other state → clean flash). */
     public function start(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->ticket($ticket);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
@@ -341,7 +344,7 @@ class MaintenanceActionController extends Controller
             'notify' => ['sometimes', 'boolean'],
         ]);
 
-        $model = MaintenanceTicket::query()->with('unit.property', 'reportedBy')->findOrFail($ticket);   // tenant-scoped → 404
+        $model = app(PropertyScope::class)->ticket($ticket, ['unit.property', 'reportedBy']);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
@@ -376,7 +379,7 @@ class MaintenanceActionController extends Controller
     /** Cancel an ACTIVE ticket (guarded: illegal from a terminal state → clean flash). */
     public function cancel(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->ticket($ticket);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
@@ -396,7 +399,7 @@ class MaintenanceActionController extends Controller
     /** Flag / clear the "waiting on a part" state on an ACTIVE ticket (#89 — the Parts-on-order panel). */
     public function setParts(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->ticket($ticket);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
@@ -426,7 +429,7 @@ class MaintenanceActionController extends Controller
      */
     public function addNote(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->ticket($ticket);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
@@ -461,7 +464,7 @@ class MaintenanceActionController extends Controller
      */
     public function uploadPhoto(Request $request, string $ticket): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);
+        $model = app(PropertyScope::class)->ticket($ticket);
 
         if ($this->paused()) {
             return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
@@ -494,7 +497,7 @@ class MaintenanceActionController extends Controller
     /** Remove a ticket photo — deletes the stored bytes + the row. Tenant + ticket scoped; read-only respected. */
     public function deletePhoto(Request $request, string $ticket, string $media): RedirectResponse
     {
-        $model = MaintenanceTicket::query()->findOrFail($ticket);
+        $model = app(PropertyScope::class)->ticket($ticket);
 
         if ($this->paused()) {
             return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
@@ -534,10 +537,7 @@ class MaintenanceActionController extends Controller
     /** A ticket the viewer may act on: tenant-scoped (a cross-org id 404s) and on a property they can access (#38). */
     private function accessibleTicket(string $ticket): MaintenanceTicket
     {
-        $model = MaintenanceTicket::query()->with('unit')->findOrFail($ticket);
-        abort_unless(in_array((string) $model->unit?->property_id, app(PropertyContext::class)->accessibleIds(), true), 404);
-
-        return $model;
+        return app(PropertyScope::class)->ticket($ticket, ['unit']);
     }
 
     /** Parse a numeric major-unit form value into Money, or null when blank/zero. */

@@ -72,6 +72,22 @@
             <div class="vy-card vy-fade vyr-flash" role="status">{{ session('rates_notice') }}</div>
         @endif
 
+        {{-- ⚠️ A13 (2026-11-11, his "do all") — A SAVED SEASON WRITES NO PRICE UNTIL IT IS APPLIED (R-SEASON: the two steps are deliberate).
+             On production a €200 "Winter" sat saved and never applied for six days, and no booking could be made. The season list shows each
+             one's state, but a person who never scrolls to it was told nothing; so a banner, for the people who can apply one.
+             `role="status"` (not alert): RatesPageRedesignTest counts the error flashes. --}}
+        @can('rates.manage')
+            @php
+                $vyUnapplied = collect($seasons)->where('applied', false)->count();
+            @endphp
+            @if ($vyUnapplied > 0)
+                <div class="vy-card vy-fade vyr-flash" role="status" data-unapplied-seasons="{{ $vyUnapplied }}">
+                    {{ trans_choice('livewire/operator/rates-grid.seasons_unapplied_banner', $vyUnapplied, ['count' => $vyUnapplied]) }}
+                    <a href="#vyr-seasons-t" style="font-weight:600;color:var(--vy-accent-text);margin-left:6px">{{ __('livewire/operator/rates-grid.seasons_unapplied_link') }}</a>
+                </div>
+            @endif
+        @endcan
+
         {{-- ── D18-5 · step 2 of 2: THE PREVIEW IS THE APPROVAL GATE — nothing has been written yet. ⚠️ The digest is a hash
              of every (unit, night, from, to) tuple shown here; the apply route re-computes it inside the transaction and
              refuses if anything moved. Placed FIRST, so the operator sees it on arrival instead of below the grid. ──────── --}}

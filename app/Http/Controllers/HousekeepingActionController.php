@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\HousekeepingService;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Property\PropertyScope;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -46,7 +47,7 @@ class HousekeepingActionController extends Controller
             abort(422, 'Unsupported housekeeping status.');
         }
 
-        $model = HousekeepingTask::query()->findOrFail($task);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->task($task);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->pausedRedirect();
@@ -84,7 +85,7 @@ class HousekeepingActionController extends Controller
             'priority' => ['sometimes', 'boolean'],
         ]);
 
-        $model = HousekeepingTask::query()->findOrFail($task);          // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->task($task);          // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->pausedRedirect();
@@ -116,7 +117,7 @@ class HousekeepingActionController extends Controller
     /** UNASSIGN a task (clear the housekeeper) — the "Undo" behind the assign toast. Gated + read-only + tenant-scoped. */
     public function unassign(Request $request, HousekeepingService $housekeeping, string $task): RedirectResponse
     {
-        $model = HousekeepingTask::query()->findOrFail($task);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->task($task);   // inside the person's properties (DEC-j) → 404 otherwise
 
         if ($this->paused()) {
             return $this->pausedRedirect();
@@ -148,7 +149,7 @@ class HousekeepingActionController extends Controller
             'task_ids.*' => ['string'],
         ]);
 
-        $tasks = HousekeepingTask::query()->whereIn('id', $validated['task_ids'])->get();
+        $tasks = app(PropertyScope::class)->tasks()->whereIn('id', $validated['task_ids'])->get();   // scoped: an out-of-scope id is silently absent
         $n = 0;
         foreach ($tasks as $t) {
             if ($t->assigned_to !== null) {
@@ -229,7 +230,7 @@ class HousekeepingActionController extends Controller
      */
     public function uploadPhoto(Request $request, string $task): RedirectResponse
     {
-        $model = HousekeepingTask::query()->findOrFail($task);
+        $model = app(PropertyScope::class)->task($task);
 
         if ($this->paused()) {
             return $this->pausedRedirect();
@@ -261,7 +262,7 @@ class HousekeepingActionController extends Controller
     /** Remove a proof photo — deletes the stored bytes + the row. Tenant + task scoped; gated + read-only. */
     public function deletePhoto(Request $request, string $task, string $media): RedirectResponse
     {
-        $model = HousekeepingTask::query()->findOrFail($task);
+        $model = app(PropertyScope::class)->task($task);
 
         if ($this->paused()) {
             return $this->pausedRedirect();

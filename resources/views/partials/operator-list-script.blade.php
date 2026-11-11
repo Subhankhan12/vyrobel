@@ -82,6 +82,11 @@
             openMenu(event, row) {
                 const button = event.currentTarget;
                 if (! row) return;
+                // ⚠️ D-GL-FLAKE (2026-11-11, his "do all"; seen ONCE, not reproduced — a HARDENING of the one race I could find, not a proven
+                // fix): a ⋯ click while a search/filter/page response is on its way opened a menu that the arriving response then closed
+                // (`closeMenu(false)` before the rows are swapped), leaving the page scrolled with the menu shut. The rows are about to be
+                // replaced; there is nothing to open a menu on until they are.
+                if (this.loading) return;
                 if (this.menu.open && this.menuFor === row.id) { this.closeMenu(true); return; }
                 trigger = button;
                 this.menuFor = row.id;

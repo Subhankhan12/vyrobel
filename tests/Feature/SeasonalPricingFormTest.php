@@ -224,3 +224,31 @@ it('⚠️ populates the owner’s PEAK column once a season exists, flagged unt
     app(SeasonalRateService::class)->apply($season);
     expect($page())->toContain('Peak now');
 });
+
+// ── ⚠️ A13 (2026-11-11, his "do all") — SAID AT THE TOP OF THE PAGE ───────────────────────────────
+// On production his €200 "Winter" sat saved and never applied for six days, the reason no booking could be made; the Rates page
+// showed it only as a pill far down in the season list. A saved season writes NO price until it is applied (R-SEASON — the two
+// steps are deliberate), so the page now says so up top, for the people who can apply one.
+it('⚠️ A13 — a saved-but-unapplied season is said at the top of the Rates page, and the banner goes once it is applied', function () {
+    $w = seasonWorld();
+
+    expect(ratesPage($w))->not->toContain('saved but not applied');   // nothing saved → no banner
+
+    $season = saveSeason($w);
+    $html = ratesPage($w);
+    expect($html)->toContain('1 season saved but not applied — no price is written until you apply it.')
+        ->toContain('data-unapplied-seasons="1"')
+        ->toContain('href="#vyr-seasons-t"');
+    // …above the season list, not inside it
+    expect(strpos($html, 'saved but not applied'))->toBeLessThan((int) strpos($html, 'id="vyr-seasons-t"'));
+
+    // two unapplied: the plural, with the count
+    saveSeason($w, 60000, '2026-09-10', '2026-09-12');
+    expect(ratesPage($w))->toContain('2 seasons saved but not applied — no price is written until you apply them.');
+
+    // applying one leaves the other said, and applying both removes the banner
+    app(SeasonalRateService::class)->apply($season);
+    expect(ratesPage($w))->toContain('1 season saved but not applied');
+    app(SeasonalRateService::class)->apply(RateSeason::query()->where('name', 'Peak')->where('starts_on', '2026-09-10')->firstOrFail());
+    expect(ratesPage($w))->not->toContain('saved but not applied');
+});

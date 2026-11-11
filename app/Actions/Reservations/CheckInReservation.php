@@ -14,6 +14,7 @@ use App\Services\MaintenanceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Reservations\ReservationStage;
+use App\Support\Reservations\ReservationStatusLabel;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
@@ -200,7 +201,7 @@ class CheckInReservation
             // status — it exists in the enum and in display labels and no code path produces it — so a
             // sentence naming a route out of it would describe a journey no guest can be on. Recorded as a
             // ruling in docs/STATUS-LADDERS.md: do not "fix" the missing enquiry flow.
-            default => __('php/actions/reservations/check_in_reservation.refused_other', ['status' => $from]),
+            default => __('php/actions/reservations/check_in_reservation.refused_other', ['status' => ReservationStatusLabel::for((string) $from)]),
         });
     }
 }

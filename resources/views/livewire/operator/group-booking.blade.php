@@ -97,7 +97,7 @@
         // Laravel then answers with the form's leading space — the old script printed it without one.
         $__gbNightsText = trim(trans_choice('livewire/operator/group-booking.nights', $__gbNightsN, ['count' => $__gbNightsN]));
     @endphp
-    <div class="vy-gb-standalone" x-data="groupBookingWizard(@js($currency), @js($roomTypes), @js((string) $checkIn), @js((string) $checkOut))" x-init="init()">
+    <div class="vy-gb-standalone" x-data="groupBookingWizard(@js($currency), @js(\App\Support\Money\MoneyFormatter::symbol((string) $currency)), @js($roomTypes), @js((string) $checkIn), @js((string) $checkOut))" x-init="init()">
         {{-- Topbar --}}
         <div class="vy-gb-topbar vy-fade">
             <div class="vy-gb-brand">
@@ -390,9 +390,9 @@
         </div>
 
         <script>
-            function groupBookingWizard(currency, roomTypes, checkIn, checkOut) {
+            function groupBookingWizard(currency, symbol, roomTypes, checkIn, checkOut) {
                 return {
-                    currency, roomTypes, checkIn, checkOut,
+                    currency, symbol, roomTypes, checkIn, checkOut,
                     ci: checkIn, co: checkOut,
                     step: 1,
                     name: '', occasion: 'wedding', headcount: 10,
@@ -483,7 +483,7 @@
                     get capOk() { return this.cap >= this.headcount; },
                     get capPct() { return this.headcount > 0 ? Math.min(100, Math.round(this.cap / this.headcount * 100)) : 0; },
                     get blockSubMinor() { return this.selected.reduce((s, u) => s + u.priceMinor, 0); },
-                    fmt(minor) { const sym = this.currency === 'EUR' ? '€' : (this.currency === 'USD' ? '$' : this.currency + ' '); return sym + (minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+                    fmt(minor) { return this.symbol + (minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                     goto(n) { this.step = n; },
                     // ⚠️ Continue is now always PRESSABLE, and a failed press EXPLAINS itself. A disabled button
                     // is the cheapest thing to build and the least useful thing to receive: it withholds both

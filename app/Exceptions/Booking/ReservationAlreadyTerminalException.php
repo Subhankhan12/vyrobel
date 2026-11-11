@@ -6,6 +6,7 @@ namespace App\Exceptions\Booking;
 
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Services\AssignmentService;
+use App\Support\Reservations\ReservationStatusLabel;
 
 /**
  * An expected, clean rejection thrown by {@see AssignmentService::cancelReservation()} /
@@ -38,8 +39,8 @@ class ReservationAlreadyTerminalException extends BookingException
         public readonly string $toStatus,
     ) {
         parent::__construct(__('php/exceptions/booking/reservation_already_terminal_exception.message', [
-            'from_status' => $fromStatus,
-            'to_status' => $toStatus,
+            'from_status' => ReservationStatusLabel::for($fromStatus),
+            'to_status' => ReservationStatusLabel::for($toStatus),
         ]));
     }
 }

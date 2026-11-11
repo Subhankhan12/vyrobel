@@ -130,7 +130,7 @@
                  it on "Any" books exactly as this page always did. --}}
             @if (count($unitChoices ?? []) > 1)
                 <label class="vy-field" style="display:block;margin:0 0 12px;">
-                    <span class="vy-field-label">{{ $property['type'] === 'hotel' ? __('booking/checkout.choose_your_room') : __('booking/checkout.choose_your_unit') }}</span>
+                    <span class="vy-field-label">{{ ($property['type_code'] ?? '') === 'hotel' ? __('booking/checkout.choose_your_room') : __('booking/checkout.choose_your_unit') }}</span>
                     <select name="unit_id" class="vy-input">
                         <option value="">{{ __('booking/checkout.any_available', ['total' => $offer['total']]) }}</option>
                         @foreach ($unitChoices as $vyUnit)

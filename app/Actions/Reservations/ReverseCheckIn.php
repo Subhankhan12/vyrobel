@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -193,7 +194,7 @@ class ReverseCheckIn
         if ($from !== self::ALLOWED_FROM) {
             // ⚠️ NAME THE REAL STATUS. "Cannot reverse" tells a front desk nothing; "this one is cancelled"
             //    tells them which screen to go to next.
-            throw new RuntimeException(__('php/actions/reservations/reverse_check_in.refused_not_checked_in', ['status' => $from]));
+            throw new RuntimeException(__('php/actions/reservations/reverse_check_in.refused_not_checked_in', ['status' => ReservationStatusLabel::for((string) $from)]));
         }
 
         // ⚠️⚠️ A RUNTIME CHECK THAT THE TWO REFUSAL SETS HAVE NOT BEEN MERGED WAS WRITTEN HERE AND REMOVED,

@@ -112,7 +112,7 @@ class PropertyController extends Controller
             'status' => ['required', 'in:active,inactive'],
         ]);
 
-        $property = Property::query()->findOrFail($data['property_id']);   // tenant-scoped → cross-org 404s
+        $property = $this->accessibleProperty($data['property_id']);   // the person's allow-list (DEC-i), then the tenant scope → 404 otherwise
 
         $property->update([
             'name' => $data['name'],

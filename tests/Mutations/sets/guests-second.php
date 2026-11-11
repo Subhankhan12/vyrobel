@@ -29,8 +29,8 @@ return [
         'id' => 'GS-M2',
         'name' => 'a cell loses its name — the stacked row cannot say what a fact is',
         'file' => 'resources/views/livewire/operator/guests-list.blade.php',
-        'old' => '<td class="is-num vy-gl-c-stays" data-label="{{ __(\'livewire/operator/guests-list.col_stays\') }}">',
-        'new' => '<td class="is-num vy-gl-c-stays">',
+        'old' => '<td class="is-num vy-gl-c-stays" data-label="{{ __(\'livewire/operator/guests-list.col_stays\') }}" role="cell">',
+        'new' => '<td class="is-num vy-gl-c-stays" role="cell">',
         'tests' => [['file' => $test, 'filter' => 'lets the table fit its card at every width']],
     ],
     [
@@ -87,8 +87,8 @@ return [
         'id' => 'GS-M25',
         'name' => 'a long country name may never wrap — it pushes the table past its card (measured)',
         'file' => 'resources/views/livewire/operator/guests-list.blade.php',
-        'old' => '<td class="vy-gl-c-nat{{ mb_strlen((string) $row[\'nationality\']) > 16 ? \' is-long\' : \'\' }}" data-label="{{ __(\'livewire/operator/guests-list.col_nationality\') }}">',
-        'new' => '<td class="vy-gl-c-nat" data-label="{{ __(\'livewire/operator/guests-list.col_nationality\') }}">',
+        'old' => '<td class="vy-gl-c-nat{{ mb_strlen((string) $row[\'nationality\']) > 16 ? \' is-long\' : \'\' }}" data-label="{{ __(\'livewire/operator/guests-list.col_nationality\') }}" role="cell">',
+        'new' => '<td class="vy-gl-c-nat" data-label="{{ __(\'livewire/operator/guests-list.col_nationality\') }}" role="cell">',
         'tests' => [['file' => $test, 'filter' => 'stacks before the full table can outgrow its card']],
     ],
     [

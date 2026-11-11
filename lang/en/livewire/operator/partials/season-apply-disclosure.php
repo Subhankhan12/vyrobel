@@ -15,6 +15,6 @@ return [
     'agreed_owners' => '{1} an owner|[0,*] :count owners',
     'losing_nights' => ':nights of those nights are governed by :season, which wins under the rule and will be written last.',
     'rewritten_nights' => 'Applying also re-writes :nights nights from overlapping seasons that are already applied.',
-    'count_scope' => 'That count sees only rates agreed through a proposal, and only while the price still matches what was agreed. A rate an owner set themselves, or one that has since moved, is not counted here.',
+    'count_scope' => 'Owner-agreed nights are counted only when agreed through a proposal, and only while the price still matches what was agreed. A rate an owner set themselves, or one that has since moved, is not counted here.',
     'booked_keep_price' => 'Stays already booked keep the price they were booked at — this changes what is offered from now on.',
 ];

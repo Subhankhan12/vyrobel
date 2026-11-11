@@ -262,7 +262,7 @@ it('⚠️⚠️ RULED 2026-09-19 (F-21) — the disclosure says what its count 
         ->getContent();
 
     // ⚠️ THE SCOPE SENTENCE — the rule, stated positively, so it cannot be an incomplete list of exclusions.
-    expect($html)->toContain('That count sees only rates agreed through a proposal');
+    expect($html)->toContain('Owner-agreed nights are counted only when agreed through a proposal');   // D-NR2-SCOPE-WORDING, his ruling 2026-11-11: no "That count" with no count above it
     expect($html)->toContain('only while the price still matches what was agreed');
     expect($html)->toContain('A rate an owner set themselves, or one that has since moved, is not counted here');
 

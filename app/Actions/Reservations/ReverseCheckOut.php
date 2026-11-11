@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\I18n\LocalDate;
+use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -168,7 +169,7 @@ class ReverseCheckOut
         $from = (string) $reservation->status;
 
         if ($from !== 'checked_out') {
-            throw new RuntimeException(__('php/actions/reservations/reverse_check_out.refused_not_checked_out', ['status' => $from]));
+            throw new RuntimeException(__('php/actions/reservations/reverse_check_out.refused_not_checked_out', ['status' => ReservationStatusLabel::for((string) $from)]));
         }
     }
 }

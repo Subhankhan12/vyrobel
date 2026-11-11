@@ -77,6 +77,9 @@ return [
     'season_rewritten' => '{1} applying also re-writes :count night from overlapping seasons already applied|[0,*] applying also re-writes :count nights from overlapping seasons already applied',
     'season_applied' => 'Applied :date',
     'season_saved' => 'Saved · no prices written',
+    // A13: the page-top banner for a saved-but-unapplied season; the link jumps to the season list
+    'seasons_unapplied_banner' => '{1} :count season saved but not applied — no price is written until you apply it.|[0,*] :count seasons saved but not applied — no price is written until you apply them.',
+    'seasons_unapplied_link' => 'Go to seasons',
     'apply_again' => 'Apply again',
     'seasons_empty_cta' => 'No seasons yet — save one below, then apply it when the figures look right.',
     'seasons_empty' => 'No seasons yet.',

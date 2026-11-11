@@ -423,7 +423,7 @@ class BookingEngineController extends Controller
             // ⚠️ STOREFRONT SEO (D10) — NOINDEX. The checkout is per-visitor and per-quote; before this pass
             // it carried no robots directive at all, which means indexable by default.
             'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.checkout_title', ['property' => $property->name]), (string) $property->name),
-            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'type_code' => (string) $property->type, 'slug' => (string) $property->slug],
             'offer' => $offer,
             'unitChoices' => $unitChoices,
             'wallet' => $wallet,

@@ -15,6 +15,7 @@ use App\Support\Events\DomainEventRecorder;
 use App\Support\Folio\CheckoutOverrideReason;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Reservations\ReservationStatusLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -213,8 +214,8 @@ class CheckOutReservation
         throw new RuntimeException(match ($from) {
             // ⚠️ R4, and the case a front desk actually meets: the guest is leaving and was never arrived.
             'confirmed' => __('php/actions/reservations/check_out_reservation.refused_confirmed'),
-            'cancelled', 'no_show' => __('php/actions/reservations/check_out_reservation.refused_closed', ['status' => $from]),
-            default => __('php/actions/reservations/check_out_reservation.refused_other', ['status' => $from]),
+            'cancelled', 'no_show' => __('php/actions/reservations/check_out_reservation.refused_closed', ['status' => ReservationStatusLabel::for((string) $from)]),
+            default => __('php/actions/reservations/check_out_reservation.refused_other', ['status' => ReservationStatusLabel::for((string) $from)]),
         });
     }
 }

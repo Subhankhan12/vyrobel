@@ -26,7 +26,7 @@ final class StayLabel
         $day = $checkIn->translatedFormat(LocalDate::pattern($dateFormat));
 
         return match (true) {
-            $own === ReservationStage::IN_HOUSE => __('php/support/reservations/stay_label.in_house'),
+            $own === ReservationStage::IN_HOUSE => ReservationStage::meta(ReservationStage::IN_HOUSE)['label'],   // D-STAY-WORD: the badge's own word, one spelling
             (string) $reservation->status === 'checked_out' => __('php/support/reservations/stay_label.left', ['date' => CarbonImmutable::parse($reservation->check_out)->translatedFormat(LocalDate::pattern($dateFormat))]),
             $own === ReservationStage::TENTATIVE => __('php/support/reservations/stay_label.tentative', ['date' => $day]),   // the badge's word for enquiry and tentative
             $own === ReservationStage::UPCOMING => __('php/support/reservations/stay_label.arrives', ['date' => $day]),

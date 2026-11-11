@@ -53,3 +53,34 @@ it('⚠️⚠️ mirrors an Arabic page and leaves an English page byte for byte
         ->and(Locales::htmlAttributes('ar'))->toBe('lang="ar" dir="rtl"')
         ->and(Locales::htmlAttributes('en'))->toBe('lang="en"');
 });
+
+it('⚠️⚠️ turns the inline chevrons round on a right-to-left PAGE — and only there', function () {
+    // 2026-11-11 (his "do all" — the check he asked for on Persian and Arabic): a chevron shows which way a thing goes, and in a
+    // right-to-left page "next" is on the left. The SVG chevrons are drawn in one direction, so the page carries a rule that flips
+    // them; the down/up chevrons of selects are other paths and are NOT in it; a Livewire FRAGMENT (no <head>) gets nothing extra.
+    config(['livewire.inject_assets' => false, 'app.available_locales' => ['en', 'ar', 'fa']]);
+    $html = '<html><head></head><body><svg><path d="M9 6l6 6-6 6"/></svg><svg><path d="m6 9 6 6 6-6"/></svg></body></html>';
+    Route::middleware('web')->get('/__i18n/rtl-chevron-probe', fn () => response($html, 200, ['Content-Type' => 'text/html; charset=UTF-8']));
+
+    expect((string) test()->get('/__i18n/rtl-chevron-probe')->getContent())->toBe($html);   // English: byte for byte
+
+    foreach (['ar', 'fa'] as $lang) {
+        $page = (string) test()->get('/__i18n/rtl-chevron-probe?lang='.$lang)->getContent();
+        expect($page)->toContain('<style data-rtl-chevrons>')
+            ->toContain('svg path[d="M9 6l6 6-6 6"]')->toContain('svg path[d="M15 6l-6 6 6 6"]')
+            ->toContain('transform:scaleX(-1)')
+            ->not->toContain('m6 9 6 6 6-6"]');   // a DOWN chevron is not in the rule
+    }
+
+    // the rule's paths are the app's real chevrons: every one of them is drawn somewhere in the views (a rule on a path nothing draws flips nothing)
+    $views = '';
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'))) as $f) {
+        if ($f->isFile() && str_ends_with((string) $f->getFilename(), '.blade.php')) {
+            $views .= file_get_contents((string) $f->getRealPath());
+        }
+    }
+    foreach (['M9 6l6 6-6 6', 'M15 6l-6 6 6 6'] as $d) {
+        expect($views)->toContain('d="'.$d.'"');
+    }
+    expect(RtlCss::chevronRule())->toContain('M15 18l-6-6 6-6');
+});

@@ -142,42 +142,42 @@
                     <div class="vy-card vy-gl-card vy-fade">
                         <div class="vy-gl-progress" aria-hidden="true"></div>
                         <div class="vy-gl-scroll">
-                            <table class="vy-gl-table vy-utable--stick-action">
+                            <table class="vy-gl-table vy-utable--stick-action" role="table">
                                 <caption class="vy-sr-only">{{ __('livewire/operator/guests-list.caption', ['sorted' => $sortedBy]) }}</caption>
-                                <thead>
-                                    <tr>
-                                        <th class="vy-gl-check" x-show="selectMode" x-cloak>
+                                <thead role="rowgroup">
+                                    <tr role="row">
+                                        <th class="vy-gl-check" x-show="selectMode" x-cloak role="columnheader">
                                             <input type="checkbox" aria-label="{{ __('livewire/operator/guests-list.select_page') }}"
                                                    :checked="allOnPage()" x-effect="$el.indeterminate = someOnPage()" @change="selectPage($event.target.checked)">
                                         </th>
-                                        <th aria-sort="{{ $sorts['name']['aria'] }}">
+                                        <th aria-sort="{{ $sorts['name']['aria'] }}" role="columnheader">
                                             <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">{{ __('livewire/operator/guests-list.col_guest') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th class="vy-gl-c-nat">{{ __('livewire/operator/guests-list.col_nationality') }}</th>
-                                        <th class="is-num vy-gl-c-stays" aria-sort="{{ $sorts['stays']['aria'] }}">
+                                        <th class="vy-gl-c-nat" role="columnheader">{{ __('livewire/operator/guests-list.col_nationality') }}</th>
+                                        <th class="is-num vy-gl-c-stays" aria-sort="{{ $sorts['stays']['aria'] }}" role="columnheader">
                                             <a class="vy-gl-sort {{ $sorts['stays']['active'] ? 'is-on is-'.$sorts['stays']['dir'] : '' }}" href="{{ $sorts['stays']['href'] }}" data-gl-key="sort-stays">{{ __('livewire/operator/guests-list.col_stays') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th class="vy-gl-c-stay" aria-sort="{{ $sorts['last_stay']['aria'] }}">
+                                        <th class="vy-gl-c-stay" aria-sort="{{ $sorts['last_stay']['aria'] }}" role="columnheader">
                                             {{-- "Stay", not "Last stay": it shows an arrival ahead as well (2026-10-05) --}}
                                             <a class="vy-gl-sort {{ $sorts['last_stay']['active'] ? 'is-on is-'.$sorts['last_stay']['dir'] : '' }}" href="{{ $sorts['last_stay']['href'] }}" data-gl-key="sort-last_stay">{{ __('livewire/operator/guests-list.col_stay') }}<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         {{-- Not sortable: lifetime is per currency, and ranking EUR against USD would invent an exchange rate. --}}
-                                        <th class="is-num vy-gl-c-life"><span title="{{ __('livewire/operator/guests-list.col_lifetime_hint') }}">{{ __('livewire/operator/guests-list.col_lifetime') }}</span></th>
-                                        <th class="vy-gl-c-status">{{ __('common.status') }}</th>
-                                        <th class="vy-gl-actcol"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
+                                        <th class="is-num vy-gl-c-life" role="columnheader"><span title="{{ __('livewire/operator/guests-list.col_lifetime_hint') }}">{{ __('livewire/operator/guests-list.col_lifetime') }}</span></th>
+                                        <th class="vy-gl-c-status" role="columnheader">{{ __('common.status') }}</th>
+                                        <th class="vy-gl-actcol" role="columnheader"><span class="vy-sr-only">{{ __('common.actions') }}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody role="rowgroup">
                                     @foreach ($rows as $row)
                                         @php
                                             $menu = ['id' => $row['id'], 'name' => $row['name'], 'profile' => route('app.guests.show', $row['id']),
                                                 'edit' => $row['edit'], 'erase' => $canErase && ! $row['anonymized'], 'erased' => $row['anonymized']];
                                         @endphp
-                                        <tr data-gl-id="{{ $row['id'] }}" class="{{ $row['anonymized'] ? 'is-erased' : '' }}" :class="sel['{{ $row['id'] }}'] && 'is-selected'">
-                                            <td class="vy-gl-check" x-show="selectMode" x-cloak>
+                                        <tr data-gl-id="{{ $row['id'] }}" class="{{ $row['anonymized'] ? 'is-erased' : '' }}" :class="sel['{{ $row['id'] }}'] && 'is-selected'" role="row">
+                                            <td class="vy-gl-check" x-show="selectMode" x-cloak role="cell">
                                                 <input type="checkbox" x-model="sel['{{ $row['id'] }}']" aria-label="{{ __('livewire/operator/guests-list.select_guest', ['name' => $row['name']]) }}">
                                             </td>
-                                            <td class="vy-gl-guestcell">
+                                            <td class="vy-gl-guestcell" role="cell">
                                                 <div class="vy-gl-guest">
                                                     <span class="vy-gl-avatar tone-{{ $row['tone'] }}" aria-hidden="true">{{ $row['initials'] }}</span>
                                                     <div class="vy-gl-who">
@@ -200,9 +200,9 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="vy-gl-c-nat{{ mb_strlen((string) $row['nationality']) > 16 ? ' is-long' : '' }}" data-label="{{ __('livewire/operator/guests-list.col_nationality') }}">@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
-                                            <td class="is-num vy-gl-c-stays" data-label="{{ __('livewire/operator/guests-list.col_stays') }}"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
-                                            <td class="vy-gl-c-stay" data-label="{{ __('livewire/operator/guests-list.col_stay') }}">
+                                            <td class="vy-gl-c-nat{{ mb_strlen((string) $row['nationality']) > 16 ? ' is-long' : '' }}" data-label="{{ __('livewire/operator/guests-list.col_nationality') }}" role="cell">@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
+                                            <td class="is-num vy-gl-c-stays" data-label="{{ __('livewire/operator/guests-list.col_stays') }}" role="cell"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
+                                            <td class="vy-gl-c-stay" data-label="{{ __('livewire/operator/guests-list.col_stay') }}" role="cell">
                                                 @if ($row['last_stay'] === null)
                                                     <span class="vy-gl-none">—</span>
                                                 @elseif ($row['last_stay_code'] === 'in_house')
@@ -211,7 +211,7 @@
                                                     <span class="vy-gl-when">{{ $row['last_stay'] }}</span>
                                                 @endif
                                             </td>
-                                            <td class="is-num vy-gl-c-life" data-label="{{ __('livewire/operator/guests-list.col_lifetime') }}">
+                                            <td class="is-num vy-gl-c-life" data-label="{{ __('livewire/operator/guests-list.col_lifetime') }}" role="cell">
                                                 @forelse ($row['billed'] as $line)
                                                     <div class="vy-gl-fig">{{ $line }}</div>
                                                 @empty
@@ -221,14 +221,14 @@
                                                     <div class="vy-gl-due">{{ __('livewire/operator/guests-list.amount_due', ['amount' => $line]) }}</div>
                                                 @endforeach
                                             </td>
-                                            <td class="vy-gl-c-status" data-label="{{ __('common.status') }}">
+                                            <td class="vy-gl-c-status" data-label="{{ __('common.status') }}" role="cell">
                                                 @if ($row['stage_meta'] !== null)
                                                     <span class="vy-tag tone-{{ $row['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['stage_meta']['label'] }}</span>
                                                 @else
                                                     <span class="vy-gl-none">{{ __('livewire/operator/guests-list.no_bookings') }}</span>
                                                 @endif
                                             </td>
-                                            <td class="vy-gl-actcol">
+                                            <td class="vy-gl-actcol" role="cell">
                                                 <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/operator/guests-list.actions_for', ['name' => $row['name']]) }}" aria-controls="vy-gl-menu"
                                                         :aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" @click="openMenu($event, @js($menu))">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
@@ -280,7 +280,7 @@
                  the card's blur and its entrance transform would otherwise become the box a fixed menu is placed in. ── --}}
             <div class="vy-gl-menu" id="vy-gl-menu" x-ref="menu" x-show="menu.open" x-cloak :class="menu.up && 'is-up'"
                  :style="{ top: menu.y + 'px', left: menu.x + 'px' }"
-                 @click.outside="closeMenu(false)" @keydown.escape.prevent.stop="closeMenu(true)" @focusout="leaveMenu($event)">
+                 @click.outside="if (! $event.target.closest('.vy-gl-more')) closeMenu(false)" @keydown.escape.prevent.stop="closeMenu(true)" @focusout="leaveMenu($event)">
                 <a class="vy-gl-menu-item" :href="menu.row ? menu.row.profile : '#'">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>
                     {{ __('livewire/operator/guests-list.open_profile') }}

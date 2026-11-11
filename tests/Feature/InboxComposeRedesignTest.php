@@ -74,7 +74,8 @@ it('⚠️⚠️ says where each guest’s stay stands by the Guests list’s ow
 
     // 🖥 before (seen on the walk): "In-house · H201" for a guest arriving today, not yet checked in
     $dialog = ibxCompose(ibxPage($s));
-    expect($dialog)->toContain('Arrives today')->toContain('In house')->not->toContain('In-house');
+    // D-STAY-WORD (2026-11-11): the badge's own spelling everywhere — ONE guest is in house, so "In-house" appears once and "In house" never
+    expect($dialog)->toContain('Arrives today')->not->toContain('In house')->and(substr_count($dialog, 'In-house'))->toBe(1);
 });
 
 it('⚠️ gives the dialog’s message box its own id — its label no longer points at the reply box behind it', function () {

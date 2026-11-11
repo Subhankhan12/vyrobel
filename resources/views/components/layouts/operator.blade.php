@@ -270,6 +270,11 @@
         .vy-propsw-select { flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); padding: 2px 0; cursor: pointer; }
         .vy-propsw-select:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
         .vy-propsw-static { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+        /* ⚠️ D-SHELL-PROPNAME (2026-11-11, his "do all"): the select engine forces `padding-right: 36px !important` and a 16px arrow 12px from the
+           edge on every select. In the 141px box that left ~105px of text, so a property name over ~100px was cut ("Internal Test Proper›"). The
+           sidebar's box takes a tighter arrow — the text area grows by ~14px; the full name is on hover (`title`). A native select cannot wrap, so
+           a name longer than the box is still cut, never hidden. Specificity (0,3,1) + !important beats the engine's rule. */
+        .vy-side .vy-propsw select.vy-propsw-select:not([multiple]):not([size]):not([data-native]) { padding-right: 22px !important; background-position: right 0 center !important; background-size: 14px 14px !important; }
 
         /* Portfolio (Phase 6a · Step 2) — per-property cards over the accessible set. */
         .vy-portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }

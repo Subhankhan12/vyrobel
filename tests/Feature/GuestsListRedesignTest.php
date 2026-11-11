@@ -66,7 +66,7 @@ function glrCast(array $s): array
     glrStay($s, 8, $dee, 'no_show', '2026-08-25', '2026-08-26');
     glrStay($s, 3, $dee, 'cancelled', '2026-11-01', '2026-11-03');
 
-    $eve = glrGuest('Eve', 'Evans');     // checked in now → "In house", which sits at today
+    $eve = glrGuest('Eve', 'Evans');     // checked in now → "In-house", which sits at today
     glrStay($s, 9, $eve, 'checked_in', '2026-09-01', '2026-09-04');
 
     return compact('ada', 'bea', 'cy', 'dee', 'eve');
@@ -120,10 +120,10 @@ it('⚠️⚠️ sorts by guest, stays or last stay — last stay by the date th
         ->and(array_column(glrRows($s, ['sort' => 'stays']), 'stays'))->toBe([3, 2, 1, 1, 0, 0]);
 
     // Last stay: most recent first by default. Bea (left 20 Aug) before Dee (left 12 Aug) — by check-in it would be the
-    // other way round. "In house" sits at today, between the arrival ahead and the departures behind.
+    // other way round. "In-house" sits at today, between the arrival ahead and the departures behind.
     expect(glrNames($s, ['sort' => 'last_stay']))->toBe(['Ada Adams', 'Eve Evans', 'Bea Brown', 'Dee Diaz', 'Cy Clark', 'G One'])
         ->and(array_column(glrRows($s, ['sort' => 'last_stay']), 'last_stay'))
-        ->toBe(['Arrives 5 Oct 2026', 'In house', 'Left 20 Aug 2026', 'Left 12 Aug 2026', null, null])   // "Left …" since 2026-10-05 (the column is "Stay")
+        ->toBe(['Arrives 5 Oct 2026', 'In-house', 'Left 20 Aug 2026', 'Left 12 Aug 2026', null, null])   // "Left …" since 2026-10-05 (the column is "Stay")
         ->and(glrNames($s, ['sort' => 'last_stay', 'dir' => 'asc']))->toBe(['Dee Diaz', 'Bea Brown', 'Eve Evans', 'Ada Adams', 'Cy Clark', 'G One']);
 })->group('security');
 

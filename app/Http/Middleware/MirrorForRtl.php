@@ -33,7 +33,13 @@ class MirrorForRtl
         }
 
         if (str_contains($type, 'text/html')) {
-            $response->setContent(RtlCss::flipHtml($content));
+            $html = RtlCss::flipHtml($content);
+            // a whole PAGE (not a Livewire fragment) also carries the rule that turns its inline chevrons round — it stays loaded
+            // for every fragment the page later receives
+            if (str_contains($html, '</head>')) {
+                $html = str_replace('</head>', RtlCss::chevronRule().'</head>', $html);
+            }
+            $response->setContent($html);
         } elseif (str_contains($type, 'json') && str_contains($content, '"html"')) {
             $data = json_decode($content, true);
             if (is_array($data)) {

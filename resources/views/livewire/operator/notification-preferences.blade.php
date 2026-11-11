@@ -151,7 +151,7 @@
         /* The design's two columns: the matrix left, quiet hours + digest in a rail. */
         .vy-np-cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
         .vy-np-rail { display: flex; flex-direction: column; }
-        @media (max-width: 1100px) { .vy-np-cols { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .vy-np-cols { grid-template-columns: minmax(0, 1fr); } }   /* ⚠️ minmax(0,…): a bare 1fr is a min-content floor — D-NOTIFPREFS-320 */
         .vy-np-channels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .vy-np-chan { display: flex; gap: 11px; align-items: center; background: var(--vy-glass, rgba(255,252,248,.6)); border: 1px solid var(--vy-hairline); border-radius: 14px; padding: 14px; }
         .vy-np-chan.is-off { opacity: .72; }
@@ -187,6 +187,14 @@
         .vyms-switch input:checked + .vyms-switch-track .vyms-switch-knob { transform: translateX(18px); }
         /* Three channel cards need real width — below this the "not set up" tag and the email address wrap
            mid-phrase, so they stack at the same breakpoint the two columns collapse. */
-        @media (max-width: 1100px) { .vy-np-channels { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .vy-np-channels { grid-template-columns: minmax(0, 1fr); } }
+        /* ⚠️ D-NOTIFPREFS-320 (2026-11-11, his "do all"): at a 320px window the page scrolled sideways by 54px — the "Notify me when" matrix is a
+           1fr + three 64px columns (≈222px of fixed width before any text) inside a card with its own padding. On a phone the three
+           switch columns narrow, the card padding tightens, and long text wraps instead of stretching the column. 390px and up are unchanged. */
+        .vy-np-chan > div:last-child { min-width: 0; overflow-wrap: anywhere; }
+        @media (max-width: 420px) {
+            .vy-np-grid { grid-template-columns: minmax(0, 1fr) 44px 44px 44px; gap: 6px; }
+            .vy-np-cols .vy-card { padding: 16px; }
+        }
     </style>
 </div>

@@ -25,10 +25,18 @@
                 @endif
             </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1.5;min-width:320px">
+        {{-- ⚠️ D-GUEST-TILE-NARROW (2026-11-11, his "do all"): four tiles in ≤ 560px of room are ~64px each and a money figure overhangs
+             its tile (measured at 390px, and again at 700–900px where the tiles sit beside the heading). The tiles lay out by THEIR OWN
+             width, not the window's: 2 + 2 when the box is narrow, 4 across when there is room. --}}
+        <style>
+            .vy-gr-tilebox { flex: 1.5; min-width: min(320px, 100%); container-type: inline-size; }
+            .vy-gr-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+            @container (max-width: 560px) { .vy-gr-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        </style>
+        <div class="vy-gr-tilebox"><div class="vy-gr-tiles">
             @php
                 $tile = 'display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline);text-decoration:none;box-sizing:border-box';
-                $tileNum = 'font-family:var(--vy-display);font-weight:600;font-size:min(19px,3.7vw);letter-spacing:-.02em;color:var(--vy-ink);line-height:1;white-space:nowrap';
+                $tileNum = 'font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.02em;color:var(--vy-ink);line-height:1;white-space:nowrap';
                 $tileSub = 'font-size:11px;color:var(--vy-muted);margin-top:4px';
                 $tileIcon = 'width:28px;height:28px;border-radius:9px;background:rgba(217,102,46,.12);color:#B4400F;display:grid;place-items:center;margin-bottom:9px';
             @endphp
@@ -52,7 +60,7 @@
                 <span style="{{ $tileNum }}">{{ $folio['balance_due'] ? $folio['balance'] : $folio['paid'] }}</span>
                 <span style="{{ $tileSub }}">{{ $folio['balance_due'] ? __('guest/reservation.tile_balance_due') : __('guest/reservation.tile_balance_settled') }}</span>
             </a>
-        </div>
+        </div></div>
     </div>
 
     {{-- ── Bento grid (2-col responsive) ─────────────────────────────────────────────────────────────── --}}

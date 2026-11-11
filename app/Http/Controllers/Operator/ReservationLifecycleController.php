@@ -14,6 +14,7 @@ use App\Services\AssignmentService;
 use App\Services\ReservationCancellationService;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\ReservationStage;
+use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -124,7 +125,7 @@ class ReservationLifecycleController extends Controller
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
         if (! in_array((string) $model->status, self::CONFIRMABLE, true)) {
-            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.only_tentative_confirmable', ['status' => (string) $model->status]));
+            return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.only_tentative_confirmable', ['status' => ReservationStatusLabel::for((string) $model->status)]));
         }
 
         try {

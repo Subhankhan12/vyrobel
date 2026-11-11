@@ -129,6 +129,24 @@ final class RtlCss
     }
 
     /** Mirror the <style> blocks and style="" attributes of an HTML document or fragment. */
+    /**
+     * DIRECTION ARROWS POINT THE OTHER WAY in a right-to-left page (2026-11-11, his "do all" — the check he asked for on Persian and
+     * Arabic). A chevron shows which way a thing goes — previous / next, forward to a page, a breadcrumb — and in `dir="rtl"` the layout
+     * reads from the right, so "next" is on the LEFT. Text chevrons (‹ ›) and the arrows in the translations already follow (they are
+     * mirrored glyphs, or the translators swapped them); the page's inline SVG chevrons are drawn in one direction and did not.
+     *
+     * ⚠️ The set is the exact path data of the app's chevron icons (a left and a right chevron, drawn two ways) — the DOWN / UP chevrons
+     * of select boxes and disclosures are other paths and stay as they are. A box-and-arrow icon that is not a chevron is not touched.
+     * Flipped around the SHAPE's own centre (`transform-box: fill-box`), so the icon does not move.
+     */
+    public static function chevronRule(): string
+    {
+        $paths = ['M9 6l6 6-6 6', 'M15 6l-6 6 6 6', 'M15 18l-6-6 6-6', 'M9 18l6-6-6-6', 'm9 6 6 6-6 6', 'm9 18 6-6-6-6'];
+        $selector = implode(',', array_map(fn (string $d): string => 'svg path[d="'.$d.'"]', $paths));
+
+        return '<style data-rtl-chevrons>'.$selector.'{transform-box:fill-box;transform-origin:center;transform:scaleX(-1)}</style>';
+    }
+
     public static function flipHtml(string $html): string
     {
         $html = preg_replace_callback('#(<style\b[^>]*>)(.*?)(</style>)#is', fn ($m) => $m[1].self::flipStylesheet($m[2]).$m[3], $html) ?? $html;

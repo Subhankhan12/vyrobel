@@ -236,6 +236,8 @@ class NewReservation extends Component
                 'nights' => $nights,
                 'currency' => $currency,
                 'symbol' => MoneyFormatter::symbol($currency),
+                // D-NR2-NEXT-NOPRICE: room types are on offer but NONE has a price for these dates — Next must say so, not "pick a unit"
+                'waitingForPrice' => $roomTypes !== [] && ! collect($roomTypes)->contains('priced', true),
                 'createUrl' => route('app.reservations.create'),
                 'searched' => $query !== '',
                 'canPay' => $canPay,

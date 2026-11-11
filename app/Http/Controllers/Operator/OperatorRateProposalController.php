@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Owner;
-use App\Models\RateProposal;
 use App\Services\RateProposalService;
 use App\Support\I18n\LocalNumber;
 use App\Support\Money\MoneyInput;
+use App\Support\Property\PropertyScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +60,10 @@ class OperatorRateProposalController extends Controller
         // The owner must belong to the operator's tenant (Owner is BelongsToOrganization → org-scoped).
         $owner = Owner::query()->findOrFail($data['owner_id']);
 
+        // ⚠️ DEC-q (2026-11-11, his "do all"): the room type must be on a property the person can reach — a proposal can auto-apply a
+        // rate, and every other rate write has asked this since DEC-l. Another property's room type is a 404; nothing is proposed.
+        app(PropertyScope::class)->roomType((string) $data['room_type_id']);
+
         $priceMinor = MoneyInput::toMinor((string) $data['rate'], self::MAX_PRICE_MINOR);
         if ($priceMinor === null) {
             return back()->withInput()->withErrors(['rate' => __('php/http/controllers/operator/operator_rate_proposal_controller.rate_invalid')]);
@@ -88,8 +92,9 @@ class OperatorRateProposalController extends Controller
 
     public function withdraw(Request $request, string $proposal): RedirectResponse
     {
-        // Tenant-scoped by BelongsToOrganization; a cross-org id 404s. A pending OR countered one may be withdrawn.
-        $model = RateProposal::query()->findOrFail($proposal);
+        // Tenant-scoped by BelongsToOrganization AND inside the person's properties (DEC-q); anything else 404s.
+        // A pending OR countered one may be withdrawn.
+        $model = app(PropertyScope::class)->proposal($proposal);
         $back = route('app.owners.show', $model->owner_id);
 
         try {
@@ -108,7 +113,7 @@ class OperatorRateProposalController extends Controller
      */
     public function acceptCounter(Request $request, string $proposal): RedirectResponse
     {
-        $model = RateProposal::query()->findOrFail($proposal);
+        $model = app(PropertyScope::class)->proposal($proposal);   // DEC-q: inside the person's properties → 404 otherwise
         $back = route('app.owners.show', $model->owner_id);
 
         try {

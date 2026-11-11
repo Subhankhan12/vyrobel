@@ -8,6 +8,7 @@ use App\Models\DomainEvent;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Services\AssignmentService;
+use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -160,7 +161,8 @@ it('⚠️ R9 — R7’s refusal names the reversal, not a dead end, and cannot 
     foreach (['cancelled', 'no_show'] as $to) {
         $msg = ReservationInProgressException::messageFor($to);
         expect($msg)->toContain('Reverse the check-in first')
-            ->and($msg)->toContain($to)
+            ->and($msg)->toContain(ReservationStatusLabel::for($to))   // D-REFUSAL-STATUS-CODE: the word, never the code
+            ->and($msg)->not->toContain($to === 'no_show' ? 'no_show' : '~~none~~')
             ->and($msg)->not->toContain('not built yet');
     }
 

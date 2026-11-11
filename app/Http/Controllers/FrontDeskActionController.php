@@ -17,6 +17,7 @@ use App\Services\FrontDeskService;
 use App\Support\I18n\LocalDate;
 use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Reservations\ReservationStatusLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class FrontDeskActionController extends Controller
         // Only a confirmed booking can be checked in — guard against nonsensical transitions
         // (e.g. re-opening a checked-out stay) without weakening the underlying idempotent action.
         if ($model->status !== 'confirmed') {
-            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_in_from', ['reference' => $model->reference, 'status' => $model->status]), refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_in_from', ['reference' => $model->reference, 'status' => ReservationStatusLabel::for((string) $model->status)]), refused: true);
         }
 
         // ⚠️⚠️ THE EARLY CHECK-IN CONFIRMATION (APPLY 01 #2, 2026-09-22) — A WARNING, NOT A CONTROL.
@@ -82,7 +83,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_in') {
-            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_out_from', ['reference' => $model->reference, 'status' => $model->status]), refused: true);
+            return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_out_from', ['reference' => $model->reference, 'status' => ReservationStatusLabel::for((string) $model->status)]), refused: true);
         }
 
         // ⚠️ THE SUPERVISOR OVERRIDE — gated on its OWN permission, checked HERE rather than relying on the

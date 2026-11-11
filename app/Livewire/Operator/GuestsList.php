@@ -456,7 +456,7 @@ class GuestsList extends Component
             return null;
         }
         if ($stage === ReservationStage::IN_HOUSE) {
-            return __('php/livewire/operator/guests_list.in_house');
+            return ReservationStage::meta(ReservationStage::IN_HOUSE)['label'];   // D-STAY-WORD: the badge's own word ("In-house"), one spelling
         }
 
         // The latest non-cancelled reservation by check-in → its arrival (ahead) or its departure (past). A

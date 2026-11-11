@@ -9,6 +9,7 @@ use App\Livewire\Owner\OwnerBookingDetail;
 use App\Services\AssignmentService;
 use App\Services\BookingImportService;
 use App\Services\GuestDeletionService;
+use App\Support\Reservations\ReservationStatusLabel;
 
 /**
  * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-22 — A STAY THE GUEST IS PHYSICALLY IN CANNOT BE TERMINATED.
@@ -70,6 +71,6 @@ class ReservationInProgressException extends BookingException
      */
     public static function messageFor(string $toStatus): string
     {
-        return __('php/exceptions/booking/reservation_in_progress_exception.message', ['to_status' => $toStatus]);
+        return __('php/exceptions/booking/reservation_in_progress_exception.message', ['to_status' => ReservationStatusLabel::for($toStatus)]);
     }
 }

@@ -20,12 +20,14 @@ use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Property\PropertyScope;
 use App\Support\Schedule\StaffRoster;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -50,10 +52,16 @@ class MaintenanceTicketDetail extends Component
 {
     use FormatsOperatorData;
 
+    #[Locked]
     public string $ticketId;
 
     public function mount(string $ticket): void
     {
+        // ⚠️ DEC-j: the work order must be on a property the person can reach — checked HERE, once, because `/livewire/update` does not
+        // activate the property context (a check in render() would 404 every wire update). A cross-org id or one on a property
+        // outside their allow-list is a 404 before anything renders.
+        app(PropertyScope::class)->ticket($ticket);
+
         $this->ticketId = $ticket;
     }
 
