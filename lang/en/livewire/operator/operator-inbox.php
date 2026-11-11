@@ -114,6 +114,7 @@ return [
     'this_owner' => 'This owner',
     // shown under an owner who has no sign-in to the owner portal yet — nobody could read the message
     'owner_no_portal' => 'No portal sign-in yet',
+    'owner_portal_off' => 'Portal access switched off',
     'compose_where_owner_unpicked' => 'Read in the owner portal — pick an owner. It isn’t emailed.',
     // :name is the owner
     'compose_where_owner' => 'This goes to :name’s owner portal. Nothing is emailed.',

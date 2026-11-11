@@ -249,6 +249,10 @@
                                                         @if ($row['reason'])
                                                             <div class="vyo-reason">{{ $row['reason'] }}</div>
                                                         @endif
+                                                        {{-- DEC-o — their portal access is switched off (the pay status above is not affected) --}}
+                                                        @if ($row['portal_off'])
+                                                            <div class="vyo-reason"><span class="vyo-tag-paused">{{ __('livewire/operator/owners.portal_off_chip') }}</span></div>
+                                                        @endif
                                                     </td>
                                                     <td class="vy-gl-actcol">
                                                         <button type="button" class="vy-gl-more" aria-label="{{ __('livewire/operator/owners.row_actions', ['name' => $row['name']]) }}" aria-controls="vyo-menu"

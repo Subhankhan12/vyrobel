@@ -363,6 +363,10 @@ class InboxActionController extends Controller
         if ($owner->user === null) {
             return redirect()->route('app.inbox')->with('inbox_error', __('php/http/controllers/operator/inbox_action_controller.owner_no_portal', ['name' => (string) $owner->name]));
         }
+        // DEC-o — switched off by the team: nobody on their side could read it, so nothing is started (and nothing is written)
+        if ($owner->portalIsOff()) {
+            return redirect()->route('app.inbox')->with('inbox_error', __('php/http/controllers/operator/inbox_action_controller.owner_portal_off', ['name' => (string) $owner->name]));
+        }
 
         $thread = MessageThread::query()->where('owner_id', $owner->getKey())->where('channel', 'manual')->orderByDesc('last_message_at')->first();
         if ($thread === null) {

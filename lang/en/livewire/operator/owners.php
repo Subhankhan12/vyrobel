@@ -148,4 +148,6 @@ return [
     'resume_fact_engine' => 'Every closed statement still owed can be paid again from the payout run, and by the next automatic run.',
     'fact_audit' => 'Recorded in the audit log.',
     'copied' => 'Copied :email',
+    // DEC-o (2026-11-12) — a chip on an owner's row while an operator has their portal access switched off
+    'portal_off_chip' => 'Portal off',
 ];

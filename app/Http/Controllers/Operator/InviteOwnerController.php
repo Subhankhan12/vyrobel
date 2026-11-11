@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\Unit;
+use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerInviteService;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
@@ -103,6 +104,9 @@ class InviteOwnerController extends Controller
 
         try {
             $result = $invites->invite($validated['name'], $validated['email'], $unitIds, $commissionPct, $validated['role']);
+        } catch (InviteNoLongerRedeemable $e) {
+            // DEC-o — the address belongs to an owner whose portal access is switched off: its own sentence, and nothing was written
+            return $this->back($request)->withInput($request->except('current_password'))->with('owners_error', $e->getMessage());
         } catch (RuntimeException) {
             // e.g. the email already belongs to an active account, or an unmappable role — graceful, not a crash.
             return $this->back($request)->withInput($request->except('current_password'))

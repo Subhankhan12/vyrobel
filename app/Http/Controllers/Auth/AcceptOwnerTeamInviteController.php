@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerTeamInviteService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -56,7 +57,11 @@ class AcceptOwnerTeamInviteController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $user = $this->invites->accept($invite, (string) $request->string('password'));
+        try {
+            $user = $this->invites->accept($invite, (string) $request->string('password'));
+        } catch (InviteNoLongerRedeemable) {
+            return view('auth.invite-invalid');   // DEC-o — the owner's portal was switched off meanwhile: nothing was written
+        }
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();   // fixation protection on activation

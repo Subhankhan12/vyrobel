@@ -284,7 +284,9 @@ class OwnerContext
     {
         $roles = [];
 
-        $primaryOwnerIds = Owner::query()->where('user_id', $user->getKey())->pluck('id')
+        // ⚠️ DEC-o — an owner whose portal an operator switched OFF is not resolved here, for the primary owner or for their team:
+        //    the scope then resolves to nothing (active-but-empty → `1 = 0`), never to everything. {@see OwnerPortalAccess}.
+        $primaryOwnerIds = Owner::query()->where('user_id', $user->getKey())->portalOn()->pluck('id')
             ->map(fn ($id): string => (string) $id)->all();
         foreach ($primaryOwnerIds as $ownerId) {
             $roles[$ownerId] = OwnerTeamRole::CO_OWNER;
@@ -293,6 +295,7 @@ class OwnerContext
         $subMemberships = OwnerUser::query()
             ->where('user_id', $user->getKey())
             ->where('status', 'active')
+            ->whereNotIn('owner_id', OwnerPortalAccess::offOwnerIds())
             ->get(['owner_id', 'role']);
         foreach ($subMemberships as $membership) {
             $ownerId = (string) $membership->owner_id;
@@ -318,6 +321,10 @@ class OwnerContext
      *
      * ⚠️ It deliberately reuses the SAME two link sources as {@see SetOwnerScopeForPortal} (owners.user_id and
      * an ACTIVE owner_users row). Both are tenant-scoped, so this can never see another org's links.
+     *
+     * ⚠️⚠️ DEC-o — AND IT DELIBERATELY IGNORES "PORTAL OFF". An owner an operator switched off is STILL linked here: the owner scope
+     * falls OPEN for an actor this returns false for, so answering false would hand an off owner's open page every owner's rows.
+     * "Off" is enforced where the owner is RESOLVED ({@see resolveForActor()}), which makes the scope empty and closed.
      */
     public function actorIsOwnerLinked(): bool
     {

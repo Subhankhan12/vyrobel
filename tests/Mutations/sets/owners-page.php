@@ -29,8 +29,8 @@ return [
         'id' => 'OW-M1',
         'name' => 'accepting an invite moves a unit that has an owner to the new owner',
         'file' => $service,
-        'old' => "            Unit::query()->whereIn('id', \$unitIds)->whereNull('owner_id')->update(['owner_id' => \$owner->getKey()]);",
-        'new' => "            Unit::query()->whereIn('id', \$unitIds)->update(['owner_id' => \$owner->getKey()]);",
+        'old' => "            Unit::query()->whereIn('id', \$unitIds)->whereNull('owner_id')->update(['owner_id' => \$owner->getKey(), 'owner_since' => null]);",
+        'new' => "            Unit::query()->whereIn('id', \$unitIds)->update(['owner_id' => \$owner->getKey(), 'owner_since' => null]);",
         'tests' => [['file' => $fix, 'filter' => 'never gives an invited owner a unit']],
     ],
     [

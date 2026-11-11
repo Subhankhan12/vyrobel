@@ -25,4 +25,6 @@ return [
     'guest_not_found' => 'That guest could not be found — search for them again.',
     'choose_or_name_guest' => 'Choose an existing guest, or enter a name for a new one.',
     'invalid_guest_email' => 'That guest email address isn’t valid.',
+    // DEC-r (2026-11-11): the email already belongs to a guest (the page was without its offer, or it was stale)
+    'guest_email_exists' => 'A guest with this email already exists (:name). Type the email again and choose “Use this guest”, or “Create a new one”.',
 ];

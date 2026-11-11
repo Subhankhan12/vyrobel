@@ -9,6 +9,8 @@ use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
 use App\Support\Billing\BillableUnits;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +22,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * The physical sellable thing. `owner_id` is a nullable forward hook (owners module, Phase 3)
  * with no relation/FK yet. Inventory-affecting writes go through AssignmentService (Step 5).
+ *
+ * @property Carbon|null $owner_since DEC-p — the first day `owner_id` is paid for this unit's stays; NULL = always (see {@see ownerIdForStayStarting()})
  */
 class Unit extends Model
 {
@@ -36,6 +40,7 @@ class Unit extends Model
         'unit_kind',
         'max_occupancy',
         'owner_id',
+        'owner_since',
         'housekeeping_status',
         'condition_status',
         'door_code',
@@ -53,6 +58,8 @@ class Unit extends Model
         return [
             'max_occupancy' => 'integer',
             'is_active' => 'boolean',
+            // DEC-p — the first day the owner is paid for this unit's stays; NULL = always (see the migration + OwnerAttributionService)
+            'owner_since' => 'date',
             // Physically-sensitive arrival secrets — encrypted at rest (defence-in-depth beneath the
             // owned-booking + arrival-window guards that govern who ever sees them). See ArrivalPack.
             'door_code' => 'encrypted',
@@ -77,6 +84,25 @@ class Unit extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(Owner::class);
+    }
+
+    /**
+     * ⚠️⚠️ THE ONE ANSWER TO "WHO IS PAID FOR A STAY THAT STARTS ON THIS DAY?" (DEC-p, 2026-11-12) — the unit's owner, or null when it was operator
+     * inventory then. `owner_since` is the first day the owner is paid for the unit's stays: NULL = always (every unit before DEC-p, and every unit an
+     * invite or an approved request gives an owner — unchanged), a date = a stay that STARTS before it is not theirs. Earnings, the new-booking
+     * notification and a repair's cost all ask HERE, so a second reading of "who owns it" cannot drift from the one that decides where the money goes.
+     */
+    public function ownerIdForStayStarting(CarbonInterface|string $date): ?string
+    {
+        if ($this->owner_id === null) {
+            return null;
+        }
+
+        if ($this->owner_since !== null && Carbon::parse($date)->toDateString() < $this->owner_since->toDateString()) {
+            return null;
+        }
+
+        return (string) $this->owner_id;
     }
 
     /**

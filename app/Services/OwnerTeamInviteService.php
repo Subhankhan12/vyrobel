@@ -133,7 +133,17 @@ class OwnerTeamInviteService
             fn (): ?OwnerTeamInvite => OwnerTeamInvite::query()->where('token_hash', hash('sha256', $token))->first(),
         );
 
-        return ($invite !== null && $invite->isRedeemable()) ? $invite : null;
+        // ⚠️ DEC-o — a link to a team whose OWNER'S PORTAL IS SWITCHED OFF is not redeemable: it would write a membership under an owner
+        //    nobody can sign in for. Answered as the same generic invalid link (no enumeration); the invite itself is left pending.
+        return ($invite !== null && $invite->isRedeemable() && ! $this->ownerPortalIsOff($invite)) ? $invite : null;
+    }
+
+    /** Is the owner this invite would join the team of switched off? (Runs super-admin — the accept flow is public.) */
+    private function ownerPortalIsOff(OwnerTeamInvite $invite): bool
+    {
+        return app(TenantContext::class)->runAsSuperAdmin(
+            fn (): bool => Owner::query()->whereKey($invite->owner_id)->portalOff()->exists(),
+        );
     }
 
     /**
@@ -146,6 +156,12 @@ class OwnerTeamInviteService
     {
         return app(TenantContext::class)->forOrganization((string) $invite->organization_id, function () use ($invite, $password): User {
             return DB::transaction(function () use ($invite, $password): User {
+                // ⚠️ DEC-o — re-checked HERE, under the invite's organisation: a portal switched off after the link was opened (or a
+                //    submit that never went through findRedeemable) writes NOTHING — no password, no login activation, no membership.
+                if (Owner::query()->whereKey($invite->owner_id)->portalOff()->exists()) {
+                    throw new InviteNoLongerRedeemable('This owner’s portal access is switched off, so the team link can’t be used.');
+                }
+
                 $user = User::query()->where('email', $invite->email)->firstOrFail();
 
                 // 'hashed' cast hashes the plaintext once. Activate the login + verify the email.

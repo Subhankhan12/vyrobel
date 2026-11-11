@@ -108,6 +108,12 @@ class OwnerInviteService
             throw new RuntimeException('A user with this email already exists.');
         }
 
+        // ⚠️ DEC-o — an invite would re-activate the login of an owner an operator switched OFF (a new link, a new password) and
+        //    mail it. Refused with a plain sentence, before anything is written; the way back is switching the portal on.
+        if ($isOwner && $existing !== null && Owner::query()->where('user_id', $existing->getKey())->portalOff()->exists()) {
+            throw new InviteNoLongerRedeemable(__('php/services/owner_invite_service.owner_portal_off'));
+        }
+
         [$invite, $token] = DB::transaction(function () use ($name, $email, $orgId, $unitIds, $commissionPct, $role, $isOwner, $existing, $trail): array {
             // Inactive login (status=invited → cannot pass the active-only login) with an UNUSABLE
             // random placeholder password until the invitee sets their own on acceptance.
@@ -186,7 +192,19 @@ class OwnerInviteService
             fn (): ?OwnerInvite => OwnerInvite::query()->where('token_hash', hash('sha256', $token))->first(),
         );
 
-        return ($invite !== null && $invite->isRedeemable() && ! $this->wouldReplaceAPassword($invite)) ? $invite : null;
+        return ($invite !== null && $invite->isRedeemable() && ! $this->wouldReplaceAPassword($invite) && ! $this->ownerPortalIsOff($invite)) ? $invite : null;
+    }
+
+    /**
+     * ⚠️ DEC-o — an owner invite whose OWNER's portal an operator switched off is not redeemable: accepting it would set a password
+     * and re-activate a login for an owner who cannot be let in. The same generic invalid link as any other dead link; the invite is
+     * left as it is. (Runs super-admin — the accept flow is public.)
+     */
+    private function ownerPortalIsOff(OwnerInvite $invite): bool
+    {
+        return $invite->owner_id !== null && app(TenantContext::class)->runAsSuperAdmin(
+            fn (): bool => Owner::query()->whereKey($invite->owner_id)->portalOff()->exists(),
+        );
     }
 
     /**
@@ -244,6 +262,12 @@ class OwnerInviteService
     {
         return app(TenantContext::class)->forOrganization((string) $invite->organization_id, function () use ($invite, $password): User {
             return DB::transaction(function () use ($invite, $password): User {
+                // ⚠️ DEC-o — re-checked HERE, before any write: a portal switched off after the link was opened (or a submit that never went
+                //    through findRedeemable) sets no password and activates no login.
+                if ($invite->owner_id !== null && Owner::query()->whereKey($invite->owner_id)->portalOff()->exists()) {
+                    throw new InviteNoLongerRedeemable('This owner’s portal access is switched off, so the invite can’t be accepted.');
+                }
+
                 $user = $this->userForInvite($invite);
                 // ⚠️ ADMIN 06 (#5) — re-checked HERE, under a lock on the account: a password set a moment after the
                 // link was opened is still never overwritten (the page's own check is only the friendly one).
@@ -458,7 +482,8 @@ class OwnerInviteService
             // ⚠️⚠️ ONLY A UNIT WITH NO OWNER (2026-10-01). A unit's owner decides who is paid for it; this wrote the new
             //    owner over whoever owned the unit when the invite was ACCEPTED — the invite dialog even offered owned units —
             //    so an invite silently moved another owner's income. A unit that gained an owner meanwhile keeps it.
-            Unit::query()->whereIn('id', $unitIds)->whereNull('owner_id')->update(['owner_id' => $owner->getKey()]);
+            // ⚠️ DEC-p: `owner_since` is cleared with it — an invite makes the owner the owner for EVERY stay, whatever a previous owner's day was
+            Unit::query()->whereIn('id', $unitIds)->whereNull('owner_id')->update(['owner_id' => $owner->getKey(), 'owner_since' => null]);
         }
 
         if ($invite->commission_pct !== null && ! ManagementAgreement::query()->where('owner_id', $owner->getKey())->where('status', 'active')->exists()) {

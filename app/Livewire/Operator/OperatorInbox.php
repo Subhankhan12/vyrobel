@@ -677,7 +677,10 @@ class OperatorInbox extends Component
      * contact details are never read (#28). An owner with no owner-portal sign-in is listed but cannot be picked: nobody could
      * read the message ({@see InboxActionController::start()} says the same, in words).
      *
-     * @return list<array{id: string, name: string, initials: string, meta: string, has_portal: bool}>
+     * ⚠️ DEC-o — an owner whose portal access an operator switched OFF is listed the same way, disabled, with its own reason (`portal_off`):
+     * the message would be stored and nobody could read it.
+     *
+     * @return list<array{id: string, name: string, initials: string, meta: string, has_portal: bool, portal_off: bool}>
      */
     private function composeOwners(): array
     {
@@ -695,7 +698,8 @@ class OperatorInbox extends Component
                 'initials' => $this->initials($name),
                 // the units they own, as names (up to three; an ellipsis when there are more)
                 'meta' => $names->take(3)->implode(' · ').($names->count() > 3 ? ' · …' : ''),
-                'has_portal' => $owner->user !== null,
+                'has_portal' => $owner->user !== null && ! $owner->portalIsOff(),
+                'portal_off' => $owner->portalIsOff(),
             ];
         })->values()->all();
     }

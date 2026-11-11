@@ -88,7 +88,8 @@ class OperatorOwners extends Component
             'payout' => $this->payoutCard($all, $this->fallbackCurrency($all)),
             'howPaid' => $this->howPaid($rates),
             'portal' => [
-                'active' => count(array_filter($all, fn (array $r): bool => $r['active'])),
+                // ⚠️ DEC-o — "with portal access" is an activated owner whose portal an operator has NOT switched off
+                'active' => count(array_filter($all, fn (array $r): bool => $r['active'] && ! $r['portal_off'])),
                 'total' => count($all),
             ],
             'inviteUnits' => $canManage ? $this->inviteUnits() : [],

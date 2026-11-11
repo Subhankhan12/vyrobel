@@ -474,7 +474,7 @@
                             <div class="vy-nr-grid2">
                                 <div class="vy-nr-field"><label class="vy-nr-label" for="gf">{{ __('livewire/operator/new-reservation.first_name') }}</label><input id="gf" type="text" name="guest_first_name" class="vy-nr-input" x-bind:disabled="guestMode !== 'new'" x-model="newFirst" maxlength="80" autocomplete="off"></div>
                                 <div class="vy-nr-field"><label class="vy-nr-label" for="gl">{{ __('livewire/operator/new-reservation.last_name') }}</label><input id="gl" type="text" name="guest_last_name" class="vy-nr-input" x-bind:disabled="guestMode !== 'new'" x-model="newLast" maxlength="80" autocomplete="off"></div>
-                                <div class="vy-nr-field"><label class="vy-nr-label" for="ge">{{ __('common.email') }} <span class="vy-nr-opt">{{ __('livewire/operator/new-reservation.email_hint') }}</span></label><input id="ge" type="email" name="guest_email" class="vy-nr-input" x-bind:disabled="guestMode !== 'new'" x-ref="email" x-model="newEmail" x-on:input="recheck()" autocomplete="off"></div>
+                                <div class="vy-nr-field"><label class="vy-nr-label" for="ge">{{ __('common.email') }} <span class="vy-nr-opt">{{ __('livewire/operator/new-reservation.email_hint') }}</span></label><input id="ge" type="email" name="guest_email" class="vy-nr-input" x-bind:disabled="guestMode !== 'new'" x-ref="email" x-model="newEmail" x-on:input="recheck()" x-on:input.debounce.500ms="matchEmail()" autocomplete="off"></div>
                                 <div class="vy-nr-field"><label class="vy-nr-label" for="gp">{{ __('common.phone') }} <span class="vy-nr-opt">{{ __('livewire/operator/new-reservation.optional') }}</span></label><input id="gp" type="tel" name="guest_phone" class="vy-nr-input" x-bind:disabled="guestMode !== 'new'" x-ref="phone" autocomplete="off"></div>
                                 <div class="vy-nr-field">
                                     <label class="vy-nr-label" for="gc">{{ __('livewire/operator/new-reservation.country') }} <span class="vy-nr-opt">{{ __('livewire/operator/new-reservation.optional') }}</span></label>
@@ -490,6 +490,19 @@
                                     <label class="vy-nr-label" for="aw">{{ __('livewire/operator/new-reservation.estimated_arrival') }} <span class="vy-nr-opt">{{ __('livewire/operator/new-reservation.optional') }}</span></label>
                                     <input id="aw" type="text" name="arrival_window" class="vy-nr-input" placeholder="{{ __('livewire/operator/new-reservation.arrival_placeholder') }}" maxlength="60" x-model="arrivalWindow" autocomplete="off">
                                 </div>
+                            </div>
+                            {{-- DEC-r (2026-11-11): a guest with the typed email already exists — offered, NAME only (#28); the email is never shown back. --}}
+                            <input type="hidden" name="guest_create_anyway" x-bind:value="dupChoice === 'new' ? '1' : ''" x-bind:disabled="guestMode !== 'new'">
+                            <div class="vy-nr-dup" x-show="dup.length > 0 &amp;&amp; dupChoice !== 'new'" x-cloak role="status">
+                                <p class="vy-nr-dup-title">{{ __('livewire/operator/new-reservation.dup_title') }}</p>
+                                <template x-for="m in dup" x-bind:key="m.id">
+                                    <div class="vy-nr-dup-row">
+                                        <span class="vy-nr-dup-id"><span class="vy-nr-dup-name" x-text="m.name"></span><span class="vy-nr-dup-meta" x-text="m.history"></span></span>
+                                        <button type="button" class="vy-btn vy-btn--accent" x-on:click="useDup(m)">{{ __('livewire/operator/new-reservation.dup_use') }}</button>
+                                    </div>
+                                </template>
+                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="keepNew()">{{ __('livewire/operator/new-reservation.dup_new') }}</button>
+                                <p class="vy-nr-dup-note">{{ __('livewire/operator/new-reservation.dup_note') }}</p>
                             </div>
                             @if (session('new_reservation_contact_cleared'))
                                 {{-- #28 — the contact details were not sent back with the refusal, so they are asked for again. --}}
@@ -767,6 +780,7 @@
                     missGuestPick: @js(__('livewire/operator/new-reservation.miss_guest_pick')),
                     missGuestName: @js(__('livewire/operator/new-reservation.miss_guest_name')),
                     missEmail: @js(__('livewire/operator/new-reservation.miss_email')),
+                    missDupChoice: @js(__('livewire/operator/new-reservation.miss_dup_choice')),
                     missOverrideNote: @js(__('livewire/operator/new-reservation.miss_override_note')),
                     missPayAmount: @js(__('livewire/operator/new-reservation.miss_pay_amount')),
                     mailNotSending: @js(__('livewire/operator/new-reservation.mail_not_sending')),
@@ -811,6 +825,7 @@
                     adults: 2, children: 0,
                     guestMode: BOOT.searched ? 'existing' : 'new',
                     existingGuestId: '', existingGuestName: '', newFirst: '', newLast: '', newEmail: '',
+                    dup: [], dupChoice: '', dupFor: '',   // DEC-r: an existing guest with the typed email — offered, never silently created again
                     extras: [], transferTrip: 'one', applyCredit: false,
                     arrivalWindow: '', rulesAgreed: false, sendConfirmation: R ? R.sendConfirmation !== false : true,
                     depositChoice: 'nothing', payMethod: 'cash', payAmount: '',
@@ -857,6 +872,8 @@
                             if (! this.newFirst.trim() && ! this.newLast.trim()) return T.missGuestName;
                             // the server's own test (FILTER_VALIDATE_EMAIL) is stricter than the browser's: "jo@hotel" passes one, not the other
                             if (this.newEmail.trim() !== '' && ! EMAIL.test(this.newEmail.trim())) return T.missEmail;
+                            // DEC-r: a guest with this email exists and the offer is unanswered — use them, or choose to create a new one
+                            if (this.dup.length > 0 && this.dupChoice !== 'new') return T.missDupChoice;
                         }
                         if (n === 4 && this.overrideProblem()) return T.missOverrideNote;
                         if (n === 4 && BOOT.canPay && this.depositChoice !== 'nothing') {
@@ -934,6 +951,27 @@
                     pickPlan(planId) { this.ratePlanId = planId; this.reprice(); },
                     reprice() { this.roomMinor = this.unitId ? this.planPrice(this.ratePlanId) : 0; },
                     pickGuest(id, name) { this.existingGuestId = id; this.existingGuestName = name; },
+                    // DEC-r (2026-11-11): while a NEW guest's email is typed, ask the server (a POST — the email never travels in a URL) whether a guest
+                    // already has it. The answer is NAMES only; the email is never shown back. The offer resets whenever the email changes.
+                    async matchEmail() {
+                        const email = this.newEmail.trim();
+                        if (email !== this.dupFor) { this.dup = []; this.dupChoice = ''; }
+                        if (this.guestMode !== 'new' || email === '' || ! EMAIL.test(email)) { this.dupFor = ''; this.recheck(); return; }
+                        this.dupFor = email;
+                        try {
+                            const token = document.querySelector('input[name=_token]');
+                            const res = await fetch(BOOT.guestMatchUrl, { method: 'POST', credentials: 'same-origin',
+                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token ? token.value : '' },
+                                body: JSON.stringify({ email }) });
+                            if (! res.ok) { return; }
+                            const data = await res.json();
+                            if (this.dupFor !== email) { return; }   // the email changed while the answer was on its way
+                            this.dup = Array.isArray(data.matches) ? data.matches : [];
+                        } catch (e) { /* no answer: the server asks again at submit */ }
+                        this.recheck();
+                    },
+                    useDup(m) { this.pickGuest(m.id, m.name); BOOT.guestEmails[m.id] = true; this.guestMode = 'existing'; this.dup = []; this.dupChoice = ''; this.dupFor = ''; },
+                    keepNew() { this.dupChoice = 'new'; this.recheck(); },
                     searchGuest() {
                         this.persist();
                         const q = (this.$refs.guestQuery.value || '').trim();

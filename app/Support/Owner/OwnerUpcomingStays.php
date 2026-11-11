@@ -68,16 +68,24 @@ final class OwnerUpcomingStays
         $lines = ReservationUnit::query()
             ->whereIn('unit_id', $unitIds)
             ->where('status', 'active')
-            ->get(['reservation_id', 'unit_id']);
+            ->get(['reservation_id', 'unit_id', 'check_in']);
+
+        /** @var array<string, Unit> $unitById */
+        $unitById = Unit::query()->whereIn('id', $unitIds)->get()->keyBy(fn (Unit $u): string => (string) $u->id)->all();
+
+        // ⚠️ DEC-p — a stay that begins before the owner takes the unit over is not theirs (`Unit::ownerIdForStayStarting()`, the rule the earnings use). A unit
+        //    with no `owner_since` — every unit before DEC-p — keeps every stay, exactly as before.
+        $lines = $lines->filter(function (ReservationUnit $l) use ($unitById): bool {
+            $unit = $unitById[(string) $l->unit_id] ?? null;
+
+            return $unit === null || $unit->owner_since === null || $unit->ownerIdForStayStarting($l->check_in) !== null;
+        })->values();
 
         /** @var list<string> $reservationIds */
         $reservationIds = $lines->pluck('reservation_id')->map(fn ($id): string => (string) $id)->unique()->values()->all();
         if ($reservationIds === []) {
             return $empty;
         }
-
-        /** @var array<string, Unit> $unitById */
-        $unitById = Unit::query()->whereIn('id', $unitIds)->get()->keyBy(fn (Unit $u): string => (string) $u->id)->all();
         $unitLabelByReservation = self::unitLabels($lines, $unitById);
 
         // Only future arrivals within the horizon, non-terminal. (whereDate on the DB so a large book scales.)

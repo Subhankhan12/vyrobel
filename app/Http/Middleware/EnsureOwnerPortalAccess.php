@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Organization;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerPortalAccess;
+use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,6 +45,10 @@ use Symfony\Component\HttpFoundation\Response;
  * colleague in the same organisation. Withholding its existence from them would protect nothing and
  * mislead them further, which is the very defect being fixed. #26 aborts 403 for the same reason.
  *
+ * ⚠️⚠️ DEC-o (2026-11-12) — AND A LINK TO AN OWNER WHOSE PORTAL IS SWITCHED OFF IS NOT ENOUGH. {@see OwnerPortalAccess}: the primary owner and
+ * their team are refused together with a plain page (a back-office person is sent to /app instead — they keep their login). The answer to
+ * "is the actor linked" still comes from {@see OwnerContext::actorIsOwnerLinked()} unchanged — the owner scope depends on it staying true.
+ *
  * ⚠️ TWO OWNER ROUTES DELIBERATELY SIT OUTSIDE THIS GATE, and must: `owner.account.email.verify` (a signed
  * link opened from a NEW inbox, by someone who may not be signed in at all) and `owner.team.invite.accept`
  * (reached by someone who is NOT YET an owner — a pending `owner_users` row is not `active`, so gating it
@@ -58,12 +65,16 @@ class EnsureOwnerPortalAccess
             abort(403);
         }
 
-        if (app(OwnerContext::class)->actorIsOwnerLinked()) {
+        $linked = app(OwnerContext::class)->actorIsOwnerLinked();
+
+        // ⚠️ DEC-o — linked is not enough: at least one owner they belong to must have its portal ON. ({@see OwnerPortalAccess})
+        if ($linked && OwnerPortalAccess::hasOpenLink($user)) {
             return $next($request);
         }
 
         // A back-office operator has a real home. Send them there rather than to a dead end — the exact
-        // courtesy #26 extends to an owner who lands on `/app`.
+        // courtesy #26 extends to an owner who lands on `/app`. (It is also what a person who works for the operator AND is an
+        // owner whose portal is off gets: they keep their login and their back office.)
         /** @var list<string> $backOffice */
         $backOffice = config('authorization.back_office_roles', []);
 
@@ -71,6 +82,33 @@ class EnsureOwnerPortalAccess
             return redirect()->route('app.dashboard');
         }
 
+        if ($linked) {
+            return $this->refuseSwitchedOff($request);
+        }
+
         abort(403);
+    }
+
+    /**
+     * ⚠️ DEC-o — an owner (or one of their team) whose portal an operator switched off: a plain page that says so, what is kept,
+     * and who to ask — never a blank 403, and nothing of the portal behind it. A JSON caller gets the same words as a 403.
+     */
+    private function refuseSwitchedOff(Request $request): Response
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => __('php/http/middleware/ensure_owner_portal_access.portal_off_json')], 403);
+        }
+
+        $organizationId = app(TenantContext::class)->id();
+        $organization = $organizationId !== null ? Organization::withTrashed()->find($organizationId) : null;
+
+        return response()->view('errors.layout', [
+            'code' => 403,
+            'title' => __('php/http/middleware/ensure_owner_portal_access.title'),
+            'message' => $organization !== null
+                ? __('php/http/middleware/ensure_owner_portal_access.message_named', ['organization' => (string) $organization->name])
+                : __('php/http/middleware/ensure_owner_portal_access.message'),
+            'actions' => 'errors.partials.owner-portal-off-actions',
+        ], 403);
     }
 }

@@ -28,6 +28,7 @@ return [
     'conversation_started' => 'Conversation started.',
     // :name is the owner — they cannot read a message until they have a sign-in to the owner portal
     'owner_no_portal' => 'No portal sign-in yet — invite :name to the owner portal first.',
+    'owner_portal_off' => ':name’s portal access is switched off — switch it back on from their page before you message them.',
     'workspace_paused' => 'Workspace paused — messaging is read-only until :date.',
     'workspace_paused_for_now' => 'Workspace paused — messaging is read-only for now.',
 ];

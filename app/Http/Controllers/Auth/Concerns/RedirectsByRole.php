@@ -18,8 +18,11 @@ trait RedirectsByRole
 {
     protected function homeFor(User $user): ?string
     {
+        // ⚠️ DEC-o — an owner whose portal an operator switched OFF is not "an owner" for routing: a person who also works for the
+        //    operator lands in the back office they still have, and an owner with no back office goes the membership way, to
+        //    /app, which sends them on to the plain "access is switched off" page (EnsureBackOfficeAccess → EnsureOwnerPortalAccess).
         $isOwner = app(TenantContext::class)->runAsSuperAdmin(
-            fn (): bool => Owner::query()->where('user_id', $user->getKey())->exists(),
+            fn (): bool => Owner::query()->where('user_id', $user->getKey())->portalOn()->exists(),
         );
 
         if ($isOwner) {

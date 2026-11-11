@@ -274,9 +274,9 @@ return [
     [
         'id' => 'CN-M30',
         'name' => 'the agent source is named apart from the full form',
-        'file' => 'app/Support/Operator/CalendarReturn.php',   // the Calendar's one list of sources since the second pass
-        'old' => "'agent' => 'Travel agent'",
-        'new' => "'agent' => 'Agent'",
+        'file' => 'lang/en/php/support/operator/calendar_return.php',   // the label is a lang key since I18N-01 (the constant's English no longer reaches the page)
+        'old' => "'source_agent' => 'Travel agent'",
+        'new' => "'source_agent' => 'Agent'",
         'tests' => [['file' => $test, 'filter' => 'names the travel agent source']],
     ],
     [

@@ -239,6 +239,7 @@ class NewReservation extends Component
                 // D-NR2-NEXT-NOPRICE: room types are on offer but NONE has a price for these dates — Next must say so, not "pick a unit"
                 'waitingForPrice' => $roomTypes !== [] && ! collect($roomTypes)->contains('priced', true),
                 'createUrl' => route('app.reservations.create'),
+                'guestMatchUrl' => route('app.reservations.guest-match'),   // DEC-r: names only, a POST
                 'searched' => $query !== '',
                 'canPay' => $canPay,
                 'mailSends' => $mailSends,

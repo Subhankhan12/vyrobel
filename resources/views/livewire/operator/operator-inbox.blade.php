@@ -568,7 +568,7 @@
                                             <label class="vy-ibx-option @if (! $o['has_portal']) is-disabled @endif" x-show="composeOwnerFind.trim() === '' || @js(mb_strtolower($o['name'])).includes(composeOwnerFind.trim().toLowerCase())">
                                                 <input type="radio" name="_owner_pick" value="{{ $o['id'] }}" @disabled(! $o['has_portal']) @click="composeOwner = @js($o['id'])">
                                                 <span class="vy-conv-avatar vy-ibx-avatar" aria-hidden="true">{{ $o['initials'] }}</span>
-                                                <span class="vy-ibx-option-text"><strong>{{ $o['name'] }}</strong><span class="vy-ibx-option-sub">{{ $o['has_portal'] ? $o['meta'] : __('livewire/operator/operator-inbox.owner_no_portal') }}</span></span>
+                                                <span class="vy-ibx-option-text"><strong>{{ $o['name'] }}</strong><span class="vy-ibx-option-sub">{{ $o['has_portal'] ? $o['meta'] : __($o['portal_off'] ? 'livewire/operator/operator-inbox.owner_portal_off' : 'livewire/operator/operator-inbox.owner_no_portal') }}</span></span>
                                             </label>
                                         @endforeach
                                     </div>

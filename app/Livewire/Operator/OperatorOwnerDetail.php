@@ -22,14 +22,19 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Services\PeriodLockGuard;
+use App\Services\UnitOwnerAssignmentService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\I18n\LocalDate;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\CommissionChange;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerLedgerAttribution;
+use App\Support\Owner\OwnerPortalAccess;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
+use App\Support\Property\PropertyContext;
+use App\Support\Property\PropertyDay;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
@@ -106,11 +111,12 @@ use Livewire\Component;
  *         {@see CommissionChange}) · pause / resume payouts · close a period · add a note · remove the owner (an archive,
  *         with your password and the owner's name) — `users.manage`, closing a period `payouts.manage`;
  *       – send a waiting invite again (your password) or cancel it — the Owners list's own writes, coming back here;
+ *       – switch the owner's PORTAL ACCESS off (a typed reason) and on (your password) — DEC-o, 2026-11-12, `users.manage`:
+ *         one date on the owner ({@see OwnerPortalAccess}), the team goes with them, nobody's login is touched;
  *       – propose a rate change / withdraw / accept a counter — `rates.manage`.
  *     ⚠️ Since 2026-10-03 each dialog reopens with its refusal beside the field (`_form` names the dialog) — before, a refused
  *     write closed its dialog and the page said nothing.
- *   • NOT OFFERED: switching the owner's portal access on or off (the old checkbox could not do the first and, by a
- *     hand-made request, did the second to any login — DEC-o, his); any estimated next-payout DATE; "Scheduled" as a status
+ *   • NOT OFFERED: any estimated next-payout DATE; "Scheduled" as a status
  *     (neither real enum holds it); the design's demo figures. A statement row carries no link (see NOT LINKED above).
  */
 #[Layout('components.layouts.operator')]
@@ -260,6 +266,9 @@ class OperatorOwnerDetail extends Component
             'when' => $n->created_at?->diffForHumans() ?? '',
         ])->all();
 
+        // the people on the owner's team — said before a removal and before a portal switch, because both take them along
+        $teamCount = OwnerUser::query()->where('owner_id', $ownerId)->where('status', 'active')->count();
+
         return view('livewire.operator.owner-detail', [
             'viewer' => $this->viewer(),
             'owner' => [
@@ -286,8 +295,13 @@ class OperatorOwnerDetail extends Component
             'removeUnitNames' => $units->map(fn (Unit $u): string => (string) ($u->name ?? $u->code))->values()->all(),
             // ⚠️ How many people go with the owner — the modal states it because removal now cascades to
             //    the owner's team, and an operator should see the size of what they are about to close.
-            'removeTeamCount' => OwnerUser::query()->where('owner_id', $ownerId)->where('status', 'active')->count(),
+            'removeTeamCount' => $teamCount,
             'portal' => $this->portalAccess($record, $invite),
+            // DEC-o — the switch: ON is always offered for an owner whose portal is off; OFF only for one whose login is active
+            'portalOff' => $record->portalIsOff(),
+            'portalCanSwitchOff' => ! $record->portalIsOff() && $record->user instanceof User && (string) $record->user->status === User::SIGN_IN_STATUS,
+            'portalTeam' => $teamCount,
+            'mailSends' => MailSafetyGuard::sendingNow(),
             // A waiting invite can be sent again (pending or expired) or cancelled (pending) from here — the Owners list's writes.
             'invite' => $invite !== null && in_array((string) $invite->status, ['pending', 'expired'], true) && (string) $invite->role !== OwnerInviteService::FOUNDER_ROLE
                 ? ['id' => (string) $invite->id, 'email' => (string) $invite->email, 'cancellable' => (string) $invite->status === 'pending']
@@ -307,6 +321,8 @@ class OperatorOwnerDetail extends Component
                 'units' => $units->count(),
             ],
             'units' => $this->unitRows($units),
+            // DEC-p — the units this person may be given: no owner, inside the viewer's properties; each with today AT ITS property (the date's default and its floor)
+            'giveUnits' => (bool) auth()->user()?->can('users.manage') ? $this->giveableUnits($record) : [],
             'ownerId' => $ownerId,
             // Wave C · GATE 1 — the owner's distinct room types (for the propose-a-rate-change form) + this owner's
             // rate proposals (pending are withdrawable). The service refuses a room type the owner doesn't own
@@ -517,7 +533,42 @@ class OperatorOwnerDetail extends Component
             'room_type' => $u->roomType !== null ? (string) $u->roomType->name : null,
             'sleeps' => (int) $u->max_occupancy,
             'active' => (bool) $u->is_active,
+            // DEC-p — the day the owner took the unit over ("since" once it has begun, "from" while it is ahead); null = always (an invite or an approved request)
+            'since' => $u->owner_since?->translatedFormat(LocalDate::pattern('j M Y')),
+            'since_ahead' => $u->owner_since !== null && $u->owner_since->toDateString() > Carbon::today()->toDateString(),
         ])->values()->all();
+    }
+
+    /**
+     * DEC-p — the units this owner may be given from here: ones with NO owner, inside the viewer's properties (the same rule the write applies), and only for an
+     * active owner (the write refuses anyone else). Each carries today AT ITS PROPERTY (the day the owner may start from at the earliest) and the last day allowed.
+     *
+     * @return list<array{id: string, label: string, property: ?string, today: string, max: string}>
+     */
+    private function giveableUnits(Owner $owner): array
+    {
+        if ((string) $owner->status !== 'active') {
+            return [];
+        }
+
+        $ids = app(PropertyContext::class)->readIds();
+        $units = Unit::query()->with('property:id,name')->whereNull('owner_id')
+            ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
+            ->orderBy('code')->get(['id', 'code', 'name', 'property_id']);
+        $todays = PropertyDay::todays($units->pluck('property_id')->map(fn (mixed $id): string => (string) $id)->unique()->values()->all());
+        $manyProperties = $units->pluck('property_id')->unique()->count() > 1;
+
+        return $units->sortBy(fn (Unit $u): string => (string) $u->code, SORT_NATURAL)->values()->map(function (Unit $u) use ($todays, $manyProperties): array {
+            $today = $todays[(string) $u->property_id] ?? Carbon::today()->toDateString();
+
+            return [
+                'id' => (string) $u->id,
+                'label' => (string) ($u->name !== null && (string) $u->name !== '' ? $u->name : $u->code),
+                'property' => $manyProperties && $u->property !== null ? (string) $u->property->name : null,
+                'today' => $today,
+                'max' => CarbonImmutable::parse($today)->addDays(UnitOwnerAssignmentService::MAX_DAYS_AHEAD)->toDateString(),
+            ];
+        })->all();
     }
 
     /**
@@ -823,6 +874,16 @@ class OperatorOwnerDetail extends Component
      */
     private function portalAccess(Owner $record, ?OwnerInvite $invite): array
     {
+        // ⚠️ DEC-o — an operator switched it OFF: that wins over every other state (a pending invite, an active login), because
+        //    none of them lets anyone in while it is off. The date is a fact; who and why are in the audit log.
+        if ($record->portalIsOff()) {
+            return [
+                'label' => __('php/livewire/operator/operator_owner_detail.portal_off'),
+                'detail' => __('php/livewire/operator/operator_owner_detail.portal_off_since', ['date' => $record->portal_disabled_at?->translatedFormat(LocalDate::pattern('j M Y'))]),
+                'tone' => 'cancelled',
+            ];
+        }
+
         if ($invite !== null && (string) $invite->status === 'pending') {
             return [
                 'label' => __('php/livewire/operator/operator_owner_detail.portal_invite_pending'),

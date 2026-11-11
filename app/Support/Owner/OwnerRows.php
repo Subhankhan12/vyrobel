@@ -37,7 +37,7 @@ use Illuminate\Support\Collection;
  *
  * @phpstan-type OwnerRow array{id: string, name: string, email: string, initials: string, active: bool, units: int,
  *     unit_codes: list<string>, unit_labels: list<string>, commission: string, period: ?string, net_minor: ?int, currency: string, net: string,
- *     pay_key: string, pay_label: string, reason: ?string, paused: bool, invite: ?array{id: string, status: string, expires: ?string}}
+ *     pay_key: string, pay_label: string, reason: ?string, paused: bool, portal_off: bool, invite: ?array{id: string, status: string, expires: ?string}}
  */
 final class OwnerRows
 {
@@ -101,6 +101,8 @@ final class OwnerRows
                 'pay_label' => $label,
                 'reason' => $reason,
                 'paused' => $isPaused,
+                // DEC-o — an operator switched this owner's portal access off (their pay status is unaffected: payouts never read it)
+                'portal_off' => $owner->portalIsOff(),
                 'invite' => $invite !== null ? ['id' => (string) $invite->id, 'status' => (string) $invite->status, 'expires' => $invite->expires_at?->translatedFormat(LocalDate::pattern('j M Y'))] : null,
             ];
         })->values()->all();

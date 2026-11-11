@@ -12,16 +12,19 @@ use App\Models\OwnerInvite;
 use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerUser;
 use App\Models\Unit;
+use App\Models\User;
 use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\LocalNumber;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Owner\CommissionChange;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerListParams;
 use App\Support\Owner\OwnerLoginLifecycle;
+use App\Support\Owner\OwnerPortalAccess;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +35,7 @@ use Illuminate\Http\Request;
  * read-only-respecting (#20), and audited. NEVER a destructive cascade — the financial + booking records are kept.
  */
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class OwnerManageController extends Controller
@@ -46,7 +50,8 @@ class OwnerManageController extends Controller
      * `portal_active`, and this method set the linked login's status from it: 🔬 an unticked box posts nothing, so the box
      * could never switch access off — while a hand-made `portal_active=0` switched ANY linked login off (bypassing
      * {@see OwnerLoginLifecycle}, which spares a person who also works here), and `portal_active=1` opened an invited login
-     * nobody had set a password for. The field is now ignored; whether access should be switchable here is DEC-o, his.
+     * nobody had set a password for. The field is now ignored. ⚠️ DEC-o (2026-11-12) answered it a different way: portal access is switched
+     * off and on by {@see portalAccess()} — one date on the owner, never a login.
      */
     public function update(Request $request, string $owner): RedirectResponse
     {
@@ -116,6 +121,89 @@ class OwnerManageController extends Controller
             // DEC-n (2026-10-02) — a pause stops every payout, by the automatic run or by hand on the payout run page
             ? __('php/http/controllers/operator/owner_manage_controller.payouts_paused', ['name' => $model->name])
             : __('php/http/controllers/operator/owner_manage_controller.payouts_resumed', ['name' => $model->name]), $request);
+    }
+
+    /**
+     * ⚠️⚠️ DEC-o (2026-11-12) — SWITCH AN OWNER'S PORTAL ACCESS OFF OR ON. The founder's ruling: the owner's TEAM goes with them (and
+     * comes back with them); a person who ALSO works for the operator keeps their login; it is reversible and non-destructive.
+     *
+     * The whole state is `owners.portal_disabled_at` ({@see OwnerPortalAccess}) — NOTHING else is written: no `users.status`, no
+     * `owner_users` row, no Membership, so there is nothing to "restore" and nobody's other login can be cut off. Payouts, statements
+     * and the ledger never read it. ⚠️ It is NOT {@see OwnerLoginLifecycle}, which decides whether a login should still EXIST once an owner
+     * link is taken away — this takes nobody's link away.
+     *
+     *   OFF  — a typed reason (5–300 characters), kept ONLY in the audit row; only for an owner whose login is active (nothing to switch
+     *          off otherwise). The dialog is the confirmation.
+     *   ON   — your current password, as sending an invite asks (it gives access back).
+     *
+     * ⚠️ NO EMAIL IS SENT EITHER WAY — the notice says so, and says why while email isn't being sent from Vyrobel at all
+     * ({@see MailSafetyGuard::sendingNow()}). ⚠️ The audit row records the switch and the team's size, and the reason an operator typed — never
+     * the owner's contact details (#28).
+     */
+    public function portalAccess(Request $request, string $owner): RedirectResponse
+    {
+        if ($this->paused()) {
+            return $this->back($owner, 'owners_error', $this->pausedMessage(), $request);
+        }
+
+        // tenant-scoped: another organisation's owner is a 404 BEFORE anything is validated (no existence oracle)
+        $model = Owner::query()->findOrFail($owner);
+
+        $request->validate(['portal' => ['required', Rule::in(['on', 'off'])]], [
+            'portal.required' => __('php/http/controllers/operator/owner_manage_controller.portal_choice_invalid'),
+            'portal.in' => __('php/http/controllers/operator/owner_manage_controller.portal_choice_invalid'),
+        ]);
+        $switchOff = $request->input('portal') === 'off';
+        $team = OwnerUser::query()->where('owner_id', $model->id)->where('status', 'active')->count();
+
+        if ($switchOff) {
+            $request->merge(['reason' => trim((string) $request->input('reason'))]);
+            $validated = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:300']], [
+                'reason.required' => __('php/http/controllers/operator/owner_manage_controller.portal_reason_required'),
+                'reason.min' => __('php/http/controllers/operator/owner_manage_controller.portal_reason_min'),
+                'reason.max' => __('php/http/controllers/operator/owner_manage_controller.portal_reason_max'),
+            ]);
+
+            if ($model->portalIsOff()) {
+                return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.portal_already_off', ['name' => $model->name]), $request);
+            }
+            // ⚠️ only for an owner who can sign in today — the same rule the page uses to offer the button (a hand-made request meets it too)
+            if (! ($model->user instanceof User) || (string) $model->user->status !== User::SIGN_IN_STATUS) {
+                return $this->back($owner, 'owners_error', __('php/http/controllers/operator/owner_manage_controller.portal_login_not_active', ['name' => $model->name]), $request)
+                    ->withInput($request->only('_form', 'reason'));
+            }
+
+            DB::transaction(function () use ($model, $team, $validated): void {
+                $model->forceFill(['portal_disabled_at' => now()])->save();
+                // the reason lives here and nowhere else; the owner's name, email and phone are never copied into an audit row (#28)
+                $this->audit->record('owner.portal_access_changed', $model, ['portal' => 'on'], ['portal' => 'off', 'team' => $team, 'reason' => (string) $validated['reason']]);
+            });
+
+            return $this->back($owner, 'owners_notice', $this->portalNotice('portal_switched_off', $model, $team), $request);
+        }
+
+        $request->validate(['current_password' => ['required', 'current_password']], [
+            'current_password.required' => __('php/http/controllers/operator/owner_manage_controller.portal_password_required'),
+            'current_password.current_password' => __('php/http/controllers/operator/owner_manage_controller.password_wrong'),
+        ]);
+
+        if (! $model->portalIsOff()) {
+            return $this->back($owner, 'owners_notice', __('php/http/controllers/operator/owner_manage_controller.portal_already_on', ['name' => $model->name]), $request);
+        }
+
+        DB::transaction(function () use ($model, $team): void {
+            $model->forceFill(['portal_disabled_at' => null])->save();
+            $this->audit->record('owner.portal_access_changed', $model, ['portal' => 'off'], ['portal' => 'on', 'team' => $team]);
+        });
+
+        return $this->back($owner, 'owners_notice', $this->portalNotice('portal_switched_on', $model, $team), $request);
+    }
+
+    /** The notice after a switch: what happened (with the team's size), then what did NOT happen — nobody is emailed. */
+    private function portalNotice(string $key, Owner $owner, int $team): string
+    {
+        return trans_choice('php/http/controllers/operator/owner_manage_controller.'.$key, $team, ['name' => $owner->name, 'count' => $team]).' '
+            .__('php/http/controllers/operator/owner_manage_controller.'.(MailSafetyGuard::sendingNow() ? 'portal_no_email_sent' : 'portal_no_email_not_sent'));
     }
 
     /**
@@ -261,7 +349,8 @@ class OwnerManageController extends Controller
 
         DB::transaction(function () use ($model): void {
             // Units → unassigned (bookings untouched).
-            Unit::query()->where('owner_id', $model->id)->update(['owner_id' => null]);
+            // ⚠️ DEC-p: the day the owner took a unit over goes with the owner — a stale `owner_since` would cut the NEXT owner of the unit
+            Unit::query()->where('owner_id', $model->id)->update(['owner_id' => null, 'owner_since' => null]);
             // End the active management agreements.
             ManagementAgreement::query()->where('owner_id', $model->id)->where('status', 'active')
                 ->update(['status' => 'ended', 'effective_to' => CarbonImmutable::today()->toDateString()]);

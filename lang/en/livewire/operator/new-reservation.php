@@ -253,4 +253,10 @@ return [
     'aria_full' => 'full',
     'aria_check_in' => 'check-in',
     'aria_check_out' => 'check-out',
+    // DEC-r (2026-11-11): a guest with the typed email already exists
+    'dup_title' => 'A guest with this email already exists',
+    'dup_use' => 'Use this guest',
+    'dup_new' => 'Create a new one',
+    'dup_note' => 'Using an existing guest keeps their saved details — what you typed here (phone, country, notes) is not added to their profile.',
+    'miss_dup_choice' => 'A guest with this email already exists — use them, or choose “Create a new one”.',
 ];

@@ -114,13 +114,36 @@ class OwnerAttributionService
     {
         $reservation->loadMissing('reservationUnits');
 
-        $unitIds = $reservation->reservationUnits
-            ->where('status', 'active')
-            ->pluck('unit_id')
-            ->filter()
-            ->all();
+        $lines = $reservation->reservationUnits->where('status', 'active')->filter(fn (ReservationUnit $l): bool => $l->unit_id !== null);
+        $unitIds = $lines->pluck('unit_id')->all();
 
-        return $unitIds !== [] && Unit::query()->whereIn('id', $unitIds)->whereNotNull('owner_id')->exists();
+        if ($unitIds === []) {
+            return false;
+        }
+
+        $owned = Unit::query()->whereIn('id', $unitIds)->whereNotNull('owner_id')->get()->keyBy(fn (Unit $u): string => (string) $u->id);
+
+        foreach ($lines as $ru) {
+            $unit = $owned->get((string) $ru->unit_id);
+            if ($unit === null) {
+                continue;
+            }
+
+            // A unit with no `owner_since` is the owner's for every stay — exactly as before DEC-p.
+            if ($unit->owner_since === null) {
+                return true;
+            }
+
+            // ⚠️ DEC-p — the backfill's filter must ask what the attribution below asks: is any SEGMENT of this line one that starts
+            //    on or after the day the owner took the unit over? Otherwise the command would call it for every past stay and post nothing.
+            foreach ($this->segmentsFor($ru) as $sg) {
+                if ($sg['unit_id'] === (string) $unit->id && $unit->ownerIdForStayStarting($sg['from']) !== null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -303,16 +326,22 @@ class OwnerAttributionService
 
             foreach ($segments as $sIdx => $sg) {
                 $unit = $sg['unit_id'] !== null ? Unit::find($sg['unit_id']) : null;
-                if ($unit === null || $unit->owner_id === null) {
+
+                // ⚠️⚠️ DEC-p — A SEGMENT THAT STARTS BEFORE THE UNIT'S OWNER TOOK IT OVER IS OPERATOR INVENTORY, NOT THE OWNER'S. `ownerIdForStayStarting()`
+                //    is null for a unit with no owner AND for a stay that began before `owner_since`. This is what keeps a past stay from ever being
+                //    credited to an owner who was given the unit later — by this call at booking time, by `owners:backfill-attribution`, by the
+                //    move listener's re-attribution. A unit with no `owner_since` answers exactly as `owner_id` did before.
+                $stayOwnerId = $unit?->ownerIdForStayStarting($sg['from']);
+                if ($unit === null || $stayOwnerId === null) {
                     continue; // operator inventory — not owner-attributed
                 }
 
-                $agreement = ManagementAgreement::resolveFor((string) $unit->owner_id, (string) $unit->id, $sg['from']);
+                $agreement = ManagementAgreement::resolveFor($stayOwnerId, (string) $unit->id, $sg['from']);
                 $idx = $i.'_'.$sIdx;
                 $ownerLines[$idx] = [
                     'ru' => $ru,
                     'unit' => $unit,
-                    'owner_id' => (string) $unit->owner_id,
+                    'owner_id' => $stayOwnerId,
                     'agreement' => $agreement,
                     'room' => $segRoom[$sIdx],
                     'segment' => $sIdx,

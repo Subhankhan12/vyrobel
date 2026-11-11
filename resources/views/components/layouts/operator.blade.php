@@ -1662,6 +1662,14 @@
         .vy-nr-textbtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .vy-nr-fine { margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-faint); }
         .vy-nr-note { margin: 2px 0 14px; padding: 10px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.5; background: rgba(217, 154, 61, 0.13); border: 1px solid rgba(217, 154, 61, 0.32); color: var(--vy-amber-text); }
+        /* DEC-r — an existing guest with the typed email is offered (name only) */
+        .vy-nr-dup { margin: 4px 0 14px; padding: 12px 14px; border-radius: 12px; background: rgba(217, 102, 46, 0.08); border: 1px solid rgba(217, 102, 46, 0.22); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+        .vy-nr-dup-title { margin: 0; font-size: 13px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-dup-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; flex-wrap: wrap; }
+        .vy-nr-dup-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .vy-nr-dup-name { font-size: 14px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-nr-dup-meta { font-size: 12px; color: var(--vy-muted); }
+        .vy-nr-dup-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--vy-muted); }
         .vy-nr-note.is-calm { margin-top: 14px; background: rgba(31, 110, 75, 0.07); border-color: rgba(31, 110, 75, 0.16); color: var(--vy-muted); }
         /* the "what's missing" line — the same warm red as every refusal in the operator app (the group wizard's line) */
         .vy-nr-miss { margin: 12px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.45; color: #8F3110; }

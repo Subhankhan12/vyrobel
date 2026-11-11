@@ -53,6 +53,7 @@ use App\Support\Inbox\ThreadName;
 use App\Support\Notifications\NotificationRecipients;
 use App\Support\TeamChat\TeamChatReader;
 use App\Support\Tenancy\TenantContext;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 /**
@@ -257,22 +258,31 @@ class DispatchNotificationsForDomainEvent
      */
     private function ownersOfReservation(Reservation $reservation): array
     {
-        $unitIds = ReservationUnit::query()
+        $lines = ReservationUnit::query()
             ->where('reservation_id', $reservation->getKey())
-            ->pluck('unit_id')
-            ->filter()
-            ->all();
+            ->whereNotNull('unit_id')
+            ->get(['unit_id', 'check_in']);
+        $unitIds = $lines->pluck('unit_id')->map(fn ($id): string => (string) $id)->unique()->values()->all();
 
         if ($unitIds === []) {
             return [];   // a type-only line (an OTA import before assignment) — no unit, so no owner yet
         }
 
+        // ⚠️ DEC-p — the day each unit's stay starts here (the earliest line on it), so a stay that began before the owner took the unit over
+        //    tells that owner nothing: it is not theirs (same rule as the earnings, `Unit::ownerIdForStayStarting()`).
+        $startByUnit = [];
+        foreach ($lines as $line) {
+            $day = Carbon::parse($line->check_in)->toDateString();
+            $key = (string) $line->unit_id;
+            $startByUnit[$key] = isset($startByUnit[$key]) && $startByUnit[$key] < $day ? $startByUnit[$key] : $day;
+        }
+
         $out = [];
         $seen = [];
         foreach (Unit::query()->whereIn('id', $unitIds)->get() as $unit) {
-            $ownerId = $unit->owner_id;
+            $ownerId = $unit->ownerIdForStayStarting($startByUnit[(string) $unit->id]);
             if (! is_string($ownerId) || $ownerId === '' || isset($seen[$ownerId])) {
-                continue;   // an unowned unit, or an owner already notified for this stay
+                continue;   // an unowned unit (or a stay from before the owner had it), or an owner already notified for this stay
             }
             $owner = Owner::query()->find($ownerId);
             if ($owner instanceof Owner) {

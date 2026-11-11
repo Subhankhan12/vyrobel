@@ -79,6 +79,7 @@ use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\GuestBulkActionController;
+use App\Http\Controllers\Operator\GuestMatchController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InboxLiveController;
@@ -98,6 +99,7 @@ use App\Http\Controllers\Operator\OperatorTaskStateController;
 use App\Http\Controllers\Operator\OwnerExportController;
 use App\Http\Controllers\Operator\OwnerInviteActionController;
 use App\Http\Controllers\Operator\OwnerManageController;
+use App\Http\Controllers\Operator\OwnerUnitAssignController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
 use App\Http\Controllers\Operator\PropertySwitchController;
@@ -891,6 +893,15 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::post('/owners/{owner}/close-period', [OwnerManageController::class, 'closePeriod'])
         ->middleware('can:payouts.manage')->name('owners.close-period');
     Route::post('/owners/{owner}/pause-payouts', [OwnerManageController::class, 'pausePayouts'])->middleware('can:users.manage')->name('owners.pause-payouts');
+    // DEC-o (2026-11-12) — switch the owner's portal access off / on (their team goes with them; a person who also works here keeps their login).
+    // Same gate as every other owner write; switching ON asks for the operator's password, so it is rate-limited like the other password routes here.
+    Route::post('/owners/{owner}/portal-access', [OwnerManageController::class, 'portalAccess'])
+        ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.portal-access');
+    // DEC-p (2026-11-12) — give an EXISTING owner a unit that has no owner, from a chosen day. ⚠️ REAL MONEY: a unit's owner decides who is paid for
+    // its stays. Same gate as every owner write (no new permission); the operator's password is asked; the unit is resolved inside the person's
+    // properties; the controller has no authorize() of its own, so this IS the actor gate (#20/#30).
+    Route::post('/owners/{owner}/units', [OwnerUnitAssignController::class, 'store'])
+        ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.units.assign');
     Route::post('/owners/{owner}/note', [OwnerManageController::class, 'addNote'])->middleware('can:users.manage')->name('owners.note');
     Route::post('/owners/{owner}/remove', [OwnerManageController::class, 'remove'])->middleware('can:users.manage')->name('owners.remove');
     // Phase 2 · Sub-gate 6 — the operator sees owners' add-unit REQUESTS here (tenant-scoped; owner scope is
@@ -1297,6 +1308,8 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // payment inside the controller additionally checks `payments.record`. Never a raw PAN (GUARD 3).
     Route::get('/reservations/create', NewReservation::class)->middleware('can:reservations.create')->name('reservations.create');
     Route::post('/reservations/create', [ReservationCreateController::class, 'store'])->middleware('can:reservations.create')->name('reservations.store');
+    // DEC-r (2026-11-11) — "is there already a guest with this email?": names only, a POST (the email never travels in a URL), throttled
+    Route::post('/reservations/guest-match', GuestMatchController::class)->middleware(['can:reservations.create', 'throttle:60,1'])->name('reservations.guest-match');
 
     // GROUP BOOKING (Phase 1 · Sub-gate 1) — a block of rooms created ATOMICALLY through the single write path
     // (AssignmentService::createGroupBooking — all-or-nothing, no phantom events). Same `reservations.create`

@@ -380,7 +380,10 @@ class MaintenanceService
     private function postExpenseIfOwned(MaintenanceTicket $ticket, Money $cost): void
     {
         $unit = Unit::query()->find($ticket->unit_id);
-        if ($unit === null || $unit->owner_id === null) {
+        $expenseDate = ($ticket->resolved_at ?? CarbonImmutable::now())->toDateString();
+        // ⚠️ DEC-p — a repair dated before the owner took the unit over is the operator's cost, not theirs (`Unit::ownerIdForStayStarting()`: null for
+        //    an unowned unit AND for a day before `owner_since`; a unit with no `owner_since` answers exactly as `owner_id` did).
+        if ($unit === null || $unit->ownerIdForStayStarting($expenseDate) === null) {
             return;
         }
 
@@ -390,7 +393,7 @@ class MaintenanceService
             'description' => (string) $ticket->title,
             'amount_minor' => $cost->amountMinor(),
             'currency' => $cost->currency(),
-            'expense_date' => ($ticket->resolved_at ?? CarbonImmutable::now())->toDateString(),
+            'expense_date' => $expenseDate,
             'source' => $ticket,
             'created_by' => Auth::id(),
             // Wave C · GATE 2 — an operator-RESOLVED maintenance ticket carries a real, actioned cost (the work is

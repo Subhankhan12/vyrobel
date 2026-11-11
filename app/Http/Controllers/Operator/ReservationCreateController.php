@@ -25,6 +25,7 @@ use App\Services\UnitAvailabilityService;
 use App\Support\Booking\RestrictionOverrideReason;
 use App\Support\Folio\PropertyCharges;
 use App\Support\Folio\StayEstimator;
+use App\Support\Guest\GuestEmailMatch;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
@@ -469,7 +470,8 @@ class ReservationCreateController extends Controller
     {
         $existingId = $request->input('existing_guest_id');
         if (is_string($existingId) && $existingId !== '') {
-            $guest = Guest::query()->find($existingId);   // tenant-scoped
+            // tenant-scoped; an ERASED guest, or one whose erasure is scheduled, is never booked onto (the erase would cancel the stay — DEC-r)
+            $guest = Guest::query()->whereNull('anonymized_at')->whereNull('scheduled_deletion_at')->find($existingId);
             if ($guest === null) {
                 return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.guest_not_found'), NewReservation::STEP_GUEST);
             }
@@ -487,6 +489,15 @@ class ReservationCreateController extends Controller
         $email = $this->text($request, 'guest_email');
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.invalid_guest_email'), NewReservation::STEP_GUEST);
+        }
+        // ⚠️ DEC-r (2026-11-11): an email that already belongs to a guest is OFFERED that guest, never silently created again. The page asks while the
+        //    operator types ({@see GuestMatchController}) and sends `guest_create_anyway` once they chose "Create a new one"; this is the net for a page
+        //    without JavaScript or a stale offer. The email is not sent back (#28), so it is asked for again — the refusal names the guest, nothing more.
+        if ($email !== '' && ! $request->boolean('guest_create_anyway')) {
+            $found = GuestEmailMatch::for($email);
+            if ($found !== []) {
+                return $this->back($request, __('php/http/controllers/operator/reservation_create_controller.guest_email_exists', ['name' => $found[0]['name']]), NewReservation::STEP_GUEST);
+            }
         }
         $phone = $this->text($request, 'guest_phone');
         // GATE 1 — the guest's Country (ISO-3166 alpha-2, e.g. "PT") → the guest's nationality. Bounded + upper;

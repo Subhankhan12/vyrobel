@@ -39,6 +39,9 @@ return [
     'portal_invite_expired' => 'Invite expired',
     'portal_invite_revoked' => 'Invite revoked',
     'portal_none' => 'No portal access',
+    // DEC-o (2026-11-12) — switched off by an operator
+    'portal_off' => 'Portal access off',
+    'portal_off_since' => 'Switched off on :date — they and their team can’t sign in to the owner portal.',
     'invite_expires' => 'Expires :date',
     'invite_expired' => 'Expired :date',
 ];

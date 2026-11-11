@@ -26,10 +26,12 @@
             $vyAllowed = array_values(array_filter([
                 $canManage ? 'commission' : null, $canPayout ? 'close' : null, $canManage ? 'remove' : null,
                 $canManage && $invite !== null ? 'resend' : null, count($roomTypes) > 0 ? 'propose' : null,
+                $canManage && ($portalOff || $portalCanSwitchOff) ? 'portal' : null,
+                $canManage && count($giveUnits) > 0 ? 'give' : null,
             ]));
             $vyOpen = $vyRefused && in_array($vyForm, $vyAllowed, true) ? $vyForm : '';
             // A dialog that reopens shows its own refusal; the page-level flash then stays quiet.
-            $vyOwnersErrorTop = session('owners_error') && ! in_array($vyOpen, ['commission', 'close', 'remove', 'resend'], true);
+            $vyOwnersErrorTop = session('owners_error') && ! in_array($vyOpen, ['commission', 'close', 'remove', 'resend', 'portal', 'give'], true);
             $vyRateErrorTop = session('rate_error') && $vyOpen !== 'propose';
             $vyNoteError = $vyForm === 'note' ? $errors->first('body') : '';
             $vyStrayErrors = $vyOpen === '' && $vyForm !== 'note' ? $errors->all() : [];
@@ -55,7 +57,11 @@
         <div class="vyo-root vyo-ownerpage" x-data="vyOwnerPage({
                 commissionOpen: @js($vyOpen === 'commission'), pauseOpen: false, closeOpen: @js($vyOpen === 'close'),
                 removeOpen: @js($vyOpen === 'remove'), resendOpen: @js($vyOpen === 'resend'), cancelOpen: false,
-                proposeOpen: @js($vyOpen === 'propose'),
+                proposeOpen: @js($vyOpen === 'propose'), portalOpen: @js($vyOpen === 'portal'),
+                giveOpen: @js($vyOpen === 'give'),
+                giveUnit: @js((string) ($vyForm === 'give' && old('unit_id') ? old('unit_id') : ($giveUnits[0]['id'] ?? ''))),
+                giveDate: @js((string) ($vyForm === 'give' && old('since') ? old('since') : ($giveUnits[0]['today'] ?? ''))),
+                giveRange: @js(collect($giveUnits)->mapWithKeys(fn (array $g): array => [$g['id'] => ['min' => $g['today'], 'max' => $g['max']]])->all()),
                 start: @js((string) old('period_start', $closePeriod['start'])), end: @js((string) old('period_end', $closePeriod['end'])),
             })">
 
@@ -373,6 +379,10 @@
                     <section class="vy-card vyo-card vy-fade" aria-labelledby="vyod-un-t">
                         <div class="vy-detail-head vyo-card-head">
                             <h2 class="vy-card-title" id="vyod-un-t">{{ __('livewire/operator/owner-detail.units') }} <span class="vyo-count">{{ count($units) }}</span></h2>
+                            {{-- `$giveUnits` is empty unless the viewer holds users.manage (ONE gate, in the component) — so a role that may not give a unit never gets the button --}}
+                            @if (count($giveUnits) > 0)
+                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm" x-on:click="giveOpen = true">{{ __('livewire/operator/owner-detail.give_a_unit') }}</button>
+                            @endif
                         </div>
                         @forelse ($units as $u)
                             <div class="vy-unit-row">
@@ -385,6 +395,10 @@
                                         @endif
                                         {{-- units.max_occupancy is NOT NULL (default 2) — always a real fact. --}}
                                         <span class="vy-sep">·</span> {{ trans_choice('livewire/operator/owner-detail.sleeps', $u['sleeps'], ['count' => $u['sleeps']]) }}
+                                        {{-- DEC-p — only a unit given from a chosen day carries one; an invite's or a request's unit is theirs for every stay --}}
+                                        @if ($u['since'])
+                                            <span class="vy-sep">·</span> {{ __($u['since_ahead'] ? 'livewire/operator/owner-detail.unit_from' : 'livewire/operator/owner-detail.unit_since', ['date' => $u['since']]) }}
+                                        @endif
                                     </div>
                                 </div>
                                 @unless ($u['active'])
@@ -481,7 +495,7 @@
                                     @if ($ibanMasked)
                                         <dd class="vyo-num">{!! __('livewire/operator/owner-detail.iban_on_file', ['iban' => e($ibanMasked)]) !!}</dd>
                                     @else
-                                        <dd>{{ __('livewire/operator/owner-detail.no_payout_account') }}</dd>
+                                        <dd>{{ $portalOff ? __('livewire/operator/owner-detail.no_payout_account_portal_off') : __('livewire/operator/owner-detail.no_payout_account') }}</dd>
                                     @endif
                                 </div>
                             @endif
@@ -496,6 +510,12 @@
                         </div>
                         @if ($portal['detail'])
                             <p class="vyo-card-sub">{{ $portal['detail'] }}</p>
+                        @endif
+                        {{-- DEC-o — switch it off (only while their login is active) or back on; the dialog says who goes with them and what is kept --}}
+                        @if ($canManage && ($portalOff || $portalCanSwitchOff))
+                            <div class="vyo-portal-actions">
+                                <button type="button" class="vy-btn vy-btn--ghost vyo-sm {{ $portalOff ? '' : 'is-danger' }}" x-on:click="portalOpen = true">{{ $portalOff ? __('livewire/operator/owner-detail.portal_switch_on_button') : __('livewire/operator/owner-detail.portal_switch_off_button') }}</button>
+                            </div>
                         @endif
                         @if ($canManage && $invite !== null)
                             <p class="vyo-card-sub">{!! __('livewire/operator/owner-detail.invite_went_to', ['email' => e($invite['email'])]) !!}</p>
@@ -603,6 +623,78 @@
                     </div>
                 </div>
 
+                @if (count($giveUnits) > 0)
+                    {{-- ══ GIVE THIS OWNER A UNIT — DEC-p (2026-11-12). ⚠️ REAL MONEY: a unit's owner decides who is paid for its stays. Only a unit with no
+                         owner; from a day you pick (today or later); the owner must already have an agreement that covers it; nothing already worked out,
+                         on a statement or paid is touched; your password. The sentence below is the whole effect, in the day's own words. ═════════════ --}}
+                    <div class="vy-modal-backdrop" x-cloak x-show="giveOpen" x-transition.opacity x-on:click.self="giveOpen = false" x-on:keydown.escape.window="giveOpen = false">
+                        <div class="vy-modal vy-modal-card vy-modal--wide vyo-dlg" x-show="giveOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyod-give-t" tabindex="-1" x-trap.noscroll="giveOpen">
+                            <form method="POST" action="{{ route('app.owners.units.assign', $ownerId) }}" data-guard-submit>
+                                @csrf
+                                <input type="hidden" name="_form" value="give">
+                                <div class="vy-modal-head">
+                                    <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-5h4v5"/></svg></span>
+                                    <div class="vyo-dlg-head">
+                                        <h3 class="vy-modal-title" id="vyod-give-t">{{ __('livewire/operator/owner-detail.give_title', ['name' => $owner['name']]) }}</h3>
+                                        <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.give_sub') }}</p>
+                                    </div>
+                                    <button type="button" class="vy-modal-x" x-on:click="giveOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                </div>
+                                <div class="vy-modal-body">
+                                    @if ($vyOpen === 'give' && session('owners_error'))
+                                        <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
+                                    @endif
+                                    <div class="vy-field">
+                                        <label class="vy-field-label" for="vyod-give-unit">{{ __('livewire/operator/owner-detail.give_unit_label') }}</label>
+                                        <select id="vyod-give-unit" name="unit_id" class="vy-input" x-model="giveUnit" x-on:change="giveClamp()" required>
+                                            @foreach ($giveUnits as $g)
+                                                <option value="{{ $g['id'] }}" @selected(($vyForm === 'give' && old('unit_id') ? old('unit_id') : $giveUnits[0]['id']) === $g['id'])>{{ $g['label'] }}{{ $g['property'] ? ' · '.$g['property'] : '' }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if ($vyForm === 'give')
+                                            @error('unit_id')<div class="vyo-fielderr">{{ $message }}</div>@enderror
+                                        @endif
+                                    </div>
+                                    <div class="vy-field">
+                                        <label class="vy-field-label" for="vyod-give-date">{{ __('livewire/operator/owner-detail.give_date_label') }}</label>
+                                        <input id="vyod-give-date" class="vy-input" type="date" name="since" x-model="giveDate"
+                                               x-bind:min="giveRange[giveUnit] ? giveRange[giveUnit].min : null" x-bind:max="giveRange[giveUnit] ? giveRange[giveUnit].max : null"
+                                               value="{{ $vyForm === 'give' && old('since') ? old('since') : $giveUnits[0]['today'] }}" required>
+                                        @if ($vyForm === 'give' && $errors->has('since'))
+                                            <div class="vyo-fielderr">{{ $errors->first('since') }}</div>
+                                        @else
+                                            <p class="vyo-hint">{{ __('livewire/operator/owner-detail.give_date_hint') }}</p>
+                                        @endif
+                                    </div>
+                                    <p class="vyo-span" x-text="giveSentence()" aria-live="polite">{{ __('livewire/operator/owner-detail.give_sentence', ['date' => \Carbon\CarbonImmutable::parse($vyForm === 'give' && old('since') ? (string) old('since') : $giveUnits[0]['today'])->translatedFormat(\App\Support\I18n\LocalDate::pattern('j M Y')), 'owner' => $owner['name']]) }}</p>
+                                    <ul class="vyo-factlist vyo-factlist--spaced">
+                                        <li>{{ __('livewire/operator/owner-detail.give_fact_agreement', ['name' => $owner['name']]) }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.give_fact_past') }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.give_fact_stays', ['name' => $owner['name']]) }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.recorded_in_audit_log') }}</li>
+                                    </ul>
+                                    {{-- ⚠️ RE-AUTH: this changes whose income a unit is — the password-manager pattern, as Remove and the invite do --}}
+                                    <div class="vyo-confirm">
+                                        <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
+                                        <label class="vy-field-label" for="vyod-give-pw">{{ __('livewire/operator/owner-detail.confirm_its_you') }}</label>
+                                        <input id="vyod-give-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="{{ __('livewire/operator/owner-detail.password_placeholder') }}"
+                                               @if ($vyOpen === 'give' && $errors->has('current_password')) autofocus @endif>
+                                        @if ($vyForm === 'give' && $errors->has('current_password'))
+                                            <div class="vyo-fielderr">{{ $errors->first('current_password') }}</div>
+                                        @else
+                                            <p class="vyo-hint">{{ __('livewire/operator/owner-detail.give_password_hint') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="vy-modal-foot">
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="giveOpen = false">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/operator/owner-detail.give_confirm') }}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- ══ PAUSE / RESUME PAYOUTS — DEC-n (2026-10-02): a pause stops EVERY payout; the payout service refuses a paused
                      owner, so the dialog can say so plainly. ════════════════════════════════════════════════════════════════ --}}
                 <div class="vy-modal-backdrop" x-cloak x-show="pauseOpen" x-transition.opacity x-on:click.self="pauseOpen = false" x-on:keydown.escape.window="pauseOpen = false">
@@ -637,6 +729,75 @@
                         </form>
                     </div>
                 </div>
+
+                @if ($portalOff || $portalCanSwitchOff)
+                    {{-- ══ SWITCH THE OWNER'S PORTAL ACCESS OFF / ON — DEC-o (2026-11-12). Off: a typed reason, kept in the audit log only. On: your
+                         password, as sending an invite asks. The team goes with the owner; anyone who also works here keeps their login; nothing is
+                         deleted; nobody is emailed — and the dialog says each of those before it happens. ══════════════════════════════════════ --}}
+                    <div class="vy-modal-backdrop" x-cloak x-show="portalOpen" x-transition.opacity x-on:click.self="portalOpen = false" x-on:keydown.escape.window="portalOpen = false">
+                        <div class="vy-modal vy-modal-card vy-modal--wide vyo-dlg" x-show="portalOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyod-portal-dlg-t" tabindex="-1" x-trap.noscroll="portalOpen">
+                            <form method="POST" action="{{ route('app.owners.portal-access', $ownerId) }}" data-guard-submit>
+                                @csrf
+                                <input type="hidden" name="_form" value="portal">
+                                <input type="hidden" name="portal" value="{{ $portalOff ? 'on' : 'off' }}">
+                                <div class="vy-modal-head">
+                                    <span class="vy-modal-ico {{ $portalOff ? '' : 'is-danger' }}" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+                                    <div class="vyo-dlg-head">
+                                        <h3 class="vy-modal-title" id="vyod-portal-dlg-t">{{ $portalOff ? __('livewire/operator/owner-detail.portal_on_title', ['name' => $owner['name']]) : __('livewire/operator/owner-detail.portal_off_title', ['name' => $owner['name']]) }}</h3>
+                                        <p class="vyo-dlg-sub">{{ $portalOff ? __('livewire/operator/owner-detail.portal_on_sub') : __('livewire/operator/owner-detail.portal_off_sub') }}</p>
+                                    </div>
+                                    <button type="button" class="vy-modal-x" x-on:click="portalOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                                </div>
+                                <div class="vy-modal-body">
+                                    @if ($vyOpen === 'portal' && session('owners_error'))
+                                        <div class="vyo-errors" role="alert">{{ session('owners_error') }}</div>
+                                    @endif
+                                    <ul class="vyo-factlist vyo-factlist--spaced">
+                                        <li>{{ trans_choice($portalOff ? 'livewire/operator/owner-detail.portal_on_fact_team' : 'livewire/operator/owner-detail.portal_off_fact_team', $portalTeam, ['name' => $owner['name'], 'count' => $portalTeam]) }}</li>
+                                        @if ($portalOff)
+                                            <li>{{ __('livewire/operator/owner-detail.portal_on_fact_kept') }}</li>
+                                        @else
+                                            <li>{{ __('livewire/operator/owner-detail.portal_off_fact_login') }}</li>
+                                            <li>{{ __('livewire/operator/owner-detail.portal_off_fact_kept') }}</li>
+                                        @endif
+                                        {{-- ⚠️ D-MAIL-CLAIMS: nobody is emailed either way, and while email isn't sent from Vyrobel at all, the page says so plainly --}}
+                                        <li>{{ $mailSends ? __('livewire/operator/owner-detail.portal_fact_email_sent') : __('livewire/operator/owner-detail.portal_fact_email_not_sent') }}</li>
+                                        <li>{{ __('livewire/operator/owner-detail.recorded_in_audit_log') }}</li>
+                                    </ul>
+                                    @if ($portalOff)
+                                        {{-- ⚠️ switching ON gives access back, so it asks for the operator's password (the password-manager pattern, as Remove does) --}}
+                                        <div class="vyo-confirm">
+                                            <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly hidden aria-hidden="true" tabindex="-1">
+                                            <label class="vy-field-label" for="vyod-portal-pw">{{ __('livewire/operator/owner-detail.confirm_its_you') }}</label>
+                                            <input id="vyod-portal-pw" class="vy-input" type="password" name="current_password" autocomplete="current-password" required placeholder="{{ __('livewire/operator/owner-detail.password_placeholder') }}"
+                                                   @if ($vyOpen === 'portal') autofocus @endif>
+                                            @if ($vyForm === 'portal' && $errors->has('current_password'))
+                                                <div class="vyo-fielderr">{{ $errors->first('current_password') }}</div>
+                                            @else
+                                                <p class="vyo-hint">{{ __('livewire/operator/owner-detail.portal_password_hint') }}</p>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="vy-field">
+                                            <label class="vy-field-label" for="vyod-portal-reason">{{ __('livewire/operator/owner-detail.portal_reason_label') }}</label>
+                                            <textarea id="vyod-portal-reason" name="reason" rows="2" class="vy-input" minlength="5" maxlength="300" required autofocus
+                                                      placeholder="{{ __('livewire/operator/owner-detail.portal_reason_placeholder') }}">{{ $vyForm === 'portal' ? old('reason') : '' }}</textarea>
+                                            @if ($vyForm === 'portal' && $errors->has('reason'))
+                                                <div class="vyo-fielderr">{{ $errors->first('reason') }}</div>
+                                            @else
+                                                <p class="vyo-hint">{{ __('livewire/operator/owner-detail.portal_reason_hint') }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="vy-modal-foot">
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="portalOpen = false">{{ __('common.cancel') }}</button>
+                                    <button type="submit" class="vy-btn {{ $portalOff ? 'vy-btn--accent' : 'vy-btn--danger' }}">{{ $portalOff ? __('livewire/operator/owner-detail.portal_on_confirm') : __('livewire/operator/owner-detail.portal_off_confirm') }}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- ══ REMOVE OWNER — an ARCHIVE, not a delete: the owner's name and your password (G2) ══════════════════════════
                      The founder's report: the password box sat under a shouted label with no border, and Keep and Remove were two
@@ -817,7 +978,7 @@
                                     <li>{!! __('livewire/operator/owner-detail.close_fact_sealed') !!}</li>
                                     <li>{!! __('livewire/operator/owner-detail.close_fact_adjustment') !!}</li>
                                     <li>{!! __('livewire/operator/owner-detail.close_fact_uncollected') !!}</li>
-                                    <li>{{ __('livewire/operator/owner-detail.close_fact_portal', ['name' => $owner['name']]) }}</li>
+                                    <li>{{ __($portalOff ? 'livewire/operator/owner-detail.close_fact_portal_off' : 'livewire/operator/owner-detail.close_fact_portal', ['name' => $owner['name']]) }}</li>
                                     <li>{!! __('livewire/operator/owner-detail.close_fact_nothing_paid') !!}</li>
                                 </ul>
                             </div>
@@ -843,7 +1004,7 @@
                                     <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
                                     <div class="vyo-dlg-head">
                                         <h3 class="vy-modal-title" id="vyod-propose-t">{{ __('livewire/operator/owner-detail.propose_title') }}</h3>
-                                        <p class="vyo-dlg-sub">{{ __('livewire/operator/owner-detail.propose_sub', ['name' => $owner['name']]) }}</p>
+                                        <p class="vyo-dlg-sub">{{ __($portalOff ? 'livewire/operator/owner-detail.propose_sub_portal_off' : 'livewire/operator/owner-detail.propose_sub', ['name' => $owner['name']]) }}</p>
                                     </div>
                                     <button type="button" class="vy-modal-x" x-on:click="proposeOpen = false" aria-label="{{ __('common.close') }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                                 </div>
@@ -936,7 +1097,20 @@
                 const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
                 return m ? { y: +m[1], m: +m[2] - 1, d: +m[3], t: Date.UTC(+m[1], +m[2] - 1, +m[3]) } : null;
             };
+            // DEC-p — the sentence in the dialog that gives the owner a unit says the chosen day in the page's own month words, exactly as the period line above does
+            const giveText = @js(__('livewire/operator/owner-detail.give_sentence', ['date' => ':date', 'owner' => $owner['name']]));
             Alpine.data('vyOwnerPage', (state) => Object.assign({
+                giveSentence() {
+                    const a = day(this.giveDate);
+                    return a ? giveText.replace(':date', a.d + ' ' + months[a.m] + ' ' + a.y) : '';
+                },
+                giveClamp() {
+                    // a unit at another property can have another "today" — keep the day inside the chosen unit's range
+                    const r = this.giveRange[this.giveUnit];
+                    if (! r) return;
+                    if (! this.giveDate || this.giveDate < r.min) this.giveDate = r.min;
+                    if (this.giveDate > r.max) this.giveDate = r.max;
+                },
                 span() {
                     const a = day(this.start), b = day(this.end);
                     if (! a || ! b) return '';

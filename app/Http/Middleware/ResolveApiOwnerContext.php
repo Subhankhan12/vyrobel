@@ -8,6 +8,7 @@ use App\Models\Owner;
 use App\Models\OwnerUser;
 use App\Models\User;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerPortalAccess;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -44,10 +45,13 @@ class ResolveApiOwnerContext
 
         // Resolve the token user's owners + their org(s) cross-tenant (there is no request tenant yet). The role
         // is recorded PER OWNER (P1-1) — a token inherits the user's real role on each owner, never a union role.
-        [$roles, $primaryOwnerIds, $orgIds] = $tenant->runAsSuperAdmin(function () use ($user): array {
-            $primary = Owner::query()->where('user_id', $user->getKey())->get(['id', 'organization_id']);
+        // ⚠️ DEC-o — an owner whose portal an operator switched OFF is not resolved: their token (and their team's) reaches nothing
+        //    until it is switched back on. The token itself is untouched, so it works again the moment the portal is.
+        [$roles, $primaryOwnerIds, $orgIds, $switchedOff] = $tenant->runAsSuperAdmin(function () use ($user): array {
+            $primary = Owner::query()->where('user_id', $user->getKey())->portalOn()->get(['id', 'organization_id']);
             $subMemberships = OwnerUser::query()
-                ->where('user_id', $user->getKey())->where('status', 'active')->get(['owner_id', 'role']);
+                ->where('user_id', $user->getKey())->where('status', 'active')
+                ->whereNotIn('owner_id', OwnerPortalAccess::offOwnerIds())->get(['owner_id', 'role']);
             $subOwners = $subMemberships->isEmpty()
                 ? collect()
                 : Owner::query()->whereIn('id', $subMemberships->pluck('owner_id')->all())->get(['id', 'organization_id']);
@@ -68,10 +72,14 @@ class ResolveApiOwnerContext
             $orgIds = $primary->pluck('organization_id')->merge($subOwners->pluck('organization_id'))
                 ->map(fn ($id): string => (string) $id)->unique()->values()->all();
 
-            return [$roles, $primaryOwnerIds, $orgIds];
+            // linked to an owner, but every owner they belong to is switched off — said plainly, not as "not an owner"
+            return [$roles, $primaryOwnerIds, $orgIds, $roles === [] && OwnerPortalAccess::hasAnyLink($user)];
         });
 
         // ⛔ Fail closed: a non-owner token, or one straddling organizations, reaches no owner data.
+        if ($switchedOff) {
+            abort(403, __('php/http/middleware/resolve_api_owner_context.portal_off'));
+        }
         if ($roles === []) {
             abort(403, 'This token is not linked to an owner account.');
         }
