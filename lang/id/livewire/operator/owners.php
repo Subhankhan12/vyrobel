@@ -94,6 +94,7 @@ return [
     'optional' => 'opsional',
     'unit_taken_title' => 'Pemilik unit menentukan siapa yang menerima pencairan untuk unit tersebut — unit tidak dapat dipindahkan melalui undangan',
     'owned_by' => 'Dimiliki oleh :owner',
+    'units_hint_none' => 'Belum ada yang dipilih — setelah undangan diterima, Anda dapat memberikan unit dari halaman pemilik ini.',
     'units_hint' => '{1}:count unit — menjadi milik pemilik ini saat undangan diterima.|[0,*]:count unit — menjadi milik pemilik ini saat undangan diterima.',
     'commission_label' => 'Komisi pengelolaan',
     'commission_other' => 'Lainnya',

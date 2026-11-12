@@ -94,6 +94,7 @@ return [
     'optional' => 'opcional',
     'unit_taken_title' => 'O proprietário de uma unidade decide quem recebe por ela — ela não pode ser transferida por um convite',
     'owned_by' => 'Proprietário: :owner',
+    'units_hint_none' => 'Nada selecionado — depois que a pessoa aceitar o convite, você pode atribuir uma unidade pela página dela.',
     'units_hint' => '{1} :count unidade — passa a ser deste proprietário após a aceitação do convite.|[0,*] :count unidades — passam a ser deste proprietário após a aceitação do convite.',
     'commission_label' => 'Comissão de administração',
     'commission_other' => 'Outra',

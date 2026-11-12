@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Moneda de liquidación',
     'attribution' => 'Atribución',
     'attribution_sub' => 'Excepciones acordadas a las reglas estándar.',
-    'attribution_standard' => 'Atribución estándar: su contrato no incluye excepciones a las reglas estándar sobre quién asume los costes de las OTA, los gastos de limpieza y los extras.',
+    'attribution_standard' => 'Atribución estándar: su contrato no incluye excepciones a las reglas estándar sobre quién asume los costes de las OTA y quién recibe los gastos de limpieza y los extras.',
     'documents' => 'Documentos',
     'summary_pdf' => 'Resumen · PDF',
     'doc_meta_pdf' => ':meta · PDF',

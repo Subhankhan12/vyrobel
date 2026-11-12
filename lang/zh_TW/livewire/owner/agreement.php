@@ -57,7 +57,7 @@ return [
     'payout_currency' => '撥款幣別',
     'attribution' => '費用歸屬',
     'attribution_sub' => '經約定的標準規則例外情形。',
-    'attribution_standard' => '標準費用歸屬——您的合約對 OTA 成本、清潔費與加購項目由誰負擔的標準規則，沒有任何例外約定。',
+    'attribution_standard' => '標準費用歸屬——您的合約對 OTA 成本由誰負擔，以及清潔費與加購項目由誰收取的標準規則，沒有任何例外約定。',
     'documents' => '文件',
     'summary_pdf' => '摘要 · PDF',
     'doc_meta_pdf' => ':meta · PDF',

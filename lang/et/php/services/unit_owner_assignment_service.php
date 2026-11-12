@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Majutusüksust ei saa anda (omanik: :owner) — kutse on veel vastu võtmata või omanik on arhiveeritud. Majutusüksust saab anda ainult aktiivsele omanikule.',
+    'unit_on_pending_invitation' => 'Majutusüksus „:unit“ on lisatud omaniku kutsele, mis on veel vastu võtmata. See läheb sellele omanikule, kui kutse vastu võetakse — või tühistage kutse esmalt, et anda majutusüksus kellelegi teisele.',
     'unit_already_owned' => 'Majutusüksusel „:unit“ on juba omanik (:owner), seega ei saa seda siin kellelegi teisele anda. Anda saab ainult majutusüksust, millel pole omanikku.',
     'unit_owned_by_another' => 'teine omanik',
     'date_invalid' => 'Valige kehtiv kuupäev, millest alates majutusüksus antakse.',

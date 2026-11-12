@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Devise de versement',
     'attribution' => 'Répartition des frais',
     'attribution_sub' => 'Exceptions convenues aux règles standard.',
-    'attribution_standard' => 'Répartition standard — votre contrat ne prévoit aucune exception aux règles standard sur la prise en charge des frais OTA, des frais de ménage et des extras.',
+    'attribution_standard' => 'Répartition standard — votre contrat ne prévoit aucune exception aux règles standard sur la prise en charge des frais OTA et sur le bénéficiaire des frais de ménage et des extras.',
     'documents' => 'Documents',
     'summary_pdf' => 'Récapitulatif · PDF',
     'doc_meta_pdf' => ':meta · PDF',

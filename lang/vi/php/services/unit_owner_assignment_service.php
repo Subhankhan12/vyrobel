@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Không thể giao phòng cho :owner — họ chưa chấp nhận lời mời, hoặc đã được lưu trữ. Chỉ có thể giao phòng cho chủ sở hữu đang hoạt động.',
+    'unit_on_pending_invitation' => 'Phòng “:unit” có trong một lời mời chủ sở hữu chưa được chấp nhận. Phòng sẽ thuộc về chủ sở hữu đó khi họ chấp nhận — hoặc hãy hủy lời mời trước để giao phòng cho người khác.',
     'unit_already_owned' => 'Phòng “:unit” đã thuộc về :owner, nên không thể giao cho người khác ở đây. Chỉ có thể giao phòng chưa có chủ sở hữu.',
     'unit_owned_by_another' => 'chủ sở hữu khác',
     'date_invalid' => 'Vui lòng chọn một ngày hợp lệ làm ngày giao phòng.',

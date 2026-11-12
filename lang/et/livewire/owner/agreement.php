@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Väljamaksevaluuta',
     'attribution' => 'Kulude jaotus',
     'attribution_sub' => 'Standardreeglitest kokku lepitud erandid.',
-    'attribution_standard' => 'Standardjaotus — teie haldusleping ei sisalda erandeid standardreeglitest, mis määravad, kes kannab OTA kulud, koristustasud ja lisateenused.',
+    'attribution_standard' => 'Standardjaotus — teie haldusleping ei sisalda erandeid standardreeglitest, mis määravad, kes kannab OTA kulud ning kes saab koristustasud ja lisateenused.',
     'documents' => 'Dokumendid',
     'summary_pdf' => 'Kokkuvõte · PDF',
     'doc_meta_pdf' => ':meta · PDF',

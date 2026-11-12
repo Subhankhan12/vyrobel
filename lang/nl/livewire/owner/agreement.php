@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Uitbetalingsvaluta',
     'attribution' => 'Toerekening',
     'attribution_sub' => 'Afgesproken uitzonderingen op de standaardregels.',
-    'attribution_standard' => 'Standaardtoerekening — uw overeenkomst bevat geen uitzonderingen op de standaardregels over wie de OTA-kosten, schoonmaakkosten en extra’s draagt.',
+    'attribution_standard' => 'Standaardtoerekening — uw overeenkomst bevat geen uitzonderingen op de standaardregels over wie de OTA-kosten draagt en wie de schoonmaakkosten en extra’s ontvangt.',
     'documents' => 'Documenten',
     'summary_pdf' => 'Samenvatting · PDF',
     'doc_meta_pdf' => ':meta · PDF',

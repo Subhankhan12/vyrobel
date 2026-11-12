@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Monedha e derdhjes',
     'attribution' => 'Ndarja e kostove',
     'attribution_sub' => 'Përjashtime të dakorduara nga rregullat standarde.',
-    'attribution_standard' => 'Ndarje standarde — kontrata juaj nuk ka përjashtime nga rregullat standarde për atë se kush mbulon kostot e OTA-ve, tarifat e pastrimit dhe shërbimet shtesë.',
+    'attribution_standard' => 'Ndarje standarde — kontrata juaj nuk ka përjashtime nga rregullat standarde për atë se kush mbulon kostot e OTA-ve dhe kush i merr tarifat e pastrimit dhe shërbimet shtesë.',
     'documents' => 'Dokumentet',
     'summary_pdf' => 'Përmbledhja · PDF',
     'doc_meta_pdf' => ':meta · PDF',

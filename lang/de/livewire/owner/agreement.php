@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Auszahlungswährung',
     'attribution' => 'Kostenzuordnung',
     'attribution_sub' => 'Vereinbarte Ausnahmen von den Standardregeln.',
-    'attribution_standard' => 'Standardzuordnung — Ihr Vertrag enthält keine Ausnahmen von den Standardregeln dazu, wer OTA-Kosten, Reinigungsgebühren und Extras trägt.',
+    'attribution_standard' => 'Standardzuordnung — Ihr Vertrag enthält keine Ausnahmen von den Standardregeln dazu, wer OTA-Kosten trägt und wer Reinigungsgebühren und Extras erhält.',
     'documents' => 'Dokumente',
     'summary_pdf' => 'Zusammenfassung · PDF',
     'doc_meta_pdf' => ':meta · PDF',

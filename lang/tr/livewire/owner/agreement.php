@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Hakediş para birimi',
     'attribution' => 'Maliyet paylaşımı',
     'attribution_sub' => 'Standart kurallara yönelik kararlaştırılan istisnalar.',
-    'attribution_standard' => 'Standart paylaşım — sözleşmeniz, OTA maliyetleri, temizlik ücretleri ve ekstraların kime ait olduğunu belirleyen standart kurallara hiçbir istisna içermez.',
+    'attribution_standard' => 'Standart paylaşım — sözleşmeniz, OTA maliyetlerini kimin üstleneceğini ve temizlik ücretleri ile ekstraların kime gideceğini belirleyen standart kurallara hiçbir istisna içermez.',
     'documents' => 'Belgeler',
     'summary_pdf' => 'Özet · PDF',
     'doc_meta_pdf' => ':meta · PDF',

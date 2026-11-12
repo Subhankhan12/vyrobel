@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Moeda de repasse',
     'attribution' => 'Atribuição',
     'attribution_sub' => 'Exceções acordadas às regras padrão.',
-    'attribution_standard' => 'Atribuição padrão — seu contrato não tem exceções às regras padrão sobre quem arca com os custos de OTA, as taxas de limpeza e os extras.',
+    'attribution_standard' => 'Atribuição padrão — seu contrato não tem exceções às regras padrão sobre quem arca com os custos de OTA e quem recebe as taxas de limpeza e os extras.',
     'documents' => 'Documentos',
     'summary_pdf' => 'Resumo · PDF',
     'doc_meta_pdf' => ':meta · PDF',

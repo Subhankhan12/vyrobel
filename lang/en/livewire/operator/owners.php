@@ -103,6 +103,7 @@ return [
     'optional' => 'optional',
     'unit_taken_title' => 'A unit’s owner decides who is paid for it — it can’t be moved through an invite',
     'owned_by' => 'Owned by :owner',
+    'units_hint_none' => 'None chosen — once they have accepted, you can give them a unit from their page.',
     'units_hint' => '{1} :count unit — they become this owner’s when the invite is accepted.|[0,*] :count units — they become this owner’s when the invite is accepted.',
     'commission_label' => 'Management commission',
     'commission_other' => 'Other',

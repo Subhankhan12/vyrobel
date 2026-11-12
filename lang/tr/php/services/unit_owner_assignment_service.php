@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => ':owner için birim verilemez — daveti henüz kabul etmedi veya kaldırıldı. Yalnızca aktif bir mülk sahibine birim verilebilir.',
+    'unit_on_pending_invitation' => '“:unit” birimi, henüz kabul edilmemiş bir mülk sahibi davetinde yer alıyor. Davet kabul edildiğinde bu mülk sahibinin olur — ya da birimi başka birine vermek için önce daveti iptal edin.',
     'unit_already_owned' => '“:unit” birimi zaten :owner adına kayıtlı, bu nedenle burada başka birine verilemez. Yalnızca sahibi olmayan bir birim verilebilir.',
     'unit_owned_by_another' => 'başka bir mülk sahibi',
     'date_invalid' => 'Birimin verileceği geçerli bir tarih seçin.',

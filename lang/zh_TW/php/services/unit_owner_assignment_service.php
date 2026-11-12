@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => '無法為 :owner 分配房間——對方尚未接受邀請，或已被封存。只有啟用中的業主才能被分配房間。',
+    'unit_on_pending_invitation' => '「:unit」已列在一份尚未被接受的業主邀請中。該業主接受後，此房間即歸其所有——若要分配給其他人，請先取消該邀請。',
     'unit_already_owned' => '「:unit」已歸屬 :owner，因此無法在此分配給其他人。只能分配尚無業主的房間。',
     'unit_owned_by_another' => '其他業主',
     'date_invalid' => '請選擇有效的日期，作為分配房間的起始日期。',

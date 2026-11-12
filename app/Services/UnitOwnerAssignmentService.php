@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Exceptions\Owner\UnitAssignmentRefused;
 use App\Models\ManagementAgreement;
 use App\Models\Owner;
+use App\Models\OwnerInvite;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Property;
 use App\Models\Reservation;
@@ -127,6 +128,12 @@ final class UnitOwnerAssignmentService
         if ($unit->owner_id !== null) {
             $current = Owner::withTrashed()->whereKey($unit->owner_id)->value('name');
             throw new UnitAssignmentRefused(__('php/services/unit_owner_assignment_service.unit_already_owned', ['unit' => $label, 'owner' => is_string($current) && $current !== '' ? $current : __('php/services/unit_owner_assignment_service.unit_owned_by_another')]));
+        }
+
+        // 2b — a unit a still-waiting owner invitation lists is promised to that invitee (accepting hands them every unit it lists that has no owner then):
+        //      giving it away here would make that invitation quietly smaller. Cancel the invitation first, or wait for it to be accepted.
+        if (in_array((string) $unit->getKey(), OwnerInvite::unitIdsOnPendingInvites(), true)) {
+            throw new UnitAssignmentRefused(__('php/services/unit_owner_assignment_service.unit_on_pending_invitation', ['unit' => $label]));
         }
 
         // 3 — the day: a real date, today at the property or later, within a year

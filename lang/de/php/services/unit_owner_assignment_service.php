@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Es kann keine Einheit zugewiesen werden (Eigentümer: :owner) — die Einladung wurde noch nicht angenommen, oder der Eigentümer wurde entfernt. Nur ein aktiver Eigentümer kann eine Einheit erhalten.',
+    'unit_on_pending_invitation' => '„:unit“ steht auf der Einladung eines Eigentümers, die noch nicht angenommen wurde. Die Einheit gehört diesem Eigentümer, sobald die Einladung angenommen ist — oder widerrufen Sie zuerst die Einladung, um die Einheit jemand anderem zuzuweisen.',
     'unit_already_owned' => '„:unit“ hat bereits einen Eigentümer (:owner) und kann hier nicht jemand anderem zugewiesen werden. Nur eine Einheit ohne Eigentümer kann zugewiesen werden.',
     'unit_owned_by_another' => 'jemand anders',
     'date_invalid' => 'Wählen Sie ein gültiges Datum, ab dem die Einheit zugewiesen werden soll.',

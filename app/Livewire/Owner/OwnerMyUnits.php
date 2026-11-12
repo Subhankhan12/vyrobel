@@ -154,7 +154,7 @@ class OwnerMyUnits extends Component
      * unit in the same room type is excluded by construction (it carries a different unit_id).
      *
      * @param  Collection<int, Unit>  $units
-     * @return array{days: int, unit_count: int, heat: array<int, int>, per_unit: array<string, int>, nights: int, pct: int}
+     * @return array{days: int, unit_count: int, heat: array<int, int>, held: array<int, int>, per_unit: array<string, int>, per_unit_available: array<string, int>, available: int, nights: int, pct: int}
      */
     private function occupancy(Collection $units, Carbon $month): array
     {
@@ -182,6 +182,7 @@ class OwnerMyUnits extends Component
         }
 
         $lines = ReservationUnit::query()
+            ->ownerStays()                                              // D-OWNERSINCE-WINDOWS: only the stays that are the owner's
             ->whereIn('unit_id', $unitIds)->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())
             ->whereDate('check_out', '>', $monthStart->toDateString())
@@ -228,18 +229,18 @@ class OwnerMyUnits extends Component
 
     /**
      * @param  Collection<int, Unit>  $units
-     * @param  array{days: int, per_unit: array<string, int>}  $occupancy
+     * @param  array{days: int, per_unit: array<string, int>, per_unit_available: array<string, int>}  $occupancy
      * @param  array<string, array{gross_minor: int, adr_minor: int, occupancy_pct: int, nights: int}>  $perUnit
      * @return list<array<string, mixed>>
      */
     private function unitCards(Collection $units, array $occupancy, array $perUnit, string $currency, ?string $bestUnitId, array $editableRates): array
     {
-        $days = $occupancy['days'];
-
-        return $units->map(function (Unit $u) use ($occupancy, $days, $perUnit, $currency, $bestUnitId, $editableRates): array {
+        return $units->map(function (Unit $u) use ($occupancy, $perUnit, $currency, $bestUnitId, $editableRates): array {
             $id = (string) $u->id;
             $roomTypeId = (string) $u->room_type_id;
             $nights = $occupancy['per_unit'][$id] ?? 0;
+            // D-OWNERSINCE-WINDOWS: over the nights the owner HAD this unit (the whole month unless it was given to them part-way through)
+            $held = $occupancy['per_unit_available'][$id] ?? 0;
             $m = $perUnit[$id] ?? ['gross_minor' => 0, 'adr_minor' => 0, 'nights' => 0];
             $rate = $editableRates[$roomTypeId] ?? null;   // present only for an EXCLUSIVELY-owned room type
 
@@ -250,7 +251,7 @@ class OwnerMyUnits extends Component
                 'type' => (string) $u->roomType->name,   // units always belong to a room type
                 'active' => $u->is_active !== false,
                 'nights' => $nights,
-                'occupancy_pct' => $days > 0 ? (int) round($nights / $days * 100) : 0,
+                'occupancy_pct' => $held > 0 ? (int) round($nights / $held * 100) : 0,
                 // Batch B — REAL per-unit revenue (GROSS room revenue, for comparability).
                 'revenue' => $this->money($m['gross_minor'], $currency),
                 // ⚠️ "Nightly rate" now means the CONFIGURED rate (wireframe-parity WAVE 2 · #12). It used to

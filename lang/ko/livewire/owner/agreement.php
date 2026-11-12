@@ -57,7 +57,7 @@ return [
     'payout_currency' => '지급 통화',
     'attribution' => '비용 귀속',
     'attribution_sub' => '표준 규칙에 대해 합의한 예외 사항입니다.',
-    'attribution_standard' => '표준 비용 귀속 — 이 계약에는 채널 수수료, 청소비, 추가 서비스를 누가 부담하는지에 관한 표준 규칙의 예외가 없습니다.',
+    'attribution_standard' => '표준 비용 귀속 — 이 계약에는 채널 수수료를 누가 부담하는지, 그리고 청소비와 추가 서비스 요금을 누가 받는지에 관한 표준 규칙의 예외가 없습니다.',
     'documents' => '문서',
     'summary_pdf' => '요약 · PDF',
     'doc_meta_pdf' => ':meta · PDF',

@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Moeda das transferências',
     'attribution' => 'Imputação',
     'attribution_sub' => 'Exceções acordadas às regras padrão.',
-    'attribution_standard' => 'Imputação padrão — o seu contrato não tem exceções às regras padrão sobre quem suporta os custos das OTA, as taxas de limpeza e os extras.',
+    'attribution_standard' => 'Imputação padrão — o seu contrato não tem exceções às regras padrão sobre quem suporta os custos das OTA e quem recebe as taxas de limpeza e os extras.',
     'documents' => 'Documentos',
     'summary_pdf' => 'Resumo · PDF',
     'doc_meta_pdf' => ':meta · PDF',

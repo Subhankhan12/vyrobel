@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Support\Unit\InventoryDeletion;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -73,6 +74,25 @@ class OwnerInvite extends Model
     public function invitedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    /**
+     * The ids of the units a still-PENDING invitation lists — promised to the invitee, so neither "Give a unit" nor a unit's deletion may treat them as free
+     * (D-DEC-P-INVITE-PICKER, 2026-11-12). ⚠️ Pending, not "redeemable": a lapsed invitation can still be resent with the same units, so it still holds them.
+     * ONE definition for the picker, the write's own refusal and {@see InventoryDeletion}. Tenant-scoped like every read of this model.
+     *
+     * @return list<string>
+     */
+    public static function unitIdsOnPendingInvites(): array
+    {
+        $ids = [];
+        foreach (self::query()->where('status', 'pending')->whereNotNull('assigned_unit_ids')->get(['assigned_unit_ids']) as $invite) {
+            foreach ((array) $invite->assigned_unit_ids as $id) {
+                $ids[(string) $id] = true;
+            }
+        }
+
+        return array_keys($ids);
     }
 
     /** A usable invite: still pending and not past its expiry. */

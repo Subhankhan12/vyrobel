@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Nu se poate atribui o unitate către :owner — nu și-a acceptat încă invitația sau a fost eliminat. Doar un proprietar activ poate primi o unitate.',
+    'unit_on_pending_invitation' => 'Unitatea „:unit” figurează într-o invitație de proprietar care nu a fost încă acceptată. Devine a acelui proprietar când invitația este acceptată — sau anulați-o mai întâi, pentru a atribui unitatea altcuiva.',
     'unit_already_owned' => 'Unitatea „:unit” este deja deținută de :owner, deci nu poate fi atribuită altcuiva aici. Se poate atribui doar o unitate fără proprietar.',
     'unit_owned_by_another' => 'un alt proprietar',
     'date_invalid' => 'Alegeți o dată reală de la care se atribuie unitatea.',

@@ -94,6 +94,7 @@ return [
     'optional' => 'optional',
     'unit_taken_title' => 'Der Eigentümer einer Einheit bestimmt, wer dafür bezahlt wird — sie kann nicht per Einladung übertragen werden',
     'owned_by' => 'Eigentümer: :owner',
+    'units_hint_none' => 'Nichts ausgewählt — sobald die Person die Einladung angenommen hat, können Sie ihr auf ihrer Seite eine Einheit zuweisen.',
     'units_hint' => '{1} :count Einheit — sie gehört diesem Eigentümer, sobald die Einladung angenommen ist.|[0,*] :count Einheiten — sie gehören diesem Eigentümer, sobald die Einladung angenommen ist.',
     'commission_label' => 'Verwaltungsprovision',
     'commission_other' => 'Andere',

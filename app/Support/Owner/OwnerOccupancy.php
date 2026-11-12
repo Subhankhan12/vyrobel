@@ -42,8 +42,12 @@ final class OwnerOccupancy
     /**
      * Occupancy for a calendar month across the given OWNER-OWNED unit ids.
      *
+     * ⚠️ D-OWNERSINCE-WINDOWS (2026-11-12): a unit given to the owner from a day (`units.owner_since`) counts only from that day — its stays are the ones that
+     * began on or after it ({@see ReservationUnit::scopeOwnerStays()}) and its available nights start there ({@see OwnerStayWindow}). `held[d]` is how many of
+     * the units were the owner's on day `d` (every unit, every day, when none has an `owner_since` — then `available` is `unit_count × days`, as before).
+     *
      * @param  list<string>  $unitIds  the owner's OWN unit ids (owner-scoped upstream); [] → zeroed
-     * @return array{days: int, unit_count: int, heat: array<int, int>, per_unit: array<string, int>, nights: int, pct: int}
+     * @return array{days: int, unit_count: int, heat: array<int, int>, held: array<int, int>, per_unit: array<string, int>, per_unit_available: array<string, int>, available: int, nights: int, pct: int}
      */
     public static function forMonth(array $unitIds, Carbon $month): array
     {
@@ -52,10 +56,19 @@ final class OwnerOccupancy
         $days = (int) $monthStart->daysInMonth;
 
         $heat = array_fill(1, $days, 0);
+        $held = array_fill(1, $days, 0);
         $perUnit = array_fill_keys($unitIds, 0);
+        $perUnitAvailable = array_fill_keys($unitIds, 0);
 
         if ($unitIds !== []) {
+            $since = OwnerStayWindow::sinceByUnit($unitIds);
+            $perUnitAvailable = OwnerStayWindow::nightsByUnit($unitIds, $monthStart, $monthEnd, $since);
+            for ($d = 1; $d <= $days; $d++) {
+                $held[$d] = OwnerStayWindow::unitsHeldOn($unitIds, $since, $monthStart->copy()->day($d)->toDateString());
+            }
+
             $lines = ReservationUnit::query()
+                ->ownerStays()                          // ← only the stays that are the owner's (began on or after owner_since)
                 ->whereIn('unit_id', $unitIds)          // ← the owner boundary: own units ONLY
                 ->where('status', 'active')
                 ->whereDate('check_in', '<', $monthEnd->toDateString())
@@ -78,14 +91,18 @@ final class OwnerOccupancy
 
         $unitCount = count($unitIds);
         $nights = array_sum($perUnit);
+        $available = array_sum($perUnitAvailable);
 
         return [
             'days' => $days,
             'unit_count' => $unitCount,
             'heat' => $heat,
+            'held' => $held,
             'per_unit' => $perUnit,
+            'per_unit_available' => $perUnitAvailable,
+            'available' => $available,
             'nights' => $nights,
-            'pct' => $unitCount > 0 && $days > 0 ? (int) round($nights / ($unitCount * $days) * 100) : 0,
+            'pct' => $available > 0 ? (int) round($nights / $available * 100) : 0,
         ];
     }
 }

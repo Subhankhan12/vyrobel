@@ -167,6 +167,7 @@ class OwnerBlockCalendar extends Component
         $days = [];
 
         ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: a stay before the owner's day is not theirs — nor is its guest's name
             ->where('unit_id', $unit->id)
             ->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())

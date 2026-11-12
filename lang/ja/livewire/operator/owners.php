@@ -94,6 +94,7 @@ return [
     'optional' => '任意',
     'unit_taken_title' => '客室の送金先はその客室のオーナーが決めるため、招待で客室を移すことはできません',
     'owned_by' => 'オーナー：:owner',
+    'units_hint_none' => '選択なし。招待が承諾されたら、オーナーのページから客室を割り当てられます。',
     'units_hint' => '{1}:count室。招待が承諾されると、このオーナーの客室になります。|[0,*]:count室。招待が承諾されると、このオーナーの客室になります。',
     'commission_label' => '管理手数料',
     'commission_other' => 'その他',

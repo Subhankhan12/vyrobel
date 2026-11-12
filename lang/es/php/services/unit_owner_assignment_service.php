@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => ':owner no puede recibir una unidad: todavía no ha aceptado su invitación o se le ha quitado como propietario. Solo se puede asignar una unidad a un propietario activo.',
+    'unit_on_pending_invitation' => 'La unidad “:unit” figura en una invitación de propietario que todavía no se ha aceptado. Pasa a ser de ese propietario cuando la acepte; para asignarla a otra persona, cancele antes la invitación.',
     'unit_already_owned' => 'La unidad “:unit” ya pertenece a :owner, así que aquí no se puede asignar a otra persona. Solo se puede asignar una unidad sin propietario.',
     'unit_owned_by_another' => 'otro propietario',
     'date_invalid' => 'Elija una fecha válida a partir de la cual asignar la unidad.',

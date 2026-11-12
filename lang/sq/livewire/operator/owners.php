@@ -94,6 +94,7 @@ return [
     'optional' => 'opsionale',
     'unit_taken_title' => 'Pronari i një njësie përcakton kush paguhet për të — nuk mund të transferohet përmes një ftese',
     'owned_by' => 'Pronari: :owner',
+    'units_hint_none' => 'Asnjë e zgjedhur — pasi ta pranojnë ftesën, mund t’u caktoni një njësi nga faqja e tyre.',
     'units_hint' => '{1}:count njësi — i kalon këtij pronari kur pranohet ftesa.|[0,*]:count njësi — i kalojnë këtij pronari kur pranohet ftesa.',
     'commission_label' => 'Komisioni i administrimit',
     'commission_other' => 'Tjetër',

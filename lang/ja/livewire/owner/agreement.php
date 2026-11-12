@@ -57,7 +57,7 @@ return [
     'payout_currency' => '送金通貨',
     'attribution' => '費用負担',
     'attribution_sub' => '標準ルールに対する合意済みの例外。',
-    'attribution_standard' => '標準の費用負担 — この契約には、OTA費用、清掃料、オプションの負担者に関する標準ルールの例外はありません。',
+    'attribution_standard' => '標準の費用負担 — この契約には、OTA費用の負担者と、清掃料およびオプションの受取先に関する標準ルールの例外はありません。',
     'documents' => '書類',
     'summary_pdf' => '概要 · PDF',
     'doc_meta_pdf' => ':meta · PDF',

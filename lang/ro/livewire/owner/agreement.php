@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Moneda viramentelor',
     'attribution' => 'Repartizare',
     'attribution_sub' => 'Excepții convenite de la regulile standard.',
-    'attribution_standard' => 'Repartizare standard — contractul nu prevede excepții de la regulile standard privind cine suportă costurile OTA, taxele de curățenie și serviciile suplimentare.',
+    'attribution_standard' => 'Repartizare standard — contractul nu prevede excepții de la regulile standard privind cine suportă costurile OTA și cui revin taxele de curățenie și serviciile suplimentare.',
     'documents' => 'Documente',
     'summary_pdf' => 'Rezumat · PDF',
     'doc_meta_pdf' => ':meta · PDF',

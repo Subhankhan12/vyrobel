@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => ':owner nuk mund të marrë njësi — ose nuk e ka pranuar ende ftesën, ose është hequr. Njësi mund të marrë vetëm një pronar aktiv.',
+    'unit_on_pending_invitation' => 'Njësia «:unit» është përfshirë në një ftesë për pronar që nuk është pranuar ende. Ajo i kalon atij pronari kur pranohet ftesa — ose anuloni fillimisht ftesën dhe caktojeni njësinë për dikë tjetër.',
     'unit_already_owned' => 'Njësia «:unit» ka tashmë pronar: :owner, ndaj këtu nuk mund të caktohet për dikë tjetër. Mund të caktohet vetëm një njësi pa pronar.',
     'unit_owned_by_another' => 'një pronar tjetër',
     'date_invalid' => 'Zgjidhni një datë të vlefshme nga e cila do të caktohet njësia.',

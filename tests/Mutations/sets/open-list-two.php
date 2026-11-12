@@ -38,8 +38,8 @@ return [
         'id' => 'OL2-M4',
         'name' => 'a property\'s "today" is the app\'s day again (its timezone is ignored)',
         'file' => 'app/Support/Property/PropertyDay.php',
-        'old' => "            \$out[(string) \$id] = BoardDate::today(is_string(\$zone) && \$zone !== '' ? \$zone : null)->toDateString();",
-        'new' => '            $out[(string) $id] = BoardDate::today(null)->toDateString();',
+        'old' => '            $out[$id] = BoardDate::today($zone)->toDateString();',
+        'new' => '            $out[$id] = BoardDate::today(null)->toDateString();',
         'tests' => [['file' => 'tests/Feature/PropertyDayElsewhereTest.php']],
     ],
     [

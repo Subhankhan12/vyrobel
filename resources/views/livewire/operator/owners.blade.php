@@ -48,9 +48,10 @@
             $vyErrorsOnTop = $errors->any() && ! $vyInviteRetry && $vyResendInvite === null;
             $vySent = session('owner_invite_sent');
             // The units hint under the picker, for every count the dialog can show (rule 12: plurals on the server).
-            // ⚠️ With NO unit chosen it says nothing (DEC-p, 2026-11-12). It used to say the invite was the one way to give an owner units — true until the
-            //    owner's page could give a unit later; a sentence promising that would need a new text in every language, so the false one is simply gone.
-            $vyUnitHints = [''];
+            // ⚠️ With NO unit chosen it says when a unit CAN still be given (D-HINT-LATER, 2026-11-12): from the owner's page, once they have accepted — which is
+            //    all "Give a unit" (DEC-p) does for an owner who is active. Not the old claim that an invite is the one way (false since DEC-p), and not a bare
+            //    promise of "later" (false for an owner who has not accepted yet).
+            $vyUnitHints = [__('livewire/operator/owners.units_hint_none')];
             for ($vyN = 1; $vyN <= count($inviteUnits); $vyN++) {
                 $vyUnitHints[$vyN] = trans_choice('livewire/operator/owners.units_hint', $vyN, ['count' => $vyN]);
             }

@@ -33,15 +33,50 @@ final class PropertyDay
         if ($propertyIds === []) {
             return [];
         }
+        $out = [];
+        foreach (self::timezones($propertyIds) as $id => $zone) {
+            $out[$id] = BoardDate::today($zone)->toDateString();
+        }
+
+        return $out;
+    }
+
+    /**
+     * Each property's own timezone, keyed by property id — null for a property with none (it then reads the app's clock, as before). The one read
+     * behind {@see self::todays()} and behind every stored instant a screen prints as a clock time (D-HK-UTC-CLOCK).
+     *
+     * @param  list<string>  $propertyIds
+     * @return array<string, string|null>
+     */
+    public static function timezones(array $propertyIds): array
+    {
+        if ($propertyIds === []) {
+            return [];
+        }
         $zones = Property::query()->whereIn('id', $propertyIds)->pluck('timezone', 'id');
 
         $out = [];
         foreach ($propertyIds as $id) {
             $zone = $zones[$id] ?? null;
-            $out[(string) $id] = BoardDate::today(is_string($zone) && $zone !== '' ? $zone : null)->toDateString();
+            $out[(string) $id] = is_string($zone) && $zone !== '' ? $zone : null;
         }
 
         return $out;
+    }
+
+    /**
+     * A stored (UTC) instant as the clock on the wall at that property — `H:i`. A property with no timezone gets the stored clock, exactly what the
+     * board printed before.
+     */
+    public static function clock(mixed $instant, ?string $timezone): ?string
+    {
+        if ($instant === null) {
+            return null;
+        }
+
+        $at = CarbonImmutable::parse($instant);
+
+        return ($timezone !== null ? $at->setTimezone($timezone) : $at)->format('H:i');
     }
 
     /**

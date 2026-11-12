@@ -443,9 +443,11 @@
                 @for ($dom = 1; $dom <= $occupancy['days']; $dom++)
                     @php
                         $count = $occupancy['heat'][$dom] ?? 0;
-                        $bg = $heatBg($count, $occupancy['unit_count']);
-                        $fg = $heatFg($count, $occupancy['unit_count']);
-                        $lbl = $count === 0 ? __('livewire/owner/units.day_free') : __('livewire/owner/units.day_booked', ['booked' => $count, 'total' => $occupancy['unit_count']]);
+                        // D-OWNERSINCE-WINDOWS: a day is shaded by the units booked out of the units the owner HAD that day (all of them, unless one was given later)
+                        $held = $occupancy['held'][$dom] ?? $occupancy['unit_count'];
+                        $bg = $heatBg($count, $held);
+                        $fg = $heatFg($count, $held);
+                        $lbl = $count === 0 ? __('livewire/owner/units.day_free') : __('livewire/owner/units.day_booked', ['booked' => $count, 'total' => $held]);
                     @endphp
                     <div class="vy-mu-day" style="background:{{ $bg }};color:{{ $fg }}" title="{{ $lbl }}"
                          :class="sel === {{ $dom }} ? 'is-sel' : ''"

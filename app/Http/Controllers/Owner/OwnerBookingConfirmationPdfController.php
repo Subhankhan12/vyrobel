@@ -41,6 +41,7 @@ class OwnerBookingConfirmationPdfController extends Controller
         $reservation = Reservation::query()->with('leadGuest')->findOrFail($booking);
 
         $ownedLines = $ownerUnitIds === [] ? collect() : ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: a stay that began before the owner's day is not theirs → 404
             ->where('reservation_id', $reservation->id)
             ->whereIn('unit_id', $ownerUnitIds)
             ->where('status', 'active')

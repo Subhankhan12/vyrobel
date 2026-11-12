@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
 use App\Support\I18n\LocalDate;
+use App\Support\Owner\OwnerStayWindow;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -71,7 +72,7 @@ final class BookingCadence
 
         $reservations = Reservation::query()->whereIn(
             'id',
-            ReservationUnit::query()->whereIn('unit_id', $unitIds)->select('reservation_id'),
+            ReservationUnit::query()->ownerStays()->whereIn('unit_id', $unitIds)->select('reservation_id'),   // D-OWNERSINCE-WINDOWS: the owner's stays only
         );
 
         return self::leadTime($reservations, $start, $end);
@@ -168,13 +169,15 @@ final class BookingCadence
             return self::emptyWeekdays();
         }
 
-        $lines = self::activeLines(ReservationUnit::query()->whereIn('unit_id', $unitIds), $start, $end);
+        // D-OWNERSINCE-WINDOWS: the owner's stays only, over the nights the owner HAD each unit
+        $lines = self::activeLines(ReservationUnit::query()->ownerStays()->whereIn('unit_id', $unitIds), $start, $end);
 
-        // Denominator = unit count per date (the OwnerOccupancy rule: 1 available room-night per unit per day).
-        $unitCount = count($unitIds);
+        // Denominator = the units the owner HAS per date (the OwnerOccupancy rule: 1 available room-night per unit per day — every unit, every day,
+        // unless one was given to the owner part-way through the period).
+        $since = OwnerStayWindow::sinceByUnit($unitIds);
         $den = array_fill(0, 7, 0);
         for ($d = $start; $d->lessThan($end); $d = $d->addDay()) {
-            $den[(int) $d->dayOfWeek] += $unitCount;
+            $den[(int) $d->dayOfWeek] += OwnerStayWindow::unitsHeldOn($unitIds, $since, $d->toDateString());
         }
 
         return self::weekdayFrom($lines, $den, $start, $end);

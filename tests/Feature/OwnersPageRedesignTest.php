@@ -103,15 +103,16 @@ it('⚠️ says so in one line when every unit already has an owner, instead of 
         ->and($html)->toContain('Every unit here already has an owner');
 });
 
-it('⚠️⚠️ never says an owner is given units only in their invite — the owner’s page can give one later (DEC-p, 2026-11-12; was the 2026-10-03 pin)', function () {
+it('⚠️⚠️ never says an owner is given units only in their invite — and promises a unit later only for an owner who has accepted (DEC-p, 2026-11-12; D-HINT-LATER)', function () {
     // 🔬 2026-10-03 the hint read "None chosen — you can give units later from the owner’s page", and no screen did that, so it was changed to say the
-    //    invite was the one way. DEC-p (his "yes", 2026-11-11) built "Give a unit" on the owner's page, which made THAT sentence false. With no unit
-    //    chosen the dialog now says nothing; promising "later" would need a new text in all 27 languages (OPEN.md D-HINT-LATER). Neither claim may
-    //    come back by accident: not the false "only in their invite", and not a promise this dialog does not keep for an owner who has not accepted yet.
+    //    invite was the one way. DEC-p (his "yes", 2026-11-11) built "Give a unit" on the owner's page, which made THAT sentence false — and "Give a unit"
+    //    is offered only to an owner who has ACCEPTED. So with no unit chosen the dialog says exactly that (D-HINT-LATER, 2026-11-12). Neither old claim may
+    //    come back by accident: not the false "only in their invite", and not a bare "later" this dialog does not keep for an owner who has not accepted yet.
     $source = i18nEnglishSource(resource_path('views/livewire/operator/owners.blade.php'));   // I18N-01: the words as read
 
     expect($source)->not->toContain('only in their invite')
-        ->and($source)->not->toContain('give units later');
+        ->and($source)->not->toContain('give units later')
+        ->and($source)->toContain('once they have accepted, you can give them a unit from their page');
 });
 
 // ── The page ─────────────────────────────────────────────────────────────────────────────────────

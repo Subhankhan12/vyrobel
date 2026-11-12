@@ -552,7 +552,10 @@ class OperatorOwnerDetail extends Component
         }
 
         $ids = app(PropertyContext::class)->readIds();
+        // ⚠️ D-DEC-P-INVITE-PICKER: a unit a waiting invitation lists is promised to that invitee, so it is not offered here (the write refuses it too)
+        $promised = OwnerInvite::unitIdsOnPendingInvites();
         $units = Unit::query()->with('property:id,name')->whereNull('owner_id')
+            ->when($promised !== [], fn ($q) => $q->whereNotIn('id', $promised))
             ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
             ->orderBy('code')->get(['id', 'code', 'name', 'property_id']);
         $todays = PropertyDay::todays($units->pluck('property_id')->map(fn (mixed $id): string => (string) $id)->unique()->values()->all());

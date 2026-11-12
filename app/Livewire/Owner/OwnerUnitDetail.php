@@ -220,6 +220,7 @@ class OwnerUnitDetail extends Component
         // Booked nights (a night is [check_in, check_out)).
         $booked = [];
         foreach (ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: only the stays that are the owner's
             ->where('unit_id', $unit->id)->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())
             ->whereDate('check_out', '>', $monthStart->toDateString())
@@ -288,6 +289,7 @@ class OwnerUnitDetail extends Component
         $out = [];
 
         $lines = ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: only the stays that are the owner's
             ->where('unit_id', $unit->id)->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())
             ->whereDate('check_out', '>', $monthStart->toDateString())
@@ -653,6 +655,7 @@ class OwnerUnitDetail extends Component
         }
 
         $latest = ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: the default month is the owner's latest stay, never an earlier operator one
             ->where('unit_id', $unit->id)
             ->where('status', 'active')
             ->max('check_in');
@@ -746,6 +749,7 @@ class OwnerUnitDetail extends Component
     private function bookings(Unit $unit, Carbon $monthStart, Carbon $monthEnd): array
     {
         $lines = ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: only the stays that are the owner's
             ->where('unit_id', $unit->id)
             ->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())

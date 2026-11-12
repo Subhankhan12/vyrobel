@@ -266,6 +266,7 @@ class OwnerInsights extends Component
         }
 
         $lines = ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: only the stays that are the owner's
             ->whereIn('unit_id', $unitIds)
             ->where('status', 'active')
             ->whereDate('check_in', '<', $range['end']->toDateString())

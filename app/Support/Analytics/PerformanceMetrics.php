@@ -10,6 +10,7 @@ use App\Models\ReservationUnit;
 use App\Models\RoomType;
 use App\Support\Folio\FolioTotals;
 use App\Support\I18n\LocalDate;
+use App\Support\Owner\OwnerStayWindow;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -137,10 +138,13 @@ final class PerformanceMetrics
         }
 
         $days = max(0, (int) $start->diffInDays($end));
-        $availableRoomNights = count($unitIds) * $days;
+        // ⚠️ D-OWNERSINCE-WINDOWS (2026-11-12): the owner's nights are the nights they HAD — a unit given to them from a day offered them nothing before it
+        //    (`OwnerStayWindow`) — and the stays are the ones that began on or after that day (`ownerStays`), the rule the money follows. A unit with no
+        //    `owner_since` is `count × days` and every stay, exactly as before.
+        $availableRoomNights = OwnerStayWindow::nights($unitIds, $start, $end);
 
         $lines = self::overlappingLines(
-            ReservationUnit::query()->whereIn('unit_id', $unitIds),
+            ReservationUnit::query()->ownerStays()->whereIn('unit_id', $unitIds),
             $start,
             $end,
         );
@@ -151,7 +155,7 @@ final class PerformanceMetrics
             ? ['bookings' => 0, 'cancellations' => 0]
             : self::arrivalCounts(Reservation::query()->whereIn('id', $reservationIds), $start, $end);
 
-        // D3-4 — the owner denominator is `count(units) × days`, a FULL-PERIOD figure by construction, so
+        // D3-4 — the owner denominator is the unit-nights the owner HAD (`count(units) × days` for a unit with no `owner_since`), a FULL-PERIOD figure by construction, so
         // this scope can never suffer the property scope's thin-spine inflation. Coverage is therefore 100%
         // by definition, passed explicitly rather than left to a default so the difference is stated rather
         // than inferred. ⚠️ Owner behaviour is unchanged by D3-4; the audit drew this line and it holds.

@@ -83,6 +83,7 @@ class OwnerBookingDetail extends Component
         $reservation = Reservation::query()->with('leadGuest')->findOrFail($this->bookingId);
 
         $ownedLines = $ownerUnitIds === [] ? collect() : ReservationUnit::query()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: a stay that began before the owner's day is not theirs → 404
             ->where('reservation_id', $reservation->id)
             ->whereIn('unit_id', $ownerUnitIds)
             ->where('status', 'active')
@@ -232,7 +233,7 @@ class OwnerBookingDetail extends Component
         $stays = Reservation::query()
             ->where('lead_guest_id', $guestId)
             ->whereNotIn('status', ReservationStage::CANCELLED_STATUSES)
-            ->whereHas('reservationUnits', fn ($q) => $q->whereIn('unit_id', $ownerUnitIds)->where('status', 'active'))
+            ->whereIn('id', ReservationUnit::query()->ownerStays()->whereIn('unit_id', $ownerUnitIds)->where('status', 'active')->select('reservation_id'))
             ->count();
 
         return $stays > 1

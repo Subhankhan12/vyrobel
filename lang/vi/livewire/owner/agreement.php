@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Tiền tệ chi trả',
     'attribution' => 'Phân bổ chi phí',
     'attribution_sub' => 'Các ngoại lệ đã thỏa thuận so với quy tắc chuẩn.',
-    'attribution_standard' => 'Phân bổ chuẩn — hợp đồng của bạn không có ngoại lệ nào so với quy tắc chuẩn về bên chịu chi phí OTA, phí dọn dẹp và dịch vụ thêm.',
+    'attribution_standard' => 'Phân bổ chuẩn — hợp đồng của bạn không có ngoại lệ nào so với quy tắc chuẩn về bên chịu chi phí OTA và bên nhận phí dọn dẹp, tiền dịch vụ thêm.',
     'documents' => 'Tài liệu',
     'summary_pdf' => 'Tóm tắt · PDF',
     'doc_meta_pdf' => ':meta · PDF',

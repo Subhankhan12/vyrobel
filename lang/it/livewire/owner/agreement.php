@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Valuta dei versamenti',
     'attribution' => 'Attribuzione',
     'attribution_sub' => 'Eccezioni concordate alle regole standard.',
-    'attribution_standard' => 'Attribuzione standard — il Suo contratto non prevede eccezioni alle regole standard su chi sostiene i costi OTA, i costi di pulizia e gli extra.',
+    'attribution_standard' => 'Attribuzione standard — il Suo contratto non prevede eccezioni alle regole standard su chi sostiene i costi OTA e su chi riceve i costi di pulizia e gli extra.',
     'documents' => 'Documenti',
     'summary_pdf' => 'Riepilogo · PDF',
     'doc_meta_pdf' => ':meta · PDF',

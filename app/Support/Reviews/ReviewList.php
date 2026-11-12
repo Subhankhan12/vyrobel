@@ -54,7 +54,7 @@ final class ReviewList
             return [];
         }
 
-        return self::map(ReviewRating::publicScope()->whereIn('unit_id', $unitIds)
+        return self::map(ReviewRating::publicScope()->ownerStays()->whereIn('unit_id', $unitIds)   // D-OWNERSINCE-WINDOWS: only the reviews of stays that are the owner's
             ->with(['guest', 'roomType', 'unit:id,name,code', 'reservation:id,source'])
             ->latest('published_at')->get());
     }

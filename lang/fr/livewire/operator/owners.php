@@ -94,6 +94,7 @@ return [
     'optional' => 'facultatif',
     'unit_taken_title' => 'Le propriétaire d’une unité détermine qui en perçoit les revenus — elle ne peut pas être transférée via une invitation',
     'owned_by' => 'Propriétaire : :owner',
+    'units_hint_none' => 'Aucune unité choisie — une fois l’invitation acceptée, vous pourrez attribuer une unité à cette personne depuis sa page.',
     'units_hint' => '{1} :count unité — elle devient celle de ce propriétaire à l’acceptation de l’invitation.|[0,*] :count unités — elles deviennent celles de ce propriétaire à l’acceptation de l’invitation.',
     'commission_label' => 'Commission de gestion',
     'commission_other' => 'Autre',

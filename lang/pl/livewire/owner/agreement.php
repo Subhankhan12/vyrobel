@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Waluta wypłaty',
     'attribution' => 'Podział kosztów',
     'attribution_sub' => 'Uzgodnione wyjątki od standardowych zasad.',
-    'attribution_standard' => 'Standardowy podział kosztów – umowa nie zawiera wyjątków od standardowych zasad określających, kto ponosi koszty OTA, opłaty za sprzątanie i usługi dodatkowe.',
+    'attribution_standard' => 'Standardowy podział kosztów – umowa nie zawiera wyjątków od standardowych zasad określających, kto ponosi koszty OTA i komu przysługują opłaty za sprzątanie oraz wpływy z usług dodatkowych.',
     'documents' => 'Dokumenty',
     'summary_pdf' => 'Podsumowanie · PDF',
     'doc_meta_pdf' => ':meta · PDF',

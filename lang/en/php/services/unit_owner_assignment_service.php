@@ -5,6 +5,7 @@
 
 return [
     'owner_not_active' => ':owner can’t be given a unit — they haven’t accepted their invitation yet, or they have been removed. Only an active owner can be given a unit.',
+    'unit_on_pending_invitation' => '“:unit” is listed on an owner invitation that has not been accepted yet. It becomes that owner’s when they accept — or cancel the invitation first to give the unit to someone else.',
     'unit_already_owned' => '“:unit” already belongs to :owner, so it can’t be given to someone else here. Only a unit with no owner can be given.',
     'unit_owned_by_another' => 'another owner',
     'date_invalid' => 'Pick a real date to give the unit from.',

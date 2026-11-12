@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,6 +69,28 @@ class Review extends Model
         }
 
         return $labels;
+    }
+
+    /**
+     * ⚠️ ONLY THE REVIEWS OF STAYS THAT ARE THE OWNER'S (D-OWNERSINCE-WINDOWS, 2026-11-12) — the review's own stay, on its unit, began on or after the day the unit
+     * became the owner's (`units.owner_since`). The same rule as {@see ReservationUnit::scopeOwnerStays()}, asked through the review's stay: a guest's first name
+     * and rating from before the owner's day are not the owner's to read. A unit with no `owner_since` — and a review with no unit — keeps every review.
+     *
+     * @param  Builder<Review>  $query
+     */
+    public function scopeOwnerStays(Builder $query): void
+    {
+        $query->whereNotExists(function ($units): void {
+            $units->selectRaw('1')->from('units')
+                ->whereColumn('units.id', 'reviews.unit_id')
+                ->whereNotNull('units.owner_since')
+                ->whereExists(function ($stays): void {
+                    $stays->selectRaw('1')->from('reservation_units')
+                        ->whereColumn('reservation_units.reservation_id', 'reviews.reservation_id')
+                        ->whereColumn('reservation_units.unit_id', 'reviews.unit_id')
+                        ->whereColumn('reservation_units.check_in', '<', 'units.owner_since');
+                });
+        });
     }
 
     protected $fillable = [

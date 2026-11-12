@@ -87,6 +87,8 @@ class HousekeepingBoard extends Component
         // ⚠️ D-DAY-ELSEWHERE (2026-11-11): "today" is the day it is AT EACH ROOM'S PROPERTY — Today / Tomorrow / Overdue and the "guest arriving
         //    today" urgency read it (the app's day is UTC, hours off elsewhere); "all properties" can span timezones, so it is per property
         $todays = PropertyDay::todays($readIds);
+        // ⚠️ D-HK-UTC-CLOCK (2026-11-12): the "started 02:30" / "done 03:15" on a card are the clock AT THE PROPERTY too — the instants are stored in UTC
+        $zones = PropertyDay::timezones($readIds);
         $defaultToday = $todays[$this->currentPropertyId] ?? ($todays !== [] ? reset($todays) : CarbonImmutable::today()->toDateString());
 
         $crewFilter = is_string(request()->query('crew')) ? (string) request()->query('crew') : null;
@@ -105,7 +107,7 @@ class HousekeepingBoard extends Component
         $checkInTimes = $this->checkInTimes($readIds);             // D8-2 — property id → its own check-in time
 
         // Every card (unfiltered) — the tallies + crew load must read the whole workspace, not the filtered view.
-        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes, CarbonImmutable::parse($todays[(string) $t->property_id] ?? $defaultToday)))->all();
+        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes, CarbonImmutable::parse($todays[(string) $t->property_id] ?? $defaultToday), $zones[(string) $t->property_id] ?? null))->all();
 
         $outOfOrder = $this->outOfOrderCount($readIds);
         // ⚠️ 2026-10-05 — each filter chip counts exactly what clicking it shows: the rooms that pass the search (the chips carry it),
@@ -176,7 +178,7 @@ class HousekeepingBoard extends Component
      * @param  array<string, list<array{id: string, url: string}>>  $photos  taskId → proof photos
      * @return array<string, mixed>
      */
-    private function card(HousekeepingTask $task, array $arrivals, array $todayArrivals, array $photos, CarbonImmutable $now, array $checkInTimes = [], ?CarbonImmutable $today = null): array
+    private function card(HousekeepingTask $task, array $arrivals, array $todayArrivals, array $photos, CarbonImmutable $now, array $checkInTimes = [], ?CarbonImmutable $today = null, ?string $timezone = null): array
     {
         $assignee = $task->assignedTo;
         $priority = $this->priorityMeta((string) $task->priority);
@@ -229,8 +231,8 @@ class HousekeepingBoard extends Component
             'assigned_to' => $assignee instanceof User ? (string) $assignee->getKey() : null,
             'urgency' => $urgency,
             'elapsed' => $elapsed,
-            'started_label' => $task->started_at !== null ? CarbonImmutable::parse($task->started_at)->format('H:i') : null,
-            'completed_label' => $task->completed_at !== null ? CarbonImmutable::parse($task->completed_at)->format('H:i') : null,
+            'started_label' => PropertyDay::clock($task->started_at, $timezone),
+            'completed_label' => PropertyDay::clock($task->completed_at, $timezone),
             'photos' => $photos[(string) $task->id] ?? [],
             'next' => $this->nextActions($status),
             // #87 — the incoming guest's VIP flag + preferences, so the room is prepped right. Name-free.

@@ -13,6 +13,7 @@ use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
 use App\Http\Middleware\SetVisitorLocale;
 use App\Support\Auth\TrustedDeviceService;
+use App\Support\Http\JsonErrorRoutes;
 use App\Support\Platform\BreakGlass;
 use App\Support\Security\RefusalLog;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -183,8 +184,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // ⚠️ JSON under `/api`, and for the few machine endpoints elsewhere — see {@see JsonErrorRoutes}: a JSON endpoint outside `/api` that is not listed
+        //    there answers a bad call with a redirect (D-GM-EMPTY).
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*') || JsonErrorRoutes::matches($request),
         );
 
         // ⚠️⚠️ ADMIN 01 · PHASE 3 — A PAGE THAT TRIED TO WRITE DURING A READ-ONLY BREAK-GLASS SESSION. The

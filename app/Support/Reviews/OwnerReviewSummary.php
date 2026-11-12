@@ -47,6 +47,7 @@ final class OwnerReviewSummary
 
         /** @var Collection<int, Review> $reviews */
         $reviews = ReviewRating::publicScope()
+            ->ownerStays()                                      // D-OWNERSINCE-WINDOWS: only the reviews of stays that are the owner's
             ->whereIn('unit_id', $unitIds)
             ->with('unit:id,name,code')
             ->get();

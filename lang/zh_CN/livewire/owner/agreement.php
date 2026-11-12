@@ -57,7 +57,7 @@ return [
     'payout_currency' => '打款币种',
     'attribution' => '费用归属',
     'attribution_sub' => '与标准规则不同的约定例外。',
-    'attribution_standard' => '标准归属——对于 OTA 成本、清洁费和附加服务由谁承担，您的协议没有任何不同于标准规则的例外。',
+    'attribution_standard' => '标准归属——对于 OTA 成本由谁承担、清洁费和附加服务由谁收取，您的协议没有任何不同于标准规则的例外。',
     'documents' => '文档',
     'summary_pdf' => '摘要 · PDF',
     'doc_meta_pdf' => ':meta · PDF',

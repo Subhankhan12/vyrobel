@@ -664,3 +664,29 @@ it('dpu21 the service re-checks under its own lock — a unit given a moment ago
     expect((string) $unit->refresh()->owner_id)->toBe((string) $s['owner']->id)->and($unit->owner_since?->toDateString())->toBe(dpDay(2));
     expect(AuditEvent::query()->where('action', 'unit.owner_assigned')->count())->toBe(1);
 });
+
+// ── dpu22 · D-DEC-P-INVITE-PICKER (2026-11-12) — A UNIT A WAITING INVITATION LISTS IS PROMISED, NOT FREE ─────────────────────────────────────────
+it('dpu22 a unit a waiting owner invitation lists is not offered, is refused, and is freed when the invitation is cancelled', function () {
+    $s = dpWorld(2);
+    $invited = app(OwnerInviteService::class)->invite('Nova Marsh', 'nova@example.test', [(string) $s['units'][1]->id], 18.0, 'owner');
+
+    // the picker offers the free unit and not the promised one …
+    $this->actingAs($s['admin'])->get(route('app.owners.show', $s['owner']->id))->assertOk()
+        ->assertSee('Seaside 1')->assertDontSee('Seaside 2');
+
+    // … and the write says why, and writes nothing (a hand-made request is no way round the picker)
+    dpGive($s, $s['units'][1])->assertRedirect()->assertSessionHas('owners_error');
+    expect(session('owners_error'))->toContain('Seaside 2')->toContain('invitation')
+        ->and($s['units'][1]->refresh()->owner_id)->toBeNull()
+        ->and(AuditEvent::query()->where('action', 'unit.owner_assigned')->count())->toBe(0);
+
+    // the PERMITTED counterpart: the unit no invitation lists is given
+    dpGive($s, $s['units'][0])->assertSessionHas('owners_notice');
+    expect((string) $s['units'][0]->refresh()->owner_id)->toBe((string) $s['owner']->id);
+
+    // cancelling the invitation frees the unit — offered again, and given
+    expect(app(OwnerInviteService::class)->cancel(OwnerInvite::query()->findOrFail($invited['invite']->id)))->toBeTrue();
+    $this->actingAs($s['admin'])->get(route('app.owners.show', $s['owner']->id))->assertOk()->assertSee('Seaside 2');
+    dpGive($s, $s['units'][1])->assertSessionHas('owners_notice');
+    expect((string) $s['units'][1]->refresh()->owner_id)->toBe((string) $s['owner']->id);
+});

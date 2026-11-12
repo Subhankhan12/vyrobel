@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Não é possível atribuir uma unidade a :owner — o convite ainda não foi aceito ou o proprietário foi removido. Só um proprietário ativo pode receber uma unidade.',
+    'unit_on_pending_invitation' => '“:unit” consta em um convite de proprietário que ainda não foi aceito. A unidade passa a ser desse proprietário quando o convite for aceito — ou cancele o convite antes, para atribuir a unidade a outra pessoa.',
     'unit_already_owned' => 'A unidade “:unit” já pertence a :owner, por isso não pode ser atribuída a outra pessoa aqui. Só é possível atribuir uma unidade sem proprietário.',
     'unit_owned_by_another' => 'outro proprietário',
     'date_invalid' => 'Escolha uma data válida a partir da qual a unidade será atribuída.',

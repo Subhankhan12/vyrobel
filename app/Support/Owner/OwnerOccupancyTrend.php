@@ -37,10 +37,11 @@ final class OwnerOccupancyTrend
         $pcts = array_map(fn (array $r): int => $r['pct'], $results);
         $current = $results[count($results) - 1];
 
-        $days = $current['days'];
         $perUnitPct = [];
         foreach ($current['per_unit'] as $id => $nights) {
-            $perUnitPct[(string) $id] = $days > 0 ? (int) round($nights / $days * 100) : 0;
+            // D-OWNERSINCE-WINDOWS: over the nights the owner HAD the unit this month
+            $held = $current['per_unit_available'][(string) $id] ?? 0;
+            $perUnitPct[(string) $id] = $held > 0 ? (int) round($nights / $held * 100) : 0;
         }
 
         $pct = $current['pct'];

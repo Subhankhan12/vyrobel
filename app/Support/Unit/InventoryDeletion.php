@@ -80,14 +80,8 @@ final class InventoryDeletion
         }
         // an owner invitation still waiting to be accepted would hand over a unit that is gone (said once per unit — by id,
         // never by comparing the words)
-        $invited = [];
-        foreach (OwnerInvite::query()->where('status', 'pending')->whereNotNull('assigned_unit_ids')->get(['assigned_unit_ids']) as $invite) {
-            foreach (array_intersect((array) $invite->assigned_unit_ids, $unitIds) as $id) {
-                if (! isset($invited[$id])) {
-                    $invited[$id] = true;
-                    $found[$id][] = __('php/support/unit/inventory_deletion.pending_owner_invitation');
-                }
-            }
+        foreach (array_intersect(OwnerInvite::unitIdsOnPendingInvites(), $unitIds) as $id) {
+            $found[$id][] = __('php/support/unit/inventory_deletion.pending_owner_invitation');
         }
 
         return $found;

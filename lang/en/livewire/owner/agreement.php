@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Payout currency',
     'attribution' => 'Attribution',
     'attribution_sub' => 'Agreed exceptions to the standard rules.',
-    'attribution_standard' => 'Standard attribution — your agreement carries no exceptions to the standard rules for who bears OTA costs, cleaning fees and add-ons.',
+    'attribution_standard' => 'Standard attribution — your agreement carries no exceptions to the standard rules for who bears OTA costs and who receives cleaning fees and add-ons.',
     'documents' => 'Documents',
     'summary_pdf' => 'Summary · PDF',
     'doc_meta_pdf' => ':meta · PDF',

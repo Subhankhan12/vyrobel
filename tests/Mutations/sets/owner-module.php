@@ -366,8 +366,16 @@ return [
         'id' => 'OM-M40',
         'name' => 'the hint with no unit chosen says the invite is the only way to give an owner units (false since DEC-p built Give a unit)',
         'file' => $ownersView,
-        'old' => "\$vyUnitHints = [''];",
+        'old' => "\$vyUnitHints = [__('livewire/operator/owners.units_hint_none')];",
         'new' => "\$vyUnitHints = ['None chosen — an owner is given existing units only in their invite.'];",
+        'tests' => [['file' => $ownersTest, 'filter' => 'never says an owner is given units only in their invite']],
+    ],
+    [
+        'id' => 'OM-M40b',
+        'name' => 'the hint with no unit chosen says nothing again (the "once they have accepted" promise is dropped — D-HINT-LATER)',
+        'file' => $ownersView,
+        'old' => "\$vyUnitHints = [__('livewire/operator/owners.units_hint_none')];",
+        'new' => "\$vyUnitHints = [''];",
         'tests' => [['file' => $ownersTest, 'filter' => 'never says an owner is given units only in their invite']],
     ],
 

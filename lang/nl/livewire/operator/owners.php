@@ -94,6 +94,7 @@ return [
     'optional' => 'optioneel',
     'unit_taken_title' => 'De eigenaar van een eenheid bepaalt wie ervoor wordt betaald — de eenheid kan niet via een uitnodiging worden overgezet',
     'owned_by' => 'Eigenaar: :owner',
+    'units_hint_none' => 'Niets gekozen — zodra de uitnodiging is geaccepteerd, kunt u vanaf de pagina van deze eigenaar een eenheid toewijzen.',
     'units_hint' => '{1} :count eenheid — wordt van deze eigenaar zodra de uitnodiging is geaccepteerd.|[0,*] :count eenheden — worden van deze eigenaar zodra de uitnodiging is geaccepteerd.',
     'commission_label' => 'Beheercommissie',
     'commission_other' => 'Anders',

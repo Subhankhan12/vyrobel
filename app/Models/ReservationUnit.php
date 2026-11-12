@@ -65,6 +65,26 @@ class ReservationUnit extends Model
     }
 
     /**
+     * ⚠️⚠️ ONLY THE STAYS THAT ARE THE OWNER'S (D-OWNERSINCE-WINDOWS, 2026-11-12). A unit given to an owner from a day (`units.owner_since`, DEC-p) is theirs
+     * for the stays that START on or after it — a stay that started before it was operator inventory and is never theirs ({@see Unit::ownerIdForStayStarting()},
+     * the rule the money follows). Every owner-facing read of a unit's stays — figures, calendars, booking pages, lists — applies THIS, so the screen cannot
+     * disagree with the ledger. A unit with no `owner_since` (every unit before DEC-p, and every one an invite or a request gives) keeps every stay: no change.
+     *
+     * Apply it wherever the query is already narrowed to the owner's own units (`whereIn('unit_id', $ownerUnitIds)`); it adds nothing for any other unit.
+     *
+     * @param  Builder<ReservationUnit>  $query
+     */
+    public function scopeOwnerStays(Builder $query): void
+    {
+        $query->whereNotExists(function ($units): void {
+            $units->selectRaw('1')->from('units')
+                ->whereColumn('units.id', 'reservation_units.unit_id')
+                ->whereNotNull('units.owner_since')
+                ->whereColumn('reservation_units.check_in', '<', 'units.owner_since');
+        });
+    }
+
+    /**
      * @return BelongsTo<Reservation, $this>
      */
     public function reservation(): BelongsTo

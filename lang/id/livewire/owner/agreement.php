@@ -57,7 +57,7 @@ return [
     'payout_currency' => 'Mata uang pencairan',
     'attribution' => 'Atribusi biaya',
     'attribution_sub' => 'Pengecualian yang disepakati dari aturan standar.',
-    'attribution_standard' => 'Atribusi standar — perjanjian Anda tidak memuat pengecualian dari aturan standar tentang siapa yang menanggung biaya OTA, biaya kebersihan, dan layanan tambahan.',
+    'attribution_standard' => 'Atribusi standar — perjanjian Anda tidak memuat pengecualian dari aturan standar tentang siapa yang menanggung biaya OTA dan siapa yang menerima biaya kebersihan serta layanan tambahan.',
     'documents' => 'Dokumen',
     'summary_pdf' => 'Ringkasan · PDF',
     'doc_meta_pdf' => ':meta · PDF',

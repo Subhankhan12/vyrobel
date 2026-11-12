@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Nie można przypisać jednostki właścicielowi (:owner) – zaproszenie nie zostało jeszcze przyjęte albo właściciel został zarchiwizowany. Jednostkę można przypisać tylko aktywnemu właścicielowi.',
+    'unit_on_pending_invitation' => 'Jednostka „:unit” jest wymieniona w zaproszeniu właściciela, które nie zostało jeszcze przyjęte. Po jego przyjęciu stanie się jednostką tego właściciela – można też najpierw anulować zaproszenie, aby przypisać jednostkę komuś innemu.',
     'unit_already_owned' => 'Jednostka „:unit” ma już właściciela (:owner), więc nie można jej tu przypisać komuś innemu. Przypisać można tylko jednostkę bez właściciela.',
     'unit_owned_by_another' => 'inny właściciel',
     'date_invalid' => 'Wybierz prawidłową datę, od której jednostka ma zostać przypisana.',

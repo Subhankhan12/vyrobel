@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => 'Aan :owner kan geen eenheid worden toegewezen — de uitnodiging is nog niet geaccepteerd, of de eigenaar is weggehaald. Alleen aan een actieve eigenaar kan een eenheid worden toegewezen.',
+    'unit_on_pending_invitation' => '“:unit” staat op een eigenaarsuitnodiging die nog niet is geaccepteerd. De eenheid wordt van die eigenaar zodra de uitnodiging is geaccepteerd — of annuleer eerst de uitnodiging om de eenheid aan iemand anders toe te wijzen.',
     'unit_already_owned' => '“:unit” hoort al bij :owner, dus de eenheid kan hier niet aan iemand anders worden toegewezen. Alleen een eenheid zonder eigenaar kan worden toegewezen.',
     'unit_owned_by_another' => 'een andere eigenaar',
     'date_invalid' => 'Kies een geldige datum waarop de toewijzing ingaat.',

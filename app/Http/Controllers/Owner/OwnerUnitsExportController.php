@@ -52,11 +52,13 @@ class OwnerUnitsExportController extends Controller
 
             for ($d = 1; $d <= $occ['days']; $d++) {
                 $count = $occ['heat'][$d] ?? 0;
-                $pct = $occ['unit_count'] > 0 ? (int) round($count / $occ['unit_count'] * 100) : 0;
+                // D-OWNERSINCE-WINDOWS: the units the owner HAD that day (all of them, unless one was given to them part-way through the month)
+                $held = $occ['held'][$d] ?? $occ['unit_count'];
+                $pct = $held > 0 ? (int) round($count / $held * 100) : 0;
                 fputcsv($out, CsvSafe::row([
                     $month->copy()->day($d)->toDateString(),
                     $count,
-                    $occ['unit_count'],
+                    $held,
                     $pct.'%',
                 ]));
             }

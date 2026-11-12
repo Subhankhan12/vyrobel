@@ -94,6 +94,7 @@ return [
     'optional' => 'opcjonalnie',
     'unit_taken_title' => 'Od właściciela jednostki zależy, komu przysługuje wypłata za nią – nie można jej przenieść zaproszeniem',
     'owned_by' => 'Właściciel: :owner',
+    'units_hint_none' => 'Nie wybrano żadnej – po przyjęciu zaproszenia można przypisać jednostkę na stronie właściciela.',
     'units_hint' => '{1}:count jednostka – po przyjęciu zaproszenia stanie się jednostką tego właściciela.|:count jednostki – po przyjęciu zaproszenia staną się jednostkami tego właściciela.|:count jednostek – po przyjęciu zaproszenia staną się jednostkami tego właściciela.',
     'commission_label' => 'Prowizja za zarządzanie',
     'commission_other' => 'Inna',

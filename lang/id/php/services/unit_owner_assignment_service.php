@@ -4,6 +4,7 @@
 
 return [
     'owner_not_active' => ':owner tidak dapat diberi unit — belum menerima undangan, atau sudah diarsipkan. Hanya pemilik yang aktif yang dapat diberi unit.',
+    'unit_on_pending_invitation' => '“:unit” tercantum dalam undangan pemilik yang belum diterima. Unit ini menjadi milik pemilik tersebut saat undangan diterima — atau batalkan undangan terlebih dahulu untuk memberikan unit kepada orang lain.',
     'unit_already_owned' => '“:unit” sudah menjadi milik :owner, sehingga tidak dapat diberikan kepada orang lain di sini. Hanya unit yang belum memiliki pemilik yang dapat diberikan.',
     'unit_owned_by_another' => 'pemilik lain',
     'date_invalid' => 'Pilih tanggal yang valid sebagai awal pemberian unit.',
