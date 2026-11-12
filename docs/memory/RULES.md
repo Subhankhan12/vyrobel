@@ -644,7 +644,16 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   units only in their invite" turned false the moment he said yes to DEC-p. Replace the pin, say why in the test, re-anchor the mutation.
 - **This app renders errors as JSON only under `/api` (`bootstrap/app.php` `shouldRenderJsonWhen`).** A JSON endpoint elsewhere that calls
   `validate()` answers a bad call with a REDIRECT, even with `Accept: application/json` — found on the live site with an empty email. Answer such
-  calls in the controller (an empty list), or test the endpoint with a blank input.
+  calls in the controller (an empty list), or test the endpoint with a blank input. ✅ **Swept 2026-11-12:** the only other such endpoints were the
+  public booking engine's machine contract (`/book/{property}/search|quote|book|confirmation`); `App\Support\Http\JsonErrorRoutes` now lists them and
+  `NonApiJsonEndpointsAnswerJsonTest` scans every route that declares `JsonResponse` outside `/api` — a new JSON endpoint that calls `validate()` must be
+  added to that list (or answer in the controller) or the suite goes red.
+- **A mutation id must be unique across ALL sets (2026-11-12, again).** `HK-M*` and `OW-M*` collided with older sets (28 duplicates → `MutationSetsStillLandTest`
+  red on MySQL). Before naming a set's ids, `grep -ho "'id' => '<PREFIX>-M" tests/Mutations/sets/*.php | sort | uniq -d`; this pass used `HKC-M`, `OSW-M`.
+- **A test written AFTER its code proves nothing until its mutation is run (2026-11-12, `owner-since`).** The first run of 24 mutations read 5 NOT CAUGHT, and
+  every one was a test that passed for the wrong reason (an overall `8%` on the page that a per-unit `8%` could hide behind; a weekday grid whose range
+  held no earlier date; a default month that `max()` gave the same either way). Aim each mutation, read the NOT CAUGHT, then strengthen the TEST — never the needle.
+- **`lang:todo` takes ~7½ minutes on this Mac (2026-11-12).** A 120 s timeout is the instrument, not a result: run it in the background and read the last line.
 - **`ops/i18n/render-all.php` renders from its OWN database, `vyrobel_i18n`.** A new migration must reach it (`DB_DATABASE=vyrobel_i18n php artisan
   migrate --force`), or every page that reads the new column answers 500 in every language — 135 pages did, and the cause was in the log, not the code.
 - **A builder's report of "dead keys" is a claim (2026-11-12).** It named 11; `lang:todo` read 0 removed. Run the tool before editing 28 files.
