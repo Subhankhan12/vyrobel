@@ -634,6 +634,23 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Fired again: a page-wide search satisfied by a sentence added elsewhere.** "Email isn't being sent from Vyrobel yet" became true of two
   rows; SX-M19 survived until the test asserted the note's own sentence (2026-10-24).
 
+- **A guard whose twin sits one layer below it has no test of its own (2026-11-12, GM-M2).** A real erase clears the email index, so the lookup's
+  `whereNull('anonymized_at')` could be deleted with every test green. Stage the half-finished state (marked erased, index still there) so only
+  the guard can refuse; the mutation harness found it, nothing else would.
+- **A mutation whose target has been renamed under it is not "caught" and not "failed" — it is silent (2026-11-12, CN-M30).** It targeted an English
+  constant that I18N-01 had already replaced with a lang key; it LANDED, changed nothing the page reads, and sat NOT CAUGHT for weeks. Run the sets
+  that target a file you touched, and read the first column AND the other two.
+- **A pin on a sentence is superseded by his ruling, not defended against it (2026-11-12, OM-M40).** The 2026-10-03 pin "an owner is given existing
+  units only in their invite" turned false the moment he said yes to DEC-p. Replace the pin, say why in the test, re-anchor the mutation.
+- **This app renders errors as JSON only under `/api` (`bootstrap/app.php` `shouldRenderJsonWhen`).** A JSON endpoint elsewhere that calls
+  `validate()` answers a bad call with a REDIRECT, even with `Accept: application/json` — found on the live site with an empty email. Answer such
+  calls in the controller (an empty list), or test the endpoint with a blank input.
+- **`ops/i18n/render-all.php` renders from its OWN database, `vyrobel_i18n`.** A new migration must reach it (`DB_DATABASE=vyrobel_i18n php artisan
+  migrate --force`), or every page that reads the new column answers 500 in every language — 135 pages did, and the cause was in the log, not the code.
+- **A builder's report of "dead keys" is a claim (2026-11-12).** It named 11; `lang:todo` read 0 removed. Run the tool before editing 28 files.
+- **When the signed-in session can only be his, stub the server's answer in the browser (`page.route`) to see the screen — never read a real guest to
+  get a match.** The offer card was shown with an invented "Probe Guest" on the live page; no real record was touched.
+
 
 ---
 
