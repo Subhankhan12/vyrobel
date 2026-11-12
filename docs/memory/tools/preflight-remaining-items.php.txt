@@ -1,0 +1,32 @@
+<?php
+// READ-ONLY, NO DATABASE: from the STAGED release (stdin). Compiles every Blade view in memory and token-parses the PHP it makes, loads the new classes,
+// and checks the three new/changed texts exist in every language. Writes nothing; prints counts and yes/no only.
+use Illuminate\Support\Facades\Lang;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION];
+$compiler = $app->make('blade.compiler');
+$n = 0; $bad = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd().'/resources/views', FilesystemIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    if (! str_ends_with($f->getPathname(), '.blade.php')) { continue; }
+    $n++;
+    try { token_get_all($compiler->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE); }
+    catch (Throwable $e) { $bad[] = str_replace(getcwd().'/', '', $f->getPathname()); }
+}
+$out['views_parsed'] = $n; $out['views_failed'] = $bad;
+$out['pieces'] = [
+    'JsonErrorRoutes' => class_exists(App\Support\Http\JsonErrorRoutes::class),
+    'OwnerStayWindow' => class_exists(App\Support\Owner\OwnerStayWindow::class),
+    'scopeOwnerStays' => method_exists(App\Models\ReservationUnit::class, 'scopeOwnerStays') && method_exists(App\Models\Review::class, 'scopeOwnerStays'),
+    'pendingInviteUnits' => method_exists(App\Models\OwnerInvite::class, 'unitIdsOnPendingInvites'),
+];
+$keys = ['php/services/unit_owner_assignment_service.unit_on_pending_invitation', 'livewire/operator/owners.units_hint_none', 'livewire/owner/agreement.attribution_standard'];
+$missing = [];
+$locales = array_values((array) config('app.available_locales'));
+foreach ($locales as $l) { foreach ($keys as $k) { if (! Lang::has($k, $l, false)) { $missing[] = $l.':'.$k; } } }
+$out['locales'] = count($locales); $out['texts_missing'] = $missing;
+echo json_encode($out, JSON_UNESCAPED_SLASHES), PHP_EOL;
