@@ -20039,3 +20039,13 @@ an owner's is always on as the owner settings promised), the session timeout (15
 as the person), "password last changed" (dated by the User model on every path), and login approval on the back office with Approve / Deny of
 a waiting sign-in from a signed-in device on both pages — one `AccountSecurityController` for both realms. `SecurityProtectionsTest` (13),
 mutations `security-protections` 14/14.
+
+## 2026-11-13 — DEC-1…DEC-8 ruled by the founder, and built (the EIGHT DECISIONS pass)
+
+**Rulings (Founder said, 2026-11-13, after a plain-words explanation with options):** DEC-1 keep Hostinger's own daily limit, he extends the free mail plan himself, and the app sends from **two mailboxes** (contact@, sales@) — the first until its limit, the second after, back to the first when it frees · DEC-2 "pick A … whatever you have selected" (read as my picks; see OPEN D-DEC2-READING) · DEC-3 **A** revoke connected apps on every password change or reset · DEC-4 **C** three retention buckets · DEC-5 **B now, C later** · DEC-6 **C** a request button, no instant delete · DEC-7 **C** extend a trial + a complimentary plan · DEC-8 **A** keep the other test organisations.
+
+**Built:** see `docs/memory/SYSTEMS.md` §24 and `HISTORY.md` "THE EIGHT DECISIONS". Additive migrations: `subscriptions.complimentary_until`, `mail_send_log.mailbox`. Tests: `OAuthRevokeOnPasswordChangeTest`, `TrialExtensionAndComplimentaryTest`, `AbandonedSignupBucketTest`, `AccountDeletionRequestTest`, `RetentionBucketsTest`, `MailboxRotationTest`; mutation set `decisions-nov13` (41, all caught).
+
+**Why a complimentary plan is a trial with a mark, not a new status:** `subscriptions.status` is a DB enum and the release script refuses a column change; a `trialing` row whose end date is the complimentary date already lapses to the paywall on the day through every existing gate.
+
+**What a session must not do with this:** never fill `RetentionDecisions::DECISIONS` without the lawyer's written period; never switch the rotation on (the second mailbox's password is his to type); never send a real email to test it.

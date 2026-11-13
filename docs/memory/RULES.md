@@ -661,6 +661,28 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   get a match.** The offer card was shown with an invented "Probe Guest" on the live page; no real record was touched.
 
 
+- **The mail safety net hides `example.com` from your own test (2026-11-13).** `SuppressUndeliverableRecipients` drops any recipient at a reserved name
+  (`example.com/.net/.org`, `.test`, `.invalid`…) BEFORE the transport sees it — so a rotation test that mailed `a@example.com` sent nothing and "failed"
+  mysteriously. A mail test uses a non-reserved domain with an in-memory (`array`) transport; nothing leaves the machine.
+- **The mutation runner needs PAO ON; gates need PAO OFF (2026-11-13).** `tests/Mutations/run.php` parses PAO's one-line JSON, so `PAO_DISABLE=1` makes every
+  baseline "no result"; a gate run is `PAO_DISABLE=1 php artisan test --log-junit=<file>`. And the harness must start in its own command (not after `artisan test` in
+  the same line).
+- **A new migration must reach THREE databases locally (2026-11-13):** the dev one (`php artisan migrate`), the TEST one (`DB_DATABASE=vyrobel_test php artisan
+  migrate --force` — `DatabaseTransactions` tests never migrate, they fail with "Unknown column") and `vyrobel_i18n` for `render-all` — and once more inside MariaDB
+  when the engines are swapped.
+- **A test that gives a mail transport no `Envelope` proves nothing about it (2026-11-13, D13-M34).** Laravel always passes one (sender = the first mailbox); the
+  mutation "envelope sender not rewritten" stayed green until the test passed the real thing. Fix the TEST, never the needle.
+- **A pin on STRUCTURE is not a pin on a RULING (2026-11-13).** The triage test asserted exactly three buckets, and `RetentionCoverage::RULING` was pinned `null`:
+  both were updated deliberately — the first because a bucket was added, the second because the founder had ruled. Say which it is in the change.
+- **A widened `enum` is a column CHANGE (2026-11-13).** `ops/release.sh migrate` refuses it, so a new state is better carried as a nullable column on top of an
+  existing value (a complimentary plan = a trial with a mark) than as a new enum member.
+- **Console tests with two admins in one test need `flushSession()` between requests** (the second `actingAs` otherwise lands on `/admin/login`), and the error bag of this
+  app is a plain array: read it with `sessionErrorKeys()`, not `assertSessionHasErrors`.
+- **An UNQUOTED shell heredoc executes every backtick in it (2026-11-13).** Writing a facts file with `<<EOF` and prose full of `` `ops/release.sh stage` ``
+  RAN that command (it refused — "HEAD is already live" — by luck of its own guard). Write prose to a file with the file tool, or a quoted `<<'EOF'`.
+- **A subagent stopped by the account's usage limit keeps its saved work (2026-11-13).** Seven translator agents hit the 5-hour limit mid-way; after the reset,
+  `SendMessage` resumed each from its parts on disk. Verify what is on disk with the tool (`check.php`), not with the agent's last words.
+
 ---
 
 ## PART 3 — THE INSTRUMENTS
