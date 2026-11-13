@@ -3,6 +3,15 @@
 // I18N-01 — ja translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => '無料トライアルを延長しました。新しい終了日は:dateです。',
+    'extend_not_on_trial' => '無料トライアル中のワークスペースのみ、トライアルを延長できます。',
+    'extend_is_complimentary' => 'このワークスペースは無償提供プランを利用中で、プランには独自の終了日があります。変更するには、新しい日付で無償提供プランをもう一度付与してください。',
+    'extend_over_ceiling' => 'トライアルの終了日は今日から90日後までが上限ですが、この設定では:dateになります。日数を減らしてください。',
+    'complimentary_granted' => '無償提供プランを付与しました。:dateまですべての機能を利用でき、その後はペイウォールが表示されます。',
+    'complimentary_billed' => 'このワークスペースはStripeで請求されています。無償提供プランは、支払いのないワークスペース専用です。',
+    'complimentary_no_subscription' => 'このワークスペースには、無償提供プランを関連付けるサブスクリプションの記録がありません。',
+    'complimentary_ended' => '無償提供プランを終了しました。このワークスペースにはペイウォールが表示されます。',
+    'complimentary_not_on' => 'このワークスペースは無償提供プランを利用していません。',
     'delete_refused_protected' => '拒否しました。このワークスペースは保護されており、コンソールから削除することはできません。',
     'delete_type_name' => '削除を確定するには、ワークスペースの正確な名前を入力してください。',
     'delete_suspend_first' => '先に利用停止にしてください。削除できるのは、利用停止中またはアーカイブ済みのワークスペースのみです。',

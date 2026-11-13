@@ -7,11 +7,12 @@ namespace App\Support\Privacy;
 use App\Console\Commands\ExportDataInventory;
 use App\Models\GuestDocument;
 use App\Models\LoginActivity;
+use App\Support\Retention\RetentionDecisions;
 use App\Support\Retention\RetentionPolicy;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * ⚠️⚠️ ADMIN 01 · PHASE 4 — THE RETENTION COVERAGE METER — BUILT, AND WAITING FOR A RULING.
+ * ⚠️⚠️ ADMIN 01 · PHASE 4 — THE RETENTION COVERAGE METER. ⚠️ DEC-4 (2026-11-13) RULED IT: THREE BUCKETS (see {@see compute()}).
  *
  * "N of M data categories have a retention rule." ⚠️ WHAT COUNTS AS "HAS A RULE" IS THE FOUNDER'S AND HIS LAWYER'S
  * TO DEFINE (ADMIN 02 — a STOP item). So this class does NOT pick one. It computes, and the screen shows:
@@ -35,7 +36,8 @@ use Illuminate\Support\Facades\Schema;
  */
 final class RetentionCoverage
 {
-    public const RULING = null;   // ⚠️ the founder's definition — NOT SET. Nothing here may pretend it is.
+    /** ⚠️ DEC-4 — his ruling (2026-11-13: "C"): three buckets, not one ratio. See {@see compute()} and {@see RetentionDecisions}. */
+    public const RULING = 'three_buckets';
 
     /** The shipped data file the meter reads — inside every release (`ops/release.sh` ships it; it skips docs/). */
     public const DATA_FILE = 'resources/data/data-inventory.json';
@@ -122,22 +124,36 @@ final class RetentionCoverage
     }
 
     /**
-     * @return array{measurable: bool, reason: ?string, categories: ?int, strict: ?int, lenient: ?int, enforced: array<string, string>, ruling: null}
+     * ⚠️ DEC-4 — THE THREE BUCKETS (his ruling, 2026-11-13: "C"). Every category lands in exactly one, so they ALWAYS add up to
+     * `categories`:
+     *
+     *   · `pruned` — every real store the category names is deleted by code on a timer ({@see enforced()});
+     *   · `kept`   — every store is pruned OR has a COMPLETE written decision (reason + period + date, {@see RetentionDecisions});
+     *   · `none`   — everything else: at least one store has neither. A category naming no real table at all is here too — its
+     *                data is not in the database, and nothing on record says how long it is kept.
+     *
+     * `partly` is a note on `none`, not a fourth bucket: how many of those already have at least one store pruned.
+     * `strict` / `lenient` are the two older readings, kept so the earlier tests and the data file's consumers keep working;
+     * the card no longer shows them (`strict` is exactly `pruned`).
+     *
+     * @param  ?array<string, array{reason: string, period: string, decided_on: string}>  $decisions  the registry — null reads the real one
+     * @return array{measurable: bool, reason: ?string, categories: ?int, strict: ?int, lenient: ?int, buckets: ?array{pruned: int, kept: int, none: int, partly: int}, enforced: array<string, string>, ruling: string}
      */
-    public function compute(?string $path = null): array
+    public function compute(?string $path = null, ?array $decisions = null): array
     {
         $enforced = self::enforced();
         $path ??= self::inventoryPath();
+        $decisions ??= RetentionDecisions::all();
 
         if (! is_readable($path)) {
             return ['measurable' => false, 'reason' => __('php/support/privacy/retention_coverage.reason_not_deployed', ['file' => self::DATA_FILE]),
-                'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
+                'categories' => null, 'strict' => null, 'lenient' => null, 'buckets' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
         }
 
         $data = json_decode((string) file_get_contents($path), true);
         if (! is_array($data) || ! is_array($data['categories'] ?? null)) {
             return ['measurable' => false, 'reason' => __('php/support/privacy/retention_coverage.reason_unreadable', ['file' => self::DATA_FILE]),
-                'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
+                'categories' => null, 'strict' => null, 'lenient' => null, 'buckets' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
         }
 
         $tables = array_flip(self::liveTables());
@@ -145,17 +161,38 @@ final class RetentionCoverage
 
         $strict = 0;
         $lenient = 0;
+        $kept = 0;
+        $none = 0;
+        $partly = 0;
         foreach ($rows as $row) {
             // ⚠️ The file records what the doc NAMES; whether each table exists is measured HERE, on this database.
             $named = array_values(array_filter(array_map('strval', (array) ($row['tables'] ?? [])), fn (string $t): bool => isset($tables[$t])));
             if ($named === []) {
+                $none++;   // its data is not in a table, and nothing on record says how long it is kept
+
                 continue;
             }
             $pruned = array_filter($named, fn (string $t): bool => isset($enforced[$t]));
             $lenient += $pruned !== [] ? 1 : 0;
             $strict += count($pruned) === count($named) ? 1 : 0;
+
+            // the stores no timer prunes — each needs a COMPLETE written decision for the category to count as kept on purpose
+            $unpruned = array_values(array_filter($named, fn (string $t): bool => ! isset($enforced[$t])));
+            if ($unpruned === []) {
+                continue;   // every store is pruned: counted in `strict`, which is the `pruned` bucket
+            }
+            if (array_all($unpruned, fn (string $t): bool => RetentionDecisions::isComplete($decisions[$t] ?? null))) {
+                $kept++;
+            } else {
+                $none++;
+                $partly += $pruned !== [] ? 1 : 0;
+            }
         }
 
-        return ['measurable' => true, 'reason' => null, 'categories' => count($rows), 'strict' => $strict, 'lenient' => $lenient, 'enforced' => $enforced, 'ruling' => self::RULING];
+        return [
+            'measurable' => true, 'reason' => null, 'categories' => count($rows), 'strict' => $strict, 'lenient' => $lenient,
+            'buckets' => ['pruned' => $strict, 'kept' => $kept, 'none' => $none, 'partly' => $partly],
+            'enforced' => $enforced, 'ruling' => self::RULING,
+        ];
     }
 }

@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'نامه',
     'channel_phone' => 'تلفن',
     'channel_hotel' => 'منتقل‌شده از طریق هتل',
+    'channel_in_app' => 'داخل برنامه',
     'status_received' => 'دریافت‌شده',
     'status_in_progress' => 'در حال انجام',
     'status_completed' => 'تکمیل‌شده',

@@ -31,7 +31,7 @@ class PrivacyRequest extends Model
 
     public const SUBJECTS = ['account_holder' => 'A Vyrobel account holder', 'relayed_guest' => 'A hotel’s guest (relayed — the hotel is the controller)'];
 
-    public const CHANNELS = ['email' => 'Email', 'letter' => 'Letter', 'phone' => 'Phone', 'hotel' => 'Relayed by the hotel'];
+    public const CHANNELS = ['email' => 'Email', 'letter' => 'Letter', 'phone' => 'Phone', 'hotel' => 'Relayed by the hotel', 'in_app' => 'In the app'];
 
     public const STATUSES = ['received' => 'Received', 'in_progress' => 'In progress', 'completed' => 'Completed', 'refused' => 'Refused'];
 
@@ -63,6 +63,7 @@ class PrivacyRequest extends Model
             'letter' => (string) __('php/models/privacy_request.channel_letter'),
             'phone' => (string) __('php/models/privacy_request.channel_phone'),
             'hotel' => (string) __('php/models/privacy_request.channel_hotel'),
+            'in_app' => (string) __('php/models/privacy_request.channel_in_app'),
             default => $channel,
         };
     }

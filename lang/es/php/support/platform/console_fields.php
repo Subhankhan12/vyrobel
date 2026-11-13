@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'organizaciones elegidas',
     'organization_ids_each' => 'organización',
     'plan_id' => 'plan',
+    'days' => 'días',
+    'until' => 'fecha de fin',
     'body' => 'mensaje',
     'starts_at' => 'mostrar desde',
     'ends_at' => 'hasta',

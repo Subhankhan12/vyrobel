@@ -3,6 +3,15 @@
 // I18N-01 — tr translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Deneme süresi uzatıldı — artık :date tarihinde bitiyor.',
+    'extend_not_on_trial' => 'Yalnızca ücretsiz denemedeki bir kuruluşun deneme süresi uzatılabilir.',
+    'extend_is_complimentary' => 'Bu kuruluş, kendi bitiş tarihi olan ücretsiz bir pakette — değiştirmek için paketi yeni bir tarihle yeniden tanımlayın.',
+    'extend_over_ceiling' => 'Bir deneme süresi bugünden itibaren en fazla 90 gün sürebilir ve bu uzatmayla süre :date tarihinde biterdi. Daha az gün seçin.',
+    'complimentary_granted' => 'Ücretsiz paket tanımlandı — :date tarihine kadar tam erişim, ardından ödeme duvarı.',
+    'complimentary_billed' => 'Bu kuruluş Stripe üzerinden faturalandırılıyor. Ücretsiz paket yalnızca ödeme yapmayan bir kuruluş içindir.',
+    'complimentary_no_subscription' => 'Bu kuruluşun, ücretsiz bir paketin bağlanabileceği bir abonelik kaydı yok.',
+    'complimentary_ended' => 'Ücretsiz paket sona erdi — kuruluş artık ödeme duvarını görüyor.',
+    'complimentary_not_on' => 'Bu kuruluş ücretsiz bir pakette değil.',
     'delete_refused_protected' => 'Reddedildi — bu kuruluş korumalı ve konsoldan hiçbir zaman silinemez.',
     'delete_type_name' => 'Silmeyi onaylamak için kuruluşun tam adını yazın.',
     'delete_suspend_first' => 'Önce askıya alın — yalnızca askıya alınmış veya arşivlenmiş bir kuruluş silinebilir.',

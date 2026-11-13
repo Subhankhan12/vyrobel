@@ -9,6 +9,8 @@ return [
     'organization_ids' => 'chosen organisations',
     'organization_ids_each' => 'organisation',
     'plan_id' => 'plan',
+    'days' => 'days',
+    'until' => 'end date',
     'body' => 'message',
     'starts_at' => 'show from',
     'ends_at' => 'until',

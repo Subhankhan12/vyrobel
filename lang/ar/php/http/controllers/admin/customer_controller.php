@@ -3,6 +3,15 @@
 // I18N-01 — ar translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'تم تمديد الفترة التجريبية — وتنتهي الآن في :date.',
+    'extend_not_on_trial' => 'لا يمكن تمديد الفترة التجريبية إلا لمؤسسة في فترة تجريبية مجانية.',
+    'extend_is_complimentary' => 'هذه المؤسسة على باقة مجانية لها تاريخ انتهاء خاص بها — يرجى منحها الباقة مرة أخرى بتاريخ جديد لتغيير ذلك التاريخ.',
+    'extend_over_ceiling' => 'لا يمكن أن تمتد الفترة التجريبية لأكثر من 90 يومًا من اليوم، وهذا التمديد سينتهي في :date. يرجى اختيار عدد أيام أقل.',
+    'complimentary_granted' => 'تم منح الباقة المجانية — وصول كامل حتى :date، ثم جدار الدفع.',
+    'complimentary_billed' => 'تتم فوترة هذه المؤسسة عبر Stripe. الباقة المجانية مخصصة فقط للمؤسسة التي لا تدفع.',
+    'complimentary_no_subscription' => 'لا يوجد لدى هذه المؤسسة سجل اشتراك يمكن ربط باقة مجانية به.',
+    'complimentary_ended' => 'انتهت الباقة المجانية — وأصبح جدار الدفع يظهر للمؤسسة الآن.',
+    'complimentary_not_on' => 'هذه المؤسسة ليست على باقة مجانية.',
     'delete_refused_protected' => 'مرفوض — هذه المؤسسة محمية ولا يمكن حذفها من لوحة الإدارة أبدًا.',
     'delete_type_name' => 'يرجى كتابة اسم المؤسسة كما هو تمامًا لتأكيد الحذف.',
     'delete_suspend_first' => 'يرجى تعليقها أولًا — لا يمكن حذف إلا مؤسسة معلّقة أو مؤرشفة.',

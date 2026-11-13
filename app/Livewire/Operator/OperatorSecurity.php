@@ -12,6 +12,7 @@ use App\Models\IpAllowRule;
 use App\Models\User;
 use App\Support\Auth\SignInCredentials;
 use App\Support\Auth\SocialProviders;
+use App\Support\Privacy\AccountDeletionRequests;
 use App\Support\Security\ActiveSessions;
 use App\Support\Security\SecurityOverview;
 use Carbon\CarbonImmutable;
@@ -84,6 +85,8 @@ class OperatorSecurity extends Component
             'errored' => is_string($errored) ? $errored : null,
             'erroredDevice' => $errored === 'revoke' && is_string(old('device_id')) ? (string) old('device_id') : null,
             'pkErrored' => SecurityOverview::erroredPasskey($errored, $overview['passkeys']),
+            // DEC-6 — the person's open "request deletion", if any (the card shows its state instead of the button)
+            'deletionRequest' => AccountDeletionRequests::openFor($user),
             'canManageIp' => $user->can('settings.manage'),
             'sessions' => $sessions,
             'ipRules' => $ipRules,

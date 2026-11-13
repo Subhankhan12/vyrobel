@@ -3,6 +3,15 @@
 // I18N-01 — de translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Testphase verlängert — sie endet jetzt am :date.',
+    'extend_not_on_trial' => 'Nur bei einer Organisation in der kostenlosen Testphase kann die Testphase verlängert werden.',
+    'extend_is_complimentary' => 'Diese Organisation hat einen kostenfreien Tarif mit eigenem Enddatum — gewähren Sie ihn mit einem neuen Datum erneut, um das Enddatum zu ändern.',
+    'extend_over_ceiling' => 'Eine Testphase kann höchstens 90 Tage ab heute laufen, und diese würde am :date enden. Wählen Sie weniger Tage.',
+    'complimentary_granted' => 'Kostenfreier Tarif gewährt — voller Zugriff bis :date, danach die Bezahlschranke.',
+    'complimentary_billed' => 'Diese Organisation wird über Stripe abgerechnet. Ein kostenfreier Tarif ist nur für eine Organisation gedacht, die nicht zahlt.',
+    'complimentary_no_subscription' => 'Diese Organisation hat keinen Abonnementdatensatz, dem ein kostenfreier Tarif zugeordnet werden könnte.',
+    'complimentary_ended' => 'Der kostenfreie Tarif wurde beendet — die Organisation sieht jetzt die Bezahlschranke.',
+    'complimentary_not_on' => 'Diese Organisation hat keinen kostenfreien Tarif.',
     'delete_refused_protected' => 'Abgelehnt — diese Organisation ist geschützt und kann nie über die Konsole gelöscht werden.',
     'delete_type_name' => 'Geben Sie zur Bestätigung der Löschung den exakten Namen der Organisation ein.',
     'delete_suspend_first' => 'Sperren Sie sie zuerst — nur eine gesperrte oder archivierte Organisation kann gelöscht werden.',

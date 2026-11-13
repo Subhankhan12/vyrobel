@@ -3,6 +3,21 @@
 // I18N-01 — fa translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'تمدید دوره آزمایشی',
+    'extend_days_label' => 'افزودن روز',
+    'extend_button' => 'تمدید دوره آزمایشی',
+    'extend_reason_placeholder' => 'دلیل — مثلاً یک هتل پایلوت یک هفته بیشتر خواست',
+    'extend_hint' => 'از تاریخ پایان دوره آزمایشی محاسبه می‌شود (اگر قبلاً تمام شده باشد، از امروز). هر تمدید بین 1 تا 60 روز است و دوره آزمایشی هرگز بیش از 90 روز پس از امروز به پایان نمی‌رسد. به رمز عبور شما نیاز دارد؛ در گزارش ممیزی کنسول ثبت می‌شود.',
+    'complimentary_heading' => 'طرح رایگان',
+    'complimentary_until_label' => 'رایگان تا',
+    'complimentary_button' => 'اعطای طرح رایگان',
+    'complimentary_change_button' => 'تغییر تاریخ پایان',
+    'complimentary_reason_placeholder' => 'دلیل — مثلاً شریک پایلوت، با موافقت بنیان‌گذار',
+    'complimentary_hint' => 'دسترسی کامل و رایگان تا تاریخی که انتخاب می‌کنید (از فردا تا یک سال بعد) — سپس دیوار پرداخت، مثل دوره آزمایشی. این طرح نه دوره آزمایشی به حساب می‌آید و نه درآمد. برای سازمانی که پرداخت آن از طریق Stripe انجام می‌شود در نظر گرفته نشده است. به رمز عبور شما نیاز دارد.',
+    'end_complimentary_heading' => 'پایان دادن به طرح رایگان',
+    'end_complimentary_reason_placeholder' => 'دلیل — مثلاً پایلوت به پایان رسید',
+    'end_complimentary_button' => 'پایان دادن فوری',
+    'end_complimentary_hint' => 'سازمان بلافاصله دیوار پرداخت را می‌بیند. به رمز عبور شما نیاز دارد؛ در گزارش ممیزی کنسول ثبت می‌شود.',
     'back_label' => 'همه سازمان‌ها',
     'pill_suspended_underneath' => 'مسدودشده در پس‌زمینه',
     'pill_internal' => 'داخلی',

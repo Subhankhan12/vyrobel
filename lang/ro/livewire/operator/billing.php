@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Costul este motivul? Facturarea anuală economisește :amount pe an. Fără taxe în niciun caz — puteți reveni oricând.',
     'change_plan_heading' => 'Schimbare plan',
     'trial_days_left' => '{1}Mai aveți <strong>:count zi</strong> din perioada de încercare gratuită — acces complet. Alegeți un plan pentru a continua după încheierea ei.|Mai aveți <strong>:count zile</strong> din perioada de încercare gratuită — acces complet. Alegeți un plan pentru a continua după încheierea ei.|Mai aveți <strong>:count de zile</strong> din perioada de încercare gratuită — acces complet. Alegeți un plan pentru a continua după încheierea ei.',
+    'complimentary_line' => '<strong>Plan de cortesie</strong> — acces complet, fără plată, până la :date. Puteți totuși să alegeți mai jos un plan, pentru a continua după această dată.',
+    'complimentary_ended_line' => 'Planul dumneavoastră de cortesie s-a încheiat. Alegeți mai jos un plan pentru a reactiva accesul complet.',
     'trial_ended' => 'Perioada de încercare s-a încheiat. Alegeți mai jos un plan pentru a reactiva accesul complet.',
     'choose_a_plan' => 'Alegeți un plan pentru abonare.',
     'disclaimer' => 'Prețurile sunt provizorii până la stabilirea prețurilor finale. Abonamentele sunt facturate securizat prin Stripe — datele cardului nu ajung niciodată la Vyrobel, iar în modul de testare nu se debitează nimic.',

@@ -91,8 +91,8 @@ it('⚠️⚠️ the erasure queue is watched — an OVERDUE request is red — 
     }
 })->group('security');
 
-it('⚠️⚠️ the RETENTION METER counts from the inventory, reads enforcement from code, and picks NO ruling', function () {
-    expect(RetentionCoverage::RULING)->toBeNull();
+it('⚠️⚠️ the RETENTION METER counts from the inventory, reads enforcement from code, and follows the founder’s ruling (three buckets, 2026-11-13)', function () {
+    expect(RetentionCoverage::RULING)->toBe('three_buckets');
 
     $c = (new RetentionCoverage)->compute();
     // ⚠️ M is the AUDITED DOC's own row count — read from the doc, never typed — even though the meter reads the
@@ -110,7 +110,8 @@ it('⚠️⚠️ the RETENTION METER counts from the inventory, reads enforcemen
     expect($gone['measurable'])->toBeFalse()->and($gone['categories'])->toBeNull()->and($gone['reason'])->toContain('not deployed');
 
     $this->actingAs(platformAdmin(), 'admin')->get(route('admin.privacy.index'))->assertOk()
-        ->assertSee('Awaiting the founder’s ruling on what counts')->assertSee('Neither reading is the ruling');
+        ->assertSee('Pruned by a timer')->assertSee('Kept on purpose')->assertSee('No rule yet')
+        ->assertDontSee('Awaiting the founder’s ruling on what counts')->assertDontSee('Neither reading is the ruling');
 })->group('security');
 
 // ⚠️⚠️ TONIGHT 01 (2026-09-25) — the meter reads a SHIPPED data file generated from the doc, because docs/ is not

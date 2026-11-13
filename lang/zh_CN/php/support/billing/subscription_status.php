@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}免费试用 · 剩余 :count 天|[0,*]免费试用 · 剩余 :count 天',
     'active' => '有效',
+    'complimentary_until' => '免费赠送 · 至 :date',
+    'complimentary_ended' => '赠送方案已结束',
     'trial_ended' => '免费试用已结束',
     'past_due' => '逾期未付',
     'canceled' => '已取消订阅',

@@ -77,7 +77,9 @@ class PlatformMetrics
             'by_status' => $byStatus,
             // `active` is reached only via a real Stripe webhook; `trialing` is the provisioned free trial.
             'active_subscriptions' => $inScope(Subscription::query())->where('status', 'active')->count(),
-            'on_trial' => $inScope(Subscription::query())->where('status', 'trialing')->count(),
+            // ⚠️ DEC-7 — a COMPLIMENTARY workspace is a `trialing` row with a mark: it is a free workspace, not a trial
+            //    waiting to convert, so it is not counted here (the directory labels it "complimentary").
+            'on_trial' => $inScope(Subscription::query())->where('status', 'trialing')->whereNull('complimentary_until')->count(),
             // ⚠️ LIVE = active AND linked to a real Stripe subscription. A status alone is not money.
             'live_billed_subscriptions' => $inScope(Subscription::query())
                 ->where('status', 'active')

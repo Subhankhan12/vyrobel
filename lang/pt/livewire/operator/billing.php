@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'O motivo é o custo? A faturação anual poupa :amount por ano. Sem taxas em nenhum dos casos — pode voltar quando quiser.',
     'change_plan_heading' => 'Mudar de plano',
     'trial_days_left' => '{1} Resta <strong>:count dia</strong> do seu período de teste gratuito — acesso total. Escolha um plano para continuar depois de terminar.|[0,*] Restam <strong>:count dias</strong> do seu período de teste gratuito — acesso total. Escolha um plano para continuar depois de terminar.',
+    'complimentary_line' => '<strong>Plano de cortesia</strong> — acesso total, sem necessidade de pagamento, até :date. Pode, ainda assim, escolher um plano abaixo para continuar depois dessa data.',
+    'complimentary_ended_line' => 'O seu plano de cortesia terminou. Escolha um plano abaixo para reativar o acesso total.',
     'trial_ended' => 'O seu período de teste terminou. Escolha um plano abaixo para reativar o acesso total.',
     'choose_a_plan' => 'Escolha um plano para subscrever.',
     'disclaimer' => 'Os preços são provisórios enquanto definimos os preços finais. As subscrições são faturadas de forma segura através da Stripe — os dados do seu cartão nunca passam pela Vyrobel e nada é cobrado em modo de teste.',

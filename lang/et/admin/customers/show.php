@@ -3,6 +3,21 @@
 // I18N-01 — et translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Pikenda prooviperioodi',
+    'extend_days_label' => 'Lisa päevi',
+    'extend_button' => 'Pikenda prooviperioodi',
+    'extend_reason_placeholder' => 'Miks — nt pilootprojektis osalev hotell palus nädalat juurde',
+    'extend_hint' => 'Loetakse prooviperioodi lõpust (tänasest, kui see on juba lõppenud). Üks pikendus on 1–60 päeva ning prooviperiood ei lõpe kunagi hiljem kui 90 päeva pärast tänast päeva. Nõuab teie parooli; kirjutatakse konsooli auditilogisse.',
+    'complimentary_heading' => 'Tasuta plaan',
+    'complimentary_until_label' => 'Tasuta kuni',
+    'complimentary_button' => 'Anna tasuta plaan',
+    'complimentary_change_button' => 'Muuda lõppkuupäeva',
+    'complimentary_reason_placeholder' => 'Miks — nt pilootpartner, asutajaga kokku lepitud',
+    'complimentary_hint' => 'Täielik ligipääs, tasuta, kuni teie valitud kuupäevani (homsest kuni aasta pärast) — seejärel maksemüür, nagu prooviperioodil. Seda ei arvestata prooviperioodi ega käibena. Ei sobi organisatsioonile, mille arveldus käib Stripe’i kaudu. Nõuab teie parooli.',
+    'end_complimentary_heading' => 'Lõpeta tasuta plaan',
+    'end_complimentary_reason_placeholder' => 'Miks — nt pilootprojekt lõppes',
+    'end_complimentary_button' => 'Lõpeta kohe',
+    'end_complimentary_hint' => 'Organisatsioon näeb kohe maksemüüri. Nõuab teie parooli; kirjutatakse konsooli auditilogisse.',
     'back_label' => 'Kõik organisatsioonid',
     'pill_suspended_underneath' => 'Ühtlasi peatatud',
     'pill_internal' => 'Sisemine',

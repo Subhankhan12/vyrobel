@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Żaden z jej użytkowników nigdy nie dokończył logowania. ⚠️ Sesja rejestracji nie jest logowaniem, więc oznacza to „nikt nie wrócił po rejestracji”.',
     'bucket_via_x' => 'Rejestracja przez X',
     'bucket_via_x_definition' => 'Rejestracja przez X. X nie potwierdza adresu e-mail tak jak Google – zaakceptowane ryzyko zajęcia cudzego adresu. Wyświetlane do przejrzenia; nigdy nie podejmuje się automatycznych działań.',
+    'bucket_abandoned' => 'Porzucone rejestracje (30+ dni)',
+    'bucket_abandoned_definition' => 'Utworzona ponad 30 dni temu, nikt nie potwierdził adresu e-mail i nikt nigdy się nie zalogował. Otwórz organizację, aby ją zawiesić, a następnie usuń ją, podając hasło. Nic nie jest usuwane automatycznie.',
     'status_active' => 'Aktywna',
     'status_trialing' => 'Bezpłatny okres testowy',
     'status_suspended' => 'Zawieszona',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Niekompletna',
     'subscription_paused' => 'Wstrzymana',
     'plan_on_free_trial' => ':plan · bezpłatny okres testowy',
+    'plan_complimentary' => ':plan · gratisowy',
 ];

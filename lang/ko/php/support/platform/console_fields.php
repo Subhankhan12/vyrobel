@@ -8,6 +8,8 @@ return [
     'organization_ids' => '선택한 워크스페이스',
     'organization_ids_each' => '워크스페이스',
     'plan_id' => '요금제',
+    'days' => '일수',
+    'until' => '종료일',
     'body' => '메시지',
     'starts_at' => '게시 시작',
     'ends_at' => '게시 종료',

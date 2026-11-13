@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'चुने हुए वर्कस्पेस',
     'organization_ids_each' => 'वर्कस्पेस',
     'plan_id' => 'प्लान',
+    'days' => 'दिन',
+    'until' => 'समाप्ति तिथि',
     'body' => 'संदेश',
     'starts_at' => 'कब से दिखाएँ',
     'ends_at' => 'कब तक',

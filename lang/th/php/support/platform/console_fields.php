@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'พื้นที่ทำงานที่เลือก',
     'organization_ids_each' => 'พื้นที่ทำงาน',
     'plan_id' => 'แผน',
+    'days' => 'จำนวนวัน',
+    'until' => 'วันสิ้นสุด',
     'body' => 'ข้อความ',
     'starts_at' => 'แสดงตั้งแต่',
     'ends_at' => 'ถึง',

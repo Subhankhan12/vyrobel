@@ -11,6 +11,7 @@ return [
     'channel_letter' => '郵便',
     'channel_phone' => '電話',
     'channel_hotel' => 'ホテル経由',
+    'channel_in_app' => 'アプリ内',
     'status_received' => '受付済み',
     'status_in_progress' => '対応中',
     'status_completed' => '完了',

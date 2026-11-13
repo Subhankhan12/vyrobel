@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Prooviperiood · jäänud :count päev|[0,*]Prooviperiood · jäänud :count päeva',
     'active' => 'Aktiivne',
+    'complimentary_until' => 'Tasuta plaan · kuni :date',
+    'complimentary_ended' => 'Tasuta plaan lõppenud',
     'trial_ended' => 'Prooviperiood lõppenud',
     'past_due' => 'Maksega hilinenud',
     'canceled' => 'Tühistatud',

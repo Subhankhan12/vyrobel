@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'các tổ chức đã chọn',
     'organization_ids_each' => 'tổ chức',
     'plan_id' => 'gói',
+    'days' => 'số ngày',
+    'until' => 'ngày kết thúc',
     'body' => 'nội dung',
     'starts_at' => 'hiển thị từ',
     'ends_at' => 'hiển thị đến',

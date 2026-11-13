@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'A është kostoja arsyeja? Faturimi vjetor kursen :amount në vit. Pa tarifa në të dyja rastet — mund të ktheheni në çdo kohë.',
     'change_plan_heading' => 'Ndrysho planin',
     'trial_days_left' => '{1}Ka mbetur <strong>:count ditë</strong> nga prova juaj falas — qasje e plotë. Zgjidhni një plan për të vazhduar pasi të mbarojë.|[0,*]Kanë mbetur <strong>:count ditë</strong> nga prova juaj falas — qasje e plotë. Zgjidhni një plan për të vazhduar pasi të mbarojë.',
+    'complimentary_line' => '<strong>Plan falas</strong> — qasje e plotë, pa nevojë për pagesë, deri më :date. Prapë mund të zgjidhni një plan më poshtë për të vazhduar pas kësaj date.',
+    'complimentary_ended_line' => 'Plani juaj falas ka mbaruar. Zgjidhni një plan më poshtë për të riaktivizuar qasjen e plotë.',
     'trial_ended' => 'Prova juaj ka mbaruar. Zgjidhni një plan më poshtë për të riaktivizuar qasjen e plotë.',
     'choose_a_plan' => 'Zgjidhni një plan dhe abonohuni.',
     'disclaimer' => 'Çmimet janë provizore derisa të finalizohet çmimi. Abonimet faturohen në mënyrë të sigurt përmes Stripe — të dhënat e kartës suaj nuk kalojnë kurrë në Vyrobel, dhe në modalitetin e testimit nuk debitohet asgjë.',

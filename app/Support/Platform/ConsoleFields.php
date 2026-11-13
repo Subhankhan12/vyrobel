@@ -21,6 +21,9 @@ final class ConsoleFields
         'organization_ids' => 'chosen organisations',
         'organization_ids.*' => 'organisation',
         'plan_id' => 'plan',
+        // DEC-7 — extend a trial, grant a complimentary plan
+        'days' => 'days',
+        'until' => 'end date',
         // Announcements
         'body' => 'message',
         'starts_at' => 'show from',
@@ -122,6 +125,8 @@ final class ConsoleFields
             'organization_ids' => __('php/support/platform/console_fields.organization_ids'),
             'organization_ids.*' => __('php/support/platform/console_fields.organization_ids_each'),
             'plan_id' => __('php/support/platform/console_fields.plan_id'),
+            'days' => __('php/support/platform/console_fields.days'),
+            'until' => __('php/support/platform/console_fields.until'),
             'body' => __('php/support/platform/console_fields.body'),
             'starts_at' => __('php/support/platform/console_fields.starts_at'),
             'ends_at' => __('php/support/platform/console_fields.ends_at'),

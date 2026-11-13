@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'C’est une question de coût ? La facturation annuelle vous fait économiser :amount par an. Aucuns frais dans un cas comme dans l’autre — vous pouvez revenir à tout moment.',
     'change_plan_heading' => 'Changer de formule',
     'trial_days_left' => '{1} Il reste <strong>:count jour</strong> à votre essai gratuit — accès complet. Choisissez une formule pour continuer après sa fin.|[0,*] Il reste <strong>:count jours</strong> à votre essai gratuit — accès complet. Choisissez une formule pour continuer après sa fin.',
+    'complimentary_line' => '<strong>Offert</strong> — accès complet, aucun paiement requis, jusqu’au :date. Vous pouvez tout de même choisir une formule ci-dessous pour continuer après cette date.',
+    'complimentary_ended_line' => 'Votre formule offerte est terminée. Choisissez une formule ci-dessous pour rétablir l’accès complet.',
     'trial_ended' => 'Votre essai gratuit est terminé. Choisissez une formule ci-dessous pour rétablir l’accès complet.',
     'choose_a_plan' => 'Choisissez une formule pour vous abonner.',
     'disclaimer' => 'Les prix sont provisoires, le temps de finaliser nos tarifs. Les abonnements sont facturés de manière sécurisée via Stripe — vos données de carte ne transitent jamais par Vyrobel, et aucun débit n’a lieu en mode test.',

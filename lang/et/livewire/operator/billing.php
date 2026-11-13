@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Põhjuseks on hind? Iga-aastase arveldusega säästate :amount aastas. Tasusid pole kummalgi juhul — võite igal ajal tagasi tulla.',
     'change_plan_heading' => 'Muuda plaani',
     'trial_days_left' => '{1}Teie tasuta prooviperioodist on jäänud <strong>:count päev</strong> — täielik ligipääs. Valige plaan, et jätkata pärast selle lõppu.|[0,*]Teie tasuta prooviperioodist on jäänud <strong>:count päeva</strong> — täielik ligipääs. Valige plaan, et jätkata pärast selle lõppu.',
+    'complimentary_line' => '<strong>Tasuta plaan</strong> — täielik ligipääs, makset pole vaja, kuni :date. Saate siiski allpool plaani valida, et jätkata ka pärast seda kuupäeva.',
+    'complimentary_ended_line' => 'Teie tasuta plaan on lõppenud. Täieliku ligipääsu taastamiseks valige allpool plaan.',
     'trial_ended' => 'Teie prooviperiood on lõppenud. Täieliku ligipääsu taastamiseks valige allpool plaan.',
     'choose_a_plan' => 'Abonemendi alustamiseks valige plaan.',
     'disclaimer' => 'Hinnad on ajutised, kuni me hinnastuse lõplikult paika paneme. Abonemente arveldatakse turvaliselt Stripe’i kaudu — Vyrobel ei näe kunagi teie kaardiandmeid ja testrežiimis tasu ei võeta.',

@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'จดหมาย',
     'channel_phone' => 'โทรศัพท์',
     'channel_hotel' => 'ส่งต่อโดยโรงแรม',
+    'channel_in_app' => 'ในแอป',
     'status_received' => 'รับคำขอแล้ว',
     'status_in_progress' => 'กำลังดำเนินการ',
     'status_completed' => 'ดำเนินการเสร็จแล้ว',

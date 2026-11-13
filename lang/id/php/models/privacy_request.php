@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Surat',
     'channel_phone' => 'Telepon',
     'channel_hotel' => 'Diteruskan oleh hotel',
+    'channel_in_app' => 'Di aplikasi',
     'status_received' => 'Diterima',
     'status_in_progress' => 'Sedang diproses',
     'status_completed' => 'Selesai',

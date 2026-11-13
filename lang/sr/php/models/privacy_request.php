@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Писмо',
     'channel_phone' => 'Телефон',
     'channel_hotel' => 'Прослеђено преко хотела',
+    'channel_in_app' => 'У апликацији',
     'status_received' => 'Примљен',
     'status_in_progress' => 'У току',
     'status_completed' => 'Завршен',

@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'изабране организације',
     'organization_ids_each' => 'организација',
     'plan_id' => 'план',
+    'days' => 'број дана',
+    'until' => 'крајњи датум',
     'body' => 'порука',
     'starts_at' => 'приказ од',
     'ends_at' => 'до',

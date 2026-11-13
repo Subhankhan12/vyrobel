@@ -18,6 +18,13 @@ return [
     'mail_smtp_not_set' => 'Not set: :keys — the mail server will refuse every message.',
     'mail_sender_mismatch' => 'Sender does not match the SMTP login',
     'mail_sender_mismatch_line' => 'MAIL_FROM_ADDRESS is not the mailbox that signs in (MAIL_USERNAME) — Hostinger rejects mail sent as anyone else.',
+    // DEC-1 — the rotating mailer (two mailboxes)
+    'mail_rotating_none' => 'The rotating mailer has no mailbox with a login',
+    'mail_rotating_none_line' => 'Not set: MAIL_USERNAME and MAIL_PASSWORD — the mail server will refuse every message.',
+    'mail_rotating_all_full' => 'Every mailbox has reached its daily limit',
+    'mail_rotating_all_full_line' => 'Nothing more can be sent until a mailbox’s rolling 24 hours frees — queued email will fail until then.',
+    'mail_mailbox_usage' => 'Mailbox :n — :used of :limit sent in the last 24 hours.',
+    'mail_rotating_no_second' => 'Only one mailbox has a login. MAIL_SECOND_USERNAME and MAIL_SECOND_PASSWORD are not set, so there is no second mailbox to switch to when this one is full.',
     'mail_smtp_ok' => 'SMTP: a real mail server, a complete login, and a From address that matches it.',
     'mail_accepted' => 'Accepted by the mail server — 24h: :day · 7 days: :week.',
     'mail_suppressed' => 'Suppressed (an address that can never receive mail — never sent) — 7 days: :week.',

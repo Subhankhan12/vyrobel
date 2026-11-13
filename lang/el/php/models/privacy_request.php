@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Επιστολή',
     'channel_phone' => 'Τηλέφωνο',
     'channel_hotel' => 'Διαβιβάστηκε από το ξενοδοχείο',
+    'channel_in_app' => 'Στην εφαρμογή',
     'status_received' => 'Ελήφθη',
     'status_in_progress' => 'Σε εξέλιξη',
     'status_completed' => 'Ολοκληρώθηκε',

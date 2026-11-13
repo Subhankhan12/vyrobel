@@ -3,6 +3,15 @@
 // I18N-01 — pt translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Período de teste prolongado — termina agora em :date.',
+    'extend_not_on_trial' => 'Só é possível prolongar o período de teste de uma organização que esteja em período de teste.',
+    'extend_is_complimentary' => 'Esta organização tem um plano de cortesia, que tem a sua própria data de fim — conceda-o novamente com uma nova data para a alterar.',
+    'extend_over_ceiling' => 'Um período de teste pode durar, no máximo, 90 dias a contar de hoje, e este terminaria em :date. Escolha menos dias.',
+    'complimentary_granted' => 'Plano de cortesia concedido — acesso total até :date e, depois, o paywall.',
+    'complimentary_billed' => 'Esta organização é faturada através da Stripe. Um plano de cortesia destina-se apenas a uma organização que não paga.',
+    'complimentary_no_subscription' => 'Esta organização não tem nenhum registo de subscrição ao qual associar um plano de cortesia.',
+    'complimentary_ended' => 'O plano de cortesia terminou — a organização vê agora o paywall.',
+    'complimentary_not_on' => 'Esta organização não tem um plano de cortesia.',
     'delete_refused_protected' => 'Recusado — esta organização está protegida e nunca pode ser eliminada a partir da consola.',
     'delete_type_name' => 'Escreva o nome exato da organização para confirmar a eliminação.',
     'delete_suspend_first' => 'Suspenda-a primeiro — só é possível eliminar uma organização suspensa ou arquivada.',

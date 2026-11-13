@@ -3,6 +3,21 @@
 // I18N-01 — ko translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => '무료 체험 연장',
+    'extend_days_label' => '추가 일수',
+    'extend_button' => '무료 체험 연장',
+    'extend_reason_placeholder' => '이유 — 예: 시범 운영 호텔이 일주일 연장을 요청함',
+    'extend_hint' => '무료 체험 종료일부터 계산합니다(이미 종료된 경우 오늘부터). 1회 연장은 1–60일이며, 무료 체험 종료일은 오늘부터 90일을 넘을 수 없습니다. 비밀번호가 필요하며, 콘솔 원장에 기록됩니다.',
+    'complimentary_heading' => '무상 제공 요금제',
+    'complimentary_until_label' => '무료 이용 기한',
+    'complimentary_button' => '무상 제공 요금제 부여',
+    'complimentary_change_button' => '종료일 변경',
+    'complimentary_reason_placeholder' => '이유 — 예: 시범 운영 파트너, 설립자가 승인함',
+    'complimentary_hint' => '내일부터 1년 이내에서 선택한 날짜까지 모든 기능을 무료로 이용할 수 있으며, 그 이후에는 무료 체험처럼 페이월이 표시됩니다. 무료 체험이나 매출로 집계되지 않습니다. Stripe로 청구되는 워크스페이스에는 사용할 수 없습니다. 비밀번호가 필요합니다.',
+    'end_complimentary_heading' => '무상 제공 요금제 종료',
+    'end_complimentary_reason_placeholder' => '이유 — 예: 시범 운영 종료',
+    'end_complimentary_button' => '지금 종료',
+    'end_complimentary_hint' => '워크스페이스에 즉시 페이월이 표시됩니다. 비밀번호가 필요하며, 콘솔 원장에 기록됩니다.',
     'back_label' => '모든 워크스페이스',
     'pill_suspended_underneath' => '이용 정지 상태 유지',
     'pill_internal' => '내부',

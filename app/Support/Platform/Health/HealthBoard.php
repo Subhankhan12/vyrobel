@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Platform\Health;
 
 use App\Support\I18n\LocalDate;
+use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Mail\MailSendLog;
 use App\Support\Ops\ConfigInventory;
@@ -105,6 +106,16 @@ final class HealthBoard
             $lines[] = __('php/support/platform/health/health_board.mail_smtp_ok');
         }
 
+        // ⚠️ DEC-1 (his ruling, 2026-11-13) — the ROTATING mailer: two mailboxes, each with Hostinger's daily limit. Names and counts
+        //    only — never an address, never a value.
+        if ($mailer === MailboxRotation::MAILER) {
+            $card = $this->rotatingMailboxes($lines);
+            if ($card !== null) {
+                return $card;
+            }
+            $lines = array_merge($lines, $this->rotatingLines());
+        }
+
         $failed = $this->queuedMailFailures(now()->subDays(7));
         $lines[] = __('php/support/platform/health/health_board.mail_accepted', [
             'day' => MailSendLog::count(MailSendLog::ACCEPTED, now()->subDay()),
@@ -119,6 +130,54 @@ final class HealthBoard
         }
 
         return new HealthCard('mail', $this->title('mail'), HealthCard::GREEN, __('php/support/platform/health/health_board.mail_delivering'), $lines);
+    }
+
+    /**
+     * DEC-1 — the checks that make the rotating mailer unusable, as a RED card; null when it can send. Each names a KEY.
+     *
+     * @param  list<string>  $lines
+     */
+    private function rotatingMailboxes(array $lines): ?HealthCard
+    {
+        $mailboxes = MailboxRotation::mailboxes();
+        if ($mailboxes === []) {
+            return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_rotating_none'), array_merge($lines, [
+                __('php/support/platform/health/health_board.mail_rotating_none_line'),
+            ]));
+        }
+        if (MailSafetyGuard::isLocalSmtpHost((string) config('mail.mailers.smtp.host'))) {
+            return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_local_host'), array_merge($lines, [
+                __('php/support/platform/health/health_board.mail_local_host_line'),
+            ]));
+        }
+        $limit = MailboxRotation::dailyLimit();
+        $allFull = array_all($mailboxes, fn (array $m): bool => MailboxRotation::usedInLastDay($m['label']) >= $limit);
+        if ($allFull) {
+            return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_rotating_all_full'), array_merge($lines, $this->rotatingLines(), [
+                __('php/support/platform/health/health_board.mail_rotating_all_full_line'),
+            ]));
+        }
+
+        return null;
+    }
+
+    /**
+     * DEC-1 — one line per mailbox with how much of today's limit it has used, and a note when there is no second mailbox.
+     *
+     * @return list<string>
+     */
+    private function rotatingLines(): array
+    {
+        $limit = MailboxRotation::dailyLimit();
+        $lines = [];
+        foreach (MailboxRotation::mailboxes() as $i => $mailbox) {
+            $lines[] = __('php/support/platform/health/health_board.mail_mailbox_usage', ['n' => $i + 1, 'used' => MailboxRotation::usedInLastDay($mailbox['label']), 'limit' => $limit]);
+        }
+        if (count(MailboxRotation::mailboxes()) < 2) {
+            $lines[] = __('php/support/platform/health/health_board.mail_rotating_no_second');
+        }
+
+        return $lines;
     }
 
     /** Queued email jobs that ended in `failed_jobs` since the given moment — read by the job's display name. */

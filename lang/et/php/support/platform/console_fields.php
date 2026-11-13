@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'valitud organisatsioonid',
     'organization_ids_each' => 'organisatsioon',
     'plan_id' => 'plaan',
+    'days' => 'päevad',
+    'until' => 'lõppkuupäev',
     'body' => 'sõnum',
     'starts_at' => 'näita alates',
     'ends_at' => 'kuni',

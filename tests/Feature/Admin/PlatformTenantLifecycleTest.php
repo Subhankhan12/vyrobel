@@ -468,8 +468,8 @@ it('⚠️ triage COUNTS by the same definition the directory filters by — int
         return array_map(fn ($v) => (int) str_replace(',', '', $v), $m[1]);
     };
     // ⚠️ BOTH baselines are measured BEFORE the fixtures — the test database persists between runs.
-    [$unverified0, $never0, $x0] = $count();
-    [$unverifiedAll0, $neverAll0, $xAll0] = $count(true);
+    [$unverified0, $never0, $x0, $abandoned0] = $count();
+    [$unverifiedAll0, $neverAll0, $xAll0, $abandonedAll0] = $count(true);
 
     $old = tlWorld();   // unverified, 10 days old, never signed in, via X
     $old['org']->forceFill(['signup_source' => 'twitter', 'created_at' => now()->subDays(10)])->save();
@@ -478,11 +478,12 @@ it('⚠️ triage COUNTS by the same definition the directory filters by — int
     $young['org']->forceFill(['created_at' => now()->subDays(2)])->save();
     DB::table('users')->whereIn('id', DB::table('organization_user')->where('organization_id', $young['org']->id)->pluck('user_id'))->update(['email_verified_at' => null, 'last_login_at' => null]);
     $internal = tlWorld();   // would be in every bucket — but it is Vyrobel's own
-    $internal['org']->forceFill(['signup_source' => 'twitter', 'created_at' => now()->subDays(30), 'is_internal' => true])->save();
+    $internal['org']->forceFill(['signup_source' => 'twitter', 'created_at' => now()->subDays(31), 'is_internal' => true])->save();   // 31 days: also past DEC-5's 30-day "abandoned" line
     DB::table('users')->whereIn('id', DB::table('organization_user')->where('organization_id', $internal['org']->id)->pluck('user_id'))->update(['email_verified_at' => null, 'last_login_at' => null]);
 
-    expect($count())->toBe([$unverified0 + 1, $never0 + 2, $x0 + 1])
-        ->and($count(true))->toBe([$unverifiedAll0 + 2, $neverAll0 + 3, $xAll0 + 2]);
+    // (the fourth figure is DEC-5's "abandoned" bucket: $old is only 10 days old, so it is the INTERNAL one alone that is past 30 days)
+    expect($count())->toBe([$unverified0 + 1, $never0 + 2, $x0 + 1, $abandoned0])
+        ->and($count(true))->toBe([$unverifiedAll0 + 2, $neverAll0 + 3, $xAll0 + 2, $abandonedAll0 + 1]);
 
     // …and the directory's bucket filter lists exactly the orgs the count counted.
     $this->flushSession();

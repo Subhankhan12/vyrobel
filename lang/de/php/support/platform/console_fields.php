@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'Ausgewählte Organisationen',
     'organization_ids_each' => 'Organisation',
     'plan_id' => 'Tarif',
+    'days' => 'Tage',
+    'until' => 'Enddatum',
     'body' => 'Nachricht',
     'starts_at' => 'Anzeigebeginn',
     'ends_at' => 'Anzeigeende',

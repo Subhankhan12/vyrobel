@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'წერილი',
     'channel_phone' => 'ტელეფონი',
     'channel_hotel' => 'სასტუმროს მიერ გადმოგზავნილი',
+    'channel_in_app' => 'აპლიკაციაში',
     'status_received' => 'მიღებულია',
     'status_in_progress' => 'მიმდინარეობს',
     'status_completed' => 'შესრულებულია',

@@ -3,6 +3,21 @@
 // I18N-01 — ar translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'تمديد الفترة التجريبية',
+    'extend_days_label' => 'إضافة أيام',
+    'extend_button' => 'تمديد الفترة التجريبية',
+    'extend_reason_placeholder' => 'السبب — مثال: طلب فندق ضمن البرنامج التجريبي أسبوعًا إضافيًا',
+    'extend_hint' => 'يبدأ الاحتساب من تاريخ انتهاء الفترة التجريبية (ومن اليوم إذا كانت قد انتهت). مدة التمديد الواحد من 1 إلى 60 يومًا، ولا يمكن أن تنتهي الفترة التجريبية بعد أكثر من 90 يومًا من اليوم. يلزم إدخال كلمة المرور الخاصة بك، ويتم تسجيل الإجراء في سجل لوحة الإدارة.',
+    'complimentary_heading' => 'الباقة المجانية',
+    'complimentary_until_label' => 'مجانية حتى',
+    'complimentary_button' => 'منح باقة مجانية',
+    'complimentary_change_button' => 'تغيير تاريخ الانتهاء',
+    'complimentary_reason_placeholder' => 'السبب — مثال: شريك ضمن البرنامج التجريبي، بموافقة المؤسس',
+    'complimentary_hint' => 'وصول كامل ومجاني حتى التاريخ الذي يتم اختياره (من الغد وحتى سنة من اليوم) — ثم جدار الدفع، كما في الفترة التجريبية. لا يتم احتسابها كفترة تجريبية أو كإيراد. لا تصلح لمؤسسة تتم فوترتها عبر Stripe. يلزم إدخال كلمة المرور الخاصة بك.',
+    'end_complimentary_heading' => 'إنهاء الباقة المجانية',
+    'end_complimentary_reason_placeholder' => 'السبب — مثال: انتهاء البرنامج التجريبي',
+    'end_complimentary_button' => 'إنهاؤها الآن',
+    'end_complimentary_hint' => 'يظهر جدار الدفع للمؤسسة فورًا. يلزم إدخال كلمة المرور الخاصة بك، ويتم تسجيل الإجراء في سجل لوحة الإدارة.',
     'back_label' => 'كل المؤسسات',
     'pill_suspended_underneath' => 'معلّقة ضمنيًا',
     'pill_internal' => 'داخلية',

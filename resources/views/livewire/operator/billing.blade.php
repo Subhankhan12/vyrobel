@@ -336,7 +336,11 @@
             <div class="vy-card vy-fade" style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
                 <span class="vy-bill-badge vy-bill-{{ $status['active'] ? 'ok' : ($status['lapsed'] ? 'warn' : 'trial') }}"><span class="vy-status-dot"></span>{{ $status['label'] }}</span>
                 <div style="flex:1">
-                    @if ($status['on_trial'])
+                    @if ($status['complimentary'] && $status['on_trial'])
+                        <div class="vy-bill-line">{!! __('livewire/operator/billing.complimentary_line', ['date' => e((string) $status['complimentary_until'])]) !!}</div>
+                    @elseif ($status['complimentary_ended'])
+                        <div class="vy-bill-line">{{ __('livewire/operator/billing.complimentary_ended_line') }}</div>
+                    @elseif ($status['on_trial'])
                         <div class="vy-bill-line">{!! trans_choice('livewire/operator/billing.trial_days_left', $status['days'], ['count' => (int) $status['days']]) !!}</div>
                     @elseif ($status['trial_expired'] || $status['lapsed'])
                         <div class="vy-bill-line">{{ __('livewire/operator/billing.trial_ended') }}</div>

@@ -3,6 +3,15 @@
 // I18N-01 — et translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Prooviperioodi on pikendatud — see lõpeb nüüd :date.',
+    'extend_not_on_trial' => 'Prooviperioodi saab pikendada ainult tasuta prooviperioodil olevale organisatsioonile.',
+    'extend_is_complimentary' => 'See organisatsioon on tasuta plaanil, millel on oma lõppkuupäev — selle muutmiseks andke plaan uuesti uue kuupäevaga.',
+    'extend_over_ceiling' => 'Prooviperiood võib kesta tänasest kuni 90 päeva ja see lõpeks :date. Valige vähem päevi.',
+    'complimentary_granted' => 'Tasuta plaan on antud — täielik ligipääs kuni :date, seejärel maksemüür.',
+    'complimentary_billed' => 'Selle organisatsiooni arveldus käib Stripe’i kaudu. Tasuta plaan on mõeldud ainult organisatsioonile, mis ei maksa.',
+    'complimentary_no_subscription' => 'Sellel organisatsioonil pole abonemendikirjet, millega tasuta plaani siduda.',
+    'complimentary_ended' => 'Tasuta plaan on lõppenud — organisatsioon näeb nüüd maksemüüri.',
+    'complimentary_not_on' => 'See organisatsioon ei ole tasuta plaanil.',
     'delete_refused_protected' => 'Keelatud — see organisatsioon on kaitstud ja seda ei saa konsoolist kunagi kustutada.',
     'delete_type_name' => 'Kustutamise kinnitamiseks tippige organisatsiooni täpne nimi.',
     'delete_suspend_first' => 'Peatage see esmalt — kustutada saab ainult peatatud või arhiveeritud organisatsiooni.',

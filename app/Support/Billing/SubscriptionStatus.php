@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Billing;
 
 use App\Models\Subscription;
+use App\Support\I18n\LocalDate;
 use Illuminate\Support\Carbon;
 
 /**
@@ -35,6 +36,27 @@ final class SubscriptionStatus
     public function trialExpired(): bool
     {
         return $this->subscription?->status === 'trialing' && $this->trialLapsed();
+    }
+
+    /**
+     * DEC-7 — a COMPLIMENTARY plan: a free workspace with an END DATE, granted from the console. It is a `trialing`
+     * subscription whose `trial_ends_at` is that date (so every access gate already works and it lapses on the day),
+     * marked by `complimentary_until` so the screens, the trial count and the revenue figures can tell it apart from a
+     * trial waiting to convert. Still true on the day it has ended — see {@see complimentaryEnded()}.
+     */
+    public function isComplimentary(): bool
+    {
+        return $this->subscription?->status === 'trialing' && $this->subscription->complimentary_until !== null;
+    }
+
+    public function complimentaryEnded(): bool
+    {
+        return $this->isComplimentary() && $this->trialLapsed();
+    }
+
+    public function complimentaryUntil(): ?Carbon
+    {
+        return $this->isComplimentary() ? $this->subscription?->complimentary_until : null;
     }
 
     public function active(): bool
@@ -84,6 +106,8 @@ final class SubscriptionStatus
     public function label(): string
     {
         return match (true) {
+            $this->isComplimentary() && $this->onTrial() => __('php/support/billing/subscription_status.complimentary_until', ['date' => $this->subscription?->complimentary_until?->translatedFormat(LocalDate::pattern('j M Y'))]),
+            $this->complimentaryEnded() => __('php/support/billing/subscription_status.complimentary_ended'),
             $this->onTrial() => trans_choice('php/support/billing/subscription_status.trial_days_left', $this->trialDaysRemaining(), ['count' => $this->trialDaysRemaining()]),
             $this->active() => __('php/support/billing/subscription_status.active'),
             $this->trialExpired() => __('php/support/billing/subscription_status.trial_ended'),

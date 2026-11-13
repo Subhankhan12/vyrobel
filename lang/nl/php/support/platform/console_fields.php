@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'gekozen organisaties',
     'organization_ids_each' => 'organisatie',
     'plan_id' => 'pakket',
+    'days' => 'dagen',
+    'until' => 'einddatum',
     'body' => 'bericht',
     'starts_at' => 'tonen vanaf',
     'ends_at' => 'tot',

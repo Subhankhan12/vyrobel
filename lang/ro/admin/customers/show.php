@@ -3,6 +3,21 @@
 // I18N-01 — ro translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Prelungirea perioadei de încercare',
+    'extend_days_label' => 'Adăugare zile',
+    'extend_button' => 'Prelungire perioadă',
+    'extend_reason_placeholder' => 'De ce? De ex., un hotel pilot a cerut încă o săptămână',
+    'extend_hint' => 'Se numără de la sfârșitul perioadei de încercare (de azi, dacă s-a încheiat deja). O prelungire poate fi de la 1 la 60 de zile, iar o perioadă de încercare nu se încheie niciodată la mai mult de 90 de zile de azi. Necesită parola dumneavoastră; se scrie în registrul consolei.',
+    'complimentary_heading' => 'Plan de cortesie',
+    'complimentary_until_label' => 'Gratuit până la',
+    'complimentary_button' => 'Acordare plan de cortesie',
+    'complimentary_change_button' => 'Schimbare dată de sfârșit',
+    'complimentary_reason_placeholder' => 'De ce? De ex., partener pilot, convenit cu fondatorul',
+    'complimentary_hint' => 'Acces complet, gratuit, până la data pe care o alegeți (de mâine până peste un an) — apoi urmează paywall-ul, ca la o perioadă de încercare. Nu se numără ca perioadă de încercare și nici ca venituri. Nu se aplică unei organizații facturate prin Stripe. Necesită parola dumneavoastră.',
+    'end_complimentary_heading' => 'Încheierea planului de cortesie',
+    'end_complimentary_reason_placeholder' => 'De ce? De ex., s-a încheiat pilotul',
+    'end_complimentary_button' => 'Încheiere acum',
+    'end_complimentary_hint' => 'Organizația vede imediat paywall-ul. Necesită parola dumneavoastră; se scrie în registrul consolei.',
     'back_label' => 'Toate organizațiile',
     'pill_suspended_underneath' => 'Suspendată în fundal',
     'pill_internal' => 'Internă',

@@ -4,6 +4,16 @@
 // archive, restore, assign a plan, mark internal, edit details, create. :name is the organisation's name as stored.
 
 return [
+    // DEC-7 — extend a trial / grant or end a complimentary plan
+    'trial_extended' => 'Trial extended — it now ends on :date.',
+    'extend_not_on_trial' => 'Only an organisation on a free trial can have its trial extended.',
+    'extend_is_complimentary' => 'This organisation is on a complimentary plan, which has its own end date — grant it again with a new date to change it.',
+    'extend_over_ceiling' => 'A trial can run at most 90 days from today, and this would end on :date. Choose fewer days.',
+    'complimentary_granted' => 'Complimentary plan granted — full access until :date, then the paywall.',
+    'complimentary_billed' => 'This organisation is billed through Stripe. A complimentary plan is only for one that is not paying.',
+    'complimentary_no_subscription' => 'This organisation has no subscription record to attach a complimentary plan to.',
+    'complimentary_ended' => 'The complimentary plan has ended — the organisation now sees the paywall.',
+    'complimentary_not_on' => 'This organisation is not on a complimentary plan.',
     'delete_refused_protected' => 'Refused — this organisation is protected and can never be deleted from the console.',
     'delete_type_name' => 'Type the organisation’s exact name to confirm the deletion.',
     'delete_suspend_first' => 'Suspend it first — only a suspended or archived organisation can be deleted.',

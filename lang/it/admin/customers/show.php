@@ -3,6 +3,21 @@
 // I18N-01 — it translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Prolunga la prova gratuita',
+    'extend_days_label' => 'Giorni in più',
+    'extend_button' => 'Prolunga la prova',
+    'extend_reason_placeholder' => 'Perché — es. un hotel pilota ha chiesto una settimana in più',
+    'extend_hint' => 'Il conteggio parte dalla fine della prova gratuita (da oggi se è già terminata). Ogni prolungamento è di 1–60 giorni e una prova gratuita non termina mai oltre 90 giorni da oggi. Occorre la Sua password; l’azione viene registrata nel registro della console.',
+    'complimentary_heading' => 'Piano in omaggio',
+    'complimentary_until_label' => 'In omaggio fino a',
+    'complimentary_button' => 'Concedi piano in omaggio',
+    'complimentary_change_button' => 'Modifica la data di fine',
+    'complimentary_reason_placeholder' => 'Perché — es. partner pilota, concordato con il fondatore',
+    'complimentary_hint' => 'Accesso completo, gratuito, fino alla data scelta (da domani fino a un anno) — poi il paywall, come per una prova gratuita. Non conta come prova gratuita né come ricavi. Non è previsto per un’organizzazione fatturata tramite Stripe. Occorre la Sua password.',
+    'end_complimentary_heading' => 'Termina il piano in omaggio',
+    'end_complimentary_reason_placeholder' => 'Perché — es. la fase pilota è terminata',
+    'end_complimentary_button' => 'Termina ora',
+    'end_complimentary_hint' => 'L’organizzazione vede subito il paywall. Occorre la Sua password; l’azione viene registrata nel registro della console.',
     'back_label' => 'Tutte le organizzazioni',
     'pill_suspended_underneath' => 'Anche sospesa',
     'pill_internal' => 'Interna',

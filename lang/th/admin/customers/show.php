@@ -3,6 +3,21 @@
 // I18N-01 — th translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'ขยายช่วงทดลองใช้',
+    'extend_days_label' => 'เพิ่มวัน',
+    'extend_button' => 'ขยายช่วงทดลองใช้',
+    'extend_reason_placeholder' => 'เหตุผล — เช่น โรงแรมนำร่องขอเพิ่มอีก 1 สัปดาห์',
+    'extend_hint' => 'นับจากวันที่ช่วงทดลองใช้สิ้นสุด (นับจากวันนี้หากสิ้นสุดไปแล้ว) การขยายแต่ละครั้งทำได้ 1–60 วัน และช่วงทดลองใช้จะสิ้นสุดเกิน 90 วันนับจากวันนี้ไม่ได้ ต้องใช้รหัสผ่านของคุณ และบันทึกลงบันทึกของคอนโซล',
+    'complimentary_heading' => 'แผนมอบให้ฟรี',
+    'complimentary_until_label' => 'ฟรีถึง',
+    'complimentary_button' => 'มอบแผนให้ฟรี',
+    'complimentary_change_button' => 'เปลี่ยนวันสิ้นสุด',
+    'complimentary_reason_placeholder' => 'เหตุผล — เช่น พันธมิตรนำร่องที่ผู้ก่อตั้งตกลงไว้',
+    'complimentary_hint' => 'ใช้งานได้เต็มรูปแบบโดยไม่คิดค่าใช้จ่าย จนถึงวันที่คุณเลือก (ตั้งแต่พรุ่งนี้ไปจนถึง 1 ปีข้างหน้า) — จากนั้นเป็นหน้าเลือกแผน เหมือนช่วงทดลองใช้ ไม่นับเป็นช่วงทดลองใช้หรือรายได้ ใช้กับพื้นที่ทำงานที่เรียกเก็บเงินผ่าน Stripe ไม่ได้ ต้องใช้รหัสผ่านของคุณ',
+    'end_complimentary_heading' => 'สิ้นสุดแผนมอบให้ฟรี',
+    'end_complimentary_reason_placeholder' => 'เหตุผล — เช่น โครงการนำร่องสิ้นสุดแล้ว',
+    'end_complimentary_button' => 'สิ้นสุดทันที',
+    'end_complimentary_hint' => 'พื้นที่ทำงานจะเห็นหน้าเลือกแผนทันที ต้องใช้รหัสผ่านของคุณ และบันทึกลงบันทึกของคอนโซล',
     'back_label' => 'พื้นที่ทำงานทั้งหมด',
     'pill_suspended_underneath' => 'ยังระงับการใช้งานอยู่',
     'pill_internal' => 'ภายใน',

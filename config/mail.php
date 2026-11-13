@@ -50,6 +50,26 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        // DEC-1 (his ruling, 2026-11-13) — the SECOND mailbox (sales@). The same host, port and scheme as the first unless said
+        // otherwise; only the login differs. Empty login = the second mailbox is simply not there.
+        'smtp_second' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SECOND_SCHEME', env('MAIL_SCHEME')),
+            'host' => env('MAIL_SECOND_HOST', env('MAIL_HOST', '127.0.0.1')),
+            'port' => env('MAIL_SECOND_PORT', env('MAIL_PORT', 2525)),
+            'username' => env('MAIL_SECOND_USERNAME'),
+            'password' => env('MAIL_SECOND_PASSWORD'),
+            'timeout' => env('MAIL_TIMEOUT', 10),
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+        // DEC-1 — send from the FIRST mailbox until it reaches Hostinger's daily limit, then from the next; back to the first when
+        // its 24 hours free. Switch it on with MAIL_MAILER=rotating. `daily_limit` is Hostinger's cap PER MAILBOX (Reported: 100 —
+        // hPanel is the authority). See App\Support\Mail\MailboxRotation.
+        'rotating' => [
+            'transport' => 'rotating',
+            'mailers' => ['smtp', 'smtp_second'],
+            'daily_limit' => (int) env('MAIL_DAILY_LIMIT', 100),
+        ],
         'ses' => [
             'transport' => 'ses',
         ],

@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Nenhum dos seus utilizadores concluiu alguma vez um início de sessão. ⚠️ A sessão de registo não conta como início de sessão, por isso isto significa «nunca voltou depois do registo».',
     'bucket_via_x' => 'Criada com X',
     'bucket_via_x_definition' => 'Registo feito através do X. O X não comprova um endereço de e-mail da forma como a Google o faz — o risco de usurpação aceite. Apresentado para revisão, nunca tratado automaticamente.',
+    'bucket_abandoned' => 'Registos abandonados (mais de 30 dias)',
+    'bucket_abandoned_definition' => 'Criada há mais de 30 dias, ninguém confirmou um endereço de e-mail e ninguém iniciou sessão alguma vez. Abra uma organização para a suspender e, depois, elimine-a com a sua palavra-passe. Nunca é removido nada automaticamente.',
     'status_active' => 'Ativa',
     'status_trialing' => 'Em período de teste',
     'status_suspended' => 'Suspensa',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Incompleta',
     'subscription_paused' => 'Em pausa',
     'plan_on_free_trial' => ':plan · período de teste',
+    'plan_complimentary' => ':plan · de cortesia',
 ];

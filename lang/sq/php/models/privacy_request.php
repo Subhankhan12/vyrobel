@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Letër',
     'channel_phone' => 'Telefon',
     'channel_hotel' => 'Përcjellë nga hoteli',
+    'channel_in_app' => 'Në aplikacion',
     'status_received' => 'Pranuar',
     'status_in_progress' => 'Në vazhdim',
     'status_completed' => 'Përfunduar',

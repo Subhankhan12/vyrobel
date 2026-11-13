@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Dùng thử · còn :count ngày|[0,*]Dùng thử · còn :count ngày',
     'active' => 'Hoạt động',
+    'complimentary_until' => 'Gói tặng · đến :date',
+    'complimentary_ended' => 'Gói tặng đã kết thúc',
     'trial_ended' => 'Hết hạn dùng thử',
     'past_due' => 'Quá hạn thanh toán',
     'canceled' => 'Đã hủy',

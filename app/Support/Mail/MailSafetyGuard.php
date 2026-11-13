@@ -134,7 +134,7 @@ final class MailSafetyGuard
             }
         }
 
-        if ($transport === 'failover' || $transport === 'roundrobin') {
+        if ($transport === 'failover' || $transport === 'roundrobin' || $transport === 'rotating') {   // DEC-1: the rotating mailer is judged by its mailboxes
             $children = array_values(array_filter((array) ($config['mailers'] ?? []), 'is_string'));
             if ($children === []) {
                 return [self::UNKNOWN];

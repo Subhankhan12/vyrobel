@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Kiri',
     'channel_phone' => 'Telefon',
     'channel_hotel' => 'Edastanud hotell',
+    'channel_in_app' => 'Rakenduses',
     'status_received' => 'Saabunud',
     'status_in_progress' => 'Töös',
     'status_completed' => 'Täidetud',

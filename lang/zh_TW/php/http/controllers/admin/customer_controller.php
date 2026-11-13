@@ -3,6 +3,15 @@
 // I18N-01 — zh_TW translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => '免費試用已延長——現在將於 :date 結束。',
+    'extend_not_on_trial' => '只有免費試用中的組織才能延長免費試用。',
+    'extend_is_complimentary' => '此組織正在使用贈送方案，該方案有自己的結束日期——如需變更，請以新的日期重新贈送。',
+    'extend_over_ceiling' => '免費試用的結束日期距今天最多 90 天，而這次延長會使其於 :date 結束。請選擇較少的天數。',
+    'complimentary_granted' => '贈送方案已開通——可使用完整功能至 :date，之後進入付費牆。',
+    'complimentary_billed' => '此組織透過 Stripe 計費。贈送方案僅適用於未付費的組織。',
+    'complimentary_no_subscription' => '此組織沒有可附加贈送方案的訂閱紀錄。',
+    'complimentary_ended' => '贈送方案已結束——該組織現在會看到付費牆。',
+    'complimentary_not_on' => '此組織未使用贈送方案。',
     'delete_refused_protected' => '已拒絕——此組織受保護，永遠無法從主控台刪除。',
     'delete_type_name' => '請輸入完全一致的組織名稱以確認刪除。',
     'delete_suspend_first' => '請先停權——只有已停權或已封存的組織才能刪除。',

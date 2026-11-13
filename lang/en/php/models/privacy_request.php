@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Letter',
     'channel_phone' => 'Phone',
     'channel_hotel' => 'Relayed by the hotel',
+    'channel_in_app' => 'In the app',
     'status_received' => 'Received',
     'status_in_progress' => 'In progress',
     'status_completed' => 'Completed',

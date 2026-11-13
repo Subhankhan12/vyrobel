@@ -3,6 +3,21 @@
 // I18N-01 — es translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Ampliar la prueba gratuita',
+    'extend_days_label' => 'Agregar días',
+    'extend_button' => 'Ampliar prueba',
+    'extend_reason_placeholder' => '¿Por qué? P. ej., un hotel piloto pidió una semana más',
+    'extend_hint' => 'Se cuenta desde el final de la prueba gratuita (desde hoy si ya terminó). Cada ampliación es de 1 a 60 días, y una prueba gratuita nunca termina más de 90 días después de hoy. Requiere su contraseña; se escribe en el registro de auditoría de la consola.',
+    'complimentary_heading' => 'Plan de cortesía',
+    'complimentary_until_label' => 'Gratis hasta',
+    'complimentary_button' => 'Conceder plan de cortesía',
+    'complimentary_change_button' => 'Cambiar la fecha de fin',
+    'complimentary_reason_placeholder' => '¿Por qué? P. ej., socio piloto, acordado por el fundador',
+    'complimentary_hint' => 'Acceso completo y gratuito hasta la fecha que elija (desde mañana hasta dentro de un año); después, el muro de pago, como en una prueba gratuita. No cuenta como prueba gratuita ni como ingresos. No es aplicable a una organización facturada a través de Stripe. Requiere su contraseña.',
+    'end_complimentary_heading' => 'Finalizar el plan de cortesía',
+    'end_complimentary_reason_placeholder' => '¿Por qué? P. ej., terminó el piloto',
+    'end_complimentary_button' => 'Finalizar ahora',
+    'end_complimentary_hint' => 'La organización ve el muro de pago de inmediato. Requiere su contraseña; se escribe en el registro de auditoría de la consola.',
     'back_label' => 'Todas las organizaciones',
     'pill_suspended_underneath' => 'Suspendida en segundo plano',
     'pill_internal' => 'Interna',

@@ -3,6 +3,21 @@
 // I18N-01 — nl translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Proefperiode verlengen',
+    'extend_days_label' => 'Extra dagen',
+    'extend_button' => 'Proefperiode verlengen',
+    'extend_reason_placeholder' => 'Waarom — bijv. een pilothotel heeft om een week extra gevraagd',
+    'extend_hint' => 'Telt vanaf het einde van de proefperiode (vanaf vandaag als die al is afgelopen). Eén verlenging is 1–60 dagen, en een proefperiode eindigt nooit later dan 90 dagen vanaf vandaag. Hiervoor is uw wachtwoord nodig; de actie wordt vastgelegd in het auditlogboek van de console.',
+    'complimentary_heading' => 'Kosteloos pakket',
+    'complimentary_until_label' => 'Kosteloos tot',
+    'complimentary_button' => 'Kosteloos toekennen',
+    'complimentary_change_button' => 'Einddatum wijzigen',
+    'complimentary_reason_placeholder' => 'Waarom — bijv. pilotpartner, afgesproken door de oprichter',
+    'complimentary_hint' => 'Volledige toegang, kosteloos, tot de datum die u kiest (vanaf morgen tot een jaar vooruit) — daarna de betaalmuur, net als bij een proefperiode. Het telt niet mee als proefperiode of als omzet. Niet voor een organisatie die via Stripe wordt gefactureerd. Hiervoor is uw wachtwoord nodig.',
+    'end_complimentary_heading' => 'Kosteloos pakket beëindigen',
+    'end_complimentary_reason_placeholder' => 'Waarom — bijv. de pilot is afgelopen',
+    'end_complimentary_button' => 'Nu beëindigen',
+    'end_complimentary_hint' => 'De organisatie ziet direct de betaalmuur. Hiervoor is uw wachtwoord nodig; de actie wordt vastgelegd in het auditlogboek van de console.',
     'back_label' => 'Alle organisaties',
     'pill_suspended_underneath' => 'Ook opgeschort',
     'pill_internal' => 'Intern',

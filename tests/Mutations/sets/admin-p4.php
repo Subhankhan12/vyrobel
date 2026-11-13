@@ -129,9 +129,9 @@ return [
     ],
     [
         'id' => 'P4-P2',
-        'name' => 'ruling picked',
+        'name' => 'ruling changed to a reading nobody ruled (DEC-4, 2026-11-13: the founder ruled three buckets)',
         'file' => 'app/Support/Privacy/RetentionCoverage.php',
-        'old' => '    public const RULING = null;',
+        'old' => '    public const RULING = \'three_buckets\';',
         'new' => '    public const RULING = \'strict\';',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformFunnelAndPrivacyTest.php']],
     ],

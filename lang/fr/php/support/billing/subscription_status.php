@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1} Essai · :count jour restant|[0,*] Essai · :count jours restants',
     'active' => 'Actif',
+    'complimentary_until' => 'Offert · jusqu’au :date',
+    'complimentary_ended' => 'Formule offerte terminée',
     'trial_ended' => 'Essai terminé',
     'past_due' => 'Paiement en retard',
     'canceled' => 'Résilié',

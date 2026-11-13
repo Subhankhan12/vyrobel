@@ -42,6 +42,9 @@ final class ConfigInventory
         //    now the silent failure, and an empty Postmark token is simply the correct state for an unused provider.
         'mail.mailers.smtp.username' => ['SILENT', 'SMTP transport present but not logged in — the mail server refuses every message, and an inline send fails inside a request that may swallow it'],
         'mail.mailers.smtp.password' => ['SILENT', 'as above — the mailbox password is the founder\'s to type into the server .env'],
+        // DEC-1 (2026-11-13) — the OPTIONAL second mailbox of the rotating mailer: empty is correct until the founder creates it.
+        'mail.mailers.smtp_second.username' => ['INERT', 'the second mailbox (sales@) is optional — empty means the rotating mailer uses only the first, with the daily limit still applied'],
+        'mail.mailers.smtp_second.password' => ['INERT', 'as above — typed by the founder into the server .env when the second mailbox exists'],
         'mail.mailers.postmark.token' => ['INERT', 'Postmark is not the chosen provider (Hostinger SMTP is, 2026-09-25) — empty is correct'],
         'services.postmark.token' => ['INERT', 'same token, read from the services config — unused'],
         'mail.from.address' => ['SILENT', 'mail may be built with an empty From and rejected by the provider, after the queue has already reported success'],

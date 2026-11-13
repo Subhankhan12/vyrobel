@@ -23,9 +23,10 @@ final class MailSendLog
 
     public const SUPPRESSED = 'suppressed';
 
-    public static function accepted(string $mailable, ?string $messageId): void
+    /** @param ?string $mailbox the mailer name of the mailbox it left from (DEC-1) — a label, never an address */
+    public static function accepted(string $mailable, ?string $messageId, ?string $mailbox = null): void
     {
-        self::write(self::ACCEPTED, $mailable, $messageId, 0);
+        self::write(self::ACCEPTED, $mailable, $messageId, 0, $mailbox);
     }
 
     public static function suppressed(string $mailable, int $recipients): void
@@ -52,13 +53,14 @@ final class MailSendLog
         return DB::table('mail_send_log')->where('outcome', $outcome)->where('created_at', '>=', $since)->count();
     }
 
-    private static function write(string $outcome, string $mailable, ?string $messageId, int $suppressed): void
+    private static function write(string $outcome, string $mailable, ?string $messageId, int $suppressed, ?string $mailbox = null): void
     {
         try {
             DB::table('mail_send_log')->insert([
                 'id' => (string) Str::ulid(),
                 'outcome' => $outcome,
                 'mailable' => Str::limit(class_basename($mailable), 120, ''),
+                'mailbox' => $mailbox !== null ? Str::limit($mailbox, 24, '') : null,
                 'message_id' => $messageId !== null ? Str::limit($messageId, 250, '') : null,
                 'suppressed_recipients' => $suppressed,
                 'created_at' => now(),

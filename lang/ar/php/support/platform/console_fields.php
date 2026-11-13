@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'المؤسسات المختارة',
     'organization_ids_each' => 'المؤسسة',
     'plan_id' => 'الباقة',
+    'days' => 'عدد الأيام',
+    'until' => 'تاريخ الانتهاء',
     'body' => 'الرسالة',
     'starts_at' => 'بداية العرض',
     'ends_at' => 'نهاية العرض',

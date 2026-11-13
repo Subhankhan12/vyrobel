@@ -71,6 +71,8 @@ return [
     'yearly_offer' => '是因為費用嗎？年繳每年可省下 :amount。兩種方式都沒有額外手續費——您隨時可以回來。',
     'change_plan_heading' => '變更方案',
     'trial_days_left' => '{1}您的免費試用還剩 <strong>:count 天</strong>——可使用完整功能。請選擇方案，以便在試用結束後繼續使用。|[0,*]您的免費試用還剩 <strong>:count 天</strong>——可使用完整功能。請選擇方案，以便在試用結束後繼續使用。',
+    'complimentary_line' => '<strong>免費贈送</strong>——可使用完整功能，不需付款，至 :date。您仍可在下方選擇方案，以便在此之後繼續使用。',
+    'complimentary_ended_line' => '您的贈送方案已結束。請在下方選擇方案，以恢復完整功能。',
     'trial_ended' => '您的免費試用已結束。請在下方選擇方案，以恢復完整功能。',
     'choose_a_plan' => '請選擇要訂閱的方案。',
     'disclaimer' => '價格為暫定，正式定價仍在確定中。訂閱透過 Stripe 安全計費——您的信用卡資料絕不會經過 Vyrobel，測試模式下也不會收費。',

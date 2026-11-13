@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Powodem jest koszt? Rozliczenie roczne pozwala zaoszczędzić :amount rocznie. Bez dodatkowych opłat w żadnym wariancie – można wrócić w każdej chwili.',
     'change_plan_heading' => 'Zmień plan',
     'trial_days_left' => '{1}Został <strong>:count dzień</strong> bezpłatnego okresu testowego – pełny dostęp. Wybierz plan, aby kontynuować po jego zakończeniu.|Zostały <strong>:count dni</strong> bezpłatnego okresu testowego – pełny dostęp. Wybierz plan, aby kontynuować po jego zakończeniu.|Zostało <strong>:count dni</strong> bezpłatnego okresu testowego – pełny dostęp. Wybierz plan, aby kontynuować po jego zakończeniu.',
+    'complimentary_line' => '<strong>Plan gratisowy</strong> – pełny dostęp bez płatności do :date. Nadal można wybrać plan poniżej, aby kontynuować po tej dacie.',
+    'complimentary_ended_line' => 'Plan gratisowy dobiegł końca. Wybierz plan poniżej, aby przywrócić pełny dostęp.',
     'trial_ended' => 'Okres testowy dobiegł końca. Wybierz plan poniżej, aby przywrócić pełny dostęp.',
     'choose_a_plan' => 'Wybierz plan, aby wykupić subskrypcję.',
     'disclaimer' => 'Ceny są tymczasowe do czasu ustalenia cennika. Subskrypcje są rozliczane bezpiecznie przez Stripe – dane karty nigdy nie trafiają do systemu Vyrobel, a w trybie testowym nic nie jest pobierane.',

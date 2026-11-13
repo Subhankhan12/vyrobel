@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Brief',
     'channel_phone' => 'Telefon',
     'channel_hotel' => 'Vom Hotel weitergeleitet',
+    'channel_in_app' => 'In der App',
     'status_received' => 'Eingegangen',
     'status_in_progress' => 'In Bearbeitung',
     'status_completed' => 'Abgeschlossen',

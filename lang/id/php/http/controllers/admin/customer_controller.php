@@ -3,6 +3,15 @@
 // I18N-01 — id translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Masa uji coba diperpanjang — sekarang berakhir pada tanggal :date.',
+    'extend_not_on_trial' => 'Hanya organisasi dalam masa uji coba gratis yang masa uji cobanya dapat diperpanjang.',
+    'extend_is_complimentary' => 'Organisasi ini menggunakan paket komplimen yang memiliki tanggal akhir sendiri — berikan paket komplimen lagi dengan tanggal baru untuk mengubahnya.',
+    'extend_over_ceiling' => 'Masa uji coba paling lama 90 hari dari hari ini, dan ini akan berakhir pada tanggal :date. Pilih jumlah hari yang lebih sedikit.',
+    'complimentary_granted' => 'Paket komplimen diberikan — akses penuh hingga tanggal :date, lalu halaman pilih paket.',
+    'complimentary_billed' => 'Organisasi ini ditagih melalui Stripe. Paket komplimen hanya untuk organisasi yang tidak membayar.',
+    'complimentary_no_subscription' => 'Organisasi ini tidak memiliki catatan langganan untuk dikaitkan dengan paket komplimen.',
+    'complimentary_ended' => 'Paket komplimen telah berakhir — organisasi kini melihat halaman pilih paket.',
+    'complimentary_not_on' => 'Organisasi ini tidak menggunakan paket komplimen.',
     'delete_refused_protected' => 'Ditolak — organisasi ini dilindungi dan tidak akan pernah dapat dihapus dari konsol.',
     'delete_type_name' => 'Ketik nama organisasi dengan tepat untuk mengonfirmasi penghapusan.',
     'delete_suspend_first' => 'Tangguhkan dulu — hanya organisasi yang ditangguhkan atau diarsipkan yang dapat dihapus.',

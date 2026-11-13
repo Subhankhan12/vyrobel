@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  *
  * @property string $status
  * @property ?Carbon $trial_ends_at
+ * @property ?Carbon $complimentary_until DEC-7 — when a complimentary plan ends (null = an ordinary subscription)
  * @property ?Carbon $current_period_end
  * @property ?string $stripe_subscription_id
  * @property ?string $stripe_customer_id
@@ -43,6 +44,7 @@ class Subscription extends Model
         'livemode',
         'status',
         'trial_ends_at',
+        'complimentary_until',
         'current_period_end',
     ];
 
@@ -55,6 +57,8 @@ class Subscription extends Model
             // ⚠️ ADMIN 06 — Stripe's own `livemode`, stored when the record was written (null: not a Stripe record)
             'livemode' => 'boolean',
             'trial_ends_at' => 'datetime',
+            // DEC-7 — when a COMPLIMENTARY plan ends (null = an ordinary subscription). See the migration.
+            'complimentary_until' => 'datetime',
             'current_period_end' => 'datetime',
             'terms_captured_at' => 'datetime',
         ];
@@ -75,6 +79,16 @@ class Subscription extends Model
         static::creating(function (self $subscription): void {
             if ($subscription->terms_captured_at === null) {
                 $subscription->fillCapturedTerms();
+            }
+        });
+
+        // ⚠️ DEC-7 — a complimentary plan is a TRIAL with a reason. The moment the subscription is anything but a trial (a
+        // real Stripe activation, a cancellation), the mark goes: a paying customer must never be labelled free, nor
+        // kept out of the revenue figures. Central on purpose — every writer of `status` (the webhook, the console,
+        // the billing page) passes through the model.
+        static::saving(function (self $subscription): void {
+            if ($subscription->status !== 'trialing' && $subscription->complimentary_until !== null) {
+                $subscription->complimentary_until = null;
             }
         });
 

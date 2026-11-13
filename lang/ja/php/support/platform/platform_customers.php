@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'どのユーザーもログインを完了したことがありません。⚠️ 新規登録時のセッション自体はログインに含まれないため、これは「登録後に一度も戻ってきていない」という意味です。',
     'bucket_via_x' => 'Xで作成',
     'bucket_via_x_definition' => 'Xで登録しています。XはGoogleのようにメールアドレスを証明しません。許容済みのなりすまし登録のリスクです。確認のために表示しているだけで、自動で対応することはありません。',
+    'bucket_abandoned' => '放置された登録（30日以上）',
+    'bucket_abandoned_definition' => '作成から30日以上が経過し、誰もメールアドレスを確認しておらず、一度もログインしていません。ワークスペースを開いて利用停止にし、そのあとパスワードを入力して削除してください。自動的に削除されることは一切ありません。',
     'status_active' => '有効',
     'status_trialing' => '無料トライアル中',
     'status_suspended' => '利用停止中',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => '未完了',
     'subscription_paused' => '一時停止中',
     'plan_on_free_trial' => ':plan · 無料トライアル',
+    'plan_complimentary' => ':plan · 無償提供',
 ];

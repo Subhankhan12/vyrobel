@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'organisasi pilihan',
     'organization_ids_each' => 'organisasi',
     'plan_id' => 'paket',
+    'days' => 'jumlah hari',
+    'until' => 'tanggal akhir',
     'body' => 'pesan',
     'starts_at' => 'tampilkan mulai',
     'ends_at' => 'hingga',

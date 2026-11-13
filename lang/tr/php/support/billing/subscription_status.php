@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1} Deneme süresi · :count gün kaldı|[0,*] Deneme süresi · :count gün kaldı',
     'active' => 'Aktif',
+    'complimentary_until' => 'Ücretsiz paket · :date tarihine kadar',
+    'complimentary_ended' => 'Ücretsiz paket bitti',
     'trial_ended' => 'Deneme süresi bitti',
     'past_due' => 'Ödemenin vadesi geçti',
     'canceled' => 'İptal edildi',

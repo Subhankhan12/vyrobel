@@ -3,6 +3,15 @@
 // I18N-01 — fa translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'دوره آزمایشی تمدید شد — اکنون در :date به پایان می‌رسد.',
+    'extend_not_on_trial' => 'فقط دوره آزمایشی سازمانی که در دوره آزمایشی رایگان است قابل تمدید است.',
+    'extend_is_complimentary' => 'این سازمان در طرح رایگان است که تاریخ پایان خودش را دارد — برای تغییر آن، دوباره طرح رایگان را با تاریخ جدید اعطا کنید.',
+    'extend_over_ceiling' => 'دوره آزمایشی حداکثر تا 90 روز پس از امروز ادامه می‌یابد و این تمدید در :date به پایان می‌رسد. تعداد روز کمتری انتخاب کنید.',
+    'complimentary_granted' => 'طرح رایگان اعطا شد — دسترسی کامل تا :date، سپس دیوار پرداخت.',
+    'complimentary_billed' => 'پرداخت این سازمان از طریق Stripe انجام می‌شود. طرح رایگان فقط برای سازمانی است که پرداخت نمی‌کند.',
+    'complimentary_no_subscription' => 'این سازمان هیچ رکورد اشتراکی ندارد که بتوان طرح رایگان را به آن متصل کرد.',
+    'complimentary_ended' => 'طرح رایگان به پایان رسید — سازمان اکنون دیوار پرداخت را می‌بیند.',
+    'complimentary_not_on' => 'این سازمان در طرح رایگان نیست.',
     'delete_refused_protected' => 'انجام نشد — این سازمان محافظت‌شده است و هرگز از کنسول قابل حذف نیست.',
     'delete_type_name' => 'برای تأیید حذف، نام دقیق سازمان را تایپ کنید.',
     'delete_suspend_first' => 'ابتدا آن را مسدود کنید — فقط سازمان مسدودشده یا بایگانی‌شده قابل حذف است.',

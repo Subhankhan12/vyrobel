@@ -19,6 +19,7 @@ use App\Listeners\ReattributeOwnerOnUnitMove;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
 use App\Listeners\SendGuestTransactionalEmails;
+use App\Mail\Transport\RotatingMailboxTransport;
 use App\Models\AddOn;
 use App\Models\AgreementAmendment;
 use App\Models\Amenity;
@@ -100,6 +101,7 @@ use App\Support\Llm\FakeLlmClient;
 use App\Support\Llm\LlmClientInterface;
 use App\Support\Llm\LlmCostLedger;
 use App\Support\Llm\LlmSafetyGuard;
+use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\OAuth\OAuthScopes;
@@ -123,6 +125,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -418,6 +421,21 @@ class AppServiceProvider extends ServiceProvider
         // Phase 8 · production email — THE #1 GUARD: a real-sending mail transport (Postmark/SES/…) is refused
         // outside `production`, downgraded to `log`, so no dev/CI run can ever email a real person — even with
         // MAIL_MAILER=postmark in a stray .env. Enforced in code, not by convention. See MailSafetyGuard.
+        // DEC-1 (his ruling, 2026-11-13) — the `rotating` mailer: send from the first mailbox until its daily limit, then the next.
+        //    Registered BEFORE the safety guard below reads the configured mailer. Built lazily, when a message is first sent.
+        Mail::extend(MailboxRotation::MAILER, function (array $config): RotatingMailboxTransport {
+            $mailboxes = array_map(fn (array $box): array => $box + [
+                'transport' => app('mail.manager')->mailer($box['label'])->getSymfonyTransport(),
+                'limit' => MailboxRotation::dailyLimit(),
+            ], MailboxRotation::mailboxes());
+
+            if ($mailboxes === []) {
+                throw new \InvalidArgumentException('The rotating mailer has no mailbox with a login — set MAIL_USERNAME and MAIL_PASSWORD (and MAIL_SECOND_USERNAME and MAIL_SECOND_PASSWORD for the second).');
+            }
+
+            return new RotatingMailboxTransport($mailboxes);
+        });
+
         $configuredMailer = (string) config('mail.default');
         // D-MAIL-GUARD-SHAPES: the mailer is judged by the transport behind its name, read from the config the way Laravel builds it
         $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer, (string) config('mail.mailers.smtp.host'), (array) config('mail.mailers'));

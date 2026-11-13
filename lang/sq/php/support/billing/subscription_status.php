@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Prova falas · mbetet :count ditë|[0,*]Prova falas · mbeten :count ditë',
     'active' => 'Aktiv',
+    'complimentary_until' => 'Plan falas · deri më :date',
+    'complimentary_ended' => 'Plani falas përfundoi',
     'trial_ended' => 'Prova falas përfundoi',
     'past_due' => 'Pagesë e vonuar',
     'canceled' => 'Anuluar',

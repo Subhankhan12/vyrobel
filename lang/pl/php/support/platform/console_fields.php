@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'wybrane organizacje',
     'organization_ids_each' => 'organizacja',
     'plan_id' => 'plan',
+    'days' => 'dni',
+    'until' => 'data końcowa',
     'body' => 'wiadomość',
     'starts_at' => 'wyświetlaj od',
     'ends_at' => 'wyświetlaj do',

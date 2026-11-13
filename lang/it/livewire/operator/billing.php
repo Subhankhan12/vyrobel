@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'È una questione di costi? La fatturazione annuale fa risparmiare :amount all’anno. Nessuna penale in ogni caso: può tornare in qualsiasi momento.',
     'change_plan_heading' => 'Cambia piano',
     'trial_days_left' => '{1} Resta <strong>:count giorno</strong> di prova gratuita — accesso completo. Scegliere un piano per continuare dopo la scadenza.|[0,*] Restano <strong>:count giorni</strong> di prova gratuita — accesso completo. Scegliere un piano per continuare dopo la scadenza.',
+    'complimentary_line' => '<strong>In omaggio</strong> — accesso completo, nessun pagamento richiesto, fino alla data :date. È comunque possibile scegliere un piano qui sotto per continuare dopo tale data.',
+    'complimentary_ended_line' => 'Il piano in omaggio è terminato. Scegliere un piano qui sotto per riattivare l’accesso completo.',
     'trial_ended' => 'La prova gratuita è terminata. Scegliere un piano qui sotto per riattivare l’accesso completo.',
     'choose_a_plan' => 'Scegliere un piano per abbonarsi.',
     'disclaimer' => 'I prezzi sono provvisori, in attesa della definizione dei prezzi. Gli abbonamenti vengono addebitati in modo sicuro tramite Stripe — i dati della carta non passano mai da Vyrobel e in modalità di test non viene effettuato alcun addebito.',

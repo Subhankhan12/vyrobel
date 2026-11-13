@@ -3,6 +3,15 @@
 // I18N-01 — fr translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Essai prolongé — il se termine désormais le :date.',
+    'extend_not_on_trial' => 'Seul l’essai d’une organisation en essai gratuit peut être prolongé.',
+    'extend_is_complimentary' => 'Cette organisation est sur une formule offerte, qui a sa propre date de fin — accordez-la de nouveau avec une nouvelle date pour modifier la date de fin.',
+    'extend_over_ceiling' => 'Un essai peut durer 90 jours au maximum à partir d’aujourd’hui, et celui-ci se terminerait le :date. Choisissez moins de jours.',
+    'complimentary_granted' => 'Formule offerte accordée — accès complet jusqu’au :date, puis le mur payant.',
+    'complimentary_billed' => 'Cette organisation est facturée via Stripe. Une formule offerte est réservée à une organisation qui ne paie pas.',
+    'complimentary_no_subscription' => 'Cette organisation n’a pas d’enregistrement d’abonnement auquel rattacher une formule offerte.',
+    'complimentary_ended' => 'La formule offerte est terminée — l’organisation voit maintenant le mur payant.',
+    'complimentary_not_on' => 'Cette organisation n’est pas sur une formule offerte.',
     'delete_refused_protected' => 'Refusé — cette organisation est protégée et ne peut jamais être supprimée depuis la console.',
     'delete_type_name' => 'Saisissez le nom exact de l’organisation pour confirmer la suppression.',
     'delete_suspend_first' => 'Suspendez-la d’abord — seule une organisation suspendue ou archivée peut être supprimée.',

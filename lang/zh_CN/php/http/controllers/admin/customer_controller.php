@@ -3,6 +3,15 @@
 // I18N-01 — zh_CN translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => '免费试用已延长——现将于 :date 结束。',
+    'extend_not_on_trial' => '只有处于免费试用中的组织才能延长免费试用。',
+    'extend_is_complimentary' => '此组织正在使用赠送方案，该方案有自己的结束日期——如需更改，请使用新的日期重新赠送。',
+    'extend_over_ceiling' => '免费试用的结束日期距今天最多 90 天，而此次延长将使其于 :date 结束。请选择更少的天数。',
+    'complimentary_granted' => '赠送方案已开通——可完整使用至 :date，之后进入付费墙。',
+    'complimentary_billed' => '此组织通过 Stripe 计费。赠送方案仅适用于不付费的组织。',
+    'complimentary_no_subscription' => '此组织没有可附加赠送方案的订阅记录。',
+    'complimentary_ended' => '赠送方案已结束——该组织现在将看到付费墙。',
+    'complimentary_not_on' => '此组织未使用赠送方案。',
     'delete_refused_protected' => '已拒绝——此组织受保护，永远无法从控制台删除。',
     'delete_type_name' => '请输入组织的准确名称以确认删除。',
     'delete_suspend_first' => '请先冻结该组织——只有已冻结或已归档的组织才能删除。',

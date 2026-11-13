@@ -11,6 +11,7 @@ return [
     'channel_letter' => '信件',
     'channel_phone' => '電話',
     'channel_hotel' => '由飯店轉交',
+    'channel_in_app' => '應用程式內',
     'status_received' => '已收到',
     'status_in_progress' => '處理中',
     'status_completed' => '已完成',

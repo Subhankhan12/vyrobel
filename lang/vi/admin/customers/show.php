@@ -3,6 +3,21 @@
 // I18N-01 — vi translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Gia hạn dùng thử',
+    'extend_days_label' => 'Thêm ngày',
+    'extend_button' => 'Gia hạn dùng thử',
+    'extend_reason_placeholder' => 'Vì sao — VD: khách sạn thí điểm xin thêm một tuần',
+    'extend_hint' => 'Tính từ ngày kết thúc dùng thử (tính từ hôm nay nếu đã kết thúc). Mỗi lần gia hạn từ 1–60 ngày, và thời gian dùng thử không bao giờ kết thúc muộn hơn 90 ngày kể từ hôm nay. Cần mật khẩu của bạn; được ghi vào sổ ghi của bảng điều khiển.',
+    'complimentary_heading' => 'Gói tặng',
+    'complimentary_until_label' => 'Miễn phí đến',
+    'complimentary_button' => 'Tặng gói',
+    'complimentary_change_button' => 'Đổi ngày kết thúc',
+    'complimentary_reason_placeholder' => 'Vì sao — VD: đối tác thí điểm, đã được nhà sáng lập đồng ý',
+    'complimentary_hint' => 'Toàn quyền truy cập, miễn phí, đến ngày bạn chọn (từ ngày mai đến một năm sau) — sau đó là trang chọn gói, giống như dùng thử. Không được tính là dùng thử hay doanh thu. Không dành cho tổ chức thanh toán qua Stripe. Cần mật khẩu của bạn.',
+    'end_complimentary_heading' => 'Kết thúc gói tặng',
+    'end_complimentary_reason_placeholder' => 'Vì sao — VD: chương trình thí điểm đã kết thúc',
+    'end_complimentary_button' => 'Kết thúc ngay',
+    'end_complimentary_hint' => 'Tổ chức sẽ thấy trang chọn gói ngay lập tức. Cần mật khẩu của bạn; được ghi vào sổ ghi của bảng điều khiển.',
     'back_label' => 'Tất cả tổ chức',
     'pill_suspended_underneath' => 'Trạng thái gốc: đã đình chỉ',
     'pill_internal' => 'Nội bộ',

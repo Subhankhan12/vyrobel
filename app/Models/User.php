@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Mail\PasswordResetMail;
+use App\Services\OAuthConnectionService;
 use App\Services\OwnerInviteService;
 use App\Services\OwnerTeamInviteService;
 use App\Support\Auth\SignInCredentials;
@@ -203,6 +204,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         // `via` saying how the change was authorised rather than implying a session that did not exist.
         $authId = auth()->id();
 
+        // ⚠️ DEC-3 (his ruling, 2026-11-13 — "pick A"): a password change or reset ALSO cuts off every connected app
+        // (OAuth). A token is another kind of session: before this, a thief who reset the password kept the owner's
+        // apps while every browser session died. Read BEFORE the audit row so the row can say how many were cut off —
+        // a NUMBER, never an app name, a client id or a token. It lives in this shared path for the same reason the
+        // session termination does: the in-app change and the emailed reset cannot drift apart.
+        $appsDisconnected = app(OAuthConnectionService::class)->revokeAllFor($this);
+
         app(AuditEventRecorder::class)->record(
             'user.password_changed',
             $this,
@@ -211,6 +219,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
                 'first_set' => $wasFirstSet,
                 'via' => $authId !== null ? 'authenticated_session' : 'reset_token',
                 'other_sessions_terminated' => true,
+                'oauth_apps_disconnected' => $appsDisconnected,
             ],
             actorType: 'user',
             actorId: (string) ($authId ?? $this->getKey()),

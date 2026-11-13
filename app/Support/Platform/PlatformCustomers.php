@@ -53,7 +53,15 @@ class PlatformCustomers
             'Created with X',
             'Signed up through X. X does not prove an email address the way Google does — the accepted squatting risk. Surfaced for review, never acted on automatically.',
         ],
+        // DEC-5 (his ruling, 2026-11-13: "B now, C later") — the abandoned signups worth cleaning up.
+        'abandoned' => [
+            'Abandoned signups (30+ days)',
+            'Created more than 30 days ago, nobody confirmed an email address, and nobody ever signed in. Open one to suspend it, then delete it with your password. Nothing is ever removed automatically.',
+        ],
     ];
+
+    /** DEC-5 — an unverified, never-used signup counts as abandoned after this many days. */
+    public const ABANDONED_AFTER_DAYS = 30;
 
     public const SORTS = ['name', 'created', 'last_login', 'properties', 'users'];
 
@@ -69,6 +77,7 @@ class PlatformCustomers
             'unverified' => __('php/support/platform/platform_customers.bucket_unverified'),
             'never_signed_in' => __('php/support/platform/platform_customers.bucket_never_signed_in'),
             'via_x' => __('php/support/platform/platform_customers.bucket_via_x'),
+            'abandoned' => __('php/support/platform/platform_customers.bucket_abandoned'),
             default => $bucket,
         };
     }
@@ -80,6 +89,7 @@ class PlatformCustomers
             'unverified' => __('php/support/platform/platform_customers.bucket_unverified_definition'),
             'never_signed_in' => __('php/support/platform/platform_customers.bucket_never_signed_in_definition'),
             'via_x' => __('php/support/platform/platform_customers.bucket_via_x_definition'),
+            'abandoned' => __('php/support/platform/platform_customers.bucket_abandoned_definition'),
             default => '',
         };
     }
@@ -156,7 +166,8 @@ class PlatformCustomers
             //    to `trialing`, so filtering that column returned nobody while every organisation was on a free trial.
             $query->whereExists(fn ($q) => $q->selectRaw('1')->from('subscriptions')
                 ->whereColumn('subscriptions.organization_id', 'organizations.id')
-                ->where('subscriptions.status', 'trialing')->whereNull('subscriptions.deleted_at'));
+                ->where('subscriptions.status', 'trialing')->whereNull('subscriptions.complimentary_until')   // DEC-7: complimentary is not a trial
+                ->whereNull('subscriptions.deleted_at'));
         } elseif (array_key_exists($status, self::STATUSES)) {
             $query->where('status', $status);
         }
@@ -290,6 +301,12 @@ class PlatformCustomers
                 $this->activeMembers()->whereNotNull('users.last_login_at'),
             ),
             'via_x' => $query->where('signup_source', 'twitter'),
+            // ⚠️ DEC-5 — the strictest evidence of an abandoned signup: older than 30 days AND nobody verified an email AND
+            //    nobody ever signed in. It only SURFACES; deleting is the console's own guarded, password-protected action.
+            'abandoned' => $query
+                ->where('organizations.created_at', '<', CarbonImmutable::now()->subDays(self::ABANDONED_AFTER_DAYS))
+                ->whereNotExists($this->verifiedMember())
+                ->whereNotExists($this->activeMembers()->whereNotNull('users.last_login_at')),
             default => throw new \InvalidArgumentException("Unknown triage bucket [{$bucket}]."),
         };
     }
@@ -380,16 +397,18 @@ class PlatformCustomers
             ->whereIn('organization_id', $ids)
             ->with('plan:id,name')
             ->latest()
-            ->get(['id', 'organization_id', 'plan_id', 'status', 'created_at']);
+            ->get(['id', 'organization_id', 'plan_id', 'status', 'complimentary_until', 'created_at']);
 
         $out = [];
         foreach ($latest as $subscription) {
             // First (latest) per org wins. ⚠️ ADMIN 03 · F2 — a free trial says so beside the plan: it is the only place
             //    the directory can show it, because the organisation's own status is "Active" throughout a trial.
             if (! isset($out[$subscription->organization_id]) && $subscription->plan !== null) {
-                $out[$subscription->organization_id] = $subscription->status === 'trialing'
-                    ? __('php/support/platform/platform_customers.plan_on_free_trial', ['plan' => (string) $subscription->plan->name])
-                    : (string) $subscription->plan->name;
+                $out[$subscription->organization_id] = match (true) {
+                    $subscription->status === 'trialing' && $subscription->complimentary_until !== null => __('php/support/platform/platform_customers.plan_complimentary', ['plan' => (string) $subscription->plan->name]),   // DEC-7
+                    $subscription->status === 'trialing' => __('php/support/platform/platform_customers.plan_on_free_trial', ['plan' => (string) $subscription->plan->name]),
+                    default => (string) $subscription->plan->name,
+                };
             }
         }
 

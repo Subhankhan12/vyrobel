@@ -3,6 +3,21 @@
 // I18N-01 — id translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Perpanjang masa uji coba',
+    'extend_days_label' => 'Tambah hari',
+    'extend_button' => 'Perpanjang uji coba',
+    'extend_reason_placeholder' => 'Mengapa — contoh: hotel percontohan meminta tambahan seminggu',
+    'extend_hint' => 'Dihitung dari berakhirnya masa uji coba (dari hari ini jika sudah berakhir). Satu kali perpanjangan berlaku 1–60 hari, dan masa uji coba tidak pernah berakhir lebih dari 90 hari dari hari ini. Memerlukan kata sandi Anda; dicatat di log audit konsol.',
+    'complimentary_heading' => 'Paket komplimen',
+    'complimentary_until_label' => 'Gratis hingga',
+    'complimentary_button' => 'Berikan paket komplimen',
+    'complimentary_change_button' => 'Ubah tanggal akhir',
+    'complimentary_reason_placeholder' => 'Mengapa — contoh: mitra percontohan, disetujui pendiri',
+    'complimentary_hint' => 'Akses penuh, gratis, hingga tanggal yang Anda pilih (mulai besok hingga setahun ke depan) — lalu halaman pilih paket, seperti masa uji coba. Tidak dihitung sebagai uji coba atau pendapatan. Tidak untuk organisasi yang ditagih melalui Stripe. Memerlukan kata sandi Anda.',
+    'end_complimentary_heading' => 'Akhiri paket komplimen',
+    'end_complimentary_reason_placeholder' => 'Mengapa — contoh: masa percontohan berakhir',
+    'end_complimentary_button' => 'Akhiri sekarang',
+    'end_complimentary_hint' => 'Organisasi langsung melihat halaman pilih paket. Memerlukan kata sandi Anda; dicatat di log audit konsol.',
     'back_label' => 'Semua organisasi',
     'pill_suspended_underneath' => 'Tetap ditangguhkan',
     'pill_internal' => 'Internal',

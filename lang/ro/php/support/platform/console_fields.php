@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'organizațiile alese',
     'organization_ids_each' => 'organizație',
     'plan_id' => 'plan',
+    'days' => 'zile',
+    'until' => 'dată de sfârșit',
     'body' => 'mesaj',
     'starts_at' => 'afișare de la',
     'ends_at' => 'până la',

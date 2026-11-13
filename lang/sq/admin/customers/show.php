@@ -3,6 +3,21 @@
 // I18N-01 — sq translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Zgjat provën falas',
+    'extend_days_label' => 'Shto ditë',
+    'extend_button' => 'Zgjat provën',
+    'extend_reason_placeholder' => 'Pse — p.sh. një hotel pilot kërkoi një javë më shumë',
+    'extend_hint' => 'Numërohet nga data kur përfundon prova (nga sot, nëse ka përfunduar tashmë). Një zgjatje është 1–60 ditë, dhe një provë nuk përfundon kurrë më shumë se 90 ditë nga sot. Kërkon fjalëkalimin tuaj; evidentohet në regjistrin e konsolës.',
+    'complimentary_heading' => 'Plani falas',
+    'complimentary_until_label' => 'Falas deri më',
+    'complimentary_button' => 'Jep plan falas',
+    'complimentary_change_button' => 'Ndrysho datën e përfundimit',
+    'complimentary_reason_placeholder' => 'Pse — p.sh. partner pilot, i dakordësuar me themeluesin',
+    'complimentary_hint' => 'Qasje e plotë, falas, deri në datën që zgjidhni (nga nesër deri një vit përpara) — pastaj muri i pagesës, si në një provë. Nuk llogaritet as si provë, as si të hyra. Nuk është për një organizatë që faturohet përmes Stripe. Kërkon fjalëkalimin tuaj.',
+    'end_complimentary_heading' => 'Përfundo planin falas',
+    'end_complimentary_reason_placeholder' => 'Pse — p.sh. piloti përfundoi',
+    'end_complimentary_button' => 'Përfundoje tani',
+    'end_complimentary_hint' => 'Organizata e sheh menjëherë murin e pagesës. Kërkon fjalëkalimin tuaj; evidentohet në regjistrin e konsolës.',
     'back_label' => 'Të gjitha organizatat',
     'pill_suspended_underneath' => 'Pezulluar nën arkivim',
     'pill_internal' => 'E brendshme',

@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'organizatat e zgjedhura',
     'organization_ids_each' => 'organizata',
     'plan_id' => 'plani',
+    'days' => 'numri i ditëve',
+    'until' => 'data e përfundimit',
     'body' => 'mesazhi',
     'starts_at' => 'shfaq nga',
     'ends_at' => 'deri',

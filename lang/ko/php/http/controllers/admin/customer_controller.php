@@ -3,6 +3,15 @@
 // I18N-01 — ko translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => '무료 체험이 연장되었습니다 — 이제 :date에 종료됩니다.',
+    'extend_not_on_trial' => '무료 체험 중인 워크스페이스만 체험을 연장할 수 있습니다.',
+    'extend_is_complimentary' => '이 워크스페이스는 자체 종료일이 있는 무상 제공 요금제를 사용 중입니다 — 변경하려면 새 날짜로 다시 부여하세요.',
+    'extend_over_ceiling' => '무료 체험은 오늘부터 최대 90일까지만 이어질 수 있으며, 이대로면 :date에 종료됩니다. 일수를 줄이세요.',
+    'complimentary_granted' => '무상 제공 요금제가 부여되었습니다 — :date까지 모든 기능을 이용할 수 있으며, 이후에는 페이월이 표시됩니다.',
+    'complimentary_billed' => '이 워크스페이스는 Stripe로 청구됩니다. 무상 제공 요금제는 결제하지 않는 워크스페이스에만 사용할 수 있습니다.',
+    'complimentary_no_subscription' => '이 워크스페이스에는 무상 제공 요금제를 연결할 구독 기록이 없습니다.',
+    'complimentary_ended' => '무상 제공 요금제가 종료되었습니다 — 이제 워크스페이스에 페이월이 표시됩니다.',
+    'complimentary_not_on' => '이 워크스페이스는 무상 제공 요금제를 사용하고 있지 않습니다.',
     'delete_refused_protected' => '거부됨 — 이 워크스페이스는 보호되어 있어 콘솔에서 절대 삭제할 수 없습니다.',
     'delete_type_name' => '삭제를 확인하려면 워크스페이스 이름을 정확히 입력하세요.',
     'delete_suspend_first' => '먼저 이용 정지하세요 — 이용 정지되었거나 보관된 워크스페이스만 삭제할 수 있습니다.',

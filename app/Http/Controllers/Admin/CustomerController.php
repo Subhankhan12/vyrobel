@@ -18,6 +18,7 @@ use App\Services\Platform\OrganizationDeletionRefused;
 use App\Services\TenantProvisioningService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Countries;
+use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
 use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\AdminReason;
@@ -30,6 +31,7 @@ use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformCustomers;
 use App\Support\Platform\PlatformQuery;
 use App\Support\Platform\TenantLifecycle;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +68,12 @@ use Throwable;
  */
 class CustomerController extends Controller
 {
+    /** DEC-7 — a trial can never end more than this many days from today, however many extensions. */
+    private const TRIAL_CEILING_DAYS = 90;
+
+    /** DEC-7 — a complimentary plan's end date is at most this many days ahead. */
+    private const COMPLIMENTARY_MAX_DAYS = 366;
+
     public function __construct(
         private readonly PlatformQuery $platform,
         private readonly PlatformCustomers $customers,
@@ -428,6 +436,135 @@ class CustomerController extends Controller
         );
 
         return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.plan_assigned'));
+    }
+
+    /**
+     * ⚠️ DEC-7 (his ruling, 2026-11-13: "C") — EXTEND A TRIAL. Before this, the only extension ever made was a one-row
+     * write a session did at his word; now it is a console action: a written reason, HIS password, a cap, an audit row.
+     *
+     * The cap: one extension is 1–60 days, and a trial can never end more than 90 days from today. It counts from where
+     * the trial ends — or from TODAY when it has already ended (an expired trial comes back for N days from now, not
+     * for N days from a date long past). Only a trial can be extended: a billed organisation, a cancelled one and a
+     * complimentary one (which has its own end date) are refused.
+     */
+    public function extendTrial(Request $request, string $organization): RedirectResponse
+    {
+        $request->validate([
+            'days' => ['required', 'integer', 'min:1', 'max:60'],
+            'current_password' => ['required', 'current_password:admin'],
+        ], [], ConsoleFields::names());
+        $reason = AdminReason::from($request);
+        $days = (int) $request->input('days');
+        $org = $this->resolveOrg($organization);
+
+        if ($refused = $this->refusedByLock($request, $org, 'extend_trial', $reason, lifecycle: false)) {
+            return $refused;
+        }
+
+        $subscription = $this->latestSubscription($organization);
+        if ($subscription === null || $subscription->status !== 'trialing') {
+            return $this->back($org)->withErrors(['days' => __('php/http/controllers/admin/customer_controller.extend_not_on_trial')]);
+        }
+        if ($subscription->complimentary_until !== null) {
+            return $this->back($org)->withErrors(['days' => __('php/http/controllers/admin/customer_controller.extend_is_complimentary')]);
+        }
+
+        $from = $subscription->trial_ends_at !== null && $subscription->trial_ends_at->isFuture() ? $subscription->trial_ends_at->copy() : now();
+        $to = $from->copy()->addDays($days);
+        if ($to->greaterThan(now()->addDays(self::TRIAL_CEILING_DAYS))) {
+            return $this->back($org)->withErrors(['days' => __('php/http/controllers/admin/customer_controller.extend_over_ceiling', ['date' => $to->translatedFormat(LocalDate::pattern('j M Y'))])]);
+        }
+
+        $this->platform->mutate(
+            'platform.customer.extend_trial',
+            $reason,
+            fn () => Subscription::query()->whereKey($subscription->id)->firstOrFail()->update(['trial_ends_at' => $to]),
+            ['days' => $days, 'from' => $subscription->trial_ends_at?->toDateString(), 'to' => $to->toDateString()],
+            'organization',
+            $organization,
+        );
+
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.trial_extended', ['date' => $to->translatedFormat(LocalDate::pattern('j M Y'))]));
+    }
+
+    /**
+     * ⚠️ DEC-7 — GRANT A COMPLIMENTARY PLAN: full access, free, until an END DATE (never open-ended: tomorrow to a year
+     * ahead). Written as a `trialing` subscription whose `trial_ends_at` is that date — so every access gate already
+     * lapses it to the paywall on the day — plus `complimentary_until`, which only says WHY (it keeps the workspace out of
+     * the "on a trial" and revenue figures and lets the screens say "Complimentary"). Refused for an organisation that is
+     * BILLED through Stripe: it would hide a paying customer behind a free label. Granting again changes the end date.
+     */
+    public function grantComplimentary(Request $request, string $organization): RedirectResponse
+    {
+        $request->validate([
+            'until' => ['required', 'date', 'after:today', 'before_or_equal:'.now()->addDays(self::COMPLIMENTARY_MAX_DAYS)->toDateString()],
+            'current_password' => ['required', 'current_password:admin'],
+        ], [], ConsoleFields::names());
+        $reason = AdminReason::from($request);
+        $org = $this->resolveOrg($organization);
+        $until = CarbonImmutable::parse((string) $request->input('until'), 'UTC')->endOfDay();
+
+        if ($refused = $this->refusedByLock($request, $org, 'grant_complimentary', $reason, lifecycle: false)) {
+            return $refused;
+        }
+
+        $subscription = $this->latestSubscription($organization);
+        if ($subscription === null) {
+            return $this->back($org)->withErrors(['until' => __('php/http/controllers/admin/customer_controller.complimentary_no_subscription')]);
+        }
+        if (in_array($subscription->status, ['active', 'past_due'], true)) {
+            return $this->back($org)->withErrors(['until' => __('php/http/controllers/admin/customer_controller.complimentary_billed')]);
+        }
+
+        $this->platform->mutate(
+            'platform.customer.grant_complimentary',
+            $reason,
+            fn () => Subscription::query()->whereKey($subscription->id)->firstOrFail()
+                ->update(['status' => 'trialing', 'trial_ends_at' => $until, 'complimentary_until' => $until]),
+            ['until' => $until->toDateString(), 'was' => $subscription->status],
+            'organization',
+            $organization,
+        );
+
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.complimentary_granted', ['date' => $until->translatedFormat(LocalDate::pattern('j M Y'))]));
+    }
+
+    /** ⚠️ DEC-7 — END a complimentary plan NOW: the mark goes and the end date moves to a second ago, so the organisation sees the paywall at once. */
+    public function endComplimentary(Request $request, string $organization): RedirectResponse
+    {
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
+        $reason = AdminReason::from($request);
+        $org = $this->resolveOrg($organization);
+
+        if ($refused = $this->refusedByLock($request, $org, 'end_complimentary', $reason, lifecycle: false)) {
+            return $refused;
+        }
+
+        $subscription = $this->latestSubscription($organization);
+        if ($subscription === null || $subscription->complimentary_until === null) {
+            return $this->back($org)->withErrors(['reason' => __('php/http/controllers/admin/customer_controller.complimentary_not_on')]);
+        }
+
+        $this->platform->mutate(
+            'platform.customer.end_complimentary',
+            $reason,
+            fn () => Subscription::query()->whereKey($subscription->id)->firstOrFail()->update(['complimentary_until' => null, 'trial_ends_at' => now()->subSecond()]),
+            ['was_until' => $subscription->complimentary_until->toDateString()],
+            'organization',
+            $organization,
+        );
+
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.complimentary_ended'));
+    }
+
+    /** The organisation's newest subscription, read with the tenant scope lifted (this is the console). */
+    private function latestSubscription(string $organization): ?Subscription
+    {
+        return $this->platform->read(
+            'platform.customer.current_plan',   // the existing, already-classed READ ("Checked the current plan")
+            fn (): ?Subscription => Subscription::query()->where('organization_id', $organization)->latest()->first(),
+            [],
+        );
     }
 
     /**

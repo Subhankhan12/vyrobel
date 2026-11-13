@@ -3,6 +3,21 @@
 // I18N-01 — sr translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Продужење пробног периода',
+    'extend_days_label' => 'Додавање дана',
+    'extend_button' => 'Продужи пробни период',
+    'extend_reason_placeholder' => 'Зашто – нпр. хотел из пилот-пројекта тражио је још недељу дана',
+    'extend_hint' => 'Рачуна се од краја пробног периода (од данас, ако је већ истекао). Једно продужење траје 1–60 дана, а пробни период никада не истиче више од 90 дана од данас. Потребна је ваша лозинка; уписује се у књигу конзоле.',
+    'complimentary_heading' => 'Комплиментарни план',
+    'complimentary_until_label' => 'Бесплатно до',
+    'complimentary_button' => 'Додели комплиментарни план',
+    'complimentary_change_button' => 'Промени крајњи датум',
+    'complimentary_reason_placeholder' => 'Зашто – нпр. партнер у пилот-пројекту, одобрио оснивач',
+    'complimentary_hint' => 'Пун приступ, бесплатно, до датума који изаберете (од сутра до годину дана унапред) – затим страница за избор плана, као код пробног периода. Не рачуна се ни као пробни период ни као приход. Није за организацију која се наплаћује преко система Stripe. Потребна је ваша лозинка.',
+    'end_complimentary_heading' => 'Окончање комплиментарног плана',
+    'end_complimentary_reason_placeholder' => 'Зашто – нпр. пилот-пројекат је завршен',
+    'end_complimentary_button' => 'Окончај одмах',
+    'end_complimentary_hint' => 'Организација одмах види страницу за избор плана. Потребна је ваша лозинка; уписује се у књигу конзоле.',
     'back_label' => 'Све организације',
     'pill_suspended_underneath' => 'Суспендована у позадини',
     'pill_internal' => 'Интерна',

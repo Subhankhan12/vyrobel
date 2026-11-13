@@ -67,6 +67,32 @@ class OAuthConnectionService
     }
 
     /**
+     * DEC-3 (his ruling, 2026-11-13) — cut off EVERY connected app of this person at once: all their access tokens and
+     * the refresh tokens behind them, so no app can call the API and none can mint a new token. Called from the ONE
+     * shared password path (`User::changePasswordTo`), so a change and a reset both do it.
+     *
+     * SELF-ONLY: pinned to `$user`'s own tokens. Returns the number of APPS cut off (distinct clients with a live
+     * token) — the number the audit row records, never a name, a client id or a token.
+     */
+    public function revokeAllFor(User $user): int
+    {
+        $live = Token::query()
+            ->where('user_id', $user->getKey())
+            ->where('revoked', false)
+            ->get(['id', 'client_id']);
+
+        $allIds = Token::query()->where('user_id', $user->getKey())->pluck('id')->all();
+        if ($allIds === []) {
+            return 0;
+        }
+
+        RefreshToken::query()->whereIn('access_token_id', $allIds)->update(['revoked' => true]);
+        Token::query()->whereIn('id', $allIds)->update(['revoked' => true]);
+
+        return $live->pluck('client_id')->unique()->count();
+    }
+
+    /**
      * Revoke ALL of this user's tokens for one client — immediately. SELF-ONLY: scoped to `$user`'s tokens, so a
      * client_id from another user is a no-op. Revokes the linked refresh tokens too. Returns the number revoked.
      */

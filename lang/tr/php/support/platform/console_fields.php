@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'seçilen kuruluşlar',
     'organization_ids_each' => 'kuruluş',
     'plan_id' => 'paket',
+    'days' => 'gün sayısı',
+    'until' => 'bitiş tarihi',
     'body' => 'mesaj',
     'starts_at' => 'gösterim başlangıcı',
     'ends_at' => 'bitiş',

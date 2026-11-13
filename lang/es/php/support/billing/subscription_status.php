@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1} Prueba gratuita · queda :count día|[0,*] Prueba gratuita · quedan :count días',
     'active' => 'Activa',
+    'complimentary_until' => 'De cortesía · hasta el :date',
+    'complimentary_ended' => 'Plan de cortesía finalizado',
     'trial_ended' => 'Prueba gratuita finalizada',
     'past_due' => 'Pago vencido',
     'canceled' => 'Cancelada',

@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Scrisoare',
     'channel_phone' => 'Telefon',
     'channel_hotel' => 'Transmisă de hotel',
+    'channel_in_app' => 'În aplicație',
     'status_received' => 'Primită',
     'status_in_progress' => 'În curs',
     'status_completed' => 'Finalizată',

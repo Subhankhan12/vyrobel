@@ -71,6 +71,8 @@ return [
     'yearly_offer' => '是因为费用吗？按年计费每年可节省 :amount。两种方式都没有额外费用——您随时可以回来。',
     'change_plan_heading' => '更改方案',
     'trial_days_left' => '{1}您的免费试用还剩 <strong>:count 天</strong>——可完整使用。请选择方案，以便试用结束后继续使用。|[0,*]您的免费试用还剩 <strong>:count 天</strong>——可完整使用。请选择方案，以便试用结束后继续使用。',
+    'complimentary_line' => '<strong>免费赠送</strong>——可完整使用，无需付款，至 :date。您仍可在下方选择方案，以便此后继续使用。',
+    'complimentary_ended_line' => '您的赠送方案已结束。请在下方选择方案，以恢复完整访问权限。',
     'trial_ended' => '您的免费试用已结束。请在下方选择方案，以恢复完整访问权限。',
     'choose_a_plan' => '请选择要订阅的方案。',
     'disclaimer' => '价格为临时价格，正式定价尚在确定中。订阅通过 Stripe 安全计费——您的银行卡信息不会经过 Vyrobel，测试模式下不会扣款。',

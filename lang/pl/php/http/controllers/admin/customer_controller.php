@@ -3,6 +3,15 @@
 // I18N-01 — pl translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Okres testowy przedłużono – kończy się teraz :date.',
+    'extend_not_on_trial' => 'Okres testowy można przedłużyć tylko organizacji w bezpłatnym okresie testowym.',
+    'extend_is_complimentary' => 'Ta organizacja ma plan gratisowy z własną datą zakończenia – aby ją zmienić, przyznaj plan ponownie z nową datą.',
+    'extend_over_ceiling' => 'Okres testowy może trwać najwyżej 90 dni od dziś, a ten zakończyłby się :date. Wybierz mniej dni.',
+    'complimentary_granted' => 'Przyznano plan gratisowy – pełny dostęp do :date, potem strona wyboru planu.',
+    'complimentary_billed' => 'Ta organizacja jest rozliczana przez Stripe. Plan gratisowy jest tylko dla organizacji, która nie płaci.',
+    'complimentary_no_subscription' => 'Ta organizacja nie ma rekordu subskrypcji, do którego można by przypisać plan gratisowy.',
+    'complimentary_ended' => 'Zakończono plan gratisowy – organizacja widzi teraz stronę wyboru planu.',
+    'complimentary_not_on' => 'Ta organizacja nie ma planu gratisowego.',
     'delete_refused_protected' => 'Odmowa – ta organizacja jest chroniona i nigdy nie można jej usunąć z konsoli.',
     'delete_type_name' => 'Wpisz dokładną nazwę organizacji, aby potwierdzić usunięcie.',
     'delete_suspend_first' => 'Najpierw ją zawieś – usunąć można tylko zawieszoną lub zarchiwizowaną organizację.',

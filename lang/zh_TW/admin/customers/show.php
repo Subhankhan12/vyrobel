@@ -3,6 +3,21 @@
 // I18N-01 — zh_TW translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => '延長免費試用',
+    'extend_days_label' => '增加天數',
+    'extend_button' => '延長免費試用',
+    'extend_reason_placeholder' => '原因——例如：試辦飯店要求多延長一週',
+    'extend_hint' => '從免費試用的結束日起算（若已結束，則從今天起算）。單次延長為 1–60 天，且免費試用的結束日期距今天不得超過 90 天。需要輸入您的密碼；將寫入主控台稽核紀錄。',
+    'complimentary_heading' => '贈送方案',
+    'complimentary_until_label' => '免費至',
+    'complimentary_button' => '贈送方案',
+    'complimentary_change_button' => '變更結束日期',
+    'complimentary_reason_placeholder' => '原因——例如：試辦合作夥伴，經創辦人同意',
+    'complimentary_hint' => '可免費使用完整功能，至您選擇的日期為止（最早明天，最晚一年後）——之後進入付費牆，與免費試用相同。不計入免費試用，也不計入營收。不適用於透過 Stripe 計費的組織。需要輸入您的密碼。',
+    'end_complimentary_heading' => '結束贈送方案',
+    'end_complimentary_reason_placeholder' => '原因——例如：試辦已結束',
+    'end_complimentary_button' => '立即結束',
+    'end_complimentary_hint' => '該組織會立即看到付費牆。需要輸入您的密碼；將寫入主控台稽核紀錄。',
     'back_label' => '所有組織',
     'pill_suspended_underneath' => '同時已停權',
     'pill_internal' => '內部',

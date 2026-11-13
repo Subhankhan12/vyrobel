@@ -45,14 +45,15 @@ final class PlatformRevenue
         $paid = collect($this->invoices('invoice.paid', $orgIds));
         $failed = collect($this->invoices('invoice.payment_failed', $orgIds));
 
-        $subscriptions = Subscription::query()->whereIn('organization_id', $orgIds)->get(['id', 'organization_id', 'status', 'stripe_subscription_id', 'trial_ends_at', 'updated_at']);
+        $subscriptions = Subscription::query()->whereIn('organization_id', $orgIds)->get(['id', 'organization_id', 'status', 'stripe_subscription_id', 'trial_ends_at', 'complimentary_until', 'updated_at']);
 
         $base = [
             'include_internal' => $includeInternal,
             'live' => $paid->isNotEmpty(),
             'paid_invoices' => $paid->count(),
             'live_billed_subscriptions' => $subscriptions->whereNotNull('stripe_subscription_id')->count(),
-            'trialing_unbilled' => $subscriptions->where('status', 'trialing')->whereNull('stripe_subscription_id')->count(),
+            // ⚠️ DEC-7 — a complimentary workspace is neither revenue nor a trial waiting to convert
+            'trialing_unbilled' => $subscriptions->where('status', 'trialing')->whereNull('stripe_subscription_id')->whereNull('complimentary_until')->count(),
         ];
 
         if ($paid->isEmpty()) {

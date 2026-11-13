@@ -3,6 +3,21 @@
 // I18N-01 — fr translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Prolonger l’essai',
+    'extend_days_label' => 'Jours en plus',
+    'extend_button' => 'Prolonger l’essai',
+    'extend_reason_placeholder' => 'Pourquoi — ex. un hôtel pilote a demandé une semaine de plus',
+    'extend_hint' => 'Le décompte part de la fin de l’essai (d’aujourd’hui s’il est déjà terminé). Une prolongation est de 1 à 60 jours, et un essai ne se termine jamais plus de 90 jours après aujourd’hui. Nécessite votre mot de passe ; l’action est consignée dans le journal de la console.',
+    'complimentary_heading' => 'Formule offerte',
+    'complimentary_until_label' => 'Gratuit jusqu’au',
+    'complimentary_button' => 'Accorder la formule',
+    'complimentary_change_button' => 'Modifier la date de fin',
+    'complimentary_reason_placeholder' => 'Pourquoi — ex. partenaire pilote, convenu avec le fondateur',
+    'complimentary_hint' => 'Accès complet, gratuit, jusqu’à la date de votre choix (de demain jusqu’à un an à l’avance) — puis le mur payant, comme pour un essai. Cela ne compte ni comme un essai ni comme du chiffre d’affaires. Pas pour une organisation facturée via Stripe. Nécessite votre mot de passe.',
+    'end_complimentary_heading' => 'Mettre fin à la formule offerte',
+    'end_complimentary_reason_placeholder' => 'Pourquoi — ex. la phase pilote est terminée',
+    'end_complimentary_button' => 'Terminer maintenant',
+    'end_complimentary_hint' => 'L’organisation voit le mur payant immédiatement. Nécessite votre mot de passe ; l’action est consignée dans le journal de la console.',
     'back_label' => 'Toutes les organisations',
     'pill_suspended_underneath' => 'Suspendue en arrière-plan',
     'pill_internal' => 'Interne',

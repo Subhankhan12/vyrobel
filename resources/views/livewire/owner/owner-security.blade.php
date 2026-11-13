@@ -25,7 +25,7 @@
     // the revoke dialog's app name, filled in by Alpine
     $revokeAppNameHtml = '<span x-text="appRevoke ? appRevoke.name : \'\'"></span>';
 @endphp
-<div class="vy-sx" x-data="{ pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice), appRevoke: @js($erroredApp), approvalOpen: @js($errored === 'approval'), deactivateOpen: @js($errored === 'deactivate') }">
+<div class="vy-sx" x-data="{ pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice), appRevoke: @js($erroredApp), approvalOpen: @js($errored === 'approval'), deactivateOpen: @js($errored === 'deactivate'), deleteOpen: @js($errored === 'deletion') }">
     <x-owner.shell active="security" :title="__('livewire/owner/owner-security.page_title')" :viewer="$viewer">
         <x-security.styles />
 
@@ -86,6 +86,9 @@
                         <a href="{{ route('owner.security.export') }}" class="vy-sx-btn vy-sx-btn--soft"><x-security.icon name="download" /> {{ __('livewire/owner/owner-security.request_my_data') }}</a>
                     </div>
                 </section>
+
+                {{-- DEC-6 — REQUEST DELETION of this account (every owner-portal user, not only the primary owner): files a Privacy-desk request, erases nothing --}}
+                <x-security.deletion-card :request="$deletionRequest" />
 
                 {{-- DEACTIVATE — PRIMARY-OWNER-ONLY, reversible and non-destructive --}}
                 @if ($isPrimaryOwner)
@@ -385,6 +388,10 @@
                 </form>
             </div>
         </div>
+
+        @if ($deletionRequest === null)
+            <x-security.deletion-dialog :action="route('owner.security.deletion-request')" :has-password="$deletionHasPassword" :errored="$errored" />
+        @endif
 
         @if ($isPrimaryOwner)
             {{-- Deactivate — reversible, nothing deleted; re-asks for the password (it was the browser's confirm()) --}}

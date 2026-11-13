@@ -18,8 +18,8 @@ return [
         'id' => 'A03-M2',
         'name' => 'F2 trial filter',
         'file' => 'app/Support/Platform/PlatformCustomers.php',
-        'old' => '->where(\'subscriptions.status\', \'trialing\')->whereNull(\'subscriptions.deleted_at\'));',
-        'new' => '->where(\'subscriptions.status\', \'no-such-status\')->whereNull(\'subscriptions.deleted_at\'));',
+        'old' => '->where(\'subscriptions.status\', \'trialing\')->whereNull(\'subscriptions.complimentary_until\')',   // re-anchored 2026-11-13 (DEC-7 added the complimentary exclusion on this line)
+        'new' => '->where(\'subscriptions.status\', \'no-such-status\')->whereNull(\'subscriptions.complimentary_until\')',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F2']],
     ],
     [

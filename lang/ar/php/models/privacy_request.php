@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'رسالة بريدية',
     'channel_phone' => 'الهاتف',
     'channel_hotel' => 'عبر الفندق',
+    'channel_in_app' => 'داخل التطبيق',
     'status_received' => 'مستلم',
     'status_in_progress' => 'قيد التنفيذ',
     'status_completed' => 'مكتمل',

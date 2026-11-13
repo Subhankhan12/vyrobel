@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Письмо',
     'channel_phone' => 'Телефон',
     'channel_hotel' => 'Передан отелем',
+    'channel_in_app' => 'В приложении',
     'status_received' => 'Получен',
     'status_in_progress' => 'В работе',
     'status_completed' => 'Выполнен',

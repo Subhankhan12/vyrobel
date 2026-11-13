@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Mektup',
     'channel_phone' => 'Telefon',
     'channel_hotel' => 'Otel tarafından iletildi',
+    'channel_in_app' => 'Uygulama içinden',
     'status_received' => 'Alındı',
     'status_in_progress' => 'İşleniyor',
     'status_completed' => 'Tamamlandı',

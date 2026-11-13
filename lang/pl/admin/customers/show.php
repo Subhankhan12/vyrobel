@@ -3,6 +3,21 @@
 // I18N-01 — pl translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Przedłuż okres testowy',
+    'extend_days_label' => 'Dodaj dni',
+    'extend_button' => 'Przedłuż okres testowy',
+    'extend_reason_placeholder' => 'Dlaczego – np. hotel pilotażowy poprosił o tydzień więcej',
+    'extend_hint' => 'Liczone od końca okresu testowego (od dziś, jeśli już się zakończył). Jedno przedłużenie to 1–60 dni, a okres testowy nigdy nie kończy się później niż za 90 dni od dziś. Wymaga Państwa hasła; zapisywane w rejestrze konsoli.',
+    'complimentary_heading' => 'Plan gratisowy',
+    'complimentary_until_label' => 'Bezpłatnie do',
+    'complimentary_button' => 'Przyznaj plan gratisowy',
+    'complimentary_change_button' => 'Zmień datę zakończenia',
+    'complimentary_reason_placeholder' => 'Dlaczego – np. partner pilotażowy, uzgodnione z założycielem',
+    'complimentary_hint' => 'Pełny dostęp, bezpłatnie, do wybranej daty (od jutra do roku naprzód) – potem strona wyboru planu, jak po okresie testowym. Nie jest liczony jako okres testowy ani jako przychód. Nie dotyczy organizacji rozliczanej przez Stripe. Wymaga Państwa hasła.',
+    'end_complimentary_heading' => 'Zakończ plan gratisowy',
+    'end_complimentary_reason_placeholder' => 'Dlaczego – np. pilotaż się zakończył',
+    'end_complimentary_button' => 'Zakończ teraz',
+    'end_complimentary_hint' => 'Organizacja od razu zobaczy stronę wyboru planu. Wymaga Państwa hasła; zapisywane w rejestrze konsoli.',
     'back_label' => 'Wszystkie organizacje',
     'pill_suspended_underneath' => 'W tle: zawieszona',
     'pill_internal' => 'Wewnętrzna',

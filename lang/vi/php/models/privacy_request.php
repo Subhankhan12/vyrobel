@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Thư',
     'channel_phone' => 'Điện thoại',
     'channel_hotel' => 'Được khách sạn chuyển tiếp',
+    'channel_in_app' => 'Trong ứng dụng',
     'status_received' => 'Đã nhận',
     'status_in_progress' => 'Đang xử lý',
     'status_completed' => 'Đã hoàn tất',

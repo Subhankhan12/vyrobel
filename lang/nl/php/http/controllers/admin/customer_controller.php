@@ -3,6 +3,15 @@
 // I18N-01 — nl translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Proefperiode verlengd — die eindigt nu op :date.',
+    'extend_not_on_trial' => 'Alleen bij een organisatie in een gratis proefperiode kan de proefperiode worden verlengd.',
+    'extend_is_complimentary' => 'Deze organisatie heeft een kosteloos pakket met een eigen einddatum — ken het opnieuw toe met een nieuwe datum om de einddatum te wijzigen.',
+    'extend_over_ceiling' => 'Een proefperiode kan hoogstens 90 dagen vanaf vandaag duren, en deze zou eindigen op :date. Kies minder dagen.',
+    'complimentary_granted' => 'Kosteloos pakket toegekend — volledige toegang tot :date, daarna de betaalmuur.',
+    'complimentary_billed' => 'Deze organisatie wordt via Stripe gefactureerd. Een kosteloos pakket is er alleen voor een organisatie die niet betaalt.',
+    'complimentary_no_subscription' => 'Deze organisatie heeft geen abonnementsgegevens om een kosteloos pakket aan te koppelen.',
+    'complimentary_ended' => 'Het kosteloze pakket is beëindigd — de organisatie ziet nu de betaalmuur.',
+    'complimentary_not_on' => 'Deze organisatie heeft geen kosteloos pakket.',
     'delete_refused_protected' => 'Geweigerd — deze organisatie is beveiligd en kan nooit vanuit de console worden verwijderd.',
     'delete_type_name' => 'Typ de exacte naam van de organisatie om het verwijderen te bevestigen.',
     'delete_suspend_first' => 'Schort de organisatie eerst op — alleen een opgeschorte of gearchiveerde organisatie kan worden verwijderd.',

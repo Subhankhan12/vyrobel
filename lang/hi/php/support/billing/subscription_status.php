@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}ट्रायल · :count दिन बाकी|[0,*]ट्रायल · :count दिन बाकी',
     'active' => 'सक्रिय',
+    'complimentary_until' => 'निःशुल्क प्लान · :date तक',
+    'complimentary_ended' => 'निःशुल्क प्लान समाप्त',
     'trial_ended' => 'ट्रायल समाप्त',
     'past_due' => 'भुगतान बकाया',
     'canceled' => 'रद्द',

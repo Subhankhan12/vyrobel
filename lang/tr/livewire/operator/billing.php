@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Sebep maliyet mi? Yıllık faturalandırma yılda :amount tasarruf sağlar. Her iki durumda da ek ücret yok — istediğiniz zaman geri dönebilirsiniz.',
     'change_plan_heading' => 'Paketi değiştir',
     'trial_days_left' => '{1} Ücretsiz deneme sürenizin bitmesine <strong>:count gün</strong> kaldı — tam erişim. Süre bittikten sonra devam etmek için bir paket seçin.|[0,*] Ücretsiz deneme sürenizin bitmesine <strong>:count gün</strong> kaldı — tam erişim. Süre bittikten sonra devam etmek için bir paket seçin.',
+    'complimentary_line' => '<strong>Ücretsiz paket</strong> — tam erişim, ödeme gerekmez, :date tarihine kadar. Sonrasında devam etmek için aşağıdan yine bir paket seçebilirsiniz.',
+    'complimentary_ended_line' => 'Ücretsiz paketiniz sona erdi. Tam erişimi yeniden etkinleştirmek için aşağıdan bir paket seçin.',
     'trial_ended' => 'Deneme süreniz sona erdi. Tam erişimi yeniden etkinleştirmek için aşağıdan bir paket seçin.',
     'choose_a_plan' => 'Abone olmak için bir paket seçin.',
     'disclaimer' => 'Fiyatlandırma kesinleşene kadar fiyatlar geçicidir. Abonelikler Stripe üzerinden güvenle faturalandırılır — kart bilgileriniz hiçbir zaman Vyrobel sistemlerine ulaşmaz ve test modunda ücret alınmaz.',

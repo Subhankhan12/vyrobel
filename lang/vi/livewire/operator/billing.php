@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Lý do là chi phí? Thanh toán hằng năm giúp tiết kiệm :amount mỗi năm. Không mất phí dù chọn cách nào — bạn có thể quay lại bất cứ lúc nào.',
     'change_plan_heading' => 'Đổi gói',
     'trial_days_left' => '{1}Còn <strong>:count ngày</strong> dùng thử miễn phí — toàn quyền truy cập. Chọn gói để tiếp tục sử dụng sau khi hết hạn dùng thử.|[0,*]Còn <strong>:count ngày</strong> dùng thử miễn phí — toàn quyền truy cập. Chọn gói để tiếp tục sử dụng sau khi hết hạn dùng thử.',
+    'complimentary_line' => '<strong>Gói tặng</strong> — toàn quyền truy cập, không cần thanh toán, đến ngày :date. Bạn vẫn có thể chọn một gói bên dưới để tiếp tục sử dụng sau thời điểm đó.',
+    'complimentary_ended_line' => 'Gói tặng của bạn đã kết thúc. Chọn gói bên dưới để kích hoạt lại toàn quyền truy cập.',
     'trial_ended' => 'Thời gian dùng thử đã kết thúc. Chọn gói bên dưới để kích hoạt lại toàn quyền truy cập.',
     'choose_a_plan' => 'Chọn gói để đăng ký.',
     'disclaimer' => 'Giá hiện là giá tạm trong khi chúng tôi hoàn thiện bảng giá. Gói đăng ký được thanh toán an toàn qua Stripe — thông tin thẻ của bạn không bao giờ đi qua Vyrobel, và chế độ kiểm thử không thu tiền.',

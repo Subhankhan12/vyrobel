@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Chưa người dùng nào của tổ chức từng hoàn tất một lần đăng nhập. ⚠️ Phiên đăng ký không được tính là đăng nhập, nên điều này có nghĩa là “chưa từng quay lại sau khi đăng ký”.',
     'bucket_via_x' => 'Tạo bằng X',
     'bucket_via_x_definition' => 'Đăng ký qua X. X không xác minh địa chỉ email như Google — rủi ro chiếm dụng đã được chấp nhận. Chỉ hiển thị để xem xét, không bao giờ tự động xử lý.',
+    'bucket_abandoned' => 'Đăng ký bị bỏ dở (hơn 30 ngày)',
+    'bucket_abandoned_definition' => 'Được tạo hơn 30 ngày trước, chưa ai xác nhận địa chỉ email và chưa ai từng đăng nhập. Mở một tổ chức để đình chỉ, sau đó xóa bằng mật khẩu của bạn. Không có gì bị xóa tự động.',
     'status_active' => 'Hoạt động',
     'status_trialing' => 'Đang dùng thử miễn phí',
     'status_suspended' => 'Đã đình chỉ',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Chưa hoàn tất',
     'subscription_paused' => 'Tạm dừng',
     'plan_on_free_trial' => ':plan · dùng thử miễn phí',
+    'plan_complimentary' => ':plan · gói tặng',
 ];

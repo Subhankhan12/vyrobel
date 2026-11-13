@@ -3,6 +3,21 @@
 // I18N-01 — ja translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => '無料トライアルを延長',
+    'extend_days_label' => '追加する日数',
+    'extend_button' => '無料トライアルを延長',
+    'extend_reason_placeholder' => '理由 — 例：試験導入先のホテルから、あと1週間の延長を希望された',
+    'extend_hint' => 'トライアルの終了日から数えます（すでに終了している場合は今日から）。1回の延長は1〜60日で、トライアルの終了日が今日から90日を超えることはありません。パスワードの入力が必要です。コンソールの監査ログに記録されます。',
+    'complimentary_heading' => '無償提供プラン',
+    'complimentary_until_label' => '無償提供の終了日',
+    'complimentary_button' => '無償提供プランを付与',
+    'complimentary_change_button' => '終了日を変更',
+    'complimentary_reason_placeholder' => '理由 — 例：試験導入パートナー、創業者が承認済み',
+    'complimentary_hint' => '明日から1年先までの範囲で選んだ日まで、すべての機能を無料で利用できます。その後はトライアルと同様にペイウォールが表示されます。無料トライアルにも売上にも集計されません。Stripeで請求されているワークスペースには使用できません。パスワードの入力が必要です。',
+    'end_complimentary_heading' => '無償提供プランを終了',
+    'end_complimentary_reason_placeholder' => '理由 — 例：試験導入が終了した',
+    'end_complimentary_button' => '今すぐ終了',
+    'end_complimentary_hint' => 'ワークスペースにはすぐにペイウォールが表示されます。パスワードの入力が必要です。コンソールの監査ログに記録されます。',
     'back_label' => 'すべてのワークスペース',
     'pill_suspended_underneath' => '内部ステータス：利用停止中',
     'pill_internal' => '社内',

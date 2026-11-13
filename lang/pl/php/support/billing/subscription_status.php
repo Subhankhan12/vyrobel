@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Okres testowy · pozostał :count dzień|Okres testowy · pozostały :count dni|Okres testowy · pozostało :count dni',
     'active' => 'Aktywna',
+    'complimentary_until' => 'Plan gratisowy · do :date',
+    'complimentary_ended' => 'Plan gratisowy zakończony',
     'trial_ended' => 'Okres testowy zakończony',
     'past_due' => 'Zaległa płatność',
     'canceled' => 'Anulowana',

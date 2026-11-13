@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Ükski selle kasutaja pole kunagi sisselogimist lõpule viinud. ⚠️ Registreerumise seanss ise ei ole sisselogimine, seega tähendab see „pärast registreerumist pole kunagi tagasi tulnud“.',
     'bucket_via_x' => 'Loodud X-iga',
     'bucket_via_x_definition' => 'Registreerus X-i kaudu. X ei kinnita e-posti aadressi nii, nagu Google seda teeb — aktsepteeritud hõivamisrisk. Tuuakse ülevaatamiseks esile, kunagi ei tegutseta automaatselt.',
+    'bucket_abandoned' => 'Hüljatud registreerumised (30+ päeva)',
+    'bucket_abandoned_definition' => 'Loodud üle 30 päeva tagasi, keegi pole e-posti aadressi kinnitanud ja keegi pole kunagi sisse logitud. Avage organisatsioon, et see peatada, ning kustutage see seejärel oma parooliga. Midagi ei eemaldata kunagi automaatselt.',
     'status_active' => 'Aktiivne',
     'status_trialing' => 'Tasuta prooviperioodil',
     'status_suspended' => 'Peatatud',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Lõpule viimata',
     'subscription_paused' => 'Peatatud',
     'plan_on_free_trial' => ':plan · tasuta prooviperiood',
+    'plan_complimentary' => ':plan · tasuta plaan',
 ];

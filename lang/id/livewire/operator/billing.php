@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Masalah biaya? Penagihan tahunan menghemat :amount per tahun. Tanpa biaya tambahan dalam kedua pilihan — Anda dapat kembali kapan saja.',
     'change_plan_heading' => 'Ganti paket',
     'trial_days_left' => '{1}Sisa <strong>:count hari</strong> dalam masa uji coba gratis Anda — akses penuh. Pilih paket agar tetap dapat menggunakan layanan setelah masa uji coba berakhir.|[0,*]Sisa <strong>:count hari</strong> dalam masa uji coba gratis Anda — akses penuh. Pilih paket agar tetap dapat menggunakan layanan setelah masa uji coba berakhir.',
+    'complimentary_line' => '<strong>Komplimen</strong> — akses penuh, tanpa pembayaran, hingga :date. Anda tetap dapat memilih paket di bawah untuk melanjutkan setelah itu.',
+    'complimentary_ended_line' => 'Paket komplimen Anda telah berakhir. Pilih paket di bawah untuk mengaktifkan kembali akses penuh.',
     'trial_ended' => 'Masa uji coba Anda telah berakhir. Pilih paket di bawah untuk mengaktifkan kembali akses penuh.',
     'choose_a_plan' => 'Pilih paket untuk berlangganan.',
     'disclaimer' => 'Harga masih sementara selama kami menetapkan harga final. Langganan ditagih dengan aman melalui Stripe — detail kartu Anda tidak pernah melewati Vyrobel, dan tidak ada tagihan dalam mode tes.',

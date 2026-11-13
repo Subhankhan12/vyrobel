@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}ช่วงทดลองใช้ · เหลือ :count วัน|[0,*]ช่วงทดลองใช้ · เหลือ :count วัน',
     'active' => 'ใช้งานอยู่',
+    'complimentary_until' => 'มอบให้ฟรี · ถึง :date',
+    'complimentary_ended' => 'แผนมอบให้ฟรีสิ้นสุดแล้ว',
     'trial_ended' => 'สิ้นสุดช่วงทดลองใช้แล้ว',
     'past_due' => 'ค้างชำระ',
     'canceled' => 'ยกเลิกแล้ว',

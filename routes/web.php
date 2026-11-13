@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
 use App\Http\Controllers\AnnouncementDismissController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
+use App\Http\Controllers\Auth\AccountDeletionRequestController;
 use App\Http\Controllers\Auth\AccountSecurityController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -1087,6 +1088,8 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
 
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
+    // DEC-6 — "Request deletion": files a Privacy-desk request for a person to answer; erases nothing.
+    Route::post('/security/deletion-request', [AccountDeletionRequestController::class, 'operator'])->middleware('throttle:6,1')->name('security.deletion-request');
 
     // D24-2 — PASSKEYS FOR THE OPERATOR REALM. ⚠️ THE SAME `PasskeyController` the owner realm mounts
     // (`owner.security.passkeys.*`), not a copy: the WebAuthn subsystem is realm-agnostic — `PasskeyService`
@@ -1818,6 +1821,8 @@ Route::middleware(['auth', RefuseSuspendedOrganization::class, EnsureOwnerPortal
     Route::get('/security', OwnerSecurity::class)->name('security');
     // Change password (Auth) — self-only, current password verified, shared reset hash+rotate path.
     Route::post('/security/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('security.password');
+    // DEC-6 — "Request deletion" for an owner or an owner's team member (every one of them, not only the primary owner).
+    Route::post('/security/deletion-request', [AccountDeletionRequestController::class, 'owner'])->middleware('throttle:6,1')->name('security.deletion-request');
     // Two-factor ENROLLMENT — same shared TwoFactorController, self-only, back() to /owner/security.
     Route::post('/security/2fa/enable', [TwoFactorController::class, 'enable'])->name('security.2fa.enable');
     Route::post('/security/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('security.2fa.confirm');
@@ -1994,6 +1999,10 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             // ── Billing (Owner, Billing): what a customer pays for. Stripe sync stays deferred.
             Route::middleware($can(PlatformAdminRole::BILLING_MANAGE))->group(function () {
                 Route::post('customers/{organization}/plan', [AdminCustomerController::class, 'assignPlan'])->middleware('throttle:20,1')->name('customers.assign-plan');
+                // ⚠️ DEC-7 — extend a trial / grant or end a complimentary plan: a reason, his password, a cap, an audit row.
+                Route::post('customers/{organization}/extend-trial', [AdminCustomerController::class, 'extendTrial'])->middleware('throttle:20,1')->name('customers.extend-trial');
+                Route::post('customers/{organization}/complimentary', [AdminCustomerController::class, 'grantComplimentary'])->middleware('throttle:20,1')->name('customers.complimentary');
+                Route::post('customers/{organization}/complimentary/end', [AdminCustomerController::class, 'endComplimentary'])->middleware('throttle:20,1')->name('customers.complimentary.end');
                 Route::get('plans/create', [AdminPlanController::class, 'create'])->name('plans.create');
                 Route::post('plans', [AdminPlanController::class, 'store'])->middleware('throttle:30,1')->name('plans.store');
                 Route::get('plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');

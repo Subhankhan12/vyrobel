@@ -3,6 +3,21 @@
 // I18N-01 — pt translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Prolongar período de teste',
+    'extend_days_label' => 'Adicionar dias',
+    'extend_button' => 'Prolongar teste',
+    'extend_reason_placeholder' => 'Porquê? P. ex., um hotel-piloto pediu mais uma semana',
+    'extend_hint' => 'Conta a partir do fim do período de teste (a partir de hoje, se já tiver terminado). Cada prolongamento é de 1 a 60 dias, e um período de teste nunca termina mais de 90 dias depois de hoje. Requer a sua palavra-passe; é escrito no registo da consola.',
+    'complimentary_heading' => 'Plano de cortesia',
+    'complimentary_until_label' => 'Gratuito até',
+    'complimentary_button' => 'Conceder plano de cortesia',
+    'complimentary_change_button' => 'Alterar a data de fim',
+    'complimentary_reason_placeholder' => 'Porquê? P. ex., parceiro-piloto, acordado pelo fundador',
+    'complimentary_hint' => 'Acesso total e gratuito até à data que escolher (de amanhã até daqui a um ano) — depois, o paywall, como num período de teste. Não conta como período de teste nem como receita. Não se aplica a uma organização faturada através da Stripe. Requer a sua palavra-passe.',
+    'end_complimentary_heading' => 'Terminar o plano de cortesia',
+    'end_complimentary_reason_placeholder' => 'Porquê? P. ex., o piloto terminou',
+    'end_complimentary_button' => 'Terminar agora',
+    'end_complimentary_hint' => 'A organização vê o paywall de imediato. Requer a sua palavra-passe; é escrito no registo da consola.',
     'back_label' => 'Todas as organizações',
     'pill_suspended_underneath' => 'Suspensa (subjacente)',
     'pill_internal' => 'Interna',

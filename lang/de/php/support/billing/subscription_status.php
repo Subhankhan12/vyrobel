@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1} Testphase · noch :count Tag|[0,*] Testphase · noch :count Tage',
     'active' => 'Aktiv',
+    'complimentary_until' => 'Kostenfrei · bis :date',
+    'complimentary_ended' => 'Kostenfreier Tarif beendet',
     'trial_ended' => 'Testphase beendet',
     'past_due' => 'Zahlung überfällig',
     'canceled' => 'Gekündigt',

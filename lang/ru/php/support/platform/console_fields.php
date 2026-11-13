@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'выбранные организации',
     'organization_ids_each' => 'организация',
     'plan_id' => 'план',
+    'days' => 'число дней',
+    'until' => 'дата окончания',
     'body' => 'сообщение',
     'starts_at' => 'показывать с',
     'ends_at' => 'показывать до',

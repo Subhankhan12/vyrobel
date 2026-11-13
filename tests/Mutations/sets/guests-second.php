@@ -222,7 +222,7 @@ return [
         'id' => 'MGS-M2',
         'name' => 'D-MAIL-GUARD-SHAPES — failover / roundrobin are read by their name only, not by the mailers in their list',
         'file' => 'app/Support/Mail/MailSafetyGuard.php',
-        'old' => "        if (\$transport === 'failover' || \$transport === 'roundrobin') {",
+        'old' => "        if (\$transport === 'failover' || \$transport === 'roundrobin' || \$transport === 'rotating') {   // DEC-1: the rotating mailer is judged by its mailboxes",
         'new' => '        if (false) {',
         'tests' => [['file' => 'tests/Feature/MailTransportSafetyTest.php', 'filter' => 'failover and roundrobin are every mailer in their list']],
     ],

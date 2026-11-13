@@ -3,6 +3,22 @@
 // resources/views/admin/customers/show.blade.php — the platform admin console's page for one organisation.
 
 return [
+    // DEC-7 — extend a trial / complimentary plan
+    'extend_trial_heading' => 'Extend the trial',
+    'extend_days_label' => 'Add days',
+    'extend_button' => 'Extend trial',
+    'extend_reason_placeholder' => 'Why — e.g. a pilot hotel asked for a week more',
+    'extend_hint' => 'Counts from where the trial ends (from today if it already ended). One extension is 1–60 days, and a trial never ends more than 90 days from today. Needs your password; written to the console ledger.',
+    'complimentary_heading' => 'Complimentary plan',
+    'complimentary_until_label' => 'Free until',
+    'complimentary_button' => 'Grant complimentary',
+    'complimentary_change_button' => 'Change the end date',
+    'complimentary_reason_placeholder' => 'Why — e.g. pilot partner, agreed by the founder',
+    'complimentary_hint' => 'Full access, free, until the date you choose (tomorrow to a year ahead) — then the paywall, like a trial. It is not counted as a trial or as revenue. Not for an organisation that is billed through Stripe. Needs your password.',
+    'end_complimentary_heading' => 'End the complimentary plan',
+    'end_complimentary_reason_placeholder' => 'Why — e.g. the pilot ended',
+    'end_complimentary_button' => 'End it now',
+    'end_complimentary_hint' => 'The organisation sees the paywall at once. Needs your password; written to the console ledger.',
     'back_label' => 'All organisations',
     'pill_suspended_underneath' => 'Suspended underneath',
     'pill_internal' => 'Internal',

@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}საცდელი · დარჩა :count დღე|[0,*]საცდელი · დარჩა :count დღე',
     'active' => 'აქტიური',
+    'complimentary_until' => 'უფასო ტარიფი · ვადა: :date',
+    'complimentary_ended' => 'უფასო ტარიფი დასრულდა',
     'trial_ended' => 'საცდელი დასრულდა',
     'past_due' => 'გადახდა ვადაგადაცილებულია',
     'canceled' => 'გაუქმებული',

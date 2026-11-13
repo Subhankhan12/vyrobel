@@ -8,6 +8,8 @@ return [
     'organization_ids' => '選択したワークスペース',
     'organization_ids_each' => 'ワークスペース',
     'plan_id' => 'プラン',
+    'days' => '日数',
+    'until' => '終了日',
     'body' => 'メッセージ',
     'starts_at' => '表示開始',
     'ends_at' => '表示終了',

@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Geen van de gebruikers heeft ooit een inlog voltooid. ⚠️ De sessie bij het registreren telt niet als inlog, dus dit betekent “nooit teruggekomen na het registreren”.',
     'bucket_via_x' => 'Aangemaakt met X',
     'bucket_via_x_definition' => 'Geregistreerd via X. X bewijst een e-mailadres niet zoals Google dat doet — het geaccepteerde risico dat iemand een adres claimt dat niet van hem is. Getoond ter beoordeling, er wordt nooit automatisch iets mee gedaan.',
+    'bucket_abandoned' => 'Verlaten registraties (30+ dagen)',
+    'bucket_abandoned_definition' => 'Meer dan 30 dagen geleden aangemaakt, niemand heeft een e-mailadres bevestigd en niemand heeft ooit ingelogd. Open een organisatie om haar op te schorten en verwijder haar daarna met uw wachtwoord. Er wordt nooit iets automatisch verwijderd.',
     'status_active' => 'Actief',
     'status_trialing' => 'In gratis proefperiode',
     'status_suspended' => 'Opgeschort',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Onvolledig',
     'subscription_paused' => 'Gepauzeerd',
     'plan_on_free_trial' => ':plan · gratis proefperiode',
+    'plan_complimentary' => ':plan · kosteloos',
 ];

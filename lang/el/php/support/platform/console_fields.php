@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'επιλεγμένοι οργανισμοί',
     'organization_ids_each' => 'οργανισμός',
     'plan_id' => 'πακέτο',
+    'days' => 'ημέρες',
+    'until' => 'ημερομηνία λήξης',
     'body' => 'μήνυμα',
     'starts_at' => 'εμφάνιση από',
     'ends_at' => 'έως',

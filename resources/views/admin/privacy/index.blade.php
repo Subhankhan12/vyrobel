@@ -1,5 +1,5 @@
 {{-- ⚠️ ADMIN 01 · PHASE 4 — THE PRIVACY DESK. The live GDPR queue (the existing erasure machinery, watched) · the request
-     register (tracked; fulfilled by the EXISTING mechanisms) · retention coverage (built, AWAITING the founder's ruling)
+     register (tracked; fulfilled by the EXISTING mechanisms) · retention coverage (three buckets — the founder's ruling, DEC-4)
      · the sub-processor register. ⚠️ No guest is ever shown here. It makes the lawyer's job shorter; it does not replace it. --}}
 @php
     use App\Models\PrivacyRequest;
@@ -106,20 +106,25 @@
         @endif
     </div>
 
-    {{-- ── 3 · Retention coverage — AWAITING A RULING ────────────────────────────────────────────────────────── --}}
+    {{-- ── 3 · Retention coverage — DEC-4 (2026-11-13): THREE BUCKETS, not one ratio ─────────────────────────────── --}}
     <div class="ad-card" style="margin-top: 18px;">
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <h2 class="ad-panel-title" style="margin: 0;">{{ __('admin/privacy/index.retention_heading') }}</h2>
-            <span class="ad-hpill ad-hpill--amber">{{ __('admin/privacy/index.awaiting_ruling_pill') }}</span>
+            <span class="ad-hpill ad-hpill--green">{{ __('admin/privacy/index.ruled_pill') }}</span>
         </div>
         <p class="ad-stat-sub" style="margin: 8px 0 12px; line-height: 1.6;">
             {!! __('admin/privacy/index.retention_intro') !!}
         </p>
         @if ($coverage['measurable'])
             <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.categories_counted') }}</span><span class="ad-row-v">{{ $coverage['categories'] }}</span></div>
-            <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.strict_reading') }}</span><span class="ad-row-v">{{ __('admin/privacy/index.part_of_total', ['part' => $coverage['strict'], 'total' => $coverage['categories']]) }}</span></div>
-            <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.lenient_reading') }}</span><span class="ad-row-v">{{ __('admin/privacy/index.part_of_total', ['part' => $coverage['lenient'], 'total' => $coverage['categories']]) }}</span></div>
-            <p class="ad-reason-hint" style="margin-top: 8px;">{{ __('admin/privacy/index.neither_reading_note') }}</p>
+            <div class="ad-row" data-bucket="pruned"><span class="ad-row-k">{{ __('admin/privacy/index.bucket_pruned') }}</span><span class="ad-row-v">{{ __('admin/privacy/index.part_of_total', ['part' => $coverage['buckets']['pruned'], 'total' => $coverage['categories']]) }}</span></div>
+            <div class="ad-row" data-bucket="kept"><span class="ad-row-k">{{ __('admin/privacy/index.bucket_kept') }}</span><span class="ad-row-v">{{ __('admin/privacy/index.part_of_total', ['part' => $coverage['buckets']['kept'], 'total' => $coverage['categories']]) }}</span></div>
+            @if ($coverage['buckets']['kept'] === 0)
+                <p class="ad-reason-hint" style="margin: 2px 0 6px;">{{ __('admin/privacy/index.bucket_kept_empty') }}</p>
+            @endif
+            <div class="ad-row" data-bucket="none"><span class="ad-row-k">{{ __('admin/privacy/index.bucket_none') }}</span><span class="ad-row-v">{{ __('admin/privacy/index.part_of_total', ['part' => $coverage['buckets']['none'], 'total' => $coverage['categories']]) }}</span></div>
+            <p class="ad-reason-hint" style="margin: 2px 0 6px;">{{ __('admin/privacy/index.bucket_none_partly', ['count' => $coverage['buckets']['partly']]) }}</p>
+            <p class="ad-reason-hint" style="margin-top: 8px;">{{ __('admin/privacy/index.buckets_note') }}</p>
         @else
             <div class="ad-row"><span class="ad-row-k">{{ __('admin/privacy/index.categories') }}</span><span class="ad-row-v"><span class="ad-hpill ad-hpill--grey">{{ __('admin/privacy/index.could_not_measure') }}</span></span></div>
             <p class="ad-reason-hint" style="margin-top: 6px;">{{ $coverage['reason'] }}</p>

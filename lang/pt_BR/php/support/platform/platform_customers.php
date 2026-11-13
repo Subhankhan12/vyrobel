@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => 'Nenhum dos usuários concluiu um login. ⚠️ A sessão do próprio cadastro não é um login, então isto significa “nunca voltou depois de se cadastrar”.',
     'bucket_via_x' => 'Criada com X',
     'bucket_via_x_definition' => 'Cadastro feito pelo X. O X não comprova um endereço de e-mail como o Google faz — o risco aceito de apropriação indevida. Exibida para revisão, nunca tratada automaticamente.',
+    'bucket_abandoned' => 'Cadastros abandonados (mais de 30 dias)',
+    'bucket_abandoned_definition' => 'Criada há mais de 30 dias, ninguém confirmou um endereço de e-mail e ninguém nunca fez login. Abra uma organização para suspendê-la e, depois, exclua-a com sua senha. Nunca se remove nada automaticamente.',
     'status_active' => 'Ativa',
     'status_trialing' => 'Em período de teste gratuito',
     'status_suspended' => 'Suspensa',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => 'Incompleta',
     'subscription_paused' => 'Em pausa',
     'plan_on_free_trial' => ':plan · período de teste gratuito',
+    'plan_complimentary' => ':plan · de cortesia',
 ];

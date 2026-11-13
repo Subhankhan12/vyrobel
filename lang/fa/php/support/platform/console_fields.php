@@ -8,6 +8,8 @@ return [
     'organization_ids' => 'سازمان‌های انتخاب‌شده',
     'organization_ids_each' => 'سازمان',
     'plan_id' => 'طرح',
+    'days' => 'تعداد روز',
+    'until' => 'تاریخ پایان',
     'body' => 'پیام',
     'starts_at' => 'نمایش از',
     'ends_at' => 'نمایش تا',

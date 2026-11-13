@@ -3,6 +3,15 @@
 // I18N-01 — sq translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Prova u zgjat — tani përfundon më :date.',
+    'extend_not_on_trial' => 'Prova mund të zgjatet vetëm për një organizatë në provë falas.',
+    'extend_is_complimentary' => 'Kjo organizatë është në një plan falas, që ka datën e vet të përfundimit — jepeni përsëri me një datë të re për ta ndryshuar.',
+    'extend_over_ceiling' => 'Një provë mund të zgjasë më së shumti 90 ditë nga sot, dhe kjo do të përfundonte më :date. Zgjidhni më pak ditë.',
+    'complimentary_granted' => 'Plani falas u dha — qasje e plotë deri më :date, pastaj muri i pagesës.',
+    'complimentary_billed' => 'Kjo organizatë faturohet përmes Stripe. Plani falas është vetëm për një organizatë që nuk paguan.',
+    'complimentary_no_subscription' => 'Kjo organizatë nuk ka asnjë regjistrim abonimi ku të lidhet një plan falas.',
+    'complimentary_ended' => 'Plani falas përfundoi — organizata tani e sheh murin e pagesës.',
+    'complimentary_not_on' => 'Kjo organizatë nuk është në një plan falas.',
     'delete_refused_protected' => 'Refuzuar — kjo organizatë është e mbrojtur dhe nuk mund të fshihet kurrë nga konsola.',
     'delete_type_name' => 'Shkruani emrin e saktë të organizatës për ta konfirmuar fshirjen.',
     'delete_suspend_first' => 'Pezullojeni më parë — vetëm një organizatë e pezulluar ose e arkivuar mund të fshihet.',

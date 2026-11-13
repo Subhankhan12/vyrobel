@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}دوره آزمایشی · :count روز مانده|[0,*]دوره آزمایشی · :count روز مانده',
     'active' => 'فعال',
+    'complimentary_until' => 'طرح رایگان · تا :date',
+    'complimentary_ended' => 'پایان طرح رایگان',
     'trial_ended' => 'پایان دوره آزمایشی',
     'past_due' => 'پرداخت معوق',
     'canceled' => 'لغوشده',

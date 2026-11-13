@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Zijn de kosten de reden? Met jaarlijkse facturatie bespaart u :amount per jaar. In beide gevallen geen extra kosten — u kunt altijd terugkomen.',
     'change_plan_heading' => 'Pakket wijzigen',
     'trial_days_left' => '{1} Nog <strong>:count dag</strong> in uw gratis proefperiode — volledige toegang. Kies een pakket om daarna door te gaan.|[0,*] Nog <strong>:count dagen</strong> in uw gratis proefperiode — volledige toegang. Kies een pakket om daarna door te gaan.',
+    'complimentary_line' => '<strong>Kosteloos</strong> — volledige toegang, geen betaling nodig, tot :date. U kunt hieronder ook nu al een pakket kiezen om daarna door te gaan.',
+    'complimentary_ended_line' => 'Uw kosteloze pakket is afgelopen. Kies hieronder een pakket om weer volledige toegang te krijgen.',
     'trial_ended' => 'Uw proefperiode is afgelopen. Kies hieronder een pakket om weer volledige toegang te krijgen.',
     'choose_a_plan' => 'Kies een pakket om een abonnement af te sluiten.',
     'disclaimer' => 'De prijzen zijn voorlopig zolang we ze nog vaststellen. Abonnementen worden veilig via Stripe gefactureerd — uw kaartgegevens komen nooit bij Vyrobel, en in testmodus wordt niets afgeschreven.',

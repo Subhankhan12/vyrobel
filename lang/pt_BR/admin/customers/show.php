@@ -3,6 +3,21 @@
 // I18N-01 — pt_BR translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Estender período de teste',
+    'extend_days_label' => 'Adicionar dias',
+    'extend_button' => 'Estender teste',
+    'extend_reason_placeholder' => 'Por quê? Ex.: um hotel-piloto pediu mais uma semana',
+    'extend_hint' => 'A contagem começa no fim do período de teste (ou hoje, se ele já terminou). Cada extensão é de 1 a 60 dias, e um período de teste nunca termina mais de 90 dias depois de hoje. Exige sua senha; é gravado no registro do console.',
+    'complimentary_heading' => 'Plano de cortesia',
+    'complimentary_until_label' => 'Gratuito até',
+    'complimentary_button' => 'Conceder plano de cortesia',
+    'complimentary_change_button' => 'Alterar a data final',
+    'complimentary_reason_placeholder' => 'Por quê? Ex.: parceiro-piloto, combinado com o fundador',
+    'complimentary_hint' => 'Acesso total e gratuito até a data que você escolher (de amanhã até daqui a um ano) — depois, o paywall, como em um período de teste. Não conta como período de teste nem como receita. Não vale para uma organização faturada pela Stripe. Exige sua senha.',
+    'end_complimentary_heading' => 'Encerrar o plano de cortesia',
+    'end_complimentary_reason_placeholder' => 'Por quê? Ex.: o piloto terminou',
+    'end_complimentary_button' => 'Encerrar agora',
+    'end_complimentary_hint' => 'A organização vê o paywall imediatamente. Exige sua senha; é gravado no registro do console.',
     'back_label' => 'Todas as organizações',
     'pill_suspended_underneath' => 'Também suspensa',
     'pill_internal' => 'Interna',

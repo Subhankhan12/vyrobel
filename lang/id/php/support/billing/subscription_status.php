@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Uji coba · sisa :count hari|[0,*]Uji coba · sisa :count hari',
     'active' => 'Aktif',
+    'complimentary_until' => 'Komplimen · hingga :date',
+    'complimentary_ended' => 'Paket komplimen berakhir',
     'trial_ended' => 'Uji coba berakhir',
     'past_due' => 'Lewat jatuh tempo',
     'canceled' => 'Dibatalkan',

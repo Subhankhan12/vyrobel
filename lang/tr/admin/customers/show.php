@@ -3,6 +3,21 @@
 // I18N-01 — tr translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Deneme süresini uzat',
+    'extend_days_label' => 'Eklenecek gün',
+    'extend_button' => 'Deneme süresini uzat',
+    'extend_reason_placeholder' => 'Neden — örn. pilot bir otel bir hafta daha istedi',
+    'extend_hint' => 'Deneme süresinin bittiği günden itibaren sayılır (süre zaten bittiyse bugünden itibaren). Tek bir uzatma 1–60 gündür ve bir deneme süresi hiçbir zaman bugünden itibaren 90 günden daha geç bitmez. Şifreniz gerekir; konsolun denetim günlüğüne yazılır.',
+    'complimentary_heading' => 'Ücretsiz paket',
+    'complimentary_until_label' => 'Şu tarihe kadar ücretsiz',
+    'complimentary_button' => 'Ücretsiz paket tanımla',
+    'complimentary_change_button' => 'Bitiş tarihini değiştir',
+    'complimentary_reason_placeholder' => 'Neden — örn. pilot ortak, kurucu tarafından kabul edildi',
+    'complimentary_hint' => 'Seçtiğiniz tarihe kadar (yarından bir yıl sonrasına kadar) tam erişim, ücretsiz — ardından, tıpkı deneme süresinde olduğu gibi, ödeme duvarı devreye girer. Deneme süresi ya da gelir olarak sayılmaz. Stripe üzerinden faturalandırılan bir kuruluş için değildir. Şifreniz gerekir.',
+    'end_complimentary_heading' => 'Ücretsiz paketi sonlandır',
+    'end_complimentary_reason_placeholder' => 'Neden — örn. pilot sona erdi',
+    'end_complimentary_button' => 'Şimdi sonlandır',
+    'end_complimentary_hint' => 'Kuruluş ödeme duvarını hemen görür. Şifreniz gerekir; konsolun denetim günlüğüne yazılır.',
     'back_label' => 'Tüm kuruluşlar',
     'pill_suspended_underneath' => 'Arka planda askıya alındı',
     'pill_internal' => 'Dahili',

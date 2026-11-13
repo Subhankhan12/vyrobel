@@ -8,6 +8,8 @@ return [
     'organization_ids' => '所选组织',
     'organization_ids_each' => '组织',
     'plan_id' => '方案',
+    'days' => '天数',
+    'until' => '结束日期',
     'body' => '消息',
     'starts_at' => '开始显示时间',
     'ends_at' => '结束显示时间',

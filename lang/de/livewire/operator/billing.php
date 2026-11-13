@@ -71,6 +71,8 @@ return [
     'yearly_offer' => 'Liegt es an den Kosten? Bei jährlicher Abrechnung sparen Sie :amount pro Jahr. Keine Gebühren in beiden Fällen — Sie können jederzeit zurückkommen.',
     'change_plan_heading' => 'Tarif ändern',
     'trial_days_left' => '{1} Noch <strong>:count Tag</strong> in Ihrer kostenlosen Testphase — voller Zugriff. Wählen Sie einen Tarif, um danach weiterzumachen.|[0,*] Noch <strong>:count Tage</strong> in Ihrer kostenlosen Testphase — voller Zugriff. Wählen Sie einen Tarif, um danach weiterzumachen.',
+    'complimentary_line' => '<strong>Kostenfrei</strong> — voller Zugriff, keine Zahlung nötig, bis :date. Sie können unten trotzdem einen Tarif wählen, um danach weiterzumachen.',
+    'complimentary_ended_line' => 'Ihr kostenfreier Tarif ist beendet. Wählen Sie unten einen Tarif, um wieder vollen Zugriff zu erhalten.',
     'trial_ended' => 'Ihre Testphase ist beendet. Wählen Sie unten einen Tarif, um wieder vollen Zugriff zu erhalten.',
     'choose_a_plan' => 'Wählen Sie einen Tarif zum Abonnieren.',
     'disclaimer' => 'Die Preise sind vorläufig, solange wir sie festlegen. Abonnements werden sicher über Stripe abgerechnet — Ihre Kartendaten gelangen nie zu Vyrobel, und im Testmodus wird nichts belastet.',

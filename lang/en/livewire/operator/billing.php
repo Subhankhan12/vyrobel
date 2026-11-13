@@ -80,6 +80,8 @@ return [
     'change_plan_heading' => 'Change plan',
     // paywall
     'trial_days_left' => '{1} <strong>:count day</strong> left in your free trial — full access. Choose a plan to keep going after it ends.|[0,*] <strong>:count days</strong> left in your free trial — full access. Choose a plan to keep going after it ends.',
+    'complimentary_line' => '<strong>Complimentary</strong> — full access, no payment needed, until :date. You can still choose a plan below to keep going after that.',
+    'complimentary_ended_line' => 'Your complimentary plan has ended. Choose a plan below to reactivate full access.',
     'trial_ended' => 'Your trial has ended. Choose a plan below to reactivate full access.',
     'choose_a_plan' => 'Choose a plan to subscribe.',
     'disclaimer' => 'Prices are placeholders while we finalise pricing. Subscriptions are billed securely through Stripe — your card details never touch Vyrobel, and no charge is taken in test mode.',

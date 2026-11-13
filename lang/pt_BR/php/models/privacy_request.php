@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'Carta',
     'channel_phone' => 'Telefone',
     'channel_hotel' => 'Encaminhada pelo hotel',
+    'channel_in_app' => 'No aplicativo',
     'status_received' => 'Recebida',
     'status_in_progress' => 'Em andamento',
     'status_completed' => 'Concluída',

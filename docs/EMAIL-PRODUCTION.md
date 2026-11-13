@@ -37,6 +37,36 @@ MAIL_SUPPRESS_ADDRESSES=                  # optional: exact addresses measured t
   ⚠️ **Bounces are not visible to the app:** with SMTP a bounce comes back as an email to `contact@vyrobel.com`, and
   guests' replies land there too. "Accepted" is not "delivered".
 
+### ⚠️ DEC-1 (his ruling, 2026-11-13) — SEND FROM TWO MAILBOXES (`MAIL_MAILER=rotating`). BUILT; NOT SWITCHED ON.
+
+He ruled: keep Hostinger's own daily limit, and send from **two mailboxes** — `contact@` and `sales@` — so that when the first has
+reached its limit the second takes over, and the first is used again when its 24 hours free. (The free-plan end date, 2 Apr 2027,
+he will extend himself — Founder said.) Code: `App\Mail\Transport\RotatingMailboxTransport` · `App\Support\Mail\MailboxRotation` ·
+tests `tests/Feature/MailboxRotationTest.php` · mutation set `decisions-nov13` (D13-M32…M41).
+
+**How it works.** For every message the first mailbox in `mail.mailers.rotating.mailers` (`smtp`, then `smtp_second`) whose count of
+ACCEPTED messages in the last 24 hours (`mail_send_log`, by its `mailbox` label) is below `MAIL_DAILY_LIMIT` is used. Each pick starts again
+from the first, so "back to the first" needs no timer. The message is sent AS the chosen mailbox — the From **address** and the envelope
+sender are rewritten to its login (Hostinger rejects anything else); the display name, Reply-To and recipients are untouched. If a
+mailbox's server REFUSES the message (its limit reached by a person sending by hand, a login problem), the next is tried. If every
+mailbox is at its limit or refuses, the send **fails loudly** — nothing is dropped silently. The health board's Mail card shows
+"Mailbox 1 — N of LIMIT sent in the last 24 hours" for each (counts only; never an address).
+
+**To switch it on (his, with his own hands — a session never types a secret):**
+1. In hPanel, create a real **mailbox** `sales@vyrobel.com` (⚠️ an ALIAS is not enough — an alias has no login and cannot send; the alias
+   created 2026-09-26 forwards mail but is not this).
+2. On the host, in the shared `.env`, add: `MAIL_SECOND_USERNAME=sales@vyrobel.com` and `MAIL_SECOND_PASSWORD=<that mailbox's password>`
+   (the host, port and scheme default to the first mailbox's; `MAIL_SECOND_HOST` / `_PORT` / `_SCHEME` override them), and optionally
+   `MAIL_DAILY_LIMIT=100` (Hostinger's cap **per mailbox** — read it in hPanel; it was Reported as 100, and Hostinger's own help pages disagree,
+   100 vs 300), then set `MAIL_MAILER=rotating`.
+3. `ops/release.sh recache <live release>` (the L14 path — the config cache must be rebuilt for an `.env` change to take effect).
+4. Read the health board's Mail card: both mailboxes listed, both at 0 of the limit. ⚠️ **Never switch mail on against an unverified domain, or
+   with unreviewed mail in the queue** (`RULES.md` Part 1) — this does not change that; F1 (rotate the exposed `contact@` password) still comes first.
+
+⚠️ **Limits, stated:** the count sees only what the APP sent — a person writing from `contact@` by hand also uses that mailbox's Hostinger
+limit and is invisible to it (the refusal fall-through covers it, but the first mailbox can run out earlier than the count says). Bounces
+are still invisible to the app. With ONE mailbox configured the rotation uses just that one, with the limit still applied.
+
 ---
 
 ## Production email (Phase 8) — Postmark · ⚠️ HISTORY, superseded 2026-09-25

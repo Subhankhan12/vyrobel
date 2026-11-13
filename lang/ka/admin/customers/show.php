@@ -3,6 +3,21 @@
 // I18N-01 — ka translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'საცდელი პერიოდის გაგრძელება',
+    'extend_days_label' => 'დღის დამატება',
+    'extend_button' => 'პერიოდის გაგრძელება',
+    'extend_reason_placeholder' => 'მიზეზი – მაგ. საპილოტე სასტუმრომ კიდევ ერთი კვირა მოითხოვა',
+    'extend_hint' => 'ითვლება საცდელი პერიოდის დასრულების თარიღიდან (თუ უკვე დასრულდა – დღევანდელი დღიდან). ერთი გაგრძელება 1–60 დღეა, ხოლო საცდელი პერიოდი დღევანდელი დღიდან 90 დღეზე მეტით არასდროს გრძელდება. საჭიროა თქვენი პაროლი; ჩაიწერება კონსოლის ჟურნალში.',
+    'complimentary_heading' => 'უფასო ტარიფი',
+    'complimentary_until_label' => 'უფასოა თარიღამდე',
+    'complimentary_button' => 'უფასო ტარიფის მინიჭება',
+    'complimentary_change_button' => 'დასრულების თარიღის შეცვლა',
+    'complimentary_reason_placeholder' => 'მიზეზი – მაგ. საპილოტე პარტნიორი, შეთანხმებულია დამფუძნებელთან',
+    'complimentary_hint' => 'სრული წვდომა უფასოდ თქვენ მიერ არჩეულ თარიღამდე (ხვალიდან ერთი წლით წინ) – შემდეგ გადახდის კედელი, საცდელი პერიოდის მსგავსად. ის არ ითვლება არც საცდელ პერიოდად, არც შემოსავლად. არ ვრცელდება ორგანიზაციაზე, რომლის ანგარიშსწორებაც Stripe-ით ხდება. საჭიროა თქვენი პაროლი.',
+    'end_complimentary_heading' => 'უფასო ტარიფის დასრულება',
+    'end_complimentary_reason_placeholder' => 'მიზეზი – მაგ. საპილოტე პერიოდი დასრულდა',
+    'end_complimentary_button' => 'ახლავე დასრულება',
+    'end_complimentary_hint' => 'ორგანიზაცია გადახდის კედელს მაშინვე იხილავს. საჭიროა თქვენი პაროლი; ჩაიწერება კონსოლის ჟურნალში.',
     'back_label' => 'ყველა ორგანიზაცია',
     'pill_suspended_underneath' => 'წვდომაც შეწყვეტილია',
     'pill_internal' => 'შიდა',

@@ -11,6 +11,7 @@ return [
     'channel_letter' => 'पत्र',
     'channel_phone' => 'फ़ोन',
     'channel_hotel' => 'होटल के ज़रिए मिला',
+    'channel_in_app' => 'ऐप में',
     'status_received' => 'मिला',
     'status_in_progress' => 'प्रगति में',
     'status_completed' => 'पूरा हुआ',

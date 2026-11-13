@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners\Mail;
 
+use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSendLog;
 use Illuminate\Mail\Events\MessageSent;
 
@@ -16,6 +17,9 @@ final class RecordAcceptedMail
 {
     public function handle(MessageSent $event): void
     {
-        MailSendLog::accepted(MailSendLog::typeOf($event->data), $event->sent->getMessageId());
+        // DEC-1 — which mailbox it left from, read from the ENVELOPE sender (the mailbox that signed in): the rotation counts from this
+        $sender = $event->sent->getEnvelope()->getSender()->getAddress();
+
+        MailSendLog::accepted(MailSendLog::typeOf($event->data), $event->sent->getMessageId(), MailboxRotation::labelFor($sender));
     }
 }

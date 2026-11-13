@@ -284,6 +284,53 @@
                 </form>
                 <p class="ad-stat-sub" style="margin-top: 6px;">{{ __('admin/customers/show.assign_plan_hint') }}</p>
             @endif
+
+            {{-- ── DEC-7 (his ruling, 2026-11-13) — extend a trial / a complimentary plan. A reason, HIS password, a cap, an audit row. --}}
+            @if ($canBilling && $lock !== 'baseline' && $sub)
+                @php($isComp = $sub->status === 'trialing' && $sub->complimentary_until !== null)
+                @php($canExtend = $sub->status === 'trialing' && ! $isComp)
+                @php($canGrant = ! in_array($sub->status, ['active', 'past_due'], true))
+                @if ($canExtend)
+                    <h2 class="ad-panel-title" style="margin-top: 22px;">{{ __('admin/customers/show.extend_trial_heading') }}</h2>
+                    <form method="POST" action="{{ route('admin.customers.extend-trial', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <label class="ad-label" for="extend_days" style="margin: 0;">{{ __('admin/customers/show.extend_days_label') }}</label>
+                            <input id="extend_days" type="number" name="days" min="1" max="60" value="7" class="ad-input" style="width: 90px;" required>
+                            <button type="submit" class="ad-btn ad-btn--sm">{{ __('admin/customers/show.extend_button') }}</button>
+                        </div>
+                        <input aria-label="{{ __('admin/customers/show.reason_label') }}" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="{{ __('admin/customers/show.extend_reason_placeholder') }}">
+                        <input aria-label="{{ __('admin/customers/show.your_password') }}" type="password" name="current_password" class="ad-input" style="margin-top: 8px;" autocomplete="current-password" placeholder="{{ __('admin/customers/show.your_password') }}" required>
+                    </form>
+                    <p class="ad-stat-sub" style="margin-top: 6px;">{{ __('admin/customers/show.extend_hint') }}</p>
+                @endif
+
+                @if ($canGrant)
+                    <h2 class="ad-panel-title" style="margin-top: 22px;">{{ __('admin/customers/show.complimentary_heading') }}</h2>
+                    <form method="POST" action="{{ route('admin.customers.complimentary', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <label class="ad-label" for="comp_until" style="margin: 0;">{{ __('admin/customers/show.complimentary_until_label') }}</label>
+                            <input id="comp_until" type="date" name="until" class="ad-input" style="width: 170px;" min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addDays(366)->toDateString() }}" required>
+                            <button type="submit" class="ad-btn ad-btn--sm">{{ $isComp ? __('admin/customers/show.complimentary_change_button') : __('admin/customers/show.complimentary_button') }}</button>
+                        </div>
+                        <input aria-label="{{ __('admin/customers/show.reason_label') }}" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="{{ __('admin/customers/show.complimentary_reason_placeholder') }}">
+                        <input aria-label="{{ __('admin/customers/show.your_password') }}" type="password" name="current_password" class="ad-input" style="margin-top: 8px;" autocomplete="current-password" placeholder="{{ __('admin/customers/show.your_password') }}" required>
+                    </form>
+                    <p class="ad-stat-sub" style="margin-top: 6px;">{{ __('admin/customers/show.complimentary_hint') }}</p>
+                @endif
+
+                @if ($isComp)
+                    <h2 class="ad-panel-title" style="margin-top: 22px;">{{ __('admin/customers/show.end_complimentary_heading') }}</h2>
+                    <form method="POST" action="{{ route('admin.customers.complimentary.end', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <input aria-label="{{ __('admin/customers/show.reason_label') }}" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="{{ __('admin/customers/show.end_complimentary_reason_placeholder') }}">
+                        <input aria-label="{{ __('admin/customers/show.your_password') }}" type="password" name="current_password" class="ad-input" style="margin-top: 8px;" autocomplete="current-password" placeholder="{{ __('admin/customers/show.your_password') }}" required>
+                        <button type="submit" class="ad-btn ad-btn--sm ad-btn--destroy" style="margin-top: 10px;">{{ __('admin/customers/show.end_complimentary_button') }}</button>
+                    </form>
+                    <p class="ad-stat-sub" style="margin-top: 6px;">{{ __('admin/customers/show.end_complimentary_hint') }}</p>
+                @endif
+            @endif
         </div>
     </div>
 

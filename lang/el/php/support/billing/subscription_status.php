@@ -5,6 +5,8 @@
 return [
     'trial_days_left' => '{1}Δωρεάν δοκιμή · απομένει :count ημέρα|[0,*]Δωρεάν δοκιμή · απομένουν :count ημέρες',
     'active' => 'Ενεργή',
+    'complimentary_until' => 'Δωρεάν πακέτο · έως τις :date',
+    'complimentary_ended' => 'Έληξε το δωρεάν πακέτο',
     'trial_ended' => 'Έληξε η δωρεάν δοκιμή',
     'past_due' => 'Ληξιπρόθεσμη πληρωμή',
     'canceled' => 'Ακυρώθηκε',

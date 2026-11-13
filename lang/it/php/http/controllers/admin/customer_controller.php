@@ -3,6 +3,15 @@
 // I18N-01 — it translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Prova gratuita prolungata — ora termina in data :date.',
+    'extend_not_on_trial' => 'Si può prolungare la prova gratuita solo di un’organizzazione in prova gratuita.',
+    'extend_is_complimentary' => 'Questa organizzazione ha un piano in omaggio, con una propria data di fine — concederlo di nuovo con una nuova data per modificare la data di fine.',
+    'extend_over_ceiling' => 'Una prova gratuita può durare al massimo 90 giorni da oggi e questa terminerebbe in data :date. Scegliere meno giorni.',
+    'complimentary_granted' => 'Piano in omaggio concesso — accesso completo fino alla data :date, poi il paywall.',
+    'complimentary_billed' => 'Questa organizzazione è fatturata tramite Stripe. Un piano in omaggio è previsto solo per un’organizzazione che non paga.',
+    'complimentary_no_subscription' => 'Questa organizzazione non ha un record di abbonamento a cui associare un piano in omaggio.',
+    'complimentary_ended' => 'Il piano in omaggio è terminato — ora l’organizzazione vede il paywall.',
+    'complimentary_not_on' => 'Questa organizzazione non ha un piano in omaggio.',
     'delete_refused_protected' => 'Operazione rifiutata: questa organizzazione è protetta e non può mai essere eliminata dalla console.',
     'delete_type_name' => 'Digitare il nome esatto dell’organizzazione per confermare l’eliminazione.',
     'delete_suspend_first' => 'Sospenderla prima: si può eliminare solo un’organizzazione sospesa o archiviata.',

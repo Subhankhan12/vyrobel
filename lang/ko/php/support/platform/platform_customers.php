@@ -9,6 +9,8 @@ return [
     'bucket_never_signed_in_definition' => '사용자 중 누구도 로그인을 완료한 적이 없습니다. ⚠️ 가입 세션 자체는 로그인이 아니므로, 이는 “가입 후 다시 돌아온 적 없음”을 뜻합니다.',
     'bucket_via_x' => 'X로 생성됨',
     'bucket_via_x_definition' => 'X를 통해 가입했습니다. X는 Google처럼 이메일 주소를 증명하지 않습니다 — 감수하기로 한 계정 선점 위험입니다. 검토용으로만 표시되며, 자동으로 조치하지 않습니다.',
+    'bucket_abandoned' => '방치된 가입(30일 이상)',
+    'bucket_abandoned_definition' => '생성된 지 30일이 넘었으며, 아무도 이메일 주소를 인증하지 않았고 로그인한 적도 없습니다. 워크스페이스를 열어 이용 정지한 다음, 비밀번호를 입력해 삭제하세요. 자동으로 제거되는 것은 없습니다.',
     'status_active' => '활성',
     'status_trialing' => '무료 체험 중',
     'status_suspended' => '이용 정지됨',
@@ -21,4 +23,5 @@ return [
     'subscription_incomplete' => '미완료',
     'subscription_paused' => '일시 중지됨',
     'plan_on_free_trial' => ':plan · 무료 체험',
+    'plan_complimentary' => ':plan · 무상 제공',
 ];

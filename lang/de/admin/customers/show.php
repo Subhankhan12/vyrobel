@@ -3,6 +3,21 @@
 // I18N-01 — de translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'Testphase verlängern',
+    'extend_days_label' => 'Weitere Tage',
+    'extend_button' => 'Testphase verlängern',
+    'extend_reason_placeholder' => 'Warum — z. B. ein Pilothotel hat um eine Woche mehr gebeten',
+    'extend_hint' => 'Gezählt wird ab dem Ende der Testphase (ab heute, wenn sie bereits beendet ist). Eine Verlängerung beträgt 1–60 Tage, und eine Testphase endet nie später als 90 Tage ab heute. Erfordert Ihr Passwort und wird im Journal der Konsole festgehalten.',
+    'complimentary_heading' => 'Kostenfreier Tarif',
+    'complimentary_until_label' => 'Kostenfrei bis',
+    'complimentary_button' => 'Kostenfrei gewähren',
+    'complimentary_change_button' => 'Enddatum ändern',
+    'complimentary_reason_placeholder' => 'Warum — z. B. Pilotpartner, vom Gründer vereinbart',
+    'complimentary_hint' => 'Voller Zugriff, kostenfrei, bis zum Datum Ihrer Wahl (von morgen bis zu einem Jahr im Voraus) — danach die Bezahlschranke, wie bei einer Testphase. Das zählt weder als Testphase noch als Umsatz. Nicht für eine Organisation, die über Stripe abgerechnet wird. Erfordert Ihr Passwort.',
+    'end_complimentary_heading' => 'Kostenfreien Tarif beenden',
+    'end_complimentary_reason_placeholder' => 'Warum — z. B. die Pilotphase ist beendet',
+    'end_complimentary_button' => 'Jetzt beenden',
+    'end_complimentary_hint' => 'Die Organisation sieht sofort die Bezahlschranke. Erfordert Ihr Passwort und wird im Journal der Konsole festgehalten.',
     'back_label' => 'Alle Organisationen',
     'pill_suspended_underneath' => 'Zugleich gesperrt',
     'pill_internal' => 'Intern',

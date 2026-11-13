@@ -112,6 +112,10 @@ class OperatorBilling extends Component
                 'label' => $status->label(),
                 'on_trial' => $status->onTrial(),
                 'trial_expired' => $status->trialExpired(),
+                // DEC-7 — a COMPLIMENTARY workspace is told so, with its end date: not a trial countdown with an upgrade push
+                'complimentary' => $status->isComplimentary(),
+                'complimentary_ended' => $status->complimentaryEnded(),
+                'complimentary_until' => $status->complimentaryUntil()?->translatedFormat(LocalDate::pattern('j M Y')),
                 'active' => $status->active(),
                 'lapsed' => $status->isLapsed(),
                 'days' => $status->trialDaysRemaining(),

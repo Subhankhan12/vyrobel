@@ -24,7 +24,7 @@
     // the address in the remove-IP dialog's title, filled in by Alpine (a static span, no data)
     $ipRemoveHtml = '<span x-text="ipRemove ? ipRemove.ip : \'\'"></span>';
 @endphp
-<div class="vy-sx" x-data="{ approvalOpen: @js($errored === 'approval'), pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), ipOpen: @js($errored === 'ip'), ipRemove: null, exportOpen: false, signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice) }">
+<div class="vy-sx" x-data="{ approvalOpen: @js($errored === 'approval'), pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), ipOpen: @js($errored === 'ip'), ipRemove: null, exportOpen: false, deleteOpen: @js($errored === 'deletion'), signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice) }">
     <x-operator.shell active="security" :title="__('livewire/operator/operator-security.page_title')" :viewer="$viewer">
         <x-security.styles />
 
@@ -178,6 +178,9 @@
                         <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="exportOpen = true"><x-security.icon name="download" /> {{ __('livewire/operator/operator-security.export_my_data') }}</button>
                     </div>
                 </section>
+
+                {{-- DEC-6 — REQUEST DELETION of this account: files a Privacy-desk request for a person to answer; erases nothing --}}
+                <x-security.deletion-card :request="$deletionRequest" />
             </div>
 
             {{-- ══ RIGHT — sign-in protection, the allowlist, apps ═══════════════════════════════════════════════════ --}}
@@ -441,6 +444,10 @@
         @endif
 
         {{-- Export your data — choice tiles, not native dropdowns whose look each browser decides --}}
+        @if ($deletionRequest === null)
+            <x-security.deletion-dialog :action="route('app.security.deletion-request')" :has-password="$hasPassword" :errored="$errored" />
+        @endif
+
         <div class="vy-sx-scrim" x-cloak x-show="exportOpen" x-transition.opacity @keydown.escape.window="exportOpen = false" @click.self="exportOpen = false">
             <div class="vy-sx-dialog" x-show="exportOpen" x-transition x-data="{ range: 'all', format: 'json' }" role="dialog" aria-modal="true" aria-labelledby="vy-dlg-operator-security-exportopen-3" tabindex="-1" x-trap.noscroll="exportOpen">
                 <form method="GET" action="{{ route('app.security.export') }}">

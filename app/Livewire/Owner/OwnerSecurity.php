@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\OAuthConnectionService;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
+use App\Support\Privacy\AccountDeletionRequests;
 use App\Support\Security\ActiveSessions;
 use App\Support\Security\SecurityOverview;
 use Illuminate\Contracts\View\View;
@@ -65,6 +66,9 @@ class OwnerSecurity extends Component
             'erroredDevice' => $errored === 'revoke' && is_string(old('device_id')) ? (string) old('device_id') : null,
             'erroredApp' => $errored === 'app-revoke' && is_string(old('client_id')) ? ['id' => (string) old('client_id'), 'name' => __('php/livewire/owner/owner_security.this_app')] : null,
             'pkErrored' => SecurityOverview::erroredPasskey($errored, $overview['passkeys']),
+            // DEC-6 — the person's open "request deletion", if any (the card shows its state instead of the button)
+            'deletionRequest' => AccountDeletionRequests::openFor($user),
+            'deletionHasPassword' => $user->hasPassword(),
         ]);
     }
 }

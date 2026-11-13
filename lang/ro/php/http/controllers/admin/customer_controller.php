@@ -3,6 +3,15 @@
 // I18N-01 — ro translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Perioada de încercare a fost prelungită — se încheie acum pe :date.',
+    'extend_not_on_trial' => 'Doar o organizație aflată într-o perioadă gratuită de încercare poate avea perioada de încercare prelungită.',
+    'extend_is_complimentary' => 'Această organizație are un plan de cortesie, care are propria dată de sfârșit — acordați-l din nou, cu o dată nouă, pentru a o schimba.',
+    'extend_over_ceiling' => 'O perioadă de încercare poate dura cel mult 90 de zile de azi, iar aceasta s-ar încheia pe :date. Alegeți mai puține zile.',
+    'complimentary_granted' => 'Plan de cortesie acordat — acces complet până la :date, apoi paywall-ul.',
+    'complimentary_billed' => 'Această organizație este facturată prin Stripe. Un plan de cortesie este doar pentru o organizație care nu plătește.',
+    'complimentary_no_subscription' => 'Această organizație nu are nicio înregistrare de abonament la care să se poată atașa un plan de cortesie.',
+    'complimentary_ended' => 'Planul de cortesie s-a încheiat — organizația vede acum paywall-ul.',
+    'complimentary_not_on' => 'Această organizație nu are un plan de cortesie.',
     'delete_refused_protected' => 'Refuzat — această organizație este protejată și nu poate fi ștearsă niciodată din consolă.',
     'delete_type_name' => 'Tastați numele exact al organizației pentru a confirma ștergerea.',
     'delete_suspend_first' => 'Suspendați-o mai întâi — doar o organizație suspendată sau arhivată poate fi ștearsă.',

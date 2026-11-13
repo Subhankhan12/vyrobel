@@ -3,6 +3,21 @@
 // I18N-01 — zh_CN translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => '延长免费试用',
+    'extend_days_label' => '增加天数',
+    'extend_button' => '延长免费试用',
+    'extend_reason_placeholder' => '原因——例如：试点酒店要求多延长一周',
+    'extend_hint' => '从免费试用的结束日起算（若已结束，则从今天起算）。单次延长为 1–60 天，且免费试用的结束日期距今天不得超过 90 天。需要输入您的密码；将记入控制台台账。',
+    'complimentary_heading' => '赠送方案',
+    'complimentary_until_label' => '免费至',
+    'complimentary_button' => '赠送方案',
+    'complimentary_change_button' => '更改结束日期',
+    'complimentary_reason_placeholder' => '原因——例如：试点合作伙伴，经创始人同意',
+    'complimentary_hint' => '免费完整使用，至您选择的日期为止（最早明天，最晚一年后）——之后进入付费墙，与免费试用相同。不计入免费试用，也不计入营收。不适用于通过 Stripe 计费的组织。需要输入您的密码。',
+    'end_complimentary_heading' => '结束赠送方案',
+    'end_complimentary_reason_placeholder' => '原因——例如：试点已结束',
+    'end_complimentary_button' => '立即结束',
+    'end_complimentary_hint' => '该组织将立即看到付费墙。需要输入您的密码；将记入控制台台账。',
     'back_label' => '所有组织',
     'pill_suspended_underneath' => '同时已冻结',
     'pill_internal' => '内部',

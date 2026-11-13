@@ -3,6 +3,21 @@
 // I18N-01 — hi translation of lang/en/admin/customers/show.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'extend_trial_heading' => 'ट्रायल बढ़ाएँ',
+    'extend_days_label' => 'जोड़ने के दिन',
+    'extend_button' => 'ट्रायल बढ़ाएँ',
+    'extend_reason_placeholder' => 'कारण — उदा. एक पायलट होटल ने एक हफ़्ता और माँगा',
+    'extend_hint' => 'गिनती ट्रायल खत्म होने की तिथि से शुरू होती है (अगर पहले ही खत्म हो चुका है तो आज से)। एक बार में 1–60 दिन बढ़ाए जा सकते हैं, और ट्रायल कभी आज से 90 दिन से आगे नहीं जाता। आपका पासवर्ड ज़रूरी है; कंसोल लेजर में दर्ज होता है।',
+    'complimentary_heading' => 'निःशुल्क प्लान',
+    'complimentary_until_label' => 'तिथि तक निःशुल्क',
+    'complimentary_button' => 'निःशुल्क प्लान दें',
+    'complimentary_change_button' => 'समाप्ति तिथि बदलें',
+    'complimentary_reason_placeholder' => 'कारण — उदा. पायलट पार्टनर, संस्थापक की सहमति से',
+    'complimentary_hint' => 'आपकी चुनी हुई तिथि तक पूरा एक्सेस, निःशुल्क (कल से एक साल आगे तक) — फिर ट्रायल की तरह पेवॉल। इसे न ट्रायल गिना जाता है, न राजस्व। यह उस वर्कस्पेस के लिए नहीं है जिसकी बिलिंग Stripe से होती है। आपका पासवर्ड ज़रूरी है।',
+    'end_complimentary_heading' => 'निःशुल्क प्लान समाप्त करें',
+    'end_complimentary_reason_placeholder' => 'कारण — उदा. पायलट पूरा हुआ',
+    'end_complimentary_button' => 'अभी समाप्त करें',
+    'end_complimentary_hint' => 'वर्कस्पेस को तुरंत पेवॉल दिखने लगता है। आपका पासवर्ड ज़रूरी है; कंसोल लेजर में दर्ज होता है।',
     'back_label' => 'सभी वर्कस्पेस',
     'pill_suspended_underneath' => 'मूल स्थिति: निलंबित',
     'pill_internal' => 'आंतरिक',

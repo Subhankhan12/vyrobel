@@ -3,6 +3,15 @@
 // I18N-01 — vi translation of lang/en/php/http/controllers/admin/customer_controller.php (written by ops/i18n/apply.php; edit through the pipeline, not by hand)
 
 return [
+    'trial_extended' => 'Đã gia hạn dùng thử — hiện kết thúc vào ngày :date.',
+    'extend_not_on_trial' => 'Chỉ tổ chức đang dùng thử miễn phí mới có thể được gia hạn dùng thử.',
+    'extend_is_complimentary' => 'Tổ chức này đang dùng gói tặng, có ngày kết thúc riêng — hãy tặng gói lại với ngày mới để thay đổi.',
+    'extend_over_ceiling' => 'Thời gian dùng thử tối đa là 90 ngày kể từ hôm nay, và lần này sẽ kết thúc vào ngày :date. Hãy chọn ít ngày hơn.',
+    'complimentary_granted' => 'Đã tặng gói — toàn quyền truy cập đến ngày :date, sau đó là trang chọn gói.',
+    'complimentary_billed' => 'Tổ chức này thanh toán qua Stripe. Gói tặng chỉ dành cho tổ chức không trả phí.',
+    'complimentary_no_subscription' => 'Tổ chức này chưa có bản ghi gói đăng ký nào để gắn gói tặng vào.',
+    'complimentary_ended' => 'Gói tặng đã kết thúc — tổ chức hiện thấy trang chọn gói.',
+    'complimentary_not_on' => 'Tổ chức này không dùng gói tặng.',
     'delete_refused_protected' => 'Bị từ chối — tổ chức này được bảo vệ và không bao giờ có thể bị xóa từ bảng điều khiển.',
     'delete_type_name' => 'Nhập chính xác tên tổ chức để xác nhận xóa.',
     'delete_suspend_first' => 'Hãy đình chỉ trước — chỉ có thể xóa tổ chức đã bị đình chỉ hoặc đã lưu trữ.',
