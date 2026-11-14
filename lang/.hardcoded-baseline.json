@@ -219,6 +219,9 @@
         "0ea222bea633": "Stripe could not be reached:",
         "cdcfb6a9885c": "Stripe does not know subscription ["
     },
+    "app/Support/Retention/RetentionDecisions.php": {
+        "4efa9553682b": "Money record (invoice, payment, ledger, statement or payout): accounting and tax rules in the countries we serve require such records to be kept for several years — typically 6 to 10 in the EU. DECIDED BY THE FOUNDER on 2026-11-14 WITHOUT legal advice: the longest of those periods, so that nothing is deleted too early. Counsel may change the number when one is engaged."
+    },
     "app/Support/Safety/BaselineTenantWriteGuard.php": {
         "7f4249a435ee": "the organisation row",
         "0f9c1adbf32e": "` on",
