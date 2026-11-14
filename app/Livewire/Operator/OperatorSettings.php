@@ -75,6 +75,9 @@ class OperatorSettings extends Component
             'property' => $property !== null ? $this->propertyForm($property) : [],
             'timezones' => timezone_identifiers_list(),
             'policy' => $this->policyForm($policy),
+            // The REAL public terms page of this property — the preview of exactly what guests are shown.
+            // A property with no public address (slug) has no public page yet, so there is nothing to preview — never a broken link or a 500.
+            'termsPreviewUrl' => $property !== null && filled($property->slug) ? route('booking.terms', $property->slug) : null,
             'taxes' => $property !== null ? $this->taxes((string) $property->id) : [],
             'fees' => $property !== null ? $this->fees((string) $property->id) : [],
             'owner' => $property !== null ? $this->ownerCard($property) : null,
@@ -201,6 +204,8 @@ class OperatorSettings extends Component
                 : null,
             'deposit_required' => (bool) ($deposit['required'] ?? false),
             'self_check_in' => (bool) ($policy->self_check_in ?? false),
+            // BOOKING TERMS (2026-11-14): the hotel's own words, shown to guests with the terms. Plain text.
+            'booking_terms_extra' => (string) ($policy->booking_terms_extra ?? ''),
         ];
     }
 

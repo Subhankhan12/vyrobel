@@ -18,6 +18,7 @@ use App\Services\PropertyRemovalService;
 use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
 use App\Support\Billing\StripeTaxIdSync;
+use App\Support\Booking\BookingTerms;
 use App\Support\Guest\PropertySupport;
 use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
@@ -95,13 +96,19 @@ class SettingsActionController extends Controller
 
         $data = $request->validate([
             'pet' => ['required', 'in:allowed,on_request,not_allowed'],
-            'smoking' => ['required', 'in:allowed,on_request,not_allowed'],
+            // ⚠️ `sometimes`, NOT `required` (found 2026-11-14 while building the booking terms). The July 2026 Settings redesign (#98 GATE 1) took the
+            // smoking select out of this form but left this rule `required` — so every Save from the REAL screen was refused, silently (no error was shown),
+            // and nothing here could be changed from the page. The existing tests posted `smoking` by hand and never saw it. A stored smoking rule is left
+            // untouched when the form does not send one (SettingsService::updatePolicies only writes the keys it is given).
+            'smoking' => ['sometimes', 'in:allowed,on_request,not_allowed'],
             'min_stay' => ['required', 'integer', 'between:1,365'],
             'max_stay' => ['nullable', 'integer', 'between:1,365'],
             'cancellation_type' => ['sometimes', 'in:flexible,moderate,strict'],
             'free_until_days' => ['sometimes', 'nullable', 'integer', 'between:0,365'],
             'deposit_required' => ['sometimes', 'boolean'],
             'self_check_in' => ['sometimes', 'boolean'],
+            // BOOKING TERMS (2026-11-14): the hotel's own words for guests. Plain text, capped; rendered escaped everywhere.
+            'booking_terms_extra' => ['sometimes', 'nullable', 'string', 'max:'.BookingTerms::MAX_EXTRA],
         ]);
 
         // Assemble the JSON policy columns; self-check-in is a bool. ⚠️ #33 — the door CODE is guest-only and is
@@ -124,6 +131,10 @@ class SettingsActionController extends Controller
 
         $data['deposit'] = ['required' => $request->boolean('deposit_required')];
         $data['self_check_in'] = $request->boolean('self_check_in');
+        // Only when the form sent it (a partial submit must never wipe the hotel's words); empty → cleared.
+        if ($request->has('booking_terms_extra')) {
+            $data['booking_terms_extra'] = BookingTerms::clean($request->input('booking_terms_extra'));
+        }
 
         $settings->updatePolicies($property, $data);
 

@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Xác nhận đặt phòng',
     'you_saved' => 'Bạn đã tiết kiệm :amount nhờ số dư ví',
     'free_cancellation' => 'Hủy miễn phí đến :date · không mất phí',
+    'before_you_book' => 'Trước khi bạn đặt phòng',
+    'before_you_book_intro' => 'Vui lòng đọc các điều khoản này. Đây là những gì bạn đồng ý khi đặt phòng.',
+    'accept_terms' => 'Tôi đã đọc và chấp nhận :terms và :privacy.',
+    'terms_link' => 'điều khoản đặt phòng',
+    'privacy_link' => 'thông báo về quyền riêng tư',
 ];

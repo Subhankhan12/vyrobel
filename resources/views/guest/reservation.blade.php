@@ -151,6 +151,14 @@
             @endif
         </section>
 
+        {{-- BOOKING TERMS (2026-11-14): what you accepted when you booked — shown only when this booking has one on record. --}}
+        @if ($termsRecord->terms_accepted_at !== null)
+            <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .26s both">
+                <div class="vy-eyebrow" style="margin-bottom:8px">{{ __('guest/reservation.booking_terms') }}</div>
+                <x-booking.accepted-terms :reservation="$termsRecord" />
+            </section>
+        @endif
+
         {{-- Message the property (NO fabricated SLA) --}}
         <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .28s both">
             <div class="vy-eyebrow" style="margin-bottom:8px">{{ __('guest/reservation.questions') }}</div>

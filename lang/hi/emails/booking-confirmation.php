@@ -20,4 +20,6 @@ return [
     'signature' => ':property टीम',
     'free_cancel_until' => ':date तक निःशुल्क रद्दीकरण',
     'add_to_calendar' => 'कैलेंडर में जोड़ें:',
+    'terms_accepted' => 'आपने :date को बुकिंग की शर्तें स्वीकार की थीं।',
+    'terms_read' => 'बुकिंग की शर्तें पढ़ें',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Provizyonu serbest bırak',
     'hold_releasing' => 'Serbest bırakılıyor…',
     'hold_release_confirm' => 'Bu provizyon serbest bırakılsın mı? Misafirin kartı serbest kalır ve hiçbir tutar tahsil edilmez.',
+    'booking_terms' => 'Rezervasyon koşulları',
 ];

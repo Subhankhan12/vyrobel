@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'बुकिंग कन्फ़र्म करें',
     'you_saved' => 'वॉलेट बैलेंस से आपकी :amount की बचत हुई',
     'free_cancellation' => ':date तक निःशुल्क रद्दीकरण · कोई शुल्क नहीं',
+    'before_you_book' => 'बुक करने से पहले',
+    'before_you_book_intro' => 'कृपया ये शर्तें पढ़ें। बुकिंग करते समय आप इन्हीं को स्वीकार करते हैं।',
+    'accept_terms' => 'मैंने :terms और :privacy पढ़ ली हैं और मुझे ये स्वीकार हैं।',
+    'terms_link' => 'बुकिंग की शर्तें',
+    'privacy_link' => 'गोपनीयता सूचना',
 ];

@@ -20,4 +20,6 @@ return [
     'signature' => 'Đội ngũ :property',
     'free_cancel_until' => 'hủy miễn phí đến :date',
     'add_to_calendar' => 'Thêm vào lịch:',
+    'terms_accepted' => 'Bạn đã chấp nhận điều khoản đặt phòng vào ngày :date.',
+    'terms_read' => 'Đọc điều khoản đặt phòng',
 ];

@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'تأیید رزرو',
     'you_saved' => 'با اعتبار کیف پول :amount صرفه‌جویی کردید',
     'free_cancellation' => 'لغو رایگان تا :date · بدون هزینه',
+    'before_you_book' => 'پیش از رزرو',
+    'before_you_book_intro' => 'لطفاً این شرایط را بخوانید. شما هنگام رزرو با همین شرایط موافقت می‌کنید.',
+    'accept_terms' => 'من :terms و :privacy را خوانده‌ام و با آن‌ها موافقم.',
+    'terms_link' => 'شرایط رزرو',
+    'privacy_link' => 'اطلاعیه حریم خصوصی',
 ];

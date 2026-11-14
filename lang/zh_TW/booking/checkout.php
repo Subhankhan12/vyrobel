@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => '確認訂房',
     'you_saved' => '使用錢包餘額為您省下 :amount',
     'free_cancellation' => ':date 前可免費取消 · 無手續費',
+    'before_you_book' => '訂房前須知',
+    'before_you_book_intro' => '請閱讀以下條款。您訂房時即同意這些條款。',
+    'accept_terms' => '我已閱讀並接受:terms和:privacy。',
+    'terms_link' => '訂房條款',
+    'privacy_link' => '隱私權聲明',
 ];

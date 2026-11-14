@@ -87,4 +87,5 @@ return [
     'hold_release_button' => '释放预授权',
     'hold_releasing' => '正在释放…',
     'hold_release_confirm' => '释放此预授权？客人的银行卡将被释放，不会产生任何扣款。',
+    'booking_terms' => '预订条款',
 ];

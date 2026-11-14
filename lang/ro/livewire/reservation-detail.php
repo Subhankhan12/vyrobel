@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Eliberare preautorizare',
     'hold_releasing' => 'Se eliberează…',
     'hold_release_confirm' => 'Eliberați această preautorizare? Suma blocată pe cardul oaspetelui este deblocată și nu se debitează nimic.',
+    'booking_terms' => 'Condiții de rezervare',
 ];

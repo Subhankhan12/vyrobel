@@ -150,6 +150,8 @@ it('public tenant isolation: a request in property A\'s context cannot read or b
         'quote_id' => $quoteB->id,
         'payment_token' => 'pm_card_visa',
         'email' => 'x@example.com',
+        // A PERMITTED request (the terms accepted), so the 404 below is the property isolation's answer and not a masked terms refusal.
+        'terms_accepted' => true,
     ])->assertNotFound();
 
     // And A's search never exposes B's room_type.

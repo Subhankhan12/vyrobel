@@ -34,4 +34,8 @@ return [
     'type_resort' => '度假村',
     'type_mixed' => '混合型',
     'type_portfolio' => '住宿組合',
+    'terms_title' => '訂房條款——:property',
+    'privacy_title' => '隱私權聲明——:property',
+    'terms_required' => '請接受訂房條款與隱私權聲明後再繼續。',
+    'terms_changed' => '住宿方已更新訂房條款。請重新閱讀並接受後再繼續。',
 ];

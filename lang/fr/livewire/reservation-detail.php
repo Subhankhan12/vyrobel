@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Libérer l’empreinte',
     'hold_releasing' => 'Libération…',
     'hold_release_confirm' => 'Libérer cette empreinte ? La carte du client est libérée et rien n’est débité.',
+    'booking_terms' => 'Conditions de réservation',
 ];

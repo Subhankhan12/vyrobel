@@ -20,4 +20,6 @@ return [
     'signature' => ':property 팀',
     'free_cancel_until' => ':date까지 무료 취소',
     'add_to_calendar' => '캘린더에 추가:',
+    'terms_accepted' => ':date에 예약 약관에 동의하셨습니다.',
+    'terms_read' => '예약 약관 보기',
 ];

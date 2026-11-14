@@ -34,4 +34,8 @@ return [
     'type_resort' => 'リゾート',
     'type_mixed' => '複合',
     'type_portfolio' => 'ポートフォリオ',
+    'terms_title' => '予約条件 — :property',
+    'privacy_title' => 'プライバシー通知 — :property',
+    'terms_required' => '予約条件とプライバシー通知に同意のうえ、続行してください。',
+    'terms_changed' => '宿泊施設が予約条件を更新しました。もう一度お読みいただき、同意のうえ続行してください。',
 ];

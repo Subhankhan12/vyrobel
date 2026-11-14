@@ -26,6 +26,9 @@
         <div class="vy-deferred-note" style="justify-content:center; margin-top:16px;">
             {{ __('booking/reservation.confirmation_sent', ['email' => $reservation['email'], 'note' => $payment['note']]) }}
         </div>
+        @if ($termsRecord->terms_accepted_at !== null)
+            <div class="vy-card" style="margin-top:16px; text-align:left;"><x-booking.accepted-terms :reservation="$termsRecord" /></div>
+        @endif
         <div style="margin-top:18px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}">{{ __('booking/reservation.back_to_property', ['property' => $property['name']]) }}</a></div>
     </div>
 

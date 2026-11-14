@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Pre-autorisatie vrijgeven',
     'hold_releasing' => 'Vrijgeven…',
     'hold_release_confirm' => 'Deze pre-autorisatie vrijgeven? De kaart van de gast komt weer vrij en er wordt niets afgeschreven.',
+    'booking_terms' => 'Reserveringsvoorwaarden',
 ];

@@ -44,4 +44,5 @@ return [
     'message_property' => 'Tesise mesaj gönder',
     'timeline' => 'Zaman çizelgesi',
     'timeline_empty' => 'Henüz gösterilecek bir şey yok.',
+    'booking_terms' => 'Rezervasyon koşulları',
 ];

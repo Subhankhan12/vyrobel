@@ -94,6 +94,7 @@ function srtBook(array $f, string $in, string $out, ?string $unitId = null): voi
         'last_name' => 'Traveller',
         'email' => 'ada+'.uniqid().'@example.test',
         'payment_option' => 'on_arrival',
+        ...acceptedTerms($f['s']['property']),
         'unit_id' => $unitId,
     ]));
 }

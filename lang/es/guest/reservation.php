@@ -44,4 +44,5 @@ return [
     'message_property' => 'Escriba al alojamiento',
     'timeline' => 'Cronología',
     'timeline_empty' => 'Todavía no hay nada que mostrar.',
+    'booking_terms' => 'Condiciones de reserva',
 ];

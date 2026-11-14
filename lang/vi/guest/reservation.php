@@ -44,4 +44,5 @@ return [
     'message_property' => 'Nhắn tin cho chỗ nghỉ',
     'timeline' => 'Dòng thời gian',
     'timeline_empty' => 'Chưa có gì để hiển thị.',
+    'booking_terms' => 'Điều khoản đặt phòng',
 ];

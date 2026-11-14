@@ -20,4 +20,6 @@ return [
     'signature' => 'ทีมงาน :property',
     'free_cancel_until' => 'ยกเลิกได้ฟรีจนถึง :date',
     'add_to_calendar' => 'เพิ่มลงในปฏิทิน:',
+    'terms_accepted' => 'คุณยอมรับเงื่อนไขการจองเมื่อ :date',
+    'terms_read' => 'อ่านเงื่อนไขการจอง',
 ];

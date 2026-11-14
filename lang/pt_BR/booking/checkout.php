@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Confirmar reserva',
     'you_saved' => 'Você economizou :amount com crédito na carteira',
     'free_cancellation' => 'Cancelamento gratuito até :date · sem taxas',
+    'before_you_book' => 'Antes de reservar',
+    'before_you_book_intro' => 'Leia estas condições. Elas são o que você aceita ao reservar.',
+    'accept_terms' => 'Li e aceito :terms e :privacy.',
+    'terms_link' => 'as condições de reserva',
+    'privacy_link' => 'o aviso de privacidade',
 ];

@@ -44,4 +44,5 @@ return [
     'message_property' => '숙소에 메시지 보내기',
     'timeline' => '진행 내역',
     'timeline_empty' => '아직 표시할 내용이 없습니다.',
+    'booking_terms' => '예약 약관',
 ];

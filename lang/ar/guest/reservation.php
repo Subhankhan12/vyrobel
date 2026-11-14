@@ -44,4 +44,5 @@ return [
     'message_property' => 'مراسلة مكان الإقامة',
     'timeline' => 'السجل الزمني',
     'timeline_empty' => 'لا يوجد ما يعرض بعد.',
+    'booking_terms' => 'شروط الحجز',
 ];

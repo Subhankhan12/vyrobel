@@ -52,7 +52,7 @@ function sucBook(array $s, array $extra = []): void
         // ⚠️ Pay on arrival — a REAL choice the form offers, and the one that keeps the folio local: the card
         // path redirects away to Stripe, which would tell us nothing about what was charged.
         'payment_option' => 'on_arrival',
-    ], $extra));
+    ], acceptedTerms($s['property']), $extra));
 }
 
 /** ⚠️ RAW — the room charge the guest actually incurred, read from the folio itself. */

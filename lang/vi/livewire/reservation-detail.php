@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Giải phóng khoản cấp phép trước',
     'hold_releasing' => 'Đang giải phóng…',
     'hold_release_confirm' => 'Giải phóng khoản cấp phép trước này không? Thẻ của khách sẽ được giải phóng và không bị trừ tiền.',
+    'booking_terms' => 'Điều khoản đặt phòng',
 ];

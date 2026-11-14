@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'تأكيد الحجز',
     'you_saved' => 'وفرت :amount باستخدام رصيد المحفظة',
     'free_cancellation' => 'إلغاء مجاني حتى :date · دون رسوم',
+    'before_you_book' => 'قبل الحجز',
+    'before_you_book_intro' => 'يرجى قراءة هذه الشروط. فهي ما توافق عليه عند إتمام الحجز.',
+    'accept_terms' => 'قرأت وأوافق على :terms وعلى :privacy.',
+    'terms_link' => 'شروط الحجز',
+    'privacy_link' => 'إشعار الخصوصية',
 ];

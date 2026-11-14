@@ -44,4 +44,5 @@ return [
     'message_property' => 'Accommodatie een bericht sturen',
     'timeline' => 'Tijdlijn',
     'timeline_empty' => 'Nog niets te tonen.',
+    'booking_terms' => 'Reserveringsvoorwaarden',
 ];

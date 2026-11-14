@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resor',
     'type_mixed' => 'Campuran',
     'type_portfolio' => 'Portofolio',
+    'terms_title' => 'Ketentuan reservasi — :property',
+    'privacy_title' => 'Pemberitahuan privasi — :property',
+    'terms_required' => 'Silakan setujui ketentuan reservasi dan pemberitahuan privasi untuk melanjutkan.',
+    'terms_changed' => 'Properti telah memperbarui ketentuan reservasinya. Silakan baca kembali dan setujui untuk melanjutkan.',
 ];

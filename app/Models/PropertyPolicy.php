@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $self_check_in
  * @property int|null $min_stay
  * @property int|null $max_stay
+ * @property string|null $booking_terms_extra
  */
 class PropertyPolicy extends Model
 {
@@ -63,6 +64,7 @@ class PropertyPolicy extends Model
         'min_stay',
         'max_stay',
         'long_stay_discounts',
+        'booking_terms_extra',
     ];
 
     /**

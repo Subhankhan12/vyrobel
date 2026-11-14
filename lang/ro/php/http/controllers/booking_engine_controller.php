@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Mixtă',
     'type_portfolio' => 'Portofoliu',
+    'terms_title' => 'Condiții de rezervare — :property',
+    'privacy_title' => 'Declarație de confidențialitate — :property',
+    'terms_required' => 'Vă rugăm să acceptați condițiile de rezervare și declarația de confidențialitate pentru a continua.',
+    'terms_changed' => 'Proprietatea și-a actualizat condițiile de rezervare. Vă rugăm să le citiți din nou și să le acceptați pentru a continua.',
 ];

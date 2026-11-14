@@ -20,4 +20,6 @@ return [
     'signature' => 'Zespół obiektu :property',
     'free_cancel_until' => 'bezpłatne anulowanie do :date',
     'add_to_calendar' => 'Dodaj do kalendarza:',
+    'terms_accepted' => 'Warunki rezerwacji zostały przez Państwa zaakceptowane: :date.',
+    'terms_read' => 'Przeczytaj warunki rezerwacji',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Zwolnij preautoryzację',
     'hold_releasing' => 'Zwalnianie…',
     'hold_release_confirm' => 'Czy zwolnić tę preautoryzację? Środki zablokowane na karcie gościa zostaną zwolnione, a żadna kwota nie zostanie pobrana.',
+    'booking_terms' => 'Warunki rezerwacji',
 ];

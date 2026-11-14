@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Complexe hôtelier',
     'type_mixed' => 'Mixte',
     'type_portfolio' => 'Portfolio',
+    'terms_title' => 'Conditions de réservation — :property',
+    'privacy_title' => 'Notice de confidentialité — :property',
+    'terms_required' => 'Acceptez les conditions de réservation et la notice de confidentialité pour continuer.',
+    'terms_changed' => 'L’établissement a mis à jour ses conditions de réservation. Lisez-les à nouveau et acceptez-les pour continuer.',
 ];

@@ -44,4 +44,5 @@ return [
     'message_property' => 'მასპინძლისთვის მიწერა',
     'timeline' => 'ქრონოლოგია',
     'timeline_empty' => 'საჩვენებელი ჯერ არაფერია.',
+    'booking_terms' => 'ჯავშნის პირობები',
 ];

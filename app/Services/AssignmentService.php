@@ -141,6 +141,8 @@ class AssignmentService
         $this->audit->record('reservation.created', $reservation, null, [
             'reference' => $reservation->reference,
             'status' => $reservation->status,
+            // BOOKING TERMS (2026-11-14): WHICH terms the guest accepted — a version hash only, never the text and never anything about the guest.
+            ...($reservation->terms_version !== null ? ['terms_version' => $reservation->terms_version] : []),
         ]);
 
         return $reservation->refresh();

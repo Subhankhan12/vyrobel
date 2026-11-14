@@ -20,4 +20,6 @@ return [
     'signature' => 'Het team van :property',
     'free_cancel_until' => 'gratis annuleren tot :date',
     'add_to_calendar' => 'Toevoegen aan agenda:',
+    'terms_accepted' => 'U hebt de reserveringsvoorwaarden geaccepteerd op :date.',
+    'terms_read' => 'Lees de reserveringsvoorwaarden',
 ];

@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Konfirmasi reservasi',
     'you_saved' => 'Anda hemat :amount dengan saldo dompet',
     'free_cancellation' => 'Pembatalan gratis hingga :date · tanpa biaya',
+    'before_you_book' => 'Sebelum Anda memesan',
+    'before_you_book_intro' => 'Silakan baca ketentuan ini. Inilah yang Anda setujui saat memesan.',
+    'accept_terms' => 'Saya sudah membaca dan menyetujui :terms serta :privacy.',
+    'terms_link' => 'ketentuan reservasi',
+    'privacy_link' => 'pemberitahuan privasi',
 ];

@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Gemengd',
     'type_portfolio' => 'Portfolio',
+    'terms_title' => 'Reserveringsvoorwaarden — :property',
+    'privacy_title' => 'Privacyverklaring — :property',
+    'terms_required' => 'Accepteer de reserveringsvoorwaarden en de privacyverklaring om door te gaan.',
+    'terms_changed' => 'De accommodatie heeft haar reserveringsvoorwaarden bijgewerkt. Lees ze opnieuw en accepteer ze om door te gaan.',
 ];

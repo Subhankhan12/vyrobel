@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Reservering bevestigen',
     'you_saved' => 'U hebt :amount bespaard met uw tegoed',
     'free_cancellation' => 'Gratis annuleren tot :date · geen kosten',
+    'before_you_book' => 'Voordat u boekt',
+    'before_you_book_intro' => 'Lees deze voorwaarden. Hiermee gaat u akkoord wanneer u boekt.',
+    'accept_terms' => 'Ik heb de :terms en de :privacy gelezen en ga daarmee akkoord.',
+    'terms_link' => 'reserveringsvoorwaarden',
+    'privacy_link' => 'privacyverklaring',
 ];

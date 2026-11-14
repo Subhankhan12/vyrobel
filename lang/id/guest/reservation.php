@@ -44,4 +44,5 @@ return [
     'message_property' => 'Kirim pesan ke properti',
     'timeline' => 'Linimasa',
     'timeline_empty' => 'Belum ada yang dapat ditampilkan.',
+    'booking_terms' => 'Ketentuan reservasi',
 ];

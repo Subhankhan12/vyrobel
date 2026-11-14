@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Rezervasyonu onayla',
     'you_saved' => 'Cüzdan bakiyesiyle tasarrufunuz: :amount',
     'free_cancellation' => ':date tarihine kadar ücretsiz iptal · ek ücret yok',
+    'before_you_book' => 'Rezervasyon yapmadan önce',
+    'before_you_book_intro' => 'Lütfen bu koşulları okuyun. Rezervasyon yaptığınızda kabul ettiğiniz koşullar bunlardır.',
+    'accept_terms' => 'Şunları okudum ve kabul ediyorum: :terms ve :privacy.',
+    'terms_link' => 'rezervasyon koşulları',
+    'privacy_link' => 'gizlilik bildirimi',
 ];

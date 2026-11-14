@@ -44,4 +44,5 @@ return [
     'message_property' => 'Enviar mensagem para a propriedade',
     'timeline' => 'Linha do tempo',
     'timeline_empty' => 'Ainda não há nada para mostrar.',
+    'booking_terms' => 'Condições de reserva',
 ];

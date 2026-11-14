@@ -56,6 +56,8 @@ class GuestReservationController extends Controller
             'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat(LocalDate::pattern('D, j M Y')) : null,
             // Actions only make sense for a live (not past/cancelled) stay.
             'active' => ! in_array(ReservationStage::for($model, $today), [ReservationStage::PAST, ReservationStage::CANCELLED], true),
+            // BOOKING TERMS (2026-11-14): what this guest accepted when they booked (the stored snapshot — their own booking only, via the guest-scoped $model).
+            'termsRecord' => $model,
         ]);
     }
 }

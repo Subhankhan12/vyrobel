@@ -44,4 +44,5 @@ return [
     'message_property' => 'Shkruajini strukturës akomoduese',
     'timeline' => 'Kronologjia',
     'timeline_empty' => 'Ende asgjë për të shfaqur.',
+    'booking_terms' => 'Kushtet e rezervimit',
 ];

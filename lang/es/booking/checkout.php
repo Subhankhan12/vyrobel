@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Confirmar reserva',
     'you_saved' => 'Ha ahorrado :amount con el crédito del monedero',
     'free_cancellation' => 'Cancelación gratuita hasta el :date · sin gastos',
+    'before_you_book' => 'Antes de reservar',
+    'before_you_book_intro' => 'Lea estas condiciones. Son las que acepta al reservar.',
+    'accept_terms' => 'He leído y acepto las :terms y el :privacy.',
+    'terms_link' => 'condiciones de reserva',
+    'privacy_link' => 'aviso de privacidad',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => '釋放預先授權',
     'hold_releasing' => '釋放中…',
     'hold_release_confirm' => '要釋放此預先授權嗎？房客的信用卡將恢復可用額度，且不會扣款。',
+    'booking_terms' => '訂房條款',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Lepaskan praotorisasi',
     'hold_releasing' => 'Melepaskan…',
     'hold_release_confirm' => 'Lepaskan praotorisasi ini? Kartu tamu dibebaskan dan tidak ada dana yang dibebankan.',
+    'booking_terms' => 'Ketentuan reservasi',
 ];

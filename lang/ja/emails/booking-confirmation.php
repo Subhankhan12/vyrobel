@@ -20,4 +20,6 @@ return [
     'signature' => ':propertyスタッフ一同',
     'free_cancel_until' => ':dateまで無料キャンセル可能',
     'add_to_calendar' => 'カレンダーに追加：',
+    'terms_accepted' => ':dateに予約条件にご同意いただきました。',
+    'terms_read' => '予約条件を読む',
 ];

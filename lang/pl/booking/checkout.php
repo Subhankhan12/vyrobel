@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Potwierdź rezerwację',
     'you_saved' => 'Oszczędność dzięki środkom z portfela: :amount',
     'free_cancellation' => 'Bezpłatne anulowanie do :date · bez opłat',
+    'before_you_book' => 'Przed rezerwacją',
+    'before_you_book_intro' => 'Prosimy o przeczytanie tych warunków. Rezerwując, wyrażają Państwo na nie zgodę.',
+    'accept_terms' => 'Akceptuję :terms i :privacy po zapoznaniu się z nimi.',
+    'terms_link' => 'warunki rezerwacji',
+    'privacy_link' => 'zasady ochrony prywatności',
 ];

@@ -193,6 +193,8 @@ class ReservationDetail extends Component
             // a no-show would imply a no-show policy the property has not configured.
             'policy' => $canCancel || $status === 'cancelled' ? $this->cancellationPolicy($reservation) : null,
             'can_cancel' => $canCancel,
+            // BOOKING TERMS (2026-11-14): the stored proof of what the guest accepted at checkout (a card renders only when one is on record).
+            'termsRecord' => $reservation,
             'can_no_show' => $canNoShow,
             'can_confirm_hold' => $canConfirmHold,
             'billed_to' => $billedTo,

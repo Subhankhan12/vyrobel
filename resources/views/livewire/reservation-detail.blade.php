@@ -316,6 +316,15 @@
                     </div>
                 @endif
 
+                {{-- BOOKING TERMS (his ruling 2026-11-14): what the guest accepted when they booked on the public page — the date, the version and the
+                     terms exactly as shown. Only a direct web booking has one; nothing is shown (never guessed) for an operator, OTA or older booking. --}}
+                @if ($termsRecord->terms_accepted_at !== null)
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">{{ __('livewire/reservation-detail.booking_terms') }}</span>
+                        <div style="margin-top: 10px;"><x-booking.accepted-terms :reservation="$termsRecord" /></div>
+                    </div>
+                @endif
+
                 @can('payments.record')
                 <div class="vy-card vy-card--accent">
                     <span class="vy-eyebrow">{{ __('livewire/reservation-detail.record_payment') }}</span>

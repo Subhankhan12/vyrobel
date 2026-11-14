@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => '예약 확정',
     'you_saved' => '지갑 잔액으로 :amount 절약',
     'free_cancellation' => ':date까지 무료 취소 · 수수료 없음',
+    'before_you_book' => '예약 전 안내',
+    'before_you_book_intro' => '이 약관을 읽어 보세요. 예약하실 때 이 내용에 동의하시게 됩니다.',
+    'accept_terms' => ':terms 및 :privacy 내용을 읽었으며 동의합니다.',
+    'terms_link' => '예약 약관',
+    'privacy_link' => '개인정보 안내',
 ];

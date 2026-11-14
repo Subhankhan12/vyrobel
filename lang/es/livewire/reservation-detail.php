@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Liberar preautorización',
     'hold_releasing' => 'Liberando…',
     'hold_release_confirm' => '¿Liberar esta preautorización? La tarjeta del huésped quedará libre y no se cobrará nada.',
+    'booking_terms' => 'Condiciones de reserva',
 ];

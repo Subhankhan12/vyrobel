@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => '确认预订',
     'you_saved' => '您已使用钱包余额节省 :amount',
     'free_cancellation' => ':date 前可免费取消 · 无手续费',
+    'before_you_book' => '预订前须知',
+    'before_you_book_intro' => '请阅读这些条款。您预订时即同意这些条款。',
+    'accept_terms' => '我已阅读并接受:terms和:privacy。',
+    'terms_link' => '预订条款',
+    'privacy_link' => '隐私声明',
 ];

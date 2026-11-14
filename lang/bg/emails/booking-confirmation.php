@@ -20,4 +20,6 @@ return [
     'signature' => 'Екипът на :property',
     'free_cancel_until' => 'безплатно анулиране до :date',
     'add_to_calendar' => 'Добавяне в календара:',
+    'terms_accepted' => 'На :date приехте условията за резервация.',
+    'terms_read' => 'Прочетете условията за резервация',
 ];

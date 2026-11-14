@@ -44,4 +44,5 @@ return [
     'message_property' => 'ส่งข้อความถึงที่พัก',
     'timeline' => 'ไทม์ไลน์',
     'timeline_empty' => 'ยังไม่มีข้อมูลที่จะแสดง',
+    'booking_terms' => 'เงื่อนไขการจอง',
 ];

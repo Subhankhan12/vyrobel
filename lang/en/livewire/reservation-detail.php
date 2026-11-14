@@ -106,4 +106,5 @@ return [
     'hold_release_button' => 'Release hold',
     'hold_releasing' => 'Releasing…',
     'hold_release_confirm' => 'Release this hold? The guest\'s card is freed and nothing is charged.',
+    'booking_terms' => 'Booking terms',
 ];

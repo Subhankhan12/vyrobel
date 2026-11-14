@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Tatil köyü',
     'type_mixed' => 'Karma',
     'type_portfolio' => 'Portföy',
+    'terms_title' => 'Rezervasyon koşulları — :property',
+    'privacy_title' => 'Gizlilik bildirimi — :property',
+    'terms_required' => 'Devam etmek için lütfen rezervasyon koşullarını ve gizlilik bildirimini kabul edin.',
+    'terms_changed' => 'Tesis rezervasyon koşullarını güncelledi. Devam etmek için lütfen yeniden okuyun ve kabul edin.',
 ];

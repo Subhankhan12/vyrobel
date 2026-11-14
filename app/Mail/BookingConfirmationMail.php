@@ -77,6 +77,10 @@ class BookingConfirmationMail extends Mailable
                 'messagesUrl' => route('guest.messages'),
                 'sourceLine' => $this->sourceLine($r),
                 'freeCancelUntil' => CancellationPolicy::freeUntilLabel($r),
+                // BOOKING TERMS (2026-11-14): when the guest accepted them, and where they are — NULL for a booking with no acceptance on
+                // record (an operator, OTA or older booking), so nothing is claimed that was never done.
+                'termsAcceptedOn' => $r->terms_accepted_at !== null ? Carbon::parse($r->terms_accepted_at)->translatedFormat(LocalDate::pattern('j M Y')) : null,
+                'termsUrl' => ($r->terms_accepted_at !== null && filled($r->property?->slug)) ? route('booking.terms', $r->property->slug) : null,
                 'calendar' => CalendarLinks::for($r),
                 'brand' => $this->brandFor($r->property),
                 // #86 customizable template + toggleable blocks.

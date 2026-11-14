@@ -86,7 +86,7 @@ function sgtBook(array $s, array $extra = []): void
         'last_name' => 'Traveller',
         'email' => 'ada+'.uniqid().'@example.test',
         'payment_option' => 'on_arrival',
-    ], $extra));
+    ], acceptedTerms($s['property']), $extra));
 }
 
 // ── 1. ⚠️⚠️ THE PROOF — what the storefront SHOWS is what the folio CHARGES, taxes and fees included ──────

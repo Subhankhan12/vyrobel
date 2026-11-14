@@ -14,6 +14,7 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Support\Booking\BookingTerms;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\PropertyCharges;
 use App\Support\I18n\Locales;
@@ -155,10 +156,15 @@ class BookingEngineService
      * the balance and fulfils on the webhook). The default (true) keeps every existing caller intact:
      * the JSON book endpoint + the certified engine tests record a real, full-balance payment inline.
      *
+     * ⚠️ `$terms` (BOOKING TERMS, 2026-11-14) is the {@see BookingTerms} the guest accepted. When given, the acceptance (time, version,
+     * the terms exactly as shown) is written ON THE RESERVATION IN THE SAME TRANSACTION that creates it — never a later update that could be
+     * missed. NULL (every existing caller, the certified engine tests) records no acceptance, exactly as before.
+     *
      * @param  array{email?: string, first_name?: string, last_name?: string}  $guestData
+     * @param  array{version: string, locale: string, sections: list<array{key: string, title: string, lines: list<string>}>, extra: ?string}|null  $terms
      * @return array{status: string, reservation: ?Reservation, payment: ?Payment, folio: ?Folio, client_secret: ?string}
      */
-    public function book(BookingQuote $quote, string $paymentToken, array $guestData, bool $takePayment = true): array
+    public function book(BookingQuote $quote, string $paymentToken, array $guestData, bool $takePayment = true, ?array $terms = null): array
     {
         if ($quote->status === BookingQuote::STATUS_CONVERTED) {
             return ['status' => 'already_converted', 'reservation' => $quote->convertedReservation, 'payment' => null, 'folio' => null, 'client_secret' => null];
@@ -214,6 +220,7 @@ class BookingEngineService
                 'source' => 'direct',
                 'adults' => $quote->adults,
                 'children' => $quote->children,
+                ...($terms !== null ? ['terms_accepted_at' => now(), 'terms_version' => $terms['version'], 'terms_snapshot' => $terms] : []),
             ], $lines);
         } catch (BookingException) {
             // Someone took the last unit between hold and book — fail gracefully, never overbook.

@@ -20,4 +20,6 @@ return [
     'signature' => 'The :property team',
     'free_cancel_until' => 'free cancellation until :date',
     'add_to_calendar' => 'Add to calendar:',
+    'terms_accepted' => 'You accepted the booking terms on :date.',
+    'terms_read' => 'Read the booking terms',
 ];

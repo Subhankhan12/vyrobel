@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Mixto',
     'type_portfolio' => 'Cartera',
+    'terms_title' => 'Condiciones de reserva — :property',
+    'privacy_title' => 'Aviso de privacidad — :property',
+    'terms_required' => 'Acepte las condiciones de reserva y el aviso de privacidad para continuar.',
+    'terms_changed' => 'El alojamiento ha actualizado sus condiciones de reserva. Léalas de nuevo y acéptelas para continuar.',
 ];

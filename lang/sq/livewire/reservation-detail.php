@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Liro paraautorizimin',
     'hold_releasing' => 'Po lirohet…',
     'hold_release_confirm' => 'Të lirohet ky paraautorizim? Karta e vizitorit lirohet dhe nuk debitohet asgjë.',
+    'booking_terms' => 'Kushtet e rezervimit',
 ];

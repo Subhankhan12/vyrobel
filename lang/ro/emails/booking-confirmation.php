@@ -20,4 +20,6 @@ return [
     'signature' => 'Echipa :property',
     'free_cancel_until' => 'anulare gratuită până la :date',
     'add_to_calendar' => 'Adăugare în calendar:',
+    'terms_accepted' => 'Ați acceptat condițiile de rezervare pe :date.',
+    'terms_read' => 'Citiți condițiile de rezervare',
 ];

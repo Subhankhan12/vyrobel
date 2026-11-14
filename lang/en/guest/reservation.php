@@ -46,4 +46,5 @@ return [
     'message_property' => 'Message the property',
     'timeline' => 'Timeline',
     'timeline_empty' => 'Nothing to show yet.',
+    'booking_terms' => 'Booking terms',
 ];

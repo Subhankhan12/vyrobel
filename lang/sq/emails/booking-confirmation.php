@@ -20,4 +20,6 @@ return [
     'signature' => 'Ekipi i strukturës :property',
     'free_cancel_until' => 'anulim falas deri më :date',
     'add_to_calendar' => 'Shto në kalendar:',
+    'terms_accepted' => 'I pranuat kushtet e rezervimit më :date.',
+    'terms_read' => 'Lexoni kushtet e rezervimit',
 ];

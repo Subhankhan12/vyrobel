@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Ośrodek wypoczynkowy',
     'type_mixed' => 'Mieszany',
     'type_portfolio' => 'Portfolio',
+    'terms_title' => 'Warunki rezerwacji – :property',
+    'privacy_title' => 'Zasady ochrony prywatności – :property',
+    'terms_required' => 'Aby kontynuować, należy zaakceptować warunki rezerwacji i zasady ochrony prywatności.',
+    'terms_changed' => 'Obiekt zaktualizował warunki rezerwacji. Aby kontynuować, należy przeczytać je ponownie i zaakceptować.',
 ];

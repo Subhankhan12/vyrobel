@@ -34,4 +34,8 @@ return [
     'type_resort' => '度假村',
     'type_mixed' => '混合型',
     'type_portfolio' => '酒店组合',
+    'terms_title' => '预订条款——:property',
+    'privacy_title' => '隐私声明——:property',
+    'terms_required' => '请接受预订条款和隐私声明后继续。',
+    'terms_changed' => '酒店已更新其预订条款。请重新阅读并接受后继续。',
 ];

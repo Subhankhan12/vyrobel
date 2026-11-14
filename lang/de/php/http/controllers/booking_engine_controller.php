@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Gemischt',
     'type_portfolio' => 'Portfolio',
+    'terms_title' => 'Buchungsbedingungen — :property',
+    'privacy_title' => 'Datenschutzhinweise — :property',
+    'terms_required' => 'Bitte akzeptieren Sie die Buchungsbedingungen und die Datenschutzhinweise, um fortzufahren.',
+    'terms_changed' => 'Die Unterkunft hat ihre Buchungsbedingungen aktualisiert. Bitte lesen Sie sie erneut und akzeptieren Sie sie, um fortzufahren.',
 ];

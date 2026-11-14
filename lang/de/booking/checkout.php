@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Buchung bestätigen',
     'you_saved' => 'Sie haben :amount mit Ihrem Guthaben gespart',
     'free_cancellation' => 'Kostenlose Stornierung bis :date · keine Gebühren',
+    'before_you_book' => 'Vor der Buchung',
+    'before_you_book_intro' => 'Bitte lesen Sie diese Bedingungen. Mit Ihrer Buchung stimmen Sie ihnen zu.',
+    'accept_terms' => 'Ich habe die :terms und die :privacy gelesen und akzeptiere sie.',
+    'terms_link' => 'Buchungsbedingungen',
+    'privacy_link' => 'Datenschutzhinweise',
 ];

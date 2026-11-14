@@ -44,4 +44,5 @@ return [
     'message_property' => '傳送訊息給住宿方',
     'timeline' => '時間軸',
     'timeline_empty' => '目前尚無內容。',
+    'booking_terms' => '訂房條款',
 ];

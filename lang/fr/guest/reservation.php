@@ -44,4 +44,5 @@ return [
     'message_property' => 'Écrire à l’établissement',
     'timeline' => 'Chronologie',
     'timeline_empty' => 'Rien à afficher pour l’instant.',
+    'booking_terms' => 'Conditions de réservation',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Sblocca preautorizzazione',
     'hold_releasing' => 'Sblocco in corso…',
     'hold_release_confirm' => 'Sbloccare questa preautorizzazione? La carta dell’ospite viene liberata e non viene addebitato nulla.',
+    'booking_terms' => 'Condizioni di prenotazione',
 ];

@@ -40,4 +40,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Mixed',
     'type_portfolio' => 'Portfolio',
+    'terms_title' => 'Booking terms — :property',
+    'privacy_title' => 'Privacy notice — :property',
+    'terms_required' => 'Please accept the booking terms and the privacy notice to continue.',
+    'terms_changed' => 'The property has updated its booking terms. Please read them again and accept to continue.',
 ];

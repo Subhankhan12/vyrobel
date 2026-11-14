@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => '予約を確定',
     'you_saved' => 'ウォレット残高のご利用で:amountお得になりました',
     'free_cancellation' => ':dateまで無料キャンセル可能 · 手数料なし',
+    'before_you_book' => 'ご予約の前に',
+    'before_you_book_intro' => '以下の条件をお読みください。ご予約の際に同意いただく内容です。',
+    'accept_terms' => ':termsと:privacyを読み、同意します。',
+    'terms_link' => '予約条件',
+    'privacy_link' => 'プライバシー通知',
 ];

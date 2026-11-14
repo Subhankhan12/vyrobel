@@ -20,4 +20,6 @@ return [
     'signature' => 'Majutusasutuse :property meeskond',
     'free_cancel_until' => 'tasuta tühistamine kuni :date',
     'add_to_calendar' => 'Lisa kalendrisse:',
+    'terms_accepted' => 'Nõustusite broneerimistingimustega kuupäeval :date.',
+    'terms_read' => 'Lugege broneerimistingimusi',
 ];

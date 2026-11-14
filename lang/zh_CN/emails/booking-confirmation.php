@@ -20,4 +20,6 @@ return [
     'signature' => ':property 团队',
     'free_cancel_until' => ':date 前可免费取消',
     'add_to_calendar' => '添加到日历：',
+    'terms_accepted' => '您已于 :date 接受预订条款。',
+    'terms_read' => '阅读预订条款',
 ];

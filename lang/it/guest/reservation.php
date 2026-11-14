@@ -44,4 +44,5 @@ return [
     'message_property' => 'Scriva alla struttura',
     'timeline' => 'Cronologia',
     'timeline_empty' => 'Ancora nulla da mostrare.',
+    'booking_terms' => 'Condizioni di prenotazione',
 ];

@@ -26,7 +26,7 @@ function checkoutBody(array $s, array $overrides = []): array
         'first_name' => 'Zephyrina',
         'last_name' => 'Quibblewick',
         'email' => 'guest@example.test',
-    ], $overrides);
+    ], acceptedTerms($s['property']), $overrides);
 }
 
 // ── 1. Full flow → a REAL reservation via AssignmentService (source=direct), inventory at BOOK ────

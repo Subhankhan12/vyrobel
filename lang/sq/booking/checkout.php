@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Konfirmo rezervimin',
     'you_saved' => 'Kursyet :amount me kredit në portofol',
     'free_cancellation' => 'Anulim falas deri më :date · pa tarifa',
+    'before_you_book' => 'Para se të rezervoni',
+    'before_you_book_intro' => 'Lexoni këto kushte. Këto janë kushtet që pranoni kur rezervoni.',
+    'accept_terms' => 'Kam lexuar dhe pranoj sa vijon: :terms dhe :privacy.',
+    'terms_link' => 'kushtet e rezervimit',
+    'privacy_link' => 'njoftimi i privatësisë',
 ];

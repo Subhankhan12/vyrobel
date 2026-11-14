@@ -20,4 +20,6 @@ return [
     'signature' => 'فريق :property',
     'free_cancel_until' => 'إلغاء مجاني حتى :date',
     'add_to_calendar' => 'الإضافة إلى التقويم:',
+    'terms_accepted' => 'لقد وافقت على شروط الحجز بتاريخ :date.',
+    'terms_read' => 'قراءة شروط الحجز',
 ];

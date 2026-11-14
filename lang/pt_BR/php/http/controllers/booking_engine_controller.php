@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'Misto',
     'type_portfolio' => 'Portfólio',
+    'terms_title' => 'Condições de reserva — :property',
+    'privacy_title' => 'Aviso de privacidade — :property',
+    'terms_required' => 'Aceite as condições de reserva e o aviso de privacidade para continuar.',
+    'terms_changed' => 'A propriedade atualizou suas condições de reserva. Leia novamente e aceite para continuar.',
 ];

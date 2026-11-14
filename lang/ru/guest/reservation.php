@@ -44,4 +44,5 @@ return [
     'message_property' => 'Написать в объект размещения',
     'timeline' => 'Хронология',
     'timeline_empty' => 'Пока нечего показать.',
+    'booking_terms' => 'Условия бронирования',
 ];

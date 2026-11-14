@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Resort',
     'type_mixed' => 'I përzier',
     'type_portfolio' => 'Portofol strukturash',
+    'terms_title' => 'Kushtet e rezervimit — :property',
+    'privacy_title' => 'Njoftimi i privatësisë — :property',
+    'terms_required' => 'Për të vazhduar, pranoni kushtet e rezervimit dhe njoftimin e privatësisë.',
+    'terms_changed' => 'Struktura ka përditësuar kushtet e saj të rezervimit. Lexojini sërish dhe pranojini për të vazhduar.',
 ];

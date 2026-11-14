@@ -20,4 +20,6 @@ return [
     'signature' => 'Ihr Team von :property',
     'free_cancel_until' => 'kostenlose Stornierung bis :date',
     'add_to_calendar' => 'Zum Kalender hinzufügen:',
+    'terms_accepted' => 'Sie haben die Buchungsbedingungen am :date akzeptiert.',
+    'terms_read' => 'Buchungsbedingungen lesen',
 ];

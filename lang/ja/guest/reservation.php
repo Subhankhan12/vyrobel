@@ -44,4 +44,5 @@ return [
     'message_property' => '宿泊施設にメッセージ',
     'timeline' => '履歴',
     'timeline_empty' => '表示する内容はまだありません。',
+    'booking_terms' => '予約条件',
 ];

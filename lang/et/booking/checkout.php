@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Kinnita broneering',
     'you_saved' => 'Säästsite rahakoti saldoga :amount',
     'free_cancellation' => 'Tasuta tühistamine kuni :date · ilma tasudeta',
+    'before_you_book' => 'Enne broneerimist',
+    'before_you_book_intro' => 'Lugege need tingimused läbi. Just nendega nõustute, kui broneerite.',
+    'accept_terms' => 'Olen lugenud ja nõustun järgmisega: :terms ja :privacy.',
+    'terms_link' => 'broneerimistingimused',
+    'privacy_link' => 'privaatsusteade',
 ];

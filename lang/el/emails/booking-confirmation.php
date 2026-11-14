@@ -20,4 +20,6 @@ return [
     'signature' => 'Η ομάδα του καταλύματος :property',
     'free_cancel_until' => 'δωρεάν ακύρωση έως τις :date',
     'add_to_calendar' => 'Προσθήκη στο ημερολόγιο:',
+    'terms_accepted' => 'Αποδεχτήκατε τους όρους κράτησης στις :date.',
+    'terms_read' => 'Διαβάστε τους όρους κράτησης',
 ];

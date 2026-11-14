@@ -87,4 +87,5 @@ return [
     'hold_release_button' => '与信を解放',
     'hold_releasing' => '解放中…',
     'hold_release_confirm' => 'この与信を解放しますか？ゲストのカードの利用枠が元に戻り、請求は発生しません。',
+    'booking_terms' => '予約条件',
 ];

@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Vabasta eelautoriseerimine',
     'hold_releasing' => 'Vabastamine…',
     'hold_release_confirm' => 'Kas vabastada see eelautoriseerimine? Külalise kaart vabastatakse ja midagi ei debiteerita.',
+    'booking_terms' => 'Broneerimistingimused',
 ];

@@ -558,6 +558,9 @@ Route::prefix('book/{property}')
         Route::get('/checkout', [BookingEngineController::class, 'checkout'])->name('checkout');
         Route::post('/checkout', [BookingEngineController::class, 'reserve'])->name('reserve');
         Route::get('/reservation/{quote}', [BookingEngineController::class, 'reservation'])->name('reservation');
+        // BOOKING TERMS (his ruling 2026-11-14): the property's terms and the guest privacy notice a guest accepts at checkout — public, read-only.
+        Route::get('/terms', [BookingEngineController::class, 'terms'])->name('terms');
+        Route::get('/privacy', [BookingEngineController::class, 'privacy'])->name('privacy');
         // JSON API (machine clients) — the real final backend contract, CSRF-exempt by path (bootstrap).
         Route::get('/search', [BookingEngineController::class, 'search'])->name('search');
         Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');

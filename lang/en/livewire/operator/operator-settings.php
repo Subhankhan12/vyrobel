@@ -47,6 +47,9 @@ return [
     'self_check_in' => 'Self check-in',
     'self_check_in_hint' => '· smart-lock codes sent to the guest 48h before arrival',
     'save_policies' => 'Save policies',
+    'booking_terms_extra' => 'Your own booking terms',
+    'booking_terms_extra_help' => 'Shown to guests before they pay, under "The property\'s own terms", together with the terms built from the settings above. Plain text, up to :max characters. Say here what you charge after the free-cancellation date, house rules, or anything else guests must know.',
+    'booking_terms_preview' => 'Preview exactly what guests see',
 
     // tax & fees summary
     'tax_fees_heading' => 'Tax & fees',

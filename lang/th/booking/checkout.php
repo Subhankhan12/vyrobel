@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'ยืนยันการจอง',
     'you_saved' => 'คุณประหยัดได้ :amount ด้วยเครดิตในกระเป๋าเงิน',
     'free_cancellation' => 'ยกเลิกได้ฟรีจนถึง :date · ไม่มีค่าธรรมเนียม',
+    'before_you_book' => 'ก่อนจอง',
+    'before_you_book_intro' => 'โปรดอ่านเงื่อนไขเหล่านี้ ซึ่งเป็นสิ่งที่คุณตกลงเมื่อทำการจอง',
+    'accept_terms' => 'อ่านและยอมรับ :terms และ :privacy แล้ว',
+    'terms_link' => 'เงื่อนไขการจอง',
+    'privacy_link' => 'ประกาศความเป็นส่วนตัว',
 ];

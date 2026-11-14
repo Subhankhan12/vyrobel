@@ -44,4 +44,5 @@ return [
     'message_property' => 'प्रॉपर्टी को संदेश भेजें',
     'timeline' => 'टाइमलाइन',
     'timeline_empty' => 'अभी दिखाने के लिए कुछ नहीं।',
+    'booking_terms' => 'बुकिंग की शर्तें',
 ];

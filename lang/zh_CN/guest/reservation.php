@@ -44,4 +44,5 @@ return [
     'message_property' => '给酒店发消息',
     'timeline' => '时间线',
     'timeline_empty' => '暂无内容。',
+    'booking_terms' => '预订条款',
 ];

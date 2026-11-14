@@ -44,4 +44,5 @@ return [
     'message_property' => 'Пишите објекту',
     'timeline' => 'Хронологија',
     'timeline_empty' => 'Још нема шта да се прикаже.',
+    'booking_terms' => 'Услови резервације',
 ];

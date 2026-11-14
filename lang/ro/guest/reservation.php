@@ -44,4 +44,5 @@ return [
     'message_property' => 'Trimitere mesaj către proprietate',
     'timeline' => 'Cronologie',
     'timeline_empty' => 'Încă nu există nimic de afișat.',
+    'booking_terms' => 'Condiții de rezervare',
 ];

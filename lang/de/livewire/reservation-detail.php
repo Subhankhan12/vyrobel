@@ -87,4 +87,5 @@ return [
     'hold_release_button' => 'Vorautorisierung freigeben',
     'hold_releasing' => 'Wird freigegeben…',
     'hold_release_confirm' => 'Diese Vorautorisierung freigeben? Die Karte des Gastes wird wieder frei, und es wird nichts belastet.',
+    'booking_terms' => 'Buchungsbedingungen',
 ];

@@ -152,6 +152,23 @@
                             {{ __('livewire/operator/operator-settings.self_check_in') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.self_check_in_hint') }}</span>
                         </label>
                     </div>
+                    {{-- BOOKING TERMS (his ruling 2026-11-14): the hotel's own words, shown to guests under "The property's own terms" with the rest of
+                         the terms the system builds from the settings above. Plain text; guests read it escaped. The link opens the REAL page. --}}
+                    <div class="vy-field" style="margin: 14px 0 0;">
+                        <label class="vy-field-label" for="pol_terms_extra">{{ __('livewire/operator/operator-settings.booking_terms_extra') }} <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.optional_hint') }}</span></label>
+                        <textarea id="pol_terms_extra" name="booking_terms_extra" class="vy-input" rows="5" maxlength="{{ \App\Support\Booking\BookingTerms::MAX_EXTRA }}" style="resize: vertical; min-height: 96px;" {{ $disabled }}>{{ old('booking_terms_extra', $policy['booking_terms_extra']) }}</textarea>
+                        <span style="font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.booking_terms_extra_help', ['max' => \App\Support\Booking\BookingTerms::MAX_EXTRA]) }}</span>
+                        @if ($termsPreviewUrl !== null)
+                            <a href="{{ $termsPreviewUrl }}" target="_blank" rel="noopener" style="display: inline-block; margin-top: 6px; font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none;">{{ __('livewire/operator/operator-settings.booking_terms_preview') }}</a>
+                        @endif
+                    </div>
+                    {{-- A refused save must SAY so. (This card refused every save for months with no message at all — see updatePolicies().) --}}
+                    @php $polErrors = collect(['cancellation_type', 'free_until_days', 'pet', 'smoking', 'min_stay', 'max_stay', 'booking_terms_extra'])->map(fn ($k) => $errors->first($k))->filter()->values(); @endphp
+                    @if ($polErrors->isNotEmpty())
+                        <div role="alert" style="margin-top: 12px; font-size: 12.5px; line-height: 1.45; color: var(--vy-red-text, #8F2F09);">
+                            @foreach ($polErrors as $polError)<div>{{ $polError }}</div>@endforeach
+                        </div>
+                    @endif
                     @unless ($readOnly)
                         <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
                             <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">{{ __('livewire/operator/operator-settings.save_policies') }}</button>

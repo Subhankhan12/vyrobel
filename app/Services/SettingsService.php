@@ -36,7 +36,7 @@ class SettingsService
     public const PROPERTY_FIELDS = ['name', 'timezone', 'star_rating', 'check_in_time', 'check_out_time', 'status', 'address'];
 
     /** @var list<string> */
-    public const POLICY_FIELDS = ['pet', 'smoking', 'min_stay', 'max_stay', 'self_check_in', 'cancellation', 'deposit'];
+    public const POLICY_FIELDS = ['pet', 'smoking', 'min_stay', 'max_stay', 'self_check_in', 'cancellation', 'deposit', 'booking_terms_extra'];
 
     /**
      * The policy columns that are JSON MAPS, not scalars.

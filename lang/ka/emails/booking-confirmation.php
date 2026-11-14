@@ -20,4 +20,6 @@ return [
     'signature' => 'ობიექტის „:property“ გუნდი',
     'free_cancel_until' => 'უფასო გაუქმება, ბოლო ვადა: :date',
     'add_to_calendar' => 'კალენდარში დამატება:',
+    'terms_accepted' => 'თქვენ დაეთანხმეთ ჯავშნის პირობებს (თარიღი: :date).',
+    'terms_read' => 'ჯავშნის პირობების წაკითხვა',
 ];

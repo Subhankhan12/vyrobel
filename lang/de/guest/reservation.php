@@ -44,4 +44,5 @@ return [
     'message_property' => 'Der Unterkunft schreiben',
     'timeline' => 'Verlauf',
     'timeline_empty' => 'Noch nichts anzuzeigen.',
+    'booking_terms' => 'Buchungsbedingungen',
 ];

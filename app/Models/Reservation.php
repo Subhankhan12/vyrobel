@@ -53,6 +53,9 @@ class Reservation extends Model
         'guest_checked_in_at',
         'arrival_window',
         'house_rules_ack_at',
+        'terms_accepted_at',
+        'terms_version',
+        'terms_snapshot',
         'notes_guest',
         'notes_internal',
     ];
@@ -74,6 +77,8 @@ class Reservation extends Model
             'cancelled_at' => 'datetime',
             'guest_checked_in_at' => 'datetime',
             'house_rules_ack_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'terms_snapshot' => 'array',
         ];
     }
 

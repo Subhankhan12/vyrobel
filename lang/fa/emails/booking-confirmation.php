@@ -20,4 +20,6 @@ return [
     'signature' => 'تیم :property',
     'free_cancel_until' => 'لغو رایگان تا :date',
     'add_to_calendar' => 'افزودن به تقویم:',
+    'terms_accepted' => 'شما در تاریخ :date با شرایط رزرو موافقت کردید.',
+    'terms_read' => 'خواندن شرایط رزرو',
 ];

@@ -20,4 +20,6 @@ return [
     'signature' => ':property ekibi',
     'free_cancel_until' => ':date tarihine kadar ücretsiz iptal',
     'add_to_calendar' => 'Takvime ekle:',
+    'terms_accepted' => 'Rezervasyon koşullarını :date tarihinde kabul ettiniz.',
+    'terms_read' => 'Rezervasyon koşullarını okuyun',
 ];

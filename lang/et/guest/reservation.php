@@ -44,4 +44,5 @@ return [
     'message_property' => 'Kirjutage majutusasutusele',
     'timeline' => 'Ajajoon',
     'timeline_empty' => 'Veel pole midagi näidata.',
+    'booking_terms' => 'Broneerimistingimused',
 ];

@@ -44,4 +44,5 @@ return [
     'message_property' => 'پیام به اقامتگاه',
     'timeline' => 'خط زمانی',
     'timeline_empty' => 'هنوز موردی برای نمایش نیست.',
+    'booking_terms' => 'شرایط رزرو',
 ];

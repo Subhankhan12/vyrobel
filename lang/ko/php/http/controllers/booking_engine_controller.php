@@ -34,4 +34,8 @@ return [
     'type_resort' => '리조트',
     'type_mixed' => '복합',
     'type_portfolio' => '포트폴리오',
+    'terms_title' => '예약 약관 — :property',
+    'privacy_title' => '개인정보 안내 — :property',
+    'terms_required' => '계속하려면 예약 약관과 개인정보 안내에 동의하세요.',
+    'terms_changed' => '숙소에서 예약 약관을 변경했습니다. 약관을 다시 읽고 동의한 후 계속하세요.',
 ];

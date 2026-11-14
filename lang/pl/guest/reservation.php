@@ -44,4 +44,5 @@ return [
     'message_property' => 'Napisz do obiektu',
     'timeline' => 'Historia',
     'timeline_empty' => 'Na razie nic do wyświetlenia.',
+    'booking_terms' => 'Warunki rezerwacji',
 ];

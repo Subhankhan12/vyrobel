@@ -87,4 +87,5 @@ return [
     'hold_release_button' => '가승인 해제',
     'hold_releasing' => '해제 중…',
     'hold_release_confirm' => '이 가승인을 해제하시겠습니까? 고객 카드의 가승인이 풀리며 아무 금액도 결제되지 않습니다.',
+    'booking_terms' => '예약 약관',
 ];

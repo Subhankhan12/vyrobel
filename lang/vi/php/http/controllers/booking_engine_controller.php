@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Khu nghỉ dưỡng',
     'type_mixed' => 'Hỗn hợp',
     'type_portfolio' => 'Danh mục',
+    'terms_title' => 'Điều khoản đặt phòng — :property',
+    'privacy_title' => 'Thông báo về quyền riêng tư — :property',
+    'terms_required' => 'Vui lòng chấp nhận điều khoản đặt phòng và thông báo về quyền riêng tư để tiếp tục.',
+    'terms_changed' => 'Chỗ nghỉ đã cập nhật điều khoản đặt phòng. Vui lòng đọc lại và chấp nhận để tiếp tục.',
 ];

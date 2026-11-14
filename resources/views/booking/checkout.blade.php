@@ -228,6 +228,29 @@
                             {{ __('booking/checkout.secure_note') }}
                         </div>
                     </div>
+
+                    {{-- BOOKING TERMS (his ruling 2026-11-14, option B): what the guest agrees to, built from the property's REAL settings by the
+                         ONE App\Support\Booking\BookingTerms (the same builder the stored proof is made from). The VERSION shown travels in the
+                         form: if the property changes its rules before the button is pressed, nothing is booked and this page is shown again. --}}
+                    <div class="vy-co-card" id="vy-terms">
+                        <h2 class="vy-co-h2">{{ __('booking/checkout.before_you_book') }}</h2>
+                        <p style="margin: 0 0 12px; font-size: 13px; color: var(--vy-muted);">{{ __('booking/checkout.before_you_book_intro') }}</p>
+                        <x-booking.terms :terms="$terms" />
+                        <input type="hidden" name="terms_version" value="{{ $terms['version'] }}">
+                        @php
+                            // The sentence is ESCAPED first; only then are the two links put in — a translation can never inject markup.
+                            $acceptLine = strtr(e(__('booking/checkout.accept_terms')), [
+                                ':terms' => '<a href="'.e($termsUrl).'" target="_blank" rel="noopener">'.e(__('booking/checkout.terms_link')).'</a>',
+                                ':privacy' => '<a href="'.e($privacyUrl).'" target="_blank" rel="noopener">'.e(__('booking/checkout.privacy_link')).'</a>',
+                            ]);
+                        @endphp
+                        <label style="display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; font-size: 13.5px; line-height: 1.45; color: var(--vy-ink); cursor: pointer;">
+                            <input type="checkbox" name="terms_accepted" value="1" required style="margin-top: 3px; flex: none; width: 17px; height: 17px;"
+                                   @error('terms_accepted') aria-invalid="true" aria-describedby="vy-co-terms-err" @enderror>
+                            <span>{!! $acceptLine !!}</span>
+                        </label>
+                        @error('terms_accepted')<p class="vy-co-err" id="vy-co-terms-err" role="alert">{{ $message }}</p>@enderror
+                    </div>
                 </div>
 
                 {{-- RIGHT — the REAL reconciling summary --}}

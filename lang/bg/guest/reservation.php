@@ -44,4 +44,5 @@ return [
     'message_property' => 'Пишете на домакина',
     'timeline' => 'Хронология',
     'timeline_empty' => 'Все още няма какво да се покаже.',
+    'booking_terms' => 'Условия за резервация',
 ];

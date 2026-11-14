@@ -36,4 +36,9 @@ return [
     'confirm_reservation' => 'Confirmare rezervare',
     'you_saved' => 'Ați economisit :amount cu creditul din portofel',
     'free_cancellation' => 'Anulare gratuită până la :date · fără taxe',
+    'before_you_book' => 'Înainte de rezervare',
+    'before_you_book_intro' => 'Citiți aceste condiții. Pe ele le acceptați atunci când rezervați.',
+    'accept_terms' => 'Am citit și accept :terms și :privacy.',
+    'terms_link' => 'condițiile de rezervare',
+    'privacy_link' => 'declarația de confidențialitate',
 ];

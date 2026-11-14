@@ -37,4 +37,9 @@ return [
     'confirm_reservation' => 'Confirm reservation',
     'you_saved' => 'You saved :amount with wallet credit',
     'free_cancellation' => 'Free cancellation until :date · no fees',
+    'before_you_book' => 'Before you book',
+    'before_you_book_intro' => 'Please read these terms. They are what you agree to when you book.',
+    'accept_terms' => 'I have read and accept the :terms and the :privacy.',
+    'terms_link' => 'booking terms',
+    'privacy_link' => 'privacy notice',
 ];

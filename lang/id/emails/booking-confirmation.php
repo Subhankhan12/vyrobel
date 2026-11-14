@@ -20,4 +20,6 @@ return [
     'signature' => 'Tim :property',
     'free_cancel_until' => 'pembatalan gratis hingga :date',
     'add_to_calendar' => 'Tambahkan ke kalender:',
+    'terms_accepted' => 'Anda menyetujui ketentuan reservasi pada :date.',
+    'terms_read' => 'Baca ketentuan reservasi',
 ];

@@ -34,4 +34,8 @@ return [
     'type_resort' => 'Puhkekeskus',
     'type_mixed' => 'Segatüüp',
     'type_portfolio' => 'Portfell',
+    'terms_title' => 'Broneerimistingimused — :property',
+    'privacy_title' => 'Privaatsusteade — :property',
+    'terms_required' => 'Jätkamiseks nõustuge broneerimistingimuste ja privaatsusteatega.',
+    'terms_changed' => 'Majutusasutus on oma broneerimistingimusi uuendanud. Jätkamiseks lugege need uuesti läbi ja nõustuge nendega.',
 ];

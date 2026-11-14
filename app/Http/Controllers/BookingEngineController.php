@@ -21,6 +21,7 @@ use App\Services\FolioService;
 use App\Services\GuestWalletService;
 use App\Services\OperatorConnectService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Booking\BookingTerms;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\I18n\LocalDate;
@@ -38,6 +39,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Public booking engine (Step 7) — JSON endpoints + one bare, UNSTYLED contract-stub landing.
@@ -428,6 +430,11 @@ class BookingEngineController extends Controller
             'unitChoices' => $unitChoices,
             'wallet' => $wallet,
             'freeCancel' => $freeCancel,
+            // BOOKING TERMS (his ruling 2026-11-14, option B): the ONE builder the proof of acceptance is also made from. The version
+            // travels in the form, so what is stored is exactly what THIS page showed.
+            'terms' => BookingTerms::for($property, $checkIn),
+            'termsUrl' => route('booking.terms', $property->slug),
+            'privacyUrl' => route('booking.privacy', $property->slug),
             'search' => [
                 'room_type_id' => $roomTypeId,
                 'check_in' => $checkIn,
@@ -465,7 +472,21 @@ class BookingEngineController extends Controller
             'payment_option' => ['sometimes', 'string', 'in:card,on_arrival'],
             // D18-5 phase 3 — the SPECIFIC unit the guest chose, when they chose one.
             'unit_id' => ['sometimes', 'nullable', 'string'],
+            // BOOKING TERMS — a booking is a contract: the guest must accept the terms they were SHOWN. The version is the one the page
+            // rendered; if the property changed its rules since, the page is shown again (see below) rather than storing a lie.
+            'terms_accepted' => ['accepted'],
+            'terms_version' => ['sometimes', 'nullable', 'string', 'max:24'],
+        ], [
+            'terms_accepted.accepted' => __('php/http/controllers/booking_engine_controller.terms_required'),
         ]);
+
+        // A page that carried NO version (a tab opened before this existed, a hand-made form) is treated exactly like a changed one: the error is put on
+        // the box the guest can see, nothing is booked, and they read the terms again.
+        $terms = BookingTerms::for($property, (string) $validated['check_in']);
+        if (! hash_equals($terms['version'], (string) ($validated['terms_version'] ?? ''))) {
+            // The terms changed between the page and the button. Nothing is booked and nothing is stored; the guest reads the new terms and ticks again.
+            return back()->withInput($request->except('terms_accepted'))->withErrors(['terms_accepted' => __('php/http/controllers/booking_engine_controller.terms_changed')]);
+        }
 
         $adults = (int) ($validated['adults'] ?? 2);
         $children = (int) ($validated['children'] ?? 0);
@@ -509,7 +530,7 @@ class BookingEngineController extends Controller
         // Book with the balance DUE (no inline charge) so a signed-in guest's REAL wallet credit can reduce it
         // FIRST (reconciling #17), and the remaining balance is then paid via the certified rail. The booking
         // routes THROUGH AssignmentService (re-checks under lock; never overbooks). No PAN touches us (SAQ A).
-        $result = $this->engine->book($quote, 'checkout', $guestData, takePayment: false);
+        $result = $this->engine->book($quote, 'checkout', $guestData, takePayment: false, terms: $terms);
 
         if ($result['status'] === 'unavailable') {
             return $this->soldOutRedirect($property, $validated, $adults, $children);
@@ -684,6 +705,8 @@ class BookingEngineController extends Controller
                 'email' => (string) $bookingQuote->email,
             ],
             'payment' => $payment,
+            // BOOKING TERMS (2026-11-14): the stored proof of what this booking's guest accepted (renders nothing when none is on record).
+            'termsRecord' => $reservation,
         ]);
     }
 
@@ -743,18 +766,29 @@ class BookingEngineController extends Controller
             'email' => ['required', 'email'],
             'first_name' => ['sometimes', 'string'],
             'last_name' => ['sometimes', 'string'],
+            // BOOKING TERMS — the same rule as the web checkout, so the machine API is not a way round it: the client confirms the guest was
+            // shown the terms (`GET /book/{property}/terms`) and accepted them. `terms_version`, when sent, must be the current one.
+            'terms_accepted' => ['required', 'accepted'],
+            'terms_version' => ['sometimes', 'string', 'max:24'],
         ]);
+
+        $property = $this->property($request);
 
         // Tenant- AND property-scoped: a quote from another property/org simply isn't found.
         $quote = BookingQuote::query()
-            ->where('property_id', $this->property($request)->getKey())
+            ->where('property_id', $property->getKey())
             ->findOrFail($validated['quote_id']);
+
+        $terms = BookingTerms::for($property, CarbonImmutable::parse($quote->check_in)->toDateString());
+        if (isset($validated['terms_version']) && ! hash_equals($terms['version'], (string) $validated['terms_version'])) {
+            throw ValidationException::withMessages(['terms_version' => [__('php/http/controllers/booking_engine_controller.terms_changed')]]);
+        }
 
         $result = $this->engine->book($quote, $validated['payment_token'], [
             'email' => $validated['email'],
             'first_name' => $validated['first_name'] ?? null,
             'last_name' => $validated['last_name'] ?? null,
-        ]);
+        ], terms: $terms);
 
         $status = $result['status'] === 'confirmed' ? 201 : ($result['status'] === 'unavailable' ? 409 : 200);
         $reservation = $result['reservation'];
@@ -776,6 +810,47 @@ class BookingEngineController extends Controller
             ->findOrFail($quote);
 
         return response()->json(['data' => $this->quotePayload($bookingQuote)]);
+    }
+
+    /**
+     * PUBLIC booking terms page (his ruling 2026-11-14) — the SAME {@see BookingTerms} the checkout shows and the booking stores, read-only,
+     * property-scoped like every other storefront page (a property A visitor can never read property B's terms). noindex: transactional.
+     */
+    public function terms(Request $request): View
+    {
+        $property = $this->property($request);
+
+        return view('booking.terms', [
+            'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.terms_title', ['property' => $property->name]), (string) $property->name),
+            'property' => $this->shellProperty($property),
+            'terms' => BookingTerms::for($property),
+            'privacyUrl' => route('booking.privacy', $property->slug),
+        ]);
+    }
+
+    /**
+     * PUBLIC guest privacy notice for a booking — what THIS booking form collects and who sees it. It states only what the system does; the
+     * retention periods the law fixes are deliberately not claimed here (OPEN F6). The property is the one responsible; Vyrobel processes for it.
+     */
+    public function privacy(Request $request): View
+    {
+        $property = $this->property($request);
+
+        return view('booking.privacy', [
+            'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.privacy_title', ['property' => $property->name]), (string) $property->name),
+            'property' => $this->shellProperty($property),
+            'contact' => implode(' · ', array_filter([trim((string) $property->brand_reply_to), trim((string) $property->support_phone)])),
+            'termsUrl' => route('booking.terms', $property->slug),
+            'platformPrivacyUrl' => route('marketing.page.privacy'),
+        ]);
+    }
+
+    /**
+     * @return array{name: string, type: string, type_code: string, slug: string}
+     */
+    private function shellProperty(Property $property): array
+    {
+        return ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'type_code' => (string) $property->type, 'slug' => (string) $property->slug];
     }
 
     private function property(Request $request): Property

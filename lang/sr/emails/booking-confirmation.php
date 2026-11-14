@@ -20,4 +20,6 @@ return [
     'signature' => 'Тим објекта :property',
     'free_cancel_until' => 'бесплатно отказивање до :date',
     'add_to_calendar' => 'Додај у календар:',
+    'terms_accepted' => 'Дана :date сте прихватили услове резервације.',
+    'terms_read' => 'Прочитај услове резервације',
 ];

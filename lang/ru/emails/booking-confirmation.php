@@ -20,4 +20,6 @@ return [
     'signature' => 'Команда объекта :property',
     'free_cancel_until' => 'бесплатная отмена до :date',
     'add_to_calendar' => 'Добавить в календарь:',
+    'terms_accepted' => ':date вы приняли условия бронирования.',
+    'terms_read' => 'Прочитать условия бронирования',
 ];
