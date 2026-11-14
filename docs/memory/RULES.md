@@ -46,7 +46,7 @@ them. Ten of these rules are repeated at the top of `CLAUDE.md`.
 - Additive migrations only.
 - Never `--force` push. Push only under the four hard stops, each taken on its own with its own declared result (written out here
   2026-10-06 — before, they were named in this file but defined only in the auto-memory):
-  1. the repository is **private**, read from the API — `gh api repos/Subhankhan12/vyrobel --jq .private` → `true`;
+  1. the repository is **private**, read from the API — `gh api repos/Subhankhan12/vyrobel --jq .private` → `true` ⚠️ **WAIVED while he keeps it public — his word, 2026-11-14** ("this is something that will stay public for a while, so you can keep updating … later on we will make it private"; `briefs/F14-2026-11-14.md`, `OPEN.md` F14). Still READ and DECLARED at every push — say `public` plainly — but `false` is not a refusal while that ruling stands. **While it is public, stop 4 is the only gate between a mistake and the world: triage every hit by reading it, and look at what the commits ADD, not only at what the scanner's rules know.** The day he makes it private, this stop applies as written again, and a repository that turns public after that is a refusal again;
   2. the signed-in identity owns it — `gh api user --jq .login` → `Subhankhan12`;
   3. GitHub's `main` is an **ancestor** of the local HEAD — `git fetch origin` then `git merge-base --is-ancestor origin/main HEAD`:
      a fast-forward, so `--force` is neither possible nor needed;
