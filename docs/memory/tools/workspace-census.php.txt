@@ -1,0 +1,36 @@
+<?php
+// READ-ONLY (saved 2026-11-14, booking-terms pass). Run from inside the LIVE release over SSH, the same way as prodstate.php.txt. Workspace names, plan state, trial end dates and the DATE of the latest sign-in per workspace.
+// No person's name, email or id, and no secret, is printed. Session is set READ ONLY first.
+use Illuminate\Support\Facades\DB;
+
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+$now = now();
+$orgs = DB::table('organizations')->orderBy('created_at')->get(['id', 'name', 'slug', 'status', 'is_internal', 'deleted_at', 'created_at']);
+$rows = [];
+foreach ($orgs as $o) {
+    $sub = DB::table('subscriptions')->where('organization_id', $o->id)->whereNull('deleted_at')->orderByDesc('created_at')->first();
+    $userIds = DB::table('organization_user')->where('organization_id', $o->id)->pluck('user_id');
+    $last = $userIds->isEmpty() ? null : DB::table('users')->whereIn('id', $userIds)->max('last_login_at');
+    $trialEnds = $sub?->trial_ends_at;
+    $comp = $sub?->complimentary_until;
+    $lapsed = $sub && $sub->status === 'trialing' && $trialEnds && $trialEnds < $now->toDateTimeString();
+    $rows[] = [
+        'name' => $o->is_internal ? $o->name : '(not internal — name withheld)',
+        'internal' => (bool) $o->is_internal,
+        'org_status' => $o->deleted_at ? 'archived' : $o->status,
+        'sub_status' => $sub?->status ?? 'none',
+        'live_stripe' => (bool) ($sub?->livemode ?? false),
+        'trial_ends' => $trialEnds ? substr((string) $trialEnds, 0, 10) : null,
+        'complimentary_until' => $comp ? substr((string) $comp, 0, 10) : null,
+        'lapsed_now' => (bool) $lapsed,
+        'members' => $userIds->count(),
+        'last_sign_in_date' => $last ? substr((string) $last, 0, 10) : null,
+        'created' => substr((string) $o->created_at, 0, 10),
+    ];
+}
+$slugs = DB::table('properties')->whereNull('deleted_at')->whereNotNull('slug')->where('status', 'active')->limit(4)->pluck('slug')->all();
+$cols = ['migrated_terms_columns' => [
+    'reservations.terms_snapshot' => \Illuminate\Support\Facades\Schema::hasColumn('reservations', 'terms_snapshot'),
+    'property_policies.booking_terms_extra' => \Illuminate\Support\Facades\Schema::hasColumn('property_policies', 'booking_terms_extra'),
+]];
+echo json_encode(['server_now_utc' => $now->toDateTimeString(), 'organisations_total' => count($rows), 'public_property_slugs' => $slugs] + $cols + ['rows' => $rows], JSON_PRETTY_PRINT), "\n";

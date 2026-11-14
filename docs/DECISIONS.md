@@ -20065,3 +20065,14 @@ mutations `security-protections` 14/14.
 **What a session must not do with this:** never loosen the box, the version check or the JSON rule to make a test or a client pass (fix the fixture); never claim a refund percentage or a retention period on these pages; never render the hotel's text unescaped.
 
 **Found on the way (pre-existing):** Settings → Policies refused every save from the real screen since 2026-07-31 (OPEN `D-SETTINGS-POLICIES-SILENT-FAIL`).
+
+## 2026-11-14 — No more waiting for the lawyer: the founder decides, in writing, and the entries say so
+
+**Ruling (Founder said, 2026-11-14):** "Yes, go ahead with all of your recommendation. but I don't want to wait for lawyer for anything. So go for the best options."
+
+**What this changed in code:**
+- **The money records' retention period** is decided by the founder, without legal advice: **10 years** (the longest period commonly required by EU accounting rules, so nothing is deleted too early). One constant (`RetentionDecisions::FINANCIAL_RECORDS_YEARS`), 14 registry entries, each stating it was the founder's own call. The old guard that pinned the registry EMPTY was replaced by one that pins what is true now: every shipped decision complete, dated 2026-11-14, attributed, naming a real table. `audit_events` / `domain_events` are deliberately NOT decided (staff IP addresses).
+- **The "Delete my account" card** now states the period definitely instead of "may have to be kept".
+- **Retired:** the standing instruction "never fill `RetentionDecisions::DECISIONS` without the lawyer's written period" (2026-11-13 entry) — superseded by this ruling.
+
+**What a session must not do with this:** never present these periods as legal advice (the entries say they are not); never extend the "no lawyer" reading to money movement, live Stripe or deleting an organisation (rules 3 and 4 stand); never decide a store the founder has not decided; when counsel is engaged, change the ONE constant and the card's words together (the test fails until both agree).

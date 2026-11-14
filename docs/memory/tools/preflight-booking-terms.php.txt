@@ -1,0 +1,71 @@
+<?php
+// READ-ONLY, NO DATABASE: from the STAGED release (stdin). Compiles every Blade view in memory and token-parses the PHP it makes, loads the new classes,
+// checks the new routes, the new migration file, and a sample of the new texts in every language, and checks the terms builder's wording for a stable
+// version hash from a fake property (no database row is read or written). Prints counts and yes/no only — never a value, never an address.
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION];
+$compiler = $app->make('blade.compiler');
+$n = 0;
+$bad = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd().'/resources/views', FilesystemIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    if (! str_ends_with($f->getPathname(), '.blade.php')) {
+        continue;
+    }
+    $n++;
+    try {
+        token_get_all($compiler->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE);
+    } catch (Throwable $e) {
+        $bad[] = str_replace(getcwd().'/', '', $f->getPathname());
+    }
+}
+$out['views_parsed'] = $n;
+$out['views_failed'] = $bad;
+
+$out['classes'] = [
+    'BookingTerms' => class_exists(App\Support\Booking\BookingTerms::class),
+    'BookingTerms::for' => method_exists(App\Support\Booking\BookingTerms::class, 'for'),
+    'BookingTerms::clean' => method_exists(App\Support\Booking\BookingTerms::class, 'clean'),
+];
+$out['routes'] = [];
+foreach (['booking.terms', 'booking.privacy', 'booking.reserve', 'booking.book', 'app.settings.policies'] as $r) {
+    $out['routes'][$r] = Route::has($r);
+}
+$out['migration_file_present'] = is_file(getcwd().'/database/migrations/2026_11_14_000000_add_booking_terms_acceptance.php');
+$out['blade_components'] = [
+    'booking.terms' => is_file(getcwd().'/resources/views/components/booking/terms.blade.php'),
+    'booking.accepted-terms' => is_file(getcwd().'/resources/views/components/booking/accepted-terms.blade.php'),
+];
+$out['max_extra'] = App\Support\Booking\BookingTerms::MAX_EXTRA;
+$out['clean_drops_control_chars'] = App\Support\Booking\BookingTerms::clean("  a\r\nb\x00c  ") === "a\nbc";
+
+$keys = [
+    'booking/checkout.before_you_book', 'booking/checkout.accept_terms', 'booking/checkout.terms_link', 'booking/checkout.privacy_link',
+    'booking/terms.heading', 'booking/terms.intro', 'booking/privacy.heading', 'booking/privacy.keep_body', 'booking/privacy.rights_body',
+    'php/support/booking/booking_terms.who_seller', 'php/support/booking/booking_terms.cancel_until', 'php/support/booking/booking_terms.cancel_after',
+    'php/support/booking/booking_terms.stay_min', 'components/booking/terms.own_terms', 'components/booking/accepted-terms.summary',
+    'php/http/controllers/booking_engine_controller.terms_required', 'php/http/controllers/booking_engine_controller.terms_changed',
+    'livewire/operator/operator-settings.booking_terms_extra', 'livewire/operator/operator-settings.booking_terms_preview',
+    'emails/booking-confirmation.terms_accepted', 'guest/reservation.booking_terms', 'livewire/reservation-detail.booking_terms',
+];
+$missing = [];
+$locales = array_values((array) config('app.available_locales'));
+foreach ($locales as $l) {
+    foreach ($keys as $k) {
+        if (! Lang::has($k, $l, false)) {
+            $missing[] = $l.':'.$k;
+        }
+    }
+}
+$out['locales'] = count($locales);
+$out['texts_checked'] = count($keys);
+$out['texts_missing'] = $missing;
+// the mailer must still be the log mailer's NAME (email stays off) — a name only
+$out['mail_default'] = (string) config('mail.default');
+echo json_encode($out, JSON_UNESCAPED_SLASHES), PHP_EOL;
