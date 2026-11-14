@@ -682,6 +682,11 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   RAN that command (it refused — "HEAD is already live" — by luck of its own guard). Write prose to a file with the file tool, or a quoted `<<'EOF'`.
 - **A subagent stopped by the account's usage limit keeps its saved work (2026-11-13).** Seven translator agents hit the 5-hour limit mid-way; after the reset,
   `SendMessage` resumed each from its parts on disk. Verify what is on disk with the tool (`check.php`), not with the agent's last words.
+- **Save the lettered options when you ask him to choose (2026-11-14).** DEC-2's options lived only in the chat; he answered "pick A", and a day later nobody could say what A was (`OPEN.md` D-DEC2-READING). Write the question WITH its letters to `briefs/` the moment it is asked.
+- **Only the rows he quotes are agreed (2026-11-14).** He answers a table by pasting the rows he agrees with. Record those, say plainly that the others are open, and ask once. Never read silence or a cut-off paste as "all" — unless he says "all" / "do all these" (then it IS the whole list, `feedback-do-all-means-the-whole-list`).
+- **A claim of absence needs a record (2026-11-14).** "A session did not change X" was written from not remembering. Say what the record shows ("no command in the repo does it; the log names his account"), not what it fails to show.
+- **The secret scanner counts prose that quotes a hit (2026-11-14).** A memory paragraph that names `auth.password` or a `:has-password=` prop raises the count by one each time it is rewritten. Read the new hit; if it is your own sentence, say so in the report. Do not add an allow-list.
+- **Every push starts a CI run (~43 minutes) and recording its result needs a commit, which starts another.** Read each run with `gh run view`, record all but the last in the memory, and report the last in chat or read it next session — do not chase it with commits.
 
 ---
 
