@@ -7,6 +7,12 @@ It runs on Laravel 13 · PHP 8.4 · **MariaDB 11.8.9 on production** (MySQL 8 lo
 roles in teams mode · ULIDs · Pest. **Live and public on https://vyrobel.com, with 0 customers** (15 internal test
 organisations). The map is `docs/memory/SYSTEMS.md`.
 
+**LATEST (2026-11-14, evening) — read `docs/memory/STATE.md`'s top sections first.** Live on **`rel_CR @ 45915155`**: the
+booking terms (a required box on the public checkout, terms built from the property's real settings, a stored proof of
+acceptance), the money records' retention decided by the founder **without a lawyer** (10 years, one constant), and a public
+check that our Content-Security-Policy arrives whole. **Read `RULES.md` Part 1 before pushing:** push hard stop 1 (repository
+private) is **waived while the repository stays public** — his word, 2026-11-14 — and stops 2–4 still run every time.
+
 **How the founder works.** Subhan Khan Tanoli, the founder, works in **Baku time (UTC+4)**.
 - Briefs are written in a separate planning chat. He pastes them here and pastes the reports back there. Open briefs are
   saved word for word in `docs/memory/briefs/`.
