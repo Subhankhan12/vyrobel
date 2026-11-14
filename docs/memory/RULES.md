@@ -686,7 +686,7 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Only the rows he quotes are agreed (2026-11-14).** He answers a table by pasting the rows he agrees with. Record those, say plainly that the others are open, and ask once. Never read silence or a cut-off paste as "all" — unless he says "all" / "do all these" (then it IS the whole list, `feedback-do-all-means-the-whole-list`).
 - **A claim of absence needs a record (2026-11-14).** "A session did not change X" was written from not remembering. Say what the record shows ("no command in the repo does it; the log names his account"), not what it fails to show.
 - **The secret scanner counts prose that quotes a hit (2026-11-14).** A memory paragraph that names `auth.password` or a `:has-password=` prop raises the count by one each time it is rewritten. Read the new hit; if it is your own sentence, say so in the report. Do not add an allow-list.
-- **Every push starts a CI run (~43 minutes) and recording its result needs a commit, which starts another.** Read each run with `gh run view`, record all but the last in the memory, and report the last in chat or read it next session — do not chase it with commits.
+- **Every push starts a CI run (~43 minutes), and a newer push CANCELS the run in flight (2026-11-14: `ef2ce57e` was cancelled at Gate 3 by the push after it; the workflow says `cancel-in-progress: true`).** So: push ONCE per sitting, at the end, after the memory is written; read that run with `gh run view` and report it in chat. Recording a result needs a commit and a commit starts another run — do not chase it. A `cancelled` run is not a pass and not a fail: say which push cancelled it.
 
 ---
 
