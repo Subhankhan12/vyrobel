@@ -20055,3 +20055,13 @@ mutations `security-protections` 14/14.
 **Ruling (Founder said, 2026-11-14, "Lets do this" on two choices laid out in a table):** (1) the public price is **per unit** — each room, apartment or villa costs a fixed amount per month (it fits operators with a mix of hotels, apartments and villas; the billing page already works this way); (2) tax rates are **set when the first customer arrives** — the rate for that customer's country, with the accountant; with 0 customers there is nothing to compute.
 
 **Not ruled (my add-ons):** the founding rate's terms (how many hotels, how long the price is held) and a rule that the rate is set before the first real charge. **Nothing built.** The real prices and Price IDs stay F5; the real rates stay F7 (`tax:set-rate`); no live money before the lawyer and accountant look (F6). The `config/billing.php` numbers (€9 per unit, €49/€99, 23%) remain placeholders.
+
+## 2026-11-14 — Booking terms, option B (D-BOOK-NO-TERMS): a required box, terms built from the property's real settings, a stored proof, a guest privacy notice
+
+**Ruling (Founder said, 2026-11-14):** "for the booking terms, we don't need lawyer. You find the best option and give me the option, I will approve and you can work on it." — then "Ok B is fine, go ahead." Scope: the checkout's booking terms and the guest privacy notice ONLY; F6's other questions (Article 28, who may hold customers' money, retention periods) are unchanged and the notice names no retention period.
+
+**Decision:** the guest must tick a required, unticked box before paying; the terms are built by ONE builder (`BookingTerms`) from what the property actually set plus the hotel's own plain text; the version shown travels in the form and a mismatch refuses the booking; the proof (time, version, the terms as shown — no guest data) is written on the reservation in the same transaction; the JSON booking endpoint requires `terms_accepted`; the guest privacy notice states only what the system does. **Why not A or C:** A (a link, no box) cannot prove agreement; C (a full editor per language with versions and a PDF) waits until hotels ask.
+
+**What a session must not do with this:** never loosen the box, the version check or the JSON rule to make a test or a client pass (fix the fixture); never claim a refund percentage or a retention period on these pages; never render the hotel's text unescaped.
+
+**Found on the way (pre-existing):** Settings → Policies refused every save from the real screen since 2026-07-31 (OPEN `D-SETTINGS-POLICIES-SILENT-FAIL`).
