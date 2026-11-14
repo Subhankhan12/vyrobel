@@ -263,14 +263,8 @@ return [
         'new' => '                continue;',
         'tests' => [['file' => $dec4, 'filter' => 'add up to every category']],
     ],
-    [
-        'id' => 'D13-M31',
-        'name' => 'the shipped registry is pre-filled with a retention period nobody decided',
-        'file' => 'app/Support/Retention/RetentionDecisions.php',
-        'old' => '    public const DECISIONS = [];',
-        'new' => "    public const DECISIONS = ['audit_events' => ['reason' => 'x', 'period' => 'y', 'decided_on' => '2026-01-01']];",
-        'tests' => [['file' => $dec4, 'filter' => 'holds no decision yet']],
-    ],
+    // D13-M31 ('the shipped registry is pre-filled with a retention period nobody decided') RETIRED 2026-11-14: the founder decided the money
+    // records' period himself, without a lawyer, so the registry is no longer empty by ruling. Its successors are in `retention-decided`.
     // ── DEC-1 — send from two mailboxes, keeping Hostinger's daily limit ─────────────────────────────────────────
     [
         'id' => 'D13-M32',

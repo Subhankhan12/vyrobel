@@ -233,6 +233,14 @@ it('dop07 asks for the operator’s password to switch back on — a wrong or mi
 
 it('dop08 refuses the owner’s web portal with plain words once it is off — nothing of the portal behind it', function () {
     $w = dopWorld();
+    // ⚠️ A LEAK-PROOF NEEDLE, NOT `U1` (found 2026-11-14: this test failed one MariaDB run on a page that leaked NOTHING). `seedScenario` codes the first
+    // unit `U1`, and the refusal page legitimately prints the org's RANDOM name ("Org XU1lNd" that run) and a random CSRF token — either can contain
+    // "U1" by chance, so `assertDontSee('U1')` tested the needle, not the behaviour. This repo's own remedy (OperatorPortfolioTest,
+    // OperatorReservationsListTest, BackOfficeAccessTest): a code that could ONLY appear by leaking — and the positive first, so the needle is shown to be
+    // capable of appearing at all.
+    $w['s']['units'][0]->update(['code' => 'OWNERUNIT9']);
+    $this->actingAs($w['login'])->get('/owner/units')->assertOk()->assertSee('OWNERUNIT9');
+
     dopOff($w['admin'], $w['owner'])->assertRedirect();
 
     $this->actingAs($w['login'])->get(route('owner.dashboard'))
@@ -240,7 +248,7 @@ it('dop08 refuses the owner’s web portal with plain words once it is off — n
         ->assertSee('Portal access is switched off')
         ->assertSee($w['s']['org']->name)
         ->assertSee('Nothing has been deleted');
-    $this->actingAs($w['login'])->get('/owner/units')->assertForbidden()->assertDontSee('U1');
+    $this->actingAs($w['login'])->get('/owner/units')->assertForbidden()->assertDontSee('OWNERUNIT9');
     $this->actingAs($w['login'])->getJson('/owner')->assertForbidden()->assertJsonPath('message', 'Portal access for this owner account is switched off.');
 });
 

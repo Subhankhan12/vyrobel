@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Support\Privacy\RetentionCoverage;
 use App\Support\Retention\RetentionDecisions;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Schema;
 
 uses(DatabaseTransactions::class);
 
@@ -88,11 +89,39 @@ it('the three buckets add up to every category counted — nothing is dropped, n
     expect($c['categories'])->toBe(5)->and($c['buckets']['pruned'] + $c['buckets']['kept'] + $c['buckets']['none'])->toBe(5);
 });
 
-it('the shipped registry holds no decision yet — the lawyer’s periods are not invented', function () {
-    expect(RetentionDecisions::DECISIONS)->toBe([])
-        ->and(RetentionDecisions::isComplete(['reason' => 'r', 'period' => 'p', 'decided_on' => '2026-01-01']))->toBeTrue()
+it('every decision the registry ships is complete, dated, and says it was the founder\'s own call without legal advice', function () {
+    // ⚠️ This used to pin the registry EMPTY ("the lawyer's periods are not invented"). On 2026-11-14 the founder decided the money records' period
+    // himself, without a lawyer; what the test guards now is that nothing half-filled or unattributed ships, and that the entries stay honest about
+    // who decided and on what basis.
+    expect(RetentionDecisions::DECISIONS)->not->toBe([]);
+
+    foreach (RetentionDecisions::DECISIONS as $table => $decision) {
+        expect(RetentionDecisions::isComplete($decision))->toBeTrue("$table: the decision is not complete")
+            ->and($decision['decided_on'])->toBe('2026-11-14')
+            ->and($decision['reason'])->toContain('DECIDED BY THE FOUNDER')->toContain('WITHOUT legal advice')
+            ->and($decision['period'])->toBe(RetentionDecisions::FINANCIAL_RECORDS_YEARS.' years');
+    }
+
+    expect(RetentionDecisions::isComplete(['reason' => 'r', 'period' => 'p', 'decided_on' => '2026-01-01']))->toBeTrue()
         ->and(RetentionDecisions::isComplete(['reason' => 'r', 'period' => '', 'decided_on' => '2026-01-01']))->toBeFalse()
         ->and(RetentionDecisions::isComplete(null))->toBeFalse();
+});
+
+it('names only tables that exist — a typo would silently count for nothing', function () {
+    foreach (array_keys(RetentionDecisions::DECISIONS) as $table) {
+        expect(Schema::hasTable($table))->toBeTrue("$table is not a table");
+    }
+});
+
+it('does not decide what is not a money record (the audit and event logs hold staff IP addresses — a different question)', function () {
+    expect(RetentionDecisions::DECISIONS)->not->toHaveKey('audit_events')->not->toHaveKey('domain_events')->not->toHaveKey('guest_documents');
+});
+
+it('the Delete-my-account card promises the same number of years the registry records', function () {
+    $card = (string) (require base_path('lang/en/components/security/deletion-card.php'))['sub'];
+
+    expect($card)->toContain('kept for '.RetentionDecisions::FINANCIAL_RECORDS_YEARS.' years')
+        ->not->toContain('may have to be kept');
 });
 
 it('an unreadable or missing inventory still says so and gives no buckets', function () {

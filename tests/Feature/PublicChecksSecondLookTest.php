@@ -148,3 +148,51 @@ it('bash accepts the script and every check still reports in the three verdicts'
     $p->run();
     expect($p->getExitCode())->toBe(0, $p->getErrorOutput());
 });
+
+// ── ⚠️ D-PROD-CSP (2026-11-14) — OUR Content-Security-Policy must ARRIVE WHOLE; the probe reads the four directives, never the bare presence of a header ──
+/** Run `csp_has_all` against a header block written to a scratch file; returns [exit code of the function, output]. */
+function pcs_csp(string $headers): array
+{
+    $file = tempnam(sys_get_temp_dir(), 'vy-hdr-');
+    file_put_contents($file, $headers);
+    [$code, $out] = pcs_run('csp_has_all '.escapeshellarg($file).'; echo "RESULT=$?"');
+    @unlink($file);
+
+    return [$out, (bool) preg_match('/RESULT=0\b/', $out)];
+}
+
+const PCS_OURS = "content-security-policy: default-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'\r\n";
+
+it('⚠️ passes when our policy arrives whole — even beside the host\'s own upgrade-insecure-requests header (a browser enforces both)', function () {
+    [, $ok] = pcs_csp("HTTP/2 200\r\n".PCS_OURS."content-security-policy: upgrade-insecure-requests\r\nx-frame-options: SAMEORIGIN\r\n");
+
+    expect($ok)->toBeTrue();
+});
+
+it('⚠️⚠️ fails on the October 2026 failure: our policy REPLACED by a bare upgrade-insecure-requests', function () {
+    [, $ok] = pcs_csp("HTTP/2 200\r\ncontent-security-policy: upgrade-insecure-requests\r\nx-frame-options: SAMEORIGIN\r\n");
+
+    expect($ok)->toBeFalse();
+});
+
+it('⚠️ fails when ANY one of the four directives is missing (each is named on its own)', function () {
+    foreach (['frame-ancestors', 'form-action', 'base-uri', 'object-src'] as $missing) {
+        $policy = trim(preg_replace('/;?\s*'.$missing.'[^;]*/', '', "default-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'"), '; ');
+        [, $ok] = pcs_csp("HTTP/2 200\r\ncontent-security-policy: {$policy}\r\n");
+
+        expect($ok)->toBeFalse("a policy without {$missing} must not pass");
+    }
+});
+
+it('does not count a Report-Only policy (it enforces nothing) and does not care about header-name case', function () {
+    [, $reportOnly] = pcs_csp("HTTP/2 200\r\ncontent-security-policy-report-only: default-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'\r\n");
+    [, $shouting] = pcs_csp("HTTP/2 200\r\nContent-Security-Policy: default-src 'self'; Frame-Ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'\r\n");
+
+    expect($reportOnly)->toBeFalse()->and($shouting)->toBeTrue();
+});
+
+it('says no when there is no headers file at all (an unreadable answer is never a pass)', function () {
+    [, $out] = pcs_run('csp_has_all /nonexistent/headers; echo "RESULT=$?"');
+
+    expect($out)->toContain('RESULT=1')->not->toContain('RESULT=0');
+});

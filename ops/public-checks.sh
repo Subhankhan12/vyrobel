@@ -20,7 +20,8 @@
 #
 # Checks: /login + both social buttons · both social redirects 302 to their provider · /signup renders its form ·
 # every anonymous /admin/* GET redirects to /admin/login (never 200, never 5xx) · anonymous /admin POSTs are
-# refused (never 200/5xx) · a 5xx sweep over every parameter-free public GET route · the exposure battery SERVED=0.
+# refused (never 200/5xx) · OUR Content-Security-Policy arrives whole (D-PROD-CSP) · a 5xx sweep over every parameter-free public GET route ·
+# the exposure battery SERVED=0.
 #
 # EXIT: 0 = every check PASSED · 1 = at least one FAIL · 2 = no FAIL but something COULD NOT MEASURE.
 set -uo pipefail
@@ -101,6 +102,21 @@ want_not_served()     { case "$1" in 200|5??|000) return 1;; esac; return 0; }
 want_status_page()    { [ "$1" = 200 ] && grep -q "Vyrobel status" "$3" 2>/dev/null && ! grep -qi "operational" "$3" 2>/dev/null; }
 want_no_5xx()         { case "$1" in 5??|000) return 1;; esac; return 0; }
 
+# ⚠️ D-PROD-CSP (found 2026-10-06; seen RESOLVED 2026-11-14 from outside): the host once REPLACED our Content-Security-Policy with a bare
+# `upgrade-insecure-requests`, which silently switched off four protections (nobody framing us, no stray form targets, no <base> rewrite, no
+# plugins). Nothing red said so. These are the four a browser needs from OUR policy; a response counts only when it names every one of them.
+CSP_NEEDED="frame-ancestors form-action base-uri object-src"
+# $1 = a file holding the response HEADERS. Returns 0 when the Content-Security-Policy header(s) name ALL four directives. Several CSP headers are
+# fine (a browser enforces each of them, so any one that carries a directive keeps it in force); `Content-Security-Policy-Report-Only` does NOT
+# count (it enforces nothing) — hence the colon straight after the name.
+csp_has_all() {
+    local d
+    for d in $CSP_NEEDED; do
+        grep -i '^content-security-policy:' "$1" 2>/dev/null | grep -qi -- "$d" || return 1
+    done
+    return 0
+}
+
 # The functions above are the whole of the second-look logic; a test sources this file with PUBLIC_CHECKS_LIB_ONLY=1 and drives them with a
 # stand-in curl and ssh, so the script's decisions are proven without a network.
 [ "${PUBLIC_CHECKS_LIB_ONLY:-0}" = 1 ] && return 0 2>/dev/null
@@ -172,6 +188,22 @@ IFS='|' read -r st loc body <<<"$(fetch GET /status)"
 if [ "$st" = 403 ] && is_cdn_challenge "$body"; then verdict CNM "/status renders (manual incidents only)" "CDN browser challenge"
 elif [ "$st" = 200 ] && grep -q "Vyrobel status" "$body" && ! grep -qi "operational" "$body"; then verdict PASS "/status renders (manual incidents only)" ""
 else second_look "/status renders (manual incidents only)" "HTTP $st$(grep -qi operational "$body" && echo ' — CLAIMS OPERATIONAL')" GET /status want_status_page; fi
+
+# 4c · ⚠️ OUR Content-Security-Policy ARRIVES WHOLE (D-PROD-CSP) — asked of /login's HEADERS. A host or CDN that swaps the header for its own is the failure; the
+#      server's own look (through the same public hostname) tells the edge's doing from the site's, exactly as for every other check.
+CSP_NAME="our Content-Security-Policy arrives whole (4 directives)"
+hdr="$(mktemp)"; hbody="$(mktemp)"
+st="$(curl -sS -o "$hbody" -D "$hdr" -w '%{http_code}' -A "$UA" -H 'Cache-Control: no-cache' "${BASE}/login" 2>/dev/null || echo 000)"
+if [ "$st" = 403 ] && is_cdn_challenge "$hbody"; then verdict CNM "$CSP_NAME" "CDN browser challenge"
+elif [ "$st" = 200 ] && csp_has_all "$hdr"; then verdict PASS "$CSP_NAME" "frame-ancestors · form-action · base-uri · object-src"
+else
+    detail="HTTP $st$([ "$st" = 200 ] && echo ' — a directive is missing from the policy that arrived')"
+    shdr="$(mktemp)"
+    if [ "$SECOND_LOOK" = 1 ] && ssh_ "curl -sS -o /dev/null -D - -A '$UA' -H 'Cache-Control: no-cache' '${BASE}/login'" > "$shdr" 2>/dev/null && [ -s "$shdr" ]; then
+        if csp_has_all "$shdr"; then verdict CNM "$CSP_NAME" "this Mac: $detail · the server, through ${BASE#*://}: the whole policy — the EDGE, not the site"
+        else verdict FAIL "$CSP_NAME" "$detail — and from the server too"; fi
+    else verdict FAIL "$CSP_NAME" "$detail — second look unavailable (the server could not be asked)"; fi
+fi
 
 # 5 · the 5xx sweep — every parameter-free public GET route, anonymously
 ROUTES="$(cd "$REPO" && php artisan route:list --method=GET --json 2>/dev/null | python3 -c '
