@@ -20049,3 +20049,9 @@ mutations `security-protections` 14/14.
 **Why a complimentary plan is a trial with a mark, not a new status:** `subscriptions.status` is a DB enum and the release script refuses a column change; a `trialing` row whose end date is the complimentary date already lapses to the paywall on the day through every existing gate.
 
 **What a session must not do with this:** never fill `RetentionDecisions::DECISIONS` without the lawyer's written period; never switch the rotation on (the second mailbox's password is his to type); never send a real email to test it.
+
+## 2026-11-14 — DEC-2 confirmed: per-unit public price; tax rates when the first customer arrives
+
+**Ruling (Founder said, 2026-11-14, "Lets do this" on two choices laid out in a table):** (1) the public price is **per unit** — each room, apartment or villa costs a fixed amount per month (it fits operators with a mix of hotels, apartments and villas; the billing page already works this way); (2) tax rates are **set when the first customer arrives** — the rate for that customer's country, with the accountant; with 0 customers there is nothing to compute.
+
+**Not ruled (my add-ons):** the founding rate's terms (how many hotels, how long the price is held) and a rule that the rate is set before the first real charge. **Nothing built.** The real prices and Price IDs stay F5; the real rates stay F7 (`tax:set-rate`); no live money before the lawyer and accountant look (F6). The `config/billing.php` numbers (€9 per unit, €49/€99, 23%) remain placeholders.
