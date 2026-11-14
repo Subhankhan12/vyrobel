@@ -666,6 +666,12 @@ How each fact is known: **(git)** = read from the repository at HEAD `49b86372`;
 - **Settings:** `SettingsActionController::updatePolicies` (`smoking` is optional since 2026-11-14 — see OPEN `D-SETTINGS-POLICIES-SILENT-FAIL`), `OperatorSettings`, `operator-settings.blade.php` (the box, the preview link, the error lines).
 - **Tests:** `tests/Feature/BookingTermsTest.php` (29), mutation set `tests/Mutations/sets/booking-terms.php` (23), helper `acceptedTerms()` in `tests/Support/booking_engine_helpers.php`. **Migration:** `2026_11_14_000000_add_booking_terms_acceptance`.
 
+## 26 · The no-lawyer decisions: money-records retention, the definite deletion card, the CSP probe (2026-11-14, `rel_CR`)
+- **Retention:** `app/Support/Retention/RetentionDecisions.php` — `FINANCIAL_RECORDS_YEARS = 10` and `DECISIONS` (14 money tables, one shared `MONEY` entry whose reason says it was the FOUNDER's call WITHOUT legal advice). `audit_events` / `domain_events` are NOT entered. `RetentionCoverage` reads it; the "categories" it counts come from the data-protection inventory, which has odd rows — read the card's number as rough. Guards: `tests/Feature/Admin/RetentionBucketsTest.php` (incl. "the card promises the same number of years"), mutation set `retention-decided`.
+- **The card:** `lang/en/components/security/deletion-card.php` `sub` (27 languages, batch 047). Changing the number means changing the constant AND the card's words — the test fails until both agree.
+- **The CSP probe:** `ops/public-checks.sh` — `CSP_NEEDED`, `csp_has_all()`, check 4c (asks `/login`'s headers; a second look through the server, like every other check). Tests in `tests/Feature/PublicChecksSecondLookTest.php`, mutation set `csp-probe`.
+- **Production tools saved:** `docs/memory/tools/preflight-booking-terms.php.txt`, `workspace-census.php.txt`.
+
 ## Sources
 
 - **git:** commits `91b83801` `5d631d9f` `f6cd45a4` `6747d128` `8fb16054` `c31ea8c2` `9d33eee5` `a85a1b27`; status +
