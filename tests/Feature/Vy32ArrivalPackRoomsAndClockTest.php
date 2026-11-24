@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Guest\GuestCheckinController;
 use App\Mail\PreArrivalMail;
 use App\Models\Guest;
 use App\Models\Property;
@@ -11,6 +12,7 @@ use App\Support\Guest\ArrivalPack;
 use App\Support\Pdf\ArrivalPackDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 
 // ⚠️⚠️ VY-32 (audit of 2026-11-24, read in code) — TWO OF ITS FIVE SMALL DEFECTS ARE THE DOOR CODE'S.
 //
@@ -119,13 +121,13 @@ it('⚠️⚠️ VY-32 (clock): a property BEHIND UTC does not release early —
 it('⚠️ VY-32 (HEIC): the ID photo accepts only what it lists — a HEIC is refused and "heic" is never named as accepted; the picker asks for the same three', function () {
     $c = vy32Stay();
     $this->travelTo('2026-09-03 10:00:00');
-    $heic = \Illuminate\Http\UploadedFile::fake()->create('photo.heic', 40, 'image/heic');
+    $heic = UploadedFile::fake()->create('photo.heic', 40, 'image/heic');
 
     $this->actingAs($c['guestUser'], 'guest')->post(route('guest.checkin.submit', $c['reservation']->getKey()), ['id_type' => 'passport', 'id_photo' => $heic])
         ->assertSessionHasErrors('id_photo');
     $messages = implode(' ', session('errors')->get('id_photo'));
     expect(strtolower($messages))->not->toContain('heic');
-    expect(\App\Http\Controllers\Guest\GuestCheckinController::ID_PHOTO_TYPES)->toBe(['jpeg', 'jpg', 'png', 'webp']);
+    expect(GuestCheckinController::ID_PHOTO_TYPES)->toBe(['jpeg', 'jpg', 'png', 'webp']);
 
     $this->actingAs($c['guestUser'], 'guest')->get(route('guest.checkin', $c['reservation']->getKey()))
         ->assertOk()->assertSee('accept="image/jpeg,image/png,image/webp"', false);

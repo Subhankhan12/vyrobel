@@ -93,8 +93,9 @@ it('emits the SEO head: title, description, canonical, OG, Twitter — and the r
     Assert::assertStringContainsString('<meta property="og:url" content="'.url('/probe-page').'">', $html);
     Assert::assertStringContainsString('<meta name="twitter:title" content="Vyrobel — probe">', $html);
     Assert::assertStringContainsString('content="index, follow"', $html);
-    // No og:image was given → none may be emitted (a default pointing at a missing asset would 404).
-    Assert::assertStringNotContainsString('og:image', $html);
+    // No og:image was given → the site's own preview image (VY-29, 2026-11-25), and only because the file EXISTS — never a tag at a 404.
+    Assert::assertFileExists(public_path('images/og-cover.png'));
+    Assert::assertStringContainsString('<meta property="og:image" content="'.url('/images/og-cover.png').'">', $html);
 });
 
 it('emits hreflang alternates through the D7-deferred slot when given — and nothing when not', function () {

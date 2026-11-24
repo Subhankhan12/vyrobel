@@ -166,7 +166,9 @@ it('surfaces real ticket photos on the detail', function () {
 
     $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")
         ->assertSee('Maintenance photo', false)
-        ->assertSee('maintenance/'.$ticket->id.'/shot.jpg', false);
+        // VY-34 (2026-11-25): a maintenance photo's only address is the signed-in route — never /media/maintenance/…
+        ->assertSee(route('app.photos.show', $ticket->media()->where('collection', 'mt_photo')->value('id')), false)
+        ->assertDontSee('/media/maintenance/', false);
 });
 
 // ── 7. The affected-arrival is REAL — an arrival TONIGHT on the blocked unit (today-narrowed count) ──

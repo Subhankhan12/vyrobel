@@ -309,8 +309,9 @@ $set = [
         'id' => 'VY06-M9',
         'name' => 'the pre-arrival email goes out on the old fixed day for every property',
         'file' => 'app/Console/Commands/SendPreArrivalEmails.php',
-        'old' => '$target = $today->copy()->addDays($forced ?? ArrivalPack::leadDays($property))->toDateString();',
-        'new' => '$target = $today->copy()->addDays($forced ?? ArrivalPack::LEAD_DAYS)->toDateString();',
+        // re-anchored 2026-11-25: VY-32 made "today" the property's (ArrivalPack::today) — the guard (each property's lead time) is unchanged
+        'old' => '$target = ArrivalPack::today($property)->addDays($forced ?? ArrivalPack::leadDays($property))->toDateString();',
+        'new' => '$target = ArrivalPack::today($property)->addDays($forced ?? ArrivalPack::LEAD_DAYS)->toDateString();',
         'tests' => [['file' => $vy06, 'filter' => 'goes out the day EACH']],
     ],
     [

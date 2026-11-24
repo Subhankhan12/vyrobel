@@ -109,7 +109,8 @@ return [
     [
         'id' => 'P2-M13',
         'name' => 'storefront ignores archive',
-        'file' => 'app/Http/Middleware/ResolvePublicProperty.php',
+        // re-anchored 2026-11-25: VY-35 moved the rule into StorefrontAvailability::closed() (one rule for the storefront, its landing page and the sitemap)
+        'file' => 'app/Support/Storefront/StorefrontAvailability.php',
         'old' => 'if ($organization === null || $organization->trashed() || in_array(',
         'new' => 'if ($organization === null || in_array(',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformTenantLifecycleTest.php']],

@@ -124,7 +124,9 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
     // ── 7. Single-use + no enumeration: the SPENT token now gives the SAME generic page as garbage ──
     $spent = $this->get("/invite/{$token}")->assertOk()->assertSee('isn’t valid');
     $garbage = $this->get('/invite/totally-made-up-token')->assertOk()->assertSee('isn’t valid');
-    expect($spent->getContent())->toBe($garbage->getContent());   // indistinguishable → no invite enumeration
+    // indistinguishable → no invite enumeration. (VY-28, 2026-11-25: each response carries its own CSP nonce, masked before comparing.)
+    $mask = fn (string $html): string => (string) preg_replace('/nonce="[^"]*"/', 'nonce=""', $html);
+    expect($mask((string) $spent->getContent()))->toBe($mask((string) $garbage->getContent()));
 
     // A reuse POST cannot re-activate; the invite stays accepted-once.
     $this->post("/invite/{$token}", ['password' => 'attacker-repass-1', 'password_confirmation' => 'attacker-repass-1'])

@@ -86,7 +86,7 @@ it('⚠️ bounds every dialog on this screen so its buttons cannot scroll away'
     // ⚠️ 2026-10-05 — the three panels moved onto the SHARED dialog card (`vy-modal vy-modal-card`), and the bound moved with them:
     //    the shared `.vy-modal` caps its height and scrolls inside, so the inline `max-height: 90vh` each panel carried is gone.
     preg_match_all('/<div [^>]*class="vy-modal vy-modal-card[^"]*"[^>]*>/', $src, $panels);
-    expect(count($panels[0]))->toBe(3);
+    expect(count($panels[0]))->toBe(4);   // + Report a problem (VY-24, 2026-11-25), on the same shared card
     $layout = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
     expect($layout)->toMatch('~\n\s*\.vy-modal \{[^}]*max-height: 92vh; overflow-y: auto~');
 });
@@ -95,18 +95,19 @@ it('⚠️ bounds every dialog on this screen so its buttons cannot scroll away'
 it('⚠️ gives each dialog on this screen a role, a name, a trap and an Escape', function () {
     $src = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
 
-    expect(substr_count($src, 'role="dialog"'))->toBe(3);
-    expect(substr_count($src, 'aria-modal="true"'))->toBe(3);
-    expect(substr_count($src, 'x-trap.noscroll='))->toBe(3);
-    expect(substr_count($src, 'tabindex="-1"'))->toBe(3);
+    // four since VY-24 (2026-11-25): Report a problem is announced and focus-managed like the other three
+    expect(substr_count($src, 'role="dialog"'))->toBe(4);
+    expect(substr_count($src, 'aria-modal="true"'))->toBe(4);
+    expect(substr_count($src, 'x-trap.noscroll='))->toBe(4);
+    expect(substr_count($src, 'tabindex="-1"'))->toBe(4);
 
     // ⚠️ A name that RESOLVES. Two point at real headings; the detail dialog has no heading to point at,
     //    so it carries an `aria-label` — a name that exists beats an `aria-labelledby` that dangles.
-    foreach (['vy-hk-assign-t', 'vy-hk-assignall-t'] as $id) {
+    foreach (['vy-hk-assign-t', 'vy-hk-assignall-t', 'vy-hk-report-title'] as $id) {   // + Report a problem (VY-24)
         expect(substr_count($src, 'aria-labelledby="'.$id.'"'))->toBe(1);
         expect(substr_count($src, 'id="'.$id.'"'))->toBe(1);
     }
     expect($src)->toContain('aria-label="Task detail"');
 
-    expect(substr_count($src, 'keydown.escape.window'))->toBe(3);
+    expect(substr_count($src, 'keydown.escape.window'))->toBe(4);
 });

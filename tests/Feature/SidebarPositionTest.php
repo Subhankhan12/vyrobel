@@ -22,7 +22,8 @@ uses(DatabaseTransactions::class);
 /** The keeper as each shell renders it: right after the sidebar, inline, aimed at `$box`, remembering under `$key`. */
 function keeperPattern(string $box, string $key): string
 {
-    return '#</aside>\s*(?:<!--.*?-->\s*)?<script>\s*\(function \(\) \{\s*var side = document\.querySelector\(\''
+    // VY-28 (2026-11-25): every inline script carries this request's CSP nonce — still inline, still synchronous (no src, defer or module)
+    return '#</aside>\s*(?:<!--.*?-->\s*)?<script nonce="[^"]+">\s*\(function \(\) \{\s*var side = document\.querySelector\(\''
         .preg_quote($box, '#').'\'\);.*?var KEY = \'vy\.sidebar\.\' \+ \''.preg_quote($key, '#').'\';#s';
 }
 
@@ -51,12 +52,12 @@ it('keeps the admin console sidebar in place', function () {
 it('runs before the page is drawn, keeps the current item in view, and never creeps', function () {
     $s = seedScenario(1);
     $html = (string) $this->actingAs(operatorUser($s))->get('/app/dashboard')->assertOk()->getContent();
-    preg_match('#</aside>\s*(<script>.*?</script>)#s', $html, $m);
+    preg_match('#</aside>\s*(<script nonce="[^"]+">.*?</script>)#s', $html, $m);   // VY-28: with this request's nonce
     $script = $m[1] ?? '';
 
     expect($script)->not->toBe('')
         // Inline and synchronous: a deferred or module script runs after the first paint, which is the jump itself.
-        ->and($script)->toStartWith('<script>')
+        ->and($script)->toMatch('#^<script nonce="[^"]+">#')
         // The page you are on is always shown, even with nothing remembered (a bookmark, an email link).
         ->and($script)->toContain('side.querySelector(\'[aria-current="page"]\')')
         ->and($script)->toContain('if (c.top < s.top || c.bottom > s.bottom) {')

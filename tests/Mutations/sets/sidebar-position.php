@@ -63,8 +63,9 @@ return [
         'id' => 'SP-M7',
         'name' => 'the keeper runs after the first paint (a module script — the jump comes back)',
         'file' => $keeper,
-        'old' => "@props(['for', 'key'])\n<script>",
-        'new' => "@props(['for', 'key'])\n<script type=\"module\">",
+        // re-anchored 2026-11-25: VY-28 put the request's nonce on every inline script
+        'old' => "@props(['for', 'key'])\n<script @nonce>",
+        'new' => "@props(['for', 'key'])\n<script type=\"module\" @nonce>",
         'tests' => [['file' => $test, 'filter' => 'keeps the operator sidebar in place']],
     ],
     [

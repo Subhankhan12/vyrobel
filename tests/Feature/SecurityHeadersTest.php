@@ -82,9 +82,10 @@ it('blocks cross-origin framing of the money surfaces', function () {
 it('keeps the four relaxations the app actually needs', function () {
     $csp = (string) $this->get('/login')->headers->get('Content-Security-Policy');
 
-    // 1. Livewire injects inline <script>; the Alpine it bundles evaluates directives with `new Function`.
-    //    Verified functionally in the browser: an x-text of "n + 41" renders "42" under this policy.
-    expect($csp)->toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval'");
+    // 1. VY-28 (2026-11-25): inline scripts by NONCE, not 'unsafe-inline' — every inline <script> carries this request's nonce.
+    //    'unsafe-eval' stays: the Alpine Livewire bundles evaluates directives with `new Function` (an x-text of "n + 41" renders "42").
+    expect($csp)->toMatch("/script-src 'self' 'nonce-[A-Za-z0-9]+' 'unsafe-eval'/")
+        ->and($csp)->not->toContain("script-src 'self' 'unsafe-inline'");
 
     // 2. The design system is inline <style> blocks plus ~97 inline style="…" attributes on one operator
     //    page. Inline style ATTRIBUTES cannot carry a nonce or hash — there is no mechanism.

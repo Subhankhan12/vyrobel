@@ -128,4 +128,7 @@ $out['vy27'] = ['inspection_rule_on' => DB::table('property_policies')->where('i
 // VY-32 — statements in another currency (the exact FX path); ID documents on file (a HEIC was always refused, so none is one)
 $out['vy32'] = ['statements_with_fx' => DB::table('owner_statements')->whereNotNull('fx_rate')->count(), 'id_documents_on_file' => DB::table('guest_documents')->count()];
 
+// D-VY07-FIRST-SCHEDULED-RUN — did the scheduler run availability:extend on its own? (1,672 rows after the hand run of 24 Nov; +4 a night)
+$out['availability'] = ['rows' => DB::table('availability')->count(), 'room_types' => DB::table('availability')->distinct()->count('room_type_id'), 'last_night_min' => DB::table('availability')->selectRaw('room_type_id, max(date) as m')->groupBy('room_type_id')->get()->min('m')];
+
 echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), "\n";

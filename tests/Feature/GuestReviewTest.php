@@ -233,7 +233,8 @@ it('guards publishing a review behind an explicit confirmation', function () {
 
     $html = $this->actingAs($a, 'guest')->get(route('guest.review', $reservation->getKey()))->assertOk()->getContent();
 
-    expect($html)->toContain('onsubmit="return confirm(')
+    // VY-28 (2026-11-25): no inline handler is allowed — the form asks through `data-confirm-text`, read by the shared script
+    expect($html)->toContain('data-confirm-text="')
         ->and($html)->toContain('visible to the property and to other travellers')
         ->and($html)->toContain('data-guard-submit');
 });

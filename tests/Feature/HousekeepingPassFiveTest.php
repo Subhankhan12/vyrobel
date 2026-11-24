@@ -112,7 +112,8 @@ it('⚠️ says only what the Assign dialogs really do — no "task list", no de
 
     // 📖 before: "The room appears in their task list. (Device push isn’t wired — no fabricated notification.)" — there is no
     //    per-housekeeper task list; "Everyone sees their new rooms in their task list"; "{n} today" counted every open room
-    expect($html)->not->toContain('task list')->not->toContain('Device push')->not->toContain('today</span>')
+    // (the banned figure was "{n} today" — a COUNT; VY-24's "Urgent: it needs attention today" is a sentence, not that figure)
+    expect($html)->not->toContain('task list')->not->toContain('Device push')->not->toMatch('/\d+\s*today<\/span>/')
         ->toContain('It shows under their name on this board.');
 });
 
@@ -134,8 +135,8 @@ it('⚠️⚠️ opens every dialog centred on the shared solid card — no hand
     $src = (string) file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
 
     // 🔬 before: Assign and Assign all had `display: flex` inline beside x-show — they opened as `block`, top-left
-    expect(substr_count($src, 'class="vy-modal vy-modal-card'))->toBe(3)
-        ->and(substr_count($src, 'class="vy-modal-backdrop"'))->toBe(3)
+    expect(substr_count($src, 'class="vy-modal vy-modal-card'))->toBe(4)   // + Report a problem (VY-24, 2026-11-25)
+        ->and(substr_count($src, 'class="vy-modal-backdrop"'))->toBe(4)
         ->and($src)->not->toContain('position: fixed; inset: 0');
 });
 
