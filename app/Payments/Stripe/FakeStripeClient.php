@@ -229,14 +229,14 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeCheckoutSession($id, $url, null, $this->livemode, time() + $this->checkoutLifetimeSeconds);
     }
 
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null, ?int $expiresAt = null): StripeCheckoutSession
     {
         $this->checkoutAccounts[] = $connectedAccountId;
         // A repeated Idempotency-Key returns the ORIGINAL session (+ its PaymentIntent) — never a second charge.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->checkoutSessions[$this->idempotency[$idempotencyKey]];
 
-            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url'], (string) $existing['payment_intent'], $this->livemode, time() + $this->checkoutLifetimeSeconds);
+            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url'], (string) $existing['payment_intent'], $this->livemode, $expiresAt ?? time() + $this->checkoutLifetimeSeconds);
         }
 
         $id = 'cs_fake_'.Str::lower(Str::random(20));
@@ -250,12 +250,13 @@ class FakeStripeClient implements StripeClientInterface
             'currency' => $currency,
             'payment_intent' => $paymentIntent,
             'metadata' => $metadata,
+            'expires_at' => $expiresAt ?? time() + $this->checkoutLifetimeSeconds,
         ];
         if ($idempotencyKey !== null) {
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeCheckoutSession($id, $url, $paymentIntent, $this->livemode, time() + $this->checkoutLifetimeSeconds);
+        return new StripeCheckoutSession($id, $url, $paymentIntent, $this->livemode, $expiresAt ?? time() + $this->checkoutLifetimeSeconds);
     }
 
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent

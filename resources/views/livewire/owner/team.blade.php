@@ -106,7 +106,7 @@
                                            autocomplete="current-password" aria-label="{{ __('livewire/owner/team.confirm_password') }}">
                                     <button type="submit" class="vy-tm-mini">{{ __('common.save') }}</button>
                                 </form>
-                                <form method="POST" action="{{ route('owner.team.members.remove', $member['id']) }}" style="display:flex;gap:6px;align-items:center;margin:0" onsubmit="return confirm(@js(__('livewire/owner/team.remove_confirm', ['name' => $member['name']])))">
+                                <form method="POST" action="{{ route('owner.team.members.remove', $member['id']) }}" style="display:flex;gap:6px;align-items:center;margin:0" data-confirm-text="{{ __('livewire/owner/team.remove_confirm', ['name' => $member['name']]) }}">
                                     @csrf
                                     @method('DELETE')
                                     <input type="password" name="current_password" class="vy-input"

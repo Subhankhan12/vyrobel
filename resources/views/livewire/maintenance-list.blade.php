@@ -758,7 +758,7 @@
         }
     @endphp
     @include('partials.operator-list-script')
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyMaint', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/maintenance-list.empty_view')) }), {
                 // the bulk dialogs' sentences, one per count (a selection is of the rows on one page, so 0 … the largest page size)

@@ -26,7 +26,7 @@
     // a count's words are computed HERE, per count (a script cannot pluralise for every language); a count past 99 falls back to the many-form
     $__lpUnread = collect(range(1, 99))->mapWithKeys(fn (int $n): array => [$n => trans_choice('partials/live-pulse.desktop_unread', $n, ['count' => $n])])->all();
 @endphp
-<script>
+<script @nonce>
 (() => {
     if (window.VyLive) return;
     const PULSE = @js(route('app.pulse'));

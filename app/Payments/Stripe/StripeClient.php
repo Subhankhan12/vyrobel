@@ -188,7 +188,7 @@ class StripeClient implements StripeClientInterface
         return new StripeCheckoutSession((string) $session->id, (string) $session->url, null, (bool) $session->livemode, $session->expires_at);
     }
 
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null, ?int $expiresAt = null): StripeCheckoutSession
     {
         $session = $this->sdk->checkout->sessions->create([
             'mode' => 'payment',
@@ -205,7 +205,7 @@ class StripeClient implements StripeClientInterface
             'metadata' => $metadata,
             // Propagate the metadata onto the PaymentIntent too (reconciliation breadcrumbs).
             'payment_intent_data' => ['metadata' => $metadata],
-        ], $this->options($idempotencyKey, $connectedAccountId));
+        ] + ($expiresAt !== null ? ['expires_at' => $expiresAt] : []), $this->options($idempotencyKey, $connectedAccountId));
 
         $paymentIntent = $session->payment_intent;
 

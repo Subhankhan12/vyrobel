@@ -59,22 +59,28 @@
 
     {{-- Access — door code + wifi, printed ONLY within the arrival window (#33). --}}
     @if ($pack['released'])
-        @if ($pack['door_code'])
-            <div class="card">
-                <div class="lbl">{{ __('pdfs/arrival.door_code') }}</div>
-                <div class="code">{{ $pack['door_code'] }}</div>
-            </div>
-        @endif
-        @if ($pack['wifi_ssid'])
-            <div class="card">
-                <table class="wifi" style="width:100%; border-collapse:collapse;">
-                    <tr><td class="k">{{ __('pdfs/arrival.wifi_network') }}</td><td>{{ $pack['wifi_ssid'] }}</td></tr>
-                    @if ($pack['wifi_password'])
-                        <tr><td class="k">{{ __('pdfs/arrival.password') }}</td><td>{{ $pack['wifi_password'] }}</td></tr>
-                    @endif
-                </table>
-            </div>
-        @endif
+        {{-- ⚠️ VY-32 — every room of the stay (a two-room stay printed the first room's code only); its name heads it when there are several --}}
+        @foreach ($pack['rooms'] as $room)
+            @if (count($pack['rooms']) > 1 && ($room['door_code'] || $room['wifi_ssid']))
+                <div class="section-h">{{ $room['label'] }}</div>
+            @endif
+            @if ($room['door_code'])
+                <div class="card">
+                    <div class="lbl">{{ __('pdfs/arrival.door_code') }}</div>
+                    <div class="code">{{ $room['door_code'] }}</div>
+                </div>
+            @endif
+            @if ($room['wifi_ssid'])
+                <div class="card">
+                    <table class="wifi" style="width:100%; border-collapse:collapse;">
+                        <tr><td class="k">{{ __('pdfs/arrival.wifi_network') }}</td><td>{{ $room['wifi_ssid'] }}</td></tr>
+                        @if ($room['wifi_password'])
+                            <tr><td class="k">{{ __('pdfs/arrival.password') }}</td><td>{{ $room['wifi_password'] }}</td></tr>
+                        @endif
+                    </table>
+                </div>
+            @endif
+        @endforeach
     @else
         <div class="card withheld">
             <div class="lbl">{{ __('pdfs/arrival.access_details') }}</div>
@@ -90,9 +96,13 @@
     @endif
 
     {{-- House notes — the operator's real note for this unit (never a fabricated multi-section guide). --}}
-    @if ($pack['released'] && $pack['arrival_notes'])
-        <div class="section-h">{{ __('pdfs/arrival.house_notes') }}</div>
-        <div class="body">{{ $pack['arrival_notes'] }}</div>
+    @if ($pack['released'])
+        @foreach ($pack['rooms'] as $room)
+            @if ($room['arrival_notes'])
+                <div class="section-h">{{ __('pdfs/arrival.house_notes') }}@if (count($pack['rooms']) > 1) · {{ $room['label'] }}@endif</div>
+                <div class="body">{{ $room['arrival_notes'] }}</div>
+            @endif
+        @endforeach
     @endif
 
     <div class="foot">

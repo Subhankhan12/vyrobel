@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  *
  * @property Carbon|null $paused_until
  * @property Carbon|null $readonly_from
+ * @property int|null $statement_close_day VY-26 — 1–28: last month's owner statements close by themselves that day; NULL = by hand
  * @property bool|null $is_internal Vyrobel's own test/demo/probe org — excluded from platform statistics.
  *                                  ⚠️ Deliberately NOT fillable: only the audited console action (and the demo seeder) may set it.
  */
@@ -43,6 +44,7 @@ class Organization extends Model
         'invoice_series_prefix',
         'invoice_next_number',
         'invoice_auto_issue',
+        'statement_close_day',   // VY-26 — the day of the month last month's owner statements close by themselves (NULL = by hand)
         'custom_domain',
         'branding',
     ];
@@ -57,6 +59,7 @@ class Organization extends Model
             'paused_until' => 'datetime',
             'readonly_from' => 'datetime',
             'is_internal' => 'boolean',
+            'statement_close_day' => 'integer',
         ];
     }
 

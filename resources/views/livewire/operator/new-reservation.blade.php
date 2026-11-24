@@ -72,7 +72,7 @@
             {{-- ⚠️ THE DRAFT DIES WITH THE BOOKING IT BECAME — otherwise "New reservation" would open pre-filled with the
                  booking just made. Cleared here, on success, not on the Confirm click: a refused booking keeps it. --}}
             {{-- …and the Calendar dialog's guest name, kept in the tab only across its "Check rack" (it books through here too). --}}
-            <script>try { sessionStorage.removeItem('vyrobel:new-reservation:draft'); localStorage.removeItem('vyrobel:new-reservation:draft'); sessionStorage.removeItem('vyrobel:rack-new-reservation:guest'); } catch (e) {}</script>
+            <script @nonce>try { sessionStorage.removeItem('vyrobel:new-reservation:draft'); localStorage.removeItem('vyrobel:new-reservation:draft'); sessionStorage.removeItem('vyrobel:rack-new-reservation:guest'); } catch (e) {}</script>
         </div>
     </div>
 @else
@@ -88,7 +88,7 @@
                     <form method="POST" action="{{ route('app.property.switch') }}" class="vy-nr-propform">
                         @csrf
                         <label class="vy-nr-proplabel" for="vy-nr-prop">{{ __('livewire/operator/new-reservation.booking_into') }}</label>
-                        <select id="vy-nr-prop" name="property_id" class="vy-nr-propselect" onchange="this.form.submit()">
+                        <select id="vy-nr-prop" name="property_id" class="vy-nr-propselect" data-autosubmit>
                             @foreach ($properties as $__p)
                                 <option value="{{ $__p['id'] }}" @selected($__p['id'] === $propertyId)>{{ $__p['name'] }}</option>
                             @endforeach
@@ -767,7 +767,7 @@
         @endphp
         @once @include('partials.local-number-script') @endonce
         <script type="application/json" id="vy-nr-boot">{!! json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
-        <script>
+        <script @nonce>
             function newReservationWizard() {
                 const BOOT = JSON.parse(document.getElementById('vy-nr-boot').textContent);
                 const R = BOOT.restore;

@@ -96,6 +96,15 @@ final class StripeEvent
     }
 
     /** The `organization_id` stamped into `data.object.metadata` at Checkout create — resolves the tenant. */
+    /** A string the app stamped in the object's `metadata` (null when absent or not a string). */
+    public function metadataValue(string $key): ?string
+    {
+        $metadata = $this->object()['metadata'] ?? [];
+        $value = is_array($metadata) ? ($metadata[$key] ?? null) : null;
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
     public function metadataOrganizationId(): ?string
     {
         $metadata = $this->object()['metadata'] ?? [];

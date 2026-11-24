@@ -97,7 +97,7 @@
          it. Same component, same disclosure, same form — one definition (§N.8f). --}}
     <div class="vy-mk-footnote" style="padding-top:18px;border-top:1px solid var(--vy-hairline);">
         <details>
-            <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--vy-faint);">Cookies &amp; your choice</summary>
+            <summary style="cursor:pointer;padding:5px 0;line-height:1.2;font-size:12px;font-weight:600;color:var(--vy-faint);">Cookies &amp; your choice</summary>
             <div style="margin-top:14px;">
                 <x-marketing.cookie-notice mode="panel" />
             </div>

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\PayoutRun;
+use App\Models\Organization;
 use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
@@ -14,6 +15,7 @@ use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
 use App\Services\PayoutRunService;
+use App\Support\Events\AuditEventRecorder;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
@@ -363,6 +365,29 @@ class PayoutRunActionController extends Controller
             PayoutRunModel::MODE_LIVE => __('php/http/controllers/operator/payout_run_action_controller.mode_live'),
             default => $mode,
         };
+    }
+
+    /**
+     * ⚠️ VY-26 (audit of 2026-11-24) — the day of the month on which last month's owner statements close by themselves
+     * (`statements:close-month`), or off. Gated `payouts.manage` like "Close period" itself: closing a period makes money payable.
+     */
+    public function statementSchedule(Request $request, AuditEventRecorder $audit): RedirectResponse
+    {
+        $validated = $request->validate(['close_day' => ['nullable', 'integer', 'min:0', 'max:28']]);
+
+        if ($this->paused()) {
+            return $this->back('payout_error', $this->pausedMessage());
+        }
+
+        $day = (int) ($validated['close_day'] ?? 0);
+        $organization = Organization::query()->findOrFail((string) app(TenantContext::class)->id());
+        $before = $organization->statement_close_day;
+        $organization->forceFill(['statement_close_day' => $day >= 1 ? $day : null])->save();
+        $audit->record('organization.statement_schedule_updated', $organization, ['statement_close_day' => $before], ['statement_close_day' => $organization->statement_close_day]);
+
+        return $this->back('payout_notice', $day >= 1
+            ? __('php/http/controllers/operator/payout_run_action_controller.statements_auto_on', ['day' => $day])
+            : __('php/http/controllers/operator/payout_run_action_controller.statements_auto_off'));
     }
 
     private function back(string $key, string $message): RedirectResponse

@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Maximum stay: :count night.|[0,*] Maximum stay: :count nights.',
     'stay_pets' => 'Pets: :rule.',
     'stay_smoking' => 'Smoking: :rule.',
-    'stay_deposit' => 'A deposit is required when you book.',
+    'stay_deposit_percent' => 'A deposit of :percent% of the total is paid by card when you book.',
 ];

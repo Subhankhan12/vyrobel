@@ -151,7 +151,7 @@
         .vys-caret { animation: none; } select:not([multiple]):not([data-native]) { transition: none; }
     }
 </style>
-<script>
+<script @nonce>
 (function () {
     'use strict';
     if (window.VySelect) { return; }
@@ -470,3 +470,5 @@
 })();
 </script>
 @endonce
+{{-- VY-28 — the pages' small behaviours, without one inline event handler (included here because every shell already loads this) --}}
+<x-vy-behaviours />

@@ -25,4 +25,7 @@ return [
     'is_in_progress' => 'in progress',
     'is_clean' => 'clean',
     'is_inspected' => 'inspected',
+    'problem_title_required' => 'Say what is wrong.',
+    'problem_reported' => ':unit — problem reported. A work order is open for the maintenance team.',
+    'second_person_required' => ':unit was marked clean by you. Another person must inspect it.',
 ];

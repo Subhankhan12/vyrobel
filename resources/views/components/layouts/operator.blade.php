@@ -1292,6 +1292,10 @@
         }
         /* the dialogs — the shared solid card */
         .vy-hk-dlg { max-width: 500px; }
+        /* VY-24 — the "Report a problem" kinds wrap three to a row in this narrower dialog (five in one row broke the words), and the
+           report button keeps a gap from the photo button above it */
+        .vy-hk-kinds .vy-choice-row { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .vy-hk-report-btn { margin-top: 8px; }
         .vy-hk-head-text { flex: 1; min-width: 0; }
         .vy-hk-head-text .vy-modal-title { overflow-wrap: anywhere; }
         .vy-hk-pick { border: 0; margin: 0 0 12px; padding: 0; min-width: 0; }
@@ -3350,6 +3354,15 @@
         .vyo-pr-actions .vy-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
         .vyo-pr-off { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 16px; padding: 10px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); font-size: 12.5px; line-height: 1.5; color: var(--vy-ink); }
         .vyo-pr-off svg { flex: none; margin-top: 2px; color: var(--vy-accent-text); }
+        /* VY-28 — a hover that was an onmouseover/onmouseout pair (no inline handler is allowed now); !important beats the element's own inline background */
+        .vy-hover-wash:hover { background: var(--vy-wash) !important; }
+        /* VY-26 — the "close statements by themselves" row: the words on the left, the day and Save on the right; stacked when narrow */
+        .vyo-pr-auto { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); }
+        .vyo-pr-auto-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 320px; }
+        .vyo-pr-auto-text .vy-field-label { margin: 0; }
+        .vyo-pr-auto-help { font-size: 12px; line-height: 1.5; color: var(--vy-muted); }
+        .vyo-pr-auto-ctl { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; }
+        .vyo-pr-auto-ctl select { min-width: 0; max-width: 220px; }
         .vyo-pr-cols { margin-top: 22px; }
         .vyo-pr-note { margin: 0 0 12px; }
         .vyo-pr-note--top { margin-top: 14px; }

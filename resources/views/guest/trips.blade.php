@@ -55,7 +55,7 @@
         </form>
 
         @if (count($years) > 1)
-            <select aria-label="{{ __('guest/trips.year_label') }}" onchange="window.location.href='?tab={{ $tab }}&q={{ rawurlencode($query) }}&year='+this.value" class="vy-input" style="padding:11px 14px;border-radius:30px;font-size:13px">
+            <select aria-label="{{ __('guest/trips.year_label') }}" data-nav-base="?tab={{ $tab }}&q={{ rawurlencode($query) }}&year=" class="vy-input" style="padding:11px 14px;border-radius:30px;font-size:13px">
                 <option value="" @selected($year === '')>{{ __('guest/trips.all_years') }}</option>
                 @foreach ($years as $y)
                     <option value="{{ $y }}" @selected((string) $year === (string) $y)>{{ $y }}</option>

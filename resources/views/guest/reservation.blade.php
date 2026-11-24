@@ -99,11 +99,16 @@
                     <div style="padding:10px 12px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline)"><div style="font-size:11px;color:var(--vy-muted)">{{ __('guest/reservation.check_out') }}</div><div style="font-size:14px;font-weight:600;color:var(--vy-ink);margin-top:2px">{{ $arrival['check_out_time'] }}</div></div>
                 @endif
             </div>
-            @if ($arrival['released'] && $arrival['door_code'] !== null)
-                <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">{{ __('guest/reservation.door_code') }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums;color:var(--vy-ink)">{{ $arrival['door_code'] }}</span></div>
-                @if ($arrival['wifi_ssid'] !== null)
-                    <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">{{ __('guest/reservation.wifi') }}</span><span style="font-weight:600;color:var(--vy-ink)">{{ $arrival['wifi_ssid'] }}</span></div>
-                @endif
+            @if ($arrival['released'] && collect($arrival['rooms'])->contains(fn (array $r): bool => $r['door_code'] !== null))
+                {{-- ⚠️ VY-32 — every room's code (a two-room stay showed the first room's only); the room's name before each when there are several --}}
+                @foreach ($arrival['rooms'] as $room)
+                    @if ($room['door_code'] !== null)
+                        <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">@if (count($arrival['rooms']) > 1)<strong style="color:var(--vy-ink);font-weight:600">{{ $room['label'] }}</strong> · @endif{{ __('guest/reservation.door_code') }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums;color:var(--vy-ink)">{{ $room['door_code'] }}</span></div>
+                    @endif
+                    @if ($room['wifi_ssid'] !== null)
+                        <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">@if (count($arrival['rooms']) > 1)<strong style="color:var(--vy-ink);font-weight:600">{{ $room['label'] }}</strong> · @endif{{ __('guest/reservation.wifi') }}</span><span style="font-weight:600;color:var(--vy-ink)">{{ $room['wifi_ssid'] }}</span></div>
+                    @endif
+                @endforeach
             @else
                 {{-- ⚠️ THE UNLOCK DATE FOLLOWS THE ENGINE, and the promise follows the DATA.
                      This line used to read a hardcoded "48h before check-in" — the PROTOTYPE's mock value

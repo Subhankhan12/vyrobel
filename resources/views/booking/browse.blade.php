@@ -117,17 +117,17 @@
             <div class="vy2-field">
                 <span class="vy2-field-k">{{ __('booking/browse.adults') }}</span>
                 <span class="vy2-stepper">
-                    <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
+                    <button type="button" data-stepper="down">&minus;</button>
                     <input type="number" name="adults" min="1" max="{{ $guestCaps['adults'] }}" value="{{ $search['adults'] }}" readonly aria-label="{{ __('booking/browse.adults') }}">
-                    <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+                    <button type="button" data-stepper="up">+</button>
                 </span>
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">{{ __('booking/browse.children') }}</span>
                 <span class="vy2-stepper">
-                    <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
+                    <button type="button" data-stepper="down">&minus;</button>
                     <input type="number" name="children" min="0" max="{{ $guestCaps['children'] }}" value="{{ $search['children'] }}" readonly aria-label="{{ __('booking/browse.children') }}">
-                    <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+                    <button type="button" data-stepper="up">+</button>
                 </span>
             </div>
             <button type="submit" class="vy2-search-btn">{{ __('common.search') }}</button>
@@ -150,7 +150,7 @@
                     @endif
                     <span class="vy2-chips">
                         @foreach (['recommended' => __('booking/browse.sort_recommended'), 'rating' => __('booking/browse.sort_top_rated'), 'price_asc' => __('booking/browse.sort_price_asc'), 'price_desc' => __('booking/browse.sort_price_desc')] as $k => $label)
-                            <label class="vy2-seg"><input type="radio" name="sort" value="{{ $k }}" @checked($refine['sort'] === $k) onchange="this.form.submit()"><span>{{ $label }}</span></label>
+                            <label class="vy2-seg"><input type="radio" name="sort" value="{{ $k }}" @checked($refine['sort'] === $k) data-autosubmit><span>{{ $label }}</span></label>
                         @endforeach
                     </span>
                 </div>
@@ -160,9 +160,9 @@
             @if (count($filterOptions['bedrooms']) > 0)
                 <div class="vy2-filter-row">
                     <span class="vy2-filter-k">{{ __('booking/browse.bedrooms') }}</span>
-                    <label class="vy2-pill"><input type="radio" name="bedrooms" value="" @checked($refine['bedrooms'] === null) onchange="this.form.submit()"><span>{{ __('booking/browse.any_bedrooms') }}</span></label>
+                    <label class="vy2-pill"><input type="radio" name="bedrooms" value="" @checked($refine['bedrooms'] === null) data-autosubmit><span>{{ __('booking/browse.any_bedrooms') }}</span></label>
                     @foreach ($filterOptions['bedrooms'] as $b)
-                        <label class="vy2-pill"><input type="radio" name="bedrooms" value="{{ $b }}" @checked($refine['bedrooms'] === $b) onchange="this.form.submit()"><span>{{ $b === 0 ? __('booking/browse.studio') : $b.'+' }}</span></label>
+                        <label class="vy2-pill"><input type="radio" name="bedrooms" value="{{ $b }}" @checked($refine['bedrooms'] === $b) data-autosubmit><span>{{ $b === 0 ? __('booking/browse.studio') : $b.'+' }}</span></label>
                     @endforeach
                 </div>
             @endif
@@ -172,7 +172,7 @@
                 <div class="vy2-filter-row">
                     <span class="vy2-filter-k">{{ __('booking/browse.amenities') }}</span>
                     @foreach ($filterOptions['amenities'] as $a)
-                        <label class="vy2-pill"><input type="checkbox" name="amenities[]" value="{{ $a }}" @checked(in_array($a, $refine['amenities'], true)) onchange="this.form.submit()"><span>{{ $a }}</span></label>
+                        <label class="vy2-pill"><input type="checkbox" name="amenities[]" value="{{ $a }}" @checked(in_array($a, $refine['amenities'], true)) data-autosubmit><span>{{ $a }}</span></label>
                     @endforeach
                 </div>
             @endif
@@ -183,8 +183,8 @@
                 <div class="vy2-range">
                     <span class="vy2-filter-k">{{ __('booking/browse.max_price') }}</span>
                     <input type="range" name="max_price" min="0" max="{{ $ceiling }}" step="10" value="{{ $current }}"
-                           oninput="document.getElementById('vy2-mp').textContent = (this.value >= this.max ? @js(__('booking/browse.any_price')) : (@js($property['currency_symbol']) + this.value))"
-                           onchange="this.form.submit()">
+                           data-vy-input="vy2MaxPrice" data-any-price="{{ __('booking/browse.any_price') }}" data-currency-symbol="{{ $property['currency_symbol'] }}"
+                           data-autosubmit>
                     <span class="vy2-range-val" id="vy2-mp">{{ $current >= $ceiling ? __('booking/browse.any_price') : $property['currency_symbol'].$current }}</span>
                 </div>
             @endif
@@ -260,4 +260,12 @@
         </div>
     @endif
 
+    {{-- VY-28 — the price slider's label (was an inline oninput handler): the words come from the field's own data attributes --}}
+    <script @nonce>
+        function vy2MaxPrice(range) {
+            var out = document.getElementById('vy2-mp');
+            if (!out) return;
+            out.textContent = Number(range.value) >= Number(range.max) ? range.getAttribute('data-any-price') : range.getAttribute('data-currency-symbol') + range.value;
+        }
+    </script>
 </x-public.shell>

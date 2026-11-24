@@ -208,4 +208,13 @@ return [
     'default_locale' => 'Default locale',
     'billing_email' => 'Billing email',
     'save_organization' => 'Save organization settings',
+    'housekeeping_heading' => 'Housekeeping',
+    'inspection_by_second_person' => 'Inspection by a second person',
+    'inspection_help' => 'When this is on, the person who marked a room clean cannot also mark it inspected.',
+    'deposit_percent' => 'Deposit, % of the total',
+    'deposit_help' => 'Guests pay this share by card when they book online; the rest is due at the property. A booking whose card payment is not completed in 30 minutes is released.',
+    'deposit_no_cards' => 'Card payments are not switched on for this workspace, so while a deposit is required your storefront takes no online bookings.',
+    'no_show_heading' => 'No-shows',
+    'auto_no_show' => 'Mark no-shows automatically',
+    'auto_no_show_help' => 'A confirmed booking whose guest has not checked in by check-out time on the day after arrival is marked a no-show, and its room is released for the nights left. Check guests in as they arrive.',
 ];

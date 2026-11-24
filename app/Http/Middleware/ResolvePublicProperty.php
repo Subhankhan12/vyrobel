@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Organization;
 use App\Models\Property;
+use App\Support\Storefront\StorefrontAvailability;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -89,7 +90,9 @@ class ResolvePublicProperty
             fn (): ?Organization => Organization::withTrashed()->whereKey($property->organization_id)->first(['id', 'status', 'deleted_at']),
         );
 
-        if ($organization === null || $organization->trashed() || in_array($organization->status, self::CLOSED_FOR_BOOKING, true)) {
+        // ⚠️⚠️ VY-35 (audit of 2026-11-24) — AND A LAPSED WORKSPACE. The paywall closed its back office and left this door open, so a
+        //    booking could arrive that nobody at the hotel could see. One rule for every public surface: StorefrontAvailability.
+        if ($tenant->runAsSuperAdmin(fn (): bool => StorefrontAvailability::closed($organization))) {
             // ⚠️ RETURNED, NOT `abort()`ed. `abort($response)` is re-rendered by the exception handler as
             //    the GENERIC 404 — 🔬 measured: the closed-sign copy was replaced by "We couldn't find that",
             //    which is precisely the "looks broken / hotel has vanished" outcome this page exists to avoid.

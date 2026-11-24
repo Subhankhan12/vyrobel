@@ -1027,6 +1027,9 @@
         }
 
 
+        /* VY-28 — hovers that were onmouseover/onmouseout pairs (no inline handler is allowed now); !important beats the inline background */
+        .vy-hover-accent:hover { background: rgba(217,102,46,.08) !important; }
+        .vy-hover-danger:hover { background: rgba(190,32,28,.07) !important; }
     </style>
     <x-vy-scrollbar />
     <x-vy-selects />

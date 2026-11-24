@@ -184,7 +184,7 @@
 
         <div class="vy-foot">{!! __('auth/login.new_to_vyrobel', ['url' => e(route('signup'))]) !!}</div>
     </main>
-    <script>
+    <script @nonce>
         (function () {
             if (!window.PublicKeyCredential) return;
             var btn = document.getElementById('vy-passkey-btn');

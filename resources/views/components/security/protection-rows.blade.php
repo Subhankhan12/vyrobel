@@ -37,7 +37,7 @@
         <form method="POST" action="{{ route($routes['timeout']) }}" class="vy-sx-timeout">
             @csrf
             <label class="vy-sx-sr" for="vy-sx-timeout">{{ __('components/security/protection-rows.session_timeout') }}</label>
-            <select id="vy-sx-timeout" name="minutes" class="vy-sx-select" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+            <select id="vy-sx-timeout" name="minutes" class="vy-sx-select" data-autosubmit="request">
                 <option value="" @selected($timeout['minutes'] === null)>{{ \App\Support\Security\SessionTimeout::label(null) }}</option>
                 @foreach (\App\Support\Security\SessionTimeout::OPTIONS as $m)
                     <option value="{{ $m }}" @selected($timeout['minutes'] === $m)>{{ \App\Support\Security\SessionTimeout::label($m) }}</option>

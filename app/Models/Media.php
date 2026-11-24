@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Support\Media\OperationsPhotos;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,9 +64,14 @@ class Media extends Model
         return $this->morphTo();
     }
 
-    /** Public URL for the stored file on its disk (e.g. the `public` disk → /storage/…). */
+    /**
+     * The file's address. A housekeeping or maintenance photo has ONE — the signed-in route ({@see OperationsPhotos}, VY-34), whichever
+     * disk it is on; every other file keeps its disk's own URL (the public disk → /media/…).
+     */
     protected function url(): Attribute
     {
-        return Attribute::get(fn (): string => Storage::disk($this->disk)->url($this->path));
+        return Attribute::get(fn (): string => OperationsPhotos::isOperations($this)
+            ? OperationsPhotos::url($this)
+            : Storage::disk($this->disk)->url($this->path));
     }
 }

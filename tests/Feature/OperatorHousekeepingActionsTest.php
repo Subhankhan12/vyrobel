@@ -171,7 +171,7 @@ it('assign-all balances unassigned rooms across housekeepers by least load', fun
 
 // ── Proof-photo upload attaches a real Media row on the task ─────────────────────────────────────
 it('attaches a proof photo to the task', function () {
-    Storage::fake('public');
+    Storage::fake('local');   // ⚠️ VY-34: the PRIVATE disk — these photos were public at /media by address
     $s = seedScenario(1);
     $task = hkT($s, 0);
 
@@ -181,7 +181,8 @@ it('attaches a proof photo to the task', function () {
 
     $media = Media::query()->where('mediable_type', $task->getMorphClass())->where('mediable_id', $task->id)->where('collection', 'hk_proof')->first();
     expect($media)->not->toBeNull();
-    Storage::disk('public')->assertExists((string) $media->path);
+    Storage::disk('local')->assertExists((string) $media->path);
+    expect($media->disk)->toBe('local');
 });
 
 // ── The assign routes are gated (housekeeping.manage) ────────────────────────────────────────────

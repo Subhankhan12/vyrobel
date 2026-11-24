@@ -12,6 +12,7 @@ use App\Support\Guest\GuestName;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\RefundEta;
+use App\Support\Reservations\CancellationReason;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -70,7 +71,7 @@ class CancellationMail extends Mailable
                 'stay' => $checkIn->translatedFormat(LocalDate::pattern('j M')).' – '.$checkOut->translatedFormat(LocalDate::pattern('j M Y')),
                 'nights' => $nights,
                 'guests' => $this->guestsLabel($r),
-                'reason' => $this->reason !== null && $this->reason !== '' ? $this->reason : null,
+                'reason' => CancellationReason::label($this->reason),   // a system code in the guest's words (VY-23/26)
                 // Case A vs Case B — a real refund figure or an honest "no refund due".
                 'refund' => $refund,
                 // HONEST: no card_last4 stored (#28) — never a fabricated masked number.

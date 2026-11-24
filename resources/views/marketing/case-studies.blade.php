@@ -15,7 +15,7 @@
 <x-marketing.shell
     title="Example scenarios — how operators use Vyrobel"
     description="Three illustrative scenarios, not customers: a multi-island villa manager, a small short-stay apartment operator, and an independent hotel. What changes, and what it takes."
-    canonical="/case-studies"
+    canonical="/example-scenarios"
     :index="false">
 <div data-screen-label="Marketing — Example scenarios" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -47,7 +47,7 @@
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 10px;">Before</div>
             <p style="margin: 0 0 20px; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">A channel manager for distribution, a spreadsheet per owner for money, and a WhatsApp group for cleaning. Statements took two evenings a month, and every owner had a slightly different format because they'd each asked for a change at some point.</p>
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 10px;">What changed</div>
-            <p style="margin: 0 0 20px; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">Statements now generate themselves and owners read them in their own portal, alongside live occupancy and the payout date. Owner stays get blocked by the owners rather than relayed by text. Repairs over €200 go for approval before they hit a statement, which ended the arguments about deductions.</p>
+            <p style="margin: 0 0 20px; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">Statements now close themselves at month end and owners read them in their own portal, alongside live occupancy and the payout date. Owner stays get blocked by the owners rather than relayed by text. Repairs over €200 go for approval before they hit a statement, which ended the arguments about deductions.</p>
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 10px;">The awkward part</div>
             <p style="margin: 0; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">Two older owners didn't want a login and still ask for the PDF by email. The portal exports it, so that's fine — but the team had assumed everyone would move across, and they didn't.</p>
           </div>
@@ -114,7 +114,7 @@
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 10px;">What changed</div>
             <p style="margin: 0 0 20px; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">The floor moved onto the board on phones, and the desk stopped phoning to ask what was ready. Work orders now take a room off sale the moment they're opened. Rate plans and reporting moved in at the same time, so the monthly RevPAR pack stopped being a manual export.</p>
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 10px;">The awkward part</div>
-            <p style="margin: 0; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">Migrating years of historical reservations wasn't clean. They imported the forward book and kept the old system read-only for a year rather than trying to bring everything across.</p>
+            <p style="margin: 0; font-size: 15.5px; line-height: 1.7; color: var(--vy-muted);">Migrating years of historical reservations wasn't clean. They entered the forward book by hand and kept the old system read-only for a year rather than trying to bring everything across.</p>
           </div>
           <div data-side="" style="background: linear-gradient(160deg, var(--vy-dark), #251C17); padding: 44px 38px; position: relative; overflow: hidden;">
             <div style="position: absolute; top: -80px; right: -60px; width: 240px; height: 240px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(60px); opacity: .38;"></div>

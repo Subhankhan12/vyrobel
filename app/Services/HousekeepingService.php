@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Housekeeping\SecondPersonInspectionRequired;
 use App\Models\HousekeepingTask;
+use App\Models\PropertyPolicy;
 use App\Models\Unit;
 use App\Models\UnitStatusLog;
 use App\Models\User;
@@ -61,11 +63,18 @@ class HousekeepingService
     public function updateTaskStatus(HousekeepingTask $task, string $status, ?User $by = null): HousekeepingTask
     {
         $fromStatus = (string) $task->status;
+        $actorId = $by?->getKey() ?? Auth::id();
 
         $this->assertTransition($task, $status);
+        $this->assertSecondPerson($task, $status, $actorId !== null ? (string) $actorId : null);
 
-        DB::transaction(function () use ($task, $status, $by): void {
+        DB::transaction(function () use ($task, $status, $actorId): void {
             $updates = ['status' => $status];
+
+            // VY-27 — who marked the room clean, so an inspection can be checked against it
+            if ($status === 'clean') {
+                $updates['cleaned_by'] = $actorId;
+            }
 
             // #88 — the real START of the clock, so the board's "Elapsed {m}/{exp}m" is genuine (set once).
             if ($status === 'in_progress' && $task->started_at === null) {
@@ -75,7 +84,7 @@ class HousekeepingService
                 $updates['completed_at'] = now();
             }
             if ($status === 'inspected') {
-                $updates['inspected_by'] = $by?->getKey() ?? Auth::id();
+                $updates['inspected_by'] = $actorId;
             }
 
             $task->update($updates);
@@ -216,6 +225,27 @@ class HousekeepingService
         'clean' => ['pending', 'in_progress', 'clean', 'inspected'],
         'inspected' => ['clean', 'inspected'],
     ];
+
+    /**
+     * ⚠️⚠️ VY-27 (audit of 2026-11-24, read in code) — "INSPECTED" FROM A SECOND PERSON, WHEN THE PROPERTY ASKS FOR IT. The ladder already
+     * refuses pending → inspected (F-15); what it allowed was ONE person marking a room clean and then inspected, so "inspected" said nothing
+     * the cleaner had not already said. A property that switches on `inspection_by_second_person` (Settings → Policies; default off) now
+     * refuses the inspection from whoever cleaned the room. A task cleaned before `cleaned_by` existed (NULL) is not refused: the rule
+     * cannot know who cleaned it. A double-press on an inspected room is not a new inspection and is left alone.
+     *
+     * @throws SecondPersonInspectionRequired
+     */
+    private function assertSecondPerson(HousekeepingTask $task, string $to, ?string $actorId): void
+    {
+        if ($to !== 'inspected' || (string) $task->status === 'inspected' || $task->cleaned_by === null || $actorId === null) {
+            return;
+        }
+
+        $required = (bool) PropertyPolicy::query()->where('property_id', $task->property_id)->value('inspection_by_second_person');
+        if ($required && (string) $task->cleaned_by === $actorId) {
+            throw new SecondPersonInspectionRequired;
+        }
+    }
 
     /**
      * Refuse a transition the ladder does not permit. Throws {@see RuntimeException} exactly as the maintenance

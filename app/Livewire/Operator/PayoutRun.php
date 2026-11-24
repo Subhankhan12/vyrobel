@@ -6,6 +6,7 @@ namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Organization;
 use App\Models\Owner;
 use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
@@ -21,6 +22,7 @@ use App\Services\OwnerPayoutService;
 use App\Support\I18n\LocalDate;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
+use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
@@ -191,6 +193,8 @@ class PayoutRun extends Component
             //    only be refused by the controller's own flag check — the page now reads the same flag.
             'engineOn' => (bool) config('services.payouts.engine_enabled', false),
             'canPayout' => $canPayout,
+            // VY-26 — the day of the month last month's statements close by themselves (null = by hand)
+            'statementCloseDay' => Organization::query()->find((string) app(TenantContext::class)->id())?->statement_close_day,
             'latestRun' => $latestRun,
             'heldRows' => $this->heldRows($held, $ibanByOwner),
             'noMethodRows' => $this->noMethodRows($noMethod),

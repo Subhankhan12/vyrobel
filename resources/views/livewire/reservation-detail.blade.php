@@ -169,7 +169,7 @@
                         </div>
                         @if ($can_unbill_from_account)
                             <form method="POST" action="{{ route('app.reservations.unbill-from-account', $reservation['id']) }}" style="margin-bottom:12px"
-                                onsubmit="return confirm(@js(__('livewire/reservation-detail.unbill_confirm')));">
+                                data-confirm-text="{{ __('livewire/reservation-detail.unbill_confirm') }}">
                                 @csrf
                                 <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.unbill_button') }}</button>
                             </form>
@@ -209,7 +209,7 @@
                                          Gated like a refund (the route is `payments.refund`); asks first; one press records one release. --}}
                                     @if (($line['release_authorization_id'] ?? null) && auth()->user()?->can('payments.refund'))
                                         <form method="POST" action="{{ route('app.reservations.hold-release', [$reservation['id'], $line['release_authorization_id']]) }}" class="vy-refund-btn" data-guard-submit
-                                              onsubmit="return confirm(@js(__('livewire/reservation-detail.hold_release_confirm')))">
+                                              data-confirm-text="{{ __('livewire/reservation-detail.hold_release_confirm') }}">
                                             @csrf
                                             <x-busy-btn class="vy-act vy-act--ghost" :busy-label="__('livewire/reservation-detail.hold_releasing')">{{ __('livewire/reservation-detail.hold_release_button') }}</x-busy-btn>
                                         </form>
@@ -274,7 +274,7 @@
                              converts the hold and takes no second one. --}}
                         @if ($can_confirm_hold)
                             <form method="POST" action="{{ route('app.reservations.confirm', $reservation['id']) }}" style="margin-top: 12px;"
-                                onsubmit="return confirm(@js(__('livewire/reservation-detail.confirm_hold_confirm')));">
+                                data-confirm-text="{{ __('livewire/reservation-detail.confirm_hold_confirm') }}">
                                 @csrf
                                 <button type="submit" class="vy-act">{{ __('livewire/reservation-detail.confirm_hold_button') }}</button>
                             </form>
@@ -283,7 +283,7 @@
 
                         @if ($can_no_show)
                             <form method="POST" action="{{ route('app.reservations.no-show', $reservation['id']) }}" style="margin-top: 12px;"
-                                onsubmit="return confirm(@js(__('livewire/reservation-detail.no_show_confirm')));">
+                                data-confirm-text="{{ __('livewire/reservation-detail.no_show_confirm') }}">
                                 @csrf
                                 <button type="submit" class="vy-act vy-act--ghost">{{ __('livewire/reservation-detail.no_show_button') }}</button>
                             </form>
@@ -292,7 +292,7 @@
 
                         @if ($can_cancel)
                             <form method="POST" action="{{ route('app.reservations.cancel', $reservation['id']) }}" style="margin-top: 14px;"
-                                onsubmit="return confirm(@js(__('livewire/reservation-detail.cancel_confirm')));">
+                                data-confirm-text="{{ __('livewire/reservation-detail.cancel_confirm') }}">
                                 @csrf
                                 <label class="vy-field-label" for="cancel-reason">{{ __('livewire/reservation-detail.cancel_reason_label') }}</label>
                                 <div class="vy-input-group">

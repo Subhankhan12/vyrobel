@@ -82,7 +82,7 @@
     @endif
 </div>
 
-<script>
+<script @nonce>
     // Progressive enhancement only — see the note at the top of this partial.
     (function () {
         var select = document.querySelector('[data-shape-select]');

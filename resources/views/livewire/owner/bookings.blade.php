@@ -331,21 +331,21 @@
                     <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="{{ __('livewire/owner/bookings.search_placeholder') }}" aria-label="{{ __('livewire/owner/bookings.search_label') }}" class="vy-input" style="width:250px;flex:none;padding-left:34px">
                 </span>
 
-                <select name="source" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_source') }}" class="vy-input vy-bk-select">
+                <select name="source" data-autosubmit aria-label="{{ __('livewire/owner/bookings.filter_source') }}" class="vy-input vy-bk-select">
                     <option value="">{{ __('livewire/owner/bookings.all_sources') }}</option>
                     @foreach ($sourceOptions as $opt)
                         <option value="{{ $opt['value'] }}" @selected($filters['source'] === $opt['value'])>{{ $opt['label'] }} ({{ $opt['count'] }})</option>
                     @endforeach
                 </select>
 
-                <select name="status" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_status') }}" class="vy-input vy-bk-select">
+                <select name="status" data-autosubmit aria-label="{{ __('livewire/owner/bookings.filter_status') }}" class="vy-input vy-bk-select">
                     <option value="">{{ __('livewire/owner/bookings.all_statuses') }}</option>
                     @foreach ($statusOptions as $opt)
                         <option value="{{ $opt['value'] }}" @selected($filters['status'] === $opt['value'])>{{ $opt['label'] }} ({{ $opt['count'] }})</option>
                     @endforeach
                 </select>
 
-                <select name="unit" onchange="this.form.submit()" aria-label="{{ __('livewire/owner/bookings.filter_unit') }}" class="vy-input vy-bk-select">
+                <select name="unit" data-autosubmit aria-label="{{ __('livewire/owner/bookings.filter_unit') }}" class="vy-input vy-bk-select">
                     <option value="">{{ __('livewire/owner/bookings.all_units') }}</option>
                     @foreach ($unitOptions as $opt)
                         <option value="{{ $opt['id'] }}" @selected($filters['unit'] === $opt['id'])>{{ $opt['label'] }}</option>
@@ -431,7 +431,7 @@
                     </thead>
                     <tbody>
                         @foreach ($rows as $row)
-                            <tr class="vy-row-clickable" onclick="window.location='{{ route('owner.bookings.show', $row['id']) }}'">
+                            <tr class="vy-row-clickable" data-href="{{ route('owner.bookings.show', $row['id']) }}">
                                 <td>
                                     <a class="vy-row-link" href="{{ route('owner.bookings.show', $row['id']) }}">
                                         <div class="vy-row-month">{{ $row['guest'] ?? __('livewire/owner/bookings.guest_fallback') }}</div>

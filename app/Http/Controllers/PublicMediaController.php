@@ -32,12 +32,15 @@ final class PublicMediaController
      * NOT_SERVED — PublicMediaTest reads the code and fails otherwise, because a directory on neither list would 404
      * silently, which is exactly how this was found.
      */
-    public const SERVED_DIRECTORIES = ['room-photos', 'demo-photos', 'brand-logos', 'avatars', 'housekeeping', 'maintenance', 'unit-request-photos'];
+    public const SERVED_DIRECTORIES = ['room-photos', 'demo-photos', 'brand-logos', 'avatars', 'unit-request-photos'];
 
     /** @var array<string, string> Upload directories deliberately NOT served here, each with its reason. */
     public const NOT_SERVED = [
         'message-attachments' => 'documents in a private owner–operator conversation — on the PRIVATE disk since 2026-09-30, opened only by the people in that conversation, signed in (DEC-m; MessageAttachmentController)',
         'team-chat' => 'pictures, documents and voice notes in a conversation between colleagues — on the PRIVATE disk, opened only by that conversation\'s members, signed in (team chat, 2026-10-06; TeamChatFileController)',
+        // ⚠️⚠️ VY-34 (audit of 2026-11-24) — served here until then, to anyone with the address: pictures of the inside of guests' rooms.
+        'housekeeping' => 'housekeeping proof photos — on the PRIVATE disk since VY-34 (2026-11-25), opened only signed in by back-office staff who can see the task (OperationsPhotoController)',
+        'maintenance' => 'maintenance work-order photos — on the PRIVATE disk since VY-34 (2026-11-25), opened only signed in by back-office staff who can see the work order (OperationsPhotoController)',
     ];
 
     /** The image types served, by extension — and the file's own detected type must agree. */

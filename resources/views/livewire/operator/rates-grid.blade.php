@@ -1011,7 +1011,7 @@
         </div>
     </x-operator.shell>
 
-    <script>
+    <script @nonce>
         window.vyRates = window.vyRates || function (boot) {
             // I18N-01 — every word the script shows arrives in `boot.i18n` (the page's language). `fill` puts the values in a
             // text's :placeholders (split/join, so a `$` in a name is never read as a pattern); `byCount` picks the text the

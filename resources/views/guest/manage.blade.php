@@ -112,7 +112,7 @@
              intent at markup level, using the destructive-submit idiom the repo already uses in admin.
              `data-guard-submit` is the shared double-submit guard. --}}
         <form method="POST" action="{{ route('guest.manage.cancel', $reservation) }}" data-guard-submit
-              onsubmit="return confirm(@js(__('guest/manage.cancel_confirm')));">
+              data-confirm-text="{{ __('guest/manage.cancel_confirm') }}">
             @csrf
             <div class="vy-field" style="margin-bottom:12px">
                 <label class="vy-label" for="reason">{{ __('guest/manage.reason') }}</label>

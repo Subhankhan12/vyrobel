@@ -36,10 +36,10 @@
             <span style="width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-family: var(--vy-display); font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.28);">1</span>
             <span style="font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-muted);">Day one · about two hours</span>
           </div>
-          <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 32px; line-height: 1.16; letter-spacing: -.03em; color: var(--vy-ink);">Add your properties and import what exists</h2>
-          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Set up your units, room types, rate plans, house rules and cancellation policy. Bring your current bookings in from a CSV or a channel export so the calendar is accurate from the first minute — no parallel-running for a month.</p>
+          <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 32px; line-height: 1.16; letter-spacing: -.03em; color: var(--vy-ink);">Add your properties and bring your bookings across</h2>
+          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Set up your units, room types, rate plans, house rules and cancellation policy. Enter the bookings you already hold — there is no file import yet — and check them against your old system, so the calendar is right before anything goes live.</p>
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>We import your existing reservations for you</div>
+            <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Your open bookings entered and checked before you switch</div>
             <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Units, amenities, photos and pricing in one guided flow</div>
             <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Nothing goes live until you say so</div>
           </div>
@@ -57,7 +57,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: linear-gradient(140deg, rgba(232,112,58,.16), rgba(194,65,12,.1)); border: 1px solid rgba(217,102,46,.24);">
               <span style="width: 24px; height: 24px; border-radius: 8px; border: 2px solid rgba(217,102,46,.5);"></span>
-              <span style="flex: 1; font-size: 13.5px; color: var(--vy-ink);">Importing 128 bookings</span>
+              <span style="flex: 1; font-size: 13.5px; color: var(--vy-ink);">Adding open bookings</span>
               <span style="font-size: 11.5px; color: var(--vy-accent-text); font-weight: 600;">62%</span>
             </div>
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: rgba(255,255,255,.4); border: 1px solid rgba(255,255,255,.6);">
@@ -179,9 +179,9 @@
             <span style="font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-muted);">Month one · it compounds</span>
           </div>
           <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 32px; line-height: 1.16; letter-spacing: -.03em; color: var(--vy-ink);">Guests and owners get their own doors</h2>
-          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Online check-in goes out before arrival. Arrival info releases on schedule. At month end, statements and payouts run without anyone opening a spreadsheet — and your owners find out how they did by logging in, not by asking.</p>
+          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Online check-in goes out before arrival. Arrival info releases on schedule. At month end, owner statements close by themselves on the day you choose — no spreadsheet — and your owners find out how they did by logging in, not by asking.</p>
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Statements generate on your schedule</div>
+            <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Statements close on the day you choose</div>
             <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Guests self-serve the questions you answer daily</div>
             <div style="display: flex; gap: 11px; font-size: 14.5px; color: var(--vy-muted);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 3px;"><path d="M20 6L9 17l-5-5"></path></svg>Every direct booking widens the margin</div>
           </div>
@@ -218,7 +218,7 @@
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Day 1 — calendar is accurate</li>
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Day 2 — taking direct bookings</li>
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Week 1 — operations off WhatsApp</li>
-              <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Month 1 — first automatic statements</li>
+              <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Month 1 — first statements, closed on your day</li>
             </ul>
           </div>
         </div>
@@ -237,7 +237,7 @@
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">What happens to bookings we already have?</summary>
-          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">They come with you. We import your existing reservations with their dates, guests, balances and channel, so the calendar is right on day one and your team isn't checking two systems.</p>
+          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">They come with you, entered by hand: there is no file import yet. Each open booking is added with its dates, guest, balance and channel, then checked against your old system before you rely on the calendar.</p>
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">Can we start with one property?</summary>

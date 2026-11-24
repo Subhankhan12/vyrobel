@@ -287,7 +287,7 @@
 
     </x-operator.shell>
 
-    <script>
+    <script @nonce>
         function rolesMatrix(config) {
             return {
                 roles: config.roles,

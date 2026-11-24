@@ -85,7 +85,7 @@
                                          full-remaining path — the same call the inline detail button makes. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
                                         data-guard-submit
-                                        onsubmit="return confirm(@js(__('livewire/operator/reservation-refund.refund_remaining_confirm', ['amount' => $payment['remaining']])));">
+                                        data-confirm-text="{{ __('livewire/operator/reservation-refund.refund_remaining_confirm', ['amount' => $payment['remaining']]) }}">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
                                         <x-busy-btn class="vy-act vy-act--accent" :busy-label="__('livewire/operator/reservation-refund.refunding')">{{ __('livewire/operator/reservation-refund.refund_remaining', ['amount' => $payment['remaining']]) }}</x-busy-btn>
@@ -96,7 +96,7 @@
                                          outright rather than quietly clamping it. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
                                         data-guard-submit
-                                        onsubmit="return confirm(@js(__('livewire/operator/reservation-refund.partial_confirm')));">
+                                        data-confirm-text="{{ __('livewire/operator/reservation-refund.partial_confirm') }}">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
                                         <label class="vy-field-label" for="amount-{{ $payment['id'] }}">{{ __('livewire/operator/reservation-refund.refund_part', ['currency' => $payment['currency']]) }}</label>

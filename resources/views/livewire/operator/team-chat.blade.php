@@ -449,7 +449,7 @@
         ];
     @endphp
     <script type="application/json" id="vy-team-chat-data">@json($boot)</script>
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             const boot = JSON.parse(document.getElementById('vy-team-chat-data').textContent);
             const POLL_VISIBLE = 3000, POLL_HIDDEN = 20000, IDLE_MS = 30 * 60 * 1000, PRESENT_MS = 2 * 60 * 1000;

@@ -29,6 +29,7 @@ class HousekeepingTask extends Model
         'assigned_to',
         'checklist',
         'inspected_by',
+        'cleaned_by',   // VY-27 — who marked the room clean (NULL before 2026-11-25)
         'started_at',
         'completed_at',
     ];

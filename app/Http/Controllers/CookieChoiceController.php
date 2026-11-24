@@ -23,6 +23,11 @@ class CookieChoiceController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
+        // ⚠️⚠️ VY-29 — THE CSRF DEFENCE WITHOUT A SESSION. The marketing pages start no session, so this form carries no token; a consent
+        //    another site posted on the visitor's behalf would be a consent they never gave. The request must come FROM THIS SITE: its
+        //    Origin (every current browser sends it on a POST) or, failing that, its Referer, must be our own host. Neither → refused.
+        abort_unless(self::sameSite($request), 403);
+
         $choice = $request->input('choice') === CookieConsent::ACCEPTED
             ? CookieConsent::ACCEPTED
             : CookieConsent::DECLINED;
@@ -30,6 +35,16 @@ class CookieChoiceController extends Controller
         return redirect()
             ->to(self::safeReturnPath($request))
             ->withCookie(CookieConsent::record($choice, $request));
+    }
+
+    /** Did this POST come from a page of this site? (Origin first; Referer when a browser sends no Origin.) */
+    private static function sameSite(Request $request): bool
+    {
+        $ours = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $from = $request->headers->get('Origin') ?: $request->headers->get('Referer');
+        $host = is_string($from) && $from !== 'null' ? parse_url($from, PHP_URL_HOST) : null;
+
+        return is_string($ours) && $ours !== '' && is_string($host) && strcasecmp($host, $ours) === 0;
     }
 
     /**

@@ -15,7 +15,7 @@
 <x-marketing.shell
     title="How it works for 18 serviced apartments | Vyrobel example scenario"
     description="An illustrative scenario: a two-person business paying more in OTA commission than it paid itself, and what changes when the same guests arrive through its own booking page."
-    canonical="/case-studies/rotterdam"
+    canonical="/example-scenarios/serviced-apartments"
     :index="false">
 <div data-screen-label="Marketing — Story: Rotterdam" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -26,7 +26,7 @@
         <span style="font-family: var(--vy-display); font-size: 14pt; font-weight: 600; color: var(--vy-accent);">Vyrobel</span>
         <span style="font-size: 8pt; color: var(--vy-faint);">Example scenario · 18 serviced apartments</span>
       </div>
-      <div style="font-size: 7.5pt; color: var(--vy-muted); margin-top: 3pt;" data-printsub="">Illustrative scenario, composed from onboarding conversations · vyrobel.com/case-studies</div>
+      <div style="font-size: 7.5pt; color: var(--vy-muted); margin-top: 3pt;" data-printsub="">Illustrative scenario, composed from onboarding conversations · vyrobel.com/example-scenarios</div>
     </div>
     <article>
 

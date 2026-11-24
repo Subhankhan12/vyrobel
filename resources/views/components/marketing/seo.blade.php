@@ -22,6 +22,9 @@
     'alternates' => [],          // the D7-deferred hreflang slot: ['en' => url, 'nl' => url, 'x-default' => url]
 ])
 @php
+    // ⚠️ VY-29 (audit of 2026-11-24) — THE SITE'S SOCIAL PREVIEW IMAGE, when a page names none of its own. It is emitted only while the file
+    //    exists (public/images/og-cover.png, 1200×630) — never a tag pointing at a 404, the reason it was left out until now.
+    $ogImage ??= is_file(public_path('images/og-cover.png')) ? '/images/og-cover.png' : null;
     $canonicalUrl = str_starts_with($canonical, 'http') ? $canonical : url($canonical);
     $ogImageUrl = $ogImage === null ? null : (str_starts_with($ogImage, 'http') ? $ogImage : url($ogImage));
 @endphp

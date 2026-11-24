@@ -42,4 +42,9 @@ return [
     'accept_terms' => 'I have read and accept the :terms and the :privacy.',
     'terms_link' => 'booking terms',
     'privacy_link' => 'privacy notice',
+    'deposit_now' => 'Pay a deposit now',
+    'deposit_now_detail' => 'A deposit of :amount (:percent%) by card now; we never see your card number. The rest is paid at the property.',
+    'deposit_unavailable' => 'This property asks for a deposit by card when you book, and it cannot take card payments online yet. Please contact the property to book.',
+    'deposit_release_note' => 'Your room is held while you pay. If the payment is not completed within :minutes minutes, the booking is released.',
+    'confirm_and_pay_deposit' => 'Confirm & pay the deposit',
 ];

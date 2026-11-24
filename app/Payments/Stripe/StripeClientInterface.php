@@ -95,9 +95,13 @@ interface StripeClientInterface
      * created (a pending Payment is pre-created against it; the payment_intent.succeeded webhook settles it).
      * Integer minor units.
      *
+     * ⚠️ VY-23 (audit of 2026-11-24) — `$expiresAt` (a Unix time) closes the page then: Stripe accepts 30 minutes to 24 hours, and a page
+     * that has expired can no longer be paid. The storefront sets it, so an abandoned card checkout can be released on a timer knowing
+     * nobody can still pay it. NULL keeps Stripe's default (24 hours).
+     *
      * @param  array<string, string>  $metadata
      */
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession;
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null, ?int $expiresAt = null): StripeCheckoutSession;
 
     /**
      * Verify a webhook signature (Stripe's `Stripe-Signature` scheme) and return the event, or

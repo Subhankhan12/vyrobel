@@ -85,6 +85,8 @@ class PreArrivalMail extends Mailable
                 'checkOutTime' => $pack['check_out_time'],
                 // The guest's OWN access secrets (released in-window; null before it opens → the template says when).
                 'doorCode' => $pack['door_code'],
+                // ⚠️ VY-32 — every room of the stay (released or withheld with the first): the template lists each room's code when there are several.
+                'rooms' => $pack['rooms'],
                 'releasedFrom' => $pack['released_from'],
                 // VY-06 — withheld for the balance or for online check-in: the pack's own sentence and where the guest acts (null otherwise).
                 'withheldMessage' => $pack['withheld_message'],

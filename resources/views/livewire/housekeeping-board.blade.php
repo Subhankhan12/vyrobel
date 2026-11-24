@@ -7,11 +7,12 @@
      every day's cleaning), and the words only what the page does. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div class="vy-hk" x-data="{
         view: localStorage.getItem('vy:hk:view') || 'list',
-        detail: @js($detail), assign: null, assignAllOpen: false,
+        detail: @js($detail), assign: null, assignAllOpen: false, report: null,
         setView(v) { this.view = v; localStorage.setItem('vy:hk:view', v); },
         assignUrl(id) { return '{{ route('app.housekeeping.assign', '__ID__') }}'.replace('__ID__', id); },
         statusUrl(id) { return '{{ route('app.housekeeping.status', '__ID__') }}'.replace('__ID__', id); },
         photoUrl(id) { return '{{ route('app.housekeeping.photos.store', '__ID__') }}'.replace('__ID__', id); },
+        reportUrl(id) { return '{{ route('app.housekeeping.report', '__ID__') }}'.replace('__ID__', id); },
         {{-- ⚠️ THE UNDO FOR THE LINE ABOVE. 🔬 Measured 2026-09-22: three photo families exist in this
              app (housekeeping · maintenance · room-types) and TWO of the three already offer a delete
              control on the thumbnail. Housekeeping was the exception: a clean could be photographed
@@ -358,6 +359,47 @@
 
         @endif
 
+        {{-- ── REPORT A PROBLEM (VY-24) — the shared solid card. Posts to the housekeeping-gated route, which opens a work order through the
+             maintenance service with the room left as it is. ── --}}
+        @if ($canManage)
+        <div x-show="report" x-cloak class="vy-modal-backdrop" @click.self="report = null" @keydown.escape.window="report = null">
+            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-labelledby="vy-hk-report-title" tabindex="-1" x-trap.noscroll="report">
+                <template x-if="report">
+                    <form method="POST" :action="reportUrl(report.id)" data-guard-submit>
+                        @csrf
+                        <div class="vy-modal-head">
+                            <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></span>
+                            <div class="vy-hk-head-text">
+                                <h2 class="vy-modal-title" id="vy-hk-report-title" x-text="@js(__('livewire/housekeeping-board.report_problem_title', ['unit' => ':unit'])).replace(':unit', report.unit)"></h2>
+                                <p class="vy-modal-sub">{{ __('livewire/housekeeping-board.report_problem_lead') }}</p>
+                            </div>
+                            <button type="button" class="vy-modal-x" @click="report = null" aria-label="{{ __('common.close') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        </div>
+                        <div class="vy-modal-body">
+                            <div class="vy-field">
+                                <label class="vy-field-label" for="vy-hk-report-what">{{ __('livewire/housekeeping-board.problem_what') }}</label>
+                                <input class="vy-input" id="vy-hk-report-what" type="text" name="title" maxlength="160" required placeholder="{{ __('livewire/housekeeping-board.problem_what_placeholder') }}">
+                            </div>
+                            <div class="vy-hk-kinds"><x-operator.choices name="category" :label="__('livewire/housekeeping-board.problem_kind')" :options="$problemKinds" selected="other" /></div>
+                            <div class="vy-field">
+                                <label class="vy-field-label" for="vy-hk-report-details">{{ __('livewire/housekeeping-board.problem_details') }}</label>
+                                <textarea class="vy-input vy-gl-textarea" id="vy-hk-report-details" name="description" rows="3" maxlength="2000" placeholder="{{ __('livewire/housekeeping-board.problem_details_hint') }}"></textarea>
+                            </div>
+                            <label class="vy-hk-check">
+                                <input type="checkbox" name="urgent" value="1">
+                                <span>{{ __('livewire/housekeeping-board.problem_urgent') }}</span>
+                            </label>
+                        </div>
+                        <div class="vy-modal-foot">
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="report = null">{{ __('common.cancel') }}</button>
+                            <button type="submit" class="vy-btn vy-btn--accent">{{ __('livewire/housekeeping-board.problem_send') }}</button>
+                        </div>
+                    </form>
+                </template>
+            </div>
+        </div>
+        @endif
+
         {{-- ── ROOM DETAIL — the shared solid card. ⚠️ 2026-10-05: it opens on load when the address names a task (`?task=` — where
              the photo routes send you back), so adding or removing a photo lands back on the room, not on the bare list. ── --}}
         <div x-show="detail" x-cloak class="vy-modal-backdrop" @click.self="detail = null" @keydown.escape.window="detail = null">
@@ -408,7 +450,7 @@
                                             {{-- ⚠️ The SAME permission as the upload and the route (`housekeeping.manage`) — #30: the UI never
                                                  invites a 403. Same × and confirm as the maintenance ticket's photos. --}}
                                             <form method="POST" :action="photoDeleteUrl(detail.id, photo.id)" class="vy-hk-photo-x"
-                                                  onsubmit="return confirm(@js(__('livewire/housekeeping-board.remove_photo_confirm')));">
+                                                  data-confirm-text="{{ __('livewire/housekeeping-board.remove_photo_confirm') }}">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" title="{{ __('livewire/housekeeping-board.remove_photo') }}" aria-label="{{ __('livewire/housekeeping-board.remove_photo') }}">&times;</button>
                                             </form>
@@ -424,9 +466,12 @@
                                     @csrf
                                     <label class="vy-btn vy-btn--ghost vy-hk-upload">
                                         {{ __('livewire/housekeeping-board.take_or_upload_photo') }}
-                                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-sr-only" onchange="this.form.submit()">
+                                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-sr-only" data-autosubmit>
                                     </label>
                                 </form>
+                                {{-- ⚠️ VY-24 — the housekeeper reports what they found (a work order for maintenance); same permission as the route --}}
+                                <button type="button" class="vy-btn vy-btn--ghost vy-hk-wide vy-hk-report-btn" data-hk-report
+                                        @click="report = { id: detail.id, unit: detail.unit }; detail = null">{{ __('livewire/housekeeping-board.report_problem') }}</button>
                             @endif
                         </div>
                         <div class="vy-modal-foot">

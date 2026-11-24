@@ -95,7 +95,7 @@ it('computes a real SLA breach from the priority target', function () {
 
 // ── Proof photo upload attaches a real Media row ─────────────────────────────────────────────────
 it('attaches a proof photo to a work order', function () {
-    Storage::fake('public');
+    Storage::fake('local');   // ⚠️ VY-34: the PRIVATE disk — these photos were public at /media by address
     $s = seedScenario(1);
     $ticket = app(MaintenanceService::class)->open(['unit_id' => $s['units'][0]->id, 'title' => 'Crack']);
 
@@ -105,7 +105,8 @@ it('attaches a proof photo to a work order', function () {
 
     $media = Media::query()->where('mediable_type', $ticket->getMorphClass())->where('mediable_id', $ticket->id)->where('collection', 'mt_photo')->first();
     expect($media)->not->toBeNull();
-    Storage::disk('public')->assertExists((string) $media->path);
+    Storage::disk('local')->assertExists((string) $media->path);
+    expect($media->disk)->toBe('local');
 });
 
 // ── Read-only refuses maintenance writes ─────────────────────────────────────────────────────────

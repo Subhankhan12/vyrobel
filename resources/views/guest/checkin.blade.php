@@ -179,7 +179,7 @@
                                     <span>{{ trans_choice('guest/checkin.travelling_with', $coGuests, ['count' => $coGuests]) }}</span>
                                 </div>
                             @endif
-                            <button type="button" class="ci-btn" onclick="vyCiStep(2)">{{ __('guest/checkin.continue_to_id') }}</button>
+                            <button type="button" class="ci-btn" data-vy-click="vyCiStep" data-vy-arg="2">{{ __('guest/checkin.continue_to_id') }}</button>
                         </div>
 
                         {{-- STEP 2 — ID (real encrypted capture; captured, not verified) --}}
@@ -188,11 +188,11 @@
                             <div class="ci-step-sub">{{ __('guest/checkin.step2_sub') }}</div>
                             <input type="hidden" name="id_type" id="ci-idtype" value="{{ $idType }}">
                             <div class="ci-idtypes">
-                                <button type="button" class="ci-idtype {{ $idType === 'passport' ? 'on' : '' }}" data-idtype="passport" onclick="vyCiIdType('passport')">{{ __('guest/checkin.id_passport') }}</button>
-                                <button type="button" class="ci-idtype {{ $idType === 'id_card' ? 'on' : '' }}" data-idtype="id_card" onclick="vyCiIdType('id_card')">{{ __('guest/checkin.id_card') }}</button>
+                                <button type="button" class="ci-idtype {{ $idType === 'passport' ? 'on' : '' }}" data-idtype="passport" data-vy-click="vyCiIdType" data-vy-arg="passport">{{ __('guest/checkin.id_passport') }}</button>
+                                <button type="button" class="ci-idtype {{ $idType === 'id_card' ? 'on' : '' }}" data-idtype="id_card" data-vy-click="vyCiIdType" data-vy-arg="id_card">{{ __('guest/checkin.id_card') }}</button>
                             </div>
                             <label class="ci-idzone {{ $idCaptured ? 'has' : '' }}" id="ci-idzone">
-                                <input type="file" name="id_photo" accept="image/*" capture="environment" class="ci-file" onchange="vyCiIdFile(this)">
+                                <input type="file" name="id_photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="ci-file" data-vy-change="vyCiIdFile">
                                 <span class="ic" id="ci-idzone-ic">
                                     @if ($idCaptured)
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
@@ -207,8 +207,8 @@
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10V6z"></path><path d="M9 12l2 2 4-4.5"></path></svg>
                                 <span>{{ __('guest/checkin.id_privacy') }}</span>
                             </div>
-                            <button type="button" class="ci-btn" onclick="vyCiStep(3)">{{ __('guest/checkin.continue_to_arrival') }}</button>
-                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(1)">{{ __('common.back') }}</button>
+                            <button type="button" class="ci-btn" data-vy-click="vyCiStep" data-vy-arg="3">{{ __('guest/checkin.continue_to_arrival') }}</button>
+                            <button type="button" class="ci-btn-ghost" data-vy-click="vyCiStep" data-vy-arg="1">{{ __('common.back') }}</button>
                         </div>
 
                         {{-- STEP 3 — arrival --}}
@@ -219,14 +219,14 @@
                             <input type="hidden" name="arrival_window" id="ci-window" value="{{ $arrivalWindow }}">
                             <div class="ci-slots">
                                 @foreach ($arrivalWindows as $slot => $label)
-                                    <button type="button" class="ci-slot {{ $arrivalWindow === $slot ? 'on' : '' }}" data-slot="{{ $slot }}" onclick="vyCiSlot('{{ $slot }}')">{{ $label }}</button>
+                                    <button type="button" class="ci-slot {{ $arrivalWindow === $slot ? 'on' : '' }}" data-slot="{{ $slot }}" data-vy-click="vyCiSlot" data-vy-arg="{{ $slot }}">{{ $label }}</button>
                                 @endforeach
                             </div>
                             <div class="ci-fl">{{ __('guest/checkin.prepare_label') }}</div>
                             <label class="vy-sr-only" for="vy-lbl-checkin-arrival-note">{{ __('guest/checkin.prepare_placeholder') }}</label>
                             <textarea id="vy-lbl-checkin-arrival-note" class="ci-in" name="arrival_note" rows="2" placeholder="{{ __('guest/checkin.prepare_placeholder') }}" style="resize:vertical;margin-bottom:18px">{{ old('arrival_note', $arrivalNote) }}</textarea>
                             <button type="submit" class="ci-btn">{{ __('guest/checkin.complete_checkin') }}</button>
-                            <button type="button" class="ci-btn-ghost" onclick="vyCiStep(2)">{{ __('common.back') }}</button>
+                            <button type="button" class="ci-btn-ghost" data-vy-click="vyCiStep" data-vy-arg="2">{{ __('common.back') }}</button>
                         </div>
                     </form>
                 @endif
@@ -253,7 +253,7 @@
         </div>
 
         @if (! $submitted)
-            <script>
+            <script @nonce>
                 // No-Alpine 3-step stepper (progressive enhancement; JS-off → all steps visible + submittable).
                 var vyCiCurrent = 1;   // the visible step, tracked so the Enter guard below knows where it is
                 function vyCiStep(n) {

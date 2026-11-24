@@ -23,6 +23,8 @@ use App\Services\GuestWalletService;
 use App\Services\OperatorConnectService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Booking\BookingTerms;
+use App\Support\Booking\StorefrontPayment;
+use App\Support\Booking\UnpaidBookingRelease;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\I18n\LocalDate;
@@ -30,6 +32,7 @@ use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
 use App\Support\Reservations\CancellationPolicy;
+use App\Support\Reservations\CancellationReason;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
 use App\Support\Schedule\BoardDate;
@@ -437,7 +440,20 @@ class BookingEngineController extends Controller
             }
         }
 
+        // ⚠️⚠️ VY-23 — WHAT THE GUEST PAYS TO BOOK (StorefrontPayment, the one rule): a card is offered only when this organisation can
+        //    really take one (the Stripe gateway AND its own account ready for charges — before, the gateway alone, so a not-ready account
+        //    failed AFTER the booking was made); a property that asks for a deposit gets no "pay on arrival", and with no card it takes no booking.
+        $depositPercent = StorefrontPayment::depositPercent($property);
+        $cards = StorefrontPayment::canTakeCards(Organization::query()->find((string) $property->organization_id));
+        $depositMinor = $depositPercent !== null && $offer !== null ? StorefrontPayment::depositMinor(max(0, $grandMinor - $applyMinor), $depositPercent) : null;
+
         return view('booking.checkout', [
+            'payByCard' => $cards,
+            'deposit' => $depositPercent === null ? null : [
+                'percent' => $depositPercent,
+                'display' => $depositMinor !== null ? $this->money($depositMinor, $currency) : null,
+                'available' => $cards,
+            ],
             // ⚠️ STOREFRONT SEO (D10) — NOINDEX. The checkout is per-visitor and per-quote; before this pass
             // it carried no robots directive at all, which means indexable by default.
             'seo' => $this->seo->forTransactionalPage(__('php/http/controllers/booking_engine_controller.checkout_title', ['property' => $property->name]), (string) $property->name),
@@ -519,6 +535,16 @@ class BookingEngineController extends Controller
 
         $adults = (int) ($validated['adults'] ?? 2);
         $children = (int) ($validated['children'] ?? 0);
+
+        // ⚠️⚠️ VY-23 — A PROPERTY THAT ASKS FOR A DEPOSIT TAKES NO BOOKING WITHOUT ONE. Its terms promise a deposit; with no way to take a card
+        //    the booking would hold the room on nobody's money. Refused BEFORE anything is written (no quote, no guest, no booking), and
+        //    the page's token is not used up.
+        $depositPercent = StorefrontPayment::depositPercent($property);
+        $cards = StorefrontPayment::canTakeCards(Organization::query()->find((string) $property->organization_id));
+        if ($depositPercent !== null && ! $cards) {
+            return back()->withInput($request->except('terms_accepted'))
+                ->withErrors(['payment_option' => __('php/http/controllers/booking_engine_controller.deposit_unavailable')]);
+        }
 
         // ⚠️ SHOWN = ENFORCED, AND IT IS REUSE, NOT A NEW RULE. The submitted unit is re-checked against the
         // SAME read the operator path validates against and the same set the page offered; anything that is
@@ -607,8 +633,10 @@ class BookingEngineController extends Controller
         // rail is only offered + valid when the certified TEST-MODE Stripe gateway is wired; otherwise the sole
         // honest option is pay-on-arrival, and we NEVER record an 'offline' payment the guest never made (#17: the
         // folio balance stays === total until money is really collected).
-        $wantsCard = ($validated['payment_option'] ?? 'card') === 'card'
-            && (string) config('services.payments.gateway') === 'stripe';
+        // VY-23 — a deposit is always by card (refused above when no card can be taken); otherwise the guest's choice, offered only
+        // when this organisation can really take a card (StorefrontPayment::canTakeCards — the gateway AND its account ready).
+        $wantsCard = $depositPercent !== null
+            || (($validated['payment_option'] ?? 'card') === 'card' && $cards);
 
         if (! $wantsCard) {
             // Pay on arrival — record NO payment; the balance is due at the property and reconciles (#17).
@@ -622,8 +650,11 @@ class BookingEngineController extends Controller
             Organization::query()->findOrFail((string) $reservation->organization_id),
         );
 
+        // VY-23 — the deposit's share of what is owed (rounded up, never more), or the whole balance
+        $chargeMinor = $depositPercent !== null ? StorefrontPayment::depositMinor($balanceMinor, $depositPercent) : $balanceMinor;
+
         $session = app(StripeClientInterface::class)->createPaymentCheckout(
-            amountMinor: $balanceMinor,
+            amountMinor: $chargeMinor,
             currency: $currency,
             description: 'Booking '.$reservation->reference,
             successUrl: $confirmationUrl.'?paid=1',
@@ -635,6 +666,8 @@ class BookingEngineController extends Controller
             ],
             idempotencyKey: StripeIdempotency::keyFor('folio_checkout', (string) $folio->getKey()),
             connectedAccountId: $connectedAccountId,
+            // ⚠️ VY-23 — the page closes after UnpaidBookingRelease::HOLD_MINUTES; unpaid by then, the booking is released and the room freed
+            expiresAt: UnpaidBookingRelease::pageExpiresAt(),
         );
 
         // No payment intent on the session (shouldn't happen for a payment-mode session) → don't strand
@@ -644,9 +677,11 @@ class BookingEngineController extends Controller
         }
 
         // Pre-create the PENDING payment keyed on the intent id (idempotent) — settled on the webhook.
-        $this->folios->recordCheckoutIntent($folio, Money::of($balanceMinor, $currency), $session->paymentIntentId, [
+        $this->folios->recordCheckoutIntent($folio, Money::of($chargeMinor, $currency), $session->paymentIntentId, [
             'booking_quote_id' => $quote->getKey(),
             'source' => 'storefront',
+            // VY-23 — which page this payment waits on: its expiry is what releases the booking (UnpaidBookingRelease)
+            'checkout_session_id' => $session->id,
         ], $connectedAccountId, $session);
 
         return redirect()->away($session->url);
@@ -774,8 +809,15 @@ class BookingEngineController extends Controller
         // → the balance is due at the property. Card-return is signalled by ?paid=1 (success redirect).
         $payStatus = (string) $reservation->payment_status;
         $cardReturn = $request->query('paid') === '1';
+        // VY-23 — the two states an abandoned card page leads to, and a paid deposit, each said plainly
+        $released = (string) $reservation->status === 'cancelled' && $reservation->cancellation_reason === CancellationReason::PAYMENT_NOT_COMPLETED;
+        $cardAbandoned = $request->query('canceled') === '1' && $payStatus !== 'paid' && $payStatus !== 'partial';
+        $owingMinor = $payStatus === 'partial' ? max(0, (int) ($reservation->balance_minor ?? 0)) : 0;
         $payment = match (true) {
+            $released => ['label' => __('php/http/controllers/booking_engine_controller.released'), 'note' => __('php/http/controllers/booking_engine_controller.released_note')],
             $payStatus === 'paid' => ['label' => __('php/http/controllers/booking_engine_controller.payment_received'), 'note' => __('php/http/controllers/booking_engine_controller.payment_received_note')],
+            $payStatus === 'partial' => ['label' => __('php/http/controllers/booking_engine_controller.deposit_received'), 'note' => __('php/http/controllers/booking_engine_controller.deposit_received_note', ['amount' => $this->money($owingMinor, (string) $reservation->currency)])],
+            $cardAbandoned => ['label' => __('php/http/controllers/booking_engine_controller.payment_not_completed'), 'note' => __('php/http/controllers/booking_engine_controller.payment_not_completed_note')],
             // ⚠️ THIS PROMISED AN EMAIL THAT IS NEVER SENT. `SendGuestTransactionalEmails::HANDLED` covers
             //    reservation.confirmed / cancelled / payment.refunded / checked_out — NOT payment
             //    settlement, and no such Mailable exists. Found by the error-string sweep; it predates the
@@ -882,6 +924,12 @@ class BookingEngineController extends Controller
         $terms = BookingTerms::for($property, CarbonImmutable::parse($quote->check_in)->toDateString());
         if (isset($validated['terms_version']) && ! hash_equals($terms['version'], (string) $validated['terms_version'])) {
             throw ValidationException::withMessages(['terms_version' => [__('php/http/controllers/booking_engine_controller.terms_changed')]]);
+        }
+
+        // ⚠️ VY-23 — the machine API is not a way round the deposit: a property that asks for one takes no booking here unless a card is
+        //    really charged (this path charges the FULL balance inline through a card gateway — more than the deposit, never less).
+        if (StorefrontPayment::depositPercent($property) !== null && ! $this->engine->takesCardPayments()) {
+            throw ValidationException::withMessages(['payment_token' => [__('php/http/controllers/booking_engine_controller.deposit_unavailable')]]);
         }
 
         try {

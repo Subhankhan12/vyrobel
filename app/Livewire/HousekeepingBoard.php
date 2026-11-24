@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
@@ -167,6 +168,10 @@ class HousekeepingBoard extends Component
             //    fallback was permanent, and the expression read as though two permissions were in play
             //    when there has only ever been one.
             'canManage' => auth()->user()?->can('housekeeping.manage') ?? false,
+            // VY-24 — the kinds of problem a housekeeper can report (the work order's own list, through the one words map)
+            'problemKinds' => array_map(fn (string $c): array => [
+                'value' => $c, 'label' => $this->maintenanceCategoryLabel($c), 'icon' => MaintenanceList::CATEGORY_ICONS[$c],
+            ], MaintenanceActionController::CATEGORIES),
             // who may give a team member the Housekeeping role — the empty-roster hint links to Roles & access only for them (#30)
             'canStaff' => auth()->user()?->can('users.manage') ?? false,
         ]);

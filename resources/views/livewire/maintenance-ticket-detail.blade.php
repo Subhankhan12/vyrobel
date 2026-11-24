@@ -148,7 +148,7 @@
                                 <div style="position:relative;">
                                     <img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" style="width:92px;height:68px;object-fit:cover;border-radius:12px;display:block;">
                                     @if ($canManage && ! $readOnly)
-                                        <form method="POST" action="{{ route('app.maintenance.photos.destroy', [$ticket['id'], $photo['id']]) }}" style="margin:0;position:absolute;top:4px;right:4px;" onsubmit="return confirm(@js(__('livewire/maintenance-ticket-detail.remove_photo_confirm')));">
+                                        <form method="POST" action="{{ route('app.maintenance.photos.destroy', [$ticket['id'], $photo['id']]) }}" style="margin:0;position:absolute;top:4px;right:4px;" data-confirm-text="{{ __('livewire/maintenance-ticket-detail.remove_photo_confirm') }}">
                                             @csrf @method('DELETE')
                                             <button type="submit" title="{{ __('common.remove') }}" style="width:20px;height:20px;border-radius:50%;border:none;background:rgba(43,35,32,.6);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center;">×</button>
                                         </form>
@@ -161,7 +161,7 @@
                                     <label style="width:92px;height:68px;border-radius:12px;background:rgba(120,70,40,.06);border:1px dashed rgba(120,70,40,.20);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--vy-faint);cursor:pointer;">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                                         <span style="font-size:10px;font-weight:500;">{{ __('livewire/maintenance-ticket-detail.add_photo') }}</span>
-                                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="this.form.submit()">
+                                        <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" style="display:none;" data-autosubmit>
                                     </label>
                                 </form>
                             @elseif (count($photos) === 0)
@@ -348,7 +348,7 @@
                                 @endif
                             @endif
                             @if ($ticket['can_cancel'])
-                                <form method="POST" action="{{ route('app.maintenance.cancel', $ticket['id']) }}" style="margin-top:10px;" onsubmit="return confirm(@js(__('livewire/maintenance-ticket-detail.cancel_confirm')));">
+                                <form method="POST" action="{{ route('app.maintenance.cancel', $ticket['id']) }}" style="margin-top:10px;" data-confirm-text="{{ __('livewire/maintenance-ticket-detail.cancel_confirm') }}">
                                     @csrf
                                     <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;font-size:12px;color:#B0322A;">{{ __('livewire/maintenance-ticket-detail.cancel_work_order') }}</button>
                                 </form>

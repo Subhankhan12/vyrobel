@@ -123,7 +123,9 @@ function cgForwardBindingViolations(array $catalogue, array $allowsCallers): arr
 it('⚠️ discloses every cookie a real response actually sets', function () {
     // ⚠️ NOT A FIXTURE — a real request through the real middleware stack, read off the real response.
     // The disclosure and the wire are independent sources and the guard requires them to agree.
-    $response = $this->get('/');
+    // ⚠️ VY-29 (2026-11-25): the marketing pages start no session, so `/` sets NO cookie — asserted at the end. The positive control
+    //    moved to a page that needs a session (sign-in), where the two are really set and must be disclosed.
+    $response = $this->get('/login');
     $response->assertOk();
 
     $observed = collect($response->headers->getCookies())
@@ -139,9 +141,13 @@ it('⚠️ discloses every cookie a real response actually sets', function () {
             "the response sets \"{$name}\", which the cookie notice does not disclose");
     }
 
-    // …and the two that are always set are really in the catalogue, named as they are on the wire.
+    // …and the two a session page sets are really in the catalogue, named as they are on the wire.
     Assert::assertContains('vyrobel-session', $observed);
     Assert::assertContains('XSRF-TOKEN', $observed);
+
+    // …and reading the site sets none of them (VY-29)
+    Assert::assertSame([], collect($this->get('/')->assertOk()->headers->getCookies())->map(fn ($c): string => $c->getName())->all(),
+        'a marketing page set a cookie — the notice says reading these pages sets none');
 });
 
 it('⚠️ states a cookie count that matches the catalogue AND the wire', function () {
@@ -160,7 +166,7 @@ it('⚠️ states a cookie count that matches the catalogue AND the wire', funct
         'the cookies the notice calls "an ordinary visit" are not the ones an ordinary visit actually sets');
 
     $html = $response->getContent();
-    Assert::assertStringContainsString('An ordinary visit sets <strong>'.count($always).' cookies</strong>', $html,
+    Assert::assertStringContainsString($always === [] ? 'Reading these pages sets <strong>no cookies</strong>' : 'An ordinary visit sets <strong>'.count($always).' cookies</strong>', $html,
         'the notice states a different number from what it sets');
     // ⚠️ THE NEEDLE MATCHES THE MARKUP THE TEMPLATE ACTUALLY EMITS. The first version assumed
     // "All <strong>4</strong> …" while the <strong> wraps the whole phrase — a needle that could not
@@ -319,7 +325,7 @@ it('⚠️ sets nothing before the visitor answers, and records what they answer
     }
 
     // ⚠️ DECLINE IS ONE CLICK, THE SAME CLICK AS ACCEPT — same route, same method, same redirect.
-    $declined = $this->post(route('cookies.choice'), ['choice' => CookieConsent::DECLINED, 'return' => '/pricing']);
+    $declined = $this->withHeader('Origin', (string) config('app.url'))->post(route('cookies.choice'), ['choice' => CookieConsent::DECLINED, 'return' => '/pricing']);
     $declined->assertRedirect('/pricing#vy-cookie-notice');
 
     $record = collect($declined->headers->getCookies())
@@ -395,11 +401,11 @@ it('⚠️ makes declining exactly as easy as accepting', function () {
 
 it('⚠️ refuses to be an open redirect', function () {
     foreach (['https://evil.test/x', '//evil.test/x', 'http://evil.test'] as $hostile) {
-        $this->post(route('cookies.choice'), ['choice' => CookieConsent::ACCEPTED, 'return' => $hostile])
+        $this->withHeader('Origin', (string) config('app.url'))->post(route('cookies.choice'), ['choice' => CookieConsent::ACCEPTED, 'return' => $hostile])
             ->assertRedirect('/');
     }
     // …and a legitimate same-origin path still works, or the check above passes by refusing everything.
-    $this->post(route('cookies.choice'), ['choice' => CookieConsent::ACCEPTED, 'return' => '/features'])
+    $this->withHeader('Origin', (string) config('app.url'))->post(route('cookies.choice'), ['choice' => CookieConsent::ACCEPTED, 'return' => '/features'])
         ->assertRedirect('/features#vy-cookie-notice');
 });
 

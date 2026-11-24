@@ -425,7 +425,7 @@
         </section>
     </div>
 
-    <script>
+    <script @nonce>
         // D-UPLOAD-LIMITS (2026-11-11): the files a person just chose, against this server's ceilings — '' when they fit, else the sentence.
         // The whole choice is dropped on a refusal (never half of it, silently), and the message says which rule it broke.
         window.vyOwnerFileCheck = window.vyOwnerFileCheck || function (input, cfg) {

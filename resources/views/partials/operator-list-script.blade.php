@@ -13,7 +13,7 @@
      — and `start()` runs at the end of init(). What it reads from the page: `.vy-gl-menu` (the one row menu) and its
      `.vy-gl-menu-item`s, `[data-gl-id]` (a row), `a[data-gl-key]` (a control link, and where focus goes back after a
      change), `[data-gl-summary]` (the footer line, read out after a change) and `.vy-gl-search-in` (the search box). --}}
-<script>
+<script @nonce>
     window.vyListBehaviour = window.vyListBehaviour || function (boot, options) {
         const opts = Object.assign({ empty: @js(__('partials/operator-list-script.empty_view')) }, options || {});
         // ⚠️ DOM handles live HERE, captured once in init(), not behind `this.$root` / `this.$refs`. Those magics resolve

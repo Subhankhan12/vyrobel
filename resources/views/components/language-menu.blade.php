@@ -10,7 +10,7 @@
     <style>.vy-langmenu{margin-inline-start:auto}.vy-langmenu-select{font:inherit;font-size:13px;padding:6px 28px 6px 10px;border-radius:10px}</style>
     <nav class="vy-langmenu" aria-label="{{ __('components/language-menu.label') }}">
         <select class="vy-langmenu-select" aria-label="{{ __('components/language-menu.label') }}"
-                onchange="if (this.value) { var u = new URL(window.location.href); u.searchParams.set('lang', this.value); window.location.href = u.toString(); }">
+                data-lang-param>
             @foreach ($vyLangOptions as $code => $name)
                 <option value="{{ $code }}" lang="{{ \App\Support\I18n\Locales::tag($code) }}" @selected($code === $vyLangCurrent)>{{ $name }}</option>
             @endforeach

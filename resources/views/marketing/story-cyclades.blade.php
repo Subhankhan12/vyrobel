@@ -15,7 +15,7 @@
 <x-marketing.shell
     title="A 42-villa portfolio across four islands | Vyrobel example scenario"
     description="An illustrative scenario: how a 42-villa manager across four islands replaced a channel manager, a spreadsheet per owner and a WhatsApp group with one platform — and stopped the month-end phone calls."
-    canonical="/case-studies/cyclades"
+    canonical="/example-scenarios/villa-portfolio"
     :index="false">
 <div data-screen-label="Marketing — Story: Cyclades" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -26,7 +26,7 @@
         <span style="font-family: var(--vy-display); font-size: 14pt; font-weight: 600; color: var(--vy-accent);">Vyrobel</span>
         <span style="font-size: 8pt; color: var(--vy-faint);">Example scenario · 42 villas, 31 owners · four islands</span>
       </div>
-      <div style="font-size: 7.5pt; color: var(--vy-muted); margin-top: 3pt;" data-printsub="">Illustrative scenario, composed from onboarding conversations · vyrobel.com/case-studies</div>
+      <div style="font-size: 7.5pt; color: var(--vy-muted); margin-top: 3pt;" data-printsub="">Illustrative scenario, composed from onboarding conversations · vyrobel.com/example-scenarios</div>
     </div>
     <article>
 
@@ -90,8 +90,8 @@
 
       <section data-sec="" id="switch" style="max-width: 780px; margin: 0 auto; padding: 0 28px 44px;">
         <h2 style="margin: 0 0 16px; font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -.03em; color: var(--vy-ink);">The switch</h2>
-        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">They moved in early May, deliberately: bookings on the books for July and August, but a quiet fortnight to work in. Reservations and two years of owner statements imported in the first week, with a reconciliation sheet that found nine bookings where the spreadsheet and the channel manager disagreed. All nine were spreadsheet transcription errors, none material, all quietly corrected.</p>
-        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Week three was parallel running. The cleaning team worked the board and the WhatsApp group at once, which everybody found irritating and which caught two properties whose changeover times had been wrong in the import. Channels cut over on a Tuesday in the fourth week; the fifth was owner onboarding, which took longer than expected because owners had questions once they could actually see things.</p>
+        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">They moved in early May, deliberately: bookings on the books for July and August, but a quiet fortnight to work in. Open reservations were entered in the first week and checked line by line against the old spreadsheet, which found nine bookings where the spreadsheet and the channel manager disagreed; two years of past owner statements stayed in the spreadsheet. All nine were spreadsheet transcription errors, none material, all quietly corrected.</p>
+        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Week three was parallel running. The cleaning team worked the board and the WhatsApp group at once, which everybody found irritating and which caught two properties whose changeover times had been entered wrong. Channels cut over on a Tuesday in the fourth week; the fifth was owner onboarding, which took longer than expected because owners had questions once they could actually see things.</p>
         <p style="margin: 0; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">No bookings were lost. One rate plan for a single villa was mapped to the wrong season and was caught by the sample-pricing check before it sold anything.</p>
       </section>
 

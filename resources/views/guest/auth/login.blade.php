@@ -55,7 +55,7 @@
             <div style="position:relative">
                 <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required style="margin-top:7px;padding-right:62px">
                 <button type="button" aria-label="{{ __('auth/common.show_password') }}"
-                        onclick="var p=document.getElementById('password');var s=p.type==='password';p.type=s?'text':'password';this.textContent=s?@js(__('guest/auth/login.hide')):@js(__('guest/auth/login.show'))"
+                        data-toggle-password="password" data-show-text="{{ __('guest/auth/login.show') }}" data-hide-text="{{ __('guest/auth/login.hide') }}"
                         style="position:absolute;right:10px;top:15px;background:none;border:none;color:var(--vy-accent-text);font-size:12px;font-weight:600;cursor:pointer">{{ __('guest/auth/login.show') }}</button>
             </div>
         </div>

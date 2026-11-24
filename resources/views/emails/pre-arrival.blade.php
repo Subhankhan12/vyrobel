@@ -20,7 +20,16 @@
         <tr>
             <td align="center" style="padding:22px 16px;">
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#704204;">{{ __('emails/pre-arrival.door_code_label') }}</span><br>
-                @if ($doorCode)
+                @if ($doorCode && count($rooms ?? []) > 1)
+                    {{-- ⚠️ VY-32 — a stay of several rooms: each room's own code under its name (the first room's alone was sent before) --}}
+                    @foreach ($rooms as $room)
+                        @if ($room['door_code'])
+                            <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; font-weight:600; color:#4A4038;">{{ $room['label'] }}</span><br>
+                            <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:28px; font-weight:700; letter-spacing:5px; color:#2B2320;">{{ $room['door_code'] }}</span><br>
+                        @endif
+                    @endforeach
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{{ __('emails/pre-arrival.works_from', ['date' => $releasedFrom]) }}</span>
+                @elseif ($doorCode)
                     <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:34px; font-weight:700; letter-spacing:6px; color:#2B2320;">{{ $doorCode }}</span><br>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{{ __('emails/pre-arrival.works_from', ['date' => $releasedFrom]) }}</span>
                 @elseif ($withheldMessage)

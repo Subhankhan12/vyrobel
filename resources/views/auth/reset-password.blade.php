@@ -132,7 +132,7 @@
         <div class="vy-foot">{{ __('auth/reset-password.signs_out_other_devices') }}</div>
     </main>
 
-    <script>
+    <script @nonce>
         document.querySelectorAll('[data-toggle]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var input = document.getElementById(btn.getAttribute('data-toggle'));

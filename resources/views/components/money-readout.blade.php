@@ -16,7 +16,7 @@
 @endphp
 @once @include('partials.local-number-script') @endonce
 <p id="{{ $vyReadoutId }}" class="vy-money-readout" aria-live="polite" @if ($maxMinor !== null) data-max-minor="{{ (int) $maxMinor }}" @endif></p>
-<script>
+<script @nonce>
     (function () {
         var input = document.getElementById(@js($for)), out = document.getElementById(@js($vyReadoutId));
         if (! input || ! out || ! window.vyLocalNumber) return;

@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Services\SettingsService;
 use App\Support\Authorization\RoleLabel;
+use App\Support\Booking\StorefrontPayment;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
@@ -203,6 +204,8 @@ class OperatorSettings extends Component
                 ? (int) $cancellation['free_until_days']
                 : null,
             'deposit_required' => (bool) ($deposit['required'] ?? false),
+            // VY-23 — the share a guest pays by card to book online (a box ticked before the share existed reads the default, shown here)
+            'deposit_percent' => is_numeric($deposit['percent'] ?? null) ? (int) $deposit['percent'] : StorefrontPayment::DEFAULT_PERCENT,
             'self_check_in' => (bool) ($policy->self_check_in ?? false),
             // BOOKING TERMS (2026-11-14): the hotel's own words, shown to guests with the terms. Plain text.
             'booking_terms_extra' => (string) ($policy->booking_terms_extra ?? ''),
@@ -211,6 +214,8 @@ class OperatorSettings extends Component
             'arrival_lead_days' => $policy?->arrival_lead_days,
             'arrival_requires_paid' => $policy === null ? true : (bool) $policy->arrival_requires_paid,
             'arrival_requires_checkin' => $policy === null ? false : (bool) $policy->arrival_requires_checkin,
+            'inspection_by_second_person' => $policy === null ? false : (bool) $policy->inspection_by_second_person,
+            'auto_no_show' => $policy === null ? false : (bool) $policy->auto_no_show,
         ];
     }
 

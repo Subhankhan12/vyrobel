@@ -15,7 +15,7 @@
                 <span class="vy-range" style="font-weight:600">{{ __('livewire/operator/channels.heading') }}</span>
             </div>
             <div class="vy-right">
-                <button type="button" class="vy-btn vy-btn--accent" onclick="document.getElementById('vy-connect-panel').scrollIntoView({behavior:'smooth'})">
+                <button type="button" class="vy-btn vy-btn--accent" data-scroll-to="vy-connect-panel">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                     {{ __('livewire/operator/channels.connect_channel_button') }}
                 </button>

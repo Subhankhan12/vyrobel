@@ -49,7 +49,7 @@ final class CookieConsent
      * this when the disclosure materially changes invalidates old records and re-prompts, which is the
      * whole point of storing it: a choice made against a different set of facts is not a choice about these.
      */
-    public const VERSION = 1;
+    public const VERSION = 2;   // 2 (VY-29, 2026-11-25): the session and XSRF cookies are no longer set by reading the site
 
     public const LIFETIME_DAYS = 365;
 
@@ -75,19 +75,20 @@ final class CookieConsent
      * @var array<string, array{category: string, always: bool, purpose: string, lifetime: string, set_when: string}>
      */
     public const CATALOGUE = [
+        // ⚠️ VY-29 (2026-11-25) — NO LONGER SET BY READING THE SITE: the marketing pages start no session. Set when a page needs one.
         'vyrobel-session' => [
             'category' => 'essential',
-            'always' => true,
+            'always' => false,
             'purpose' => 'Keeps your session — the sign-in that follows you between pages, and the basket of a booking in progress.',
             'lifetime' => '2 hours',
-            'set_when' => 'On your first page view.',
+            'set_when' => 'Only when you open a page that needs it: signing in, the contact form, or booking a stay. Reading these pages sets none.',
         ],
         'XSRF-TOKEN' => [
             'category' => 'essential',
-            'always' => true,
+            'always' => false,
             'purpose' => 'Protects every form on the site from cross-site request forgery. Without it a form you submit here could be forged from another site.',
             'lifetime' => '2 hours',
-            'set_when' => 'On your first page view.',
+            'set_when' => 'Only when you open a page with a form that needs it: signing in, the contact form, or booking a stay. Reading these pages sets none.',
         ],
         'vy_td' => [
             'category' => 'essential',

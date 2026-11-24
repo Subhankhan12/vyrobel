@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Housekeeping\SecondPersonInspectionRequired;
+use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Models\HousekeepingTask;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\HousekeepingService;
+use App\Services\MaintenanceService;
+use App\Support\Media\OperationsPhotos;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyDay;
@@ -17,7 +21,6 @@ use App\Support\Schedule\StaffRoster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use RuntimeException;
 
@@ -58,7 +61,11 @@ class HousekeepingActionController extends Controller
         // the maintenance reference does. It reports the refusal in the task's own terms: what was attempted,
         // and what state the task is actually in. Both facts are READ off the row; neither is decided here.
         try {
-            $housekeeping->updateTaskStatus($model, $target);
+            $housekeeping->updateTaskStatus($model, $target, $request->user());
+        } catch (SecondPersonInspectionRequired) {
+            // VY-27 — the property asks for a second person, and this is the person who cleaned the room: say so, not "cannot mark"
+            return redirect()->to(route('app.housekeeping'))
+                ->with('hk_error', __('php/http/controllers/housekeeping_action_controller.second_person_required', ['unit' => $model->unit?->code]));
         } catch (RuntimeException) {
             $was = $this->currentStatus((string) $model->status);
 
@@ -241,23 +248,51 @@ class HousekeepingActionController extends Controller
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ]);
 
-        $file = $request->file('photo');
-        $ext = $file->extension() ?: 'jpg';                      // from the VALIDATED file, never the client name
-        $name = (string) Str::ulid().'.'.$ext;
-        $path = $file->storeAs('housekeeping/'.$model->getKey(), $name, 'public');
-
-        Media::create([
-            'mediable_type' => $model->getMorphClass(),
-            'mediable_id' => $model->getKey(),
-            'collection' => 'hk_proof',
-            'disk' => 'public',
-            'path' => $path,
-            'mime' => (string) $file->getMimeType(),
-            'size' => (int) $file->getSize(),
-            'alt' => 'Housekeeping proof · '.(string) $model->unit->code,
-        ]);
+        // ⚠️ VY-34 — on the PRIVATE disk, opened only signed in (OperationsPhotos); it was public at /media by address.
+        OperationsPhotos::store($request->file('photo'), $model, 'hk_proof', 'housekeeping', 'Housekeeping proof · '.(string) $model->unit->code);
 
         return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.photo_added'));
+    }
+
+    /**
+     * ⚠️⚠️ VY-24 (audit of 2026-11-24, read in code) — A HOUSEKEEPER REPORTS A DEFECT. Opening a work order needed `maintenance.manage`,
+     * which the Housekeeping role does not hold, so the person who finds a leaking shower or a broken lamp had no way to say so in the
+     * product. This opens a work order on the task's room through {@see MaintenanceService::open()} — the certified path (auto-assignment
+     * to the category's technician, the urgent-order alert, the audit and domain events) — gated on the housekeeper's own permission.
+     *
+     * ⚠️ REPORTING IS NOT MANAGING: the room is NOT taken out of order from here (`takes_out_of_service` false — that is maintenance's
+     *    decision, with the VY-03 overbooking check), and the reporter is recorded as who reported it. The task is found inside the
+     *    person's properties (DEC-j) — another property's room is a 404, never a work order.
+     */
+    public function reportProblem(Request $request, MaintenanceService $maintenance, string $task): RedirectResponse
+    {
+        $model = app(PropertyScope::class)->task($task);
+
+        if ($this->paused()) {
+            return $this->pausedRedirect();
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:160'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'category' => ['required', Rule::in(MaintenanceActionController::CATEGORIES)],
+            'urgent' => ['sometimes', 'boolean'],
+        ], [
+            'title.required' => __('php/http/controllers/housekeeping_action_controller.problem_title_required'),
+        ]);
+
+        $maintenance->open([
+            'unit_id' => (string) $model->unit_id,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'category' => $validated['category'],
+            'priority' => $request->boolean('urgent') ? 'urgent' : 'normal',
+            'takes_out_of_service' => false,
+            'reported_by' => (string) $request->user()?->getKey(),
+        ]);
+
+        return redirect()->to(route('app.housekeeping', ['task' => $model->getKey()]))
+            ->with('hk_notice', __('php/http/controllers/housekeeping_action_controller.problem_reported', ['unit' => $model->unit?->code]));
     }
 
     /** Remove a proof photo — deletes the stored bytes + the row. Tenant + task scoped; gated + read-only. */

@@ -13,6 +13,7 @@ use App\Support\Folio\FolioTotals;
 use App\Support\I18n\LocalDate;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\ReservationStage;
+use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -69,13 +70,21 @@ final class ArrivalPack
      *   directions: ?string, check_in_time: ?string, check_out_time: ?string,
      *   released: bool, released_from: string, has_code: bool,
      *   withheld: ?string, withheld_message: ?string, withheld_url: ?string,
-     *   door_code: ?string, wifi_ssid: ?string, wifi_password: ?string, arrival_notes: ?string
+     *   door_code: ?string, wifi_ssid: ?string, wifi_password: ?string, arrival_notes: ?string,
+     *   rooms: list<array{label: string, door_code: ?string, wifi_ssid: ?string, wifi_password: ?string, arrival_notes: ?string}>
      * }
+     *
+     * ⚠️⚠️ VY-32 (audit of 2026-11-24) — EVERY ROOM, NOT THE FIRST. A stay of two rooms showed only the first room's door code: the pack
+     *    read `reservationUnits->first()`. `rooms` now carries each assigned room's own code, Wi-Fi and notes (released or withheld
+     *    together, by the same rules); the scalar keys stay the FIRST room's, as before, for the one-room screens and their tests.
      */
     public static function for(Reservation $reservation, CarbonInterface $today): array
     {
         $property = $reservation->property;
-        $unit = $reservation->reservationUnits->first()?->unit;
+        /** @var list<Unit> $units */
+        $units = $reservation->reservationUnits->map(fn ($line) => $line->unit)->filter(fn ($u): bool => $u instanceof Unit)
+            ->unique(fn (Unit $u): string => (string) $u->getKey())->values()->all();
+        $unit = $units[0] ?? null;
         $policy = self::policy($property);
 
         $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
@@ -112,7 +121,7 @@ final class ArrivalPack
             'check_out_time' => self::time($property?->check_out_time),
             'released' => $released,
             'released_from' => $opensOn->translatedFormat(LocalDate::pattern('D, j M')),
-            'has_code' => $code !== null,
+            'has_code' => collect($units)->contains(fn (Unit $u): bool => self::clean($u->door_code) !== null),
             // WHY it is withheld (null = released), and — for the two reasons the guest can act on — the sentence and the place to act.
             'withheld' => $withheld,
             'withheld_message' => match ($withheld) {
@@ -130,6 +139,13 @@ final class ArrivalPack
             'wifi_ssid' => $released && $unit instanceof Unit ? self::clean($unit->wifi_ssid) : null,
             'wifi_password' => $released && $unit instanceof Unit ? self::clean($unit->wifi_password) : null,
             'arrival_notes' => $released && $unit instanceof Unit ? self::clean($unit->arrival_notes) : null,
+            'rooms' => array_map(fn (Unit $u): array => [
+                'label' => trim((string) ($u->name ?: $u->code)),
+                'door_code' => $released ? self::clean($u->door_code) : null,
+                'wifi_ssid' => $released ? self::clean($u->wifi_ssid) : null,
+                'wifi_password' => $released ? self::clean($u->wifi_password) : null,
+                'arrival_notes' => $released ? self::clean($u->arrival_notes) : null,
+            ], $units),
         ];
     }
 
@@ -150,6 +166,16 @@ final class ArrivalPack
         }
 
         return max(0, (int) FolioTotals::for($folio)['balance_minor']);
+    }
+
+    /**
+     * ⚠️⚠️ VY-32 (audit of 2026-11-24) — "TODAY" FOR THE RELEASE IS THE PROPERTY'S DAY. The screens passed the server's date (UTC), so a
+     * guest in a property ahead of UTC waited until the server's midnight, and one behind it got the code a day early by local time. Every
+     * caller that means "now" asks here: the property's own date ({@see BoardDate::today()}, the Calendar's and the Front Desk's rule).
+     */
+    public static function today(?Property $property): CarbonImmutable
+    {
+        return BoardDate::today($property?->timezone);
     }
 
     /** The property's policy row, or null when it has none (every rule then reads as its default). */

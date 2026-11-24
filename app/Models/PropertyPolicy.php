@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $arrival_lead_days days before check-in the door code is released (null = ArrivalPack::LEAD_DAYS)
  * @property bool $arrival_requires_paid withhold the door code while the guest's balance is owing (VY-06; default true)
  * @property bool $arrival_requires_checkin withhold the door code until online check-in is done (default false)
+ * @property bool $inspection_by_second_person the person who cleaned a room may not also inspect it (VY-27; default false)
+ * @property bool $auto_no_show a guest not checked in by check-out time the day after arrival is marked a no-show (VY-26; default false)
  */
 class PropertyPolicy extends Model
 {
@@ -71,6 +73,8 @@ class PropertyPolicy extends Model
         'arrival_lead_days',
         'arrival_requires_paid',
         'arrival_requires_checkin',
+        'inspection_by_second_person',
+        'auto_no_show',
     ];
 
     /**
@@ -87,6 +91,8 @@ class PropertyPolicy extends Model
             'arrival_lead_days' => 'integer',
             'arrival_requires_paid' => 'boolean',
             'arrival_requires_checkin' => 'boolean',
+            'inspection_by_second_person' => 'boolean',
+            'auto_no_show' => 'boolean',
             'min_stay' => 'integer',
             'max_stay' => 'integer',
             'self_check_in' => 'boolean',

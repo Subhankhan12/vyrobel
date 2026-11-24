@@ -141,7 +141,7 @@
     .ad-btn--destroy { background: #B42318; color: #fff; border-color: transparent; box-shadow: 0 10px 22px -12px rgba(180, 35, 24, .8); }
     .ad-btn--destroy:hover { background: #912018; }
 </style>
-<script>
+<script @nonce>
 (() => {
     if (window.__vyAdminFields) return;
     window.__vyAdminFields = true;

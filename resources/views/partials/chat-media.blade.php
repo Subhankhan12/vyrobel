@@ -8,7 +8,7 @@
      plays at a time; its length comes from the server when the recording carries none (a WebM from MediaRecorder does not).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @once
-<script>
+<script @nonce>
     (() => {
         if (window.VyRecorder) return;
         const TYPES = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'];

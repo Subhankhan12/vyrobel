@@ -37,25 +37,25 @@
     <form method="GET" action="{{ route('admin.customers.index') }}" class="ad-filters">
         <label class="vy-sr-only" for="vy-lbl-index-search">{{ __('admin/customers/index.search_placeholder') }}</label>
         <input id="vy-lbl-index-search" type="search" name="search" value="{{ $filters['search'] }}" placeholder="{{ __('admin/customers/index.search_placeholder') }}">
-        <select aria-label="{{ __('admin/customers/index.status_label') }}" name="status" onchange="this.form.submit()">
+        <select aria-label="{{ __('admin/customers/index.status_label') }}" name="status" data-autosubmit>
             <option value="">{{ __('admin/customers/index.all_statuses') }}</option>
             @foreach (\App\Support\Platform\PlatformCustomers::statusLabels() as $key => $label)
                 <option value="{{ $key }}" @selected($filters['status'] === $key)>{{ $label }}</option>
             @endforeach
         </select>
-        <select aria-label="{{ __('admin/customers/index.kind_label') }}" name="kind" onchange="this.form.submit()">
+        <select aria-label="{{ __('admin/customers/index.kind_label') }}" name="kind" data-autosubmit>
             <option value="">{{ __('admin/customers/index.kind_all') }}</option>
             <option value="customers" @selected($filters['kind'] === 'customers')>{{ __('admin/customers/index.kind_customers') }}</option>
             <option value="internal" @selected($filters['kind'] === 'internal')>{{ __('admin/customers/index.kind_internal') }}</option>
         </select>
-        <select aria-label="{{ __('admin/customers/index.source_label') }}" name="source" onchange="this.form.submit()">
+        <select aria-label="{{ __('admin/customers/index.source_label') }}" name="source" data-autosubmit>
             <option value="">{{ __('admin/customers/index.source_any') }}</option>
             @foreach (\App\Support\Platform\TenantLifecycle::sourceLabels() as $key => $label)
                 <option value="{{ $key }}" @selected($filters['source'] === $key)>{{ $label }}</option>
             @endforeach
             <option value="unknown" @selected($filters['source'] === 'unknown')>{{ __('admin/customers/index.source_unknown') }}</option>
         </select>
-        <select aria-label="{{ __('admin/customers/index.verified_label') }}" name="verified" onchange="this.form.submit()">
+        <select aria-label="{{ __('admin/customers/index.verified_label') }}" name="verified" data-autosubmit>
             <option value="">{{ __('admin/customers/index.verified_any') }}</option>
             <option value="yes" @selected($filters['verified'] === 'yes')>{{ __('admin/customers/index.verified_yes') }}</option>
             <option value="no" @selected($filters['verified'] === 'no')>{{ __('admin/customers/index.verified_no') }}</option>

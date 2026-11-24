@@ -27,6 +27,21 @@ Schedule::command('team-chat:prune-typing')->hourly();
 // same shortfall from its own query — a job cannot report that it did not run.
 Schedule::command('availability:extend')->dailyAt('01:30');
 
+// ⚠️⚠️ VY-23 (audit of 2026-11-24) — A STOREFRONT BOOKING WHOSE CARD PAGE CLOSED UNPAID GIVES ITS ROOM BACK. The page expires 31 minutes
+// after it opens; Stripe's `checkout.session.expired` releases the booking at once, and this is the net under a webhook that never came
+// (UnpaidBookingRelease — a paid deposit, a completed page or a booking a person changed is never released). And quotes past their expiry
+// are marked abandoned on a schedule: expireStaleQuotes() existed and nothing called it.
+Schedule::command('bookings:release-unpaid')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('booking-quotes:expire')->everyFifteenMinutes()->withoutOverlapping();
+
+// ⚠️ VY-26 (audit of 2026-11-24) — THE TWO JOBS A PERSON DID BY HAND, NOW ON THE OPERATOR'S CHOICE (both off until chosen):
+//    · automatic no-shows, for properties that switched them on (Settings → Policies) — hourly, since each property's line falls at its
+//      own check-out time in its own time zone;
+//    · last month's owner statements, closed on the day of the month an organisation chose (Payout run page) — daily at 05:00 UTC, after
+//      the night's other jobs. Each statement is closed exactly as "Close period" closes one by hand.
+Schedule::command('reservations:mark-no-shows')->hourly()->withoutOverlapping();
+Schedule::command('statements:close-month')->dailyAt('05:00')->withoutOverlapping();
+
 // ⚠️⚠️ VY-12 (audit of 2026-11-24; his ruling: "schedule now, copy later") — THE ENCRYPTED BACKUP, EVERY NIGHT. `ops/backup.sh` ran only
 // when somebody typed it. `backup:run` runs the same script (the one `ops/restore-drill.sh` proves) and copies the archive to the
 // off-server disk when one is set. ⚠️ ONLY WHILE IT IS SET UP: with no passphrase file the command refuses, so scheduling it

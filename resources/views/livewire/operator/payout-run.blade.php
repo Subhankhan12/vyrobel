@@ -101,6 +101,27 @@
             </p>
         @endif
 
+        {{-- ⚠️ VY-26 (2026-11-25) — OWNER STATEMENTS CLOSE BY THEMSELVES, on the day the operator picks (off by default: by hand from each
+             owner's page, as before). The job closes last month for every owner with something to state, exactly as "Close period" does. --}}
+        @if ($canPayout)
+            <form method="POST" action="{{ route('app.payouts.statement-schedule') }}" class="vyo-pr-auto vy-fade" data-statement-schedule>
+                @csrf
+                <div class="vyo-pr-auto-text">
+                    <label class="vy-field-label" for="vyo-pr-close-day">{{ __('livewire/operator/payout-run.auto_close_label') }}</label>
+                    <span class="vyo-pr-auto-help">{{ __('livewire/operator/payout-run.auto_close_help') }}</span>
+                </div>
+                <div class="vyo-pr-auto-ctl">
+                    <select id="vyo-pr-close-day" name="close_day" class="vy-input">
+                        <option value="0" @selected($statementCloseDay === null)>{{ __('livewire/operator/payout-run.auto_close_off') }}</option>
+                        @for ($d = 1; $d <= 28; $d++)
+                            <option value="{{ $d }}" @selected($statementCloseDay === $d)>{{ __('livewire/operator/payout-run.auto_close_day', ['day' => $d]) }}</option>
+                        @endfor
+                    </select>
+                    <button type="submit" class="vy-btn vy-btn--ghost">{{ __('livewire/operator/payout-run.auto_close_save') }}</button>
+                </div>
+            </form>
+        @endif
+
         {{-- ── Stat strip — DERIVED per currency. An empty bucket is "—": a zero must be a zero of SOME
              currency, and this page spans every owner in the tenant, so there is none to pick. ──────── --}}
         {{-- ⚠️ `vy-dash-kpis` is a FOUR-column grid; this strip has THREE tiles, so it was laying them out
@@ -596,7 +617,7 @@
     </x-operator.shell>
 
     {{-- The confirm step: a form posts only once its own dialog is answered; without the script it posts as it always did. --}}
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyPayoutRun', () => ({
                 confirmOpen: false,

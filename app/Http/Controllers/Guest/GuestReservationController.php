@@ -51,7 +51,7 @@ class GuestReservationController extends Controller
             'checkInShort' => CarbonImmutable::parse($model->check_in)->translatedFormat(LocalDate::pattern('j M')),
             'checkOutShort' => CarbonImmutable::parse($model->check_out)->translatedFormat(LocalDate::pattern('j M')),
             // ArrivalPack self-gates the door code / wifi to the release window (#33) — safe to pass whole.
-            'arrival' => ArrivalPack::for($model, $today),
+            'arrival' => ArrivalPack::for($model, ArrivalPack::today($model->property)),   // VY-32: the property's day, not the server's
             // Real free-cancellation deadline (null when the policy gives none / it has passed).
             'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->translatedFormat(LocalDate::pattern('D, j M Y')) : null,
             // Actions only make sense for a live (not past/cancelled) stay.

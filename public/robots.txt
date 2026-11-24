@@ -1,2 +1,6 @@
 User-agent: *
 Disallow: /admin
+
+# VY-29 — the marketing pages and the storefronts that may be indexed
+Sitemap: https://vyrobel.com/sitemap.xml
+Sitemap: https://vyrobel.com/sitemap-storefront.xml

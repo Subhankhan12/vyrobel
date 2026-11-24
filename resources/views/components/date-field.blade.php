@@ -63,7 +63,7 @@
     </div>
 </div>
 @once
-    <script>
+    <script @nonce>
         function vyDateField(initial) {
             return {
                 iso: initial || '',

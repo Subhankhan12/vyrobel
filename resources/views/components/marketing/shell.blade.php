@@ -214,8 +214,10 @@
            it sits in an `overflow-x: auto` wrapper, and a scroll container does not widen its page. */
         @media (max-width: 960px) { .vy-mk-footgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
         .vy-mk-footbrand p { font-size: 13px; line-height: 1.6; color: var(--vy-muted); max-width: 300px; margin: 14px 0 18px; }
-        .vy-mk-footcol { display: flex; flex-direction: column; gap: 8px; }
-        .vy-mk-footcol a, .vy-mk-footcol span[data-vy-pending] { font-size: 13px; color: var(--vy-muted); text-decoration: none; }
+        /* VY-30 (audit of 2026-11-24, reproduced) — every footer link is at least 24 px tall (WCAG 2.5.8 target size). They were the
+           13 px line alone (≈16 px); the gap between them shrinks by what each link grows, so the column keeps its rhythm. */
+        .vy-mk-footcol { display: flex; flex-direction: column; gap: 2px; }
+        .vy-mk-footcol a, .vy-mk-footcol span[data-vy-pending] { display: flex; align-items: center; min-height: 24px; font-size: 13px; color: var(--vy-muted); text-decoration: none; }
         .vy-mk-footcol a:hover { color: var(--vy-accent-text); }
         .vy-mk-footlabel { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 4px; }
         .vy-mk-guestlink { font-size: 12.5px !important; }

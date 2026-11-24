@@ -697,7 +697,7 @@
     {{-- The page's controller — the shared list behaviour (the row menu, search and the smooth links) plus this page's own
          dialogs. Every link and form works without it. --}}
     @include('partials.operator-list-script')
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyOwners', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/operator/owners.none_in_view')) }), {
                 inviteOpen: @js($vyInviteRetry),

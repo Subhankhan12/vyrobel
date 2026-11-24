@@ -265,7 +265,7 @@
 
     </x-operator.shell>
 
-    <script>
+    <script @nonce>
         function searchBox() {
             return {
                 recent: [],

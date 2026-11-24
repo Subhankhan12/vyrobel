@@ -885,7 +885,7 @@
                                                         @endunless
                                                         <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="up"><button class="vy-pm-btn" title="{{ __('livewire/units-list.move_earlier') }}" aria-label="{{ __('livewire/units-list.move_earlier') }}" @if ($i === 0) disabled @endif>‹</button></form>
                                                         <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="down"><button class="vy-pm-btn" title="{{ __('livewire/units-list.move_later') }}" aria-label="{{ __('livewire/units-list.move_later') }}" @if ($i === count($rt['photos']) - 1) disabled @endif>›</button></form>
-                                                        <form method="POST" action="{{ route('app.room-types.photos.destroy', [$rt['id'], $photo['id']]) }}" onsubmit="return confirm(@js(__('livewire/units-list.remove_photo_confirm')))">@csrf @method('DELETE')<button class="vy-pm-btn vy-pm-btn--danger" title="{{ __('common.remove') }}" aria-label="{{ __('common.remove') }}">✕</button></form>
+                                                        <form method="POST" action="{{ route('app.room-types.photos.destroy', [$rt['id'], $photo['id']]) }}" data-confirm-text="{{ __('livewire/units-list.remove_photo_confirm') }}">@csrf @method('DELETE')<button class="vy-pm-btn vy-pm-btn--danger" title="{{ __('common.remove') }}" aria-label="{{ __('common.remove') }}">✕</button></form>
                                                     </figcaption>
                                                 @endif
                                             </figure>
@@ -899,7 +899,7 @@
                                         @csrf
                                         <input type="hidden" name="_photos" value="{{ $rt['id'] }}">
                                         <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required
-                                               id="pm-{{ $rt['id'] }}" class="vy-pm-file" onchange="this.form.submit()">
+                                               id="pm-{{ $rt['id'] }}" class="vy-pm-file" data-autosubmit>
                                         <label for="pm-{{ $rt['id'] }}" class="vy-btn vy-btn--ghost vy-pm-add">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-9 7"/></svg>
                                             {{ __('livewire/units-list.add_photo') }}
@@ -1020,7 +1020,7 @@
         $vyWords['pauseNMany'] = trans_choice('livewire/units-list.pause_n_units_q', 2, ['count' => ':n']);
         $vyWords['resumeNMany'] = trans_choice('livewire/units-list.resume_n_units_q', 2, ['count' => ':n']);
     @endphp
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyUnits', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/units-list.empty_view')) }), {
                 boot,

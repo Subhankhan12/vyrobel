@@ -15,7 +15,7 @@
 <x-marketing.shell
     title="96 keys, one city hotel — an example scenario | Vyrobel"
     description="A legacy PMS the front desk tolerated and nobody else could open. An example scenario: how a 96-key city hotel gets housekeeping, maintenance and the front desk onto one system."
-    canonical="/case-studies/lisbon"
+    canonical="/example-scenarios/city-hotel"
     :index="false">
 <div data-screen-label="Marketing — Story: Lisbon" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -91,7 +91,7 @@
       <section data-sec="" id="switch" style="max-width: 780px; margin: 0 auto; padding: 0 28px 44px;">
         <h2 style="margin: 0 0 16px; font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -.03em; color: var(--vy-ink);">The switch: February, and one department at a time</h2>
         <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Seven weeks in the quietest month of the year, and the sequence mattered more than the speed. Housekeeping went first, on its own, for a fortnight before anything else changed: the board on phones, the four states, the old printed sheet still coming out in parallel. By the time it was the front desk's turn, the floor already trusted the thing they were being asked to depend on.</p>
-        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Front desk was the real test, and it was where the fortnight of parallel running earned its cost. Two receptionists worked both systems for a full week, and the exercise surfaced a group-booking pattern the import had flattened into individual reservations. That was fixed before cutover rather than discovered in July.</p>
+        <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Front desk was the real test, and it was where the fortnight of parallel running earned its cost. Two receptionists worked both systems for a full week, and the exercise surfaced a group-booking pattern that had been entered as individual reservations. That was fixed before cutover rather than discovered in July.</p>
         <p style="margin: 0; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Channels moved on a Tuesday morning in the seventh week, with fourteen arrivals on the board and both teams watching.</p>
       </section>
 
@@ -118,7 +118,7 @@
       <section data-sec="" id="honest" style="max-width: 780px; margin: 0 auto; padding: 0 28px 48px;">
         <h2 style="margin: 0 0 16px; font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -.03em; color: var(--vy-ink);">What was harder than expected</h2>
         <p style="margin: 0 0 18px; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">Two long-serving receptionists genuinely did not want to change, and said so. Both were right that the old system was faster for them personally, because fifteen years of muscle memory is worth a lot. The honest answer was that the hotel was optimising for the whole floor rather than for the desk, and that took a difficult conversation rather than a training session. One of them is now the person who trains new starters.</p>
-        <p style="margin: 0; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">The group booking import also had to be redone by hand. Fourteen group reservations that the export represented as blocks came across as individual stays, and rebuilding them correctly took a day nobody had planned for.</p>
+        <p style="margin: 0; font-size: 16.5px; line-height: 1.76; color: var(--vy-muted);">The group bookings also had to be redone. Fourteen group reservations that the old system&rsquo;s export showed as blocks were first entered as individual stays, and rebuilding them as groups took a day nobody had planned for.</p>
       </section>
 
     <nav aria-label="Story navigation" data-sec="" data-inpagenav="" style="max-width: 980px; margin: 0 auto; padding: 0 28px 44px;">

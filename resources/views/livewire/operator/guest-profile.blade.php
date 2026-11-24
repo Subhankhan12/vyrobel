@@ -277,7 +277,7 @@
                                     {!! __('livewire/operator/guest-profile.erase_explainer') !!}
                                 </div>
                                 <form method="POST" action="{{ route('app.guests.anonymize', $guest['id']) }}" style="margin-top: 12px;"
-                                      onsubmit="return confirm(@js(__('livewire/operator/guest-profile.erase_confirm_dialog')));">
+                                      data-confirm-text="{{ __('livewire/operator/guest-profile.erase_confirm_dialog') }}">
                                     @csrf
                                     <label class="vy-field-label" for="confirm">{{ __('livewire/operator/guest-profile.type_erase_to_confirm') }}</label>
                                     <div class="vy-input-group">

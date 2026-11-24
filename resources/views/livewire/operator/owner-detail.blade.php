@@ -1086,7 +1086,7 @@
 
     {{-- The page's dialogs open and close here, so they need this script; the note and the rate-proposal row forms post without
          it. The period line reads the two dates in words. --}}
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             // I18N-01: the month names, the error and the "N days" plural are all worked out on the server (CONVERSION.md rules 5, 12)
             const months = @js(collect(range(1, 12))->map(fn (int $m): string => \Carbon\CarbonImmutable::create(2024, $m, 1)->translatedFormat(\App\Support\I18n\LocalDate::pattern('M')))->all());

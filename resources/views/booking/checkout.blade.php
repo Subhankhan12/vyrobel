@@ -10,8 +10,10 @@
         'check_in' => $search['check_in'], 'check_out' => $search['check_out'],
         'adults' => $search['adults'], 'children' => $search['children'],
     ]));
-    // The wired rail (founder decision D1): 'stripe' → test-mode hosted Checkout; else pay-on-arrival.
-    $payByCard = (string) config('services.payments.gateway') === 'stripe';
+    // VY-23 — `$payByCard` and `$deposit` come from the controller (StorefrontPayment): a card only when this organisation can really
+    // take one; a property that asks for a deposit offers no "pay on arrival", and with no card it cannot be booked here.
+    $payByCard = (bool) ($payByCard ?? false);
+    $deposit = $deposit ?? null;
     $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat(\App\Support\I18n\LocalDate::pattern('D j M')) : '';
     $guests = (int) $search['adults'] + (int) $search['children'];
 @endphp
@@ -206,15 +208,30 @@
                              NEVER record a payment the guest didn't make (#39). The card option is offered ONLY
                              when the certified TEST-MODE hosted Stripe rail is wired (no PAN on us, SAQ A; fulfils
                              on the webhook) — when it isn't, pay-on-arrival is the sole honest option. --}}
-                        @if ($payByCard)
+                        @if ($deposit !== null && ! $deposit['available'])
+                            {{-- ⚠️ VY-23 — the property asks for a deposit by card and cannot take a card online: no booking here, and the guest is told so --}}
+                            <div class="vy-pay-note" data-deposit-unavailable role="alert">
+                                <span>{{ __('booking/checkout.deposit_unavailable') }}</span>
+                            </div>
+                        @elseif ($deposit !== null)
+                            {{-- ⚠️ VY-23 — the property's deposit, by card, now; the rest at the property. No "pay on arrival" here. --}}
+                            <input type="hidden" name="payment_option" value="card">
+                            <div class="vy-co-pm" data-deposit>
+                                <div class="vy-co-pm-opt on">
+                                    <span class="vy-co-pm-t"><b>{{ __('booking/checkout.deposit_now') }}</b><span>{{ __('booking/checkout.deposit_now_detail', ['amount' => $deposit['display'] ?? '', 'percent' => $deposit['percent']]) }}</span></span>
+                                    <span class="vy-co-pm-dot"></span>
+                                </div>
+                            </div>
+                            <div class="vy-co-note">{{ __('booking/checkout.deposit_release_note', ['minutes' => \App\Support\Booking\UnpaidBookingRelease::HOLD_MINUTES - 1]) }}</div>
+                        @elseif ($payByCard)
                             <div class="vy-co-pm" role="radiogroup" aria-label="{{ __('booking/checkout.how_to_pay') }}">
                                 <label class="vy-co-pm-opt on">
-                                    <input type="radio" name="payment_option" value="card" checked onchange="vyPayOpt(this)">
+                                    <input type="radio" name="payment_option" value="card" checked data-vy-change="vyPayOpt">
                                     <span class="vy-co-pm-t"><b>{{ __('booking/checkout.pay_now') }}</b><span>{!! __('booking/checkout.pay_now_detail') !!}</span></span>
                                     <span class="vy-co-pm-dot"></span>
                                 </label>
                                 <label class="vy-co-pm-opt">
-                                    <input type="radio" name="payment_option" value="on_arrival" onchange="vyPayOpt(this)">
+                                    <input type="radio" name="payment_option" value="on_arrival" data-vy-change="vyPayOpt">
                                     <span class="vy-co-pm-t"><b>{{ __('booking/checkout.pay_on_arrival') }}</b><span>{{ __('booking/checkout.pay_on_arrival_detail') }}</span></span>
                                     <span class="vy-co-pm-dot"></span>
                                 </label>
@@ -226,6 +243,7 @@
                                 <span>{{ __('booking/checkout.pay_on_arrival_detail') }}</span>
                             </div>
                         @endif
+                        @error('payment_option')<p class="vy-co-err" role="alert">{{ $message }}</p>@enderror
                         <div class="vy-co-note">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
                             {{ __('booking/checkout.secure_note') }}
@@ -287,7 +305,7 @@
                          preview swaps the shown Total — it reconciles with the server (cap = min(spendable, owed)). --}}
                     @isset($wallet)
                         <label class="vy-co-credit" id="vy-credit-toggle">
-                            <input type="checkbox" name="apply_credit" value="1" onchange="vyToggleCredit(this)">
+                            <input type="checkbox" name="apply_credit" value="1" data-vy-change="vyToggleCredit">
                             <span class="vy-co-credit-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"></rect><path d="M2 10.5h20"></path><path d="M6 15h3"></path></svg></span>
                             <span class="vy-co-credit-t"><b>{{ __('booking/checkout.apply_wallet_credit') }}</b><span>{{ __('booking/checkout.wallet_available', ['amount' => $wallet['display']]) }}</span></span>
                             <span class="vy-co-switch"></span>
@@ -303,7 +321,13 @@
                         <span class="val" id="vy-total" @isset($wallet) data-full="{{ $offer['grand_total'] }}" data-net="{{ $wallet['net_display'] }}" @endisset>{{ $offer['grand_total'] }}</span>
                     </div>
 
-                    <x-busy-btn class="vy-co-confirm" busy-label="{{ $payByCard ? __('booking/checkout.redirecting') : __('booking/checkout.reserving') }}"><span id="vy-confirm-label">{{ $payByCard ? __('booking/checkout.confirm_and_pay', ['amount' => $offer['grand_total']]) : __('booking/checkout.confirm_reservation') }}</span></x-busy-btn>
+                    @if ($deposit !== null && ! $deposit['available'])
+                        {{-- VY-23 — nothing can be booked here (see the payment card): no button that would only be refused --}}
+                    @elseif ($deposit !== null)
+                        <x-busy-btn class="vy-co-confirm" busy-label="{{ __('booking/checkout.redirecting') }}"><span id="vy-confirm-label">{{ __('booking/checkout.confirm_and_pay_deposit') }}</span></x-busy-btn>
+                    @else
+                        <x-busy-btn class="vy-co-confirm" busy-label="{{ $payByCard ? __('booking/checkout.redirecting') : __('booking/checkout.reserving') }}"><span id="vy-confirm-label">{{ $payByCard ? __('booking/checkout.confirm_and_pay', ['amount' => $offer['grand_total']]) : __('booking/checkout.confirm_reservation') }}</span></x-busy-btn>
+                    @endif
 
                     @isset($wallet)
                         <div class="vy-co-saved" id="vy-saved"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>{{ __('booking/checkout.you_saved', ['amount' => $wallet['apply_display']]) }}</div>
@@ -317,7 +341,7 @@
         </form>
 
         @if ($payByCard)
-            <script>
+            <script @nonce>
                 // F-GUEST-1 — reflect the guest's real payment choice in the confirm button (progressive
                 // enhancement; the server is authoritative). "Pay now" shows the price; "Pay on arrival" doesn't.
                 function vyPayOpt(radio) {
@@ -331,7 +355,7 @@
         @endif
 
         @isset($wallet)
-            <script>
+            <script @nonce>
                 // No-Alpine wallet-credit preview (progressive enhancement). Presentational only — the server is
                 // authoritative (caps at min(spendable, owed) and posts the real folio discount). The full/net
                 // display strings are computed server-side so the preview can't drift from the charge (#17).
@@ -346,7 +370,7 @@
                     if (saved) saved.style.display = on ? 'flex' : 'none';
                     // Only the card path shows a price in the button ("Confirm & pay …"); keep it in sync. Asked of the SERVER's
                     // own flag, not of the button's English text — a search for 'pay' fails in every other language (I18N-01).
-                    if (label && @js((bool) $payByCard)) {
+                    if (label && @js((bool) $payByCard && $deposit === null)) {
                         label.textContent = @js(__('booking/checkout.confirm_and_pay', ['amount' => ':amount'])).replace(':amount', function () { return on ? total.dataset.net : total.dataset.full; });
                     }
                 }

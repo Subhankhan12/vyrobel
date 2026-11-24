@@ -250,7 +250,7 @@
     </x-operator.shell>
 
     {{-- The review dialogs: a request card carries its own addresses (`data-review`); the room types follow the property. --}}
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyUnitRequests', (state) => Object.assign({
                 review(which, el) {

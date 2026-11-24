@@ -12,7 +12,7 @@
 @endphp
 <x-marketing.shell
     title="Villa & vacation rental management software with owner portal | Vyrobel"
-    description="Vyrobel for villa and vacation rental managers: commission-free direct bookings, per-villa calendars and owner blocks, automated owner statements and payouts, cleaning turnarounds and guest check-in."
+    description="Vyrobel for villa and vacation rental managers: commission-free direct bookings, per-villa calendars and owner blocks, owner statements that close on the day you choose, cleaning turnarounds and guest check-in."
     canonical="/for-villas">
 <div data-screen-label="Marketing — For villas" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -69,8 +69,8 @@
       <div data-quad="" style="position: relative; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
         <div data-reveal="" style="background: rgba(255,255,255,.055); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 30px 28px; transition: transform .3s ease, box-shadow .3s ease;">
           <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path></svg></span>
-          <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: #fff;">Statements that write themselves</h3>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: rgba(255,247,240,.72);">Gross, commission, cleaning, repairs, net payout — per villa, generated monthly as PDF and CSV, with every booking and every expense clickable behind the number.</p>
+          <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: #fff;">Statements that close themselves</h3>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: rgba(255,247,240,.72);">Gross, commission, cleaning, repairs, net payout — per villa, closed on the day of the month you choose, as PDF and CSV, with every booking and every expense clickable behind the number.</p>
         </div>
         <div data-reveal="" data-reveal-delay="70" style="background: rgba(255,255,255,.055); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 30px 28px; transition: transform .3s ease, box-shadow .3s ease;">
           <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 10h18M8 2v4M16 2v4"></path></svg></span>

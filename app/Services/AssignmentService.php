@@ -682,9 +682,9 @@ class AssignmentService
     /**
      * No-show the reservation: same inventory effect as cancel (free `sold`), status no_show.
      */
-    public function markNoShow(Reservation $reservation): Reservation
+    public function markNoShow(Reservation $reservation, ?string $reason = null): Reservation
     {
-        return $this->terminate($reservation, 'no_show', null);
+        return $this->terminate($reservation, 'no_show', $reason);   // VY-26 — the automatic rule records why (CancellationReason::AUTO_NO_SHOW)
     }
 
     /**

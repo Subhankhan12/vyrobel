@@ -40,7 +40,7 @@ class GuestArrivalController extends Controller
             'property' => (string) ($model->property->name ?? __('php/http/controllers/guest/guest_arrival_controller.your_stay')),
             'firstName' => (string) ($this->guest()->first_name ?: __('php/http/controllers/guest/guest_arrival_controller.greeting_fallback')),
             'checkIn' => CarbonImmutable::parse($model->check_in)->translatedFormat(LocalDate::pattern('D, j M Y')),
-            'pack' => ArrivalPack::for($model, CarbonImmutable::today()),
+            'pack' => ArrivalPack::for($model, ArrivalPack::today($model->property)),   // VY-32: the property's day, not the server's
         ]);
     }
 
@@ -57,7 +57,7 @@ class GuestArrivalController extends Controller
 
         return $pdf->download(
             'pdfs.arrival',
-            ArrivalPackDocument::data($model, CarbonImmutable::today()),
+            ArrivalPackDocument::data($model, ArrivalPack::today($model->property)),
             'arrival-guide-'.$model->reference.'.pdf',
         );
     }

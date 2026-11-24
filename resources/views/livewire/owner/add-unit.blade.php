@@ -459,7 +459,7 @@
                                  server re-decides under a lock: this control is convenience, not the gate. --}}
                             @if ($r['withdraw_url'])
                                 <form method="POST" action="{{ $r['withdraw_url'] }}" style="margin:0" data-guard-submit
-                                      onsubmit="return confirm(@js(__('livewire/owner/add-unit.withdraw_confirm')))">
+                                      data-confirm-text="{{ __('livewire/owner/add-unit.withdraw_confirm') }}">
                                     @csrf
                                     <button type="submit" class="vy-au-withdraw">{{ __('livewire/owner/add-unit.withdraw') }}</button>
                                 </form>

@@ -158,7 +158,7 @@
                                                         @csrf
                                                         <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
                                                         <input type="hidden" name="duration" value="{{ $dur }}">
-                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" onmouseover="this.style.background='rgba(217,102,46,.08)'" onmouseout="this.style.background='none'">{{ $lbl }}</button>
+                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" class="vy-hover-accent">{{ $lbl }}</button>
                                                     </form>
                                                 @endforeach
                                                 <div style="border-top:1px solid var(--vy-hairline);margin:5px 4px"></div>
@@ -166,13 +166,13 @@
                                                     <form method="POST" action="{{ route('owner.attention.read') }}" style="margin:0">
                                                         @csrf
                                                         <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
-                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" onmouseover="this.style.background='rgba(217,102,46,.08)'" onmouseout="this.style.background='none'">{{ __('livewire/owner/units.mark_read') }}</button>
+                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" class="vy-hover-accent">{{ __('livewire/owner/units.mark_read') }}</button>
                                                     </form>
                                                 @endunless
                                                 <form method="POST" action="{{ route('owner.attention.dismiss') }}" style="margin:0">
                                                     @csrf
                                                     <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
-                                                    <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:#8A2F27;cursor:pointer" onmouseover="this.style.background='rgba(190,32,28,.07)'" onmouseout="this.style.background='none'">{{ __('livewire/owner/units.dismiss') }}</button>
+                                                    <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:#8A2F27;cursor:pointer" class="vy-hover-danger">{{ __('livewire/owner/units.dismiss') }}</button>
                                                 </form>
                                             </div>
                                         </div>

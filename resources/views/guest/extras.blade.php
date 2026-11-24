@@ -60,7 +60,7 @@
                 <div class="ex-grid">
                     @foreach ($catalog as $item)
                         <label class="ex-item" data-minor="{{ $item['total_minor'] }}">
-                            <input class="ex-cbx" type="checkbox" name="add_ons[]" value="{{ $item['id'] }}" onchange="exUpdate(this)">
+                            <input class="ex-cbx" type="checkbox" name="add_ons[]" value="{{ $item['id'] }}" data-vy-change="exUpdate">
                             <span class="ex-name">{{ $item['name'] }}</span>
                             {{-- WAVE 2 · #14 — the basis describes the UNIT price, so show the unit price next
                                  to it. This card printed the basis ("per guest · night") immediately above the
@@ -92,7 +92,7 @@
             </section>
         </form>
 
-        <script>
+        <script @nonce>
             var exCur = @json($currency);
             function exFmt(minor) { return (exCur === 'EUR' ? '€' : exCur + ' ') + (minor / 100).toFixed(2); }
             function exUpdate(cb) {

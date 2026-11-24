@@ -68,7 +68,7 @@
                 </form>
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--vy-hairline)">
                     <div class="vy-eyebrow" style="margin-bottom:8px">{{ __('auth/common.password') }}</div>
-                    <a class="vy-link" href="#change-password" style="font-size:12.5px;color:var(--vy-accent-text)" onclick="document.getElementById('change-password').style.display='block';this.style.display='none';return false">{{ __('guest/account.change_password_link') }}</a>
+                    <a class="vy-link" href="#change-password" style="font-size:12.5px;color:var(--vy-accent-text)" data-reveal-id="change-password">{{ __('guest/account.change_password_link') }}</a>
                     <form id="change-password" method="POST" action="{{ route('guest.account.password') }}" data-guard-submit novalidate style="display:none;margin-top:10px">
                         @csrf
                         <div class="vy-field"><label class="vy-label" for="current_password">{{ __('guest/account.current_password') }}</label><input class="vy-input" type="password" id="current_password" name="current_password" autocomplete="current-password" required></div>
@@ -188,7 +188,7 @@
                         <div style="font-size:13.5px;font-weight:500">{{ __('guest/account.language') }}</div>
                         <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid var(--vy-hairline)">
                             @foreach (['en' => 'EN', 'de' => 'DE', 'es' => 'ES', 'fr' => 'FR'] as $code => $label)
-                                <label class="ac-chip"><input type="radio" name="language" value="{{ $code }}" @checked($profile['language'] === $code) onchange="this.form.submit()"><span>{{ $label }}</span></label>
+                                <label class="ac-chip"><input type="radio" name="language" value="{{ $code }}" @checked($profile['language'] === $code) data-autosubmit><span>{{ $label }}</span></label>
                             @endforeach
                         </div>
                     </div>

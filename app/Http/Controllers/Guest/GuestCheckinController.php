@@ -39,6 +39,9 @@ class GuestCheckinController extends Controller
 {
     use ResolvesGuest;
 
+    /** The ID photo types accepted — the validation rule and the file picker read this one list (VY-32). */
+    public const ID_PHOTO_TYPES = ['jpeg', 'jpg', 'png', 'webp'];
+
     private const MAX_ID_KB = 8192;   // 8 MB
 
     /** The coarse arrival windows the guest can pick (label keyed by the stored slot value). */
@@ -105,7 +108,10 @@ class GuestCheckinController extends Controller
             'arrival_window' => ['nullable', 'string', 'in:'.implode(',', array_keys(self::ARRIVAL_WINDOWS))],
             'arrival_note' => ['nullable', 'string', 'max:1000'],
             'id_type' => ['nullable', 'string', 'in:'.implode(',', GuestIdDocumentService::TYPES)],
-            'id_photo' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp,heic', 'max:'.self::MAX_ID_KB],
+            // ⚠️ VY-32 (audit of 2026-11-24) — ONLY THE FORMATS THAT ARE REALLY ACCEPTED. `heic` was listed here while the `image` rule
+            //    beside it refuses HEIC, so an iPhone photo was named as accepted and refused (and the refusal listed "heic" as allowed).
+            //    The picker now asks for these three types too, so an iPhone converts its photo to JPEG before it is sent.
+            'id_photo' => ['nullable', 'file', 'image', 'mimes:'.implode(',', self::ID_PHOTO_TYPES), 'max:'.self::MAX_ID_KB],
         ]);
 
         // Only for a live, non-departed booking (idempotent — a second submit never re-stamps the intent).

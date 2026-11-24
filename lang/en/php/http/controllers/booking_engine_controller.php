@@ -45,4 +45,11 @@ return [
     'terms_required' => 'Please accept the booking terms and the privacy notice to continue.',
     'terms_changed' => 'The property has updated its booking terms. Please read them again and accept to continue.',
     'checkout_page_stale' => 'This page was open for a while and is out of date. Please check your details and confirm again.',
+    'deposit_unavailable' => 'This property asks for a deposit by card when you book, and it cannot take card payments online yet. Please contact the property to book.',
+    'deposit_received' => 'Deposit received',
+    'deposit_received_note' => 'The rest, :amount, is paid at the property.',
+    'released' => 'Booking not kept',
+    'released_note' => 'The card payment was not completed in time, so this booking was released. To stay here, please book again.',
+    'payment_not_completed' => 'Payment not completed',
+    'payment_not_completed_note' => 'Your card payment was not completed, so this booking is not confirmed. If it is not paid, it is released shortly. To stay here, you can book again.',
 ];

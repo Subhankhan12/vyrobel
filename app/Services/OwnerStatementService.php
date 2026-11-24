@@ -9,6 +9,8 @@ use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Owner\OwnerCollection;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -113,6 +115,16 @@ class OwnerStatementService
         $owner = Owner::query()->findOrFail($statement->owner_id);
 
         return DB::transaction(function () use ($statement, $owner, $finalizedBy, $fxRate, $fxSource): OwnerStatement {
+            // ⚠️⚠️ VY-32 (audit of 2026-11-24) — ONE FINALIZE PER OWNER AT A TIME. The sequence number below is max()+1 and the claim
+            //    stamps unclaimed ledger lines: two finalizes for the same owner at the same moment read the same max and the same lines.
+            //    The unique (owner_id, sequence_no) index turned the second into a 500 rather than a duplicate, but nothing serialised them.
+            //    The OWNER ROW is locked first — every finalize for this owner queues here, so each reads the number and the lines the
+            //    previous one left. ⚠️ Re-read the statement under the lock: a finalize that waited may find it already sealed.
+            Owner::query()->whereKey($owner->getKey())->lockForUpdate()->first();
+            if (OwnerStatement::query()->whereKey($statement->getKey())->value('locked')) {
+                throw StatementSealedException::alreadyFinalized();
+            }
+
             // Wave D · tax engine — post this owner's WITHHOLDING for the period (if a rate is configured) BEFORE
             // claiming, so the certified projection claims it into the withholding bucket → net drops → the payout
             // is genuinely smaller, reconciling (#17). No rate → nothing posted (genuine €0). Applied at finalize
@@ -186,6 +198,12 @@ class OwnerStatementService
         return collect($split['collected']);
     }
 
+    /** Minor units × a decimal rate, exactly, rounded half away from zero (VY-32). A rate that is not a number throws. */
+    public static function convert(int $minor, string $rate): int
+    {
+        return BigDecimal::of((string) $minor)->multipliedBy(BigDecimal::of(trim($rate)))->toScale(0, RoundingMode::HalfUp)->toInt();
+    }
+
     /**
      * @param  Collection<int, OwnerLedgerEntry>  $claimed
      */
@@ -202,7 +220,11 @@ class OwnerStatementService
             throw new RuntimeException("Statement payout currency [{$payoutCurrency}] differs from ledger currency [{$sourceCurrency}] but no fx_rate was supplied.");
         }
 
-        $netPayable = $sameCurrency ? $netSource : (int) round($netSource * (float) $fxRate);
+        // ⚠️⚠️ VY-32 (audit of 2026-11-24) — THE CONVERSION IS EXACT. It was `round($net * (float) $rate)`: a float product, so a value
+        //    exactly half-way could land a hair below the half and round the wrong way (30.00 at 1.0835 is 3250.5 minor units, and gave
+        //    3250). The rate is a DECIMAL(20,10) string and the amount an integer: multiplied as decimals, rounded half away from zero —
+        //    the rule round() meant to apply. (brick/math is the framework's own decimal library: its `decimal:` cast uses it.)
+        $netPayable = $sameCurrency ? $netSource : self::convert($netSource, (string) $fxRate);
 
         $statement->organization_id = $owner->organization_id;
         $statement->currency = $payoutCurrency;
@@ -217,7 +239,7 @@ class OwnerStatementService
         $statement->withholding_minor = $buckets['withholding'];
         $statement->adjustments_minor = $buckets['adjustments'];
         $statement->net_source_minor = $netSource;
-        $statement->fx_rate = $sameCurrency ? null : (float) $fxRate;
+        $statement->fx_rate = $sameCurrency ? null : (string) BigDecimal::of(trim((string) $fxRate));   // the decimal as given — never through a float
         $statement->fx_source = $sameCurrency ? null : $fxSource;
         $statement->net_payable_minor = $netPayable;
         $statement->has_unverified = $claimed->contains(fn (OwnerLedgerEntry $e): bool => $e->unverified === true);

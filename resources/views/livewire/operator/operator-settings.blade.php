@@ -147,6 +147,13 @@
                             <input type="checkbox" name="deposit_required" value="1" @checked(old('deposit_required', $policy['deposit_required'])) {{ $disabled }}>
                             {{ __('livewire/operator/operator-settings.deposit_at_booking') }}
                         </label>
+                        {{-- VY-23 (2026-11-25) — the deposit is REAL: this share is charged by card when a guest books online, and a page left unpaid
+                             releases the booking. Without card payments a deposit property takes no online booking — said here, not discovered. --}}
+                        <div class="vy-field" style="margin: 0; max-width: 200px;">
+                            <label class="vy-field-label" for="pol_deposit_pct">{{ __('livewire/operator/operator-settings.deposit_percent') }}</label>
+                            <input id="pol_deposit_pct" type="number" name="deposit_percent" class="vy-input" min="1" max="100" value="{{ old('deposit_percent', $policy['deposit_percent']) }}" {{ $disabled }}>
+                        </div>
+                        <span style="flex-basis: 100%; font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.deposit_help') }}@if ((string) config('services.payments.gateway') !== 'stripe') <strong style="color: var(--vy-red-text, #8F2F09); font-weight: 600;">{{ __('livewire/operator/operator-settings.deposit_no_cards') }}</strong>@endif</span>
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink);">
                             <input type="checkbox" name="self_check_in" value="1" @checked(old('self_check_in', $policy['self_check_in'])) {{ $disabled }}>
                             {{ __('livewire/operator/operator-settings.self_check_in') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.self_check_in_hint') }}</span>
@@ -176,6 +183,27 @@
                         </div>
                         <span style="display: block; margin-top: 6px; font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.arrival_help') }}</span>
                     </div>
+                    {{-- VY-27 (2026-11-25) — INSPECTION BY A SECOND PERSON. Off by default; on, whoever marked a room clean cannot also mark it inspected.
+                         The hidden "0" makes "switched off" a value, as the door-code switches do. --}}
+                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--vy-hairline);">
+                        <div class="vy-field-label" style="margin-bottom: 8px;">{{ __('livewire/operator/operator-settings.housekeeping_heading') }}</div>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink);">
+                            <input type="hidden" name="inspection_by_second_person" value="0">
+                            <input type="checkbox" name="inspection_by_second_person" value="1" @checked(old('inspection_by_second_person', $policy['inspection_by_second_person'])) {{ $disabled }}>
+                            {{ __('livewire/operator/operator-settings.inspection_by_second_person') }}
+                        </label>
+                        <span style="display: block; margin-top: 6px; font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.inspection_help') }}</span>
+                    </div>
+                    {{-- VY-26 (2026-11-25) — AUTOMATIC NO-SHOWS. Off by default: a machine marks nobody until the property asks. --}}
+                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--vy-hairline);">
+                        <div class="vy-field-label" style="margin-bottom: 8px;">{{ __('livewire/operator/operator-settings.no_show_heading') }}</div>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink);">
+                            <input type="hidden" name="auto_no_show" value="0">
+                            <input type="checkbox" name="auto_no_show" value="1" @checked(old('auto_no_show', $policy['auto_no_show'])) {{ $disabled }}>
+                            {{ __('livewire/operator/operator-settings.auto_no_show') }}
+                        </label>
+                        <span style="display: block; margin-top: 6px; font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.auto_no_show_help') }}</span>
+                    </div>
                     {{-- BOOKING TERMS (his ruling 2026-11-14): the hotel's own words, shown to guests under "The property's own terms" with the rest of
                          the terms the system builds from the settings above. Plain text; guests read it escaped. The link opens the REAL page. --}}
                     <div class="vy-field" style="margin: 14px 0 0;">
@@ -187,7 +215,7 @@
                         @endif
                     </div>
                     {{-- A refused save must SAY so. (This card refused every save for months with no message at all — see updatePolicies().) --}}
-                    @php $polErrors = collect(['cancellation_type', 'free_until_days', 'pet', 'smoking', 'min_stay', 'max_stay', 'booking_terms_extra', 'arrival_lead_days', 'arrival_requires_paid', 'arrival_requires_checkin'])->map(fn ($k) => $errors->first($k))->filter()->values(); @endphp
+                    @php $polErrors = collect(['cancellation_type', 'free_until_days', 'pet', 'smoking', 'min_stay', 'max_stay', 'booking_terms_extra', 'arrival_lead_days', 'arrival_requires_paid', 'arrival_requires_checkin', 'inspection_by_second_person', 'deposit_percent', 'auto_no_show'])->map(fn ($k) => $errors->first($k))->filter()->values(); @endphp
                     @if ($polErrors->isNotEmpty())
                         <div role="alert" style="margin-top: 12px; font-size: 12.5px; line-height: 1.45; color: var(--vy-red-text, #8F2F09);">
                             @foreach ($polErrors as $polError)<div>{{ $polError }}</div>@endforeach

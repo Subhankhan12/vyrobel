@@ -56,9 +56,15 @@
              hard "3 cookies" — neither the catalogue size nor what a visitor actually receives — and it
              shipped on every page before a screenshot caught it. --}}
         <p style="margin:0 0 14px;font-size:13.5px;line-height:1.62;color:var(--vy-ink);max-width:760px;">
-            An ordinary visit sets <strong>{{ count(CookieConsent::alwaysSet()) }} cookies</strong>
-            &mdash; {{ implode(' and ', array_keys(CookieConsent::alwaysSet())) }}.
-            {{ count(CookieConsent::onRequestOnly()) }} more appear only if you ask for them.
+            {{-- ⚠️ VY-29 (2026-11-25) — reading these pages starts no session, so an ordinary visit sets none; still DERIVED, never typed --}}
+            @if (CookieConsent::alwaysSet() === [])
+                Reading these pages sets <strong>no cookies</strong>.
+                {{ count(CookieConsent::onRequestOnly()) }} appear only if you ask for them &mdash; by signing in, writing to us, booking a stay or answering this notice.
+            @else
+                An ordinary visit sets <strong>{{ count(CookieConsent::alwaysSet()) }} cookies</strong>
+                &mdash; {{ implode(' and ', array_keys(CookieConsent::alwaysSet())) }}.
+                {{ count(CookieConsent::onRequestOnly()) }} more appear only if you ask for them.
+            @endif
             <strong>All {{ count(CookieConsent::disclosed()) }} are strictly necessary</strong>, and there
             are <strong>no analytics, no marketing and no third-party cookies at all</strong> &mdash;
             nothing here tracks you across other sites.
@@ -69,7 +75,7 @@
         </p>
 
         <details style="margin:0 0 14px;" @if (! $isBanner) open @endif>
-            <summary style="cursor:pointer;font-size:12.5px;font-weight:600;color:var(--vy-accent-text);">
+            <summary style="cursor:pointer;padding:5px 0;line-height:1.2;font-size:12.5px;font-weight:600;color:var(--vy-accent-text);">
                 What each one is for
             </summary>
             <div style="overflow-x:auto;margin-top:10px;">
@@ -96,15 +102,15 @@
             </div>
         </details>
 
+        {{-- ⚠️ VY-29 — no @csrf: the marketing pages start no session to hold a token. The controller checks the request's Origin instead. --}}
         <form method="POST" action="{{ route('cookies.choice') }}"
               style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
-            @csrf
             <input type="hidden" name="return" value="{{ $return }}">
             {{-- ⚠️ IDENTICAL, not merely similar: same $btn string on both, so neither can be nudged ahead
                  of the other by a later edit without the edit being obvious. --}}
             <button type="submit" name="choice" value="{{ CookieConsent::ACCEPTED }}" style="{{ $btn }}">That's fine</button>
             <button type="submit" name="choice" value="{{ CookieConsent::DECLINED }}" style="{{ $btn }}">Decline non-essential</button>
-            <x-marketing.nav-link key="privacy" style="font-size:12.5px;color:var(--vy-accent-text);font-weight:600;">Privacy notice</x-marketing.nav-link>
+            <x-marketing.nav-link key="privacy" style="display:inline-flex;align-items:center;min-height:24px;font-size:12.5px;color:var(--vy-accent-text);font-weight:600;">Privacy notice</x-marketing.nav-link>
         </form>
 
         @if ($choice !== null)

@@ -14,7 +14,7 @@
 
      RAW-BLADE RULE: every directive here follows a non-word character. --}}
 @props(['for', 'key'])
-<script>
+<script @nonce>
     (function () {
         var side = document.querySelector(@js($for));
         if (!side) { return; }

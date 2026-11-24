@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * offsetting Payment; this row is never mutated to "undo" it.
  *
  * @property bool|null $livemode ADMIN 06 — Stripe's own, stored when written; null = not a Stripe record
+ * @property array<string, mixed>|null $metadata the `array` cast's value
  */
 class Payment extends Model
 {

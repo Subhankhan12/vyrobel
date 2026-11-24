@@ -9,7 +9,7 @@
      non-numeric text ("Nothing due", "—"), and zeros. 🔒 GRACEFUL: with JS off or reduced-motion, the real number is
      already in the DOM — nothing is hidden behind the animation. Presentation-only. --}}
 @once
-<script>
+<script @nonce>
     (function () {
         if (window.__vyCountUp) return;
         window.__vyCountUp = true;

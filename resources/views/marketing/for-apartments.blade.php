@@ -169,12 +169,12 @@
       <div data-two="" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
         <div data-reveal="left">
           <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 30px; line-height: 1.16; letter-spacing: -.03em; color: var(--vy-ink);">If you also manage for owners</h2>
-          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Plenty of short-stay operators run a mix — some flats theirs, some managed on behalf of landlords. Vyrobel handles both in one portfolio: owned units keep their costs internal, managed units generate statements and payouts automatically.</p>
+          <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.68; color: var(--vy-muted);">Plenty of short-stay operators run a mix — some flats theirs, some managed on behalf of landlords. Vyrobel handles both in one portfolio: owned units keep their costs internal, and managed units get owner statements that close on the day you choose.</p>
           <x-marketing.nav-link key="for-villas" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">See the owner side <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
         </div>
         <div data-reveal="right" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 22px; padding: 32px 30px;">
           <h3 style="margin: 0 0 12px; font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: var(--vy-ink);">Start with one building</h3>
-          <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.66; color: var(--vy-muted);">Run a single building for a month, keep the others where they are, and compare. We'll import the bookings either way.</p>
+          <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.66; color: var(--vy-muted);">Run a single building for a month, keep the others where they are, and compare. Either way, the bookings of the building you move are entered in Vyrobel: there is no file import yet.</p>
           <a href="{{ route('signup') }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14.5px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.3); transition: transform .2s ease;">Start free</a>
         </div>
       </div>

@@ -35,4 +35,6 @@ return [
     // a clause added to the end of the sentences above when paused owners were left out (empty otherwise)
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count paused owner skipped|[0,*] :count paused owners skipped',
+    'statements_auto_on' => 'Owner statements will close automatically on day :day of each month.',
+    'statements_auto_off' => 'Owner statements are closed by hand again, from each owner\'s page.',
 ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Organization;
+use App\Support\Storefront\StorefrontAvailability;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -35,7 +36,8 @@ class ResolvePublicOrganization
             fn () => Organization::query()->where('slug', $slug)->whereIn('status', ['trialing', 'active'])->first(),
         );
 
-        if ($organization === null) {
+        // ⚠️⚠️ VY-35 (audit of 2026-11-24) — a lapsed workspace's landing page closes with its storefront (StorefrontAvailability, the one rule).
+        if ($organization === null || $tenant->runAsSuperAdmin(fn (): bool => StorefrontAvailability::closed($organization))) {
             abort(404, __('php/http/middleware/resolve_public_organization.unknown_organization'));
         }
 

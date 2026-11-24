@@ -114,4 +114,9 @@ return [
     // the confirm dialog's fallback when a form's text cannot be read
     'go_ahead_title' => 'Go ahead?',
     'go_ahead_button' => 'Go ahead',
+    'auto_close_label' => 'Close owner statements automatically',
+    'auto_close_help' => 'On the day you pick, last month is closed for every owner with something to state, exactly as Close period does it by hand. A closed statement is final; later changes go to the next one.',
+    'auto_close_off' => 'Off (by hand)',
+    'auto_close_day' => 'On day :day of each month',
+    'auto_close_save' => 'Save',
 ];

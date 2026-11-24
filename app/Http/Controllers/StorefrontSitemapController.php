@@ -8,6 +8,7 @@ use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Scopes\OrganizationScope;
+use App\Support\Storefront\StorefrontAvailability;
 use App\Support\Storefront\StorefrontOffer;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
@@ -102,8 +103,13 @@ class StorefrontSitemapController extends Controller
                 ->orderBy('slug')
                 ->get();
 
+            // ⚠️⚠️ VY-35 — a LAPSED workspace's storefront is closed (StorefrontAvailability), so it is not advertised either. The lapse is
+            //    derived from the subscription row in PHP (SubscriptionStatus — the paywall's rule), not a column a query could filter on.
+            $lapsed = [];
             foreach ($properties as $property) {
-                if ($property->slug === null || (string) $property->slug === '') {
+                $orgId = (string) $property->organization_id;
+                $lapsed[$orgId] ??= StorefrontAvailability::closed(Organization::withTrashed()->find($orgId));
+                if ($lapsed[$orgId] || $property->slug === null || (string) $property->slug === '') {
                     continue;
                 }
 

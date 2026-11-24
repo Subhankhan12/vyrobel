@@ -19,6 +19,7 @@ use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Booking\BookingTerms;
+use App\Support\Booking\StorefrontPayment;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\PropertySupport;
 use App\Support\I18n\LocalNumber;
@@ -107,6 +108,7 @@ class SettingsActionController extends Controller
             'cancellation_type' => ['sometimes', 'in:flexible,moderate,strict'],
             'free_until_days' => ['sometimes', 'nullable', 'integer', 'between:0,365'],
             'deposit_required' => ['sometimes', 'boolean'],
+            'deposit_percent' => ['nullable', 'integer', 'min:1', 'max:100'],
             'self_check_in' => ['sometimes', 'boolean'],
             // BOOKING TERMS (2026-11-14): the hotel's own words for guests. Plain text, capped; rendered escaped everywhere.
             'booking_terms_extra' => ['sometimes', 'nullable', 'string', 'max:'.BookingTerms::MAX_EXTRA],
@@ -114,6 +116,8 @@ class SettingsActionController extends Controller
             'arrival_lead_days' => ['sometimes', 'nullable', 'integer', 'between:0,'.ArrivalPack::MAX_LEAD_DAYS],
             'arrival_requires_paid' => ['sometimes', 'boolean'],
             'arrival_requires_checkin' => ['sometimes', 'boolean'],
+            'inspection_by_second_person' => ['sometimes', 'boolean'],
+            'auto_no_show' => ['sometimes', 'boolean'],
         ]);
 
         // Assemble the JSON policy columns; self-check-in is a bool. ⚠️ #33 — the door CODE is guest-only and is
@@ -134,7 +138,12 @@ class SettingsActionController extends Controller
             $data['cancellation'] = $cancellation;
         }
 
-        $data['deposit'] = ['required' => $request->boolean('deposit_required')];
+        // VY-23 — the deposit is REAL now: its share is what the storefront charges by card (StorefrontPayment). Empty share → the default.
+        $data['deposit'] = [
+            'required' => $request->boolean('deposit_required'),
+            'percent' => $request->filled('deposit_percent') ? (int) $data['deposit_percent'] : StorefrontPayment::DEFAULT_PERCENT,
+        ];
+        unset($data['deposit_percent']);
         $data['self_check_in'] = $request->boolean('self_check_in');
         // Only when the form sent it (a partial submit must never wipe the hotel's words); empty → cleared.
         if ($request->has('booking_terms_extra')) {
@@ -144,7 +153,7 @@ class SettingsActionController extends Controller
         // VY-06 — the door-code rules. ⚠️ ONLY WHEN THE FORM SENT THEM: the two switches travel with a hidden "0" beside the checkbox, so
         //    "switched off" is a value and "not in this form" (an older tab, another client) is an absence — an absence never resets a
         //    rule, least of all "balance first" to off. An empty lead time means "the default", stored as NULL.
-        foreach (['arrival_requires_paid', 'arrival_requires_checkin'] as $switch) {
+        foreach (['arrival_requires_paid', 'arrival_requires_checkin', 'inspection_by_second_person', 'auto_no_show'] as $switch) {
             if ($request->has($switch)) {
                 $data[$switch] = $request->boolean($switch);
             } else {

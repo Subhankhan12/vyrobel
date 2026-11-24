@@ -102,8 +102,10 @@ final class BookingTerms
         if ($smoking !== null) {
             $stay[] = (string) __('php/support/booking/booking_terms.stay_smoking', ['rule' => $smoking]);
         }
-        if ($depositRequired) {
-            $stay[] = (string) __('php/support/booking/booking_terms.stay_deposit');
+        // VY-23 — the deposit is real now, so the terms say how much (StorefrontPayment, the share the storefront charges)
+        $depositPercent = $depositRequired ? StorefrontPayment::depositPercent($property) : null;
+        if ($depositPercent !== null) {
+            $stay[] = (string) __('php/support/booking/booking_terms.stay_deposit_percent', ['percent' => $depositPercent]);
         }
 
         $sections = [
@@ -130,7 +132,9 @@ final class BookingTerms
             'smoking' => is_string($policy?->smoking) ? $policy->smoking : null,
             'deposit' => $depositRequired,
             'extra' => $extra,
-        ];
+        ]
+            // VY-23 — the share is a fact of the terms; added ONLY when a deposit is asked, so every other property's version is unchanged
+            + ($depositPercent !== null ? ['deposit_percent' => $depositPercent] : []);
 
         return [
             'version' => substr(hash('sha256', (string) json_encode($facts, JSON_UNESCAPED_UNICODE)), 0, 16),

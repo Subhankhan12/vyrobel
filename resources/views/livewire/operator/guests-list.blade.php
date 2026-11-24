@@ -418,7 +418,7 @@
                     </div>
                     @can('guests.erase')
                         <form method="POST" action="{{ route('app.guests.bulk.anonymize') }}" data-guard-submit
-                              onsubmit="return confirm(@js(__('livewire/operator/guests-list.bulk_erase_confirm')));">
+                              data-confirm-text="{{ __('livewire/operator/guests-list.bulk_erase_confirm') }}">
                             @csrf
                             <template x-for="id in ids()" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
                             <div class="vy-modal-body">
@@ -598,7 +598,7 @@
         }
     @endphp
     @include('partials.operator-list-script')
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('vyGuests', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: @js(__('livewire/operator/guests-list.none_in_view')) }), {
                 // the selection's sentences, one per count (a selection is of the rows on one page, so 0 … the largest page size)

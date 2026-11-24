@@ -14,7 +14,7 @@
                 {{-- GATE 10.1 — the prototype's "Reporting month" picker: jump to a specific calendar month (real
                      ?month=YYYY-MM; the shared ReportPeriod resolves it for the page + both exports). --}}
                 <select class="vy-input" style="padding:5px 10px;font-size:12px;max-width:150px" aria-label="{{ __('livewire/operator/reports.reporting_month') }}"
-                        onchange="if (this.value) window.location.href='?month='+this.value;">
+                        data-nav-base="?month=">
                     <option value="">{{ __('livewire/operator/reports.jump_to_month') }}</option>
                     @foreach ($months as $mo)
                         <option value="{{ $mo['value'] }}" @selected($mo['active'])>{{ $mo['label'] }}</option>

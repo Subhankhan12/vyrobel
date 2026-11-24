@@ -54,7 +54,7 @@
         <p class="vy-sx-empty">{{ __('components/auth/passkeys.empty') }}</p>
     @endif
 </div>
-<script>
+<script @nonce>
     function vyPasskeys() {
         return {
             busy: false, msg: '',

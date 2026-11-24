@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Ops\QueueDashboard;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -21,11 +23,13 @@ use Symfony\Component\HttpFoundation\Response;
  *   1. `style-src` MUST allow 'unsafe-inline'. The design system ships as inline <style> blocks in each shell
  *      plus ~97 inline `style="…"` attributes on a single operator page. Inline style ATTRIBUTES cannot carry
  *      a nonce or hash — there is no mechanism. Removing them is a design-system rewrite, not a header change.
- *   2. `script-src` MUST allow 'unsafe-inline' and 'unsafe-eval'. Livewire injects inline <script> blocks, and
- *      the Alpine it bundles evaluates directives with `new Function`. Tightening this needs Alpine's
- *      CSP-friendly build — a separate, larger piece of work. Honest note: with both relaxations, script-src
- *      is NOT meaningful XSS protection here; the real wins in this policy are frame-ancestors, object-src,
- *      base-uri and form-action.
+ *   2. `script-src` — ⚠️⚠️ VY-28 (audit of 2026-11-24): NO 'unsafe-inline' ANY MORE. A per-request NONCE instead: every inline
+ *      <script> carries it (`<script @nonce>`; Vite and Livewire add it to their own tags from Vite::cspNonce()), and the 72 inline
+ *      event-handler attributes that made 'unsafe-inline' necessary are gone (data- attributes, read by ONE delegated script —
+ *      components/vy-behaviours). An injected <script> or `onerror=` attribute now does not run. ⚠️ 'unsafe-eval' STAYS: the
+ *      Alpine Livewire bundles evaluates its x- expressions with `new Function`; dropping it needs Alpine's CSP build and a rewrite
+ *      of every complex expression — a larger piece of work, recorded, not pretended. ViewsCarryNoInlineHandlerTest keeps the
+ *      handlers out and the nonce on.
  *   3. `frame-ancestors` MUST be 'self', NOT 'none'. The Email Previews page renders a SAME-ORIGIN iframe of
  *      `/app/email-previews/{key}` so the email's CSS cannot leak into /app. 'none' would make that framed
  *      response refuse to render and silently break the page. 'self' still blocks the actual threat —
@@ -49,12 +53,17 @@ class SecurityHeaders
      *
      * @return array<string, string>
      */
-    private function policy(): array
+    private function policy(Request $request): array
     {
+        // ⚠️ VY-28 — THE ONE EXCEPTION: Horizon's own dashboard inlines its whole script with no nonce, so it keeps the old rule. It exists only
+        //    where the queue is Redis (QueueDashboard::wanted() — never on production, VY-33), behind the platform super-admin gate. A policy
+        //    that carries a nonce makes browsers ignore 'unsafe-inline', so this page gets no nonce at all.
+        $horizon = QueueDashboard::wanted() && $request->is(trim((string) config('horizon.path', 'horizon'), '/'), trim((string) config('horizon.path', 'horizon'), '/').'/*');
+
         return [
             'default-src' => "'self'",
-            // See note 2 — Livewire inline scripts + Alpine's `new Function` evaluation.
-            'script-src' => "'self' 'unsafe-inline' 'unsafe-eval'",
+            // See note 2 — this request's nonce for every inline script (VY-28); 'unsafe-eval' for Alpine's `new Function` evaluation.
+            'script-src' => $horizon ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'nonce-".Vite::cspNonce()."' 'unsafe-eval'",
             // See note 1 — the inline design system + ~97 inline style attributes per page.
             'style-src' => "'self' 'unsafe-inline'",
             'font-src' => "'self' data:",
@@ -75,6 +84,9 @@ class SecurityHeaders
 
     public function handle(Request $request, Closure $next): Response
     {
+        // VY-28 — one nonce per request, made BEFORE anything renders (Vite, Livewire and `@nonce` all read this one)
+        Vite::useCspNonce();
+
         $response = $next($request);
 
         // Only decorate real web documents/redirects — never a file download, a PDF stream or a binary body,
@@ -88,7 +100,7 @@ class SecurityHeaders
             return $response;
         }
 
-        $csp = collect($this->policy())
+        $csp = collect($this->policy($request))
             ->map(fn (string $value, string $directive): string => $directive.' '.$value)
             ->implode('; ');
 

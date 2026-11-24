@@ -2,7 +2,7 @@
      The server reads every amount itself with LocalNumber; this copy only lets the page say the same thing first.
      ⚠️ ONE rule, two languages: ops/i18n/number-parity.php fuzzes both with thousands of inputs and fails on any difference.
      Include with @include inside @once — it defines window.vyLocalNumber once per page. --}}
-<script>
+<script @nonce>
     window.vyLocalNumber = window.vyLocalNumber || (function (decimalMark) {
         var DIGITS = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
             '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9', '٫': '.', '٬': ',' };

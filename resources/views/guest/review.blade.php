@@ -71,7 +71,7 @@
              repo's own destructive-submit idiom (admin/customers/show), plus the shared double-submit
              guard. --}}
         <form method="POST" action="{{ route('guest.review.submit', $reservation) }}" data-guard-submit
-              onsubmit="return confirm(@js(__('guest/review.publish_confirm')));">
+              data-confirm-text="{{ __('guest/review.publish_confirm') }}">
             @csrf
             <section class="vy-card" style="margin-bottom:14px">
                 {{-- A REAL radio group, so the rating is keyboard-operable by construction (arrow keys move

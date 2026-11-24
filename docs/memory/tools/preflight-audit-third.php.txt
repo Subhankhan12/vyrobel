@@ -1,0 +1,131 @@
+<?php
+// READ-ONLY: run from the STAGED release (stdin), AFTER its migrations — the third batch of the audit (VY-23 … VY-35), 2026-11-25.
+//   /opt/alt/php84/usr/bin/php < preflight-audit-third.php   (cwd = the staged release)
+// It compiles every Blade view in memory and token-parses the PHP it makes, loads the new classes, reads the new routes and their gates,
+// the schedule, the Horizon registration, a sample of the new texts in every language, and COUNTS from the production database (what the
+// new rules will meet there). It writes NOTHING: no INSERT, UPDATE or DELETE, no cache write, no file. Counts, timings and yes/no only —
+// never a name, an address, a code, a price or a secret.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION];
+
+// ── 1 · every view compiles AND parses (VY-28 touched 30 views and every shell) ──────────────────────────────────────────────
+$compiler = $app->make('blade.compiler');
+$n = 0;
+$bad = [];
+foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd().'/resources/views', FilesystemIterator::SKIP_DOTS)) as $f) {
+    if (! str_ends_with($f->getPathname(), '.blade.php')) {
+        continue;
+    }
+    $n++;
+    try {
+        token_get_all($compiler->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE);
+    } catch (Throwable $e) {
+        $bad[] = str_replace(getcwd().'/', '', $f->getPathname());
+    }
+}
+$out['views_parsed'] = $n;
+$out['views_failed'] = $bad;
+
+// ── 2 · the new pieces load ──────────────────────────────────────────────────────────────────────────────────────────────────
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$commands = $kernel->all();
+$out['classes'] = [
+    'StorefrontAvailability' => class_exists(App\Support\Storefront\StorefrontAvailability::class),
+    'StorefrontPayment' => class_exists(App\Support\Booking\StorefrontPayment::class),
+    'UnpaidBookingRelease' => class_exists(App\Support\Booking\UnpaidBookingRelease::class),
+    'OperationsPhotos' => class_exists(App\Support\Media\OperationsPhotos::class),
+    'MarketingSitemap' => class_exists(App\Support\Marketing\MarketingSitemap::class),
+    'QueueDashboard::wanted (false here = Horizon not registered)' => App\Support\Ops\QueueDashboard::wanted(),
+    'brick/math (exact FX)' => class_exists(Brick\Math\BigDecimal::class),
+];
+$out['commands'] = [];
+foreach (['bookings:release-unpaid', 'booking-quotes:expire', 'reservations:mark-no-shows', 'statements:close-month', 'media:privatise-operations-photos'] as $c) {
+    $out['commands'][$c] = array_key_exists($c, $commands);
+}
+$out['horizon_commands_registered'] = count(array_filter(array_keys($commands), fn ($c) => str_starts_with($c, 'horizon')));
+
+// ── 3 · the routes and their gates; Horizon's are gone ───────────────────────────────────────────────────────────────────────
+$gates = [];
+foreach (['app.housekeeping.report', 'app.photos.show', 'app.payouts.statement-schedule', 'marketing.sitemap', 'cookies.choice', 'marketing.page.contact'] as $name) {
+    $route = Route::getRoutes()->getByName($name);
+    $gates[$name] = $route === null ? 'MISSING' : implode(' | ', array_values(array_filter($route->gatherMiddleware(), fn ($m): bool => is_string($m) && str_starts_with($m, 'can:'))));
+}
+$out['route_gates'] = $gates;
+$out['horizon_routes'] = count(array_filter(iterator_to_array(Route::getRoutes()), fn ($r) => str_starts_with($r->uri(), 'horizon')));
+$home = Route::getRoutes()->getByName('marketing.page.home');
+$out['marketing_home_starts_a_session'] = $home !== null && in_array(Illuminate\Session\Middleware\StartSession::class, $app->make('router')->gatherRouteMiddleware($home), true);
+
+// ── 4 · the schedule ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+$out['schedule'] = [];
+foreach ($app->make(Illuminate\Console\Scheduling\Schedule::class)->events() as $event) {
+    foreach (['bookings:release-unpaid', 'booking-quotes:expire', 'reservations:mark-no-shows', 'statements:close-month'] as $needle) {
+        if (is_string($event->command ?? null) && str_contains($event->command, $needle)) {
+            $out['schedule'][$needle] = $event->expression;
+        }
+    }
+}
+
+// ── 5 · the new texts, in every language folder ──────────────────────────────────────────────────────────────────────────────
+$keys = ['booking/checkout.deposit_unavailable', 'livewire/housekeeping-board.report_problem', 'livewire/operator/operator-settings.inspection_by_second_person',
+    'livewire/operator/operator-settings.auto_no_show', 'livewire/operator/payout-run.auto_close_label', 'php/http/controllers/booking_engine_controller.released',
+    'php/support/booking/booking_terms.stay_deposit_percent', 'php/support/reservations/cancellation_reason.payment_not_completed'];
+$missing = [];
+$locales = array_values(array_filter(array_map('basename', glob(getcwd().'/lang/*', GLOB_ONLYDIR) ?: []), fn ($l): bool => $l[0] !== '.'));
+foreach ($locales as $locale) {
+    foreach ($keys as $key) {
+        if (! Lang::hasForLocale($key, $locale)) {
+            $missing[] = $locale.':'.$key;
+        }
+    }
+}
+$out['texts'] = ['keys' => count($keys), 'language_folders' => count($locales), 'missing' => $missing];
+$out['og_image'] = is_file(getcwd().'/public/images/og-cover.png') ? getimagesize(getcwd().'/public/images/og-cover.png')[0].'x'.getimagesize(getcwd().'/public/images/og-cover.png')[1] : 'missing';
+
+// ── 6 · what the new rules will meet on production (COUNTS ONLY; every query is a SELECT) ────────────────────────────────────
+$t = function (callable $q): array {
+    $s = microtime(true);
+    $v = $q();
+
+    return ['value' => $v, 'ms' => (int) round((microtime(true) - $s) * 1000)];
+};
+$out['db'] = DB::selectOne('select version() as v')->v;
+$out['queue_default'] = (string) config('queue.default');
+$out['payments_gateway'] = (string) config('services.payments.gateway');
+$out['schema'] = [
+    'property_policies.inspection_by_second_person' => DB::getSchemaBuilder()->hasColumn('property_policies', 'inspection_by_second_person'),
+    'property_policies.auto_no_show' => DB::getSchemaBuilder()->hasColumn('property_policies', 'auto_no_show'),
+    'housekeeping_tasks.cleaned_by' => DB::getSchemaBuilder()->hasColumn('housekeeping_tasks', 'cleaned_by'),
+    'organizations.statement_close_day' => DB::getSchemaBuilder()->hasColumn('organizations', 'statement_close_day'),
+];
+// VY-35 — which workspaces are lapsed, and how many sellable-looking storefronts that closes (the paywall's own rule, read in PHP)
+$tenant = app(App\Support\Tenancy\TenantContext::class);
+$lapsed = $tenant->runAsSuperAdmin(fn () => App\Models\Organization::query()->get()->filter(fn ($o) => App\Support\Storefront\StorefrontAvailability::closed($o))->pluck('id')->all());
+$out['vy35'] = [
+    'organisations' => DB::table('organizations')->count(),
+    'closed_storefront_organisations' => count($lapsed),
+    'active_properties_in_them' => DB::table('properties')->whereNull('deleted_at')->where('status', 'active')->whereIn('organization_id', $lapsed)->count(),
+    'active_properties_elsewhere' => DB::table('properties')->whereNull('deleted_at')->where('status', 'active')->whereNotIn('organization_id', $lapsed)->count(),
+];
+// VY-23 — what the release job and the quote sweep will find; who asks for a deposit
+$out['vy23'] = [
+    'pending_storefront_card_payments' => $t(fn () => DB::table('payments')->where('gateway', 'stripe')->where('status', 'pending')->where('metadata', 'like', '%storefront%')->count()),
+    'quotes_held_past_expiry' => $t(fn () => DB::table('booking_quotes')->whereIn('status', ['quoted', 'held'])->where('expires_at', '<', now())->count()),
+    'quotes_total' => DB::table('booking_quotes')->count(),
+    'policies_asking_for_a_deposit' => DB::table('property_policies')->where('deposit->required', true)->count(),
+];
+// VY-34 — operations photos still on the public disk (the move command's work)
+$out['vy34'] = DB::table('media')->whereIn('collection', ['hk_proof', 'mt_photo'])->selectRaw('collection, disk, count(*) as n')->groupBy('collection', 'disk')->get()->map(fn ($r) => "{$r->collection}/{$r->disk}: {$r->n}")->all();
+// VY-26 / VY-27 — nothing is on until an operator chooses (the columns default off)
+$out['vy26'] = ['statement_close_day_set' => DB::table('organizations')->whereNotNull('statement_close_day')->count(), 'auto_no_show_on' => DB::table('property_policies')->where('auto_no_show', true)->count(), 'owners' => DB::table('owners')->count()];
+$out['vy27'] = ['inspection_rule_on' => DB::table('property_policies')->where('inspection_by_second_person', true)->count(), 'housekeeping_tasks' => DB::table('housekeeping_tasks')->count()];
+// VY-32 — statements in another currency (the exact FX path); ID documents on file (a HEIC was always refused, so none is one)
+$out['vy32'] = ['statements_with_fx' => DB::table('owner_statements')->whereNotNull('fx_rate')->count(), 'id_documents_on_file' => DB::table('guest_documents')->count()];
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), "\n";

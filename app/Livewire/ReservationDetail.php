@@ -26,6 +26,7 @@ use App\Services\FolioService;
 use App\Support\Folio\FolioTotals;
 use App\Support\I18n\LocalDate;
 use App\Support\Property\PropertyScope;
+use App\Support\Reservations\CancellationReason;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -366,7 +367,7 @@ class ReservationDetail extends Component
         }
 
         $isNoShow = $status === 'no_show';
-        $reason = trim((string) ($reservation->cancellation_reason ?? ''));
+        $reason = (string) CancellationReason::label($reservation->cancellation_reason);   // a system code in the reader's words (VY-23/26)
 
         // Both the status enum and the shared stage resolver land on CANCELLED here — consistent by
         // design, and taken from the shared resolver so this screen can never disagree with the list.
@@ -430,7 +431,7 @@ class ReservationDetail extends Component
                 'sort' => (string) $row->id,
                 'label' => $from !== null ? __('php/livewire/reservation_detail.transition', ['from' => $from, 'to' => $to]) : $to,
                 'actor' => $actor instanceof User ? (string) $actor->name : __('php/livewire/reservation_detail.system'),
-                'reason' => trim((string) ($row->reason ?? '')) ?: null,
+                'reason' => CancellationReason::label($row->reason),
                 'is_money' => false,
             ];
         }

@@ -5,7 +5,7 @@
      form. Self-guards against double-inclusion. Works with OR without Alpine (guest/public pages have no Alpine).
      🔒 Front-line UX guard ON TOP of the untouched server-side idempotency/atomicity — never a replacement. --}}
 @once
-<script>
+<script @nonce>
     (function () {
         if (window.__vySubmitGuard) return;
         window.__vySubmitGuard = true;

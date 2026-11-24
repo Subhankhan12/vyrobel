@@ -69,6 +69,7 @@ use App\Http\Controllers\Guest\MarketingUnsubscribeController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\MarketingContactController;
 use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\MarketingSitemapController;
 use App\Http\Controllers\MessageAttachmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -91,6 +92,7 @@ use App\Http\Controllers\Operator\InviteOwnerPreviewController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceCostExportController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
+use App\Http\Controllers\Operator\OperationsPhotoController;
 use App\Http\Controllers\Operator\OperatorConnectController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorRateProposalController;
@@ -249,6 +251,7 @@ use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
 use App\Models\MessageThread;
+use App\Support\Marketing\MarketingSession;
 use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Platform\PlatformAdminRole;
@@ -265,7 +268,8 @@ use Illuminate\Support\Facades\Route;
  * so they are read after `/book/*` and `/stay/*`. `/` cannot collide with either — different prefixes —
  * but the ordering is explicit so a reviewer can see it rather than infer it.
  */
-Route::get('/', [MarketingController::class, 'home'])->name('marketing.page.home');
+// ⚠️ VY-29 — no session, no cookie on a marketing page (MarketingSession explains the one exception, Contact)
+Route::get('/', [MarketingController::class, 'home'])->withoutMiddleware(MarketingSession::SESSIONLESS)->name('marketing.page.home');
 
 /*
  * Shared Vyrobel login (operator + owner) — real, session-based auth (Auth Phase A). The login POST is
@@ -641,9 +645,14 @@ Route::get('/sitemap-storefront.xml', StorefrontSitemapController::class)->name(
  * unauthenticated write; generous, because a visitor changing their mind twice is not abuse.
  */
 Route::post('/cookie-choice', [CookieChoiceController::class, 'store'])
+    // ⚠️ VY-29 — the pages that show this form carry no session, so it carries no CSRF token: the controller checks the request's Origin
+    ->withoutMiddleware(MarketingSession::SESSIONLESS)
     ->middleware('throttle:20,1')->name('cookies.choice');
 
-Route::controller(MarketingController::class)->name('marketing.page.')->group(function () {
+// ⚠️ VY-29 (audit of 2026-11-24) — the marketing pages' sitemap (named in robots.txt beside the storefront's). No session.
+Route::get('/sitemap.xml', MarketingSitemapController::class)->withoutMiddleware(MarketingSession::SESSIONLESS)->name('marketing.sitemap');
+
+Route::controller(MarketingController::class)->name('marketing.page.')->withoutMiddleware(MarketingSession::SESSIONLESS)->group(function () {
     // `/` is registered at the top of this file (it must read before everything) — see ruling D2 there.
     Route::get('/product', 'product')->name('product');
     Route::get('/features', 'features')->name('features');
@@ -725,8 +734,11 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     Route::get('/integrations', 'integrations')->name('integrations');
     Route::get('/security', 'security')->name('security');
     Route::get('/about', 'about')->name('about');
-    Route::get('/contact', 'contact')->name('contact');
 });
+
+// ⚠️ VY-29 — the ONE marketing page that keeps its session: its form needs CSRF, and its "thank you" is a flash message. OUTSIDE the group
+//    above on purpose: a middleware the group excludes is stripped from every route in it, even one that names it again.
+Route::get('/contact', [MarketingController::class, 'contact'])->name('marketing.page.contact');
 
 /*
  * ══ THE CONTACT FORM'S WRITE (front-website Gate 7) ════════════════════════════════════════════════
@@ -945,6 +957,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // #93 — run the CERTIFIED payout engine (test-mode): a real persisted PayoutRun that reconciles + locks.
     Route::post('/payouts/run', [PayoutRunActionController::class, 'runNow'])
         ->middleware('can:payouts.manage')->name('payouts.run-now');
+    // ⚠️ VY-26 (audit of 2026-11-24) — the day last month's owner statements close by themselves (statements:close-month), or off.
+    Route::post('/payouts/statement-schedule', [PayoutRunActionController::class, 'statementSchedule'])
+        ->middleware('can:payouts.manage')->name('payouts.statement-schedule');
     Route::get('/rack', ReservationRack::class)->name('rack');
     // Operator Calendar exact-match — the canonical "Calendar" URL (the nav points here); same certified
     // rack component. `/rack` is kept as an alias for existing deep-links (front desk / maintenance / groups).
@@ -1462,6 +1477,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // as move (`can:reservations.assign`); the stay length is preserved server-side (no client date math).
     Route::post('/reservations/{reservation}/reschedule', [FrontDeskActionController::class, 'reschedule'])->middleware('can:reservations.assign')->name('reservations.reschedule');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
+    // ⚠️ VY-34 (audit of 2026-11-24) — a housekeeping or maintenance photo, signed in only: private disk, the tenant and the person's
+    //    properties (OperationsPhotos::find). They were public at /media by address.
+    Route::get('/photos/{media}', OperationsPhotoController::class)->name('photos.show');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
     // #104 GATE 0 — gated `can:housekeeping.manage` (matching the assign/photos siblings; NOT Front Desk's
@@ -1478,6 +1496,10 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // security pattern). All `housekeeping.manage`-gated; tenant + property scoped; read-only respected.
     Route::post('/housekeeping/assign-all', [HousekeepingActionController::class, 'assignAll'])->middleware('can:housekeeping.manage')->name('housekeeping.assign-all');
     Route::post('/housekeeping/{task}/photos', [HousekeepingActionController::class, 'uploadPhoto'])->middleware('can:housekeeping.manage')->name('housekeeping.photos.store');
+    // ⚠️⚠️ VY-24 (audit of 2026-11-24) — a housekeeper REPORTS a defect: a work order opened through the certified MaintenanceService. Gated on
+    //    the housekeeper's own permission (`housekeeping.manage`), never `maintenance.manage` — reporting is not managing: the order opens
+    //    with the room as it is (taking a room out of order stays maintenance's), and nothing else about maintenance is reachable from here.
+    Route::post('/housekeeping/{task}/report', [HousekeepingActionController::class, 'reportProblem'])->middleware('can:housekeeping.manage')->name('housekeeping.report');
     Route::delete('/housekeeping/{task}/photos/{media}', [HousekeepingActionController::class, 'deletePhoto'])->middleware('can:housekeeping.manage')->name('housekeeping.photos.destroy');
     // Phase 7d — TEAM SCHEDULE. VIEW is broad (any staff sees the team roster, `schedule.view`); ASSIGN is a
     // manager-level act (`schedule.manage`, NOT Front Desk). The write is a real POST (NOT a Livewire action)

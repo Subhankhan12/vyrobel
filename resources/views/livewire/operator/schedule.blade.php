@@ -249,7 +249,7 @@
                                                     </div>
                                                 @elseif ($canManage && ! $readOnly)
                                                     <button type="button" @click="openCell('{{ $sid }}','{{ $cell['date'] }}','off')" title="{{ __('livewire/operator/schedule.add_a_shift') }}"
-                                                            style="width:100%;height:100%;border-radius:11px;background:transparent;border:1px dashed var(--vy-hairline);color:var(--vy-faint);font-size:16px;cursor:pointer;transition:background .14s" onmouseover="this.style.background='var(--vy-wash)'" onmouseout="this.style.background='transparent'">+</button>
+                                                            style="width:100%;height:100%;border-radius:11px;background:transparent;border:1px dashed var(--vy-hairline);color:var(--vy-faint);font-size:16px;cursor:pointer;transition:background .14s" class="vy-hover-wash">+</button>
                                                 @else
                                                     <div style="height:100%;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;color:var(--vy-faint)">—</span></div>
                                                 @endif
@@ -388,7 +388,7 @@
                                         </select>
                                         <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:4px 10px">{{ __('livewire/operator/schedule.assign') }}</button>
                                     </form>
-                                    <form method="POST" action="{{ route('app.schedule.open.remove', $o['id']) }}" style="margin:0" onsubmit="return confirm(@js(__('livewire/operator/schedule.remove_open_shift_confirm')));">
+                                    <form method="POST" action="{{ route('app.schedule.open.remove', $o['id']) }}" style="margin:0" data-confirm-text="{{ __('livewire/operator/schedule.remove_open_shift_confirm') }}">
                                         @csrf @method('DELETE')
                                         <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="font-size:12px;padding:4px 10px">{{ __('common.remove') }}</button>
@@ -496,7 +496,7 @@
 
     {{-- GATE 9.1 — the drag + modal controller. Drag state holds the SERVER-rendered staff id + Y-m-d string; the
          drop fills the hidden move form from those strings and submits (no client date math → no timezone roll). --}}
-    <script>
+    <script @nonce>
         document.addEventListener('alpine:init', () => {
             Alpine.data('scheduleGrid', () => ({
                 dragUser: null, dragDate: null, overKey: '',

@@ -35,7 +35,7 @@
             {{-- ⚠️ THE DRAFT DIES WITH THE BLOCK IT BECAME. Without this, "Create another block" would open the
                  wizard pre-filled with the group that was just created — and the second block would inherit the
                  first one's name silently. A draft is a recovery aid, never a default. --}}
-            <script>try { sessionStorage.removeItem('vyrobel:group-booking:draft'); } catch (e) {}</script>
+            <script @nonce>try { sessionStorage.removeItem('vyrobel:group-booking:draft'); } catch (e) {}</script>
         </div>
         <style>
             /* done-screen chrome, self-contained (the wizard style block renders only in the wizard branch) */
@@ -389,7 +389,7 @@
             </aside>
         </div>
 
-        <script>
+        <script @nonce>
             function groupBookingWizard(currency, symbol, roomTypes, checkIn, checkOut) {
                 return {
                     currency, symbol, roomTypes, checkIn, checkOut,

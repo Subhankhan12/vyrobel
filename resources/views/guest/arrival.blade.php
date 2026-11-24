@@ -35,37 +35,48 @@
         <div class="vy-eyebrow" style="margin-bottom:12px">{{ __('guest/arrival.getting_in') }}</div>
 
         @if ($pack['released'])
-            {{-- Door code --}}
-            @if ($pack['door_code'])
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--vy-wash);margin-bottom:10px">
-                    <div>
-                        <div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.door_code') }}</div>
-                        <div style="font-family:var(--vy-display);font-size:22px;font-weight:700;letter-spacing:3px;color:var(--vy-ink)">{{ $pack['door_code'] }}</div>
-                    </div>
-                    <button type="button" class="vy-btn vy-btn--ghost" data-copy="{{ $pack['door_code'] }}" style="flex:none">{{ __('guest/arrival.copy') }}</button>
-                </div>
-            @else
-                <div style="font-size:13px;color:var(--vy-muted);margin-bottom:10px">{{ __('guest/arrival.collect_key') }}</div>
-            @endif
-
-            {{-- WiFi --}}
-            @if ($pack['wifi_ssid'])
-                <div style="padding:12px 14px;border-radius:12px;border:1px solid var(--vy-hairline)">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                        <div><div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.wifi_network') }}</div><div style="font-size:14px;color:var(--vy-ink)">{{ $pack['wifi_ssid'] }}</div></div>
-                    </div>
-                    @if ($pack['wifi_password'])
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--vy-hairline)">
-                            <div><div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.wifi_password') }}</div><div style="font-size:14px;color:var(--vy-ink);font-family:var(--vy-display)">{{ $pack['wifi_password'] }}</div></div>
-                            <button type="button" class="vy-btn vy-btn--ghost" data-copy="{{ $pack['wifi_password'] }}" style="flex:none">{{ __('guest/arrival.copy') }}</button>
+            {{-- ⚠️ VY-32 — EVERY ROOM of the stay, each with its own code, Wi-Fi and notes (a two-room stay showed only the first). The room's
+                 name heads its block only when there is more than one. A stay with no room assigned yet shows the "collect the key" line. --}}
+            @forelse ($pack['rooms'] as $room)
+                <div class="vy-arrival-room" style="{{ $loop->first ? '' : 'margin-top:16px;padding-top:14px;border-top:1px solid var(--vy-hairline)' }}">
+                @if (count($pack['rooms']) > 1)
+                    <div style="font-size:13px;font-weight:600;color:var(--vy-ink);margin-bottom:8px">{{ $room['label'] }}</div>
+                @endif
+                {{-- Door code --}}
+                @if ($room['door_code'])
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--vy-wash);margin-bottom:10px">
+                        <div>
+                            <div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.door_code') }}</div>
+                            <div style="font-family:var(--vy-display);font-size:22px;font-weight:700;letter-spacing:3px;color:var(--vy-ink)">{{ $room['door_code'] }}</div>
                         </div>
-                    @endif
-                </div>
-            @endif
+                        <button type="button" class="vy-btn vy-btn--ghost" data-copy="{{ $room['door_code'] }}" style="flex:none">{{ __('guest/arrival.copy') }}</button>
+                    </div>
+                @else
+                    <div style="font-size:13px;color:var(--vy-muted);margin-bottom:10px">{{ __('guest/arrival.collect_key') }}</div>
+                @endif
 
-            @if ($pack['arrival_notes'])
-                <div style="font-size:13px;color:var(--vy-muted);margin-top:12px;line-height:1.5">{{ $pack['arrival_notes'] }}</div>
-            @endif
+                {{-- WiFi --}}
+                @if ($room['wifi_ssid'])
+                    <div style="padding:12px 14px;border-radius:12px;border:1px solid var(--vy-hairline)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                            <div><div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.wifi_network') }}</div><div style="font-size:14px;color:var(--vy-ink)">{{ $room['wifi_ssid'] }}</div></div>
+                        </div>
+                        @if ($room['wifi_password'])
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--vy-hairline)">
+                                <div><div style="font-size:11px;color:var(--vy-faint)">{{ __('guest/arrival.wifi_password') }}</div><div style="font-size:14px;color:var(--vy-ink);font-family:var(--vy-display)">{{ $room['wifi_password'] }}</div></div>
+                                <button type="button" class="vy-btn vy-btn--ghost" data-copy="{{ $room['wifi_password'] }}" style="flex:none">{{ __('guest/arrival.copy') }}</button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($room['arrival_notes'])
+                    <div style="font-size:13px;color:var(--vy-muted);margin-top:12px;line-height:1.5">{{ $room['arrival_notes'] }}</div>
+                @endif
+                </div>
+            @empty
+                <div style="font-size:13px;color:var(--vy-muted);margin-bottom:10px">{{ __('guest/arrival.collect_key') }}</div>
+            @endforelse
         @else
             <div style="display:flex;align-items:center;gap:12px">
                 <span style="flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--vy-wash);color:var(--vy-muted)">
@@ -100,7 +111,7 @@
         <a class="vy-btn vy-btn--accent" href="{{ route('guest.messages') }}" style="flex:none">{{ __('guest/arrival.message_button') }}</a>
     </section>
 
-    <script>
+    <script @nonce>
         document.querySelectorAll('[data-copy]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var text = btn.getAttribute('data-copy');

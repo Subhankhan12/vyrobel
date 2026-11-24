@@ -66,7 +66,8 @@ class MaintenanceList extends Component
     private const PRIORITY_RANK = ['urgent' => 0, 'high' => 1, 'normal' => 2, 'low' => 3];
 
     /** One tile icon per category (inner SVG paths for the choice tiles). */
-    private const CATEGORY_ICONS = [
+    /** Read by the housekeeping "Report a problem" dialog too (VY-24) — the same tiles as a new work order. */
+    public const CATEGORY_ICONS = [
         'plumbing' => '<path d="M12 3s6 6.3 6 10.5A6 6 0 0 1 6 13.5C6 9.3 12 3 12 3z"/>',
         'electrical' => '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
         'appliance' => '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 9h14M9 6h.01"/>',

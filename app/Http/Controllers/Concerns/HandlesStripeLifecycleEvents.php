@@ -9,6 +9,7 @@ use App\Models\PaymentDispute;
 use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeEvent;
 use App\Support\Billing\CheckoutSessions;
+use App\Support\Booking\UnpaidBookingRelease;
 use App\Support\Tenancy\TenantContext;
 use App\Support\Webhooks\WebhookEventClaim;
 use Illuminate\Http\JsonResponse;
@@ -74,7 +75,17 @@ trait HandlesStripeLifecycleEvents
             return $this->unresolved($event, $tenant, 'a Checkout page this deployment has no record of — never opened here, or its organisation was deleted', routine: $routine);
         }
 
-        return $tenant->forOrganization($org, fn (): JsonResponse => $this->once($event, fn () => CheckoutSessions::closeFromEvent($event)));
+        return $tenant->forOrganization($org, fn (): JsonResponse => $this->once($event, function () use ($event): void {
+            CheckoutSessions::closeFromEvent($event);
+
+            // ⚠️⚠️ VY-23 (audit of 2026-11-24) — A STOREFRONT PAGE THAT EXPIRED UNPAID GIVES ITS ROOM BACK, NOW. This line is where the audit
+            //    pointed: the expiry closed the page's record and nothing else, so the booking it was for stayed confirmed for ever. The
+            //    page can no longer be paid, so the booking is released (UnpaidBookingRelease — never a booking with money in, never one a
+            //    person changed). Only for a page the storefront opened for a booking: a subscription page carries no reservation.
+            if ($event->type === 'checkout.session.expired') {
+                app(UnpaidBookingRelease::class)->afterCheckoutExpired($event->objectField('id'), $event->metadataValue('reservation_id'));
+            }
+        }));
     }
 
     private function handleDispute(StripeEvent $event, TenantContext $tenant): JsonResponse

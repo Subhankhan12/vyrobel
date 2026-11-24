@@ -16,6 +16,7 @@ use App\Services\MaintenanceService;
 use App\Support\Export\CsvSafe;
 use App\Support\I18n\LocalNumber;
 use App\Support\Maintenance\MaintenanceListParams;
+use App\Support\Media\OperationsPhotos;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyScope;
@@ -25,7 +26,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -50,7 +50,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class MaintenanceActionController extends Controller
 {
     /** The real category and priority enums — the only values a work order may carry. */
-    private const CATEGORIES = ['plumbing', 'electrical', 'appliance', 'structural', 'other'];
+    /** The work-order kinds — read by the housekeeping "Report a problem" form too (VY-24), so there is one list. */
+    public const CATEGORIES = ['plumbing', 'electrical', 'appliance', 'structural', 'other'];
 
     private const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
 
@@ -494,21 +495,8 @@ class MaintenanceActionController extends Controller
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ]);
 
-        $file = $request->file('photo');
-        $ext = $file->extension() ?: 'jpg';                      // from the VALIDATED file, never the client name
-        $name = (string) Str::ulid().'.'.$ext;
-        $path = $file->storeAs('maintenance/'.$model->getKey(), $name, 'public');
-
-        Media::create([
-            'mediable_type' => $model->getMorphClass(),
-            'mediable_id' => $model->getKey(),
-            'collection' => 'mt_photo',
-            'disk' => 'public',
-            'path' => $path,
-            'mime' => (string) $file->getMimeType(),
-            'size' => (int) $file->getSize(),
-            'alt' => 'Maintenance photo · '.(string) $model->title,
-        ]);
+        // ⚠️ VY-34 — on the PRIVATE disk, opened only signed in (OperationsPhotos); it was public at /media by address.
+        OperationsPhotos::store($request->file('photo'), $model, 'mt_photo', 'maintenance', 'Maintenance photo · '.(string) $model->title);
 
         // the board's drawer sends return=list: back to the board where the photo was added (2026-10-05)
         return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.photo_added'));

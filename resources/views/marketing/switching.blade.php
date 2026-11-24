@@ -43,10 +43,10 @@
             <h2 style="margin: 0; font-family: var(--vy-display); font-size: 20px; font-weight: 600; color: var(--vy-ink);">What comes across</h2>
           </div>
           <div style="display: flex; flex-direction: column; gap: 15px;">
-            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Every future reservation</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Dates, rate, guest, channel, deposit taken and balance owing. Reconciled line by line against your old system before cutover.</div></div>
-            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Guest records and stay history</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Contact details, past stays, notes and preferences, so a returning guest is recognised on day one.</div></div>
+            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Every future reservation</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Entered in Vyrobel with dates, rate, guest, channel, deposit taken and balance owing — there is no file import yet — then checked line by line against your old system before cutover.</div></div>
+            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Guest records</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Each open booking&rsquo;s guest is entered with it. Past stays stay in your old system: there is no import of guest history yet.</div></div>
             <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Units, rate plans and restrictions</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Your inventory, seasons, weekend uplift and minimum-stay rules, rebuilt and checked against a sample of live prices.</div></div>
-            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Owner agreements and statements</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Commission terms per owner, plus up to 24 months of historical statements so owners keep their record.</div></div>
+            <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Owner agreements and statements</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Commission terms per owner, set up in Vyrobel. Statements start with your first month here; past statements stay in your old system, so keep them to hand.</div></div>
             <div><div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 3px;">Owner-blocked dates</div><div style="font-size: 13.5px; line-height: 1.6; color: var(--vy-muted);">Personal stays and maintenance blocks, so nothing gets sold that was never available.</div></div>
           </div>
         </div>
@@ -84,9 +84,9 @@
             <span style="font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: #fff; line-height: 1;">1</span>
           </div>
           <div>
-            <h3 style="margin: 0 0 8px; font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: var(--vy-ink);">Export, import, and a reconciliation you can read</h3>
-            <p style="margin: 0 0 12px; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">You send an export from your current system, or we pull it through their API where one exists. Everything lands in a Vyrobel tenant that isn't selling yet. You get a reconciliation sheet: every reservation, side by side, with any mismatch flagged. Usually it's a handful of rate rounding differences and one booking somebody edited in two places.</p>
-            <div style="font-size: 13px; color: var(--vy-muted);">Your effort: one export, one hour reviewing the sheet.</div>
+            <h3 style="margin: 0 0 8px; font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: var(--vy-ink);">Your open bookings, entered and checked</h3>
+            <p style="margin: 0 0 12px; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">There is no file import yet, so your open bookings are entered in a Vyrobel workspace that isn&rsquo;t selling yet, working from an export of your current system. Then every reservation is compared side by side with the old system, and any mismatch is fixed before anything goes live.</p>
+            <div style="font-size: 13px; color: var(--vy-muted);">Your effort: an export to work from, and the time to enter and check your open bookings.</div>
           </div>
         </div>
 
@@ -146,7 +146,7 @@
 
         <div data-reveal="" data-reveal-delay="120" style="padding: 26px 26px; border-radius: 18px; background: rgba(255,252,248,.55); border: 1px solid rgba(255,255,255,.75);">
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 16.5px; font-weight: 600; color: var(--vy-ink);">"My owners will ask questions."</h3>
-          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">They will, and the first statement is the moment that matters. We import two years of history so the new statement sits in continuity with the old ones, and owners get portal access a week before cutover with a note explaining what changes.</p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">They will, and the first statement is the moment that matters. Past statements are not brought across, so the first Vyrobel statement starts with your cutover month; owners get portal access a week before cutover with a note explaining what changes.</p>
         </div>
 
         <div data-reveal="" data-reveal-delay="180" style="padding: 26px 26px; border-radius: 18px; background: rgba(255,252,248,.55); border: 1px solid rgba(255,255,255,.75);">

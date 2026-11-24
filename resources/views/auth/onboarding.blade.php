@@ -229,7 +229,7 @@
     </main>
 
     @unless ($signupsPaused ?? false)
-    <script>
+    <script @nonce>
         (function () {
             document.body.classList.remove('no-js');
             var steps = Array.prototype.slice.call(document.querySelectorAll('[data-step]'));

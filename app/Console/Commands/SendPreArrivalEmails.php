@@ -14,7 +14,6 @@ use App\Support\Guest\ArrivalPack;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -38,15 +37,15 @@ class SendPreArrivalEmails extends Command
         // ⚠️ VY-06 (2026-11-24) — THE LEAD TIME IS EACH PROPERTY'S ({@see ArrivalPack::leadDays()}), so the day "the window opens" differs
         //    from one property to the next. `--days` still forces one number for every property (a manual re-send).
         $forced = $this->option('days') !== null ? max(0, (int) $this->option('days')) : null;
-        $today = Carbon::today();
         $sent = 0;
 
         foreach (Organization::all() as $organization) {
-            $tenant->forOrganization((string) $organization->getKey(), function () use ($forced, $today, &$sent): void {
+            $tenant->forOrganization((string) $organization->getKey(), function () use ($forced, &$sent): void {
                 // check-in date → the properties whose window opens today for that date
                 $propertiesByTarget = [];
                 foreach (Property::query()->with('policies')->get() as $property) {
-                    $target = $today->copy()->addDays($forced ?? ArrivalPack::leadDays($property))->toDateString();
+                    // ⚠️ VY-32 — "today" is the PROPERTY'S day (ArrivalPack::today), never the server's: the window opens on the property's date.
+                    $target = ArrivalPack::today($property)->addDays($forced ?? ArrivalPack::leadDays($property))->toDateString();
                     $propertiesByTarget[$target][] = (string) $property->getKey();
                 }
 

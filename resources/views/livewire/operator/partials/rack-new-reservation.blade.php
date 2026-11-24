@@ -335,7 +335,7 @@
                 {{-- the price read the New reservation page's way (its toMinor) — in a script block, where a typed currency sign may be named
                      (the currency guard reads tenant-facing markup, not scripts) --}}
                 @once @include('partials.local-number-script') @endonce
-                <script>
+                <script @nonce>
                     window.vyRnrPriceMinor = function (raw) { return window.vyLocalNumber.toMinor(raw); };   // D-MONEY-COMMA — the one reader
                 </script>
                 <script type="application/json" id="vy-rnr-seasons">{!! json_encode((object) $__rnr['seasons'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>

@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $period_start
  * @property Carbon $period_end
  * @property ?Carbon $finalized_at
+ * @property numeric-string|null $fx_rate the `decimal:10` cast's value — a decimal STRING, never a float (VY-32)
  */
 class OwnerStatement extends Model
 {

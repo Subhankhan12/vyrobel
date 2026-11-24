@@ -660,7 +660,7 @@
          redirect) stops it; busy or failing (429, 5xx, no connection) only slows it. --}}
     @include('partials.chat-media')
     <script type="application/json" id="vy-inbox-live">@json($live)</script>
-    <script>
+    <script @nonce>
         // THE INBOX, LIVE (2026-10-06; rewritten the same day after the independent review). Every few seconds the page asks a
         // small stamp; when it moved, it re-reads ITSELF — the conversation it shows (`c`), flagged `live=1`, so the server
         // reads nothing for the person — and swaps the parts that changed. ⚠️ Reading is the person's own act: the page posts

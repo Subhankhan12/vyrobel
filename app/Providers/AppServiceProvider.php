@@ -108,6 +108,7 @@ use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\OAuth\OAuthScopes;
+use App\Support\Ops\QueueDashboard;
 use App\Support\Owner\OwnerContext;
 use App\Support\Platform\PlatformWriteGuard;
 use App\Support\Property\PropertyContext;
@@ -159,6 +160,17 @@ class AppServiceProvider extends ServiceProvider
         //    defaults it on is not a feature. ⚠️ It must be set in register(): Passport loads its routes in
         //    boot(), and every provider registers before any provider boots.
         Passport::$deviceCodeGrantEnabled = false;
+
+        // ⚠️⚠️ VY-33 (audit of 2026-11-24, read in code) — THE QUEUE DASHBOARD EXISTS ONLY WHERE ITS QUEUE DOES. Horizon was
+        //    auto-discovered, so its routes (`/horizon` and its API) were registered on production, which has no Redis and runs a
+        //    database queue drained by a cron — a dashboard that could only answer "connection refused", reachable by address.
+        //    It is no longer auto-discovered (`composer.json` → extra.laravel.dont-discover) and is registered HERE only when the
+        //    queue really is Redis ({@see QueueDashboard::wanted()}): locally, with Horizon running, it is exactly as before.
+        //    ⚠️ register(), never boot(): a provider registered during boot would register its routes too late to be cached.
+        if (QueueDashboard::wanted()) {
+            $this->app->register(\Laravel\Horizon\HorizonServiceProvider::class);
+            $this->app->register(HorizonServiceProvider::class);
+        }
 
         // ⚠️⚠️ SOCIAL SIGN-IN RESOLVES TO THE REAL PROVIDER, ALWAYS. There is no config flag that can swap in
         //    a fake, because a fake provider reachable in production is an authentication bypass — whoever
@@ -699,6 +711,10 @@ class AppServiceProvider extends ServiceProvider
         // EnsureOwnerCapability}): both read the acting role from OwnerContext, so a control is shown only
         // when the route would allow it (never inviting a 403). @ownercan hides a capability-scoped control;
         // @primaryowner hides team management (the primary owner's alone).
+        // ⚠️⚠️ VY-28 (audit of 2026-11-24) — `<script @nonce>`: this request's content-security-policy nonce (SecurityHeaders makes one per
+        //    request; Vite and Livewire put it on their own tags). Every inline script carries it, so the policy needs no 'unsafe-inline'.
+        //    Rendered outside a request (a queued mail) there is none, and it prints an empty attribute — harmless, nothing runs there.
+        Blade::directive('nonce', fn (): string => '<?php echo \'nonce="\'.e(\Illuminate\Support\Facades\Vite::cspNonce() ?? \'\').\'"\'; ?>');
         Blade::if('ownercan', fn (string $capability): bool => app(OwnerContext::class)->can($capability));
         Blade::if('primaryowner', fn (): bool => app(OwnerContext::class)->isPrimaryOwner());
         Blade::if('ownersubuser', fn (): bool => app(OwnerContext::class)->isSubUser());
