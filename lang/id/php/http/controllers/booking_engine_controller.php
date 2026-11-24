@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Silakan setujui ketentuan reservasi dan pemberitahuan privasi untuk melanjutkan.',
     'terms_changed' => 'Properti telah memperbarui ketentuan reservasinya. Silakan baca kembali dan setujui untuk melanjutkan.',
     'checkout_page_stale' => 'Halaman ini sudah terbuka cukup lama dan tidak lagi mutakhir. Silakan periksa data Anda dan konfirmasi kembali.',
+    'deposit_unavailable' => 'Properti ini meminta uang muka dengan kartu saat pemesanan dan belum dapat menerima pembayaran kartu secara online. Silakan hubungi properti untuk memesan.',
+    'deposit_received' => 'Uang muka diterima',
+    'deposit_received_note' => 'Sisanya, :amount, dibayar di properti.',
+    'released' => 'Pemesanan tidak dipertahankan',
+    'released_note' => 'Pembayaran kartu tidak selesai tepat waktu, jadi pemesanan ini dilepas. Untuk menginap di sini, silakan pesan lagi.',
+    'payment_not_completed' => 'Pembayaran belum selesai',
+    'payment_not_completed_note' => 'Pembayaran kartu Anda belum selesai, jadi pemesanan ini belum dikonfirmasi. Jika tidak dibayar, pemesanan akan segera dilepas. Untuk menginap di sini, Anda dapat memesan lagi.',
 ];

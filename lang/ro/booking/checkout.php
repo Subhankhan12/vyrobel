@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Am citit și accept :terms și :privacy.',
     'terms_link' => 'condițiile de rezervare',
     'privacy_link' => 'declarația de confidențialitate',
+    'deposit_now' => 'Plătește acum un avans',
+    'deposit_now_detail' => 'Un avans de :amount (:percent%) cu cardul acum; nu vedem niciodată numărul cardului tău. Restul se plătește la proprietate.',
+    'deposit_unavailable' => 'Această proprietate cere un avans cu cardul la rezervare și nu poate accepta încă plăți cu cardul online. Contactează proprietatea pentru a rezerva.',
+    'deposit_release_note' => 'Camera ta este reținută cât timp plătești. Dacă plata nu este finalizată în :minutes minute, rezervarea este eliberată.',
+    'confirm_and_pay_deposit' => 'Confirmă și plătește avansul',
 ];

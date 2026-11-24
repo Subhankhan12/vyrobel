@@ -39,4 +39,11 @@ return [
     'terms_required' => '請接受訂房條款與隱私權聲明後再繼續。',
     'terms_changed' => '住宿方已更新訂房條款。請重新閱讀並接受後再繼續。',
     'checkout_page_stale' => '此頁面已開啟一段時間，內容已過期。請確認您的資料後再次確認。',
+    'deposit_unavailable' => '此住宿要求訂房時以信用卡支付訂金，但目前尚無法在線上接受信用卡付款。請聯絡住宿方訂房。',
+    'deposit_received' => '已收到訂金',
+    'deposit_received_note' => '其餘款項 :amount 於住宿地點支付。',
+    'released' => '訂房未保留',
+    'released_note' => '信用卡付款未能及時完成，因此此訂房已被釋出。如需入住，請重新訂房。',
+    'payment_not_completed' => '付款未完成',
+    'payment_not_completed_note' => '您的信用卡付款未完成，因此此訂房尚未確認。若未付款，將很快被釋出。如需入住，您可以重新訂房。',
 ];

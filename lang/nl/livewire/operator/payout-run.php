@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Elke definitieve afrekening heeft een positief netto uit te betalen bedrag.',
     'go_ahead_title' => 'Doorgaan?',
     'go_ahead_button' => 'Doorgaan',
+    'auto_close_label' => 'Eigenaarsoverzichten automatisch afsluiten',
+    'auto_close_help' => 'Op de dag die u kiest, wordt de vorige maand afgesloten voor elke eigenaar met iets te verrekenen, precies zoals ‘Periode afsluiten’ dat met de hand doet. Een afgesloten overzicht is definitief; latere wijzigingen gaan naar het volgende.',
+    'auto_close_off' => 'Uit (met de hand)',
+    'auto_close_day' => 'Op dag :day van elke maand',
+    'auto_close_save' => 'Opslaan',
 ];

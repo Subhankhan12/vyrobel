@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => '워크스페이스가 일시 중지되었습니다 — 현재 지급은 읽기 전용입니다.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}일시 중지된 소유주 :count명 제외|[0,*]일시 중지된 소유주 :count명 제외',
+    'statements_auto_on' => '소유주 정산서가 매월 :day일에 자동으로 마감됩니다.',
+    'statements_auto_off' => '소유주 정산서는 다시 각 소유주 페이지에서 직접 마감합니다.',
 ];

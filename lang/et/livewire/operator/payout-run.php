@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Igal lõplikul väljavõttel on positiivne väljamakstav summa.',
     'go_ahead_title' => 'Kas jätkata?',
     'go_ahead_button' => 'Jätka',
+    'auto_close_label' => 'Sulge omanike aruanded automaatselt',
+    'auto_close_help' => 'Valitud päeval suletakse eelmine kuu iga omaniku jaoks, kellel on midagi aruandes kajastada, täpselt nagu „Sulge periood“ seda käsitsi teeb. Suletud aruanne on lõplik; hilisemad muudatused lähevad järgmisse.',
+    'auto_close_off' => 'Väljas (käsitsi)',
+    'auto_close_day' => 'Iga kuu :day. päeval',
+    'auto_close_save' => 'Salvesta',
 ];

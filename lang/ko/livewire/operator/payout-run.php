@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => '마감된 모든 정산서의 실지급액이 양수입니다.',
     'go_ahead_title' => '진행하시겠습니까?',
     'go_ahead_button' => '진행',
+    'auto_close_label' => '소유주 정산서 자동 마감',
+    'auto_close_help' => '선택한 날에, 정산할 내역이 있는 모든 소유주의 지난달을 마감합니다. ‘기간 마감’을 직접 하는 것과 똑같습니다. 마감된 정산서는 확정되며, 이후 변경 사항은 다음 정산서에 반영됩니다.',
+    'auto_close_off' => '끄기(직접)',
+    'auto_close_day' => '매월 :day일',
+    'auto_close_save' => '저장',
 ];

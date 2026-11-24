@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organização em pausa — os repasses ficam em modo somente leitura por enquanto.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count proprietário com repasses em pausa ignorado|[0,*] :count proprietários com repasses em pausa ignorados',
+    'statements_auto_on' => 'Os extratos dos proprietários serão fechados automaticamente no dia :day de cada mês.',
+    'statements_auto_off' => 'Os extratos dos proprietários voltam a ser fechados à mão, na página de cada proprietário.',
 ];

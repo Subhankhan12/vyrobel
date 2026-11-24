@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organisasi dijeda — pencairan hanya baca untuk sementara.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}:count pemilik yang dijeda dilewati|[0,*]:count pemilik yang dijeda dilewati',
+    'statements_auto_on' => 'Laporan pemilik akan ditutup secara otomatis pada tanggal :day setiap bulan.',
+    'statements_auto_off' => 'Laporan pemilik kembali ditutup secara manual, dari halaman setiap pemilik.',
 ];

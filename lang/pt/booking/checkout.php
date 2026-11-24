@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Li e aceito :terms e :privacy.',
     'terms_link' => 'as condições de reserva',
     'privacy_link' => 'o aviso de privacidade',
+    'deposit_now' => 'Pagar um sinal agora',
+    'deposit_now_detail' => 'Um sinal de :amount (:percent%) com cartão agora; nunca vemos o número do seu cartão. O restante paga-se no alojamento.',
+    'deposit_unavailable' => 'Este alojamento pede um sinal com cartão na reserva e ainda não consegue aceitar pagamentos com cartão online. Contacte o alojamento para reservar.',
+    'deposit_release_note' => 'O seu quarto fica reservado enquanto paga. Se o pagamento não for concluído em :minutes minutos, a reserva é libertada.',
+    'confirm_and_pay_deposit' => 'Confirmar e pagar o sinal',
 ];

@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'در حال انجام',
     'is_clean' => 'تمیز',
     'is_inspected' => 'بازرسی‌شده',
+    'problem_title_required' => 'بگویید چه مشکلی هست.',
+    'problem_reported' => ':unit — مشکل گزارش شد. یک دستور کار باز برای تیم تعمیرات وجود دارد.',
+    'second_person_required' => 'شما :unit را تمیز علامت زدید. فرد دیگری باید آن را بازرسی کند.',
 ];

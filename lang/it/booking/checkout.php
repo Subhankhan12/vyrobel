@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Ho letto e accetto :terms e :privacy.',
     'terms_link' => 'le condizioni di prenotazione',
     'privacy_link' => 'l’informativa sulla privacy',
+    'deposit_now' => 'Paga ora un acconto',
+    'deposit_now_detail' => 'Un acconto di :amount (:percent%) con carta ora; non vediamo mai il numero della tua carta. Il resto si paga in struttura.',
+    'deposit_unavailable' => 'Questa struttura chiede un acconto con carta alla prenotazione e non può ancora accettare pagamenti con carta online. Contatta la struttura per prenotare.',
+    'deposit_release_note' => 'La tua camera resta trattenuta mentre paghi. Se il pagamento non viene completato entro :minutes minuti, la prenotazione viene liberata.',
+    'confirm_and_pay_deposit' => 'Conferma e paga l’acconto',
 ];

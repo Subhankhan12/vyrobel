@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}최대 숙박 기간: :count박.|[0,*]최대 숙박 기간: :count박.',
     'stay_pets' => '반려동물: :rule.',
     'stay_smoking' => '흡연: :rule.',
-    'stay_deposit' => '예약 시 예약금이 필요합니다.',
+    'stay_deposit_percent' => '예약 시 총액의 :percent%를 예약금으로 카드 결제합니다.',
 ];

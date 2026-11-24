@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'bezig',
     'is_clean' => 'schoon',
     'is_inspected' => 'gecontroleerd',
+    'problem_title_required' => 'Zeg wat er mis is.',
+    'problem_reported' => ':unit — probleem gemeld. Er staat een werkorder open voor het onderhoudsteam.',
+    'second_person_required' => 'U hebt :unit als schoon gemarkeerd. Een andere persoon moet de kamer controleren.',
 ];

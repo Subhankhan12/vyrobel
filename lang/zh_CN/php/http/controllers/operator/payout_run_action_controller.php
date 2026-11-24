@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => '组织已暂停——打款目前为只读。',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}已跳过 :count 位已暂停的业主|[0,*]已跳过 :count 位已暂停的业主',
+    'statements_auto_on' => '业主对账单将在每月 :day 日自动关闭。',
+    'statements_auto_off' => '业主对账单重新改为手动关闭，在每位业主的页面中操作。',
 ];

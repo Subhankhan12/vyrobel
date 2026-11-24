@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Standardsprache',
     'billing_email' => 'Rechnungs-E-Mail',
     'save_organization' => 'Organisationseinstellungen speichern',
+    'housekeeping_heading' => 'Housekeeping',
+    'inspection_by_second_person' => 'Kontrolle durch eine zweite Person',
+    'inspection_help' => 'Wenn dies aktiv ist, kann die Person, die ein Zimmer als sauber markiert hat, es nicht auch als kontrolliert markieren.',
+    'deposit_percent' => 'Anzahlung, % des Gesamtbetrags',
+    'deposit_help' => 'Gäste zahlen diesen Anteil per Karte, wenn sie online buchen; der Rest ist in der Unterkunft fällig. Eine Buchung, deren Kartenzahlung nicht innerhalb von 30 Minuten abgeschlossen wird, wird freigegeben.',
+    'deposit_no_cards' => 'Kartenzahlungen sind für diese Organisation nicht aktiviert. Solange eine Anzahlung verlangt wird, nimmt Ihre Buchungsseite keine Online-Buchungen an.',
+    'no_show_heading' => 'No-Shows',
+    'auto_no_show' => 'No-Shows automatisch markieren',
+    'auto_no_show_help' => 'Eine bestätigte Buchung, deren Gast bis zur Check-out-Zeit am Tag nach der Anreise nicht eingecheckt ist, wird als No-Show markiert, und das Zimmer wird für die restlichen Nächte freigegeben. Checken Sie Gäste bei ihrer Ankunft ein.',
 ];

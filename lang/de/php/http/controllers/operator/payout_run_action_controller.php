@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organisation pausiert — bei Auszahlungen besteht vorerst nur Lesezugriff.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count pausierter Eigentümer übersprungen|[0,*] :count pausierte Eigentümer übersprungen',
+    'statements_auto_on' => 'Eigentümerabrechnungen werden am :day. jedes Monats automatisch abgeschlossen.',
+    'statements_auto_off' => 'Eigentümerabrechnungen werden wieder von Hand abgeschlossen, auf der Seite jedes Eigentümers.',
 ];

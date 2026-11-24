@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Vă rugăm să acceptați condițiile de rezervare și declarația de confidențialitate pentru a continua.',
     'terms_changed' => 'Proprietatea și-a actualizat condițiile de rezervare. Vă rugăm să le citiți din nou și să le acceptați pentru a continua.',
     'checkout_page_stale' => 'Această pagină a stat deschisă o vreme și nu mai este actuală. Verificați datele și confirmați din nou.',
+    'deposit_unavailable' => 'Această proprietate cere un avans cu cardul la rezervare și nu poate accepta încă plăți cu cardul online. Contactează proprietatea pentru a rezerva.',
+    'deposit_received' => 'Avans primit',
+    'deposit_received_note' => 'Restul, :amount, se plătește la proprietate.',
+    'released' => 'Rezervare nepăstrată',
+    'released_note' => 'Plata cu cardul nu a fost finalizată la timp, așa că această rezervare a fost eliberată. Pentru a sta aici, rezervă din nou.',
+    'payment_not_completed' => 'Plată nefinalizată',
+    'payment_not_completed_note' => 'Plata ta cu cardul nu a fost finalizată, așa că această rezervare nu este confirmată. Dacă nu este plătită, va fi eliberată în curând. Pentru a sta aici, poți rezerva din nou.',
 ];

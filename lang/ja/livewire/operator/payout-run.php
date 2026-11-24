@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'すべての確定済み収支報告書の支払純額がプラスです。',
     'go_ahead_title' => '実行しますか？',
     'go_ahead_button' => '実行',
+    'auto_close_label' => 'オーナー明細書を自動で締める',
+    'auto_close_help' => '選んだ日に、明細に記載する内容があるすべてのオーナーについて前月を締めます。「期間を締める」を手作業で行うのとまったく同じです。締めた明細書は確定で、その後の変更は次の明細書に入ります。',
+    'auto_close_off' => 'オフ（手作業）',
+    'auto_close_day' => '毎月:day日',
+    'auto_close_save' => '保存',
 ];

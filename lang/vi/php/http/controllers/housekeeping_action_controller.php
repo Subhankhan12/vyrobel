@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'đang dọn',
     'is_clean' => 'sạch',
     'is_inspected' => 'đã kiểm tra',
+    'problem_title_required' => 'Hãy cho biết có vấn đề gì.',
+    'problem_reported' => ':unit — đã báo sự cố. Có một phiếu công việc đang mở cho đội bảo trì.',
+    'second_person_required' => 'Bạn đã đánh dấu :unit là sạch. Một người khác phải kiểm tra phòng.',
 ];

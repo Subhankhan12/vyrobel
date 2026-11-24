@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => '每份已定稿结算单的应付净额均为正数。',
     'go_ahead_title' => '确定继续？',
     'go_ahead_button' => '继续',
+    'auto_close_label' => '自动关闭业主对账单',
+    'auto_close_help' => '在您选择的日期，为每位有对账内容的业主关闭上个月，与手动“关闭结算期”完全相同。已关闭的对账单为最终版本；之后的更改计入下一份。',
+    'auto_close_off' => '关闭（手动）',
+    'auto_close_day' => '每月 :day 日',
+    'auto_close_save' => '保存',
 ];

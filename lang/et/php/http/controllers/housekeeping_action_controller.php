@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'töös',
     'is_clean' => 'puhas',
     'is_inspected' => 'kontrollitud',
+    'problem_title_required' => 'Öelge, mis on valesti.',
+    'problem_reported' => ':unit — probleemist teatatud. Hooldusmeeskonnale on avatud töökäsk.',
+    'second_person_required' => 'Märkisite :unit puhtaks. Teine inimene peab selle üle kontrollima.',
 ];

@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => '所有已定稿的結算單都有正的應付淨額。',
     'go_ahead_title' => '確定要繼續嗎？',
     'go_ahead_button' => '繼續',
+    'auto_close_label' => '自動關閉業主對帳單',
+    'auto_close_help' => '在您選擇的日期，為每位有對帳內容的業主關閉上個月，與手動「關帳」完全相同。已關閉的對帳單為最終版本；之後的變更計入下一份。',
+    'auto_close_off' => '關閉（手動）',
+    'auto_close_day' => '每月 :day 日',
+    'auto_close_save' => '儲存',
 ];

@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => '組織已暫停——目前撥款功能為唯讀。',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}已略過 :count 位撥款已暫停的業主|[0,*]已略過 :count 位撥款已暫停的業主',
+    'statements_auto_on' => '業主對帳單將於每月 :day 日自動關閉。',
+    'statements_auto_off' => '業主對帳單改回手動關閉，於每位業主的頁面中操作。',
 ];

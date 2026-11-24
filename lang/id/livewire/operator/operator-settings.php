@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Bahasa default',
     'billing_email' => 'Email penagihan',
     'save_organization' => 'Simpan pengaturan organisasi',
+    'housekeeping_heading' => 'Housekeeping',
+    'inspection_by_second_person' => 'Pemeriksaan oleh orang kedua',
+    'inspection_help' => 'Jika aktif, orang yang menandai kamar sebagai bersih tidak bisa juga menandainya sebagai diperiksa.',
+    'deposit_percent' => 'Uang muka, % dari total',
+    'deposit_help' => 'Tamu membayar bagian ini dengan kartu saat memesan online; sisanya dibayar di properti. Pemesanan yang pembayaran kartunya tidak selesai dalam 30 menit akan dilepas.',
+    'deposit_no_cards' => 'Pembayaran kartu belum diaktifkan untuk organisasi ini, jadi selama uang muka diwajibkan, halaman pemesanan Anda tidak menerima pemesanan online.',
+    'no_show_heading' => 'No-show',
+    'auto_no_show' => 'Tandai no-show secara otomatis',
+    'auto_no_show_help' => 'Pemesanan terkonfirmasi yang tamunya belum check-in sampai waktu check-out pada hari setelah kedatangan ditandai sebagai no-show, dan kamarnya dilepas untuk malam yang tersisa. Lakukan check-in tamu saat mereka tiba.',
 ];

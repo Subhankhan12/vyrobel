@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Ik heb de :terms en de :privacy gelezen en ga daarmee akkoord.',
     'terms_link' => 'reserveringsvoorwaarden',
     'privacy_link' => 'privacyverklaring',
+    'deposit_now' => 'Nu een aanbetaling doen',
+    'deposit_now_detail' => 'Een aanbetaling van :amount (:percent%) nu per kaart; wij zien uw kaartnummer nooit. De rest betaalt u bij de accommodatie.',
+    'deposit_unavailable' => 'Deze accommodatie vraagt bij het boeken een aanbetaling per kaart en kan online nog geen kaartbetalingen aannemen. Neem contact op met de accommodatie om te boeken.',
+    'deposit_release_note' => 'Uw kamer wordt vastgehouden terwijl u betaalt. Als de betaling niet binnen :minutes minuten is afgerond, wordt de reservering vrijgegeven.',
+    'confirm_and_pay_deposit' => 'Bevestigen en aanbetaling betalen',
 ];

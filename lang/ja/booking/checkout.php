@@ -41,4 +41,9 @@ return [
     'accept_terms' => ':termsと:privacyを読み、同意します。',
     'terms_link' => '予約条件',
     'privacy_link' => 'プライバシー通知',
+    'deposit_now' => '今すぐ予約金を支払う',
+    'deposit_now_detail' => '今すぐカードで:amount（:percent%）の予約金をお支払いください。カード番号が当方に見えることはありません。残りは施設でお支払いください。',
+    'deposit_unavailable' => 'この施設は予約時にカードでの予約金を求めていますが、まだオンラインでカード払いを受け付けられません。予約は施設に直接お問い合わせください。',
+    'deposit_release_note' => 'お支払いの間、お部屋は確保されています。:minutes分以内にお支払いが完了しない場合、予約は解除されます。',
+    'confirm_and_pay_deposit' => '予約金を支払って確定',
 ];

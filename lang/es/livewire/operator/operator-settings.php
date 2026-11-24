@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Idioma predeterminado',
     'billing_email' => 'Correo de facturación',
     'save_organization' => 'Guardar configuración de la organización',
+    'housekeeping_heading' => 'Limpieza',
+    'inspection_by_second_person' => 'Inspección por una segunda persona',
+    'inspection_help' => 'Cuando está activado, la persona que marcó una habitación como limpia no puede marcarla también como inspeccionada.',
+    'deposit_percent' => 'Anticipo, % del total',
+    'deposit_help' => 'Los huéspedes pagan esta parte con tarjeta cuando reservan en línea; el resto se paga en el alojamiento. Una reserva cuyo pago con tarjeta no se completa en 30 minutos se libera.',
+    'deposit_no_cards' => 'Los pagos con tarjeta no están activados en esta organización, así que mientras se pida un anticipo tu página de reservas no acepta reservas en línea.',
+    'no_show_heading' => 'No shows',
+    'auto_no_show' => 'Marcar los no shows automáticamente',
+    'auto_no_show_help' => 'Una reserva confirmada cuyo huésped no ha hecho el check-in a la hora de salida del día siguiente a la llegada se marca como no show, y la habitación se libera para las noches que quedan. Haz el check-in de los huéspedes cuando lleguen.',
 ];

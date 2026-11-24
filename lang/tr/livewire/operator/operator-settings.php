@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Varsayılan dil',
     'billing_email' => 'Fatura e-postası',
     'save_organization' => 'Kuruluş ayarlarını kaydet',
+    'housekeeping_heading' => 'Kat hizmetleri',
+    'inspection_by_second_person' => 'İkinci bir kişi tarafından kontrol',
+    'inspection_help' => 'Bu açıkken, bir odayı temiz olarak işaretleyen kişi onu kontrol edildi olarak da işaretleyemez.',
+    'deposit_percent' => 'Ön ödeme, toplamın %’si',
+    'deposit_help' => 'Misafirler çevrimiçi rezervasyon yaparken bu payı kartla öder; kalanı tesiste ödenir. Kart ödemesi 30 dakika içinde tamamlanmayan rezervasyon serbest bırakılır.',
+    'deposit_no_cards' => 'Bu kuruluş için kart ödemeleri açık değil; ön ödeme istendiği sürece rezervasyon sayfanız çevrimiçi rezervasyon almaz.',
+    'no_show_heading' => 'No-show’lar',
+    'auto_no_show' => 'No-show’ları otomatik işaretle',
+    'auto_no_show_help' => 'Misafiri, varıştan sonraki günün çıkış saatine kadar giriş yapmamış onaylı bir rezervasyon no-show olarak işaretlenir ve oda kalan geceler için serbest bırakılır. Misafirlerin girişini geldiklerinde yapın.',
 ];

@@ -39,4 +39,11 @@ return [
     'terms_required' => '请接受预订条款和隐私声明后继续。',
     'terms_changed' => '酒店已更新其预订条款。请重新阅读并接受后继续。',
     'checkout_page_stale' => '此页面已打开一段时间，内容已过期。请核对您的信息后重新确认。',
+    'deposit_unavailable' => '此住宿要求预订时用银行卡支付订金，但目前还无法在线接受银行卡付款。请联系住宿方预订。',
+    'deposit_received' => '已收到订金',
+    'deposit_received_note' => '余款 :amount 在住宿处支付。',
+    'released' => '预订未保留',
+    'released_note' => '银行卡付款未能按时完成，因此此预订已被释放。如需入住，请重新预订。',
+    'payment_not_completed' => '付款未完成',
+    'payment_not_completed_note' => '您的银行卡付款未完成，因此此预订尚未确认。若未付款，将很快被释放。如需入住，您可以重新预订。',
 ];

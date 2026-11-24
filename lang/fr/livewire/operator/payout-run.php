@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Chaque relevé finalisé a un net à verser positif.',
     'go_ahead_title' => 'Confirmer ?',
     'go_ahead_button' => 'Confirmer',
+    'auto_close_label' => 'Clôturer automatiquement les relevés propriétaires',
+    'auto_close_help' => 'Le jour choisi, le mois précédent est clôturé pour chaque propriétaire ayant quelque chose à relever, exactement comme le fait « Clôturer la période » à la main. Un relevé clôturé est définitif ; les modifications ultérieures vont dans le suivant.',
+    'auto_close_off' => 'Désactivé (à la main)',
+    'auto_close_day' => 'Le :day de chaque mois',
+    'auto_close_save' => 'Enregistrer',
 ];

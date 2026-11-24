@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Bitte akzeptieren Sie die Buchungsbedingungen und die Datenschutzhinweise, um fortzufahren.',
     'terms_changed' => 'Die Unterkunft hat ihre Buchungsbedingungen aktualisiert. Bitte lesen Sie sie erneut und akzeptieren Sie sie, um fortzufahren.',
     'checkout_page_stale' => 'Diese Seite war längere Zeit geöffnet und ist nicht mehr aktuell. Bitte prüfen Sie Ihre Angaben und bestätigen Sie erneut.',
+    'deposit_unavailable' => 'Diese Unterkunft verlangt bei der Buchung eine Anzahlung per Karte und kann online noch keine Kartenzahlungen annehmen. Bitte wenden Sie sich zum Buchen direkt an die Unterkunft.',
+    'deposit_received' => 'Anzahlung erhalten',
+    'deposit_received_note' => 'Der Rest, :amount, wird in der Unterkunft bezahlt.',
+    'released' => 'Buchung nicht gehalten',
+    'released_note' => 'Die Kartenzahlung wurde nicht rechtzeitig abgeschlossen, daher wurde diese Buchung freigegeben. Wenn Sie hier übernachten möchten, buchen Sie bitte erneut.',
+    'payment_not_completed' => 'Zahlung nicht abgeschlossen',
+    'payment_not_completed_note' => 'Ihre Kartenzahlung wurde nicht abgeschlossen, daher ist diese Buchung nicht bestätigt. Wird sie nicht bezahlt, wird sie in Kürze freigegeben. Wenn Sie hier übernachten möchten, können Sie erneut buchen.',
 ];

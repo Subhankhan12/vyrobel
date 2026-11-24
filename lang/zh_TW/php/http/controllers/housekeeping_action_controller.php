@@ -22,4 +22,7 @@ return [
     'is_in_progress' => '進行中',
     'is_clean' => '已清潔',
     'is_inspected' => '已檢查',
+    'problem_title_required' => '請說明出了什麼問題。',
+    'problem_reported' => ':unit — 問題已回報。已為維修團隊開立一張工單。',
+    'second_person_required' => '是您將 :unit 標記為已清潔。必須由其他人檢查。',
 ];

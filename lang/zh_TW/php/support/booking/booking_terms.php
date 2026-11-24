@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}最多住宿晚數：:count 晚。|[0,*]最多住宿晚數：:count 晚。',
     'stay_pets' => '寵物：:rule。',
     'stay_smoking' => '吸菸：:rule。',
-    'stay_deposit' => '訂房時須支付訂金。',
+    'stay_deposit_percent' => '訂房時以信用卡支付總額 :percent% 的訂金。',
 ];

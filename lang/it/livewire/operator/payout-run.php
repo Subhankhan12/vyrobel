@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Ogni rendiconto finalizzato ha un netto da versare positivo.',
     'go_ahead_title' => 'Procedere?',
     'go_ahead_button' => 'Procedi',
+    'auto_close_label' => 'Chiudi automaticamente gli estratti proprietari',
+    'auto_close_help' => 'Nel giorno scelto, il mese precedente viene chiuso per ogni proprietario con qualcosa da rendicontare, esattamente come fa «Chiudi periodo» a mano. Un estratto chiuso è definitivo; le modifiche successive vanno nel prossimo.',
+    'auto_close_off' => 'Disattivato (a mano)',
+    'auto_close_day' => 'Il giorno :day di ogni mese',
+    'auto_close_save' => 'Salva',
 ];

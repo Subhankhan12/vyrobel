@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Jätkamiseks nõustuge broneerimistingimuste ja privaatsusteatega.',
     'terms_changed' => 'Majutusasutus on oma broneerimistingimusi uuendanud. Jätkamiseks lugege need uuesti läbi ja nõustuge nendega.',
     'checkout_page_stale' => 'See leht oli mõnda aega avatud ja on aegunud. Kontrollige oma andmeid ja kinnitage uuesti.',
+    'deposit_unavailable' => 'See majutusasutus küsib broneerimisel ettemaksu kaardiga ega saa veel kaardimakseid veebis vastu võtta. Broneerimiseks võtke ühendust majutusasutusega.',
+    'deposit_received' => 'Ettemaks laekunud',
+    'deposit_received_note' => 'Ülejäänu, :amount, makstakse kohapeal.',
+    'released' => 'Broneeringut ei hoitud',
+    'released_note' => 'Kaardimakset ei lõpetatud õigel ajal, seega see broneering vabastati. Siin peatumiseks broneerige uuesti.',
+    'payment_not_completed' => 'Makse pole lõpetatud',
+    'payment_not_completed_note' => 'Teie kaardimakset ei lõpetatud, seega see broneering pole kinnitatud. Kui seda ei maksta, vabastatakse see peagi. Siin peatumiseks võite uuesti broneerida.',
 ];

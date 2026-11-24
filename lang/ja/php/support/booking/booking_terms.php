@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}最大宿泊数：:count泊。|[0,*]最大宿泊数：:count泊。',
     'stay_pets' => 'ペット：:rule。',
     'stay_smoking' => '喫煙：:rule。',
-    'stay_deposit' => 'ご予約時に予約金が必要です。',
+    'stay_deposit_percent' => '予約時に合計の:percent%を予約金としてカードで支払います。',
 ];

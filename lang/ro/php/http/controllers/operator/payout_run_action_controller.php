@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organizație în pauză — viramentele sunt deocamdată doar în citire.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}omis :count proprietar cu viramentele în pauză|omiși :count proprietari cu viramentele în pauză|omiși :count de proprietari cu viramentele în pauză',
+    'statements_auto_on' => 'Extrasele proprietarilor vor fi închise automat în ziua :day a fiecărei luni.',
+    'statements_auto_off' => 'Extrasele proprietarilor se închid din nou manual, din pagina fiecărui proprietar.',
 ];

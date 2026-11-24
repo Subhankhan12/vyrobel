@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Saya sudah membaca dan menyetujui :terms serta :privacy.',
     'terms_link' => 'ketentuan reservasi',
     'privacy_link' => 'pemberitahuan privasi',
+    'deposit_now' => 'Bayar uang muka sekarang',
+    'deposit_now_detail' => 'Uang muka :amount (:percent%) dengan kartu sekarang; kami tidak pernah melihat nomor kartu Anda. Sisanya dibayar di properti.',
+    'deposit_unavailable' => 'Properti ini meminta uang muka dengan kartu saat pemesanan dan belum dapat menerima pembayaran kartu secara online. Silakan hubungi properti untuk memesan.',
+    'deposit_release_note' => 'Kamar Anda ditahan selama Anda membayar. Jika pembayaran tidak selesai dalam :minutes menit, pemesanan dilepas.',
+    'confirm_and_pay_deposit' => 'Konfirmasi & bayar uang muka',
 ];

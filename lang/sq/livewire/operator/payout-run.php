@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Çdo pasqyrë e finalizuar ka neto pozitive për derdhje.',
     'go_ahead_title' => 'Të vazhdohet?',
     'go_ahead_button' => 'Vazhdo',
+    'auto_close_label' => 'Mbyll automatikisht pasqyrat e pronarëve',
+    'auto_close_help' => 'Në ditën që zgjidhni, muaji i kaluar mbyllet për çdo pronar që ka diçka për të pasqyruar, njësoj si e bën me dorë „Mbyll periudhën“. Një pasqyrë e mbyllur është përfundimtare; ndryshimet e mëvonshme shkojnë te e ardhshmja.',
+    'auto_close_off' => 'Joaktiv (me dorë)',
+    'auto_close_day' => 'Në ditën :day të çdo muaji',
+    'auto_close_save' => 'Ruaj',
 ];

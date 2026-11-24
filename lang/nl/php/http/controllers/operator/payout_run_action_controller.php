@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organisatie gepauzeerd — uitbetalingen zijn voorlopig alleen-lezen.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count gepauzeerde eigenaar overgeslagen|[0,*] :count gepauzeerde eigenaren overgeslagen',
+    'statements_auto_on' => 'Eigenaarsoverzichten worden automatisch afgesloten op dag :day van elke maand.',
+    'statements_auto_off' => 'Eigenaarsoverzichten worden weer met de hand afgesloten, op de pagina van elke eigenaar.',
 ];

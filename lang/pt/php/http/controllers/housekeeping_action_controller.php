@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'em curso',
     'is_clean' => 'limpa',
     'is_inspected' => 'inspecionada',
+    'problem_title_required' => 'Diga o que se passa.',
+    'problem_reported' => ':unit — problema comunicado. Está aberta uma ordem de trabalho para a equipa de manutenção.',
+    'second_person_required' => 'Marcou :unit como limpo. Outra pessoa tem de o inspecionar.',
 ];

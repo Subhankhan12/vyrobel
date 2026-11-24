@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Tổ chức đang tạm dừng — phần chi trả tạm thời chỉ đọc.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}đã bỏ qua :count chủ sở hữu đang tạm dừng|[0,*]đã bỏ qua :count chủ sở hữu đang tạm dừng',
+    'statements_auto_on' => 'Bảng kê chủ sở hữu sẽ tự động được chốt vào ngày :day hằng tháng.',
+    'statements_auto_off' => 'Bảng kê chủ sở hữu lại được chốt thủ công, từ trang của từng chủ sở hữu.',
 ];

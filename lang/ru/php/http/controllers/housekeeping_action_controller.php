@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'в работе',
     'is_clean' => 'чистый',
     'is_inspected' => 'проверен',
+    'problem_title_required' => 'Укажите, что не так.',
+    'problem_reported' => ':unit — о проблеме сообщено. Для службы обслуживания открыт наряд.',
+    'second_person_required' => 'Вы отметили :unit как убранный. Проверить его должен другой сотрудник.',
 ];

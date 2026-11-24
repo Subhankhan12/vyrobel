@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Olen lugenud ja nõustun järgmisega: :terms ja :privacy.',
     'terms_link' => 'broneerimistingimused',
     'privacy_link' => 'privaatsusteade',
+    'deposit_now' => 'Maksa ettemaks kohe',
+    'deposit_now_detail' => 'Ettemaks :amount (:percent%) kaardiga kohe; me ei näe kunagi teie kaardinumbrit. Ülejäänu makstakse kohapeal.',
+    'deposit_unavailable' => 'See majutusasutus küsib broneerimisel ettemaksu kaardiga ega saa veel kaardimakseid veebis vastu võtta. Broneerimiseks võtke ühendust majutusasutusega.',
+    'deposit_release_note' => 'Teie tuba hoitakse kinni, kuni maksate. Kui makset ei lõpetata :minutes minuti jooksul, broneering vabastatakse.',
+    'confirm_and_pay_deposit' => 'Kinnita ja maksa ettemaks',
 ];

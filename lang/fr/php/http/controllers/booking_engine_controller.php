@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Acceptez les conditions de réservation et la notice de confidentialité pour continuer.',
     'terms_changed' => 'L’établissement a mis à jour ses conditions de réservation. Lisez-les à nouveau et acceptez-les pour continuer.',
     'checkout_page_stale' => 'Cette page est restée ouverte un moment et n’est plus à jour. Vérifiez vos informations et confirmez à nouveau.',
+    'deposit_unavailable' => 'Cet établissement demande un acompte par carte à la réservation et ne peut pas encore accepter les paiements par carte en ligne. Veuillez contacter l’établissement pour réserver.',
+    'deposit_received' => 'Acompte reçu',
+    'deposit_received_note' => 'Le reste, :amount, se paie sur place.',
+    'released' => 'Réservation non conservée',
+    'released_note' => 'Le paiement par carte n’a pas été terminé à temps : cette réservation a donc été libérée. Pour séjourner ici, veuillez réserver à nouveau.',
+    'payment_not_completed' => 'Paiement non terminé',
+    'payment_not_completed_note' => 'Votre paiement par carte n’a pas été terminé : cette réservation n’est donc pas confirmée. Si elle n’est pas payée, elle sera libérée sous peu. Pour séjourner ici, vous pouvez réserver à nouveau.',
 ];

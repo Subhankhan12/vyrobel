@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Gjuha e parazgjedhur',
     'billing_email' => 'Email-i për faturim',
     'save_organization' => 'Ruaj cilësimet e organizatës',
+    'housekeeping_heading' => 'Pastrimi',
+    'inspection_by_second_person' => 'Kontroll nga një person i dytë',
+    'inspection_help' => 'Kur është aktiv, personi që e shënoi një dhomë si të pastër nuk mund ta shënojë edhe si të kontrolluar.',
+    'deposit_percent' => 'Paradhënia, % e totalit',
+    'deposit_help' => 'Mysafirët e paguajnë këtë pjesë me kartë kur rezervojnë online; pjesa tjetër paguhet në pronë. Një rezervim, pagesa me kartë e të cilit nuk përfundon brenda 30 minutave, lirohet.',
+    'deposit_no_cards' => 'Pagesat me kartë nuk janë aktivizuar për këtë organizatë, ndaj për sa kohë kërkohet paradhënie, faqja juaj e rezervimeve nuk pranon rezervime online.',
+    'no_show_heading' => 'Mosparaqitjet',
+    'auto_no_show' => 'Shëno mosparaqitjet automatikisht',
+    'auto_no_show_help' => 'Një rezervim i konfirmuar, mysafiri i të cilit nuk ka bërë check-in deri në orën e check-out të ditës pas mbërritjes, shënohet si mosparaqitje dhe dhoma lirohet për netët e mbetura. Bëni check-in mysafirëve kur mbërrijnë.',
 ];

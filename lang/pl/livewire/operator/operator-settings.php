@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Domyślny język',
     'billing_email' => 'E-mail do rozliczeń',
     'save_organization' => 'Zapisz ustawienia organizacji',
+    'housekeeping_heading' => 'Sprzątanie',
+    'inspection_by_second_person' => 'Sprawdzenie przez drugą osobę',
+    'inspection_help' => 'Gdy to jest włączone, osoba, która oznaczyła pokój jako czysty, nie może też oznaczyć go jako sprawdzony.',
+    'deposit_percent' => 'Zaliczka, % całości',
+    'deposit_help' => 'Goście płacą tę część kartą, gdy rezerwują online; resztę płacą na miejscu. Rezerwacja, której płatność kartą nie zostanie dokończona w ciągu 30 minut, jest zwalniana.',
+    'deposit_no_cards' => 'Płatności kartą nie są włączone dla tej organizacji, więc dopóki wymagana jest zaliczka, Twoja strona rezerwacji nie przyjmuje rezerwacji online.',
+    'no_show_heading' => 'Niepojawienia się',
+    'auto_no_show' => 'Oznaczaj niepojawienia się automatycznie',
+    'auto_no_show_help' => 'Potwierdzona rezerwacja, której gość nie zameldował się do godziny wymeldowania w dniu po przyjeździe, jest oznaczana jako niepojawienie się, a pokój zostaje zwolniony na pozostałe noce. Meldujcie gości, gdy przyjeżdżają.',
 ];

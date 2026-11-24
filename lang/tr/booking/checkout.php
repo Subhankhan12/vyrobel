@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Şunları okudum ve kabul ediyorum: :terms ve :privacy.',
     'terms_link' => 'rezervasyon koşulları',
     'privacy_link' => 'gizlilik bildirimi',
+    'deposit_now' => 'Şimdi ön ödeme yap',
+    'deposit_now_detail' => 'Şimdi kartla :amount (:percent%) ön ödeme; kart numaranızı asla görmeyiz. Kalanı tesiste ödenir.',
+    'deposit_unavailable' => 'Bu tesis rezervasyonda kartla ön ödeme istiyor ve henüz çevrimiçi kart ödemesi alamıyor. Rezervasyon için lütfen tesisle iletişime geçin.',
+    'deposit_release_note' => 'Siz öderken odanız tutulur. Ödeme :minutes dakika içinde tamamlanmazsa rezervasyon serbest bırakılır.',
+    'confirm_and_pay_deposit' => 'Onayla ve ön ödemeyi yap',
 ];

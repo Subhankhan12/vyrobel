@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Për të vazhduar, pranoni kushtet e rezervimit dhe njoftimin e privatësisë.',
     'terms_changed' => 'Struktura ka përditësuar kushtet e saj të rezervimit. Lexojini sërish dhe pranojini për të vazhduar.',
     'checkout_page_stale' => 'Kjo faqe ka qëndruar hapur për ca kohë dhe nuk është më e përditësuar. Kontrolloni të dhënat tuaja dhe konfirmoni sërish.',
+    'deposit_unavailable' => 'Kjo pronë kërkon paradhënie me kartë gjatë rezervimit dhe ende nuk mund të pranojë pagesa me kartë online. Ju lutemi kontaktoni pronën për të rezervuar.',
+    'deposit_received' => 'Paradhënia u mor',
+    'deposit_received_note' => 'Pjesa tjetër, :amount, paguhet në pronë.',
+    'released' => 'Rezervimi nuk u mbajt',
+    'released_note' => 'Pagesa me kartë nuk përfundoi në kohë, ndaj ky rezervim u lirua. Për të qëndruar këtu, ju lutemi rezervoni përsëri.',
+    'payment_not_completed' => 'Pagesa nuk përfundoi',
+    'payment_not_completed_note' => 'Pagesa juaj me kartë nuk përfundoi, ndaj ky rezervim nuk është konfirmuar. Nëse nuk paguhet, do të lirohet së shpejti. Për të qëndruar këtu, mund të rezervoni përsëri.',
 ];

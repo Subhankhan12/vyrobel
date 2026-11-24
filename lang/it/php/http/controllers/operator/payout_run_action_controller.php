@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organizzazione in pausa — per il momento i versamenti sono in sola lettura.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count proprietario sospeso escluso|[0,*] :count proprietari sospesi esclusi',
+    'statements_auto_on' => 'Gli estratti proprietari verranno chiusi automaticamente il giorno :day di ogni mese.',
+    'statements_auto_off' => 'Gli estratti proprietari si chiudono di nuovo a mano, dalla pagina di ogni proprietario.',
 ];

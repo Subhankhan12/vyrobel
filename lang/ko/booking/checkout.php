@@ -41,4 +41,9 @@ return [
     'accept_terms' => ':terms 및 :privacy 내용을 읽었으며 동의합니다.',
     'terms_link' => '예약 약관',
     'privacy_link' => '개인정보 안내',
+    'deposit_now' => '지금 예약금 결제',
+    'deposit_now_detail' => '지금 카드로 :amount(:percent%)의 예약금을 결제합니다. 카드 번호는 저희에게 보이지 않습니다. 나머지는 숙소에서 결제합니다.',
+    'deposit_unavailable' => '이 숙소는 예약 시 카드 예약금을 요구하지만 아직 온라인 카드 결제를 받을 수 없습니다. 예약하려면 숙소에 문의하세요.',
+    'deposit_release_note' => '결제하는 동안 객실이 확보됩니다. :minutes분 안에 결제가 완료되지 않으면 예약이 해제됩니다.',
+    'confirm_and_pay_deposit' => '예약금 결제 및 확정',
 ];

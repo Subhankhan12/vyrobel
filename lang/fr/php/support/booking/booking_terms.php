@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Durée maximale de séjour : :count nuit.|[0,*] Durée maximale de séjour : :count nuits.',
     'stay_pets' => 'Animaux : :rule.',
     'stay_smoking' => 'Tabac : :rule.',
-    'stay_deposit' => 'Un acompte est exigé lors de la réservation.',
+    'stay_deposit_percent' => 'Un acompte de :percent% du total est payé par carte à la réservation.',
 ];

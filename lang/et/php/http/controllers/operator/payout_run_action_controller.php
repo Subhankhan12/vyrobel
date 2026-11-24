@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organisatsioon on peatatud — väljamaksed on praegu ainult vaatamiseks.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}:count omanik jäeti vahele (väljamaksed peatatud)|[0,*]:count omanikku jäeti vahele (väljamaksed peatatud)',
+    'statements_auto_on' => 'Omanike aruanded suletakse automaatselt iga kuu :day. päeval.',
+    'statements_auto_off' => 'Omanike aruandeid suletakse taas käsitsi, iga omaniku lehelt.',
 ];

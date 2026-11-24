@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'në vazhdim',
     'is_clean' => 'pastër',
     'is_inspected' => 'kontrolluar',
+    'problem_title_required' => 'Thoni çfarë nuk shkon.',
+    'problem_reported' => ':unit — problemi u raportua. Është hapur një urdhër pune për ekipin e mirëmbajtjes.',
+    'second_person_required' => 'Ju e shënuat :unit si të pastër. Një person tjetër duhet ta kontrollojë.',
 ];

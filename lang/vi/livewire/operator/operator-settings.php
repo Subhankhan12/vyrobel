@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Ngôn ngữ mặc định',
     'billing_email' => 'Email nhận hóa đơn',
     'save_organization' => 'Lưu cài đặt tổ chức',
+    'housekeeping_heading' => 'Buồng phòng',
+    'inspection_by_second_person' => 'Kiểm tra bởi người thứ hai',
+    'inspection_help' => 'Khi bật, người đã đánh dấu phòng sạch sẽ không thể đồng thời đánh dấu phòng đã kiểm tra.',
+    'deposit_percent' => 'Đặt cọc, % tổng tiền',
+    'deposit_help' => 'Khách thanh toán phần này bằng thẻ khi đặt trực tuyến; phần còn lại thanh toán tại chỗ nghỉ. Đặt phòng không hoàn tất thanh toán thẻ trong 30 phút sẽ bị huỷ giữ.',
+    'deposit_no_cards' => 'Thanh toán thẻ chưa được bật cho tổ chức này, nên khi còn yêu cầu đặt cọc, trang đặt phòng của bạn sẽ không nhận đặt phòng trực tuyến.',
+    'no_show_heading' => 'Không đến',
+    'auto_no_show' => 'Tự động đánh dấu không đến',
+    'auto_no_show_help' => 'Đặt phòng đã xác nhận mà khách chưa nhận phòng trước giờ trả phòng của ngày sau ngày đến sẽ bị đánh dấu không đến, và phòng được trả lại cho các đêm còn lại. Hãy làm thủ tục nhận phòng cho khách khi họ đến.',
 ];

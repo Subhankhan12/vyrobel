@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Maximale verblijfsduur: :count nacht.|[0,*] Maximale verblijfsduur: :count nachten.',
     'stay_pets' => 'Huisdieren: :rule.',
     'stay_smoking' => 'Roken: :rule.',
-    'stay_deposit' => 'Bij het boeken is een aanbetaling vereist.',
+    'stay_deposit_percent' => 'Bij het boeken wordt een aanbetaling van :percent% van het totaal per kaart betaald.',
 ];

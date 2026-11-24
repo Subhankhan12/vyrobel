@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Vui lòng chấp nhận điều khoản đặt phòng và thông báo về quyền riêng tư để tiếp tục.',
     'terms_changed' => 'Chỗ nghỉ đã cập nhật điều khoản đặt phòng. Vui lòng đọc lại và chấp nhận để tiếp tục.',
     'checkout_page_stale' => 'Trang này đã mở khá lâu và không còn cập nhật. Vui lòng kiểm tra thông tin của bạn và xác nhận lại.',
+    'deposit_unavailable' => 'Chỗ nghỉ này yêu cầu đặt cọc bằng thẻ khi đặt phòng và hiện chưa thể nhận thanh toán thẻ trực tuyến. Vui lòng liên hệ chỗ nghỉ để đặt phòng.',
+    'deposit_received' => 'Đã nhận tiền cọc',
+    'deposit_received_note' => 'Phần còn lại, :amount, thanh toán tại chỗ nghỉ.',
+    'released' => 'Đặt phòng không được giữ',
+    'released_note' => 'Thanh toán thẻ không hoàn tất kịp thời, nên đặt phòng này đã bị huỷ giữ. Để lưu trú tại đây, vui lòng đặt lại.',
+    'payment_not_completed' => 'Chưa hoàn tất thanh toán',
+    'payment_not_completed_note' => 'Thanh toán thẻ của bạn chưa hoàn tất, nên đặt phòng này chưa được xác nhận. Nếu không thanh toán, đặt phòng sẽ sớm bị huỷ giữ. Để lưu trú tại đây, bạn có thể đặt lại.',
 ];

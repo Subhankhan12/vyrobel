@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'in Arbeit',
     'is_clean' => 'sauber',
     'is_inspected' => 'kontrolliert',
+    'problem_title_required' => 'Sagen Sie, was nicht stimmt.',
+    'problem_reported' => ':unit — Problem gemeldet. Für das Wartungsteam ist ein Arbeitsauftrag offen.',
+    'second_person_required' => ':unit wurde von Ihnen als sauber markiert. Eine andere Person muss es kontrollieren.',
 ];

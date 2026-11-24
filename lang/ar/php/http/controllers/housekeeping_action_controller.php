@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'قيد التنفيذ',
     'is_clean' => 'نظيفة',
     'is_inspected' => 'تم الفحص',
+    'problem_title_required' => 'اذكر ما المشكلة.',
+    'problem_reported' => ':unit — تم الإبلاغ عن المشكلة. هناك أمر عمل مفتوح لفريق الصيانة.',
+    'second_person_required' => 'لقد وضعت علامة «نظيفة» على :unit. يجب أن يفحصها شخص آخر.',
 ];

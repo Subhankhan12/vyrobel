@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Kam lexuar dhe pranoj sa vijon: :terms dhe :privacy.',
     'terms_link' => 'kushtet e rezervimit',
     'privacy_link' => 'njoftimi i privatësisë',
+    'deposit_now' => 'Paguaj tani një paradhënie',
+    'deposit_now_detail' => 'Një paradhënie prej :amount (:percent%) me kartë tani; nuk e shohim kurrë numrin e kartës suaj. Pjesa tjetër paguhet në pronë.',
+    'deposit_unavailable' => 'Kjo pronë kërkon paradhënie me kartë gjatë rezervimit dhe ende nuk mund të pranojë pagesa me kartë online. Ju lutemi kontaktoni pronën për të rezervuar.',
+    'deposit_release_note' => 'Dhoma juaj mbahet ndërsa paguani. Nëse pagesa nuk përfundon brenda :minutes minutash, rezervimi lirohet.',
+    'confirm_and_pay_deposit' => 'Konfirmo dhe paguaj paradhënien',
 ];

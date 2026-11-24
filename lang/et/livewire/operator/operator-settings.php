@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Vaikekeel',
     'billing_email' => 'Arvelduse e-post',
     'save_organization' => 'Salvesta organisatsiooni seaded',
+    'housekeeping_heading' => 'Koristus',
+    'inspection_by_second_person' => 'Kontroll teise inimese poolt',
+    'inspection_help' => 'Kui see on sees, ei saa toa puhtaks märkinud inimene seda ka kontrollituks märkida.',
+    'deposit_percent' => 'Ettemaks, % kogusummast',
+    'deposit_help' => 'Külalised maksavad selle osa kaardiga, kui broneerivad veebis; ülejäänu tuleb tasuda kohapeal. Broneering, mille kaardimakset ei lõpetata 30 minuti jooksul, vabastatakse.',
+    'deposit_no_cards' => 'Kaardimaksed pole selle organisatsiooni jaoks sisse lülitatud, nii et kuni ettemaksu nõutakse, ei võta teie broneerimisleht veebibroneeringuid vastu.',
+    'no_show_heading' => 'Kohale mitteilmumised',
+    'auto_no_show' => 'Märgi kohale mitteilmumised automaatselt',
+    'auto_no_show_help' => 'Kinnitatud broneering, mille külaline pole saabumisele järgneva päeva väljaregistreerimise ajaks sisse registreerunud, märgitakse kui „ei ilmunud kohale“ ja tuba vabastatakse ülejäänud ööde jaoks. Registreerige külalised saabumisel sisse.',
 ];

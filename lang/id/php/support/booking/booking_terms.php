@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Masa inap maksimum: :count malam.|[0,*]Masa inap maksimum: :count malam.',
     'stay_pets' => 'Hewan peliharaan: :rule.',
     'stay_smoking' => 'Merokok: :rule.',
-    'stay_deposit' => 'Uang muka diperlukan saat Anda memesan.',
+    'stay_deposit_percent' => 'Uang muka :percent% dari total dibayar dengan kartu saat memesan.',
 ];

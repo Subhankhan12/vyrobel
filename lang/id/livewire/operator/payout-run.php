@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Setiap rekap final memiliki nilai bersih dibayarkan yang positif.',
     'go_ahead_title' => 'Lanjutkan?',
     'go_ahead_button' => 'Lanjutkan',
+    'auto_close_label' => 'Tutup laporan pemilik secara otomatis',
+    'auto_close_help' => 'Pada hari yang Anda pilih, bulan sebelumnya ditutup untuk setiap pemilik yang memiliki sesuatu untuk dilaporkan, persis seperti yang dilakukan “Tutup periode” secara manual. Laporan yang ditutup bersifat final; perubahan setelahnya masuk ke laporan berikutnya.',
+    'auto_close_off' => 'Nonaktif (manual)',
+    'auto_close_day' => 'Pada tanggal :day setiap bulan',
+    'auto_close_save' => 'Simpan',
 ];

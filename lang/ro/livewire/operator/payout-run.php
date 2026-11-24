@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Fiecare decont finalizat are un net de virat pozitiv.',
     'go_ahead_title' => 'Continuați?',
     'go_ahead_button' => 'Continuare',
+    'auto_close_label' => 'Închide automat extrasele proprietarilor',
+    'auto_close_help' => 'În ziua aleasă, luna anterioară este închisă pentru fiecare proprietar care are ceva de decontat, exact cum face manual „Închidere perioadă”. Un extras închis este definitiv; modificările ulterioare merg în următorul.',
+    'auto_close_off' => 'Oprit (manual)',
+    'auto_close_day' => 'În ziua :day a fiecărei luni',
+    'auto_close_save' => 'Salvează',
 ];

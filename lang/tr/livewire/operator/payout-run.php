@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Her kesinleşmiş hesap özetinin ödenecek net tutarı pozitif.',
     'go_ahead_title' => 'Devam edilsin mi?',
     'go_ahead_button' => 'Devam et',
+    'auto_close_label' => 'Sahip ekstrelerini otomatik kapat',
+    'auto_close_help' => 'Seçtiğiniz gün, önceki ay, gösterilecek bir şeyi olan her sahip için kapatılır; tıpkı “Dönemi kapat”ın elle yaptığı gibi. Kapatılan ekstre kesindir; sonraki değişiklikler bir sonrakine gider.',
+    'auto_close_off' => 'Kapalı (elle)',
+    'auto_close_day' => 'Her ayın :day. günü',
+    'auto_close_save' => 'Kaydet',
 ];

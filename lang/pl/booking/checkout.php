@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Akceptuję :terms i :privacy po zapoznaniu się z nimi.',
     'terms_link' => 'warunki rezerwacji',
     'privacy_link' => 'zasady ochrony prywatności',
+    'deposit_now' => 'Wpłać teraz zaliczkę',
+    'deposit_now_detail' => 'Zaliczka :amount (:percent%) kartą teraz; nigdy nie widzimy numeru Twojej karty. Resztę płacisz na miejscu.',
+    'deposit_unavailable' => 'Ten obiekt wymaga przy rezerwacji zaliczki kartą, a nie może jeszcze przyjmować płatności kartą online. Skontaktuj się z obiektem, aby zarezerwować.',
+    'deposit_release_note' => 'Pokój jest zatrzymany na czas płatności. Jeśli płatność nie zostanie dokończona w ciągu :minutes minut, rezerwacja zostanie zwolniona.',
+    'confirm_and_pay_deposit' => 'Potwierdź i zapłać zaliczkę',
 ];

@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Li e aceito :terms e :privacy.',
     'terms_link' => 'as condições de reserva',
     'privacy_link' => 'o aviso de privacidade',
+    'deposit_now' => 'Pagar um sinal agora',
+    'deposit_now_detail' => 'Um sinal de :amount (:percent%) no cartão agora; nunca vemos o número do seu cartão. O restante é pago na hospedagem.',
+    'deposit_unavailable' => 'Esta hospedagem pede um sinal no cartão na reserva e ainda não consegue aceitar pagamentos com cartão online. Entre em contato com a hospedagem para reservar.',
+    'deposit_release_note' => 'Seu quarto fica reservado enquanto você paga. Se o pagamento não for concluído em :minutes minutos, a reserva é liberada.',
+    'confirm_and_pay_deposit' => 'Confirmar e pagar o sinal',
 ];

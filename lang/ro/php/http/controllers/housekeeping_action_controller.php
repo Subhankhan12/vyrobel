@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'în curs',
     'is_clean' => 'curată',
     'is_inspected' => 'verificată',
+    'problem_title_required' => 'Spune ce nu este în regulă.',
+    'problem_reported' => ':unit — problemă raportată. Există o comandă de lucru deschisă pentru echipa de întreținere.',
+    'second_person_required' => 'Ai marcat :unit ca fiind curată. O altă persoană trebuie să o verifice.',
 ];

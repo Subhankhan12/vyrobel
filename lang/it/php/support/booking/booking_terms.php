@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Soggiorno massimo: :count notte.|[0,*] Soggiorno massimo: :count notti.',
     'stay_pets' => 'Animali: :rule.',
     'stay_smoking' => 'Fumo: :rule.',
-    'stay_deposit' => 'Al momento della prenotazione è richiesto un acconto.',
+    'stay_deposit_percent' => 'Un acconto del :percent% del totale si paga con carta alla prenotazione.',
 ];

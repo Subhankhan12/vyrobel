@@ -175,4 +175,13 @@ return [
     'default_locale' => '預設語言',
     'billing_email' => '帳務電子郵件',
     'save_organization' => '儲存組織設定',
+    'housekeeping_heading' => '房務',
+    'inspection_by_second_person' => '由第二人檢查',
+    'inspection_help' => '開啟後，將房間標記為已清潔的人不能同時將其標記為已檢查。',
+    'deposit_percent' => '訂金，占總額的 %',
+    'deposit_help' => '房客於線上訂房時以信用卡支付這一部分；其餘於住宿地點支付。信用卡付款未在 30 分鐘內完成的訂房將被釋出。',
+    'deposit_no_cards' => '此組織未開啟信用卡付款，因此在要求訂金期間，您的訂房頁面不接受線上訂房。',
+    'no_show_heading' => '未抵達',
+    'auto_no_show' => '自動標記未抵達',
+    'auto_no_show_help' => '已確認的訂房，若房客在抵達隔天的退房時間前仍未辦理入住，將被標記為未抵達，剩餘晚數的房間將被釋出。房客抵達時請為其辦理入住。',
 ];

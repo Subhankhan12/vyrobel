@@ -41,4 +41,9 @@ return [
     'accept_terms' => '我已阅读并接受:terms和:privacy。',
     'terms_link' => '预订条款',
     'privacy_link' => '隐私声明',
+    'deposit_now' => '立即支付订金',
+    'deposit_now_detail' => '现在用银行卡支付 :amount（:percent%）的订金；我们永远看不到您的卡号。余款在住宿处支付。',
+    'deposit_unavailable' => '此住宿要求预订时用银行卡支付订金，但目前还无法在线接受银行卡付款。请联系住宿方预订。',
+    'deposit_release_note' => '您付款期间房间会为您保留。若 :minutes 分钟内未完成付款，预订将被释放。',
+    'confirm_and_pay_deposit' => '确认并支付订金',
 ];

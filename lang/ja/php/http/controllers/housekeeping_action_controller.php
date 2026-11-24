@@ -22,4 +22,7 @@ return [
     'is_in_progress' => '清掃中',
     'is_clean' => '清掃済み',
     'is_inspected' => '点検済み',
+    'problem_title_required' => '何が問題か入力してください。',
+    'problem_reported' => ':unit — 問題を報告しました。メンテナンスチームへの作業指示が開いています。',
+    'second_person_required' => ':unitはあなたが清掃済みにしました。別の担当者が点検する必要があります。',
 ];

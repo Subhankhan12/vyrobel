@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Qëndrimi maksimal: :count natë.|[0,*]Qëndrimi maksimal: :count netë.',
     'stay_pets' => 'Kafshët shtëpiake: :rule.',
     'stay_smoking' => 'Pirja e duhanit: :rule.',
-    'stay_deposit' => 'Kërkohet një paradhënie gjatë rezervimit.',
+    'stay_deposit_percent' => 'Gjatë rezervimit paguhet me kartë një paradhënie prej :percent% të totalit.',
 ];

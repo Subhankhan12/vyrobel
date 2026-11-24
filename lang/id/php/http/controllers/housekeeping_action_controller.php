@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'sedang dikerjakan',
     'is_clean' => 'bersih',
     'is_inspected' => 'diperiksa',
+    'problem_title_required' => 'Sebutkan apa yang salah.',
+    'problem_reported' => ':unit — masalah dilaporkan. Ada perintah kerja terbuka untuk tim pemeliharaan.',
+    'second_person_required' => 'Anda menandai :unit sebagai bersih. Orang lain harus memeriksanya.',
 ];

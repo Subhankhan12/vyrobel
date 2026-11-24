@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'प्रगति में',
     'is_clean' => 'साफ़',
     'is_inspected' => 'जाँच पूरी',
+    'problem_title_required' => 'बताएँ कि क्या खराब है।',
+    'problem_reported' => ':unit — समस्या रिपोर्ट की गई। मेंटेनेंस टीम के लिए एक वर्क ऑर्डर खुला है।',
+    'second_person_required' => 'आपने :unit को साफ़ चिह्नित किया था। किसी दूसरे व्यक्ति को इसकी जाँच करनी होगी।',
 ];

@@ -175,4 +175,13 @@ return [
     'default_locale' => '默认语言',
     'billing_email' => '计费邮箱',
     'save_organization' => '保存组织设置',
+    'housekeeping_heading' => '客房清洁',
+    'inspection_by_second_person' => '由第二人检查',
+    'inspection_help' => '开启后，将房间标记为已清洁的人不能同时将其标记为已检查。',
+    'deposit_percent' => '订金，占总额的 %',
+    'deposit_help' => '客人在线预订时用银行卡支付这一部分；其余在住宿处支付。银行卡付款未在 30 分钟内完成的预订将被释放。',
+    'deposit_no_cards' => '此组织未开启银行卡付款，因此在要求订金期间，您的预订页面不接受在线预订。',
+    'no_show_heading' => '未到店',
+    'auto_no_show' => '自动标记未到店',
+    'auto_no_show_help' => '已确认的预订，如客人在到达次日的退房时间前仍未办理入住，将被标记为未到店，剩余晚数的房间将被释放。客人到达时请为其办理入住。',
 ];

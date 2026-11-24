@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Tôi đã đọc và chấp nhận :terms và :privacy.',
     'terms_link' => 'điều khoản đặt phòng',
     'privacy_link' => 'thông báo về quyền riêng tư',
+    'deposit_now' => 'Đặt cọc ngay',
+    'deposit_now_detail' => 'Đặt cọc :amount (:percent%) bằng thẻ ngay bây giờ; chúng tôi không bao giờ thấy số thẻ của bạn. Phần còn lại thanh toán tại chỗ nghỉ.',
+    'deposit_unavailable' => 'Chỗ nghỉ này yêu cầu đặt cọc bằng thẻ khi đặt phòng và hiện chưa thể nhận thanh toán thẻ trực tuyến. Vui lòng liên hệ chỗ nghỉ để đặt phòng.',
+    'deposit_release_note' => 'Phòng của bạn được giữ trong lúc bạn thanh toán. Nếu thanh toán không hoàn tất trong :minutes phút, đặt phòng sẽ bị huỷ giữ.',
+    'confirm_and_pay_deposit' => 'Xác nhận & đặt cọc',
 ];

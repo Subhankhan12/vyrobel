@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organizacja wstrzymana – wypłaty są na razie tylko do odczytu.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}pominięto :count właściciela z wstrzymanymi wypłatami|pominięto :count właścicieli z wstrzymanymi wypłatami|pominięto :count właścicieli z wstrzymanymi wypłatami',
+    'statements_auto_on' => 'Zestawienia właścicieli będą zamykane automatycznie dnia :day każdego miesiąca.',
+    'statements_auto_off' => 'Zestawienia właścicieli są znów zamykane ręcznie, na stronie każdego właściciela.',
 ];

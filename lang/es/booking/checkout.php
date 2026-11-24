@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'He leído y acepto las :terms y el :privacy.',
     'terms_link' => 'condiciones de reserva',
     'privacy_link' => 'aviso de privacidad',
+    'deposit_now' => 'Pagar un anticipo ahora',
+    'deposit_now_detail' => 'Un anticipo de :amount (:percent%) con tarjeta ahora; nunca vemos el número de tu tarjeta. El resto se paga en el alojamiento.',
+    'deposit_unavailable' => 'Este alojamiento pide un anticipo con tarjeta al reservar y todavía no puede aceptar pagos con tarjeta en línea. Ponte en contacto con el alojamiento para reservar.',
+    'deposit_release_note' => 'Tu habitación queda reservada mientras pagas. Si el pago no se completa en :minutes minutos, la reserva se libera.',
+    'confirm_and_pay_deposit' => 'Confirmar y pagar el anticipo',
 ];

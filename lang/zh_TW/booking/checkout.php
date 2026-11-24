@@ -41,4 +41,9 @@ return [
     'accept_terms' => '我已閱讀並接受:terms和:privacy。',
     'terms_link' => '訂房條款',
     'privacy_link' => '隱私權聲明',
+    'deposit_now' => '立即支付訂金',
+    'deposit_now_detail' => '現在以信用卡支付 :amount（:percent%）的訂金；我們永遠不會看到您的卡號。其餘款項於住宿地點支付。',
+    'deposit_unavailable' => '此住宿要求訂房時以信用卡支付訂金，但目前尚無法在線上接受信用卡付款。請聯絡住宿方訂房。',
+    'deposit_release_note' => '您付款期間房間會為您保留。若 :minutes 分鐘內未完成付款，訂房將被釋出。',
+    'confirm_and_pay_deposit' => '確認並支付訂金',
 ];

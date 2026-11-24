@@ -22,4 +22,7 @@ return [
     'is_in_progress' => '청소 중',
     'is_clean' => '청소 완료',
     'is_inspected' => '점검 완료',
+    'problem_title_required' => '무엇이 문제인지 적어 주세요.',
+    'problem_reported' => ':unit — 문제가 신고되었습니다. 유지보수 팀의 작업 지시서가 열려 있습니다.',
+    'second_person_required' => ':unit을(를) 청소 완료로 표시한 사람은 본인입니다. 다른 사람이 점검해야 합니다.',
 ];

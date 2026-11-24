@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Per continuare, accetti le condizioni di prenotazione e l’informativa sulla privacy.',
     'terms_changed' => 'La struttura ha aggiornato le proprie condizioni di prenotazione. Le rilegga e le accetti per continuare.',
     'checkout_page_stale' => 'Questa pagina è rimasta aperta a lungo e non è più aggiornata. Controlli i dati e confermi di nuovo.',
+    'deposit_unavailable' => 'Questa struttura chiede un acconto con carta alla prenotazione e non può ancora accettare pagamenti con carta online. Contatta la struttura per prenotare.',
+    'deposit_received' => 'Acconto ricevuto',
+    'deposit_received_note' => 'Il resto, :amount, si paga in struttura.',
+    'released' => 'Prenotazione non mantenuta',
+    'released_note' => 'Il pagamento con carta non è stato completato in tempo, quindi questa prenotazione è stata liberata. Per soggiornare qui, prenota di nuovo.',
+    'payment_not_completed' => 'Pagamento non completato',
+    'payment_not_completed_note' => 'Il tuo pagamento con carta non è stato completato, quindi questa prenotazione non è confermata. Se non viene pagata, sarà liberata a breve. Per soggiornare qui, puoi prenotare di nuovo.',
 ];

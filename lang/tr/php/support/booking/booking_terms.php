@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Maksimum konaklama: :count gece.|[0,*] Maksimum konaklama: :count gece.',
     'stay_pets' => 'Evcil hayvan: :rule.',
     'stay_smoking' => 'Sigara: :rule.',
-    'stay_deposit' => 'Rezervasyon yaparken ön ödeme gerekir.',
+    'stay_deposit_percent' => 'Rezervasyonda toplamın %:percent’i kadar ön ödeme kartla ödenir.',
 ];

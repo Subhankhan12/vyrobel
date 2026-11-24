@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Sejur maxim: :count noapte.|Sejur maxim: :count nopți.|Sejur maxim: :count de nopți.',
     'stay_pets' => 'Animale de companie: :rule.',
     'stay_smoking' => 'Fumat: :rule.',
-    'stay_deposit' => 'La rezervare este necesar un avans.',
+    'stay_deposit_percent' => 'La rezervare se plătește cu cardul un avans de :percent% din total.',
 ];

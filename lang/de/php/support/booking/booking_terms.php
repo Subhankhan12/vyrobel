@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Höchstaufenthalt: :count Nacht.|[0,*] Höchstaufenthalt: :count Nächte.',
     'stay_pets' => 'Haustiere: :rule.',
     'stay_smoking' => 'Rauchen: :rule.',
-    'stay_deposit' => 'Bei der Buchung ist eine Anzahlung erforderlich.',
+    'stay_deposit_percent' => 'Eine Anzahlung von :percent% des Gesamtbetrags wird bei der Buchung per Karte bezahlt.',
 ];

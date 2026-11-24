@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organización en pausa: por ahora, las liquidaciones están en modo de solo lectura.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} propietarios en pausa omitidos: :count|[0,*] propietarios en pausa omitidos: :count',
+    'statements_auto_on' => 'Los extractos de propietarios se cerrarán automáticamente el día :day de cada mes.',
+    'statements_auto_off' => 'Los extractos de propietarios vuelven a cerrarse a mano, desde la página de cada propietario.',
 ];

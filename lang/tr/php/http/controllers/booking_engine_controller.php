@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Devam etmek için lütfen rezervasyon koşullarını ve gizlilik bildirimini kabul edin.',
     'terms_changed' => 'Tesis rezervasyon koşullarını güncelledi. Devam etmek için lütfen yeniden okuyun ve kabul edin.',
     'checkout_page_stale' => 'Bu sayfa bir süredir açıktı ve güncelliğini yitirdi. Lütfen bilgilerinizi kontrol edip yeniden onaylayın.',
+    'deposit_unavailable' => 'Bu tesis rezervasyonda kartla ön ödeme istiyor ve henüz çevrimiçi kart ödemesi alamıyor. Rezervasyon için lütfen tesisle iletişime geçin.',
+    'deposit_received' => 'Ön ödeme alındı',
+    'deposit_received_note' => 'Kalan :amount tesiste ödenir.',
+    'released' => 'Rezervasyon tutulmadı',
+    'released_note' => 'Kart ödemesi zamanında tamamlanmadı, bu yüzden bu rezervasyon serbest bırakıldı. Burada kalmak için lütfen yeniden rezervasyon yapın.',
+    'payment_not_completed' => 'Ödeme tamamlanmadı',
+    'payment_not_completed_note' => 'Kart ödemeniz tamamlanmadı, bu yüzden bu rezervasyon onaylanmadı. Ödenmezse kısa süre içinde serbest bırakılır. Burada kalmak için yeniden rezervasyon yapabilirsiniz.',
 ];

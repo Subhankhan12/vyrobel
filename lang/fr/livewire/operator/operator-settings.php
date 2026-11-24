@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Langue par défaut',
     'billing_email' => 'E-mail de facturation',
     'save_organization' => 'Enregistrer les paramètres de l’organisation',
+    'housekeeping_heading' => 'Ménage',
+    'inspection_by_second_person' => 'Inspection par une deuxième personne',
+    'inspection_help' => 'Quand c’est activé, la personne qui a marqué une chambre comme propre ne peut pas aussi la marquer comme inspectée.',
+    'deposit_percent' => 'Acompte, % du total',
+    'deposit_help' => 'Les clients paient cette part par carte lorsqu’ils réservent en ligne ; le reste est dû sur place. Une réservation dont le paiement par carte n’est pas terminé en 30 minutes est libérée.',
+    'deposit_no_cards' => 'Les paiements par carte ne sont pas activés pour cette organisation : tant qu’un acompte est demandé, votre page de réservation n’accepte aucune réservation en ligne.',
+    'no_show_heading' => 'No-shows',
+    'auto_no_show' => 'Marquer les no-shows automatiquement',
+    'auto_no_show_help' => 'Une réservation confirmée dont le client n’a pas fait son check-in à l’heure de départ le lendemain de l’arrivée est marquée no-show, et la chambre est libérée pour les nuits restantes. Faites le check-in des clients à leur arrivée.',
 ];

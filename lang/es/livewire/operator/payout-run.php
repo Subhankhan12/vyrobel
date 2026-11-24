@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Todos los extractos finalizados tienen un neto a liquidar positivo.',
     'go_ahead_title' => '¿Continuar?',
     'go_ahead_button' => 'Continuar',
+    'auto_close_label' => 'Cerrar automáticamente los extractos de propietarios',
+    'auto_close_help' => 'El día que elijas se cierra el mes anterior para cada propietario con algo que liquidar, exactamente como lo hace «Cerrar periodo» a mano. Un extracto cerrado es definitivo; los cambios posteriores van al siguiente.',
+    'auto_close_off' => 'Desactivado (a mano)',
+    'auto_close_day' => 'El día :day de cada mes',
+    'auto_close_save' => 'Guardar',
 ];

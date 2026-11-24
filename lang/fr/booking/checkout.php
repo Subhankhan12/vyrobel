@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'J’ai lu et j’accepte les :terms et la :privacy.',
     'terms_link' => 'conditions de réservation',
     'privacy_link' => 'notice de confidentialité',
+    'deposit_now' => 'Payer un acompte maintenant',
+    'deposit_now_detail' => 'Un acompte de :amount (:percent%) par carte maintenant ; nous ne voyons jamais votre numéro de carte. Le reste se paie sur place.',
+    'deposit_unavailable' => 'Cet établissement demande un acompte par carte à la réservation et ne peut pas encore accepter les paiements par carte en ligne. Veuillez contacter l’établissement pour réserver.',
+    'deposit_release_note' => 'Votre chambre est retenue pendant le paiement. Si le paiement n’est pas terminé dans les :minutes minutes, la réservation est libérée.',
+    'confirm_and_pay_deposit' => 'Confirmer et payer l’acompte',
 ];

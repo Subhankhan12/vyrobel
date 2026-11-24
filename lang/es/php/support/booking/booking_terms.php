@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1} Estancia máxima: :count noche.|[0,*] Estancia máxima: :count noches.',
     'stay_pets' => 'Mascotas: :rule.',
     'stay_smoking' => 'Fumar: :rule.',
-    'stay_deposit' => 'Se requiere un anticipo al reservar.',
+    'stay_deposit_percent' => 'Se paga con tarjeta al reservar un anticipo del :percent% del total.',
 ];

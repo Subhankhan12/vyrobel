@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Aceite as condições de reserva e o aviso de privacidade para continuar.',
     'terms_changed' => 'O alojamento atualizou as suas condições de reserva. Leia-as novamente e aceite para continuar.',
     'checkout_page_stale' => 'Esta página esteve aberta algum tempo e está desatualizada. Verifique os seus dados e confirme novamente.',
+    'deposit_unavailable' => 'Este alojamento pede um sinal com cartão na reserva e ainda não consegue aceitar pagamentos com cartão online. Contacte o alojamento para reservar.',
+    'deposit_received' => 'Sinal recebido',
+    'deposit_received_note' => 'O restante, :amount, paga-se no alojamento.',
+    'released' => 'Reserva não mantida',
+    'released_note' => 'O pagamento com cartão não foi concluído a tempo, por isso esta reserva foi libertada. Para ficar aqui, reserve novamente.',
+    'payment_not_completed' => 'Pagamento não concluído',
+    'payment_not_completed_note' => 'O seu pagamento com cartão não foi concluído, por isso esta reserva não está confirmada. Se não for paga, será libertada em breve. Para ficar aqui, pode reservar novamente.',
 ];

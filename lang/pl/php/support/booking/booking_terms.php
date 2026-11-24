@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Maksymalna długość pobytu: :count noc.|Maksymalna długość pobytu: :count noce.|Maksymalna długość pobytu: :count nocy.',
     'stay_pets' => 'Zwierzęta: :rule.',
     'stay_smoking' => 'Palenie: :rule.',
-    'stay_deposit' => 'Przy rezerwacji wymagana jest zaliczka.',
+    'stay_deposit_percent' => 'Przy rezerwacji płaci się kartą zaliczkę w wysokości :percent% całości.',
 ];

@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Aby kontynuować, należy zaakceptować warunki rezerwacji i zasady ochrony prywatności.',
     'terms_changed' => 'Obiekt zaktualizował warunki rezerwacji. Aby kontynuować, należy przeczytać je ponownie i zaakceptować.',
     'checkout_page_stale' => 'Ta strona była otwarta przez dłuższy czas i jest nieaktualna. Sprawdź swoje dane i potwierdź ponownie.',
+    'deposit_unavailable' => 'Ten obiekt wymaga przy rezerwacji zaliczki kartą, a nie może jeszcze przyjmować płatności kartą online. Skontaktuj się z obiektem, aby zarezerwować.',
+    'deposit_received' => 'Zaliczka otrzymana',
+    'deposit_received_note' => 'Resztę, :amount, płacisz na miejscu.',
+    'released' => 'Rezerwacja nie została utrzymana',
+    'released_note' => 'Płatność kartą nie została dokończona na czas, więc ta rezerwacja została zwolniona. Aby się tu zatrzymać, zarezerwuj ponownie.',
+    'payment_not_completed' => 'Płatność niedokończona',
+    'payment_not_completed_note' => 'Twoja płatność kartą nie została dokończona, więc ta rezerwacja nie jest potwierdzona. Jeśli nie zostanie opłacona, wkrótce zostanie zwolniona. Aby się tu zatrzymać, możesz zarezerwować ponownie.',
 ];

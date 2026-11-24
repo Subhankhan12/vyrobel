@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Acepte las condiciones de reserva y el aviso de privacidad para continuar.',
     'terms_changed' => 'El alojamiento ha actualizado sus condiciones de reserva. Léalas de nuevo y acéptelas para continuar.',
     'checkout_page_stale' => 'Esta página llevaba un rato abierta y ya no está actualizada. Revise sus datos y confirme de nuevo.',
+    'deposit_unavailable' => 'Este alojamiento pide un anticipo con tarjeta al reservar y todavía no puede aceptar pagos con tarjeta en línea. Ponte en contacto con el alojamiento para reservar.',
+    'deposit_received' => 'Anticipo recibido',
+    'deposit_received_note' => 'El resto, :amount, se paga en el alojamiento.',
+    'released' => 'Reserva no mantenida',
+    'released_note' => 'El pago con tarjeta no se completó a tiempo, así que esta reserva se ha liberado. Para alojarte aquí, vuelve a reservar.',
+    'payment_not_completed' => 'Pago no completado',
+    'payment_not_completed_note' => 'Tu pago con tarjeta no se completó, así que esta reserva no está confirmada. Si no se paga, se liberará en breve. Para alojarte aquí, puedes volver a reservar.',
 ];

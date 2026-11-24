@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Idioma predefinido',
     'billing_email' => 'E-mail de faturação',
     'save_organization' => 'Guardar definições da organização',
+    'housekeeping_heading' => 'Limpeza',
+    'inspection_by_second_person' => 'Inspeção por uma segunda pessoa',
+    'inspection_help' => 'Quando está ativo, quem marcou um quarto como limpo não o pode marcar também como inspecionado.',
+    'deposit_percent' => 'Sinal, % do total',
+    'deposit_help' => 'Os hóspedes pagam esta parte com cartão quando reservam online; o restante é pago no alojamento. Uma reserva cujo pagamento com cartão não seja concluído em 30 minutos é libertada.',
+    'deposit_no_cards' => 'Os pagamentos com cartão não estão ativos nesta organização; enquanto for pedido um sinal, a sua página de reservas não aceita reservas online.',
+    'no_show_heading' => 'No-shows',
+    'auto_no_show' => 'Marcar no-shows automaticamente',
+    'auto_no_show_help' => 'Uma reserva confirmada cujo hóspede não fez o check-in até à hora de check-out do dia seguinte à chegada é marcada como no-show, e o quarto é libertado para as noites restantes. Faça o check-in dos hóspedes à chegada.',
 ];

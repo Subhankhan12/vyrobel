@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Lưu trú tối đa: :count đêm.|[0,*]Lưu trú tối đa: :count đêm.',
     'stay_pets' => 'Thú cưng: :rule.',
     'stay_smoking' => 'Hút thuốc: :rule.',
-    'stay_deposit' => 'Cần có tiền đặt cọc khi đặt phòng.',
+    'stay_deposit_percent' => 'Khi đặt phòng, thanh toán bằng thẻ khoản đặt cọc :percent% tổng tiền.',
 ];

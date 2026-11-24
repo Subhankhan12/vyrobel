@@ -19,5 +19,5 @@ return [
     'stay_max' => '{1}Maksimaalne viibimine: :count öö.|[0,*]Maksimaalne viibimine: :count ööd.',
     'stay_pets' => 'Lemmikloomad: :rule.',
     'stay_smoking' => 'Suitsetamine: :rule.',
-    'stay_deposit' => 'Broneerimisel on vaja ettemaksu.',
+    'stay_deposit_percent' => 'Broneerimisel makstakse kaardiga ettemaks :percent% kogusummast.',
 ];

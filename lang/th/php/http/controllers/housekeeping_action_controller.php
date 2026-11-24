@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'กำลังดำเนินการ',
     'is_clean' => 'สะอาด',
     'is_inspected' => 'ตรวจแล้ว',
+    'problem_title_required' => 'บอกว่ามีปัญหาอะไร',
+    'problem_reported' => ':unit — แจ้งปัญหาแล้ว มีใบสั่งงานที่เปิดอยู่สำหรับทีมซ่อมบำรุง',
+    'second_person_required' => 'คุณทำเครื่องหมายว่า :unit สะอาดแล้ว ต้องให้บุคคลอื่นตรวจ',
 ];

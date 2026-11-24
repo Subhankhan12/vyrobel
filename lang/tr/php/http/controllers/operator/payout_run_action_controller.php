@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Kuruluş duraklatıldı — hakedişler şimdilik salt okunur.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} hakedişleri duraklatılmış :count mülk sahibi atlandı|[0,*] hakedişleri duraklatılmış :count mülk sahibi atlandı',
+    'statements_auto_on' => 'Sahip ekstreleri her ayın :day. günü otomatik olarak kapatılacak.',
+    'statements_auto_off' => 'Sahip ekstreleri yeniden elle, her sahibin sayfasından kapatılıyor.',
 ];

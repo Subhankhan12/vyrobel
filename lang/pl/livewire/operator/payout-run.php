@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Każde zamknięte rozliczenie ma dodatnią kwotę do wypłaty.',
     'go_ahead_title' => 'Kontynuować?',
     'go_ahead_button' => 'Kontynuuj',
+    'auto_close_label' => 'Zamykaj zestawienia właścicieli automatycznie',
+    'auto_close_help' => 'W wybranym dniu poprzedni miesiąc jest zamykany dla każdego właściciela, który ma coś do rozliczenia, dokładnie tak, jak robi to ręcznie „Zamknij okres”. Zamknięte zestawienie jest ostateczne; późniejsze zmiany trafiają do następnego.',
+    'auto_close_off' => 'Wyłączone (ręcznie)',
+    'auto_close_day' => 'Dnia :day każdego miesiąca',
+    'auto_close_save' => 'Zapisz',
 ];

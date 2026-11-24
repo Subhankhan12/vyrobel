@@ -175,4 +175,13 @@ return [
     'default_locale' => '기본 언어',
     'billing_email' => '청구 이메일',
     'save_organization' => '워크스페이스 설정 저장',
+    'housekeeping_heading' => '하우스키핑',
+    'inspection_by_second_person' => '두 번째 담당자의 점검',
+    'inspection_help' => '켜 두면 객실을 청소 완료로 표시한 사람은 그 객실을 점검 완료로도 표시할 수 없습니다.',
+    'deposit_percent' => '예약금, 총액의 %',
+    'deposit_help' => '게스트는 온라인 예약 시 이 비율을 카드로 결제하고 나머지는 숙소에서 결제합니다. 30분 안에 카드 결제가 완료되지 않은 예약은 해제됩니다.',
+    'deposit_no_cards' => '이 워크스페이스는 카드 결제가 켜져 있지 않으므로, 예약금이 필요한 동안 예약 페이지에서 온라인 예약을 받지 않습니다.',
+    'no_show_heading' => '노쇼',
+    'auto_no_show' => '노쇼 자동 표시',
+    'auto_no_show_help' => '도착 다음 날 체크아웃 시간까지 게스트가 체크인하지 않은 확정 예약은 노쇼로 표시되며, 남은 숙박일의 객실이 해제됩니다. 게스트가 도착하면 체크인해 주세요.',
 ];

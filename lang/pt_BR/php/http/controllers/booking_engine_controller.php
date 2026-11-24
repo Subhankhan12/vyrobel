@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Aceite as condições de reserva e o aviso de privacidade para continuar.',
     'terms_changed' => 'A propriedade atualizou suas condições de reserva. Leia novamente e aceite para continuar.',
     'checkout_page_stale' => 'Esta página ficou aberta por um tempo e está desatualizada. Confira seus dados e confirme novamente.',
+    'deposit_unavailable' => 'Esta hospedagem pede um sinal no cartão na reserva e ainda não consegue aceitar pagamentos com cartão online. Entre em contato com a hospedagem para reservar.',
+    'deposit_received' => 'Sinal recebido',
+    'deposit_received_note' => 'O restante, :amount, é pago na hospedagem.',
+    'released' => 'Reserva não mantida',
+    'released_note' => 'O pagamento com cartão não foi concluído a tempo, então esta reserva foi liberada. Para se hospedar aqui, faça uma nova reserva.',
+    'payment_not_completed' => 'Pagamento não concluído',
+    'payment_not_completed_note' => 'Seu pagamento com cartão não foi concluído, então esta reserva não está confirmada. Se não for paga, será liberada em breve. Para se hospedar aqui, você pode reservar novamente.',
 ];

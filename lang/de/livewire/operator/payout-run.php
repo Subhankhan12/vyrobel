@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Jede abgeschlossene Abrechnung hat einen positiven Auszahlungsbetrag.',
     'go_ahead_title' => 'Fortfahren?',
     'go_ahead_button' => 'Fortfahren',
+    'auto_close_label' => 'Eigentümerabrechnungen automatisch abschließen',
+    'auto_close_help' => 'Am gewählten Tag wird der Vormonat für jeden Eigentümer mit abzurechnenden Posten abgeschlossen, genau so, wie es „Zeitraum abschließen“ von Hand tut. Eine abgeschlossene Abrechnung ist endgültig; spätere Änderungen kommen in die nächste.',
+    'auto_close_off' => 'Aus (von Hand)',
+    'auto_close_day' => 'Am :day. jedes Monats',
+    'auto_close_save' => 'Speichern',
 ];

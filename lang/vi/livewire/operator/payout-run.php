@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Mọi bảng đối soát đã chốt đều có số thực nhận dương.',
     'go_ahead_title' => 'Tiếp tục không?',
     'go_ahead_button' => 'Tiếp tục',
+    'auto_close_label' => 'Tự động chốt bảng kê chủ sở hữu',
+    'auto_close_help' => 'Vào ngày bạn chọn, tháng trước được chốt cho mọi chủ sở hữu có nội dung cần kê, giống hệt như khi bấm “Chốt kỳ” thủ công. Bảng kê đã chốt là cuối cùng; các thay đổi sau đó chuyển sang bảng kê tiếp theo.',
+    'auto_close_off' => 'Tắt (thủ công)',
+    'auto_close_day' => 'Vào ngày :day hằng tháng',
+    'auto_close_save' => 'Lưu',
 ];

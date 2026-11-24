@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'devam ediyor',
     'is_clean' => 'temiz',
     'is_inspected' => 'kontrol edildi',
+    'problem_title_required' => 'Sorunun ne olduğunu yazın.',
+    'problem_reported' => ':unit — sorun bildirildi. Bakım ekibi için açık bir iş emri var.',
+    'second_person_required' => ':unit odasını siz temiz olarak işaretlediniz. Başka bir kişinin kontrol etmesi gerekir.',
 ];

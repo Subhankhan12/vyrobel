@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organisation en pause — les versements sont en lecture seule pour le moment.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1} :count propriétaire ignoré (versements suspendus)|[0,*] :count propriétaires ignorés (versements suspendus)',
+    'statements_auto_on' => 'Les relevés propriétaires seront clôturés automatiquement le :day de chaque mois.',
+    'statements_auto_off' => 'Les relevés propriétaires sont de nouveau clôturés à la main, depuis la page de chaque propriétaire.',
 ];

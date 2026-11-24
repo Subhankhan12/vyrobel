@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Lingua predefinita',
     'billing_email' => 'E-mail di fatturazione',
     'save_organization' => 'Salva impostazioni dell’organizzazione',
+    'housekeeping_heading' => 'Pulizie',
+    'inspection_by_second_person' => 'Controllo da parte di una seconda persona',
+    'inspection_help' => 'Quando è attivo, chi ha segnato una camera come pulita non può segnarla anche come controllata.',
+    'deposit_percent' => 'Acconto, % del totale',
+    'deposit_help' => 'Gli ospiti pagano questa quota con carta quando prenotano online; il resto è dovuto in struttura. Una prenotazione il cui pagamento con carta non viene completato entro 30 minuti viene liberata.',
+    'deposit_no_cards' => 'I pagamenti con carta non sono attivi per questa organizzazione: finché è richiesto un acconto, la tua pagina di prenotazione non accetta prenotazioni online.',
+    'no_show_heading' => 'No-show',
+    'auto_no_show' => 'Segna i no-show automaticamente',
+    'auto_no_show_help' => 'Una prenotazione confermata il cui ospite non ha fatto il check-in entro l’orario di check-out del giorno dopo l’arrivo viene segnata come no-show e la camera viene liberata per le notti restanti. Fai il check-in degli ospiti al loro arrivo.',
 ];

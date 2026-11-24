@@ -97,4 +97,9 @@ return [
     'not_payable_empty' => 'Todos os extratos finalizados têm valor líquido a pagar positivo.',
     'go_ahead_title' => 'Continuar?',
     'go_ahead_button' => 'Continuar',
+    'auto_close_label' => 'Fechar automaticamente os extratos dos proprietários',
+    'auto_close_help' => 'No dia que você escolher, o mês anterior é fechado para cada proprietário com algo a apurar, exatamente como «Fechar período» faz à mão. Um extrato fechado é definitivo; alterações posteriores vão para o próximo.',
+    'auto_close_off' => 'Desligado (à mão)',
+    'auto_close_day' => 'No dia :day de cada mês',
+    'auto_close_save' => 'Salvar',
 ];

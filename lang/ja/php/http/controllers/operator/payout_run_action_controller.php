@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'ワークスペースが一時停止中のため、現在、送金は読み取り専用です。',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}一時停止中のオーナー:count名をスキップ|[0,*]一時停止中のオーナー:count名をスキップ',
+    'statements_auto_on' => 'オーナー明細書は毎月:day日に自動で締められます。',
+    'statements_auto_off' => 'オーナー明細書は再び、各オーナーのページから手作業で締めます。',
 ];

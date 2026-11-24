@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'w trakcie',
     'is_clean' => 'czysta',
     'is_inspected' => 'sprawdzona',
+    'problem_title_required' => 'Napisz, co jest nie tak.',
+    'problem_reported' => ':unit — problem zgłoszony. Dla zespołu technicznego otwarto zlecenie.',
+    'second_person_required' => 'Oznaczyłeś :unit jako czysty. Musi go sprawdzić inna osoba.',
 ];

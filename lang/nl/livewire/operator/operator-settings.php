@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Standaardtaal',
     'billing_email' => 'Factuur-e-mailadres',
     'save_organization' => 'Organisatie-instellingen opslaan',
+    'housekeeping_heading' => 'Housekeeping',
+    'inspection_by_second_person' => 'Controle door een tweede persoon',
+    'inspection_help' => 'Als dit aan staat, kan wie een kamer als schoon heeft gemarkeerd, hem niet ook als gecontroleerd markeren.',
+    'deposit_percent' => 'Aanbetaling, % van het totaal',
+    'deposit_help' => 'Gasten betalen dit deel per kaart als ze online boeken; de rest is verschuldigd bij de accommodatie. Een reservering waarvan de kaartbetaling niet binnen 30 minuten is afgerond, wordt vrijgegeven.',
+    'deposit_no_cards' => 'Kaartbetalingen staan niet aan voor deze organisatie, dus zolang er een aanbetaling wordt gevraagd, neemt uw boekingspagina geen online boekingen aan.',
+    'no_show_heading' => 'No-shows',
+    'auto_no_show' => 'No-shows automatisch markeren',
+    'auto_no_show_help' => 'Een bevestigde reservering waarvan de gast op de dag na aankomst om de uitchecktijd niet is ingecheckt, wordt als no-show gemarkeerd en de kamer wordt vrijgegeven voor de resterende nachten. Check gasten in zodra ze aankomen.',
 ];

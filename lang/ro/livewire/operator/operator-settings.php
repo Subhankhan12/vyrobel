@@ -175,4 +175,13 @@ return [
     'default_locale' => 'Limbă implicită',
     'billing_email' => 'E-mail de facturare',
     'save_organization' => 'Salvare setări organizație',
+    'housekeeping_heading' => 'Curățenie',
+    'inspection_by_second_person' => 'Verificare de către o a doua persoană',
+    'inspection_help' => 'Când este activată, persoana care a marcat o cameră ca fiind curată nu o poate marca și ca verificată.',
+    'deposit_percent' => 'Avans, % din total',
+    'deposit_help' => 'Oaspeții plătesc această parte cu cardul când rezervă online; restul se plătește la proprietate. O rezervare a cărei plată cu cardul nu este finalizată în 30 de minute este eliberată.',
+    'deposit_no_cards' => 'Plățile cu cardul nu sunt activate pentru această organizație, așa că, atât timp cât se cere un avans, pagina ta de rezervări nu acceptă rezervări online.',
+    'no_show_heading' => 'Neprezentări',
+    'auto_no_show' => 'Marchează automat neprezentările',
+    'auto_no_show_help' => 'O rezervare confirmată al cărei oaspete nu a făcut check-in până la ora de check-out din ziua de după sosire este marcată ca neprezentare, iar camera este eliberată pentru nopțile rămase. Faceți check-in oaspeților când sosesc.',
 ];

@@ -33,4 +33,6 @@ return [
     'workspace_paused_for_now' => 'Organizata është në pauzë — derdhjet janë vetëm për lexim për momentin.',
     'paused_note' => ' · :skipped',
     'paused_owners_skipped' => '{1}:count pronar në pauzë u anashkalua|[0,*]:count pronarë në pauzë u anashkaluan',
+    'statements_auto_on' => 'Pasqyrat e pronarëve do të mbyllen automatikisht në ditën :day të çdo muaji.',
+    'statements_auto_off' => 'Pasqyrat e pronarëve mbyllen përsëri me dorë, nga faqja e çdo pronari.',
 ];

@@ -39,4 +39,11 @@ return [
     'terms_required' => 'Accepteer de reserveringsvoorwaarden en de privacyverklaring om door te gaan.',
     'terms_changed' => 'De accommodatie heeft haar reserveringsvoorwaarden bijgewerkt. Lees ze opnieuw en accepteer ze om door te gaan.',
     'checkout_page_stale' => 'Deze pagina stond al een tijd open en is niet meer actueel. Controleer uw gegevens en bevestig opnieuw.',
+    'deposit_unavailable' => 'Deze accommodatie vraagt bij het boeken een aanbetaling per kaart en kan online nog geen kaartbetalingen aannemen. Neem contact op met de accommodatie om te boeken.',
+    'deposit_received' => 'Aanbetaling ontvangen',
+    'deposit_received_note' => 'De rest, :amount, betaalt u bij de accommodatie.',
+    'released' => 'Reservering niet behouden',
+    'released_note' => 'De kaartbetaling is niet op tijd afgerond, dus deze reservering is vrijgegeven. Wilt u hier verblijven, boek dan opnieuw.',
+    'payment_not_completed' => 'Betaling niet afgerond',
+    'payment_not_completed_note' => 'Uw kaartbetaling is niet afgerond, dus deze reservering is niet bevestigd. Als er niet wordt betaald, wordt ze binnenkort vrijgegeven. Wilt u hier verblijven, dan kunt u opnieuw boeken.',
 ];

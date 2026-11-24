@@ -41,4 +41,9 @@ return [
     'accept_terms' => 'Ich habe die :terms und die :privacy gelesen und akzeptiere sie.',
     'terms_link' => 'Buchungsbedingungen',
     'privacy_link' => 'Datenschutzhinweise',
+    'deposit_now' => 'Jetzt Anzahlung leisten',
+    'deposit_now_detail' => 'Eine Anzahlung von :amount (:percent%) jetzt per Karte; Ihre Kartennummer sehen wir nie. Den Rest zahlen Sie in der Unterkunft.',
+    'deposit_unavailable' => 'Diese Unterkunft verlangt bei der Buchung eine Anzahlung per Karte und kann online noch keine Kartenzahlungen annehmen. Bitte wenden Sie sich zum Buchen direkt an die Unterkunft.',
+    'deposit_release_note' => 'Ihr Zimmer bleibt reserviert, während Sie bezahlen. Wird die Zahlung nicht innerhalb von :minutes Minuten abgeschlossen, wird die Buchung freigegeben.',
+    'confirm_and_pay_deposit' => 'Bestätigen & Anzahlung bezahlen',
 ];

@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'en cours',
     'is_clean' => 'propre',
     'is_inspected' => 'inspectée',
+    'problem_title_required' => 'Dites quel est le problème.',
+    'problem_reported' => ':unit — problème signalé. Un bon d’intervention est ouvert pour l’équipe de maintenance.',
+    'second_person_required' => 'Vous avez marqué :unit comme propre. Une autre personne doit l’inspecter.',
 ];

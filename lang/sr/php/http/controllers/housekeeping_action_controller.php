@@ -22,4 +22,7 @@ return [
     'is_in_progress' => 'у току',
     'is_clean' => 'чиста',
     'is_inspected' => 'прегледана',
+    'problem_title_required' => 'Реците шта није у реду.',
+    'problem_reported' => ':unit — проблем је пријављен. Отворен је радни налог за тим за одржавање.',
+    'second_person_required' => 'Ви сте означили :unit као очишћену. Друга особа мора да је прегледа.',
 ];
