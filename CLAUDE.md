@@ -7,13 +7,14 @@ It runs on Laravel 13 · PHP 8.4 · **MariaDB 11.8.9 on production** (MySQL 8 lo
 roles in teams mode · ULIDs · Pest. **Live and public on https://vyrobel.com, with 0 customers** (15 internal test
 organisations). The map is `docs/memory/SYSTEMS.md`.
 
-**LATEST (2026-11-24) — read `docs/memory/STATE.md`'s top section first.** Live on **`rel_CS @ f0b73933`**: seven findings of the
-2026-11-24 audit fixed (VY-02 … VY-08 — the owner's share of a refund, the capacity guard on blocks and "out of order", one booking
-per checkout page, reservations inside the staff property scope, door-code release rules per property, the daily calendar extension,
-internal organisations not indexable). **28 audit findings are still open, VY-01 (critical) first — the list is in `OPEN.md`.** The
-local MySQL is now **8.4.13**. Before it, `rel_CR @ 45915155` (2026-11-14: booking terms, the no-lawyer decisions). **Read `RULES.md`
-Part 1 before pushing:** push hard stop 1 (repository private) is **waived while the repository stays public** — his word,
-2026-11-14 — and stops 2–4 still run every time.
+**LATEST (2026-11-24, evening) — read `docs/memory/STATE.md`'s top section first.** Live on **`rel_CU @ cb83d5a5`**: the audit's
+second batch — VY-01 (the critical one: a visitor could book "paid" through the manual gateway), VY-09 (sixteen public statements),
+VY-11 (dependencies; `ops/release.sh stage … --with-vendor` now exists), VY-13 … VY-18 (check-in needs a room in service, the
+reservation screens gated, the storefront's input rules, the quoted line price, one guest per email, the audited ID viewer) and the
+code half of VY-12 (a nightly backup that runs once he sets up its passphrase file). **19 audit findings are still open — the list is
+in `OPEN.md`; VY-10 and VY-12 wait on his steps (F1, F13, F2, F4).** Before it, `rel_CS @ f0b73933` (the morning's VY-02 … VY-08).
+**Read `RULES.md` Part 1 before pushing:** push hard stop 1 (repository private) is **waived while the repository stays public** —
+his word, 2026-11-14 — and stops 2–4 still run every time.
 
 **How the founder works.** Subhan Khan Tanoli, the founder, works in **Baku time (UTC+4)**.
 - Briefs are written in a separate planning chat. He pastes them here and pastes the reports back there. Open briefs are

@@ -1,0 +1,154 @@
+<?php
+// READ-ONLY: run from the STAGED release (stdin) — the second batch of the audit of 2026-11-24 (VY-01, VY-09, VY-11 … VY-18).
+//   /opt/alt/php84/usr/bin/php < preflight-audit-second.php   (cwd = the staged release)
+// It compiles every Blade view in memory and token-parses the PHP it makes, loads the new classes, reads the new routes and their gates,
+// the schedule, the installed versions of the packages the advisories named, a sample of the new texts in every language, and a few
+// COUNTS from the production database (what the new rules will meet there). It writes NOTHING: no INSERT, UPDATE or DELETE, no cache
+// write, no file. It prints counts, versions, timings and yes/no only — never a name, an address, a code, a price or a secret.
+use Composer\InstalledVersions;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION];
+
+// ── 1 · every view compiles AND parses ───────────────────────────────────────────────────────────────────────────────────────
+$compiler = $app->make('blade.compiler');
+$n = 0;
+$bad = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd().'/resources/views', FilesystemIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    if (! str_ends_with($f->getPathname(), '.blade.php')) {
+        continue;
+    }
+    $n++;
+    try {
+        token_get_all($compiler->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE);
+    } catch (Throwable $e) {
+        $bad[] = str_replace(getcwd().'/', '', $f->getPathname());
+    }
+}
+$out['views_parsed'] = $n;
+$out['views_failed'] = $bad;
+
+// ── 2 · the packages the advisories named, as INSTALLED in this release (VY-11) ──────────────────────────────────────────────
+$out['installed'] = [];
+foreach (['laravel/framework', 'livewire/livewire', 'league/commonmark', 'league/flysystem', 'phpseclib/phpseclib', 'symfony/http-client',
+    'symfony/http-foundation', 'symfony/http-kernel', 'symfony/mime', 'symfony/routing', 'symfony/serializer', 'guzzlehttp/guzzle'] as $package) {
+    $out['installed'][$package] = InstalledVersions::isInstalled($package) ? InstalledVersions::getPrettyVersion($package) : 'not installed';
+}
+$out['dev_packages_present'] = InstalledVersions::isInstalled('pestphp/pest') || InstalledVersions::isInstalled('phpunit/phpunit');
+$out['vendor_own_inode'] = (int) stat(getcwd().'/vendor/autoload.php')['nlink'] === 1;
+
+// ── 3 · the new pieces load ──────────────────────────────────────────────────────────────────────────────────────────────────
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$out['classes'] = [
+    'BookingEngineService::takesCardPayments' => method_exists(App\Services\BookingEngineService::class, 'takesCardPayments'),
+    'BookingEngineService::hasPassed' => method_exists(App\Services\BookingEngineService::class, 'hasPassed'),
+    'StayNotBookableException' => class_exists(App\Exceptions\Booking\StayNotBookableException::class),
+    'RoomNotReadyException' => class_exists(App\Exceptions\Reservations\RoomNotReadyException::class),
+    'ReservationRead::allowed' => method_exists(App\Support\Authorization\ReservationRead::class, 'allowed'),
+    'EnsureCanReadReservations' => class_exists(App\Http\Middleware\EnsureCanReadReservations::class),
+    'GuestEmailMatch::bookingGuest' => method_exists(App\Support\Guest\GuestEmailMatch::class, 'bookingGuest'),
+    'GuestIdDocumentService::read' => method_exists(App\Services\Guest\GuestIdDocumentService::class, 'read'),
+    'GuestIdDocumentService::purgeForReservation' => method_exists(App\Services\Guest\GuestIdDocumentService::class, 'purgeForReservation'),
+    'PurgeGuestIdDocumentsOnTermination' => class_exists(App\Listeners\PurgeGuestIdDocumentsOnTermination::class),
+    'BackupStatus::report' => method_exists(App\Support\Ops\BackupStatus::class, 'report'),
+    'backup:run registered' => array_key_exists('backup:run', $kernel->all()),
+    'guest_document in the morph map' => Illuminate\Database\Eloquent\Relations\Relation::getMorphedModel('guest_document') === App\Models\GuestDocument::class,
+];
+$out['views_present'] = ['operator.check-in-blocked' => is_file(getcwd().'/resources/views/operator/check-in-blocked.blade.php')];
+
+// ── 4 · the routes and their gates ───────────────────────────────────────────────────────────────────────────────────────────
+$gates = [];
+foreach (['app.reservations', 'app.reservations.show', 'app.reservations.id-documents.show', 'app.reservations.id-documents.review', 'booking.book', 'booking.reserve', 'app.front-desk.check-in'] as $name) {
+    $route = Route::getRoutes()->getByName($name);
+    $gates[$name] = $route === null ? 'MISSING' : implode(' | ', array_values(array_filter(
+        $route->gatherMiddleware(),
+        fn ($m): bool => is_string($m) && (str_starts_with($m, 'can:') || str_contains($m, 'EnsureCanReadReservations')),
+    )));
+}
+$out['route_gates'] = $gates;
+
+// ── 5 · the schedule ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+$out['schedule'] = [];
+foreach ($app->make(Illuminate\Console\Scheduling\Schedule::class)->events() as $event) {
+    foreach (['backup:run', 'availability:extend', 'guest-documents:purge-expired'] as $needle) {
+        if (is_string($event->command ?? null) && str_contains($event->command, $needle)) {
+            $out['schedule'][$needle] = ['cron' => $event->expression, 'would_run' => $event->filtersPass($app)];
+        }
+    }
+}
+
+// ── 6 · the new texts, in every language folder ──────────────────────────────────────────────────────────────────────────────
+$keys = ['php/services/booking_engine_service.stay_in_past', 'php/services/booking_engine_service.too_many_guests', 'php/services/booking_engine_service.plan_unavailable',
+    'operator/check-in-blocked.heading', 'operator/check-in-blocked.no_room', 'operator/check-in-blocked.out_of_service', 'operator/check-in-blocked.what_to_do',
+    'livewire/reservation-detail.id_title', 'livewire/reservation-detail.id_note', 'livewire/reservation-detail.id_mark_checked',
+    'php/http/controllers/operator/guest_id_document_controller.marked_checked',
+    'php/support/platform/health/health_board.title_backup', 'php/support/platform/health/health_board.backup_not_set_up', 'php/support/platform/health/health_board.backup_last'];
+$missing = [];
+$locales = array_values(array_filter(array_map('basename', glob(getcwd().'/lang/*', GLOB_ONLYDIR) ?: []), fn ($l): bool => $l[0] !== '.'));
+foreach ($locales as $locale) {
+    foreach ($keys as $key) {
+        if (! Lang::hasForLocale($key, $locale)) {
+            $missing[] = $locale.':'.$key;
+        }
+    }
+}
+$out['texts'] = ['keys' => count($keys), 'language_folders' => count($locales), 'missing' => $missing];
+
+// ── 7 · what the new rules will meet on production (COUNTS ONLY; every query is a SELECT) ────────────────────────────────────
+$t = fn (callable $q): array => (function () use ($q): array {
+    $s = microtime(true);
+    $v = $q();
+
+    return ['value' => $v, 'ms' => (int) round((microtime(true) - $s) * 1000)];
+})();
+
+$out['db'] = DB::selectOne('select version() as v')->v;
+// VY-01 — which payment gateway production is on (a setting's NAME, not a secret), and whether the public path ever recorded a manual payment
+$out['payments_gateway'] = (string) config('services.payments.gateway');
+$out['stripe_fake'] = (bool) config('services.stripe.fake');
+$out['vy01_manual_payments_from_a_public_quote'] = $t(fn () => DB::table('payments')->where('gateway', 'manual')->where('metadata', 'like', '%booking_quote_id%')->count());
+$out['payments_total'] = DB::table('payments')->count();
+$out['booking_quotes_total'] = DB::table('booking_quotes')->count();
+$out['reservations_total'] = DB::table('reservations')->count();
+// VY-13 — confirmed bookings that could not be checked in today under the new rule
+$out['vy13_confirmed_with_a_line_and_no_room'] = $t(fn () => DB::table('reservations')->where('status', 'confirmed')->whereNull('deleted_at')
+    ->whereExists(fn ($q) => $q->selectRaw('1')->from('reservation_units')->whereColumn('reservation_units.reservation_id', 'reservations.id')->where('reservation_units.status', 'active')->whereNull('reservation_units.unit_id'))->count());
+$out['vy13_checked_in_now_with_no_room'] = DB::table('reservations')->where('status', 'checked_in')->whereNull('deleted_at')
+    ->whereExists(fn ($q) => $q->selectRaw('1')->from('reservation_units')->whereColumn('reservation_units.reservation_id', 'reservations.id')->where('reservation_units.status', 'active')->whereNull('reservation_units.unit_id'))->count();
+// VY-14 — people holding a back-office role that the two reservation screens will now refuse
+$refused = DB::table('model_has_roles')->join('roles', 'roles.id', '=', 'model_has_roles.role_id')->whereIn('roles.name', ['Housekeeping', 'Maintenance', 'Marketing Manager'])->count();
+$out['vy14_role_assignments_now_refused'] = $refused;
+$out['vy14_accountant_assignments_kept'] = DB::table('model_has_roles')->join('roles', 'roles.id', '=', 'model_has_roles.role_id')->where('roles.name', 'Accountant')->count();
+// VY-17 — emails held by more than one guest record inside one organisation (the duplicates that already exist)
+$out['vy17_emails_with_several_guest_records'] = $t(fn () => count(DB::select('select organization_id, email_hash from guests where email_hash is not null and deleted_at is null group by organization_id, email_hash having count(*) > 1')));
+$out['guests_total'] = DB::table('guests')->count();
+// VY-18 — ID documents on file, and how many the nightly job would now remove
+$out['vy18_id_documents'] = DB::table('guest_documents')->count();
+$out['vy18_by_status'] = DB::table('guest_documents')->selectRaw('verification_status, count(*) as n')->groupBy('verification_status')->pluck('n', 'verification_status')->all();
+$out['vy18_of_cancelled_or_no_show_bookings'] = DB::table('guest_documents')->join('reservations', 'reservations.id', '=', 'guest_documents.reservation_id')->whereIn('reservations.status', ['cancelled', 'no_show'])->count();
+$out['vy18_with_no_live_booking'] = DB::table('guest_documents')->leftJoin('reservations', fn ($j) => $j->on('reservations.id', '=', 'guest_documents.reservation_id')->whereNull('reservations.deleted_at'))->whereNull('reservations.id')->count();
+// VY-15 — switched-off rate plans (still bookable by a hand-made request until now)
+$out['vy15_rate_plans_switched_off'] = DB::table('rate_plans')->where('is_active', false)->count();
+// VY-12 — the backup's set-up as this release reads it (yes/no and counts — never the passphrase, never a path)
+$backup = App\Support\Ops\BackupStatus::report();
+$out['vy12_backup'] = [
+    'passphrase_file_set_up' => $backup['configured'],
+    'archives_in_the_folder' => count(glob(App\Support\Ops\BackupStatus::dest().'/vyrobel-*.tar.gz.enc') ?: []),
+    'healthy' => $backup['healthy'],
+    'offsite_disk_set' => $backup['offsite_configured'],
+    'heartbeat_url_set' => filled(config('ops.heartbeat_ping_url')),
+    'proc_open_available' => function_exists('proc_open'),
+    'script_present' => is_file((string) config('ops.backup.script')),
+];
+// the health board, whole — every card's key and colour, and how long the board takes
+$board = $t(fn () => array_map(fn ($c): string => $c->key.'='.$c->status, $app->make(App\Support\Platform\Health\HealthBoard::class)->cards()));
+$out['health_board'] = $board;
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), "\n";
