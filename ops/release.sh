@@ -117,7 +117,7 @@ stage)
     else
         say "drifted from git on the host: none"
     fi
-    LOCK_CHANGED=0
+    LOCK_CHANGED=0; VFILES=0
     while IFS= read -r f; do
         case "$f" in
             composer.json|composer.lock)
@@ -153,7 +153,20 @@ stage)
             || { tail -n 25 "$WORK/audit.log" >&2; die "composer audit still reports advisories for the lock being shipped"; }
         say "vendor: $(php -r 'echo count(json_decode((string) file_get_contents($argv[1]), true)["packages"]);' "$WORK/newtree/vendor/composer/installed.json") packages · composer audit: $(tail -n 1 "$WORK/audit.log")"
         VTAR="$WORK/vendor.tar.gz"
-        tar -czf "$VTAR" -C "$WORK/newtree" vendor
+        # ⚠️⚠️ NO macOS METADATA IN THE ARCHIVE (measured 2026-11-24, on this step's FIRST run): files composer downloads carry the
+        #    `com.apple.provenance` attribute, and macOS tar packs each one as a second `._<name>` file. The first staged vendor/
+        #    held 12,945 of them beside its 11,251 real files — `._Foo.php` in every package folder, where anything that globs
+        #    `*.php` (the migrations, config or routes of a package) would read binary junk. The stage's other checks all passed
+        #    over it; it was found by counting the files on the host. That release (rel_CT) was never made live.
+        COPYFILE_DISABLE=1 tar --no-xattrs -czf "$VTAR" -C "$WORK/newtree" vendor
+        # ⚠️ COUNTED WITH A READER THAT DOES NOT HIDE THEM: macOS `tar -t` folds each `._` member back into its file and lists
+        #    none (measured: it printed 0 for an archive that held 12,946), so the listing is read with Python's tarfile.
+        VCOUNT="$(python3 -c 'import sys, tarfile
+m = [x.name for x in tarfile.open(sys.argv[1]).getmembers() if not x.isdir()]
+print(len(m), sum(1 for n in m if n.rsplit("/", 1)[-1].startswith("._")))' "$VTAR")" || die "could not read the vendor archive back"
+        VFILES="${VCOUNT%% *}"; VJUNK="${VCOUNT##* }"
+        [ "$VJUNK" = 0 ] || die "the vendor archive contains $VJUNK macOS ._ metadata files — refusing to upload it"
+        [ "$VFILES" -gt 1000 ] || die "the vendor archive lists too few files ($VFILES) to be vendor/"
         VLOCAL="$(shasum -a 256 "$VTAR" | cut -d' ' -f1)"
         scp -i "$KEY" -P "$PORT" -q "$VTAR" "$HOST:~/vy-release-vendor.tar.gz"
         VREMOTE="$(ssh_ 'sha256sum ~/vy-release-vendor.tar.gz' | cut -d' ' -f1)"
@@ -188,12 +201,14 @@ stage)
         rm -rf $NEW/vendor
         tar -xzf ~/vy-release-vendor.tar.gz -C $NEW
         [ -f $NEW/vendor/autoload.php ] || { echo '  ✗ the new vendor/ has no autoload.php'; exit 1; }
+        [ \"\$(find $NEW/vendor $NEW/._vendor -name '._*' 2>/dev/null | wc -l | tr -d ' ')\" = 0 ] || { echo '  ✗ the new vendor/ holds macOS ._ metadata files'; exit 1; }
+        [ \"\$(find $NEW/vendor ! -type d | wc -l | tr -d ' ')\" = $VFILES ] || { echo \"  ✗ the new vendor/ holds \$(find $NEW/vendor ! -type d | wc -l) files; the archive held $VFILES\"; exit 1; }
         [ \"\$(stat -c %h $NEW/vendor/autoload.php)\" = 1 ] && [ \"\$(stat -c %h $NEW/vendor/composer/installed.json)\" = 1 ] || { echo '  ✗ the new vendor/ shares an inode with another release'; exit 1; }
         [ -f $CUR/vendor/autoload.php ] && [ \"\$(sha256sum $CUR/vendor/composer/installed.json | cut -d' ' -f1)\" = \"\$LIVE_BEFORE\" ] || { echo '  ✗ the LIVE release vendor/ changed'; exit 1; }
         # the package manifest and the caches name the OLD packages: unlink them (they are hardlinks too), rebuild from the new vendor
         rm -f $NEW/bootstrap/cache/packages.php $NEW/bootstrap/cache/services.php $NEW/bootstrap/cache/config.php $NEW/bootstrap/cache/routes-v7.php
         (cd $NEW && $PHP artisan package:discover >/dev/null)
-        echo \"  ✓ vendor/ rebuilt from composer.lock — \$(ls $NEW/vendor | wc -l | tr -d ' ') top-level folders, its own inodes; the live vendor/ is unchanged (installed.json digest before = after)\"
+        echo \"  ✓ vendor/ rebuilt from composer.lock — \$(ls $NEW/vendor | wc -l | tr -d ' ') top-level folders, $VFILES files (the archive's count; no ._ metadata), its own inodes; the live vendor/ is unchanged (installed.json digest before = after)\"
         rm -f ~/vy-release-vendor.tar.gz
       fi
       cd $NEW
