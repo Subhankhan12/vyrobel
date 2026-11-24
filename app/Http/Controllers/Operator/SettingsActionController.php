@@ -19,6 +19,7 @@ use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Booking\BookingTerms;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\PropertySupport;
 use App\Support\I18n\LocalNumber;
 use App\Support\Operator\OperatorWorkspace;
@@ -109,6 +110,10 @@ class SettingsActionController extends Controller
             'self_check_in' => ['sometimes', 'boolean'],
             // BOOKING TERMS (2026-11-14): the hotel's own words for guests. Plain text, capped; rendered escaped everywhere.
             'booking_terms_extra' => ['sometimes', 'nullable', 'string', 'max:'.BookingTerms::MAX_EXTRA],
+            // VY-06 (2026-11-24) — when the guest's door code is released: this property's own lead time and its two conditions.
+            'arrival_lead_days' => ['sometimes', 'nullable', 'integer', 'between:0,'.ArrivalPack::MAX_LEAD_DAYS],
+            'arrival_requires_paid' => ['sometimes', 'boolean'],
+            'arrival_requires_checkin' => ['sometimes', 'boolean'],
         ]);
 
         // Assemble the JSON policy columns; self-check-in is a bool. ⚠️ #33 — the door CODE is guest-only and is
@@ -134,6 +139,21 @@ class SettingsActionController extends Controller
         // Only when the form sent it (a partial submit must never wipe the hotel's words); empty → cleared.
         if ($request->has('booking_terms_extra')) {
             $data['booking_terms_extra'] = BookingTerms::clean($request->input('booking_terms_extra'));
+        }
+
+        // VY-06 — the door-code rules. ⚠️ ONLY WHEN THE FORM SENT THEM: the two switches travel with a hidden "0" beside the checkbox, so
+        //    "switched off" is a value and "not in this form" (an older tab, another client) is an absence — an absence never resets a
+        //    rule, least of all "balance first" to off. An empty lead time means "the default", stored as NULL.
+        foreach (['arrival_requires_paid', 'arrival_requires_checkin'] as $switch) {
+            if ($request->has($switch)) {
+                $data[$switch] = $request->boolean($switch);
+            } else {
+                unset($data[$switch]);
+            }
+        }
+        if ($request->has('arrival_lead_days')) {
+            $lead = $data['arrival_lead_days'] ?? null;
+            $data['arrival_lead_days'] = $lead === null ? null : (int) $lead;
         }
 
         $settings->updatePolicies($property, $data);

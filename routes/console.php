@@ -19,6 +19,13 @@ Schedule::command('invites:prune-expired')->daily();
 // (one row per person per conversation, so it never piled up — this just keeps it from lingering). Idempotent, tenant-free.
 Schedule::command('team-chat:prune-typing')->hourly();
 
+// VY-07 (audit of 2026-11-24) — keep the bookable calendar a year ahead. Nights were published for 365 days when a unit or a room type
+// was created or switched, and by nothing else: the window shrank by a night every night and closed a year after the last inventory
+// change, with no error anywhere. This adds the missing nights for every room type of every organisation, daily (idempotent; it never
+// touches `sold` or a night already published). It exits non-zero if anything is still short, and the console's health board reads the
+// same shortfall from its own query — a job cannot report that it did not run.
+Schedule::command('availability:extend')->dailyAt('01:30');
+
 // Phase 3 · Sub-gate 4 — daily guest payment reminders for balances due before arrival (the real trigger; the
 // email is genuine via Mailpit in dev / a real provider in prod).
 Schedule::command('emails:send-payment-reminders')->dailyAt('09:00');

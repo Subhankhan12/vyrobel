@@ -152,6 +152,30 @@
                             {{ __('livewire/operator/operator-settings.self_check_in') }} <span style="color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.self_check_in_hint') }}</span>
                         </label>
                     </div>
+                    {{-- VY-06 (2026-11-24) — WHEN A GUEST GETS THE DOOR CODE. It was one date rule, two days for everyone, and a guest who
+                         still owed the whole stay saw the code. Each property now sets its own lead time and its two conditions. The switches
+                         post a hidden "0" first so "off" is a value the server can tell from "not in this form". #33: the code itself is
+                         never shown or stored here. --}}
+                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--vy-hairline);">
+                        <div class="vy-field-label" style="margin-bottom: 8px;">{{ __('livewire/operator/operator-settings.arrival_heading') }}</div>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+                            <div class="vy-field" style="margin: 0; max-width: 220px;">
+                                <label class="vy-field-label" for="pol_arrival_lead">{{ __('livewire/operator/operator-settings.arrival_lead_days') }}</label>
+                                <input id="pol_arrival_lead" type="number" name="arrival_lead_days" class="vy-input" min="0" max="{{ \App\Support\Guest\ArrivalPack::MAX_LEAD_DAYS }}" value="{{ old('arrival_lead_days', $policy['arrival_lead_days']) }}" placeholder="{{ \App\Support\Guest\ArrivalPack::LEAD_DAYS }}" {{ $disabled }}>
+                            </div>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); padding-bottom: 9px;">
+                                <input type="hidden" name="arrival_requires_paid" value="0">
+                                <input type="checkbox" name="arrival_requires_paid" value="1" @checked(old('arrival_requires_paid', $policy['arrival_requires_paid'])) {{ $disabled }}>
+                                {{ __('livewire/operator/operator-settings.arrival_requires_paid') }}
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); padding-bottom: 9px;">
+                                <input type="hidden" name="arrival_requires_checkin" value="0">
+                                <input type="checkbox" name="arrival_requires_checkin" value="1" @checked(old('arrival_requires_checkin', $policy['arrival_requires_checkin'])) {{ $disabled }}>
+                                {{ __('livewire/operator/operator-settings.arrival_requires_checkin') }}
+                            </label>
+                        </div>
+                        <span style="display: block; margin-top: 6px; font-size: 11px; color: var(--vy-faint);">{{ __('livewire/operator/operator-settings.arrival_help') }}</span>
+                    </div>
                     {{-- BOOKING TERMS (his ruling 2026-11-14): the hotel's own words, shown to guests under "The property's own terms" with the rest of
                          the terms the system builds from the settings above. Plain text; guests read it escaped. The link opens the REAL page. --}}
                     <div class="vy-field" style="margin: 14px 0 0;">
@@ -163,7 +187,7 @@
                         @endif
                     </div>
                     {{-- A refused save must SAY so. (This card refused every save for months with no message at all — see updatePolicies().) --}}
-                    @php $polErrors = collect(['cancellation_type', 'free_until_days', 'pet', 'smoking', 'min_stay', 'max_stay', 'booking_terms_extra'])->map(fn ($k) => $errors->first($k))->filter()->values(); @endphp
+                    @php $polErrors = collect(['cancellation_type', 'free_until_days', 'pet', 'smoking', 'min_stay', 'max_stay', 'booking_terms_extra', 'arrival_lead_days', 'arrival_requires_paid', 'arrival_requires_checkin'])->map(fn ($k) => $errors->first($k))->filter()->values(); @endphp
                     @if ($polErrors->isNotEmpty())
                         <div role="alert" style="margin-top: 12px; font-size: 12.5px; line-height: 1.45; color: var(--vy-red-text, #8F2F09);">
                             @foreach ($polErrors as $polError)<div>{{ $polError }}</div>@endforeach

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Support\Property;
 
+use App\Models\GuestChangeRequest;
 use App\Models\HousekeepingTask;
 use App\Models\MaintenanceTicket;
 use App\Models\RateProposal;
+use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Models\Unit;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,6 +65,34 @@ final class PropertyScope
     public function task(string $id): HousekeepingTask
     {
         return $this->tasks()->findOrFail($id);
+    }
+
+    /**
+     * ⚠️⚠️ VY-05 (2026-11-24, reproduced) — RESERVATIONS. Every reservation, folio and front-desk route found its booking through the
+     * TENANT scope only: a Front Desk user assigned to one property opened another property's reservation, printed its folio and
+     * checked its guest in. A booking on a property outside the person's allow-list is NOT FOUND, like every other row here.
+     *
+     * @return Builder<Reservation>
+     */
+    public function reservations(): Builder
+    {
+        return Reservation::query()->whereIn('property_id', $this->ids());
+    }
+
+    /** @param  list<string>  $with */
+    public function reservation(string $id, array $with = []): Reservation
+    {
+        return $this->reservations()->with($with)->findOrFail($id);
+    }
+
+    /** A guest's change request is on a property through its reservation (VY-05). */
+    public function changeRequest(string $id): GuestChangeRequest
+    {
+        $ids = $this->ids();
+
+        return GuestChangeRequest::query()
+            ->whereHas('reservation', fn (Builder $r) => $r->whereIn('property_id', $ids))
+            ->findOrFail($id);
     }
 
     public function roomType(string $id): RoomType

@@ -206,6 +206,11 @@ class OperatorSettings extends Component
             'self_check_in' => (bool) ($policy->self_check_in ?? false),
             // BOOKING TERMS (2026-11-14): the hotel's own words, shown to guests with the terms. Plain text.
             'booking_terms_extra' => (string) ($policy->booking_terms_extra ?? ''),
+            // VY-06 — when the door code is released. NULL lead = the product default (the field shows it as its placeholder, never as a
+            // number the property chose); with no policy row the two switches read as their defaults: balance first, check-in not asked.
+            'arrival_lead_days' => $policy?->arrival_lead_days,
+            'arrival_requires_paid' => $policy === null ? true : (bool) $policy->arrival_requires_paid,
+            'arrival_requires_checkin' => $policy === null ? false : (bool) $policy->arrival_requires_checkin,
         ];
     }
 

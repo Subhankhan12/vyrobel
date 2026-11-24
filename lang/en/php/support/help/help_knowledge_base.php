@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Open your booking and complete Online check-in — it takes a couple of minutes and lets the property prepare for you. It records that you have checked in online; the front desk still completes the official check-in when you arrive.',
     'guest_checkin_label' => 'Your trips',
     'guest_door_code_question' => 'When do I get my door code and Wi-Fi details?',
-    'guest_door_code_answer' => '{1} Your entry code and Wi-Fi details appear on the Arrival info page :count day before check-in, and stay available until you check out. Before then the page tells you the date they unlock — it is not a delay you need to ask about.|[0,*] Your entry code and Wi-Fi details appear on the Arrival info page :count days before check-in, and stay available until you check out. Before then the page tells you the date they unlock — it is not a delay you need to ask about.',
+    'guest_door_code_answer' => 'Your entry code and Wi-Fi details appear on the Arrival info page a few days before check-in — the property sets how many — and stay available until you check out. Some properties release them only once your balance is paid or online check-in is done. Until then the page tells you the date they unlock, or what is still needed.',
     'guest_door_code_label' => 'Your trips',
     'category_payments' => 'Payments',
     'guest_pay_balance_question' => 'How do I pay the balance on my booking?',

@@ -488,3 +488,64 @@ it('⚠️ produces a VALID graph for a freshly provisioned tenant with almost n
     // The description still says something true rather than collapsing to an empty tag.
     expect($html)->toContain('<meta name="description" content="Book SEO Property minimal direct.');
 })->group('storefront-seo');
+
+// ══ ⑥ VY-08 (audit of 2026-11-24, seen live) — AN INTERNAL TEST TENANT IS NEVER ADVERTISED ═════════════
+//
+// "Villa Azure Lumière, Nice" — a fictional villa of Vyrobel's own test tenant — answered 200 with
+// `index, follow`, and it and its landing page were the two entries of the public storefront sitemap. An
+// organisation marked internal (`organizations.is_internal`, the ONE definition every platform statistic
+// already reads) keeps a working storefront — the team books on it to test — but tells every crawler
+// `noindex, nofollow` and is left out of the sitemap. Nothing on the tenant itself is changed.
+//
+// ⚠️ EACH TEST CARRIES ITS CONTROL: the same tenant is indexable and listed BEFORE it is marked, so the
+// refusal cannot pass because the fixture was never indexable.
+
+it('⚠️⚠️ VY-08: an INTERNAL organisation is left out of the storefront sitemap — its property AND its landing page', function () {
+    $t = seoSellableTenant('vy08map');
+    $slug = (string) app(TenantContext::class)->runAsSuperAdmin(fn () => Organization::query()->whereKey($t['org_id'])->value('slug'));
+    $propertyUrl = route('booking.browse', ['property' => (string) $t['property']->slug]);
+    $landingUrl = route('storefront.landing', ['organization' => $slug]);
+
+    // ⚠️ THE CONTROL FIRST: both are listed while it is an ordinary customer.
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    $before = $this->get('/sitemap-storefront.xml')->getContent();
+    expect($before)->toContain($propertyUrl)->toContain($landingUrl);
+
+    Organization::query()->whereKey($t['org_id'])->update(['is_internal' => true]);
+
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    $after = $this->get('/sitemap-storefront.xml')->getContent();
+    expect($after)->not->toContain($propertyUrl)->not->toContain($landingUrl);
+})->group('storefront-seo');
+
+it('⚠️⚠️ VY-08: every storefront page of an INTERNAL organisation says noindex — and still works', function () {
+    $t = seoSellableTenant('vy08robots');
+    $slug = (string) app(TenantContext::class)->runAsSuperAdmin(fn () => Organization::query()->whereKey($t['org_id'])->value('slug'));
+    $pages = [
+        route('booking.browse', ['property' => (string) $t['property']->slug]),
+        route('booking.room', ['property' => (string) $t['property']->slug, 'roomType' => (string) $t['room_type']->getKey()]),
+        route('storefront.landing', ['organization' => $slug]),
+    ];
+
+    // ⚠️ THE CONTROL FIRST: an ordinary customer's pages are indexable.
+    foreach ($pages as $url) {
+        $this->get($url)->assertOk()->assertSee('<meta name="robots" content="index, follow">', false);
+    }
+
+    Organization::query()->whereKey($t['org_id'])->update(['is_internal' => true]);
+
+    foreach ($pages as $url) {
+        $this->get($url)->assertOk()   // still a working page: the team tests on it
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
+            ->assertDontSee('content="index, follow"', false);
+    }
+})->group('storefront-seo');
+
+it('VY-08: an organisation that was never marked (NULL) is a customer — indexable and listed', function () {
+    $t = seoSellableTenant('vy08null');
+    Organization::query()->whereKey($t['org_id'])->update(['is_internal' => null]);
+
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    expect($this->get('/sitemap-storefront.xml')->getContent())->toContain(route('booking.browse', ['property' => (string) $t['property']->slug]));
+    $this->get(route('booking.browse', ['property' => (string) $t['property']->slug]))->assertSee('<meta name="robots" content="index, follow">', false);
+})->group('storefront-seo');

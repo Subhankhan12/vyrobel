@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Guest;
-use App\Support\Guest\ArrivalPack;
 use App\Support\Help\HelpKnowledgeBase;
 
 /*
@@ -51,18 +50,22 @@ it('renders every FAQ question from the engine — the page holds no help conten
     }
 });
 
-it('interpolates the arrival window from ArrivalPack::LEAD_DAYS rather than a typed literal', function () {
+// ⚠️ VY-06 (2026-11-24) — THIS TEST USED TO PIN "the answer states ArrivalPack::LEAD_DAYS days". The lead time is no longer one constant:
+//    each property sets its own, and its own conditions (the balance paid, online check-in). A help centre is not about one booking, so a
+//    number here would be right for some guests and wrong for others — the same drift this test was written against ("48h" typed in a
+//    docblock, `DO-G4-1`). It now pins the opposite, for the same reason: NO number of days or hours, and the page that has the real one.
+it('states NO number for the arrival window — the lead time and the conditions are each property\'s own', function () {
     $answer = collect(HelpKnowledgeBase::guestArticles())->firstWhere('id', 'door-code')['answer'];
 
-    // The real constant is 2. If someone retunes it, this answer must move with it — and if someone types a
-    // number in instead, the second expectation catches it.
-    expect($answer)->toContain(ArrivalPack::LEAD_DAYS.' days before check-in');
+    expect($answer)->not->toMatch('/\\d/')                       // no "2 days", no "48h" — no figure at all
+        ->and($answer)->not->toContain('48 hours')
+        ->and($answer)->toContain('the property sets how many')
+        ->and($answer)->toContain('balance is paid')
+        ->and($answer)->toContain('Arrival info');
 
+    // …and the source no longer interpolates the old constant into the answer (a number that would be true for some guests only).
     $source = (string) file_get_contents(app_path('Support/Help/HelpKnowledgeBase.php'));
-    expect($source)->toContain('ArrivalPack::LEAD_DAYS')
-        // …and the literal it replaced must never come back.
-        ->and($answer)->not->toContain('48h')
-        ->and($answer)->not->toContain('48 hours');
+    expect($source)->not->toContain("ArrivalPack::LEAD_DAYS, ['count'");
 });
 
 it('offers the REAL relay as its only contact, and links a real route on every answer', function () {

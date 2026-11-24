@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Storefront;
 
+use App\Http\Controllers\StorefrontSitemapController;
+use App\Models\Organization;
 use App\Models\Property;
 use App\Models\RoomType;
 use App\Support\I18n\ListJoin;
@@ -79,6 +81,22 @@ final class StorefrontSeo
     public function __construct(private readonly StorefrontOffer $offers) {}
 
     /**
+     * ⚠️⚠️ VY-08 (2026-11-24) — MAY A SEARCH ENGINE INDEX THIS ORGANISATION'S STOREFRONT? Not when it is one of Vyrobel's own
+     * test, demo or probe organisations (`organizations.is_internal` — the ONE definition every platform statistic already reads).
+     *
+     * A fictional villa of the internal test tenant was live with `index, follow` and was one of the two entries of the public
+     * storefront sitemap. Its storefront still WORKS — the team books on it to test — it is only not advertised: every page says
+     * `noindex, nofollow`, and {@see StorefrontSitemapController} leaves it out through this same answer.
+     *
+     * ⚠️ NULL IS A CUSTOMER (as `Organization::scopeCustomers()` rules): a new signup is indexable until somebody marks it otherwise.
+     * `Organization` carries no tenant scope, so this reads the same with or without an organisation context.
+     */
+    public static function indexable(string $organizationId): bool
+    {
+        return ! Organization::query()->whereKey($organizationId)->internal()->exists();
+    }
+
+    /**
      * The property booking page — `/book/{slug}`.
      *
      * ⚠️ THE CANONICAL IS THE BARE URL. The page accepts check_in/check_out/adults/children/bedrooms/
@@ -108,7 +126,7 @@ final class StorefrontSeo
             'og_type' => 'website',
             'og_image' => $ogImage,
             'site_name' => $name,
-            'index' => true,
+            'index' => self::indexable((string) $property->organization_id),
             'json_ld' => $this->propertyJsonLd($property, $rating, $offer, count($roomTypeNames)),
         ];
     }
@@ -139,7 +157,7 @@ final class StorefrontSeo
             'og_type' => 'product',
             'og_image' => $ogImage,
             'site_name' => $propertyName,
-            'index' => true,
+            'index' => self::indexable((string) $property->organization_id),
             'json_ld' => $this->roomJsonLd($property, $roomType, $rating, $offer),
         ];
     }
@@ -175,7 +193,7 @@ final class StorefrontSeo
             'og_type' => 'website',
             'og_image' => $ogImage,
             'site_name' => $orgName,
-            'index' => true,
+            'index' => self::indexable($orgId),
             'json_ld' => $this->organizationJsonLd($orgName, $orgSlug, $orgId, $properties),
         ];
     }

@@ -13,6 +13,7 @@ use App\Models\ReservationUnit;
 use App\Models\ReservationUnitMove;
 use App\Models\Unit;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use App\Support\Owner\OwnerStatementBreakdown;
 use Carbon\CarbonImmutable;
@@ -109,6 +110,21 @@ class OwnerAttributionService
             ->sum('amount_minor');
     }
 
+    /**
+     * Everything the folio charged the guest, in minor units — room, taxes, fees and add-ons (0 when there is no folio). The denominator of
+     * a refund's owner share ({@see attributeRefund}): the same Σ items that {@see FolioTotals} calls `charges_minor`.
+     */
+    private function folioChargesMinor(Reservation $reservation): int
+    {
+        $folio = Folio::query()->where('reservation_id', $reservation->getKey())->first();
+
+        if ($folio === null) {
+            return 0;
+        }
+
+        return (int) FolioItem::query()->where('folio_id', $folio->getKey())->sum('amount_minor');
+    }
+
     /** Does any ACTIVE line sit on an owner-owned unit? (Operator-only bookings are never attributed.) */
     private function hasOwnedLine(Reservation $reservation): bool
     {
@@ -185,23 +201,46 @@ class OwnerAttributionService
             ->where('currency', $currency)
             ->get();
 
-        // Per owner: net (Σ signedMinor — a reversed pair nets to 0) and gross room revenue (room_revenue signed).
+        // ⚠️⚠️ VY-02 (2026-11-24) — THE OWNER GIVES BACK THEIR SHARE OF THE ROOM, NEVER OF THE TAX, AND NEVER MORE THAN THEY WERE CREDITED.
+        //
+        //    The owner is credited from the ROOM revenue only. This method used to take their share from the WHOLE refund — city tax, the
+        //    operator's fees and add-ons included — so a full refund of "room 200.00 + tax 20.00" debited 187.00 from an owner credited
+        //    170.00 and left them 17.00 in debt (reproduced). It also charged ONE owner for the whole refund when only one of the
+        //    booking's rooms was theirs, and shrank the second of two part refunds (it read a net that the first had already reduced).
+        //
+        //    THE RULE, ONE SENTENCE: the owner gives back the same fraction of what they were credited as the guest got back of what the
+        //    folio charged — debit = refund × credited ÷ folio charges — capped at what is still credited to them.
+        //    For a room-only folio and a single owner that is the old figure to the cent (refund × net ÷ gross).
+        //
+        // Per owner: `credited` is what the stay put on their ledger BEFORE any refund (Σ signedMinor of the attribution rows — a reversed
+        // pair nets to 0), `gross` their room revenue, and `refunded` what earlier refunds already took back.
         $byOwner = $entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) $e->owner_id);
         $grossByOwner = [];
-        $netByOwner = [];
+        $creditedByOwner = [];
+        $refundedByOwner = [];
         $unitByOwner = [];
         foreach ($byOwner as $ownerId => $rows) {
-            $net = 0;
+            $credited = 0;
             $gross = 0;
+            $refunded = 0;
             foreach ($rows as $row) {
-                $net += $row->signedMinor();
+                if ((string) $row->entry_type === 'adjustment' && (string) $row->note === 'refund') {
+                    // ⚠️ THIS refund's own row is not "an earlier refund" — a redelivered event must compute the same figure it did the first time.
+                    if ((string) $row->idempotency_key !== 'refund:'.$refundKey.':'.$ownerId) {
+                        $refunded += (int) $row->amount_minor;
+                    }
+
+                    continue;
+                }
+                $credited += $row->signedMinor();
                 if ((string) $row->entry_type === 'room_revenue') {
                     $gross += $row->signedMinor();
                 }
                 $unitByOwner[$ownerId] ??= (string) $row->unit_id;
             }
             $grossByOwner[(string) $ownerId] = $gross;
-            $netByOwner[(string) $ownerId] = $net;
+            $creditedByOwner[(string) $ownerId] = $credited;
+            $refundedByOwner[(string) $ownerId] = $refunded;
         }
 
         $totalGross = array_sum($grossByOwner);
@@ -209,16 +248,23 @@ class OwnerAttributionService
             return 0;
         }
 
+        // What the folio charged the guest — room, taxes, fees, add-ons. A folio that charges less than the owners' own room revenue
+        // (or none at all: an imported stay) falls back to that room revenue, which is the old denominator.
+        $chargedMinor = max($this->folioChargesMinor($reservation), $totalGross);
+
         $refundMinor = $refund->amountMinor();
         $totalDebit = 0;
 
         foreach ($grossByOwner as $ownerId => $gross) {
-            if ($gross <= 0) {
+            $credited = $creditedByOwner[$ownerId];
+            if ($gross <= 0 || $credited <= 0) {
                 continue;
             }
-            // The owner's share of the refund (by gross weight), scaled by their own net-to-gross ratio.
-            $refundShare = (int) round($refundMinor * $gross / $totalGross);
-            $ownerDebit = (int) round($refundShare * $netByOwner[$ownerId] / $gross);
+
+            // Whole minor units, rounded half up — no float touches the figure.
+            $share = intdiv(2 * $refundMinor * $credited + $chargedMinor, 2 * $chargedMinor);
+            // ⚠️ THE CAP: never more than is still credited to them after the earlier refunds.
+            $ownerDebit = min($share, max(0, $credited - $refundedByOwner[$ownerId]));
             if ($ownerDebit <= 0) {
                 continue;
             }

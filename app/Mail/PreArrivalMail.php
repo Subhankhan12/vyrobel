@@ -29,12 +29,13 @@ use Illuminate\Support\Carbon;
  * 🔒 The door code + wifi are the guest's OWN access secrets for their OWN stay — CORRECT to include here (#33
  * forbids exposing arrival secrets to the OWNER, not to the guest). They come from the REAL assigned unit via the
  * shared {@see ArrivalPack} (the SAME resolver the Arrival Info screen uses — no drift) and this email is delivered
- * to the lead guest's OWN email only. The pack is TIMING-GATED: it releases the secrets only inside the arrival
- * window (`LEAD_DAYS`=2 = 48h), which is exactly when this email is sent — so the code is real at send time and
- * withheld (never fabricated) for a cancelled/out-of-window stay.
+ * to the lead guest's OWN email only. The pack is GATED: it releases the secrets only inside the property's arrival
+ * window ({@see ArrivalPack::leadDays()} — the day this email is sent) AND only once the property's conditions are met
+ * (VY-06: the balance settled, online check-in if asked). So the code is real at send time, and withheld (never
+ * fabricated) for a cancelled, out-of-window or still-owing stay — that guest reads what is missing instead.
  *
- * `$asOf` is the moment the email represents; it DEFAULTS to the send window (check_in − LEAD_DAYS), so the
- * operator preview renders the same released state the guest will receive — never a fake code.
+ * `$asOf` is the moment the email represents; it DEFAULTS to the day the property's window opens, so the
+ * operator preview renders the same state the guest will receive — never a fake code.
  */
 class PreArrivalMail extends Mailable
 {
@@ -53,7 +54,7 @@ class PreArrivalMail extends Mailable
 
         $checkIn = Carbon::parse($r->check_in);
         // The email represents the 48h-before send moment, so the arrival pack always reflects the released state.
-        $asOf = $this->asOf ?? $checkIn->copy()->subDays(ArrivalPack::LEAD_DAYS);
+        $asOf = $this->asOf ?? $checkIn->copy()->subDays(ArrivalPack::leadDays($r->property));
         $pack = ArrivalPack::for($r, $asOf);
 
         $unit = $r->reservationUnits->first()?->unit;
@@ -85,6 +86,9 @@ class PreArrivalMail extends Mailable
                 // The guest's OWN access secrets (released in-window; null before it opens → the template says when).
                 'doorCode' => $pack['door_code'],
                 'releasedFrom' => $pack['released_from'],
+                // VY-06 — withheld for the balance or for online check-in: the pack's own sentence and where the guest acts (null otherwise).
+                'withheldMessage' => $pack['withheld_message'],
+                'withheldUrl' => $pack['withheld_url'],
                 'wifiSsid' => $pack['wifi_ssid'],
                 'wifiPassword' => $pack['wifi_password'],
                 'directions' => $directions,

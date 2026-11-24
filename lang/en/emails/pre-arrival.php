@@ -27,6 +27,8 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> balance due at check-in — pay now to skip the desk.',
     'message_us_line' => 'Anything you need before you arrive? Just <a href=":url" style="color:#C2410C; text-decoration:underline;">message us</a> — we’re happy to help.',
     'keep_safe' => 'Keep this email safe — your door code is inside. Reservation <strong style="color:#2B2320;">:reference</strong>.',
+    // the same reference, when the email carries no door code (VY-06)
+    'reference_line' => 'Reservation <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'View your booking',
     'online_checkin' => 'Online check-in',
 ];

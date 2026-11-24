@@ -49,6 +49,12 @@ return [
     'save_policies' => 'Save policies',
     'booking_terms_extra' => 'Your own booking terms',
     'booking_terms_extra_help' => 'Shown to guests before they pay, under "The property\'s own terms", together with the terms built from the settings above. Plain text, up to :max characters. Say here what you charge after the free-cancellation date, house rules, or anything else guests must know.',
+    // VY-06 — when a guest gets the door code
+    'arrival_heading' => 'Door code and arrival details',
+    'arrival_lead_days' => 'Days before check-in',
+    'arrival_requires_paid' => 'Only after the balance is paid',
+    'arrival_requires_checkin' => 'Only after online check-in',
+    'arrival_help' => 'Guests see the door code and Wi-Fi this many days before check-in, and only once the ticked conditions are met. Until then they are told what is missing.',
     'booking_terms_preview' => 'Preview exactly what guests see',
 
     // tax & fees summary

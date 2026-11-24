@@ -96,7 +96,12 @@ class BookingEngineService
      * a quote minted before this existed simply lacks the key — which is exactly the backward-compatibility a
      * nullable column would have bought, at no cost.
      */
-    public function quote(Property $property, string $roomTypeId, string $ratePlanId, string $checkIn, string $checkOut, int $adults, int $children, ?string $email = null, ?string $sessionToken = null, ?string $unitId = null): BookingQuote
+    /**
+     * VY-04 (2026-11-24) — `$checkoutToken` is the ONE-TIME token of the checkout page this quote was made from, or NULL for a quote
+     * that did not come from that form (the JSON API). It is stored under a UNIQUE index, so a second quote for the same page cannot be
+     * created: the insert throws `UniqueConstraintViolationException`, which the checkout controller reads as "this page already booked".
+     */
+    public function quote(Property $property, string $roomTypeId, string $ratePlanId, string $checkIn, string $checkOut, int $adults, int $children, ?string $email = null, ?string $sessionToken = null, ?string $unitId = null, ?string $checkoutToken = null): BookingQuote
     {
         $roomType = RoomType::query()->where('property_id', $property->getKey())->findOrFail($roomTypeId);
         $ratePlan = RatePlan::query()->where('room_type_id', $roomType->getKey())->findOrFail($ratePlanId);
@@ -119,6 +124,7 @@ class BookingEngineService
             'property_id' => $property->getKey(),
             'reference' => 'Q-'.Str::upper(Str::random(8)),
             'session_token' => $sessionToken ?? (string) Str::uuid(),
+            'checkout_token' => $checkoutToken,
             'check_in' => $checkIn,
             'check_out' => $checkOut,
             'adults' => $adults,

@@ -95,6 +95,7 @@ function srtBook(array $f, string $in, string $out, ?string $unitId = null): voi
         'email' => 'ada+'.uniqid().'@example.test',
         'payment_option' => 'on_arrival',
         ...acceptedTerms($f['s']['property']),
+        ...checkoutFormToken(),
         'unit_id' => $unitId,
     ]));
 }

@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Services\AssignmentService;
 use App\Services\ReservationCancellationService;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Property\PropertyScope;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Reservations\ReservationStatusLabel;
 use Illuminate\Http\RedirectResponse;
@@ -122,7 +123,7 @@ class ReservationLifecycleController extends Controller
      */
     public function confirm(ConfirmTentativeReservation $confirm, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if (! in_array((string) $model->status, self::CONFIRMABLE, true)) {
             return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.only_tentative_confirmable', ['status' => ReservationStatusLabel::for((string) $model->status)]));
@@ -140,7 +141,7 @@ class ReservationLifecycleController extends Controller
     /** Cancel a reservation through the single write path, with the operator's optional free-text reason. */
     public function cancel(Request $request, ReservationCancellationService $cancellations, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         // ⚠️ RULED 2026-09-22 — a stay in progress is refused with its OWN sentence. Falling through to the
         // generic line below would tell the operator the booking is "already closed" while the guest is
@@ -192,7 +193,7 @@ class ReservationLifecycleController extends Controller
      */
     public function markNoShow(AssignmentService $assignments, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if (! in_array((string) $model->status, self::NO_SHOWABLE, true)) {
             return $this->back($model->id, __('php/http/controllers/operator/reservation_lifecycle_controller.cannot_no_show'));

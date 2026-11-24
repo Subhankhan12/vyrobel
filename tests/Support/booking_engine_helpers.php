@@ -61,3 +61,17 @@ if (! function_exists('acceptedTerms')) {
         return ['terms_accepted' => '1', 'terms_version' => BookingTerms::for(Property::query()->findOrFail($property->getKey()), $checkIn)['version']];
     }
 }
+
+if (! function_exists('checkoutFormToken')) {
+    /**
+     * The ONE-TIME token the public checkout page prints into its form (VY-04, 2026-11-24): a booking is made once per page, and a
+     * second POST of the same page books nothing more. ⚠️ A test that books through the public checkout form sends one — fresh per
+     * call, exactly as each rendered page carries its own — so a test that is NOT about the token is not refused by it.
+     *
+     * @return array{checkout_token: string}
+     */
+    function checkoutFormToken(): array
+    {
+        return ['checkout_token' => Str::random(40)];
+    }
+}

@@ -19,7 +19,12 @@ uses(RefreshDatabase::class);
 // never touched. Two-tickets, cross-unit isolation, never-auto-cancel, and the negative over-committed
 // signal are all asserted; the concurrency suite is re-run in the gate.
 
-function oosTicket(array $s, int $unitIndex = 0): MaintenanceTicket
+/**
+ * ⚠️ VY-03 (2026-11-24): taking a unit out of order when that leaves a booking with no room now needs the operator's go-ahead
+ * (`acknowledge_oversell`) — they are shown the figures first. These tests are about what happens AFTER the unit is out (availability,
+ * `sold`, the booking kept), so the over-committed ones say what the operator did: went ahead. The guard itself is `Vy03CapacityGuardTest`.
+ */
+function oosTicket(array $s, int $unitIndex = 0, bool $acknowledgeOversell = false): MaintenanceTicket
 {
     return app(MaintenanceService::class)->open([
         'unit_id' => $s['units'][$unitIndex]->id,
@@ -27,6 +32,7 @@ function oosTicket(array $s, int $unitIndex = 0): MaintenanceTicket
         'category' => 'plumbing',
         'priority' => 'urgent',
         'takes_out_of_service' => true,
+        'acknowledge_oversell' => $acknowledgeOversell,
     ]);
 }
 
@@ -115,7 +121,7 @@ it('surfaces a negative over-committed signal without overselling or cancelling 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);   // sold = 1 on 2026-09-01..03
     expect(soldOn($s['roomType']->id, '2026-09-01'))->toBe(1);
 
-    oosTicket($s);   // out-of-service the only (already fully-sold) unit
+    oosTicket($s, 0, acknowledgeOversell: true);   // out-of-service the only (already fully-sold) unit — the operator went ahead (VY-03)
 
     // The row shows the honest over-commit: total 1 − sold 1 − out_of_order 1 = −1 (unclamped)…
     expect(rawAvailable($s['roomType']->id, '2026-09-01'))->toBe(-1)

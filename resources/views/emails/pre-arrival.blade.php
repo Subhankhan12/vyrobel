@@ -6,7 +6,8 @@
 @section('footer_reason', 'booking')
 
 @section('title', __('emails/pre-arrival.page_title'))
-@section('preheader', __('emails/pre-arrival.preheader', ['unit' => $unitName]))
+{{-- VY-06 — the preheader promises "door code … inside"; it is printed only when the code really is. --}}
+@section('preheader', $doorCode ? __('emails/pre-arrival.preheader', ['unit' => $unitName]) : '')
 
 @section('content')
     <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">{{ __('emails/pre-arrival.eyebrow') }}</p>
@@ -22,6 +23,10 @@
                 @if ($doorCode)
                     <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:34px; font-weight:700; letter-spacing:6px; color:#2B2320;">{{ $doorCode }}</span><br>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{{ __('emails/pre-arrival.works_from', ['date' => $releasedFrom]) }}</span>
+                @elseif ($withheldMessage)
+                    {{-- VY-06 — NO CODE IN THIS EMAIL while the balance is owing (or online check-in is still asked for): the one sentence
+                         that says what is missing, linked to where the guest acts. The code then shows on the Arrival page. --}}
+                    <a href="{{ $withheldUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#C2410C; text-decoration:none;">{{ $withheldMessage }}</a>
                 @else
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#4A4038;">{{ __('emails/pre-arrival.access_later') }}</span>
                 @endif
@@ -115,6 +120,12 @@
     <p style="margin:22px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">{!! __('emails/pre-arrival.message_us_line', ['url' => e($messagesUrl)]) !!}</p>
 
     <hr style="border:none; border-top:1px solid #EFE3D9; margin:22px 0 14px;">
+    {{-- VY-06 — "your door code is inside" is said only when it is. --}}
+    @if ($doorCode)
     <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{!! __('emails/pre-arrival.keep_safe', ['reference' => e($reference)]) !!}</p>
+    @else
+    {{-- …and the guest's reservation reference is ALWAYS in the email: without the code it has its own line. --}}
+    <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">{!! __('emails/pre-arrival.reference_line', ['reference' => e($reference)]) !!}</p>
+    @endif
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px;"><a href="{{ $viewUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">{{ __('emails/pre-arrival.view_booking') }}</a> &nbsp;·&nbsp; <a href="{{ $checkinUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">{{ __('emails/pre-arrival.online_checkin') }}</a></p>
 @endsection

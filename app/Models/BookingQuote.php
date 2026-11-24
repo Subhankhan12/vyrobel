@@ -30,6 +30,7 @@ class BookingQuote extends Model
         'property_id',
         'reference',
         'session_token',
+        'checkout_token',
         'check_in',
         'check_out',
         'adults',

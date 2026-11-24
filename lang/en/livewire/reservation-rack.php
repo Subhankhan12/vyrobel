@@ -30,6 +30,7 @@ return [
     'units' => '{1} :count unit|[0,*] :count units',
     // a night's cell in a room type's availability strip; :date is "Mon 5 Oct"
     'available_on' => ':count available on :date',
+    'overbooked_on' => 'Overbooked by :count on :date — more bookings than rooms',
     'available_on_no_price' => ':count available on :date — no price yet, so it can’t be booked here',
     // the unit's sleeping capacity
     'sleeps' => 'Sleeps :count',

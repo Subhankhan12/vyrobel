@@ -933,7 +933,8 @@
                                 </span>
                                 <div class="vy-gl-head-text">
                                     <h3 class="vy-modal-title" id="vy-ul-arrival-t">{!! __('livewire/units-list.arrival_title', ['unit' => '<span x-text="arrival.label"></span>']) !!}</h3>
-                                    <p class="vy-modal-sub">{{ trans_choice('livewire/units-list.arrival_lead', \App\Support\Guest\ArrivalPack::LEAD_DAYS, ['count' => \App\Support\Guest\ArrivalPack::LEAD_DAYS]) }}</p>
+                                    {{-- VY-06 — the lead time is the unit's PROPERTY'S own (it was one constant for everybody). --}}
+                                    <p class="vy-modal-sub" x-text="arrival.lead"></p>
                                 </div>
                                 <button type="button" class="vy-modal-x" @click="arrivalOpen = false" aria-label="{{ __('common.close') }}">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -1040,7 +1041,7 @@
                     this.unitForm = this.blankUnit('');
                     this.edit = { id: '', was: '', code: '', name: '', max_occupancy: '' };
                     this.rtEdit = { id: '', was: '', name: '', kind: 'room', kindLabel: '', max_adults: 2, max_children: 0, unit_rows: 0 };
-                    this.arrival = { id: '', label: '', has_code: false, ssid: '', has_wifi: false, has_notes: false };
+                    this.arrival = { id: '', label: '', has_code: false, ssid: '', has_wifi: false, has_notes: false, lead: '' };
                     const retry = boot.addRetry;
                     if (retry && retry.form === 'room_type') {
                         this.rtForm = Object.assign(this.blankRoomType(), retry);
@@ -1191,7 +1192,8 @@
                         this.unitPriceFor = row.id;
                     } else if (action === 'arrival') {
                         const a = row.arrival || {};
-                        this.arrival = { id: row.id, label: row.name || row.code, has_code: !! a.has_code, ssid: a.ssid || '', has_wifi: !! a.has_wifi, has_notes: !! a.has_notes };
+                        this.arrival = { id: row.id, label: row.name || row.code, has_code: !! a.has_code, ssid: a.ssid || '', has_wifi: !! a.has_wifi, has_notes: !! a.has_notes,
+                            lead: boot.arrivalLead[boot.roomTypeProperty[row.room_type_id]] || boot.arrivalLead[boot.home] || '' };
                         this.arrivalOpen = true;
                     } else if (action === 'pause' || action === 'resume') {
                         this.pause = { bulk: false, resume: action === 'resume', id: row.id, code: row.code };

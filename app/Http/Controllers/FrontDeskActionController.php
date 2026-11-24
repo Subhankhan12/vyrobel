@@ -17,6 +17,7 @@ use App\Services\FrontDeskService;
 use App\Support\I18n\LocalDate;
 use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Property\PropertyScope;
 use App\Support\Reservations\ReservationStatusLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -42,7 +43,7 @@ class FrontDeskActionController extends Controller
 {
     public function checkIn(Request $request, FrontDeskService $desk, string $reservation): View|RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         // Only a confirmed booking can be checked in — guard against nonsensical transitions
         // (e.g. re-opening a checked-out stay) without weakening the underlying idempotent action.
@@ -80,7 +81,7 @@ class FrontDeskActionController extends Controller
 
     public function checkOut(Request $request, FrontDeskService $desk, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if ($model->status !== 'checked_in') {
             return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.cannot_check_out_from', ['reference' => $model->reference, 'status' => ReservationStatusLabel::for((string) $model->status)]), refused: true);
@@ -127,7 +128,7 @@ class FrontDeskActionController extends Controller
      */
     public function reverseCheckoutConfirm(Request $request, ReverseCheckOut $reverse, string $reservation): View|RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if ($model->status !== 'checked_out') {
             return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_out', ['reference' => $model->reference]), refused: true);
@@ -142,7 +143,7 @@ class FrontDeskActionController extends Controller
     /** R3 — perform it, and carry the disclosure back to the board so the record of what was NOT undone survives the redirect. */
     public function reverseCheckout(Request $request, ReverseCheckOut $reverse, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if ($model->status !== 'checked_out') {
             return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_out', ['reference' => $model->reference]), refused: true);
@@ -162,7 +163,7 @@ class FrontDeskActionController extends Controller
      */
     public function reverseCheckinConfirm(Request $request, ReverseCheckIn $reverse, string $reservation): View|RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if ($model->status !== 'checked_in') {
             return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_in', ['reference' => $model->reference]), refused: true);
@@ -177,7 +178,7 @@ class FrontDeskActionController extends Controller
     /** ⚠️ R9 — perform it, carrying the disclosure back to the board so what was NOT undone survives the redirect. */
     public function reverseCheckin(Request $request, ReverseCheckIn $reverse, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         if ($model->status !== 'checked_in') {
             return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.not_checked_in', ['reference' => $model->reference]), refused: true);
@@ -204,7 +205,7 @@ class FrontDeskActionController extends Controller
             return $this->afterMove($request, $reservation, __('php/http/controllers/front_desk_action_controller.workspace_paused'), refused: true);
         }
 
-        $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
+        $model = app(PropertyScope::class)->reservation($reservation, ['reservationUnits']);   // inside the person's properties (VY-05) → 404 otherwise
 
         $validated = $request->validate([
             'reservation_unit_id' => ['required', 'string'],
@@ -251,7 +252,7 @@ class FrontDeskActionController extends Controller
             return $this->afterReschedule($request, __('php/http/controllers/front_desk_action_controller.workspace_paused'), refused: true);
         }
 
-        $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
+        $model = app(PropertyScope::class)->reservation($reservation, ['reservationUnits']);   // inside the person's properties (VY-05) → 404 otherwise
 
         $validated = $request->validate([
             'reservation_unit_id' => ['required', 'string'],

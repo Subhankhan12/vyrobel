@@ -78,7 +78,8 @@
     @else
         <div class="card withheld">
             <div class="lbl">{{ __('pdfs/arrival.access_details') }}</div>
-            <div class="body" style="margin-top:4px;">{{ __('pdfs/arrival.access_withheld', ['date' => $pack['released_from']]) }}</div>
+            {{-- VY-06 — withheld for the balance or for online check-in: the pack's own sentence, not a date that would not unlock it. --}}
+            <div class="body" style="margin-top:4px;">{{ $pack['withheld_message'] ?? __('pdfs/arrival.access_withheld', ['date' => $pack['released_from']]) }}</div>
         </div>
     @endif
 

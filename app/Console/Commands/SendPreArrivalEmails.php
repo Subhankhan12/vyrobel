@@ -6,12 +6,14 @@ namespace App\Console\Commands;
 
 use App\Mail\PreArrivalMail;
 use App\Models\Organization;
+use App\Models\Property;
 use App\Models\Reservation;
 use App\Notifications\Guest\GuestCheckinReadyNotification;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 
@@ -33,17 +35,30 @@ class SendPreArrivalEmails extends Command
 
     public function handle(TenantContext $tenant): int
     {
-        $days = $this->option('days') !== null ? max(0, (int) $this->option('days')) : ArrivalPack::LEAD_DAYS;
-        $target = Carbon::today()->addDays($days)->toDateString();
+        // ⚠️ VY-06 (2026-11-24) — THE LEAD TIME IS EACH PROPERTY'S ({@see ArrivalPack::leadDays()}), so the day "the window opens" differs
+        //    from one property to the next. `--days` still forces one number for every property (a manual re-send).
+        $forced = $this->option('days') !== null ? max(0, (int) $this->option('days')) : null;
+        $today = Carbon::today();
         $sent = 0;
 
         foreach (Organization::all() as $organization) {
-            $tenant->forOrganization((string) $organization->getKey(), function () use ($target, &$sent): void {
-                $reservations = Reservation::query()
-                    ->with(['leadGuest', 'property', 'reservationUnits.unit'])
-                    ->where('status', 'confirmed')
-                    ->whereDate('check_in', $target)
-                    ->get();
+            $tenant->forOrganization((string) $organization->getKey(), function () use ($forced, $today, &$sent): void {
+                // check-in date → the properties whose window opens today for that date
+                $propertiesByTarget = [];
+                foreach (Property::query()->with('policies')->get() as $property) {
+                    $target = $today->copy()->addDays($forced ?? ArrivalPack::leadDays($property))->toDateString();
+                    $propertiesByTarget[$target][] = (string) $property->getKey();
+                }
+
+                $reservations = new Collection;
+                foreach ($propertiesByTarget as $target => $propertyIds) {
+                    $reservations = $reservations->concat(Reservation::query()
+                        ->with(['leadGuest', 'property', 'reservationUnits.unit'])
+                        ->where('status', 'confirmed')
+                        ->whereIn('property_id', $propertyIds)
+                        ->whereDate('check_in', $target)
+                        ->get());
+                }
 
                 foreach ($reservations as $reservation) {
                     // ⚠️ GUEST NOTIFICATIONS · GATE 2 · G2 — the IN-APP row, dispatched BEFORE the email's own

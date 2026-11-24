@@ -44,4 +44,5 @@ return [
     'privacy_title' => 'Privacy notice — :property',
     'terms_required' => 'Please accept the booking terms and the privacy notice to continue.',
     'terms_changed' => 'The property has updated its booking terms. Please read them again and accept to continue.',
+    'checkout_page_stale' => 'This page was open for a while and is out of date. Please check your details and confirm again.',
 ];

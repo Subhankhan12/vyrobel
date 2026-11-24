@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 use App\Livewire\ReservationDetail;
 use App\Models\Reservation;
+use App\Support\Property\PropertyContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
+
+/**
+ * ⚠️ VY-05 (2026-11-24): the reservation page checks, at mount, that the booking is on a property the person can reach. On a real
+ * request the `/app` middleware activates that property context; `Livewire::test()` runs no route middleware, so the test says what
+ * the middleware would have: this operator works in the scenario's property.
+ */
+function notesPropertyContext(array $s): void
+{
+    app(PropertyContext::class)->activate([(string) $s['property']->id], null);
+}
 
 /**
  * REGRESSION — the wireframe-parity sweep's S2 (WAVE 2 · structural MEDIUM).
@@ -31,6 +42,7 @@ it('shows a guest’s arrival note from online check-in to an operator on the re
     // Exactly what GuestCheckinController writes when a guest completes online check-in.
     $reservation->forceFill(['notes_guest' => 'Travelling with a cot, arriving late.'])->save();
 
+    notesPropertyContext($s);
     Livewire::actingAs(operatorUser($s))
         ->test(ReservationDetail::class, ['reservation' => $reservation->id])
         ->assertSee('Notes & requests')
@@ -44,6 +56,7 @@ it('shows the operator’s internal team note on the reservation', function () {
 
     $reservation->forceFill(['notes_internal' => 'VIP — comp the breakfast.'])->save();
 
+    notesPropertyContext($s);
     Livewire::actingAs(operatorUser($s))
         ->test(ReservationDetail::class, ['reservation' => $reservation->id])
         ->assertSee('Internal team note')
@@ -57,6 +70,7 @@ it('omits the card entirely when there are no notes, rather than rendering an em
     expect($reservation->notes_guest)->toBeNull()
         ->and($reservation->notes_internal)->toBeNull();
 
+    notesPropertyContext($s);
     Livewire::actingAs(operatorUser($s))
         ->test(ReservationDetail::class, ['reservation' => $reservation->id])
         ->assertDontSee('Notes & requests')
@@ -82,6 +96,7 @@ it('stops showing an erased guest’s notes — the GDPR path still clears both'
         ->and($fresh->notes_internal)->toBeNull();
 
     // Surfacing the columns must not outlive erasure — the card disappears with the data.
+    notesPropertyContext($s);
     Livewire::actingAs(operatorUser($s))
         ->test(ReservationDetail::class, ['reservation' => $reservation->id])
         ->assertDontSee('Please leave a cot for my daughter Mia')

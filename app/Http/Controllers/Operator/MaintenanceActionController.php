@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Operator;
 
+use App\Exceptions\Booking\InventoryOversoldException;
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceTicket;
 use App\Models\Media;
@@ -20,6 +21,7 @@ use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyScope;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -53,7 +55,7 @@ class MaintenanceActionController extends Controller
     private const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
 
     /** Open a new ticket on one of the org's OWN units. */
-    public function store(Request $request, MaintenanceService $maintenance): RedirectResponse
+    public function store(Request $request, MaintenanceService $maintenance): RedirectResponse|View
     {
         if ($this->paused()) {
             return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_error', $this->pausedMessage());
@@ -66,20 +68,38 @@ class MaintenanceActionController extends Controller
             'category' => ['required', Rule::in(self::CATEGORIES)],
             'priority' => ['required', Rule::in(self::PRIORITIES)],
             'takes_out_of_service' => ['sometimes', 'boolean'],
+            // VY-03 — "I have seen how many bookings would be left without a room; take it out of order anyway."
+            'acknowledge_oversell' => ['sometimes', 'boolean'],
         ]);
 
         // The unit is found inside the person's properties (DEC-j): another organisation's unit, or one on a property outside their
         // allow-list, is a 404 — never a work order raised on it.
         $unit = app(PropertyScope::class)->unit($validated['unit_id']);
 
-        $ticket = $maintenance->open([
-            'unit_id' => $unit->id,
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'category' => $validated['category'],
-            'priority' => $validated['priority'],
-            'takes_out_of_service' => (bool) ($validated['takes_out_of_service'] ?? false),
-        ]);
+        try {
+            $ticket = $maintenance->open([
+                'unit_id' => $unit->id,
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'category' => $validated['category'],
+                'priority' => $validated['priority'],
+                'takes_out_of_service' => (bool) ($validated['takes_out_of_service'] ?? false),
+                'acknowledge_oversell' => (bool) ($validated['acknowledge_oversell'] ?? false),
+            ]);
+        } catch (InventoryOversoldException $e) {
+            // ⚠️⚠️ VY-03 (2026-11-24, reproduced) — NOTHING HAS BEEN SAVED. Taking this unit out of order would leave bookings with no
+            //    room; the operator is SHOWN how many, on how many nights and from when, and decides. The page re-posts the same work
+            //    order with `acknowledge_oversell` — a broken room is a fact, and this product must not argue with it, only make sure
+            //    nobody finds out at the front desk. (The pattern is the early check-in confirmation's: a warning with the real figures.)
+            return view('operator.out-of-order-confirm', [
+                'unit' => $unit,
+                'roomTypeName' => (string) ($unit->roomType->name ?? ''),
+                'nights' => $e->nights,
+                'peak' => $e->peak,
+                'firstNight' => $e->firstNight,
+                'fields' => $request->only(['unit_id', 'title', 'description', 'category', 'priority', 'takes_out_of_service', 'return', 'return_query']),
+            ]);
+        }
 
         return $this->listReturn($request, redirect()->route('app.maintenance'))
             ->with('mt_notice', __('php/http/controllers/operator/maintenance_action_controller.ticket_opened', ['title' => $ticket->title, 'unit' => $unit->code]));

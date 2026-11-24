@@ -123,6 +123,9 @@
         {{-- ONE form spans both columns so the summary's Confirm button + the wallet toggle submit together. --}}
         <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" data-guard-submit>
             @csrf
+            {{-- VY-04 — the page's ONE-TIME token. A fresh one each time the page is shown (never `old()`): the booking this page makes
+                 claims it, so the same page posted twice is one booking. --}}
+            <input type="hidden" name="checkout_token" value="{{ $checkoutToken }}">
             <input type="hidden" name="room_type_id" value="{{ $offer['room_type_id'] }}">
             <input type="hidden" name="rate_plan_id" value="{{ $offer['rate_plan_id'] }}">
             {{-- D18-5 — pick a specific unit. ⚠️ Every option here is genuinely free for these dates (the same

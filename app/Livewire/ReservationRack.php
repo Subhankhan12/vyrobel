@@ -24,6 +24,7 @@ use App\Services\UnitAvailabilityService;
 use App\Support\Folio\StayEstimator;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
+use App\Support\Inventory\RoomCapacity;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
@@ -221,6 +222,8 @@ class ReservationRack extends Component
                 'kind_label' => __('php/livewire/units_list.kind_'.$roomType->kind),   // room · apartment · villa · dorm — always one of the four
                 'units' => $activeUnits->count(),
                 'availability' => $rtAvailability,
+                // VY-03 — nights with MORE BOOKINGS THAN ROOMS, and by how many ([] nearly always; one light query when nothing is negative).
+                'overbooked' => RoomCapacity::overbooked((string) $roomType->id, $start, $end),
                 'no_price' => $noPrice,
                 'unit_rows' => $unitRows,
                 // Reservations with no unit yet (they consume room-type inventory but no unit row) — a real

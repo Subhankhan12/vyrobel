@@ -777,14 +777,14 @@ class NewReservation extends Component
 
     /**
      * How the guest gets directions and the door code — said from the real conditions (the review, M3): the pre-arrival email
-     * (the `emails:send-pre-arrival` command) goes {@see ArrivalPack::LEAD_DAYS} days before check-in, on the
+     * (the `emails:send-pre-arrival` command) goes {@see ArrivalPack::leadDays()} days before check-in, on the
      * app's day, only to a guest with an address, only while the organisation has it switched on (#86), and only if email
      * reaches anyone at all — on production it does not yet. ⚠️ It used to say "The confirmation includes directions and
      * parking"; the confirmation says they come later.
      */
     private function arrivalNote(?Property $property, ?string $checkIn, bool $mailSends): string
     {
-        $lead = ArrivalPack::LEAD_DAYS;
+        $lead = ArrivalPack::leadDays($property);   // VY-06: the property's own lead time (2 when it set none)
 
         return match (true) {
             ! $mailSends => __('php/livewire/operator/new_reservation.arrival_mail_off'),

@@ -116,7 +116,10 @@
                      window we may say WHEN, but only when there is genuinely something to release. --}}
                 <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-                    @if ($arrival['has_code'])
+                    {{-- VY-06 — withheld for the balance or for online check-in: the pack's own sentence, linked to where the guest acts. --}}
+                    @if ($arrival['withheld_message'] !== null)
+                        <a href="{{ $arrival['withheld_url'] }}" style="font-weight:600;color:var(--vy-accent-text);text-decoration:none">{{ $arrival['withheld_message'] }}</a>
+                    @elseif ($arrival['has_code'])
                         {{ __('guest/reservation.code_unlocks_on', ['date' => $arrival['released_from']]) }}
                     @else
                         {{ __('guest/reservation.arrival_details_soon') }}

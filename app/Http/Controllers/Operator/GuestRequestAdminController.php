@@ -11,6 +11,7 @@ use App\Support\Guest\GuestName;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
 use App\Support\I18n\Locales;
+use App\Support\Property\PropertyScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -67,10 +68,13 @@ class GuestRequestAdminController extends Controller
         return back()->with('status', __('php/http/controllers/operator/guest_request_admin_controller.request_declined'));
     }
 
-    /** This org's request, or 404 — resolved in-action so the tenant scope is set (cross-org → not found). */
+    /**
+     * This org's request ON A PROPERTY THE PERSON CAN REACH, or 404 — resolved in-action so the tenant scope is set (cross-org → not
+     * found), and through the property allow-list (VY-05): confirming a request changes or cancels that property's booking.
+     */
     private function owned(string $id): GuestChangeRequest
     {
-        return GuestChangeRequest::query()->findOrFail($id);
+        return app(PropertyScope::class)->changeRequest($id);
     }
 
     private function typeLabel(string $type): string

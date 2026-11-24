@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Services\PdfService;
 use App\Support\Pdf\FolioDocument;
+use App\Support\Property\PropertyScope;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -20,7 +21,7 @@ class FolioPdfController extends Controller
 {
     public function download(string $reservation, PdfService $pdf): Response
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         $filename = 'vyrobel-folio-'.$model->reference.'.pdf';
 

@@ -13,9 +13,11 @@ use App\Services\OwnerAttributionService;
 use App\Support\Folio\FolioTotals;
 use App\Support\I18n\LocalDate;
 use App\Support\Mail\MailSafetyGuard;
+use App\Support\Property\PropertyScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -86,10 +88,17 @@ class ReservationRefund extends Component
 {
     use FormatsOperatorData;
 
+    #[Locked]
     public string $reservationId;
 
     public function mount(string $reservation): void
     {
+        // ⚠️⚠️ VY-05 (2026-11-24, reproduced): the booking must be on a property the person can reach — checked HERE, once, because
+        // `/livewire/update` does not activate the property context (a check in render() would 404 every wire update). A cross-org id,
+        // or one on a property outside their allow-list, is a 404 before anything renders. The id is LOCKED so no later update can
+        // point this page at another property's booking.
+        app(PropertyScope::class)->reservation($reservation);
+
         $this->reservationId = $reservation;
     }
 

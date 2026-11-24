@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Booking\InventoryOversoldException;
 use App\Models\Availability;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
@@ -14,6 +15,7 @@ use App\Models\UnitStatusLog;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Inventory\RoomCapacity;
 use App\Support\Money\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
@@ -48,13 +50,16 @@ class MaintenanceService
         private DomainEventRecorder $domainEvents,
         private AuditEventRecorder $audit,
         private OwnerExpenseService $expenses,
+        private AvailabilityService $availability,
     ) {}
 
     /**
      * Open a new ticket (status=open). Org is auto-filled by BelongsToOrganization; `reported_by`
      * defaults to the acting user.
      *
-     * @param  array{unit_id: string, title: string, description?: string|null, category?: string, priority?: string, takes_out_of_service?: bool, reported_by?: string|null, assigned_to?: string|null}  $data
+     * @param  array{unit_id: string, title: string, description?: string|null, category?: string, priority?: string, takes_out_of_service?: bool, acknowledge_oversell?: bool, reported_by?: string|null, assigned_to?: string|null}  $data
+     *
+     * @throws InventoryOversoldException when `takes_out_of_service` would leave bookings with no room and `acknowledge_oversell` is not set (VY-03)
      */
     public function open(array $data): MaintenanceTicket
     {
@@ -65,23 +70,43 @@ class MaintenanceService
         // dead config before). A missing map / disabled toggle leaves the ticket unassigned (honest).
         $assignedTo = $data['assigned_to'] ?? $this->autoAssignee((string) $category);
 
-        $ticket = DB::transaction(fn (): MaintenanceTicket => MaintenanceTicket::create([
-            'unit_id' => $data['unit_id'],
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'category' => $category,
-            'priority' => $data['priority'] ?? 'normal',
-            'status' => 'open',
-            'takes_out_of_service' => $data['takes_out_of_service'] ?? false,
-            'reported_by' => $data['reported_by'] ?? Auth::id(),
-            'assigned_to' => $assignedTo,
-            'opened_at' => now(),
-        ]));
+        $takesOut = (bool) ($data['takes_out_of_service'] ?? false);
+        $acknowledged = (bool) ($data['acknowledge_oversell'] ?? false);
+
+        // ⚠️⚠️ VY-03 (2026-11-24, reproduced) — THE WORK ORDER AND THE ROOM GO OUT TOGETHER, OR NEITHER DOES. Taking the unit out of order
+        //    is checked against the bookings UNDER THE LOCK ({@see applyUnitCondition()}); if it would leave bookings with no room and the
+        //    operator has not said "go ahead", the exception rolls back the work order too — so a refused out-of-order never leaves a
+        //    half-made work order behind, and nothing is saved until the operator has SEEN how many bookings are affected.
+        /** @var array{0: MaintenanceTicket, 1: ?array{0: Unit, 1: UnitStatusLog, 2: string, 3: ?array{nights: int, peak: int, first_night: ?string}}} $made */
+        $made = DB::transaction(function () use ($data, $category, $assignedTo, $takesOut, $acknowledged): array {
+            $ticket = MaintenanceTicket::create([
+                'unit_id' => $data['unit_id'],
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'category' => $category,
+                'priority' => $data['priority'] ?? 'normal',
+                'status' => 'open',
+                'takes_out_of_service' => $takesOut,
+                'reported_by' => $data['reported_by'] ?? Auth::id(),
+                'assigned_to' => $assignedTo,
+                'opened_at' => now(),
+            ]);
+
+            $unit = $takesOut ? Unit::query()->find($ticket->unit_id) : null;
+            $taken = $unit !== null && (string) $unit->condition_status === 'in_service'
+                ? $this->applyUnitCondition($unit, 'out_of_service', null, $acknowledged)
+                : null;
+
+            return [$ticket, $taken];
+        });
+        [$ticket, $taken] = $made;
 
         $this->domainEvents->record('maintenance_ticket.opened', $ticket, ['unit_id' => (string) $ticket->unit_id]);
         $this->audit->record('maintenance_ticket.opened', $ticket, null, ['status' => 'open']);
 
-        $this->takeUnitOutIfNeeded($ticket);   // OOS ticket → unit out_of_service (Step 2)
+        if ($taken !== null) {
+            $this->announceUnitCondition(...$taken);   // OOS ticket → unit out_of_service (Step 2): the event the recompute + ARI listeners hear
+        }
 
         return $ticket->refresh();
     }
@@ -424,17 +449,59 @@ class MaintenanceService
      * `unit.condition_changed` (with the room-type's published window) — the EXISTING availability-recompute
      * listener consumes it. Idempotent: a no-op when already at the target status. NEVER mutates `sold`.
      */
-    public function setUnitCondition(Unit $unit, string $toStatus, ?User $by = null): ?UnitStatusLog
+    /**
+     * ⚠️ VY-03 — taking a unit OUT of service is refused with {@see InventoryOversoldException} when it would leave bookings with no
+     * room, unless `$acknowledgeOversell` says the operator has seen that and goes ahead (a broken room is a fact). Putting a unit BACK
+     * into service only ever adds a room, so it is never refused.
+     */
+    public function setUnitCondition(Unit $unit, string $toStatus, ?User $by = null, bool $acknowledgeOversell = false): ?UnitStatusLog
+    {
+        $applied = $this->applyUnitCondition($unit, $toStatus, $by, $acknowledgeOversell);
+        if ($applied === null) {
+            return null;   // idempotent
+        }
+
+        $this->announceUnitCondition(...$applied);
+
+        return $applied[1];
+    }
+
+    /**
+     * THE WRITE HALF of a condition change: the capacity check (VY-03), the unit's new status, its status-log row and the availability
+     * recompute — in ONE transaction, under the lock on the room type's nights. {@see announceUnitCondition()} is the other half (the
+     * domain event and the audit row), kept apart so {@see open()} can roll a refused out-of-order back together with its work order.
+     *
+     * ⚠️ THE NIGHTS ARE LOCKED FIRST (RoomCapacity reads them FOR UPDATE, in date order — the rows and the order a booking locks), the
+     *    rooms are counted against the bookings from the property's own today onward, and `out_of_order` is recomputed BEFORE the lock
+     *    is released: a booking arriving at the same moment either sees the room gone or was counted here. Never in between.
+     *
+     * @return array{0: Unit, 1: UnitStatusLog, 2: string, 3: ?array{nights: int, peak: int, first_night: ?string}}|null null when nothing changed
+     *
+     * @throws InventoryOversoldException
+     */
+    private function applyUnitCondition(Unit $unit, string $toStatus, ?User $by, bool $acknowledgeOversell): ?array
     {
         $fromStatus = (string) $unit->condition_status;
         if ($fromStatus === $toStatus) {
             return null;   // idempotent
         }
 
-        $log = DB::transaction(function () use ($unit, $fromStatus, $toStatus, $by): UnitStatusLog {
+        $removesRoom = in_array($toStatus, Unit::UNBOOKABLE_CONDITIONS, true) && ! in_array($fromStatus, Unit::UNBOOKABLE_CONDITIONS, true);
+
+        return DB::transaction(function () use ($unit, $fromStatus, $toStatus, $by, $removesRoom, $acknowledgeOversell): array {
+            $impact = null;
+            if ($removesRoom) {
+                $today = CarbonImmutable::now((string) ($unit->property?->timezone ?: config('app.timezone')))->toDateString();
+                $impact = RoomCapacity::ifRemoved((string) $unit->room_type_id, (string) $unit->getKey(), $today, null, lock: true);
+
+                if ($impact['nights'] > 0 && ! $acknowledgeOversell) {
+                    throw InventoryOversoldException::forImpact("Taking unit [{$unit->getKey()}] out of service", $impact);
+                }
+            }
+
             $unit->update(['condition_status' => $toStatus]);
 
-            return UnitStatusLog::create([
+            $log = UnitStatusLog::create([
                 'unit_id' => $unit->getKey(),
                 'from_status' => $fromStatus,
                 'to_status' => $toStatus,
@@ -442,10 +509,29 @@ class MaintenanceService
                 'changed_by' => $by?->getKey() ?? Auth::id(),
                 'created_at' => now(),
             ]);
-        });
 
-        // Inventory-STRUCTURE event the availability listener already consumes → recompute
-        // total/out_of_order/blocked (out_of_service is counted into out_of_order). This never touches sold.
+            if ($removesRoom) {
+                [$start, $end] = $this->publishedWindow((string) $unit->room_type_id);
+                $this->availability->recompute((string) $unit->room_type_id, $start, $end);
+            }
+
+            return [$unit, $log, $fromStatus, $impact !== null && $impact['nights'] > 0 ? $impact : null];
+        });
+    }
+
+    /**
+     * THE ANNOUNCING HALF: the inventory-STRUCTURE event the availability + channel listeners consume (→ recompute
+     * total/out_of_order/blocked; `out_of_service` is counted into `out_of_order`; never touches `sold`) and the audit row.
+     *
+     * ⚠️ VY-03 — when the operator took the unit out KNOWING bookings would be left without a room, the audit row says so: on how many
+     *    nights, how many at the worst, and the first night (counts and a date — no guest, no booking reference).
+     *
+     * @param  array{nights: int, peak: int, first_night: ?string}|null  $overbooked
+     */
+    private function announceUnitCondition(Unit $unit, UnitStatusLog $log, string $fromStatus, ?array $overbooked): void
+    {
+        $toStatus = (string) $log->to_status;
+
         [$start, $end] = $this->publishedWindow((string) $unit->room_type_id);
         $this->domainEvents->record('unit.condition_changed', $unit, [
             'room_type_id' => (string) $unit->room_type_id,
@@ -454,12 +540,16 @@ class MaintenanceService
             'from' => $fromStatus,
             'to' => $toStatus,
         ]);
-        $this->audit->record('unit.condition_changed', $unit, ['condition_status' => $fromStatus], ['condition_status' => $toStatus]);
-
-        return $log;
+        $this->audit->record('unit.condition_changed', $unit, ['condition_status' => $fromStatus],
+            ['condition_status' => $toStatus] + ($overbooked !== null ? ['overbooked' => $overbooked] : []));
     }
 
-    /** Take an IN-SERVICE unit out of service for an OOS ticket. Never clobbers an existing out_of_order state. */
+    /**
+     * Take an IN-SERVICE unit out of service for an OOS ticket. Never clobbers an existing out_of_order state.
+     *
+     * ⚠️ Called when work STARTS on a ticket that was opened "out of order": that decision — and its capacity check, and the operator's
+     *    go-ahead if one was needed — was made when the ticket was opened ({@see open()}), so it is not asked a second time here.
+     */
     private function takeUnitOutIfNeeded(MaintenanceTicket $ticket): void
     {
         if (! $ticket->takes_out_of_service) {
@@ -468,7 +558,7 @@ class MaintenanceService
 
         $unit = Unit::query()->find($ticket->unit_id);
         if ($unit !== null && (string) $unit->condition_status === 'in_service') {
-            $this->setUnitCondition($unit, 'out_of_service');
+            $this->setUnitCondition($unit, 'out_of_service', null, acknowledgeOversell: true);
         }
     }
 

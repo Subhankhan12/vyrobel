@@ -59,6 +59,13 @@ return [
     'scheduler_unwatched' => 'Running — but nobody is told if it stops',
     'scheduler_founder_step' => 'Founder step: an external monitor URL in OPS_HEARTBEAT_PING_URL, then a config rebuild.',
     'scheduler_watched' => 'Running, and watched',
+
+    // calendar (VY-07)
+    'calendar_ok' => 'Published :days days ahead',
+    'calendar_short' => 'The bookable calendar is running short',
+    'calendar_room_types' => '{1} :count room type checked|[0,*] :count room types checked',
+    'calendar_short_line' => '{1} :count room type is short: :days days are published (target: :target)|[0,*] :count room types are short: the shortest has :days days published (target: :target)',
+    'calendar_note' => 'The daily job availability:extend adds the missing nights. If this stays short, the scheduler is not running it.',
     // server errors
     'errors_note' => 'Origin errors only — the CDN in front of the site is not visible from here. Logged at warning+; the route group is not recorded in the log, so errors cannot be split by route.',
     'could_not_measure' => 'Could not measure',
@@ -100,6 +107,7 @@ return [
     'title_mail' => 'Mail delivery',
     'title_queue' => 'Queue',
     'title_scheduler' => 'Scheduler & heartbeat',
+    'title_calendar' => 'Bookable calendar',
     'title_errors' => 'Server errors (24h)',
     'title_release' => 'Live release',
     'title_config' => 'Silent configuration',

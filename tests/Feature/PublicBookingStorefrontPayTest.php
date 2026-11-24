@@ -70,7 +70,7 @@ function storefrontBody(array $s, array $overrides = []): array
         'first_name' => 'Lukas',
         'last_name' => 'Meyer',
         'email' => 'lukas@example.test',
-    ], acceptedTerms($s['property']), $overrides);
+    ], acceptedTerms($s['property']), checkoutFormToken(), $overrides);
 }
 
 function storefrontFolioBalance(array $s): int

@@ -118,8 +118,9 @@ return [
         'id' => 'P2-M14',
         'name' => 'sitemap ignores archive',
         'file' => 'app/Http/Controllers/StorefrontSitemapController.php',
-        'old' => '->where(fn ($q) => $q->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull(\'deleted_at\'))',
-        'new' => '->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)',
+        // re-anchored 2026-11-24 (VY-08 added the internal-organisation arm to this line): still removes ONLY the archive arm
+        'old' => '->where(fn ($q) => $q->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull(\'deleted_at\')->orWhere(\'is_internal\', true))',
+        'new' => '->where(fn ($q) => $q->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhere(\'is_internal\', true))',
         'tests' => [['file' => 'tests/Feature/StorefrontSeoTest.php']],
     ],
     [

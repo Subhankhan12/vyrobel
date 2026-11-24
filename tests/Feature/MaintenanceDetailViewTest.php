@@ -159,7 +159,8 @@ it('surfaces the OOS callout and the real manual-move booking count', function (
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
     // Now take the unit out of service via an OOS ticket.
-    $ticket = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Flooded', 'takes_out_of_service' => true]);
+    // (VY-03: it is the only unit and it is booked, so the operator was shown the booking and went ahead — `acknowledge_oversell`.)
+    $ticket = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Flooded', 'takes_out_of_service' => true, 'acknowledge_oversell' => true]);
     expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');
 
     $this->actingAs($user)->get("/app/maintenance/{$ticket->id}")

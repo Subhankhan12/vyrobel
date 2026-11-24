@@ -72,8 +72,14 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 </span>
                 <div>
-                    <div style="font-size:13.5px;color:var(--vy-ink)">{{ __('guest/arrival.access_pending') }}</div>
-                    <div style="font-size:11.5px;color:var(--vy-faint)">{{ $pack['has_code'] ? __('guest/arrival.access_unlocks_on', ['date' => $pack['released_from']]) : __('guest/arrival.access_not_set') }}</div>
+                    {{-- VY-06 — WITHHELD FOR A REASON THE GUEST CAN ACT ON (the balance, or online check-in): the pack's own sentence, as
+                         the link to where they act. Otherwise the date it unlocks, exactly as before. --}}
+                    @if ($pack['withheld_message'] !== null)
+                        <a href="{{ $pack['withheld_url'] }}" style="font-size:13.5px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">{{ $pack['withheld_message'] }}</a>
+                    @else
+                        <div style="font-size:13.5px;color:var(--vy-ink)">{{ __('guest/arrival.access_pending') }}</div>
+                        <div style="font-size:11.5px;color:var(--vy-faint)">{{ $pack['has_code'] ? __('guest/arrival.access_unlocks_on', ['date' => $pack['released_from']]) : __('guest/arrival.access_not_set') }}</div>
+                    @endif
                 </div>
             </div>
         @endif

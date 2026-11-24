@@ -13,6 +13,7 @@ use App\Services\CompanyAccountService;
 use App\Services\FolioService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyInput;
+use App\Support\Property\PropertyScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -35,7 +36,7 @@ class ReservationFolioActionController extends Controller
     /** Record a payment against the reservation's folio (through the configured gateway; manual = offline). */
     public function recordPayment(Request $request, FolioService $folios, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         $validated = $request->validate([
             'amount' => ['required'],
@@ -94,7 +95,7 @@ class ReservationFolioActionController extends Controller
      */
     public function addCharge(Request $request, FolioService $folios, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         $validated = $request->validate([
             'type' => ['required', Rule::in(['add_on', 'product', 'fee', 'manual'])],
@@ -139,7 +140,7 @@ class ReservationFolioActionController extends Controller
      */
     public function refund(Request $request, FolioService $folios, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         // The payment must belong to THIS reservation (and is tenant-scoped itself) — cross-org 404.
         $payment = Payment::query()
@@ -210,7 +211,7 @@ class ReservationFolioActionController extends Controller
      */
     public function releaseHold(FolioService $folios, string $reservation, string $authorization): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         $hold = PaymentAuthorization::query()
             ->whereHas('payment', fn ($q) => $q->where('reservation_id', $model->id)->where('type', 'deposit_hold'))
@@ -311,7 +312,7 @@ class ReservationFolioActionController extends Controller
      */
     public function billToAccount(Request $request, CompanyAccountService $accounts, FolioService $folios, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
 
         $validated = $request->validate([
             // ⚠️ A KEYED reference to a real account row — never a free-text company name.
@@ -333,7 +334,7 @@ class ReservationFolioActionController extends Controller
     /** ⚠️ Un-billing is a NEW STATE, not a reversal — nothing was posted, so there is nothing to reverse. */
     public function unbillFromAccount(CompanyAccountService $accounts, FolioService $folios, string $reservation): RedirectResponse
     {
-        $model = Reservation::query()->findOrFail($reservation);
+        $model = app(PropertyScope::class)->reservation($reservation);   // inside the person's properties (VY-05) → 404 otherwise
         $accounts->unbill($folios->openFolio($model));
 
         return $this->back($model->id, __('php/http/controllers/reservation_folio_action_controller.returned_to_guest'));

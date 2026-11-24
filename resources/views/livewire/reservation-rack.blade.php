@@ -174,9 +174,17 @@
                                 </div>
                                 <div class="vy-nights">
                                     @foreach ($dates as $d)
-                                        @php $avail = $row['availability'][$d['date']] ?? 0; $__noPrice = isset($row['no_price'][$d['date']]); @endphp
+                                        @php $avail = $row['availability'][$d['date']] ?? 0; $__noPrice = isset($row['no_price'][$d['date']]); $__over = $row['overbooked'][$d['date']] ?? 0; @endphp
+                                        {{-- VY-03 — A NIGHT WITH MORE BOOKINGS THAN ROOMS SAYS SO. "Rooms left" is clamped at 0 (you cannot sell −2
+                                             rooms), so an overbooked night used to read as a quiet 0. It now shows the excess (−N), in the alert
+                                             colour, with the words in its title — from RoomCapacity, the one reading of rooms against bookings. --}}
+                                        @if ($__over > 0)
+                                            <div class="vy-avail is-zero @if ($d['weekend']) is-weekend @endif @if ($d['past']) is-past @endif" data-overbooked="{{ $__over }}" style="color:#b42318;font-weight:700"
+                                                 title="{{ __('livewire/reservation-rack.overbooked_on', ['count' => $__over, 'date' => $d['label']]) }}">−{{ $__over }}</div>
+                                        @else
                                         <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($d['past']) is-past @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif @if ($__noPrice) is-noprice @endif"
                                              title="{{ $__noPrice ? trans_choice('livewire/reservation-rack.available_on_no_price', $avail, ['count' => $avail, 'date' => $d['label']]) : trans_choice('livewire/reservation-rack.available_on', $avail, ['count' => $avail, 'date' => $d['label']]) }}">{{ $avail }}</div>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>

@@ -144,9 +144,11 @@ final class HelpKnowledgeBase
      * stating a number that would be right for some guests and wrong for others — a FAQ that misstates the
      * product is worse than no FAQ.
      *
-     * ⚠️ THE ARRIVAL WINDOW IS INTERPOLATED FROM {@see ArrivalPack::LEAD_DAYS}, never typed as a literal. The
-     * repo has already caught a docblock claiming "48h" against a constant that says otherwise (`DO-G4-1`),
-     * and a FAQ is exactly where that drift would mislead a guest standing at a door.
+     * ⚠️ THE ARRIVAL WINDOW IS NOT STATED AS A NUMBER (VY-06, 2026-11-24). It was interpolated from `ArrivalPack::LEAD_DAYS` while that
+     * was one constant for everybody; it is now EACH PROPERTY'S ({@see ArrivalPack::leadDays()}), and so are the conditions (the balance
+     * paid, online check-in). A help centre is not about one booking, so the answer points at the Arrival info page — which states that
+     * booking's own date, or what is still missing. The repo has already caught a docblock claiming "48h" against a constant that said
+     * otherwise (`DO-G4-1`); a FAQ is exactly where that drift would mislead a guest standing at a door.
      *
      * DELIBERATELY OMITTED (honest absence, #39):
      *   • a cancellation-refund WINDOW — it is per-property (`PropertyPolicy`; `DO-G12-1` records that even the
@@ -174,10 +176,10 @@ final class HelpKnowledgeBase
                 'id' => 'door-code',
                 'category_code' => 'before_you_arrive',
                 'category' => self::category('before_you_arrive'),
-                // ⚠️ interpolated from the constant — see the docblock.
+                // ⚠️ no number of days here — it is the property's, see the docblock.
                 'keywords' => 'door code key entry wifi password access arrival info directions get in',
                 'question' => __('php/support/help/help_knowledge_base.guest_door_code_question'),
-                'answer' => trans_choice('php/support/help/help_knowledge_base.guest_door_code_answer', ArrivalPack::LEAD_DAYS, ['count' => ArrivalPack::LEAD_DAYS]),
+                'answer' => __('php/support/help/help_knowledge_base.guest_door_code_answer'),
                 'route' => 'guest.trips',
                 'label' => __('php/support/help/help_knowledge_base.guest_door_code_label'),
             ],

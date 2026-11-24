@@ -10,6 +10,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\RoomType;
 use App\Models\Unit;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Unit\InventoryDeletion;
 use App\Support\Unit\RoomTypePricing;
@@ -187,6 +188,11 @@ class UnitsList extends Component
                 'taken' => collect($all)->groupBy(fn (array $r): string => $rtProperty[$r['room_type_id']] ?? '')
                     ->map(fn ($g): array => $g->pluck('code')->values()->all())->all(),
                 'roomTypeProperty' => $rtProperty,
+                // VY-06 — "Guests see this only from N days before check-in", said with EACH property's own lead time (the arrival dialog
+                // reads the sentence of the unit's property; it was one constant for every property).
+                'arrivalLead' => Property::query()->whereIn('id', $readIds)->with('policies')->get()
+                    ->mapWithKeys(fn (Property $p): array => [(string) $p->getKey() => trans_choice('livewire/units-list.arrival_lead', ArrivalPack::leadDays($p), ['count' => ArrivalPack::leadDays($p)])])
+                    ->all(),
             ],
         ]);
     }

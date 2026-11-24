@@ -52,6 +52,7 @@ function termsCheckoutBody(array $s, array $overrides = []): array
         'payment_option' => 'on_arrival',
         'terms_accepted' => '1',
         'terms_version' => BookingTerms::for(Property::query()->findOrFail($s['property']->id), '2026-09-01')['version'],
+        ...checkoutFormToken(),
     ], $overrides);
 }
 

@@ -93,8 +93,11 @@ class StorefrontSitemapController extends Controller
                 //    beyond `where` → `whereIn`.
                 // ⚠️ ADMIN 01 · PHASE 2 — withTrashed: an ARCHIVED organisation's properties leave the sitemap too.
                 //    The default query skipped the soft-deleted row, so its id was never excluded.
+                // ⚠️⚠️ VY-08 (2026-11-24) — AND NEVER ONE OF VYROBEL'S OWN TEST ORGANISATIONS (`is_internal`). The internal test tenant's
+                //    fictional villa and its landing page were the only two entries of this file on production. The answer is the one
+                //    StorefrontSeo::indexable() gives the page's own robots tag, so the sitemap cannot list a page that says noindex.
                 ->whereNotIn('organization_id', Organization::withTrashed()
-                    ->where(fn ($q) => $q->whereIn('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull('deleted_at'))
+                    ->where(fn ($q) => $q->whereIn('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull('deleted_at')->orWhere('is_internal', true))
                     ->pluck('id'))
                 ->orderBy('slug')
                 ->get();
@@ -131,6 +134,7 @@ class StorefrontSitemapController extends Controller
                 //    escape — so the bare call did nothing but list deleted organisations.
                 $organizations = Organization::query()
                     ->whereIn('id', array_keys($sellableOrgIds))
+                    // (VY-08: an internal organisation never reaches this list — its properties were left out above, so it has no sellable one.)
                     ->whereIn('status', ['trialing', 'active'])
                     ->orderBy('slug')
                     ->get();

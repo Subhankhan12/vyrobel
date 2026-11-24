@@ -1,0 +1,160 @@
+<?php
+// READ-ONLY: run from the STAGED release (stdin), AFTER its two additive migrations — the audit P1 fixes of 2026-11-24 (VY-02 … VY-08).
+//   /opt/alt/php84/usr/bin/php < preflight-audit-p1.php   (cwd = the staged release)
+// It compiles every Blade view in memory and token-parses the PHP it makes, loads the new classes, checks the new routes' controllers, the
+// two migration files and their columns, a sample of the new texts in every language, and TIMES the three new read paths on the production
+// database. It writes NOTHING: no INSERT, UPDATE or DELETE, no cache write. It prints counts, timings and yes/no only — never a name, an
+// address, a code or a price.
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION];
+
+// ── 1 · every view compiles AND parses ───────────────────────────────────────────────────────────────────────────────────────
+$compiler = $app->make('blade.compiler');
+$n = 0;
+$bad = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd().'/resources/views', FilesystemIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    if (! str_ends_with($f->getPathname(), '.blade.php')) {
+        continue;
+    }
+    $n++;
+    try {
+        token_get_all($compiler->compileString((string) file_get_contents($f->getPathname())), TOKEN_PARSE);
+    } catch (Throwable $e) {
+        $bad[] = str_replace(getcwd().'/', '', $f->getPathname());
+    }
+}
+$out['views_parsed'] = $n;
+$out['views_failed'] = $bad;
+
+// ── 2 · the new pieces load ──────────────────────────────────────────────────────────────────────────────────────────────────
+$out['classes'] = [
+    'RoomCapacity::ifRemoved' => method_exists(App\Support\Inventory\RoomCapacity::class, 'ifRemoved'),
+    'RoomCapacity::overbooked' => method_exists(App\Support\Inventory\RoomCapacity::class, 'overbooked'),
+    'CalendarHorizon::extend' => method_exists(App\Support\Inventory\CalendarHorizon::class, 'extend'),
+    'CalendarHorizon::shortfalls' => method_exists(App\Support\Inventory\CalendarHorizon::class, 'shortfalls'),
+    'InventoryOversoldException' => class_exists(App\Exceptions\Booking\InventoryOversoldException::class),
+    'PropertyScope::reservation' => method_exists(App\Support\Property\PropertyScope::class, 'reservation'),
+    'PropertyScope::changeRequest' => method_exists(App\Support\Property\PropertyScope::class, 'changeRequest'),
+    'ArrivalPack::leadDays' => method_exists(App\Support\Guest\ArrivalPack::class, 'leadDays'),
+    'StorefrontSeo::indexable' => method_exists(App\Support\Storefront\StorefrontSeo::class, 'indexable'),
+    'availability:extend registered' => array_key_exists('availability:extend', $app->make(Illuminate\Contracts\Console\Kernel::class)->all()),
+];
+$out['views_present'] = [
+    'operator.out-of-order-confirm' => is_file(getcwd().'/resources/views/operator/out-of-order-confirm.blade.php'),
+];
+$out['routes'] = [];
+foreach (['booking.reserve', 'booking.checkout', 'app.maintenance.store', 'app.settings.policies', 'app.reservations.show', 'app.front-desk.check-in', 'app.reservations.folio-pdf'] as $r) {
+    $out['routes'][$r] = Route::has($r);
+}
+$scheduled = false;
+foreach ($app->make(Illuminate\Console\Scheduling\Schedule::class)->events() as $event) {
+    if (is_string($event->command ?? null) && str_contains($event->command, 'availability:extend')) {
+        $scheduled = $event->expression;
+    }
+}
+$out['availability:extend on the schedule'] = $scheduled;
+
+// ── 3 · the two additive migrations: files, and (when they have run) their columns ───────────────────────────────────────────
+$out['migration_files'] = [
+    'checkout_token' => is_file(getcwd().'/database/migrations/2026_11_24_000000_add_checkout_token_to_booking_quotes.php'),
+    'arrival_rules' => is_file(getcwd().'/database/migrations/2026_11_24_000100_add_arrival_release_rules_to_property_policies.php'),
+];
+$out['columns'] = [
+    'booking_quotes.checkout_token' => Schema::hasColumn('booking_quotes', 'checkout_token'),
+    'property_policies.arrival_lead_days' => Schema::hasColumn('property_policies', 'arrival_lead_days'),
+    'property_policies.arrival_requires_paid' => Schema::hasColumn('property_policies', 'arrival_requires_paid'),
+    'property_policies.arrival_requires_checkin' => Schema::hasColumn('property_policies', 'arrival_requires_checkin'),
+];
+$out['pending_migrations'] = count(array_diff(
+    array_map(fn ($f) => basename($f, '.php'), glob(getcwd().'/database/migrations/*.php') ?: []),
+    DB::table('migrations')->pluck('migration')->all(),
+));
+
+// ── 4 · a sample of the new texts, in every language (present, and not the raw key) ───────────────────────────────────────────
+$keys = [
+    'livewire/operator/operator-settings.arrival_heading', 'livewire/operator/operator-settings.arrival_requires_paid',
+    'livewire/operator/operator-settings.arrival_help', 'livewire/reservation-rack.overbooked_on',
+    'operator/out-of-order-confirm.page_title', 'operator/out-of-order-confirm.peak_line', 'operator/out-of-order-confirm.nights_line',
+    'operator/out-of-order-confirm.nothing_saved', 'operator/out-of-order-confirm.confirm',
+    'php/http/controllers/booking_engine_controller.checkout_page_stale',
+    'php/support/guest/arrival_pack.pay_first', 'php/support/guest/arrival_pack.check_in_first',
+    'php/support/platform/health/health_board.title_calendar', 'php/support/platform/health/health_board.calendar_short_line',
+    'php/support/help/help_knowledge_base.guest_door_code_answer',
+];
+$missing = [];
+$locales = array_values(array_unique(array_merge(['en'], (array) config('app.available_locales'))));
+foreach ($locales as $l) {
+    foreach ($keys as $k) {
+        if (! Lang::hasForLocale($k, $l) || Lang::get($k, [], $l) === $k) {
+            $missing[] = $l.':'.$k;
+        }
+    }
+}
+$out['languages_checked'] = count($locales);
+$out['texts_checked'] = count($keys);
+$out['texts_missing'] = $missing;
+
+// ── 5 · what the fixes will meet on production — COUNTS ONLY ─────────────────────────────────────────────────────────────────
+$out['organisations'] = (int) DB::table('organizations')->whereNull('deleted_at')->count();
+$out['organisations_marked_internal'] = (int) DB::table('organizations')->whereNull('deleted_at')->where('is_internal', true)->count();
+$out['organisations_not_marked'] = $out['organisations'] - $out['organisations_marked_internal'];
+$out['active_properties_of_internal_orgs'] = (int) DB::table('properties as p')->join('organizations as o', 'o.id', '=', 'p.organization_id')
+    ->whereNull('p.deleted_at')->whereNull('o.deleted_at')->where('o.is_internal', true)->where('p.status', 'active')->count();
+$out['room_types'] = (int) DB::table('room_types')->whereNull('deleted_at')->count();
+$out['availability_rows'] = (int) DB::table('availability')->count();
+$out['policy_rows'] = (int) DB::table('property_policies')->whereNull('deleted_at')->count();
+$out['booking_quotes'] = (int) DB::table('booking_quotes')->count();
+$out['staff_with_a_property_allow_list'] = (int) DB::table('property_user')->distinct()->count('user_id');
+
+// ── 6 · the new read paths, TIMED on this database (the lesson of the 118-second delete preview) ─────────────────────────────
+$time = function (callable $read): array {
+    $t = microtime(true);
+    $value = $read();
+
+    return ['ms' => (int) round((microtime(true) - $t) * 1000), 'value' => $value];
+};
+$horizon = $app->make(App\Support\Inventory\CalendarHorizon::class);
+$short = $time(fn () => $horizon->shortfalls());
+$out['calendar_shortfalls_ms'] = $short['ms'];
+$out['room_types_short_of_a_year'] = count($short['value']);
+$out['shortest_calendar_days_ahead'] = $short['value'] === [] ? null : min(array_column($short['value'], 'days_ahead'));
+$out['largest_gap_days'] = $short['value'] === [] ? 0 : max(array_column($short['value'], 'short_by'));
+
+$tenant = $app->make(App\Support\Tenancy\TenantContext::class);
+$from = Carbon\CarbonImmutable::today()->toDateString();
+$to = Carbon\CarbonImmutable::today()->addDays(60)->toDateString();
+$capacityMs = 0;
+$overbookedNights = 0;
+$checked = 0;
+foreach (DB::table('room_types')->whereNull('deleted_at')->limit(40)->get(['id', 'organization_id']) as $rt) {
+    $r = $time(fn () => $tenant->forOrganization((string) $rt->organization_id, fn () => App\Support\Inventory\RoomCapacity::overbooked((string) $rt->id, $from, $to)));
+    $capacityMs += $r['ms'];
+    $overbookedNights += count($r['value']);
+    $checked++;
+}
+$out['room_capacity_checked'] = $checked;
+$out['room_capacity_total_ms'] = $capacityMs;
+$out['overbooked_nights_next_60_days'] = $overbookedNights;
+
+$card = $time(function () use ($app) {
+    foreach ($app->make(App\Support\Platform\Health\HealthBoard::class)->cards() as $c) {
+        if ($c->key === 'calendar') {
+            return $c->status;
+        }
+    }
+
+    return 'absent';
+});
+$out['health_board_all_cards_ms'] = $card['ms'];
+$out['health_card_calendar'] = $card['value'];
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), "\n";

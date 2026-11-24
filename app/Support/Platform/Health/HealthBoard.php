@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Platform\Health;
 
 use App\Support\I18n\LocalDate;
+use App\Support\Inventory\CalendarHorizon;
 use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Mail\MailSendLog;
@@ -44,6 +45,7 @@ final class HealthBoard
             $this->guard('mail', $this->title('mail'), fn () => $this->mail()),
             $this->guard('queue', $this->title('queue'), fn () => $this->queue()),
             $this->guard('scheduler', $this->title('scheduler'), fn () => $this->scheduler()),
+            $this->guard('calendar', $this->title('calendar'), fn () => $this->calendar()),
             $this->guard('errors', $this->title('errors'), fn () => $this->errors()),
             $this->guard('release', $this->title('release'), fn () => $this->release()),
             $this->guard('config', $this->title('config'), fn () => $this->config()),
@@ -266,6 +268,34 @@ final class HealthBoard
         return new HealthCard('scheduler', $this->title('scheduler'), HealthCard::GREEN, __('php/support/platform/health/health_board.scheduler_watched'), $lines);
     }
 
+    /**
+     * VY-07 (2026-11-24) — IS THE BOOKABLE CALENDAR STILL A YEAR AHEAD? Read by its OWN query ({@see CalendarHorizon::shortfalls()}),
+     * never from the job's report: the daily `availability:extend` cannot say that it did not run. Counts and days only.
+     */
+    private function calendar(): HealthCard
+    {
+        $horizon = app(CalendarHorizon::class);
+        $count = $horizon->roomTypeCount();
+        $short = $horizon->shortfalls();
+
+        $lines = [trans_choice('php/support/platform/health/health_board.calendar_room_types', $count, ['count' => $count])];
+
+        if ($short === []) {
+            return new HealthCard('calendar', $this->title('calendar'), HealthCard::GREEN,
+                __('php/support/platform/health/health_board.calendar_ok', ['days' => CalendarHorizon::DAYS]), $lines);
+        }
+
+        $worst = $short[0];
+        $lines[] = trans_choice('php/support/platform/health/health_board.calendar_short_line', count($short), [
+            'count' => count($short), 'days' => $worst['days_ahead'], 'target' => CalendarHorizon::DAYS,
+        ]);
+
+        return new HealthCard('calendar', $this->title('calendar'),
+            $worst['short_by'] > CalendarHorizon::RED_AFTER_DAYS ? HealthCard::RED : HealthCard::AMBER,
+            __('php/support/platform/health/health_board.calendar_short'), $lines,
+            __('php/support/platform/health/health_board.calendar_note'));
+    }
+
     private function errors(): HealthCard
     {
         $counts = LogErrorCounter::lastDay();
@@ -374,6 +404,7 @@ final class HealthBoard
             'mail' => __('php/support/platform/health/health_board.title_mail'),
             'queue' => __('php/support/platform/health/health_board.title_queue'),
             'scheduler' => __('php/support/platform/health/health_board.title_scheduler'),
+            'calendar' => __('php/support/platform/health/health_board.title_calendar'),
             'errors' => __('php/support/platform/health/health_board.title_errors'),
             'release' => __('php/support/platform/health/health_board.title_release'),
             'config' => __('php/support/platform/health/health_board.title_config'),

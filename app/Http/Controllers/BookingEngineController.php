@@ -34,11 +34,13 @@ use App\Support\Reviews\ReviewRating;
 use App\Support\Storefront\StorefrontSeo;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -49,6 +51,12 @@ use Illuminate\Validation\ValidationException;
  */
 class BookingEngineController extends Controller
 {
+    /** VY-04 — the length of the checkout page's one-time token (letters and digits). */
+    public const CHECKOUT_TOKEN_LENGTH = 40;
+
+    /** VY-04 — how long a repeated POST waits for the first one to finish before giving up (the first normally takes well under a second). */
+    private const REPEAT_WAIT_SECONDS = 6.0;
+
     public function __construct(
         private readonly BookingEngineService $engine,
         private readonly FolioService $folios,
@@ -433,6 +441,8 @@ class BookingEngineController extends Controller
             // BOOKING TERMS (his ruling 2026-11-14, option B): the ONE builder the proof of acceptance is also made from. The version
             // travels in the form, so what is stored is exactly what THIS page showed.
             'terms' => BookingTerms::for($property, $checkIn),
+            // VY-04 — the page's ONE-TIME token: a fresh one every time the page is shown, claimed by the booking it makes (see reserve()).
+            'checkoutToken' => Str::random(self::CHECKOUT_TOKEN_LENGTH),
             'termsUrl' => route('booking.terms', $property->slug),
             'privacyUrl' => route('booking.privacy', $property->slug),
             'search' => [
@@ -488,6 +498,17 @@ class BookingEngineController extends Controller
             return back()->withInput($request->except('terms_accepted'))->withErrors(['terms_accepted' => __('php/http/controllers/booking_engine_controller.terms_changed')]);
         }
 
+        // ⚠️⚠️ VY-04 (2026-11-24, reproduced) — ONE CHECKOUT PAGE MAKES ONE BOOKING. The same form posted twice made two confirmed
+        //    reservations and took two units: every POST minted its own quote and booked it. The button locks itself on the first press
+        //    (`data-guard-submit`), but that is the browser's promise, not the server's.
+        //    The page carries a one-time token; the quote stores it under a UNIQUE index (claimed below). A form with no token — a tab
+        //    opened before this existed, a hand-made request — is treated like stale terms: nothing is booked, and the guest gets a fresh
+        //    page with their details kept.
+        $checkoutToken = $request->input('checkout_token');
+        if (! is_string($checkoutToken) || preg_match('/^[A-Za-z0-9]{'.self::CHECKOUT_TOKEN_LENGTH.'}$/', $checkoutToken) !== 1) {
+            return $this->stalePage($request);
+        }
+
         $adults = (int) ($validated['adults'] ?? 2);
         $children = (int) ($validated['children'] ?? 0);
 
@@ -508,18 +529,25 @@ class BookingEngineController extends Controller
         }
 
         // Advisory hold (reserves NO inventory, has an expiry) — a price/availability snapshot only.
-        $quote = $this->engine->quote(
-            $property,
-            $validated['room_type_id'],
-            $validated['rate_plan_id'],
-            $validated['check_in'],
-            $validated['check_out'],
-            $adults,
-            $children,
-            $validated['email'],
-            null,
-            $chosenUnitId,
-        );
+        // ⚠️ VY-04 — AND THE CLAIM. The token goes in with the quote, under its unique index: of two POSTs of one page exactly one insert
+        //    succeeds, whatever their timing. The other is a REPEAT and is sent to the booking the first one made — it books nothing.
+        try {
+            $quote = $this->engine->quote(
+                $property,
+                $validated['room_type_id'],
+                $validated['rate_plan_id'],
+                $validated['check_in'],
+                $validated['check_out'],
+                $adults,
+                $children,
+                $validated['email'],
+                null,
+                $chosenUnitId,
+                $checkoutToken,
+            );
+        } catch (UniqueConstraintViolationException) {
+            return $this->repeatedCheckout($request, $property, $checkoutToken);
+        }
 
         $guestData = [
             'email' => $validated['email'],
@@ -533,6 +561,10 @@ class BookingEngineController extends Controller
         $result = $this->engine->book($quote, 'checkout', $guestData, takePayment: false, terms: $terms);
 
         if ($result['status'] === 'unavailable') {
+            // ⚠️ VY-04 — NOTHING WAS BOOKED, SO THE PAGE IS NOT USED UP: the token is released, and a second press of the same page
+            //    tries again (and is told the same honest thing) instead of being sent to a confirmation that does not exist.
+            $quote->forceFill(['checkout_token' => null])->save();
+
             return $this->soldOutRedirect($property, $validated, $adults, $children);
         }
 
@@ -638,6 +670,55 @@ class BookingEngineController extends Controller
         $wallet->applyToBooking($guest, $reservation, Money::of($apply, (string) $reservation->currency));
 
         return $apply;
+    }
+
+    /**
+     * VY-04 — a checkout form that carries no usable one-time token: nothing is booked; the guest goes back to the page (which prints a
+     * fresh token) with what they typed, minus the tick they must give again.
+     */
+    private function stalePage(Request $request): RedirectResponse
+    {
+        return back()
+            ->withInput($request->except(['terms_accepted', 'checkout_token']))
+            ->with('booking_error', __('php/http/controllers/booking_engine_controller.checkout_page_stale'));
+    }
+
+    /**
+     * VY-04 — THE SECOND POST OF ONE CHECKOUT PAGE. The first POST holds the token (the unique index refused this one's quote), so this
+     * request books NOTHING. It answers with what the first one did:
+     *   · the first booked            → the SAME confirmation page (one reference, shown twice);
+     *   · the first is still working  → wait for it, briefly, then the same;
+     *   · the first could not book    → it released the token: nothing holds it any more, and the guest gets a fresh page.
+     *
+     * ⚠️ THE LOOKUP IS INSIDE THIS PROPERTY. A token replayed on another property finds nothing here and is treated as a stale page —
+     *    never a redirect to the other property's booking.
+     */
+    private function repeatedCheckout(Request $request, Property $property, string $token): RedirectResponse
+    {
+        $deadline = microtime(true) + self::REPEAT_WAIT_SECONDS;
+
+        do {
+            $first = BookingQuote::query()
+                ->where('property_id', $property->getKey())
+                ->where('checkout_token', $token)
+                ->first();
+
+            if ($first === null) {
+                // Nothing on THIS property holds the token: the first attempt has just released it (it could not book), or the token was
+                // made on another property. Either way this page books nothing — the guest gets a fresh one and, if they confirm again,
+                // the real answer of a real attempt.
+                return $this->stalePage($request);
+            }
+
+            if ($first->status === BookingQuote::STATUS_CONVERTED) {
+                return redirect()->to(route('booking.reservation', [$property->slug, $first->getKey()]));
+            }
+
+            usleep(200_000);
+        } while (microtime(true) < $deadline);
+
+        // The first request never finished (it failed part-way). Nothing more is booked from this page; the guest starts a fresh one.
+        return $this->stalePage($request);
     }
 
     /**

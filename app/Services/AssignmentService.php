@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
+use App\Exceptions\Booking\InventoryOversoldException;
 use App\Exceptions\Booking\ReservationAlreadyTerminalException;
 use App\Exceptions\Booking\ReservationInProgressException;
 use App\Exceptions\Booking\ReservationTerminalModificationException;
@@ -26,6 +27,7 @@ use App\Support\Booking\RestrictionGuard;
 use App\Support\Booking\RestrictionOverrideReason;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Inventory\RoomCapacity;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -694,7 +696,10 @@ class AssignmentService
      * reservation_unit on the same unit; enforcement lives in AssignmentService"). It throws
      * {@see UnitUnavailableException} on an overlapping reservation (`occupied`) or an existing block
      * (`blocked`), and its row locks are held to commit, so a concurrent booking/block can't slip in.
-     * Room-type-level blocks (unit_id null) have no specific unit to check and are unchanged.
+     * Room-type-level blocks (unit_id null) have no specific unit to check.
+     *
+     * ⚠️ EVERY block — unit or room type — is also refused with {@see InventoryOversoldException} when it would leave more bookings
+     * than rooms on any of its nights (VY-03). That exception IS a `UnitUnavailableException`, so existing callers already handle it.
      *
      * @param  array<string, mixed>  $attributes
      */
@@ -703,11 +708,33 @@ class AssignmentService
         $unitId = $attributes['unit_id'] ?? null;
 
         $block = DB::transaction(function () use ($attributes, $unitId): InventoryBlock {
+            // ⚠️⚠️ VY-03 (2026-11-24, reproduced) — A BLOCK MAY NOT TAKE A ROOM THE BOOKINGS ALREADY NEED. `assertUnitFree()` below only
+            //    asks whether THIS unit has a stay on it; a booking with no room assigned yet sits on no unit, so the last free unit of a
+            //    fully booked room type could be blocked with no error, leaving that booking with no room (and the stored figure clamped
+            //    to a quiet 0). The nights are read FOR UPDATE — the same rows, in the same order, a booking locks first — so a booking and
+            //    a block cannot both take the last room; the rooms are then counted against the bookings ({@see RoomCapacity}).
+            $roomTypeId = $attributes['room_type_id'] ?? ($unitId !== null ? Unit::query()->whereKey($unitId)->value('room_type_id') : null);
+            $impact = is_string($roomTypeId) && $roomTypeId !== ''
+                ? RoomCapacity::ifRemoved($roomTypeId, $unitId === null ? null : (string) $unitId, $attributes['start_date'], $attributes['end_date'], lock: true)
+                : null;
+
             if ($unitId !== null) {
                 $this->assertUnitFree((string) $unitId, $attributes['start_date'], $attributes['end_date'], null);
             }
 
-            return InventoryBlock::create($attributes);
+            if ($impact !== null && $impact['nights'] > 0) {
+                throw InventoryOversoldException::forImpact('This block', $impact);
+            }
+
+            $block = InventoryBlock::create($attributes);
+
+            // ⚠️ AND `blocked` IS RECOMPUTED HERE, UNDER THE SAME LOCK — not only by the event after the commit. Between the two a booking
+            //    could read the old figure and take the room this block has just taken. (The event's recompute then finds nothing to change.)
+            if (is_string($roomTypeId) && $roomTypeId !== '') {
+                app(AvailabilityService::class)->recompute($roomTypeId, $attributes['start_date'], $attributes['end_date']);
+            }
+
+            return $block;
         });
 
         $roomTypeId = $block->room_type_id ?? $block->unit?->room_type_id;

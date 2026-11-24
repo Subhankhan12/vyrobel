@@ -181,7 +181,8 @@ it('shows a real arrival tonight affected by the out-of-order block', function (
     ReservationUnit::query()->where('unit_id', $s['units'][0]->id)->update(['check_in' => CarbonImmutable::now()->toDateString()]);
 
     // Take the unit out of service via an OOS ticket (the certified path genuinely blocks it).
-    $ticket = workOrder($s, ['title' => 'Flood', 'takes_out_of_service' => true]);
+    // (VY-03, 2026-11-24: it is the only unit and it is booked, so the operator was shown the booking and went ahead — `acknowledge_oversell`.)
+    $ticket = workOrder($s, ['title' => 'Flood', 'takes_out_of_service' => true, 'acknowledge_oversell' => true]);
     expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');
 
     $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")
