@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Buka reservasi Anda dan selesaikan “Check-in online” — hanya butuh beberapa menit dan membantu properti bersiap menyambut Anda. Langkah ini mencatat bahwa Anda sudah check-in online; resepsionis tetap menyelesaikan check-in resmi saat Anda tiba.',
     'guest_checkin_label' => 'Perjalanan Anda',
     'guest_door_code_question' => 'Kapan saya mendapatkan kode pintu dan detail Wi-Fi?',
-    'guest_door_code_answer' => '{1}Kode masuk dan detail Wi-Fi Anda muncul di halaman “Info kedatangan” :count hari sebelum check-in, dan tetap tersedia hingga Anda check-out. Sebelum itu, halaman tersebut menunjukkan tanggal detail itu dapat dilihat — ini bukan keterlambatan yang perlu Anda tanyakan.|[0,*]Kode masuk dan detail Wi-Fi Anda muncul di halaman “Info kedatangan” :count hari sebelum check-in, dan tetap tersedia hingga Anda check-out. Sebelum itu, halaman tersebut menunjukkan tanggal detail itu dapat dilihat — ini bukan keterlambatan yang perlu Anda tanyakan.',
+    'guest_door_code_answer' => 'Kode masuk dan detail Wi-Fi Anda muncul di halaman “Info kedatangan” beberapa hari sebelum check-in — jumlah harinya ditentukan properti — dan tetap tersedia hingga Anda check-out. Beberapa properti baru menampilkannya setelah sisa tagihan Anda dibayar atau check-in online selesai. Sebelum itu, halaman tersebut menunjukkan tanggal detail itu dapat dilihat, atau apa yang masih diperlukan.',
     'guest_door_code_label' => 'Perjalanan Anda',
     'category_payments' => 'Pembayaran',
     'guest_pay_balance_question' => 'Bagaimana cara membayar sisa tagihan reservasi saya?',

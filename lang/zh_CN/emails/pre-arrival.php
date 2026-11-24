@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '入住时需支付余额 <strong style="color:#2B2320;">:balance</strong>——现在付款，到店即可免去前台付款。',
     'message_us_line' => '到店前有任何需要？只需<a href=":url" style="color:#C2410C; text-decoration:underline;">给我们发消息</a>——我们很乐意为您提供帮助。',
     'keep_safe' => '请妥善保管此邮件——其中包含您的门锁密码。预订号 <strong style="color:#2B2320;">:reference</strong>。',
+    'reference_line' => '预订号 <strong style="color:#2B2320;">:reference</strong>。',
     'view_booking' => '查看您的预订',
     'online_checkin' => '在线办理入住',
 ];

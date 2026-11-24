@@ -25,6 +25,7 @@ return [
     'room_type' => 'Tipologia',
     'units' => '{1} :count unità|[0,*] :count unità',
     'available_on' => 'Unità disponibili: :count · :date',
+    'overbooked_on' => 'Overbooking di :count il :date: più prenotazioni che camere',
     'available_on_no_price' => 'Unità disponibili: :count · :date — ancora senza prezzo, quindi non prenotabili qui',
     'sleeps' => 'Posti letto: :count',
     'state_not_accepting' => ':state — non accetta nuove prenotazioni',

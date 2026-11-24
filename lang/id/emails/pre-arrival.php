@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Sisa tagihan <strong style="color:#2B2320;">:balance</strong> dibayar saat check-in — bayar sekarang agar tidak perlu antre di resepsionis.',
     'message_us_line' => 'Ada yang Anda perlukan sebelum tiba? Cukup <a href=":url" style="color:#C2410C; text-decoration:underline;">kirim pesan kepada kami</a> — kami siap membantu.',
     'keep_safe' => 'Simpan email ini baik-baik — kode pintu Anda ada di dalamnya. Reservasi <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Reservasi <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Lihat reservasi Anda',
     'online_checkin' => 'Check-in online',
 ];

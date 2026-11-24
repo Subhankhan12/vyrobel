@@ -25,6 +25,7 @@ return [
     'room_type' => 'Tip de cameră',
     'units' => '{1}:count unitate|:count unități|:count de unități',
     'available_on' => 'Libere pe :date: :count',
+    'overbooked_on' => 'Suprarezervare de :count pe :date — mai multe rezervări decât camere',
     'available_on_no_price' => 'Libere pe :date: :count — încă fără preț, deci nu pot fi rezervate aici',
     'sleeps' => 'Capacitate: :count',
     'state_not_accepting' => ':state — nu acceptă rezervări noi',

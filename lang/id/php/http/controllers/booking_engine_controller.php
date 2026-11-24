@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Pemberitahuan privasi — :property',
     'terms_required' => 'Silakan setujui ketentuan reservasi dan pemberitahuan privasi untuk melanjutkan.',
     'terms_changed' => 'Properti telah memperbarui ketentuan reservasinya. Silakan baca kembali dan setujui untuk melanjutkan.',
+    'checkout_page_stale' => 'Halaman ini sudah terbuka cukup lama dan tidak lagi mutakhir. Silakan periksa data Anda dan konfirmasi kembali.',
 ];

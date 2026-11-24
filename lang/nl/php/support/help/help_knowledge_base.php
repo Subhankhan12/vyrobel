@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Open uw reservering en rond “Online inchecken” af — het duurt een paar minuten en zo kan de accommodatie zich op uw komst voorbereiden. Hiermee wordt vastgelegd dat u online bent ingecheckt; de receptie handelt bij uw aankomst nog wel de officiële check-in af.',
     'guest_checkin_label' => 'Uw reizen',
     'guest_door_code_question' => 'Wanneer krijg ik mijn deurcode en wifi-gegevens?',
-    'guest_door_code_answer' => '{1} Uw toegangscode en wifi-gegevens verschijnen :count dag vóór aankomst op de pagina “Aankomstinformatie” en blijven beschikbaar tot u uitcheckt. Daarvoor toont de pagina de datum waarop ze zichtbaar worden — het is geen vertraging waar u naar hoeft te vragen.|[0,*] Uw toegangscode en wifi-gegevens verschijnen :count dagen vóór aankomst op de pagina “Aankomstinformatie” en blijven beschikbaar tot u uitcheckt. Daarvoor toont de pagina de datum waarop ze zichtbaar worden — het is geen vertraging waar u naar hoeft te vragen.',
+    'guest_door_code_answer' => 'Uw toegangscode en wifi-gegevens verschijnen enkele dagen vóór aankomst op de pagina “Aankomstinformatie” — de accommodatie bepaalt hoeveel — en blijven beschikbaar tot u uitcheckt. Sommige accommodaties geven ze pas vrij als uw saldo is betaald of het online inchecken is afgerond. Tot die tijd toont de pagina de datum waarop ze zichtbaar worden, of wat er nog nodig is.',
     'guest_door_code_label' => 'Uw reizen',
     'category_payments' => 'Betalingen',
     'guest_pay_balance_question' => 'Hoe betaal ik het openstaande bedrag van mijn reservering?',

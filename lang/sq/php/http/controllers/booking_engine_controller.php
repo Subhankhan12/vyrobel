@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Njoftimi i privatësisë — :property',
     'terms_required' => 'Për të vazhduar, pranoni kushtet e rezervimit dhe njoftimin e privatësisë.',
     'terms_changed' => 'Struktura ka përditësuar kushtet e saj të rezervimit. Lexojini sërish dhe pranojini për të vazhduar.',
+    'checkout_page_stale' => 'Kjo faqe ka qëndruar hapur për ca kohë dhe nuk është më e përditësuar. Kontrolloni të dhënat tuaja dhe konfirmoni sërish.',
 ];

@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Notice de confidentialité — :property',
     'terms_required' => 'Acceptez les conditions de réservation et la notice de confidentialité pour continuer.',
     'terms_changed' => 'L’établissement a mis à jour ses conditions de réservation. Lisez-les à nouveau et acceptez-les pour continuer.',
+    'checkout_page_stale' => 'Cette page est restée ouverte un moment et n’est plus à jour. Vérifiez vos informations et confirmez à nouveau.',
 ];

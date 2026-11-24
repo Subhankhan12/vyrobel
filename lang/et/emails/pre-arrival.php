@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Sisseregistreerimisel tuleb tasuda <strong style="color:#2B2320;">:balance</strong> — makske kohe ja jätke vastuvõtt vahele.',
     'message_us_line' => 'Vajate enne saabumist midagi? <a href=":url" style="color:#C2410C; text-decoration:underline;">Kirjutage meile</a> — aitame hea meelega.',
     'keep_safe' => 'Hoidke see e-kiri alles — selles on teie uksekood. Broneering <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Broneering <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Vaata oma broneeringut',
     'online_checkin' => 'Sisseregistreerimine veebis',
 ];

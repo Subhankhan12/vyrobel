@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Avage oma broneering ja täitke „Sisseregistreerimine veebis“ — see võtab paar minutit ja lubab majutusasutusel teie saabumiseks valmistuda. See märgib, et olete veebis sisse registreerinud; ametliku sisseregistreerimise viib vastuvõtt endiselt lõpule teie saabumisel.',
     'guest_checkin_label' => 'Teie reisid',
     'guest_door_code_question' => 'Millal saan uksekoodi ja Wi-Fi andmed?',
-    'guest_door_code_answer' => '{1}Teie uksekood ja Wi-Fi andmed ilmuvad lehele „Saabumisinfo“ :count päev enne sisseregistreerimist ja jäävad kättesaadavaks kuni väljaregistreerimiseni. Enne seda näitab leht, millal need avanevad — see ei ole viivitus, mille kohta peaksite küsima.|[0,*]Teie uksekood ja Wi-Fi andmed ilmuvad lehele „Saabumisinfo“ :count päeva enne sisseregistreerimist ja jäävad kättesaadavaks kuni väljaregistreerimiseni. Enne seda näitab leht, millal need avanevad — see ei ole viivitus, mille kohta peaksite küsima.',
+    'guest_door_code_answer' => 'Teie uksekood ja Wi-Fi andmed ilmuvad lehele „Saabumisinfo“ mõni päev enne sisseregistreerimist — mitu päeva, otsustab majutusasutus — ja jäävad kättesaadavaks kuni väljaregistreerimiseni. Mõni majutusasutus avab need alles siis, kui tasumata summa on makstud või veebis sisseregistreerimine tehtud. Seni näitab leht, millal need avanevad või mida on veel vaja.',
     'guest_door_code_label' => 'Teie reisid',
     'category_payments' => 'Maksed',
     'guest_pay_balance_question' => 'Kuidas tasuda oma broneeringu tasumata summa?',

@@ -25,6 +25,7 @@ return [
     'room_type' => 'Toatüüp',
     'units' => '{1}:count majutusüksus|[0,*]:count majutusüksust',
     'available_on' => 'Kuupäeval :date vabu: :count',
+    'overbooked_on' => 'Kuupäeval :date ülebroneeritud :count võrra — broneeringuid on rohkem kui tube',
     'available_on_no_price' => 'Kuupäeval :date vabu: :count — hinda veel pole, seega ei saa siin broneerida',
     'sleeps' => 'Mahutavus: :count',
     'state_not_accepting' => ':state — uusi broneeringuid ei võeta vastu',

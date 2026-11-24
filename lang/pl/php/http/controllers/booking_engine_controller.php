@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Zasady ochrony prywatności – :property',
     'terms_required' => 'Aby kontynuować, należy zaakceptować warunki rezerwacji i zasady ochrony prywatności.',
     'terms_changed' => 'Obiekt zaktualizował warunki rezerwacji. Aby kontynuować, należy przeczytać je ponownie i zaakceptować.',
+    'checkout_page_stale' => 'Ta strona była otwarta przez dłuższy czas i jest nieaktualna. Sprawdź swoje dane i potwierdź ponownie.',
 ];

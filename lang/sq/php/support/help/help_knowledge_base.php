@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Hapni rezervimin tuaj dhe plotësoni formularin «Check-in online» — kërkon disa minuta dhe i lejon strukturës akomoduese të përgatitet për ju. Evidenton se keni bërë check-in online; recepsioni kryen ende check-in zyrtar kur mbërrini.',
     'guest_checkin_label' => 'Udhëtimet tuaja',
     'guest_door_code_question' => 'Kur i marr kodin e derës dhe të dhënat e Wi-Fi?',
-    'guest_door_code_answer' => '{1}Kodi i hyrjes dhe të dhënat e Wi-Fi shfaqen në faqen «Informacion për mbërritjen» :count ditë para mbërritjes dhe mbeten të disponueshme deri në check-out. Para kësaj, faqja ju tregon datën kur zhbllokohen — nuk është vonesë për të cilën duhet të pyesni.|[0,*]Kodi i hyrjes dhe të dhënat e Wi-Fi shfaqen në faqen «Informacion për mbërritjen» :count ditë para mbërritjes dhe mbeten të disponueshme deri në check-out. Para kësaj, faqja ju tregon datën kur zhbllokohen — nuk është vonesë për të cilën duhet të pyesni.',
+    'guest_door_code_answer' => 'Kodi i hyrjes dhe të dhënat e Wi-Fi shfaqen në faqen «Informacion për mbërritjen» disa ditë para mbërritjes — sa ditë, e vendos struktura — dhe mbeten të disponueshme deri në check-out. Disa struktura i shfaqin vetëm pasi të jetë paguar detyrimi ose të jetë kryer check-in online. Deri atëherë, faqja ju tregon datën kur zhbllokohen, ose çfarë nevojitet ende.',
     'guest_door_code_label' => 'Udhëtimet tuaja',
     'category_payments' => 'Pagesat',
     'guest_pay_balance_question' => 'Si e paguaj detyrimin e mbetur të rezervimit tim?',

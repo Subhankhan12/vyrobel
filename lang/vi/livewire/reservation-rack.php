@@ -25,6 +25,7 @@ return [
     'room_type' => 'Loại phòng',
     'units' => '{1}:count phòng|[0,*]:count phòng',
     'available_on' => ':count phòng trống vào :date',
+    'overbooked_on' => 'Quá tải :count phòng vào :date — số đặt phòng nhiều hơn số phòng',
     'available_on_no_price' => ':count phòng trống vào :date — chưa có giá nên không thể đặt tại đây',
     'sleeps' => 'Sức chứa :count',
     'state_not_accepting' => ':state — không nhận đặt phòng mới',

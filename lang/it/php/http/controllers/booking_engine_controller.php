@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Informativa sulla privacy — :property',
     'terms_required' => 'Per continuare, accetti le condizioni di prenotazione e l’informativa sulla privacy.',
     'terms_changed' => 'La struttura ha aggiornato le proprie condizioni di prenotazione. Le rilegga e le accetti per continuare.',
+    'checkout_page_stale' => 'Questa pagina è rimasta aperta a lungo e non è più aggiornata. Controlli i dati e confermi di nuovo.',
 ];

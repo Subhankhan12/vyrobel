@@ -25,6 +25,7 @@ return [
     'room_type' => 'ოთახის ტიპი',
     'units' => '{1}:count ერთეული|[0,*]:count ერთეული',
     'available_on' => 'თავისუფალია: :count (:date)',
+    'overbooked_on' => 'გადაჭარბებული ჯავშანი: :count (:date) – ჯავშნები ოთახებზე მეტია',
     'available_on_no_price' => 'თავისუფალია: :count (:date) – ფასი ჯერ არ არის, ამიტომ აქ დაჯავშნა შეუძლებელია',
     'sleeps' => 'ტევადობა: :count',
     'state_not_accepting' => 'მდგომარეობა: :state – ახალი ჯავშნები არ მიიღება',

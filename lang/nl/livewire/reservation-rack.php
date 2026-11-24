@@ -25,6 +25,7 @@ return [
     'room_type' => 'Kamertype',
     'units' => '{1} :count eenheid|[0,*] :count eenheden',
     'available_on' => 'Beschikbaar op :date: :count',
+    'overbooked_on' => 'Op :date :count overboekt — meer reserveringen dan kamers',
     'available_on_no_price' => 'Beschikbaar op :date: :count — nog geen prijs, dus hier niet te boeken',
     'sleeps' => 'Max. :count pers.',
     'state_not_accepting' => ':state — neemt geen nieuwe reserveringen aan',

@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'ยอดค้างชำระ <strong style="color:#2B2320;">:balance</strong> ต้องชำระเมื่อเช็กอิน — ชำระตอนนี้เพื่อไม่ต้องแวะที่แผนกต้อนรับ',
     'message_us_line' => 'ต้องการสิ่งใดก่อนมาถึงหรือไม่? <a href=":url" style="color:#C2410C; text-decoration:underline;">ส่งข้อความถึงเรา</a> ได้เลย — เรายินดีช่วยเหลือ',
     'keep_safe' => 'โปรดเก็บอีเมลนี้ไว้ให้ดี — มีรหัสประตูของคุณอยู่ในอีเมลนี้ หมายเลขการจอง <strong style="color:#2B2320;">:reference</strong>',
+    'reference_line' => 'หมายเลขการจอง <strong style="color:#2B2320;">:reference</strong>',
     'view_booking' => 'ดูการจองของคุณ',
     'online_checkin' => 'เช็กอินออนไลน์',
 ];

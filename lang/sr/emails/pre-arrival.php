@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'За плаћање по доласку: <strong style="color:#2B2320;">:balance</strong> – платите сада и не морате на рецепцију.',
     'message_us_line' => 'Да ли вам нешто треба пре доласка? <a href=":url" style="color:#C2410C; text-decoration:underline;">Пишите нам</a> – радо ћемо помоћи.',
     'keep_safe' => 'Чувајте ову е-поруку – у њој је шифра за врата. Резервација <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Резервација <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Прикажи резервацију',
     'online_checkin' => 'Онлајн пријава',
 ];

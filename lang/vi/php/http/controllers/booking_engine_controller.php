@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Thông báo về quyền riêng tư — :property',
     'terms_required' => 'Vui lòng chấp nhận điều khoản đặt phòng và thông báo về quyền riêng tư để tiếp tục.',
     'terms_changed' => 'Chỗ nghỉ đã cập nhật điều khoản đặt phòng. Vui lòng đọc lại và chấp nhận để tiếp tục.',
+    'checkout_page_stale' => 'Trang này đã mở khá lâu và không còn cập nhật. Vui lòng kiểm tra thông tin của bạn và xác nhận lại.',
 ];

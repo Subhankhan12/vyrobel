@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Ouvrez votre réservation et effectuez l’étape « Check-in en ligne » — cela prend quelques minutes et permet à l’établissement de préparer votre venue. Cette étape enregistre votre check-in en ligne ; la réception effectue toujours le check-in officiel à votre arrivée.',
     'guest_checkin_label' => 'Vos voyages',
     'guest_door_code_question' => 'Quand vais-je recevoir mon code d’accès et les informations Wi-Fi ?',
-    'guest_door_code_answer' => '{1} Votre code d’accès et les informations Wi-Fi apparaissent sur la page « Infos d’arrivée » :count jour avant le check-in et restent disponibles jusqu’à votre check-out. Avant cela, la page vous indique la date à laquelle ils seront débloqués — ce n’est pas un retard à signaler.|[0,*] Votre code d’accès et les informations Wi-Fi apparaissent sur la page « Infos d’arrivée » :count jours avant le check-in et restent disponibles jusqu’à votre check-out. Avant cela, la page vous indique la date à laquelle ils seront débloqués — ce n’est pas un retard à signaler.',
+    'guest_door_code_answer' => 'Votre code d’accès et les informations Wi-Fi apparaissent sur la page « Infos d’arrivée » quelques jours avant le check-in — l’établissement en fixe le nombre — et restent disponibles jusqu’à votre check-out. Certains établissements ne les débloquent qu’une fois votre solde réglé ou le check-in en ligne terminé. D’ici là, la page vous indique la date à laquelle ils seront débloqués, ou ce qu’il reste à faire.',
     'guest_door_code_label' => 'Vos voyages',
     'category_payments' => 'Paiements',
     'guest_pay_balance_question' => 'Comment payer le solde de ma réservation ?',

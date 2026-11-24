@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Solde dû au check-in : <strong style="color:#2B2320;">:balance</strong> — payez maintenant pour ne pas passer par la réception.',
     'message_us_line' => 'Besoin de quelque chose avant votre arrivée ? Il vous suffit de <a href=":url" style="color:#C2410C; text-decoration:underline;">nous écrire</a> — nous serons ravis de vous aider.',
     'keep_safe' => 'Conservez précieusement cet e-mail : il contient votre code d’accès. Réservation <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Réservation <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Voir votre réservation',
     'online_checkin' => 'Check-in en ligne',
 ];

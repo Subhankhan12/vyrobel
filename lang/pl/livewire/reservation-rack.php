@@ -25,6 +25,7 @@ return [
     'room_type' => 'Typ pokoju',
     'units' => '{1}:count jednostka|:count jednostki|:count jednostek',
     'available_on' => 'Wolne jednostki w dniu :date: :count',
+    'overbooked_on' => 'Nadrezerwacja o :count w dniu :date – więcej rezerwacji niż pokoi',
     'available_on_no_price' => 'Wolne jednostki w dniu :date: :count – brak ceny, więc nie można ich tu zarezerwować',
     'sleeps' => 'Maks. liczba osób: :count',
     'state_not_accepting' => ':state – nie przyjmuje nowych rezerwacji',

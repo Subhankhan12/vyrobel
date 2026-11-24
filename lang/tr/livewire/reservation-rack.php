@@ -25,6 +25,7 @@ return [
     'room_type' => 'Oda tipi',
     'units' => '{1} :count birim|[0,*] :count birim',
     'available_on' => ':date tarihinde :count müsait',
+    'overbooked_on' => ':date tarihinde :count fazla rezervasyon — oda sayısından fazla rezervasyon var',
     'available_on_no_price' => ':date tarihinde :count müsait — henüz fiyat yok, bu nedenle burada rezervasyon yapılamaz',
     'sleeps' => ':count kişilik',
     'state_not_accepting' => ':state — yeni rezervasyon almıyor',

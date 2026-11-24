@@ -25,6 +25,7 @@ return [
     'room_type' => 'Категория номера',
     'units' => '{1}:count номер|:count номера|:count номеров',
     'available_on' => 'Свободно на :date: :count',
+    'overbooked_on' => 'Овербукинг на :date: :count — бронирований больше, чем номеров',
     'available_on_no_price' => 'Свободно на :date: :count — цены пока нет, поэтому здесь забронировать нельзя',
     'sleeps' => 'Вместимость: :count',
     'state_not_accepting' => ':state — новые бронирования не принимаются',

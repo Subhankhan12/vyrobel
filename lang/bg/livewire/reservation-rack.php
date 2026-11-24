@@ -25,6 +25,7 @@ return [
     'room_type' => 'Тип настаняване',
     'units' => '{1}:count единица|[0,*]:count единици',
     'available_on' => 'На :date са свободни: :count',
+    'overbooked_on' => 'Свръхрезервация с :count на :date – повече резервации, отколкото стаи',
     'available_on_no_price' => 'На :date са свободни: :count – все още няма цена, затова не могат да се резервират тук',
     'sleeps' => 'Капацитет: :count',
     'state_not_accepting' => ':state – не приема нови резервации',

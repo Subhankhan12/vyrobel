@@ -25,6 +25,7 @@ return [
     'room_type' => 'Tipo de habitación',
     'units' => '{1} :count unidad|[0,*] :count unidades',
     'available_on' => 'Disponibles el :date: :count',
+    'overbooked_on' => 'Sobreventa de :count el :date: más reservas que habitaciones',
     'available_on_no_price' => 'Disponibles el :date: :count. Todavía sin precio, así que no se puede reservar aquí',
     'sleeps' => 'Capacidad: :count',
     'state_not_accepting' => ':state: no acepta nuevas reservas',

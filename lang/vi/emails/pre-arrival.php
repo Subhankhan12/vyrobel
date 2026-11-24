@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Còn <strong style="color:#2B2320;">:balance</strong> cần thanh toán khi nhận phòng — thanh toán ngay để không phải ghé quầy lễ tân.',
     'message_us_line' => 'Bạn cần gì trước khi đến? Chỉ cần <a href=":url" style="color:#C2410C; text-decoration:underline;">nhắn tin cho chúng tôi</a> — chúng tôi luôn sẵn lòng hỗ trợ.',
     'keep_safe' => 'Vui lòng giữ email này cẩn thận — mã cửa của bạn nằm trong đây. Mã đặt phòng <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Mã đặt phòng <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Xem đặt phòng của bạn',
     'online_checkin' => 'Nhận phòng trực tuyến',
 ];

@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Privaatsusteade — :property',
     'terms_required' => 'Jätkamiseks nõustuge broneerimistingimuste ja privaatsusteatega.',
     'terms_changed' => 'Majutusasutus on oma broneerimistingimusi uuendanud. Jätkamiseks lugege need uuesti läbi ja nõustuge nendega.',
+    'checkout_page_stale' => 'See leht oli mõnda aega avatud ja on aegunud. Kontrollige oma andmeid ja kinnitage uuesti.',
 ];

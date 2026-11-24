@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> do zapłaty przy zameldowaniu – można zapłacić już teraz i ominąć recepcję.',
     'message_us_line' => 'Czegoś potrzeba przed przyjazdem? Wystarczy <a href=":url" style="color:#C2410C; text-decoration:underline;">do nas napisać</a> – chętnie pomożemy.',
     'keep_safe' => 'Prosimy zachować tę wiadomość – zawiera kod do drzwi. Rezerwacja <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Rezerwacja <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Zobacz rezerwację',
     'online_checkin' => 'Zameldowanie online',
 ];

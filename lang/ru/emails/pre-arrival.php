@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> — остаток к оплате при заезде. Оплатите сейчас, чтобы не задерживаться на ресепшене.',
     'message_us_line' => 'Нужно что-то до приезда? Просто <a href=":url" style="color:#C2410C; text-decoration:underline;">напишите нам</a> — мы будем рады помочь.',
     'keep_safe' => 'Сохраните это письмо — в нём ваш код двери. Бронирование <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Бронирование <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Посмотреть бронирование',
     'online_checkin' => 'Онлайн-регистрация',
 ];

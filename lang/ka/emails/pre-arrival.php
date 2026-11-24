@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'ჩასახლებისას გადასახდელი თანხა: <strong style="color:#2B2320;">:balance</strong> – გადაიხადეთ ახლავე და მიმღებთან შეჩერება აღარ მოგიწევთ.',
     'message_us_line' => 'ჩამოსვლამდე რამე გჭირდებათ? უბრალოდ <a href=":url" style="color:#C2410C; text-decoration:underline;">მოგვწერეთ</a> – სიამოვნებით დაგეხმარებით.',
     'keep_safe' => 'შეინახეთ ეს წერილი – მასში თქვენი კარის კოდია. ჯავშნის კოდი <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'ჯავშნის კოდი <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'ჯავშნის ნახვა',
     'online_checkin' => 'ონლაინ ჩასახლება',
 ];

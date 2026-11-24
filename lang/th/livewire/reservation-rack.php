@@ -25,6 +25,7 @@ return [
     'room_type' => 'ประเภทห้องพัก',
     'units' => '{1}ห้องพัก :count ห้อง|[0,*]ห้องพัก :count ห้อง',
     'available_on' => ':date: ว่าง :count ห้อง',
+    'overbooked_on' => ':date: จองเกิน :count ห้อง — การจองมากกว่าจำนวนห้อง',
     'available_on_no_price' => ':date: ว่าง :count ห้อง — ยังไม่มีราคา จึงจองที่นี่ไม่ได้',
     'sleeps' => 'รองรับ :count คน',
     'state_not_accepting' => ':state — ไม่รับการจองใหม่',

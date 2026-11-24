@@ -38,4 +38,5 @@ return [
     'privacy_title' => '隐私声明——:property',
     'terms_required' => '请接受预订条款和隐私声明后继续。',
     'terms_changed' => '酒店已更新其预订条款。请重新阅读并接受后继续。',
+    'checkout_page_stale' => '此页面已打开一段时间，内容已过期。请核对您的信息后重新确认。',
 ];

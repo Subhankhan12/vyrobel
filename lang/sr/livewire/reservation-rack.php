@@ -25,6 +25,7 @@ return [
     'room_type' => 'Тип смештаја',
     'units' => '{1}:count јединица|:count јединице|:count јединица',
     'available_on' => 'Слободно: :count · :date',
+    'overbooked_on' => 'Пребукирано за :count на дан :date – више резервација него соба',
     'available_on_no_price' => 'Слободно: :count · :date – још нема цене, па се овде не може резервисати',
     'sleeps' => 'Капацитет: :count',
     'state_not_accepting' => ':state – није доступна за нове резервације',

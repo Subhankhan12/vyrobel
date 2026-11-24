@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'مانده <strong style="color:#2B2320;">:balance</strong> هنگام پذیرش قابل پرداخت است — همین حالا پرداخت کنید تا نیازی به مراجعه به میز پذیرش نباشد.',
     'message_us_line' => 'پیش از ورود به چیزی نیاز دارید؟ کافی است <a href=":url" style="color:#C2410C; text-decoration:underline;">به ما پیام دهید</a> — با کمال میل کمک می‌کنیم.',
     'keep_safe' => 'این ایمیل را نگه دارید — کد در شما در آن است. کد رزرو: <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'کد رزرو: <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'مشاهده رزرو',
     'online_checkin' => 'پذیرش آنلاین',
 ];

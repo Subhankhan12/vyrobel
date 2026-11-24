@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Otwórz rezerwację i wypełnij „Zameldowanie online” – zajmie to kilka minut i pozwoli obiektowi przygotować się na Państwa przyjazd. Odnotowuje to Państwa zameldowanie online; oficjalne zameldowanie i tak przeprowadza recepcja po Państwa przyjeździe.',
     'guest_checkin_label' => 'Podróże',
     'guest_door_code_question' => 'Kiedy otrzymam kod do drzwi i dane Wi-Fi?',
-    'guest_door_code_answer' => '{1}Kod do drzwi i dane Wi-Fi pojawią się na stronie „Informacje o przyjeździe” :count dzień przed zameldowaniem i pozostaną dostępne do wymeldowania. Wcześniej strona podaje datę ich udostępnienia – to nie jest opóźnienie, o które trzeba pytać.|Kod do drzwi i dane Wi-Fi pojawią się na stronie „Informacje o przyjeździe” :count dni przed zameldowaniem i pozostaną dostępne do wymeldowania. Wcześniej strona podaje datę ich udostępnienia – to nie jest opóźnienie, o które trzeba pytać.|Kod do drzwi i dane Wi-Fi pojawią się na stronie „Informacje o przyjeździe” :count dni przed zameldowaniem i pozostaną dostępne do wymeldowania. Wcześniej strona podaje datę ich udostępnienia – to nie jest opóźnienie, o które trzeba pytać.',
+    'guest_door_code_answer' => 'Kod do drzwi i dane Wi-Fi pojawią się na stronie „Informacje o przyjeździe” kilka dni przed zameldowaniem – ile, ustala obiekt – i pozostaną dostępne do wymeldowania. Niektóre obiekty udostępniają je dopiero po uregulowaniu salda lub dokończeniu zameldowania online. Wcześniej strona podaje datę ich udostępnienia albo to, czego jeszcze brakuje.',
     'guest_door_code_label' => 'Podróże',
     'category_payments' => 'Płatności',
     'guest_pay_balance_question' => 'Jak zapłacić saldo rezerwacji?',

@@ -25,6 +25,7 @@ return [
     'room_type' => 'Tipe kamar',
     'units' => '{1}:count unit|[0,*]:count unit',
     'available_on' => ':count tersedia pada :date',
+    'overbooked_on' => 'Kelebihan pesanan :count pada :date — reservasi lebih banyak daripada kamar',
     'available_on_no_price' => ':count tersedia pada :date — belum ada harga, sehingga belum dapat dipesan di sini',
     'sleeps' => 'Kapasitas :count orang',
     'state_not_accepting' => ':state — tidak menerima reservasi baru',

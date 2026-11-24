@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Mở đặt phòng của bạn và hoàn tất “Nhận phòng trực tuyến” — chỉ mất vài phút và giúp chỗ nghỉ chuẩn bị đón bạn. Thao tác này ghi nhận rằng bạn đã nhận phòng trực tuyến; lễ tân vẫn hoàn tất thủ tục nhận phòng chính thức khi bạn đến.',
     'guest_checkin_label' => 'Chuyến đi của bạn',
     'guest_door_code_question' => 'Khi nào tôi nhận được mã cửa và thông tin Wi-Fi?',
-    'guest_door_code_answer' => '{1}Mã cửa và thông tin Wi-Fi của bạn sẽ hiển thị trên trang “Thông tin đến nơi” :count ngày trước khi nhận phòng, và vẫn có sẵn cho đến khi bạn trả phòng. Trước thời điểm đó, trang sẽ cho biết ngày thông tin được mở — đây không phải là sự chậm trễ mà bạn cần hỏi.|[0,*]Mã cửa và thông tin Wi-Fi của bạn sẽ hiển thị trên trang “Thông tin đến nơi” :count ngày trước khi nhận phòng, và vẫn có sẵn cho đến khi bạn trả phòng. Trước thời điểm đó, trang sẽ cho biết ngày thông tin được mở — đây không phải là sự chậm trễ mà bạn cần hỏi.',
+    'guest_door_code_answer' => 'Mã cửa và thông tin Wi-Fi của bạn sẽ hiển thị trên trang “Thông tin đến nơi” vài ngày trước khi nhận phòng — số ngày do chỗ nghỉ quyết định — và vẫn có sẵn cho đến khi bạn trả phòng. Một số chỗ nghỉ chỉ mở thông tin sau khi bạn đã thanh toán số dư hoặc hoàn tất nhận phòng trực tuyến. Trước thời điểm đó, trang sẽ cho biết ngày thông tin được mở, hoặc những gì còn cần thực hiện.',
     'guest_door_code_label' => 'Chuyến đi của bạn',
     'category_payments' => 'Thanh toán',
     'guest_pay_balance_question' => 'Làm thế nào để thanh toán số tiền còn lại của đặt phòng?',

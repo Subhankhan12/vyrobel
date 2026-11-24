@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '入住時須支付待付金額 <strong style="color:#2B2320;">:balance</strong>——立即付款即可省去櫃檯手續。',
     'message_us_line' => '抵達前有任何需要嗎？只要<a href=":url" style="color:#C2410C; text-decoration:underline;">傳送訊息給我們</a>——我們很樂意協助。',
     'keep_safe' => '請妥善保存此郵件——內含您的門鎖密碼。訂房編號 <strong style="color:#2B2320;">:reference</strong>。',
+    'reference_line' => '訂房編號 <strong style="color:#2B2320;">:reference</strong>。',
     'view_booking' => '查看您的訂房',
     'online_checkin' => '線上辦理入住',
 ];

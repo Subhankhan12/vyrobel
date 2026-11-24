@@ -25,6 +25,7 @@ return [
     'room_type' => 'Lloji i dhomës',
     'units' => '{1}:count njësi|[0,*]:count njësi',
     'available_on' => ':date · të lira: :count',
+    'overbooked_on' => 'Mbirezervim me :count më :date — më shumë rezervime sesa dhoma',
     'available_on_no_price' => ':date · të lira: :count — ende pa çmim, ndaj nuk mund të rezervohet këtu',
     'sleeps' => 'Kapaciteti: :count',
     'state_not_accepting' => ':state — nuk pranon rezervime të reja',

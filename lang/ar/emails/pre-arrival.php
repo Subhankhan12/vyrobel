@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'رصيد مستحق بقيمة <strong style="color:#2B2320;">:balance</strong> عند تسجيل الوصول — الدفع الآن يغنيك عن المرور بمكتب الاستقبال.',
     'message_us_line' => 'هل تحتاج إلى أي شيء قبل وصولك؟ ما عليك سوى <a href=":url" style="color:#C2410C; text-decoration:underline;">مراسلتنا</a> — يسعدنا تقديم المساعدة.',
     'keep_safe' => 'يرجى الاحتفاظ بهذه الرسالة في مكان آمن — فهي تحتوي على رمز الباب. الحجز <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'الحجز <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'عرض حجزك',
     'online_checkin' => 'تسجيل الوصول عبر الإنترنت',
 ];

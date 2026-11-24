@@ -25,6 +25,7 @@ return [
     'room_type' => '객실 유형',
     'units' => '{1}객실 :count개|[0,*]객실 :count개',
     'available_on' => ':date 잔여 객실 :count개',
+    'overbooked_on' => ':date :count실 초과 예약 — 예약이 객실보다 많습니다',
     'available_on_no_price' => ':date 잔여 객실 :count개 — 아직 요금이 없어 여기서 예약할 수 없습니다',
     'sleeps' => '최대 :count명',
     'state_not_accepting' => ':state — 새 예약 받지 않음',

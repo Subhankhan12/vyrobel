@@ -25,6 +25,7 @@ return [
     'room_type' => '客室タイプ',
     'units' => '{1}:count室|[0,*]:count室',
     'available_on' => ':dateに:count室空きあり',
+    'overbooked_on' => ':dateは:count室のオーバーブッキング — 予約数が客室数を超えています',
     'available_on_no_price' => ':dateに:count室空きあり — 料金未設定のため、ここでは予約できません',
     'sleeps' => '定員:count名',
     'state_not_accepting' => ':state — 新規予約を受け付けていません',

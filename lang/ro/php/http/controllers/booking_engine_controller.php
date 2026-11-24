@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Declarație de confidențialitate — :property',
     'terms_required' => 'Vă rugăm să acceptați condițiile de rezervare și declarația de confidențialitate pentru a continua.',
     'terms_changed' => 'Proprietatea și-a actualizat condițiile de rezervare. Vă rugăm să le citiți din nou și să le acceptați pentru a continua.',
+    'checkout_page_stale' => 'Această pagină a stat deschisă o vreme și nu mai este actuală. Verificați datele și confirmați din nou.',
 ];

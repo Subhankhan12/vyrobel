@@ -25,6 +25,7 @@ return [
     'room_type' => 'نوع الغرفة',
     'units' => '{0} :count وحدات|وحدة واحدة|وحدتان|:count وحدات|:count وحدةً|:count وحدة',
     'available_on' => 'المتاح يوم :date: :count',
+    'overbooked_on' => 'حجز زائد بمقدار :count يوم :date — الحجوزات أكثر من الغرف',
     'available_on_no_price' => 'المتاح يوم :date: :count — لا يوجد سعر بعد، لذا لا يمكن الحجز هنا',
     'sleeps' => 'السعة: :count',
     'state_not_accepting' => ':state — لا يتم قبول حجوزات جديدة',

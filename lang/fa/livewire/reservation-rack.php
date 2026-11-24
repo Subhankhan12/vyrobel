@@ -25,6 +25,7 @@ return [
     'room_type' => 'نوع اتاق',
     'units' => '{1}:count واحد|[0,*]:count واحد',
     'available_on' => 'در :date، :count واحد خالی است',
+    'overbooked_on' => 'بیش‌فروشی :count واحد در :date — رزروها بیشتر از اتاق‌هاست',
     'available_on_no_price' => 'در :date، :count واحد خالی است — هنوز قیمتی ندارد، بنابراین اینجا قابل رزرو نیست',
     'sleeps' => 'ظرفیت :count نفر',
     'state_not_accepting' => ':state — رزرو جدید نمی‌پذیرد',

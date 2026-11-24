@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '체크인 시 미결제 잔액 <strong style="color:#2B2320;">:balance</strong> — 지금 결제하시면 프런트를 거치지 않으셔도 됩니다.',
     'message_us_line' => '도착 전에 필요한 것이 있으신가요? <a href=":url" style="color:#C2410C; text-decoration:underline;">메시지를 보내 주세요</a>. 기꺼이 도와드리겠습니다.',
     'keep_safe' => '도어락 비밀번호가 들어 있으니 이 이메일을 잘 보관해 주세요. 예약 번호 <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => '예약 번호 <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => '예약 보기',
     'online_checkin' => '온라인 체크인',
 ];

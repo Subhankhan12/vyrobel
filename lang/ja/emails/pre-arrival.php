@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'チェックイン時に<strong style="color:#2B2320;">:balance</strong>の残額のお支払いがあります。今お支払いいただくと、フロントでの手続きが不要になります。',
     'message_us_line' => 'ご到着前に何か必要なものはございますか？<a href=":url" style="color:#C2410C; text-decoration:underline;">メッセージでお気軽にお問い合わせください</a>。喜んでお手伝いいたします。',
     'keep_safe' => 'ドアの暗証番号が記載されていますので、このメールは大切に保管してください。予約番号：<strong style="color:#2B2320;">:reference</strong>。',
+    'reference_line' => '予約番号：<strong style="color:#2B2320;">:reference</strong>。',
     'view_booking' => 'ご予約を確認',
     'online_checkin' => 'オンラインチェックイン',
 ];

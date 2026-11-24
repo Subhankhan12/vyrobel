@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Privacyverklaring — :property',
     'terms_required' => 'Accepteer de reserveringsvoorwaarden en de privacyverklaring om door te gaan.',
     'terms_changed' => 'De accommodatie heeft haar reserveringsvoorwaarden bijgewerkt. Lees ze opnieuw en accepteer ze om door te gaan.',
+    'checkout_page_stale' => 'Deze pagina stond al een tijd open en is niet meer actueel. Controleer uw gegevens en bevestig opnieuw.',
 ];

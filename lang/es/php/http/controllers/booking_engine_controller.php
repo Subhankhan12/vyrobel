@@ -38,4 +38,5 @@ return [
     'privacy_title' => 'Aviso de privacidad — :property',
     'terms_required' => 'Acepte las condiciones de reserva y el aviso de privacidad para continuar.',
     'terms_changed' => 'El alojamiento ha actualizado sus condiciones de reserva. Léalas de nuevo y acéptelas para continuar.',
+    'checkout_page_stale' => 'Esta página llevaba un rato abierta y ya no está actualizada. Revise sus datos y confirme de nuevo.',
 ];

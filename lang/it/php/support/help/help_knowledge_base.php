@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Apra la prenotazione e completi la procedura «Check-in online»: richiede un paio di minuti e permette alla struttura di prepararsi al Suo arrivo. Registra che ha effettuato il check-in online; il check-in ufficiale viene comunque completato dalla reception al Suo arrivo.',
     'guest_checkin_label' => 'I Suoi viaggi',
     'guest_door_code_question' => 'Quando ricevo il codice della porta e i dati del Wi-Fi?',
-    'guest_door_code_answer' => '{1} Il codice di accesso e i dati del Wi-Fi compaiono nella pagina «Info per l’arrivo» :count giorno prima del check-in e restano disponibili fino al check-out. Prima di allora la pagina indica la data in cui saranno sbloccati: non si tratta di un ritardo per cui serva chiedere.|[0,*] Il codice di accesso e i dati del Wi-Fi compaiono nella pagina «Info per l’arrivo» :count giorni prima del check-in e restano disponibili fino al check-out. Prima di allora la pagina indica la data in cui saranno sbloccati: non si tratta di un ritardo per cui serva chiedere.',
+    'guest_door_code_answer' => 'Il codice di accesso e i dati del Wi-Fi compaiono nella pagina «Info per l’arrivo» alcuni giorni prima del check-in — quanti lo decide la struttura — e restano disponibili fino al check-out. Alcune strutture li rendono disponibili solo dopo il pagamento del saldo o il completamento del check-in online. Fino ad allora la pagina indica la data in cui saranno sbloccati, oppure che cosa manca ancora.',
     'guest_door_code_label' => 'I Suoi viaggi',
     'category_payments' => 'Pagamenti',
     'guest_pay_balance_question' => 'Come pago il saldo della prenotazione?',

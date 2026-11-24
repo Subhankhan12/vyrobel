@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Υπόλοιπο <strong style="color:#2B2320;">:balance</strong> προς πληρωμή κατά το check-in — πληρώστε τώρα για να μη χρειαστεί να περάσετε από τη ρεσεψιόν.',
     'message_us_line' => 'Χρειάζεστε κάτι πριν από την άφιξή σας; Απλώς <a href=":url" style="color:#C2410C; text-decoration:underline;">στείλτε μας μήνυμα</a> — θα χαρούμε να βοηθήσουμε.',
     'keep_safe' => 'Φυλάξτε αυτό το email — περιέχει τον κωδικό της πόρτας σας. Κωδικός κράτησης: <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Κωδικός κράτησης: <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Προβολή της κράτησής σας',
     'online_checkin' => 'Online check-in',
 ];

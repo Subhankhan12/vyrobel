@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Rezervasyonunuzu açın ve “Online check-in” adımını tamamlayın — birkaç dakika sürer ve tesisin size hazırlanmasını sağlar. Bu adım yalnızca online check-in yaptığınızı kaydeder; resmi check-in işlemini varışınızda resepsiyon tamamlar.',
     'guest_checkin_label' => 'Seyahatleriniz',
     'guest_door_code_question' => 'Kapı kodumu ve Wi-Fi bilgilerimi ne zaman alırım?',
-    'guest_door_code_answer' => '{1} Giriş kodunuz ve Wi-Fi bilgileriniz, giriş tarihinden :count gün önce “Varış bilgileri” sayfasında görünür ve check-out yapana kadar erişilebilir kalır. O zamana kadar sayfa, bu bilgilerin hangi tarihte açılacağını gösterir — bu, sormanız gereken bir gecikme değildir.|[0,*] Giriş kodunuz ve Wi-Fi bilgileriniz, giriş tarihinden :count gün önce “Varış bilgileri” sayfasında görünür ve check-out yapana kadar erişilebilir kalır. O zamana kadar sayfa, bu bilgilerin hangi tarihte açılacağını gösterir — bu, sormanız gereken bir gecikme değildir.',
+    'guest_door_code_answer' => 'Giriş kodunuz ve Wi-Fi bilgileriniz, giriş tarihinden birkaç gün önce “Varış bilgileri” sayfasında görünür — kaç gün olacağını tesis belirler — ve check-out yapana kadar erişilebilir kalır. Bazı tesisler bu bilgileri yalnızca bakiyeniz ödendikten veya online check-in tamamlandıktan sonra açar. O zamana kadar sayfa, bilgilerin hangi tarihte açılacağını veya neyin eksik olduğunu gösterir.',
     'guest_door_code_label' => 'Seyahatleriniz',
     'category_payments' => 'Ödemeler',
     'guest_pay_balance_question' => 'Rezervasyonumun bakiyesini nasıl öderim?',

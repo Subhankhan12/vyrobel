@@ -25,6 +25,7 @@ return [
     'room_type' => '房型',
     'units' => '{1}:count 間房|[0,*]:count 間房',
     'available_on' => ':date 可售 :count 間',
+    'overbooked_on' => ':date 超賣 :count 間——訂房數多於房間數',
     'available_on_no_price' => ':date 可售 :count 間——尚無房價，因此無法在此訂房',
     'sleeps' => '可住 :count 人',
     'state_not_accepting' => ':state——不接受新訂房',

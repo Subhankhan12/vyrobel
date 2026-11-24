@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> tutarındaki bakiye check-in sırasında ödenecek — resepsiyonda beklememek için şimdi ödeyin.',
     'message_us_line' => 'Varışınızdan önce bir şeye ihtiyacınız var mı? <a href=":url" style="color:#C2410C; text-decoration:underline;">Bize mesaj göndermeniz</a> yeterli — yardımcı olmaktan memnuniyet duyarız.',
     'keep_safe' => 'Bu e-postayı güvenli bir yerde saklayın — kapı kodunuz içinde. Rezervasyon numarası: <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Rezervasyon numarası: <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Rezervasyonunuzu görüntüle',
     'online_checkin' => 'Online check-in',
 ];

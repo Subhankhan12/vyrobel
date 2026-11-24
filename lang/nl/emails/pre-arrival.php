@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> te betalen bij het inchecken — betaal nu, dan hoeft u niet langs de receptie.',
     'message_us_line' => 'Hebt u iets nodig vóór uw aankomst? <a href=":url" style="color:#C2410C; text-decoration:underline;">Stuur ons een bericht</a> — we helpen u graag.',
     'keep_safe' => 'Bewaar deze e-mail goed — uw deurcode staat erin. Reservering <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Reservering <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Reservering bekijken',
     'online_checkin' => 'Online inchecken',
 ];

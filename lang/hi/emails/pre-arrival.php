@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'चेक-इन पर <strong style="color:#2B2320;">:balance</strong> बकाया राशि देय है — डेस्क पर रुकने से बचने के लिए अभी भुगतान करें।',
     'message_us_line' => 'आने से पहले कुछ चाहिए? बस <a href=":url" style="color:#C2410C; text-decoration:underline;">हमें संदेश भेजें</a> — हमें मदद करके खुशी होगी।',
     'keep_safe' => 'इस ईमेल को संभालकर रखें — इसमें आपके दरवाज़े का कोड है। बुकिंग नंबर <strong style="color:#2B2320;">:reference</strong>।',
+    'reference_line' => 'बुकिंग नंबर <strong style="color:#2B2320;">:reference</strong>।',
     'view_booking' => 'अपनी बुकिंग देखें',
     'online_checkin' => 'ऑनलाइन चेक-इन',
 ];

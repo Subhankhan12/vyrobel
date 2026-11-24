@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Öffnen Sie Ihre Buchung und schließen Sie den „Online-Check-in“ ab — das dauert ein paar Minuten und ermöglicht der Unterkunft, sich auf Sie vorzubereiten. Damit wird festgehalten, dass Sie online eingecheckt haben; den offiziellen Check-in schließt die Rezeption bei Ihrer Ankunft ab.',
     'guest_checkin_label' => 'Ihre Reisen',
     'guest_door_code_question' => 'Wann erhalte ich meinen Türcode und die WLAN-Daten?',
-    'guest_door_code_answer' => '{1} Ihr Zugangscode und die WLAN-Daten erscheinen :count Tag vor dem Check-in auf der Seite „Anreiseinfos“ und bleiben bis zu Ihrem Check-out verfügbar. Bis dahin nennt Ihnen die Seite das Datum, ab dem sie freigeschaltet werden — das ist keine Verzögerung, Sie müssen also nicht nachfragen.|[0,*] Ihr Zugangscode und die WLAN-Daten erscheinen :count Tage vor dem Check-in auf der Seite „Anreiseinfos“ und bleiben bis zu Ihrem Check-out verfügbar. Bis dahin nennt Ihnen die Seite das Datum, ab dem sie freigeschaltet werden — das ist keine Verzögerung, Sie müssen also nicht nachfragen.',
+    'guest_door_code_answer' => 'Ihr Zugangscode und die WLAN-Daten erscheinen einige Tage vor dem Check-in auf der Seite „Anreiseinfos“ — wie viele, legt die Unterkunft fest — und bleiben bis zu Ihrem Check-out verfügbar. Manche Unterkünfte geben sie erst frei, wenn Ihr offener Betrag bezahlt oder der Online-Check-in abgeschlossen ist. Bis dahin nennt Ihnen die Seite das Datum, ab dem sie freigeschaltet werden, oder was noch fehlt.',
     'guest_door_code_label' => 'Ihre Reisen',
     'category_payments' => 'Zahlungen',
     'guest_pay_balance_question' => 'Wie bezahle ich den offenen Betrag meiner Buchung?',

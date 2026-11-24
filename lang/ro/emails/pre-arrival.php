@@ -26,6 +26,7 @@ return [
     'balance_due_line' => '<strong style="color:#2B2320;">:balance</strong> — rest de plată la check-in; plătiți acum și evitați recepția.',
     'message_us_line' => 'Aveți nevoie de ceva înainte de sosire? <a href=":url" style="color:#C2410C; text-decoration:underline;">Trimiteți-ne un mesaj</a> — vă ajutăm cu plăcere.',
     'keep_safe' => 'Păstrați acest e-mail în siguranță — conține codul ușii. Rezervarea <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Rezervarea <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Vizualizare rezervare',
     'online_checkin' => 'Check-in online',
 ];

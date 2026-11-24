@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Дължима сума при настаняване: <strong style="color:#2B2320;">:balance</strong> – платете сега и не минавайте през рецепцията.',
     'message_us_line' => 'Нужно ли ви е нещо преди пристигането? Просто <a href=":url" style="color:#C2410C; text-decoration:underline;">ни пишете</a> – с радост ще помогнем.',
     'keep_safe' => 'Пазете този имейл – в него е кодът ви за вратата. Резервация № <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Резервация № <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Преглед на резервацията',
     'online_checkin' => 'Онлайн настаняване',
 ];

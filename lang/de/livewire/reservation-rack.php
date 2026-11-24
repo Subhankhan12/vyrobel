@@ -25,6 +25,7 @@ return [
     'room_type' => 'Zimmerkategorie',
     'units' => '{1} :count Einheit|[0,*] :count Einheiten',
     'available_on' => ':count verfügbar am :date',
+    'overbooked_on' => 'Am :date um :count überbucht — mehr Buchungen als Zimmer',
     'available_on_no_price' => ':count verfügbar am :date — noch kein Preis, daher hier nicht buchbar',
     'sleeps' => 'Max. Personen: :count',
     'state_not_accepting' => ':state — nimmt keine neuen Buchungen an',

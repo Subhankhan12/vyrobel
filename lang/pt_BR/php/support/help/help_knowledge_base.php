@@ -29,7 +29,7 @@ return [
     'guest_checkin_answer' => 'Abra sua reserva e conclua o “Check-in on-line” — leva poucos minutos e permite que a propriedade se prepare para você. Ele registra que você fez o check-in on-line; a recepção ainda conclui o check-in oficial quando você chega.',
     'guest_checkin_label' => 'Suas viagens',
     'guest_door_code_question' => 'Quando recebo o código da porta e os dados do Wi-Fi?',
-    'guest_door_code_answer' => '{1} Seu código de acesso e os dados do Wi-Fi aparecem na página “Informações de chegada” :count dia antes do check-in e continuam disponíveis até o check-out. Antes disso, a página mostra a data em que eles serão liberados — não é um atraso sobre o qual você precise perguntar.|[0,*] Seu código de acesso e os dados do Wi-Fi aparecem na página “Informações de chegada” :count dias antes do check-in e continuam disponíveis até o check-out. Antes disso, a página mostra a data em que eles serão liberados — não é um atraso sobre o qual você precise perguntar.',
+    'guest_door_code_answer' => 'Seu código de acesso e os dados do Wi-Fi aparecem na página “Informações de chegada” alguns dias antes do check-in — a propriedade define quantos — e continuam disponíveis até o check-out. Algumas propriedades só liberam esses dados depois que o saldo é pago ou o check-in on-line é concluído. Até lá, a página mostra a data em que eles serão liberados, ou o que ainda falta.',
     'guest_door_code_label' => 'Suas viagens',
     'category_payments' => 'Pagamentos',
     'guest_pay_balance_question' => 'Como pago o saldo da minha reserva?',

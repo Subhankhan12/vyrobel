@@ -26,6 +26,7 @@ return [
     'balance_due_line' => 'Detyrimi i mbetur në mbërritje: <strong style="color:#2B2320;">:balance</strong> — paguani tani dhe kaloni pa ndalur në recepsion.',
     'message_us_line' => 'Ju duhet diçka para mbërritjes? Thjesht <a href=":url" style="color:#C2410C; text-decoration:underline;">na shkruani</a> — jemi të lumtur t’ju ndihmojmë.',
     'keep_safe' => 'Ruajeni këtë email në vend të sigurt — brenda është kodi i derës suaj. Rezervimi <strong style="color:#2B2320;">:reference</strong>.',
+    'reference_line' => 'Rezervimi <strong style="color:#2B2320;">:reference</strong>.',
     'view_booking' => 'Shiko rezervimin',
     'online_checkin' => 'Check-in online',
 ];

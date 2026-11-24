@@ -25,6 +25,7 @@ return [
     'room_type' => 'कमरे का प्रकार',
     'units' => '{1}:count कमरा|[2,*]:count कमरे',
     'available_on' => ':date को :count उपलब्ध',
+    'overbooked_on' => ':date को :count की ओवरबुकिंग — कमरों से ज़्यादा बुकिंग',
     'available_on_no_price' => ':date को :count उपलब्ध — अभी कीमत नहीं है, इसलिए यहाँ बुक नहीं हो सकता',
     'sleeps' => 'अधिकतम मेहमान: :count',
     'state_not_accepting' => ':state — नई बुकिंग नहीं ली जा रहीं',
