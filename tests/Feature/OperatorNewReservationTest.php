@@ -211,7 +211,9 @@ it('shows the New reservation button to a creator and hides it from a non-creato
     $this->actingAs(operatorUser($s, [], 'Front Desk'))->get('/app/reservations')
         ->assertOk()->assertSee(route('app.reservations.create'));
 
-    $this->actingAs(operatorUser($s, ['name' => 'Hattie'], 'Housekeeping'))->get('/app/reservations')
+    // ⚠️ 2026-11-24 (VY-14): the non-creator was a Housekeeper, who can no longer open this screen at all. The subject here is the
+    //    BUTTON, so the non-creator is now a role that reads reservations and cannot create one (Guest Support Agent).
+    $this->actingAs(operatorUser($s, ['name' => 'Hattie'], 'Guest Support Agent'))->get('/app/reservations')
         ->assertOk()->assertDontSee(route('app.reservations.create'));
 });
 

@@ -10,6 +10,7 @@ use App\Actions\Reservations\ReverseCheckOut;
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Exceptions\Folio\OutstandingBalanceException;
+use App\Exceptions\Reservations\RoomNotReadyException;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\AssignmentService;
@@ -74,7 +75,13 @@ class FrontDeskActionController extends Controller
             ]);
         }
 
-        $desk->checkIn($model);
+        try {
+            $desk->checkIn($model);
+        } catch (RoomNotReadyException $e) {
+            // ⚠️ VY-13 — NO ROOM, OR A CLOSED ROOM: the action refused and nothing was written. The desk gets a page that names each
+            //    problem and links to the reservation, where a room is given — not a flash that scrolls away, and no "anyway" button.
+            return view('operator.check-in-blocked', ['reservation' => $model, 'problems' => $e->problems]);
+        }
 
         return $this->backToBoard($request, __('php/http/controllers/front_desk_action_controller.checked_in', ['reference' => $model->reference]));
     }

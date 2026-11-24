@@ -13,7 +13,7 @@
 @endphp
 <x-marketing.shell
     title="How it works — onboarding your properties onto Vyrobel"
-    description="What setting up Vyrobel actually looks like: importing your units and bookings, opening your direct booking channel, running daily operations, and giving owners and guests their portals. Time to value, migration and FAQs."
+    description="What setting up Vyrobel actually looks like: adding your units and bookings, opening your direct booking channel, running daily operations, and giving owners and guests their portals. Time to value, migration and FAQs."
     canonical="/how-it-works">
 <div data-screen-label="Marketing — How it works" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -197,7 +197,7 @@
           <div style="padding: 24px; border-radius: 18px; background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.8);">
             <div style="font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 12px;">We do</div>
             <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px;">
-              <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Import your bookings and units</li>
+              <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Walk you through adding your units and bookings</li>
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Set up channels and payments with you</li>
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Train your team on their screens</li>
               <li style="font-size: 14px; line-height: 1.55; color: var(--vy-muted);">Stay on hand through your first month-end</li>
@@ -259,7 +259,7 @@
         <div data-orb="" style="position: absolute; top: -110px; left: 18%; width: 380px; height: 380px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(70px); opacity: .4; animation: vyDrift 21s ease-in-out infinite;"></div>
         <div style="position: relative;">
           <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 38px; line-height: 1.12; letter-spacing: -.03em; color: #fff; text-wrap: balance;">Start with one property this week</h2>
-          <p style="margin: 18px auto 0; max-width: 520px; font-size: 16.5px; line-height: 1.62; color: rgba(255,247,240,.74);">Free to try, no card, and we'll import your bookings before you decide anything.</p>
+          <p style="margin: 18px auto 0; max-width: 520px; font-size: 16.5px; line-height: 1.62; color: rgba(255,247,240,.74);">Free to try, and no card needed before you decide anything.</p>
           <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px;">
             <a href="{{ route('signup') }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 28px; border-radius: 14px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 16px 36px rgba(194,65,12,.44); transition: transform .22s ease, box-shadow .22s ease;">Start free</a>
             <x-marketing.nav-link key="contact" fragment="#demo" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: rgba(255,247,240,.12); border: 1px solid rgba(255,247,240,.24); color: #fff; font-size: 15px; font-weight: 500; text-decoration: none; transition: transform .22s ease, background .22s ease;">Talk to us first</x-marketing.nav-link>

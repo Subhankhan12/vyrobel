@@ -5,6 +5,7 @@
 #
 #   ops/release.sh status                 which release is live (READ from .release), which are retained
 #   ops/release.sh stage   rel_<X>        build the new release beside the live one (never touches the live one)
+#   ops/release.sh stage   rel_<X> --with-vendor   the same, AND rebuild vendor/ from composer.lock (only when the lock changed)
 #   ops/release.sh recache rel_<X>        the SAME code, config + routes rebuilt from the .env as it is now (L14)
 #   ops/release.sh migrate rel_<X>        run PENDING migrations from the new release — ADDITIVE ONLY, checked
 #   ops/release.sh swap    rel_<X>        the one atomic step: repoint `current`
@@ -24,6 +25,22 @@
 #     (`…add_pending_email…` fooled a case-insensitive grep once, on the first run of this script).
 #   · anything needing a vendor/ or public/build rebuild (composer.*, package*.json, resources/css|js) is REFUSED
 #     here — those are built on the target / off-host by a separate, deliberate step, never slipped into a copy.
+#   · ⚠️⚠️ THAT DELIBERATE STEP FOR vendor/ IS `stage rel_<X> --with-vendor` (VY-11, 2026-11-24 — until then no such step
+#     existed, so a dependency update could not be released at all). A composer.json / composer.lock change is STILL
+#     refused without the flag, and the flag is refused when the lock did NOT change. What it does:
+#       1. builds vendor/ OFF-HOST, in a clean export of the commit being staged: `composer install --no-dev
+#          --optimize-autoloader --no-scripts` — from the committed composer.lock, never from the working folder's vendor/
+#          (which holds the dev packages and whatever was last installed by hand);
+#       2. refuses if `composer audit --locked` still reports an advisory for that lock (the reason to rebuild is to clear them);
+#       3. uploads it as ONE archive, digest-checked;
+#       4. on the host: `rm -rf` the NEW release's vendor/ — its files are HARDLINKS shared with the live release, and
+#          removing a link never touches the file the live release still holds — then unpacks the archive: every file a new
+#          inode. Composer is deliberately NOT run in place on the host: it rewrites vendor/composer/*.php by truncating
+#          them, which would have written through the hardlink into the LIVE release.
+#       5. proves it: the new vendor's autoload has a link count of 1, and the LIVE release's installed.json has the same
+#          digest after as before;
+#       6. rebuilds the package manifest (`package:discover`) and then the config and route caches, as every stage does.
+#     A failure anywhere stops BEFORE the swap; the live release and every rollback target keep their own vendor/.
 set -euo pipefail
 
 HOST="u545270279@82.25.102.188"; PORT=65002; KEY="$HOME/.ssh/vyrobel_deploy"
@@ -47,7 +64,13 @@ status)
     ;;
 
 stage)
-    [[ "$NEW" =~ ^rel_[A-Z]+$ ]] || die "usage: stage rel_<LETTERS>"
+    [[ "$NEW" =~ ^rel_[A-Z]+$ ]] || die "usage: stage rel_<LETTERS> [--with-vendor]"
+    WITH_VENDOR=0
+    case "${3:-}" in
+        '') ;;
+        --with-vendor) WITH_VENDOR=1 ;;
+        *) die "unknown option: $3 (the only one is --with-vendor)" ;;
+    esac
     cd "$REPO"
     [ -z "$(git status --porcelain)" ] || die "the working tree is not clean — stage only committed code"
     CUR="$(live_release)"; FROM="$(live_commit)"; TO="$(git rev-parse HEAD)"
@@ -94,11 +117,19 @@ stage)
     else
         say "drifted from git on the host: none"
     fi
+    LOCK_CHANGED=0
     while IFS= read -r f; do
-        case "$f" in composer.json|composer.lock|package.json|package-lock.json|vite.config.*|resources/css/*|resources/js/*)
-            die "$f changed — vendor/ or public/build needs a deliberate rebuild step; refusing to copy around it";;
+        case "$f" in
+            composer.json|composer.lock)
+                # ⚠️ VY-11 — still REFUSED unless the deliberate step was asked for by name (see the header).
+                [ "$WITH_VENDOR" = 1 ] || die "$f changed — vendor/ needs a deliberate rebuild: stage with --with-vendor (it builds vendor/ off-host from composer.lock and ships it with its own inodes); refusing to copy around it"
+                LOCK_CHANGED=1;;
+            package.json|package-lock.json|vite.config.*|resources/css/*|resources/js/*)
+                die "$f changed — public/build needs a deliberate rebuild step; refusing to copy around it";;
         esac
     done < <(cat "$WORK/changed" "$WORK/deleted")
+    [ "$WITH_VENDOR" = 0 ] || [ "$LOCK_CHANGED" = 1 ] || die "--with-vendor was given but neither composer.json nor composer.lock changed since the live commit — nothing to rebuild; stage without it"
+    [ "$WITH_VENDOR" = 0 ] || git cat-file -e "$TO:composer.lock" 2>/dev/null || die "the commit being staged has no composer.lock"
     # Only what the app needs on the host: docs/ and tests/ are not deployed.
     grep -vE '^(docs/|tests/|\.github/)|\.md$' "$WORK/changed" > "$WORK/ship" || true
     say "files to ship: $(wc -l < "$WORK/ship" | tr -d ' ') · deleted: $(wc -l < "$WORK/deleted" | tr -d ' ')"
@@ -112,6 +143,24 @@ stage)
     git archive "$TO" | tar -x -C "$WORK/newtree"
     tar -czf "$TAR" -C "$WORK/newtree" -T "$WORK/ship"
     [ "$(tar -tzf "$TAR" | grep -cv '/$')" = "$(wc -l < "$WORK/ship" | tr -d ' ')" ] || die "the payload does not contain every file to ship"
+    # ⚠️⚠️ VY-11 — THE DELIBERATE vendor/ REBUILD, OFF-HOST (only with --with-vendor; see the header for why each line is there).
+    if [ "$WITH_VENDOR" = 1 ]; then
+        say "vendor: building off-host from composer.lock at ${TO:0:8} (no dev packages) …"
+        (cd "$WORK/newtree" && composer install --no-dev --optimize-autoloader --no-scripts --no-interaction --no-progress >"$WORK/composer.log" 2>&1) \
+            || { tail -n 20 "$WORK/composer.log" >&2; die "composer install failed in the clean export — nothing was uploaded"; }
+        [ -f "$WORK/newtree/vendor/autoload.php" ] || die "composer install left no vendor/autoload.php"
+        (cd "$WORK/newtree" && composer audit --locked --no-dev --no-interaction >"$WORK/audit.log" 2>&1) \
+            || { tail -n 25 "$WORK/audit.log" >&2; die "composer audit still reports advisories for the lock being shipped"; }
+        say "vendor: $(php -r 'echo count(json_decode((string) file_get_contents($argv[1]), true)["packages"]);' "$WORK/newtree/vendor/composer/installed.json") packages · composer audit: $(tail -n 1 "$WORK/audit.log")"
+        VTAR="$WORK/vendor.tar.gz"
+        tar -czf "$VTAR" -C "$WORK/newtree" vendor
+        VLOCAL="$(shasum -a 256 "$VTAR" | cut -d' ' -f1)"
+        scp -i "$KEY" -P "$PORT" -q "$VTAR" "$HOST:~/vy-release-vendor.tar.gz"
+        VREMOTE="$(ssh_ 'sha256sum ~/vy-release-vendor.tar.gz' | cut -d' ' -f1)"
+        [ "$VLOCAL" = "$VREMOTE" ] || die "vendor archive digest mismatch after upload"
+        say "vendor: archive uploaded, sha256 matches (${VLOCAL:0:16}…)"
+    fi
+
     LOCAL_SHA="$(shasum -a 256 "$TAR" | cut -d' ' -f1)"
     scp -i "$KEY" -P "$PORT" -q "$TAR" "$HOST:~/vy-release-payload.tar.gz"
     scp -i "$KEY" -P "$PORT" -q "$WORK/ship" "$HOST:~/vy-release-payload.list"
@@ -132,6 +181,21 @@ stage)
       done < ~/vy-release-payload.list
       while IFS= read -r f; do [ -n \"\$f\" ] || continue; rm -f \"$NEW/\$f\"; done < ~/vy-release-payload.del
       rm -f $NEW/.release; printf '%s\n' '$TO' > $NEW/.release
+      if [ $WITH_VENDOR = 1 ]; then
+        # ⚠️⚠️ VY-11 — the NEW release gets its OWN vendor/. rm -rf removes this release's LINKS only (the live release keeps the
+        #    files); the archive then unpacks as new inodes. Proven below, before anything is cached.
+        LIVE_BEFORE=\$(sha256sum $CUR/vendor/composer/installed.json | cut -d' ' -f1)
+        rm -rf $NEW/vendor
+        tar -xzf ~/vy-release-vendor.tar.gz -C $NEW
+        [ -f $NEW/vendor/autoload.php ] || { echo '  ✗ the new vendor/ has no autoload.php'; exit 1; }
+        [ \"\$(stat -c %h $NEW/vendor/autoload.php)\" = 1 ] && [ \"\$(stat -c %h $NEW/vendor/composer/installed.json)\" = 1 ] || { echo '  ✗ the new vendor/ shares an inode with another release'; exit 1; }
+        [ -f $CUR/vendor/autoload.php ] && [ \"\$(sha256sum $CUR/vendor/composer/installed.json | cut -d' ' -f1)\" = \"\$LIVE_BEFORE\" ] || { echo '  ✗ the LIVE release vendor/ changed'; exit 1; }
+        # the package manifest and the caches name the OLD packages: unlink them (they are hardlinks too), rebuild from the new vendor
+        rm -f $NEW/bootstrap/cache/packages.php $NEW/bootstrap/cache/services.php $NEW/bootstrap/cache/config.php $NEW/bootstrap/cache/routes-v7.php
+        (cd $NEW && $PHP artisan package:discover >/dev/null)
+        echo \"  ✓ vendor/ rebuilt from composer.lock — \$(ls $NEW/vendor | wc -l | tr -d ' ') top-level folders, its own inodes; the live vendor/ is unchanged (installed.json digest before = after)\"
+        rm -f ~/vy-release-vendor.tar.gz
+      fi
       cd $NEW
       $PHP artisan config:cache >/dev/null
       $PHP artisan route:cache >/dev/null

@@ -169,8 +169,8 @@
           <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">From their own portal, with whatever notice you agreed. No email to you, no waiting for a reply, no sense of asking permission.</p>
         </div>
         <div data-reveal="" data-reveal-delay="70" style="padding: 24px 24px; border-radius: 18px; background: rgba(255,252,248,.55); border: 1px solid rgba(255,255,255,.75);">
-          <div style="font-family: var(--vy-display); font-size: 15.5px; font-weight: 600; color: var(--vy-ink); margin-bottom: 8px;">It comes off sale everywhere</div>
-          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">An owner block behaves exactly like a booking: Airbnb, Booking.com and your storefront all stop offering the dates in the same second.</p>
+          <div style="font-family: var(--vy-display); font-size: 15.5px; font-weight: 600; color: var(--vy-ink); margin-bottom: 8px;">It comes off sale</div>
+          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">An owner block behaves exactly like a booking: your storefront stops offering the dates at once.</p>
         </div>
         <div data-reveal="" data-reveal-delay="140" style="padding: 24px 24px; border-radius: 18px; background: rgba(255,252,248,.55); border: 1px solid rgba(255,255,255,.75);">
           <div style="font-family: var(--vy-display); font-size: 15.5px; font-weight: 600; color: var(--vy-ink); margin-bottom: 8px;">The statement shows why</div>

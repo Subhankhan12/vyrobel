@@ -228,7 +228,10 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <span class="vy-tag tone-{{ $a['tone'] }}"><span class="vy-dot"></span>{{ $a['status_label'] }}</span>
-                                    <a class="vy-arr-link" href="{{ route('app.reservations.show', $a['id']) }}">{{ __('livewire/operator/dashboard.open_link') }}</a>
+                                    {{-- VY-14 — only for a role the reservation's page will open for (never a link into a 403) --}}
+                                    @if (\App\Support\Authorization\ReservationRead::allowed(auth()->user()))
+                                        <a class="vy-arr-link" href="{{ route('app.reservations.show', $a['id']) }}">{{ __('livewire/operator/dashboard.open_link') }}</a>
+                                    @endif
                                 </div>
                             </div>
                         @empty

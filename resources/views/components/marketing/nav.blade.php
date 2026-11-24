@@ -37,7 +37,7 @@
                             <div class="vy-mk-megalabel">The platform</div>
                             <x-marketing.mega-row key="product" title="Platform overview" desc="Operators, owners and guests" icon="overview" />
                             <x-marketing.mega-row key="features" title="Features" desc="Every capability in detail" icon="features" />
-                            <x-marketing.mega-row key="modules" title="Modules" desc="All eighteen, in every plan" icon="modules" />
+                            <x-marketing.mega-row key="modules" title="Modules" desc="Eighteen modules, one login" icon="modules" />
                             {{-- ⚠️ GATE 4: was desc="A real booking, no signup" — a promise repeated on EVERY page, and false: the
                                  sandbox books nothing. Found by sweeping the CHROME, which the ruling (scoped to
                                  /try-booking) did not reach — the same way Gate 3b found three live Sales pages
@@ -65,7 +65,7 @@
                         <div class="vy-mk-megafeature">
                             <div class="vy-mk-megalabel">Start here</div>
                             <div class="vy-mk-megafeature-title">Setting up your first property</div>
-                            <div class="vy-mk-megafeature-desc">Units, types and the first import, in the order that means nothing has to be redone.</div>
+                            <div class="vy-mk-megafeature-desc">Units, types and your first bookings, in the order that means nothing has to be redone.</div>
                             <x-marketing.nav-link key="guide-setup" class="vy-mk-megafeature-cta">Read the guide <x-marketing.arrow /></x-marketing.nav-link>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\GuestUserProvider;
 use App\Contracts\Auth\SocialIdentityProvider;
 use App\Events\DomainEventRecorded;
+use App\Http\Middleware\EnsureCanReadReservations;
 use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Listeners\AdjustOwnerLedgerOnRefund;
@@ -15,6 +16,7 @@ use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\Mail\RecordAcceptedMail;
 use App\Listeners\Mail\SuppressUndeliverableRecipients;
 use App\Listeners\NotifyNewDeviceSignIn;
+use App\Listeners\PurgeGuestIdDocumentsOnTermination;
 use App\Listeners\ReattributeOwnerOnUnitMove;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
@@ -35,6 +37,7 @@ use App\Models\FolioItem;
 use App\Models\Group;
 use App\Models\Guest;
 use App\Models\GuestCreditEntry;
+use App\Models\GuestDocument;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
@@ -348,6 +351,9 @@ class AppServiceProvider extends ServiceProvider
          */
         Livewire::addPersistentMiddleware([
             SetOwnerScopeForPortal::class,
+            // VY-14 — the reservations list and a reservation's page: a page left open stops answering once the role no longer
+            // allows it. Re-applied only for components whose original route carried it (those two).
+            EnsureCanReadReservations::class,
             // ⚠️ ADMIN 01 · PHASE 2 — a page opened BEFORE its organisation was suspended must not keep working
             //    through component updates afterwards. Re-applied only for components whose original route
             //    carried it — /app and /owner — so no other realm is touched.
@@ -505,6 +511,9 @@ class AppServiceProvider extends ServiceProvider
             'note' => Note::class,
             'media' => Media::class,
             'guest' => Guest::class,
+            // VY-18 (2026-11-24) — registered when the ID viewer became the first thing to AUDIT a guest document (opened / checked /
+            // rejected): the audit recorder stores `$subject->getMorphClass()`, and an unregistered model throws under enforceMorphMap.
+            'guest_document' => GuestDocument::class,
             'reservation' => Reservation::class,
             'reservation_unit' => ReservationUnit::class,
             'group' => Group::class,
@@ -606,6 +615,8 @@ class AppServiceProvider extends ServiceProvider
         // Phase 3 · Sub-gate 4 — the GUEST transactional emails on their real events (booking confirmed /
         // cancelled / refunded). Same bus, same one-directional discipline; a mail failure never breaks the event.
         Event::listen(DomainEventRecorded::class, SendGuestTransactionalEmails::class);
+        // VY-18 — a booking that is cancelled or a no-show keeps no ID image (purged at once; the nightly job is the net).
+        Event::listen(DomainEventRecorded::class, PurgeGuestIdDocumentsOnTermination::class);
 
         // Super Admin · Build 2 · Gate 1 — capture auth SECURITY SIGNALS (login / failed / lockout) for the
         // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);

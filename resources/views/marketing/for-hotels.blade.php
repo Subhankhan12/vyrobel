@@ -108,7 +108,7 @@
             <div style="height: 100%; width: 33%; border-radius: 999px; background: linear-gradient(90deg,var(--vy-accent-3),var(--vy-accent));"></div>
           </div>
           <div style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); margin-bottom: 9px; line-height: 1.32;">One person, the whole building</div>
-          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">Late arrivals let themselves in with a code released the afternoon before. The night audit runs on its own; nobody prints a report at four in the morning to close the day.</p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">Late arrivals let themselves in with a code released before they travel, so nobody has to wait up at the desk to hand over a key.</p>
         </div>
         <div data-reveal="" data-reveal-delay="70" style="display: flex; flex-direction: column; padding: 26px 26px; border-radius: 20px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 14px 38px rgba(150,90,50,.13);">
           <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px;">

@@ -80,6 +80,7 @@ use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\GuestBulkActionController;
+use App\Http\Controllers\Operator\GuestIdDocumentController;
 use App\Http\Controllers\Operator\GuestMatchController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
@@ -162,6 +163,7 @@ use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnforceIpAllowlist;
 use App\Http\Middleware\EnsureBackOfficeAccess;
+use App\Http\Middleware\EnsureCanReadReservations;
 use App\Http\Middleware\EnsureOwnerCapability;
 use App\Http\Middleware\EnsureOwnerPortalAccess;
 use App\Http\Middleware\EnsurePlanFeature;
@@ -1305,7 +1307,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // the {reservation} detail so the literal path wins. Stage filters come from the shared
     // App\Support\Reservations\ReservationStage — the same resolver the badge uses, so a chip can never
     // disagree with what it filters on.
-    Route::get('/reservations', ReservationsList::class)->name('reservations');
+    // ⚠️ VY-14 (2026-11-24) — GATED: `reservations.view` OR `folios.view` (the one rule: App\Support\Authorization\ReservationRead).
+    //    It carried no check — a Housekeeping user read guest names and amounts here.
+    Route::get('/reservations', ReservationsList::class)->middleware(EnsureCanReadReservations::class)->name('reservations');
 
     // New reservation (Wave 4) — the READ screen + the guarded booking write. MUST precede the
     // `{reservation}` show route so "create" is not captured as an id. The write is the certified
@@ -1323,7 +1327,13 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::get('/group-booking', GroupBooking::class)->middleware('can:reservations.create')->name('group-booking');
     Route::post('/group-booking', [GroupBookingController::class, 'store'])->middleware('can:reservations.create')->name('group-booking.store');
 
-    Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
+    // ⚠️ VY-18 (2026-11-24, his ruling "build the viewer") — a guest's ID image, opened by staff from the reservation's page, and their
+    //    decision on it. Both gated on `guest_documents.manage`; every opening writes an audit row; the booking is resolved inside the
+    //    person's properties (VY-05) and the document must belong to that booking. Declared BEFORE the `{reservation}` page.
+    Route::get('/reservations/{reservation}/id-documents/{document}', [GuestIdDocumentController::class, 'show'])->middleware('can:guest_documents.manage')->name('reservations.id-documents.show');
+    Route::post('/reservations/{reservation}/id-documents/{document}/review', [GuestIdDocumentController::class, 'review'])->middleware('can:guest_documents.manage')->name('reservations.id-documents.review');
+    // ⚠️ VY-14 — the same gate as the list: the reservation's own page (stay, guest name, amounts, folio).
+    Route::get('/reservations/{reservation}', ReservationDetail::class)->middleware(EnsureCanReadReservations::class)->name('reservations.show');
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
     // Real append-only ledger; reconciles to the cent; streams application/pdf.
     // ⚠️ OP-FIX-2 (audit Finding 1) — the downloadable folio DOCUMENT. Gated on the folio read permission,

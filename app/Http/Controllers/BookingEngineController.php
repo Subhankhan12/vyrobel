@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Booking\StayNotBookableException;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\BookingQuote;
 use App\Models\Fee;
@@ -31,6 +32,7 @@ use App\Support\Pricing\NightlyRate;
 use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
+use App\Support\Schedule\BoardDate;
 use App\Support\Storefront\StorefrontSeo;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -126,6 +128,10 @@ class BookingEngineController extends Controller
         $amenityOptions = $roomTypes->flatMap(fn (RoomType $rt): array => $rt->amenities->pluck('name')->all())->map('strval')->unique()->sort()->values()->all();
 
         return view('booking.browse', [
+            // VY-15 — the search form offers only what a room here can take: the largest room's limits (never fewer than 1 adult), and
+            // arrival from the property's own today. quote() refuses anything beyond; this keeps the form from asking for it.
+            'guestCaps' => ['adults' => max(1, (int) $roomTypes->max('max_adults')), 'children' => max(0, (int) $roomTypes->max('max_children'))],
+            'today' => BoardDate::today($property->timezone)->toDateString(),
             // STOREFRONT SEO (D10) — an additive presentation key. Nothing above it changed.
             'seo' => $this->seo->forProperty(
                 $property,
@@ -359,6 +365,8 @@ class BookingEngineController extends Controller
                 'children' => $children,
                 'searched' => $searched,
             ],
+            // VY-15 — the earliest arrival the form offers: the property's own today (the same day quote() refuses anything before).
+            'today' => BoardDate::today($property->timezone)->toDateString(),
             'offer' => $offer,
             // Phase 5 — REAL published reviews + the DERIVED rating (via the shared ReviewRating/ReviewList);
             // never fabricated. A room with no published reviews → has_reviews false ("No reviews yet").
@@ -547,6 +555,10 @@ class BookingEngineController extends Controller
             );
         } catch (UniqueConstraintViolationException) {
             return $this->repeatedCheckout($request, $property, $checkoutToken);
+        } catch (StayNotBookableException $e) {
+            // ⚠️ VY-15 — a stay the page could never have offered (past dates, too many guests, a switched-off rate). Nothing was written:
+            //    the refusal is thrown before the quote exists, so the page's token is not used up either. The guest is told why.
+            return $this->soldOutRedirect($property, $validated, $adults, $children, $e->getMessage());
         }
 
         $guestData = [
@@ -727,7 +739,7 @@ class BookingEngineController extends Controller
      *
      * @param  array<string, mixed>  $validated
      */
-    private function soldOutRedirect(Property $property, array $validated, int $adults, int $children): RedirectResponse
+    private function soldOutRedirect(Property $property, array $validated, int $adults, int $children, ?string $message = null): RedirectResponse
     {
         return redirect()
             ->to(route('booking.checkout', $property->slug).'?'.http_build_query([
@@ -737,7 +749,7 @@ class BookingEngineController extends Controller
                 'adults' => $adults,
                 'children' => $children,
             ]))
-            ->with('booking_error', __('php/http/controllers/booking_engine_controller.room_just_taken'));
+            ->with('booking_error', $message ?? __('php/http/controllers/booking_engine_controller.room_just_taken'));
     }
 
     /**
@@ -824,17 +836,22 @@ class BookingEngineController extends Controller
             'session_token' => ['sometimes', 'string'],
         ]);
 
-        $quote = $this->engine->quote(
-            $this->property($request),
-            $validated['room_type_id'],
-            $validated['rate_plan_id'],
-            $validated['check_in'],
-            $validated['check_out'],
-            (int) ($validated['adults'] ?? 1),
-            (int) ($validated['children'] ?? 0),
-            $validated['email'] ?? null,
-            $validated['session_token'] ?? null,
-        );
+        try {
+            $quote = $this->engine->quote(
+                $this->property($request),
+                $validated['room_type_id'],
+                $validated['rate_plan_id'],
+                $validated['check_in'],
+                $validated['check_out'],
+                (int) ($validated['adults'] ?? 1),
+                (int) ($validated['children'] ?? 0),
+                $validated['email'] ?? null,
+                $validated['session_token'] ?? null,
+            );
+        } catch (StayNotBookableException $e) {
+            // VY-15 — the API's own way of saying it: a 422 on the field the refusal is about.
+            throw ValidationException::withMessages([$e->field => [$e->getMessage()]]);
+        }
 
         return response()->json(['data' => $this->quotePayload($quote)], 201);
     }
@@ -843,7 +860,9 @@ class BookingEngineController extends Controller
     {
         $validated = $request->validate([
             'quote_id' => ['required', 'string'],
-            'payment_token' => ['required', 'string'],
+            // ⚠️ VY-01 — a card token is needed only when there IS a card gateway to hand it to. With the manual gateway the public path
+            //    records no payment at all (the balance is due at the property), so a token would be a decoration — and a required one a lie.
+            'payment_token' => [$this->engine->takesCardPayments() ? 'required' : 'nullable', 'string'],
             'email' => ['required', 'email'],
             'first_name' => ['sometimes', 'string'],
             'last_name' => ['sometimes', 'string'],
@@ -865,11 +884,16 @@ class BookingEngineController extends Controller
             throw ValidationException::withMessages(['terms_version' => [__('php/http/controllers/booking_engine_controller.terms_changed')]]);
         }
 
-        $result = $this->engine->book($quote, $validated['payment_token'], [
-            'email' => $validated['email'],
-            'first_name' => $validated['first_name'] ?? null,
-            'last_name' => $validated['last_name'] ?? null,
-        ], terms: $terms);
+        try {
+            $result = $this->engine->book($quote, (string) ($validated['payment_token'] ?? ''), [
+                'email' => $validated['email'],
+                'first_name' => $validated['first_name'] ?? null,
+                'last_name' => $validated['last_name'] ?? null,
+            ], terms: $terms);
+        } catch (StayNotBookableException $e) {
+            // VY-15 — the quote's stay can no longer be booked (its arrival day passed, or its rate was switched off). Nothing was written.
+            throw ValidationException::withMessages([$e->field => [$e->getMessage()]]);
+        }
 
         $status = $result['status'] === 'confirmed' ? 201 : ($result['status'] === 'unavailable' ? 409 : 200);
         $reservation = $result['reservation'];

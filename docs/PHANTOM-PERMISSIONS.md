@@ -34,10 +34,14 @@ table.
 | `availability.view` | read through the calendar and rack → `rates.view` / `reservations.view` |
 | `housekeeping.view` | the board has **no gate at all**; every write → `housekeeping.manage` |
 
-### B. The capability does not exist as an operator surface (8) → **REMOVE is the likely ruling**
+### B. The capability does not exist as an operator surface (7) → **REMOVE is the likely ruling**
+
+> ✅ **2026-11-24 — the seventeen are SIXTEEN.** `guest_documents.manage` left this list: the audit's VY-18 built the audited
+> ID viewer on the reservation's page (the founder's ruling, "build the viewer"), and that permission gates both of its routes.
+> The figures above this line (51/17/19, "the 17") are the measurement of their date; the register in `tests/` holds sixteen.
 
 `invoices.view` · `invoices.issue` (invoice numbering is an explicit "Soon") · `amenities.manage` ·
-`corporate_accounts.manage` · `guest_documents.manage` · `api.manage` (platform-admin CLI only) ·
+`corporate_accounts.manage` · `api.manage` (platform-admin CLI only) ·
 `organizations.manage` (only `TenantProvisioningService` creates orgs) · `addons.manage` (a **guest**
 request flow).
 

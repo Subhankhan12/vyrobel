@@ -275,7 +275,7 @@ return [
         'id' => 'CB-M31',
         'name' => 'no way to open the booking just made',
         'file' => 'resources/views/livewire/reservation-rack.blade.php',
-        'old' => '@if ($created !== null) <a class="vy-rnr-link" href="{{ route(\'app.reservations.show\', $created) }}">{{ __(\'livewire/reservation-rack.open_it\') }}</a>@endif',
+        'old' => '@if ($created !== null && $canOpenReservations) <a class="vy-rnr-link" href="{{ route(\'app.reservations.show\', $created) }}">{{ __(\'livewire/reservation-rack.open_it\') }}</a>@endif',
         'new' => '',
         'tests' => [['file' => $test, 'filter' => 'brings a booking made from the Calendar back to the Calendar']],
     ],

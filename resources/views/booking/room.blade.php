@@ -123,19 +123,19 @@
                     <div class="vy-eyebrow">{{ __('booking/room.your_dates') }}</div>
                     <div class="vy-book-total" style="margin-top:8px;">{{ __('booking/room.not_available') }}</div>
                     <form method="GET" action="" class="vy-mini-form">
-                        <div class="vy-full"><label class="vy-field-label" for="ci">{{ __('booking/room.check_in') }}</label><input class="vy-input" type="date" id="ci" name="check_in" value="{{ $search['check_in'] }}"></div>
-                        <div class="vy-full"><label class="vy-field-label" for="co">{{ __('booking/room.check_out') }}</label><input class="vy-input" type="date" id="co" name="check_out" value="{{ $search['check_out'] }}"></div>
-                        <div><label class="vy-field-label" for="ad">{{ __('booking/room.adults') }}</label><input class="vy-input" type="number" id="ad" name="adults" min="1" value="{{ $search['adults'] }}"></div>
-                        <div><label class="vy-field-label" for="ch">{{ __('booking/room.children') }}</label><input class="vy-input" type="number" id="ch" name="children" min="0" value="{{ $search['children'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="ci">{{ __('booking/room.check_in') }}</label><input class="vy-input" type="date" id="ci" name="check_in" min="{{ $today }}" value="{{ $search['check_in'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="co">{{ __('booking/room.check_out') }}</label><input class="vy-input" type="date" id="co" name="check_out" min="{{ $today }}" value="{{ $search['check_out'] }}"></div>
+                        <div><label class="vy-field-label" for="ad">{{ __('booking/room.adults') }}</label><input class="vy-input" type="number" id="ad" name="adults" min="1" max="{{ $room['max_adults'] }}" value="{{ $search['adults'] }}"></div>
+                        <div><label class="vy-field-label" for="ch">{{ __('booking/room.children') }}</label><input class="vy-input" type="number" id="ch" name="children" min="0" max="{{ $room['max_children'] }}" value="{{ $search['children'] }}"></div>
                         <button type="submit" class="vy-btn vy-btn--accent vy-full">{{ __('booking/room.check_dates') }}</button>
                     </form>
                 @else
                     <div class="vy-eyebrow">{{ __('booking/room.check_availability') }}</div>
                     <form method="GET" action="" class="vy-mini-form">
-                        <div class="vy-full"><label class="vy-field-label" for="ci">{{ __('booking/room.check_in') }}</label><input class="vy-input" type="date" id="ci" name="check_in" value="{{ $search['check_in'] }}"></div>
-                        <div class="vy-full"><label class="vy-field-label" for="co">{{ __('booking/room.check_out') }}</label><input class="vy-input" type="date" id="co" name="check_out" value="{{ $search['check_out'] }}"></div>
-                        <div><label class="vy-field-label" for="ad">{{ __('booking/room.adults') }}</label><input class="vy-input" type="number" id="ad" name="adults" min="1" value="{{ $search['adults'] }}"></div>
-                        <div><label class="vy-field-label" for="ch">{{ __('booking/room.children') }}</label><input class="vy-input" type="number" id="ch" name="children" min="0" value="{{ $search['children'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="ci">{{ __('booking/room.check_in') }}</label><input class="vy-input" type="date" id="ci" name="check_in" min="{{ $today }}" value="{{ $search['check_in'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="co">{{ __('booking/room.check_out') }}</label><input class="vy-input" type="date" id="co" name="check_out" min="{{ $today }}" value="{{ $search['check_out'] }}"></div>
+                        <div><label class="vy-field-label" for="ad">{{ __('booking/room.adults') }}</label><input class="vy-input" type="number" id="ad" name="adults" min="1" max="{{ $room['max_adults'] }}" value="{{ $search['adults'] }}"></div>
+                        <div><label class="vy-field-label" for="ch">{{ __('booking/room.children') }}</label><input class="vy-input" type="number" id="ch" name="children" min="0" max="{{ $room['max_children'] }}" value="{{ $search['children'] }}"></div>
                         <button type="submit" class="vy-btn vy-btn--accent vy-full">{{ __('booking/room.see_price') }}</button>
                     </form>
                 @endif

@@ -9,6 +9,7 @@ use App\Support\Inventory\CalendarHorizon;
 use App\Support\Mail\MailboxRotation;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Mail\MailSendLog;
+use App\Support\Ops\BackupStatus;
 use App\Support\Ops\ConfigInventory;
 use App\Support\Ops\Heartbeat;
 use App\Support\Platform\MailDelivery;
@@ -16,6 +17,7 @@ use App\Support\Platform\PlatformSwitches;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Number;
 use Throwable;
 
 /**
@@ -46,6 +48,7 @@ final class HealthBoard
             $this->guard('queue', $this->title('queue'), fn () => $this->queue()),
             $this->guard('scheduler', $this->title('scheduler'), fn () => $this->scheduler()),
             $this->guard('calendar', $this->title('calendar'), fn () => $this->calendar()),
+            $this->guard('backup', $this->title('backup'), fn () => $this->backup()),
             $this->guard('errors', $this->title('errors'), fn () => $this->errors()),
             $this->guard('release', $this->title('release'), fn () => $this->release()),
             $this->guard('config', $this->title('config'), fn () => $this->config()),
@@ -296,6 +299,45 @@ final class HealthBoard
             __('php/support/platform/health/health_board.calendar_note'));
     }
 
+    /**
+     * VY-12 (2026-11-24) — IS THERE A BACKUP FROM THE LAST DAY, AND IS A COPY OFF THIS SERVER? Read from the backup folder itself
+     * ({@see BackupStatus::report()}), never from the job: a backup that did not run cannot say so. Ages and sizes only — no path,
+     * no passphrase.
+     */
+    private function backup(): HealthCard
+    {
+        $report = BackupStatus::report();
+        $title = $this->title('backup');
+
+        if (! $report['configured']) {
+            return new HealthCard('backup', $title, HealthCard::RED, __('php/support/platform/health/health_board.backup_not_set_up'), [],
+                __('php/support/platform/health/health_board.backup_founder_step'));
+        }
+
+        $lines = [
+            $report['age_seconds'] === null
+                ? __('php/support/platform/health/health_board.backup_never')
+                : __('php/support/platform/health/health_board.backup_last', ['age' => $this->age($report['age_seconds']), 'size' => Number::fileSize((int) $report['bytes'], 1)]),
+            match (true) {
+                ! $report['offsite_configured'] => __('php/support/platform/health/health_board.backup_offsite_not_set'),
+                $report['offsite_age_seconds'] === null => __('php/support/platform/health/health_board.backup_offsite_never'),
+                default => __('php/support/platform/health/health_board.backup_offsite_last', ['age' => $this->age($report['offsite_age_seconds'])]),
+            },
+        ];
+
+        if (! $report['healthy']) {
+            return new HealthCard('backup', $title, HealthCard::RED, __('php/support/platform/health/health_board.backup_stale'), $lines,
+                __('php/support/platform/health/health_board.backup_stale_note'));
+        }
+
+        if (! $report['offsite_healthy']) {
+            return new HealthCard('backup', $title, HealthCard::AMBER, __('php/support/platform/health/health_board.backup_same_server'), $lines,
+                __('php/support/platform/health/health_board.backup_same_server_note'));
+        }
+
+        return new HealthCard('backup', $title, HealthCard::GREEN, __('php/support/platform/health/health_board.backup_ok'), $lines);
+    }
+
     private function errors(): HealthCard
     {
         $counts = LogErrorCounter::lastDay();
@@ -405,6 +447,7 @@ final class HealthBoard
             'queue' => __('php/support/platform/health/health_board.title_queue'),
             'scheduler' => __('php/support/platform/health/health_board.title_scheduler'),
             'calendar' => __('php/support/platform/health/health_board.title_calendar'),
+            'backup' => __('php/support/platform/health/health_board.title_backup'),
             'errors' => __('php/support/platform/health/health_board.title_errors'),
             'release' => __('php/support/platform/health/health_board.title_release'),
             'config' => __('php/support/platform/health/health_board.title_config'),

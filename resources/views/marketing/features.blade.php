@@ -193,7 +193,7 @@
               <span style="font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text);">Operations</span>
             </div>
             <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -.028em; color: var(--vy-ink); text-wrap: balance;">A turnover day that keeps up with itself</h2>
-            <p style="margin: 0 0 18px; max-width: 460px; font-size: 15.5px; line-height: 1.68; color: var(--vy-muted);">A live board your team works from their phones, and a maintenance ticket that takes a unit off sale everywhere the moment it is raised.</p>
+            <p style="margin: 0 0 18px; max-width: 460px; font-size: 15.5px; line-height: 1.68; color: var(--vy-muted);">A live board your team works from their phones, and a maintenance work order that takes a unit off sale the moment it is raised.</p>
             <a href="#operations" style="display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; text-decoration: none; align-self: flex-start;">Jump to the detail
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
             </a>
@@ -215,7 +215,7 @@
               <span style="font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text);">Guest experience</span>
             </div>
             <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -.028em; color: var(--vy-ink); text-wrap: balance;">A guest who arrives already checked in</h2>
-            <p style="margin: 0 0 18px; max-width: 460px; font-size: 15.5px; line-height: 1.68; color: var(--vy-muted);">Registration and ID days ahead, house rules accepted with a timestamp, and the door code released the afternoon before — not at booking.</p>
+            <p style="margin: 0 0 18px; max-width: 460px; font-size: 15.5px; line-height: 1.68; color: var(--vy-muted);">Registration and ID days ahead, booking terms accepted with a timestamp when they book, and the door code released a set number of days before arrival — not at booking.</p>
             <a href="#guests" style="display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; text-decoration: none; align-self: flex-start;">Jump to the detail
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
             </a>
@@ -392,7 +392,7 @@
         <article data-reveal="" data-reveal-delay="120" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 26px 24px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <span style="display: inline-flex; width: 38px; height: 38px; border-radius: 12px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.4.8-4.7 4.3 1.3 6.3L12 17l-5.6 3 1.3-6.3L3 9.4l6.4-.8z"></path></svg></span>
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Messaging &amp; reviews</h3>
-          <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">Every channel's messages in one inbox with delivery states, plus review collection and rating trends per property.</p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">Guest messages in one inbox beside the reservation, plus review collection and rating trends per property.</p>
         </article>
       </div>
     </section>
@@ -406,7 +406,7 @@
       <div data-fgrid="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
         <article data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 26px 24px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <span style="display: inline-flex; width: 38px; height: 38px; border-radius: 12px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path></svg></span>
-          <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Automatic monthly statements</h3>
+          <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Monthly statements</h3>
           <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">Gross revenue, commission, expenses, net payout — per unit and in total, with the bookings behind every line, as PDF and CSV.</p>
         </article>
         <article data-reveal="" data-reveal-delay="60" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 26px 24px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">

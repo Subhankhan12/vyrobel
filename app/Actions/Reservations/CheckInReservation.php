@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions\Reservations;
 
+use App\Exceptions\Reservations\RoomNotReadyException;
 use App\Http\Middleware\EnsureOwnerPortalAccess;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
+use App\Models\Unit;
 use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\HousekeepingService;
 use App\Services\MaintenanceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Inventory\RoomCapacity;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Reservations\ReservationStatusLabel;
 use Carbon\CarbonImmutable;
@@ -42,6 +45,7 @@ class CheckInReservation
         }
 
         $this->assertTransition($reservation);
+        $this->assertRoomsReady($reservation);
 
         $fromStatus = (string) $reservation->status;
 
@@ -75,6 +79,45 @@ class CheckInReservation
         );
 
         return $reservation->refresh();
+    }
+
+    /**
+     * ⚠️⚠️ VY-13 (audit of 2026-11-24, reproduced) — A GUEST IS CHECKED IN INTO A ROOM, AND INTO ONE THAT IS IN SERVICE.
+     *
+     * The only condition used to be the booking's status, so a stay with NO room on its line was checked in (a guest "in house" in no
+     * room), and so was a stay whose room maintenance had closed. Both are refused here, in the writer, so every caller is covered —
+     * the front desk, the walk-in, and anything with no screen at all.
+     *
+     * ⚠️ "NOT READY" MEANS CLOSED, NOT DIRTY. The refusal reads {@see Unit::UNBOOKABLE_CONDITIONS} — the codebase's own declaration of
+     * a room no stay may land on. A room that is merely not cleaned yet is the desk's call (an early arrival leaves their bags), and a
+     * PAUSED unit deliberately keeps the stays already on it ({@see RoomCapacity}); neither is refused.
+     * ⚠️ Every ACTIVE line is checked: a stay of two rooms is not checked in while one of them is missing or closed.
+     *
+     * @throws RoomNotReadyException
+     */
+    private function assertRoomsReady(Reservation $reservation): void
+    {
+        $problems = [];
+        $lines = $reservation->reservationUnits()->where('status', 'active')->with('unit')->get();
+
+        foreach ($lines as $line) {
+            $unit = $line->unit;
+            if (! $unit instanceof Unit) {
+                $problems[] = __('operator/check-in-blocked.no_room');
+            } elseif (in_array((string) $unit->condition_status, Unit::UNBOOKABLE_CONDITIONS, true)) {
+                $name = trim((string) $unit->name);
+                $problems[] = __('operator/check-in-blocked.out_of_service', ['room' => $name !== '' ? $name : (string) $unit->code]);
+            }
+        }
+
+        // A booking with no active line at all has no room either.
+        if ($lines->isEmpty()) {
+            $problems[] = __('operator/check-in-blocked.no_room');
+        }
+
+        if ($problems !== []) {
+            throw new RoomNotReadyException(array_values(array_unique($problems)));
+        }
     }
 
     /**

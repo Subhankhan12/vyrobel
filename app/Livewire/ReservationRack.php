@@ -21,6 +21,7 @@ use App\Models\UnitRateOverride;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Authorization\ReservationRead;
 use App\Support\Folio\StayEstimator;
 use App\Support\I18n\ListJoin;
 use App\Support\I18n\LocalDate;
@@ -264,6 +265,8 @@ class ReservationRack extends Component
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
             'canBook' => $canBook,
             'canMove' => $canMove,
+            // VY-14 — a bar links to the reservation's page only for a role that page will open for (never a link into a 403)
+            'canOpenReservations' => ReservationRead::allowed(auth()->user()),
             'canSetPrice' => (bool) auth()->user()?->can('rates.manage'),
             'priceNote' => $this->priceNote($rows, $roomTypes),
             // the way forward from a property with no room that can take a booking — none added, or all paused or out of service —

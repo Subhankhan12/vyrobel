@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\Ops\QueueHeartbeatJob;
+use App\Support\Ops\BackupStatus;
 use App\Support\Ops\Heartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -25,6 +26,13 @@ Schedule::command('team-chat:prune-typing')->hourly();
 // touches `sold` or a night already published). It exits non-zero if anything is still short, and the console's health board reads the
 // same shortfall from its own query — a job cannot report that it did not run.
 Schedule::command('availability:extend')->dailyAt('01:30');
+
+// ⚠️⚠️ VY-12 (audit of 2026-11-24; his ruling: "schedule now, copy later") — THE ENCRYPTED BACKUP, EVERY NIGHT. `ops/backup.sh` ran only
+// when somebody typed it. `backup:run` runs the same script (the one `ops/restore-drill.sh` proves) and copies the archive to the
+// off-server disk when one is set. ⚠️ ONLY WHILE IT IS SET UP: with no passphrase file the command refuses, so scheduling it
+// unconditionally would write an error every night on a host nobody has set up — the console's health board says "not set up" in red
+// instead, from its own reading of the folder. Set-up is the founder's (a passphrase file outside the application + its PATH in `.env`).
+Schedule::command('backup:run')->dailyAt('02:30')->when(fn (): bool => BackupStatus::configured())->withoutOverlapping();
 
 // Phase 3 · Sub-gate 4 — daily guest payment reminders for balances due before arrival (the real trigger; the
 // email is genuine via Mailpit in dev / a real provider in prod).

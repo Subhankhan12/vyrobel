@@ -68,7 +68,7 @@
         @endphp
         @if ($notice)
             {{-- ⚠️ 2026-10-04 — a REFUSED move was this same quiet status line as one that worked; now an alert --}}
-            <div class="vy-flash{{ $refused ? ' is-err' : '' }} vy-rack-notice vy-fade" role="{{ $refused ? 'alert' : 'status' }}">{{ $notice }}@if ($created !== null) <a class="vy-rnr-link" href="{{ route('app.reservations.show', $created) }}">{{ __('livewire/reservation-rack.open_it') }}</a>@endif</div>
+            <div class="vy-flash{{ $refused ? ' is-err' : '' }} vy-rack-notice vy-fade" role="{{ $refused ? 'alert' : 'status' }}">{{ $notice }}@if ($created !== null && $canOpenReservations) <a class="vy-rnr-link" href="{{ route('app.reservations.show', $created) }}">{{ __('livewire/reservation-rack.open_it') }}</a>@endif</div>
         @endif
         @if ($dialogSaid !== null)
             <div class="vy-flash {{ $dialogError !== null ? 'is-err' : 'is-ok' }} vy-rack-notice vy-fade" role="{{ $dialogError !== null ? 'alert' : 'status' }}">{{ $dialogSaid }}</div>
@@ -274,7 +274,7 @@
                                                     {{-- #104 GATE 3d — the bar links to the reservation detail; GATE 5.3 — it's draggable
                                                          to reschedule (unless the workspace is read-only). --}}
                                                     <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif @if ($canMove) is-draggable @endif"
-                                                       href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                       @if ($canOpenReservations) href="{{ route('app.reservations.show', $bar['id']) }}" @endif
                                                        @if ($canMove) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
                                                        title="{{ trans_choice($canMove ? 'livewire/reservation-rack.bar_title_draggable' : 'livewire/reservation-rack.bar_title', $bar['nights'], ['count' => $bar['nights'], 'guest' => $bar['guest'], 'status' => $bar['status_label'], 'source' => $bar['source'], 'ref' => $bar['ref']]) }}">
@@ -310,7 +310,7 @@
                                             <div class="vy-lane-bars">
                                                 @foreach ($lane as $bar)
                                                     <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
-                                                       href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                       @if ($canOpenReservations) href="{{ route('app.reservations.show', $bar['id']) }}" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
                                                        title="{{ trans_choice('livewire/reservation-rack.bar_title_unassigned', $bar['nights'], ['count' => $bar['nights'], 'guest' => $bar['guest'], 'status' => $bar['status_label'], 'source' => $bar['source'], 'ref' => $bar['ref']]) }}">
                                                         <span class="vy-bar-txt">

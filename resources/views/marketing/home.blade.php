@@ -48,7 +48,7 @@
             </h1>
 
             <p style="margin: 24px 0 0; font-size: 18px; line-height: 1.62; color: var(--vy-muted); max-width: 520px; text-wrap: pretty;">
-              Vyrobel is the all-in-one property management platform that runs your front desk, housekeeping and maintenance in real time — and gives you a branded direct booking engine so the reservation, and the margin, stays yours.
+              Vyrobel is the all-in-one property management platform that runs your front desk, housekeeping and maintenance from one place — and gives you a branded direct booking engine so the reservation, and the margin, stays yours.
             </p>
 
             <div data-heroroi="" style="margin-top: 30px; padding: 20px 22px; border-radius: 18px; background: rgba(255,252,248,.55); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 12px 32px rgba(150,90,50,.13); max-width: 520px;">
@@ -79,7 +79,6 @@
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 26px; font-size: 13px; color: var(--vy-muted);">
               <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>No card required</span>
               <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Live in a day</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>GDPR-ready, hosted in the EU</span>
             </div>
 
             <div style="display: inline-flex; align-items: center; gap: 11px; margin-top: 24px; padding: 11px 16px 11px 13px; border-radius: 14px; background: rgba(255,252,248,.5); border: 1px solid rgba(255,255,255,.75);">
@@ -484,7 +483,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 9h18M8 4v5M8 14h4"></path></svg>
           </span>
           <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">Operators</h3>
-          <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">Reservations, front desk, calendar, housekeeping, maintenance, rates and reports — the whole day runs from one place, in real time, across every property you manage.</p>
+          <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">Reservations, front desk, calendar, housekeeping, maintenance, rates and reports — the whole day runs from one place, across every property you manage.</p>
           <x-marketing.nav-link key="product" fragment="#operators" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">Explore the operator app <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
         </article>
 
@@ -625,7 +624,7 @@
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">11:00</span>
               <h3 style="margin: 0; font-family: var(--vy-display); font-size: 24px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink); line-height: 1.2; text-wrap: balance;">A cracked shower screen becomes a ticket</h3>
             </div>
-            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">A cleaner photographs it and marks the unit out of service from the room. It stops selling on every channel in the same second.</p>
+            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">The maintenance lead opens a work order with the photo and takes the unit out of service. Your direct storefront stops offering it at once.</p>
           </div>
           <div data-hourpanel="3" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Rates</div>
@@ -633,7 +632,7 @@
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">13:00</span>
               <h3 style="margin: 0; font-family: var(--vy-display); font-size: 24px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink); line-height: 1.2; text-wrap: balance;">Rates for the shoulder weeks go out</h3>
             </div>
-            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">A weekend uplift is applied across September and pushed to Airbnb and Booking.com. The owner sees the proposal before it goes live.</p>
+            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">A weekend uplift is applied across September on your direct storefront. The owner sees the proposal before it goes live.</p>
           </div>
           <div data-hourpanel="4" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Front desk</div>

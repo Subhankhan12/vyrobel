@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Http\Controllers\Guest\GuestCheckinController;
+use App\Http\Controllers\Operator\GuestIdDocumentController;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
@@ -12,6 +13,7 @@ use App\Models\AuditEvent;
 use App\Models\CompanyAccount;
 use App\Models\Folio;
 use App\Models\Guest;
+use App\Models\GuestDocument;
 use App\Models\InventoryBlock;
 use App\Models\Payment;
 use App\Models\PropertyPolicy;
@@ -103,6 +105,48 @@ class ReservationDetail extends Component
         $this->reservationId = $reservation;
     }
 
+    /**
+     * VY-18 (2026-11-24, his ruling "build the viewer") — the ID documents captured at online check-in for this booking: the type,
+     * the day it arrived and where it stands. ⚠️ NOTHING from the image and no guest detail is read here — the image itself is a
+     * separate, audited request ({@see GuestIdDocumentController::show()}). Empty for a role without `guest_documents.manage`, so
+     * the card and its links are never rendered for someone the route would refuse (#30).
+     *
+     * @return list<array{id: string, type: string, received: string, status: string, status_label: string, tone: string}>
+     */
+    private function idDocuments(Reservation $reservation): array
+    {
+        if (auth()->user()?->can('guest_documents.manage') !== true) {
+            return [];
+        }
+
+        return GuestDocument::query()
+            ->where('reservation_id', $reservation->getKey())
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (GuestDocument $document): array {
+                $status = (string) $document->verification_status;
+
+                return [
+                    'id' => (string) $document->getKey(),
+                    'type' => $document->type === 'id_card' ? __('livewire/reservation-detail.id_type_card') : __('livewire/reservation-detail.id_type_passport'),
+                    'received' => CarbonImmutable::parse($document->created_at)->translatedFormat(LocalDate::pattern('j M Y')),
+                    'status' => $status,
+                    'status_label' => match ($status) {
+                        'verified' => __('livewire/reservation-detail.id_status_checked'),
+                        'rejected' => __('livewire/reservation-detail.id_status_rejected'),
+                        default => __('livewire/reservation-detail.id_status_pending'),
+                    },
+                    'tone' => match ($status) {
+                        'verified' => 'confirmed',
+                        'rejected' => 'cancelled',
+                        default => 'pending',
+                    },
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     public function render(): View
     {
         $reservation = Reservation::query()
@@ -188,6 +232,8 @@ class ReservationDetail extends Component
 
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),
+            // VY-18 — the guest's ID documents for THIS booking, for a role that may open them (`guest_documents.manage`); [] otherwise.
+            'idDocuments' => $this->idDocuments($reservation),
             // ⚠️ The mid-stay date only means something once the guest has arrived: before that the whole
             //    stay follows the unit and there are no nights to divide.
             'stayStarted' => CarbonImmutable::parse($reservation->check_in)->startOfDay()

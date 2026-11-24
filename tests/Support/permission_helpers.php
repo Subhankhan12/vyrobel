@@ -156,7 +156,6 @@ if (! defined('VY_UNREAD_PERMISSIONS')) {
         'invoices.issue' => 'Same — nothing issues an invoice.',
         'amenities.manage' => 'No amenity management surface exists.',
         'corporate_accounts.manage' => 'No corporate-account surface exists; `reservations.source` carries `corporate` but nothing manages accounts.',
-        'guest_documents.manage' => 'Guest ID documents are handled by the guest realm and the retention purge, never by an operator permission.',
         'api.manage' => 'The OAuth/API surface is platform-admin only (`oauth:register-client`), deliberately not self-serve.',
         'organizations.manage' => 'Organisations are created only by TenantProvisioningService; the platform admin realm has its own guard.',
         'addons.manage' => 'Add-ons are a GUEST request flow (POST /guest/reservation/{r}/manage/add-ons); no operator surface consumes this.',

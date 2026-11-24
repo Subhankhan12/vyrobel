@@ -16,19 +16,23 @@
  * ARE ANSWERING A CUSTOMER'S SECURITY QUESTIONNAIRE. A `.view` permission in this catalogue does **NOT** mean
  * the corresponding screen is gated. 🔬 Measured 2026-09-22:
  *
- *   · `reservations.view` gates **only** `app/guest-requests` and `app/search`. It does NOT gate
- *     `app/reservations`, `app/reservations/{id}`, `app/calendar`, `app/rack` or `app/front-desk` —
- *     **every back-office role can open all five.**
+ *   · `reservations.view` gates `app/guest-requests` and `app/search` — and, SINCE 2026-11-24 (VY-14, his word), the reservations
+ *     list and a reservation's own page, which open for `reservations.view` OR `folios.view` (the ONE rule:
+ *     App\Support\Authorization\ReservationRead; Housekeeping, Maintenance and Marketing are refused). It does NOT gate
+ *     `app/calendar`, `app/rack` or `app/front-desk` — **every back-office role can open those three.**
  *   · `units.view` gates **only** `app/unit-requests`. It does NOT gate `app/units`.
  *   · `folios.view` gates the folio PDF and the email previews, not the folio shown in a reservation.
  *
  * ⚠️⚠️ THAT IS A FOUNDER RULING, NOT AN OVERSIGHT (2026-09-22, `docs/GO-LIVE-REQUIREMENTS.md`): 19 of 55
- * `GET /app` routes are deliberately open to all eleven back-office roles, because in the target market a
- * small property's staff already see everything. ⚠️ **This note exists because the matrix was implying a
+ * `GET /app` routes were deliberately open to all eleven back-office roles, because in the target market a
+ * small property's staff already see everything. ⚠️ NARROWED BY HIM ON 2026-11-24 for two of the 19 — the
+ * reservations list and a reservation's page (VY-14, above); the other 17 stand as ruled. ⚠️ **This note exists because the matrix was implying a
  * restriction that does not exist, and a permission list that lies is worse than no permission list.**
  *
- * ⚠️ WHAT IS ACTUALLY TRUE, AND IS SAFE TO STATE: *all back-office roles can read guest names, stay dates and
- * reservation amounts; no role outside the Guests CRM (`guests.view`) can read guest contact details.*
+ * ⚠️ WHAT IS ACTUALLY TRUE, AND IS SAFE TO STATE: *all back-office roles can read guest names and stay dates
+ * (the Calendar and the Front Desk show them); a reservation's own page and the reservations list — where the
+ * amounts are — need `reservations.view` or `folios.view`; no role outside the Guests CRM (`guests.view`) can
+ * read guest contact details.* ⚠️ The Front Desk board still prints a balance due beside an arrival.
  * 🔬 Measured by differential against a chrome baseline: zero guest emails and zero phone numbers render on
  * any of the 19 open routes.
  *

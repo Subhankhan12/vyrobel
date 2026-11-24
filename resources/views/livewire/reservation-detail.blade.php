@@ -90,6 +90,45 @@
                     @endforeach
                 </div>
 
+                {{-- VY-18 (2026-11-24, his ruling "build the viewer") — THE GUEST'S ID DOCUMENT. `$idDocuments` is EMPTY for a role without
+                     `guest_documents.manage` (the component decides, #30), so this card and its links never render for someone the
+                     route would refuse. The image is NOT on this page: "View" is its own request, and every one writes an audit row.
+                     The status is what a PERSON decided after looking — never called an identity check (#39). --}}
+                @if ($idDocuments !== [])
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 10px;">{{ __('livewire/reservation-detail.id_title') }}</h2>
+                        @foreach ($idDocuments as $idDocument)
+                            <div class="vy-unit-row" style="align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div>
+                                    <div class="vy-um-name">{{ $idDocument['type'] }}</div>
+                                    <div class="vy-um-sub">{{ __('livewire/reservation-detail.id_received', ['date' => $idDocument['received']]) }}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span class="vy-tag tone-{{ $idDocument['tone'] }}"><span class="vy-dot"></span>{{ $idDocument['status_label'] }}</span>
+                                    <a class="vy-btn vy-btn--ghost" target="_blank" rel="noopener noreferrer"
+                                       href="{{ route('app.reservations.id-documents.show', [$reservation['id'], $idDocument['id']]) }}"
+                                       title="{{ __('livewire/reservation-detail.id_view_title') }}">{{ __('livewire/reservation-detail.id_view') }}</a>
+                                    @if ($idDocument['status'] !== 'verified')
+                                        <form method="POST" action="{{ route('app.reservations.id-documents.review', [$reservation['id'], $idDocument['id']]) }}" data-guard-submit>
+                                            @csrf
+                                            <input type="hidden" name="decision" value="verified">
+                                            <x-busy-btn class="vy-btn vy-btn--accent" :busy-label="__('livewire/reservation-detail.id_saving')">{{ __('livewire/reservation-detail.id_mark_checked') }}</x-busy-btn>
+                                        </form>
+                                    @endif
+                                    @if ($idDocument['status'] !== 'rejected')
+                                        <form method="POST" action="{{ route('app.reservations.id-documents.review', [$reservation['id'], $idDocument['id']]) }}" data-guard-submit>
+                                            @csrf
+                                            <input type="hidden" name="decision" value="rejected">
+                                            <x-busy-btn class="vy-btn vy-btn--ghost" :busy-label="__('livewire/reservation-detail.id_saving')">{{ __('livewire/reservation-detail.id_reject') }}</x-busy-btn>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                        <div class="vy-recon" style="margin-top: 8px;">{{ __('livewire/reservation-detail.id_note') }}</div>
+                    </div>
+                @endif
+
                 {{-- STATUS TIMELINE — the REAL `reservation_status_history` append-only audit trail. Both
                      sides of every transition are the real status enum via reservationStatusMeta(); the
                      actor is the real `changed_by` user, or "System" where it is genuinely null (an OTA

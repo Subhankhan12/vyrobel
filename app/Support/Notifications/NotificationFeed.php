@@ -7,6 +7,7 @@ namespace App\Support\Notifications;
 use App\Models\Guest;
 use App\Models\User;
 use App\Notifications\Operator\TeamMessageNotification;
+use App\Support\Authorization\ReservationRead;
 use App\Support\I18n\StoredEnglish;
 use App\Support\Platform\BreakGlass;
 use Illuminate\Database\Eloquent\Builder;
@@ -187,6 +188,32 @@ final class NotificationFeed
         return is_string($labels[$category] ?? null) ? $labels[$category] : ucwords(str_replace('_', ' ', $category));
     }
 
+    /**
+     * VY-14 (2026-11-24) — A NOTICE NEVER LINKS ITS READER INTO A 403. A stored notification carries the address it was written
+     * with, for whoever received it; the reservations screens now need a reason to read them ({@see ReservationRead}), and a
+     * "New booking" notice goes to every operator. Seen in a real browser: the bell offered a Housekeeper three links that all
+     * refused. The notice itself stays (it is theirs); only a link into the reservations screens is dropped for a reader those
+     * screens would refuse. Every other address is returned as it is.
+     *
+     * ⚠️ The feed is SELF-ONLY (the signed-in person's own rows), so the reader is `auth()->user()`.
+     */
+    private static function reachable(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $reservations = (string) parse_url(route('app.reservations', [], false), PHP_URL_PATH);
+        $user = auth()->user();
+
+        if (($path === $reservations || str_starts_with($path, $reservations.'/')) && ! ReservationRead::allowed($user instanceof User ? $user : null)) {
+            return null;
+        }
+
+        return $url;
+    }
+
     private static function map(DatabaseNotification $n): array
     {
         return [
@@ -194,7 +221,7 @@ final class NotificationFeed
             'title' => self::text($n->data, 'title') ?? self::legacy((string) $n->type, $n->data['title'] ?? null)
                 ?? (string) ($n->data['title'] ?? __('php/support/notifications/notification_feed.fallback_title')),
             'context' => self::text($n->data, 'context') ?? self::legacy((string) $n->type, $n->data['context'] ?? null) ?? (string) ($n->data['context'] ?? ''),
-            'url' => is_string($n->data['url'] ?? null) ? (string) $n->data['url'] : null,
+            'url' => self::reachable(is_string($n->data['url'] ?? null) ? (string) $n->data['url'] : null),
             'category' => (string) ($n->data['category'] ?? 'general'),
             'read' => $n->read_at !== null,
             'when' => $n->created_at?->diffForHumans(),

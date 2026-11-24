@@ -43,6 +43,11 @@ const SRT_OVERRIDE_MINOR = 51000;              // a per-unit override that must 
 /** A property with a published base rate across July AND August — so "outside the range" is real data. */
 function srtCast(): array
 {
+    // ⚠️ 2026-11-24 (VY-15): this file books JULY 2026 through the real storefront while the suite's clock stands at 1 August 2026 —
+    //    stays in the past, which the storefront now refuses (it was the audit's own reproduction). The clock is set BEFORE the
+    //    season so these bookings are what they were always meant to be: ordinary bookings for dates still ahead.
+    test()->travelTo('2026-06-15 09:00:00');
+
     $s = publicPropertyScenario(units: 2, nightlyMinor: SRT_BASE_MINOR);
     $plan = RatePlan::query()->where('room_type_id', $s['roomType']->id)->firstOrFail();
 

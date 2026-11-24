@@ -108,17 +108,17 @@
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">{{ __('booking/browse.check_in') }}</span>
-                <input type="date" name="check_in" value="{{ $search['check_in'] }}" aria-label="{{ __('booking/browse.check_in_date') }}">
+                <input type="date" name="check_in" min="{{ $today }}" value="{{ $search['check_in'] }}" aria-label="{{ __('booking/browse.check_in_date') }}">
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">{{ __('booking/browse.check_out') }}</span>
-                <input type="date" name="check_out" value="{{ $search['check_out'] }}" aria-label="{{ __('booking/browse.check_out_date') }}">
+                <input type="date" name="check_out" min="{{ $today }}" value="{{ $search['check_out'] }}" aria-label="{{ __('booking/browse.check_out_date') }}">
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">{{ __('booking/browse.adults') }}</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="adults" min="1" max="16" value="{{ $search['adults'] }}" readonly aria-label="{{ __('booking/browse.adults') }}">
+                    <input type="number" name="adults" min="1" max="{{ $guestCaps['adults'] }}" value="{{ $search['adults'] }}" readonly aria-label="{{ __('booking/browse.adults') }}">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>
@@ -126,7 +126,7 @@
                 <span class="vy2-field-k">{{ __('booking/browse.children') }}</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="children" min="0" max="16" value="{{ $search['children'] }}" readonly aria-label="{{ __('booking/browse.children') }}">
+                    <input type="number" name="children" min="0" max="{{ $guestCaps['children'] }}" value="{{ $search['children'] }}" readonly aria-label="{{ __('booking/browse.children') }}">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>

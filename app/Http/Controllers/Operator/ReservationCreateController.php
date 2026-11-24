@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Operator;
 use App\Exceptions\Booking\BookingException;
 use App\Exceptions\Booking\RestrictionOverrideForbiddenException;
 use App\Exceptions\Booking\RestrictionsViolationException;
+use App\Exceptions\Reservations\RoomNotReadyException;
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\NewReservation;
 use App\Models\AddOn;
@@ -348,13 +349,24 @@ class ReservationCreateController extends Controller
         // walk-in but not work the desk → the booking still lands, just not checked in).
         if ($request->boolean('walk_in')) {
             $checkedIn = false;
+            $notReady = null;
             if ($reservation->status === 'confirmed' && $request->user()?->can('reservations.checkin')) {
-                app(FrontDeskService::class)->checkIn($reservation);
-                $checkedIn = true;
+                try {
+                    app(FrontDeskService::class)->checkIn($reservation);
+                    $checkedIn = true;
+                } catch (RoomNotReadyException $e) {
+                    // VY-13 — a BELT, not a path a test can walk: this wizard always books a specific, free, in-service unit (checked above),
+                    // so the action can refuse here only if the room was closed in the instant between the booking and this line. Then
+                    // the booking still lands (it is real), it is NOT checked in, and the desk is told why in the same notice.
+                    $notReady = $e->getMessage();
+                }
             }
             $deskNotice = $checkedIn
                 ? __('php/http/controllers/operator/reservation_create_controller.walk_in_checked_in', ['reference' => $reservation->reference])
                 : __('php/http/controllers/operator/reservation_create_controller.walk_in_created', ['reference' => $reservation->reference]);
+            if ($notReady !== null) {
+                $deskNotice .= ' '.$notReady;
+            }
             if ($paidMinor > 0) {
                 $deskNotice .= ' '.__('php/http/controllers/operator/reservation_create_controller.recorded_as_paid', ['amount' => MoneyFormatter::display($paidMinor, $currency)]);
             }

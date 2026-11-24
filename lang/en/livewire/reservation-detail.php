@@ -107,4 +107,18 @@ return [
     'hold_releasing' => 'Releasing…',
     'hold_release_confirm' => 'Release this hold? The guest\'s card is freed and nothing is charged.',
     'booking_terms' => 'Booking terms',
+    // VY-18 (2026-11-24): the guest's ID document, for staff who may open it
+    'id_title' => 'ID document',
+    'id_type_passport' => 'Passport',
+    'id_type_card' => 'ID card',
+    'id_received' => 'Received :date',
+    'id_status_pending' => 'Not checked yet',
+    'id_status_checked' => 'Checked',
+    'id_status_rejected' => 'Rejected',
+    'id_view' => 'View',
+    'id_view_title' => 'Open the ID image in a new tab. Every opening is recorded.',
+    'id_mark_checked' => 'Mark as checked',
+    'id_reject' => 'Reject',
+    'id_saving' => 'Saving…',
+    'id_note' => 'Each time this image is opened, it is recorded who opened it. It is deleted 30 days after checkout, or at once if the booking is cancelled.',
 ];

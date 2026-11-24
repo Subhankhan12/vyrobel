@@ -34,8 +34,8 @@
       <div style="position: absolute; bottom: -140px; right: 5%; width: 340px; height: 340px; border-radius: 50%; background: var(--vy-accent); filter: blur(92px); opacity: .22; pointer-events: none;"></div>
       <div data-bandinner="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 0 28px;">
         <div style="max-width: 680px; margin-bottom: 32px;">
-          <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; color: #fff; text-wrap: balance;">Every module is in every plan</h2>
-          <p style="margin: 0; font-size: 16.5px; line-height: 1.68; color: rgba(255,247,240,.76);">There is no owner portal add-on, no booking engine upgrade, no channel manager sold separately. Plans differ by portfolio size and support, not by which parts of the product you are allowed to use.</p>
+          <h2 style="margin: 0 0 14px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; color: #fff; text-wrap: balance;">Seventeen of the eighteen are in every plan</h2>
+          <p style="margin: 0; font-size: 16.5px; line-height: 1.68; color: rgba(255,247,240,.76);">There is no owner portal add-on and no booking engine upgrade. The one exception is the channel manager, which is part of the Pro plan.</p>
         </div>
         <div data-incl="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
           <div style="padding: 24px 24px; border-radius: 18px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.13);">
@@ -74,7 +74,7 @@
 
       <div data-modempty="" style="display: none; text-align: center; padding: 54px 20px;">
         <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink); margin-bottom: 6px;">Nothing matches that</div>
-        <div style="font-size: 13.5px; color: var(--vy-muted);">Every module is in every plan, so if it exists it is included — try a different word, or clear the filter.</div>
+        <div style="font-size: 13.5px; color: var(--vy-muted);">Every module except the channel manager is in every plan — try a different word, or clear the filter.</div>
       </div>
     </section>
 
@@ -185,7 +185,7 @@
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator · Guest</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Messaging &amp; inbox</h2>
-          <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">One inbox for guest conversations across direct, Airbnb and Booking.com, with delivery states, channel filters and the reservation context alongside.</p>
+          <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">One inbox for guest conversations, with the reservation context alongside. ⚠️ Messages are in-app today: Airbnb, Booking.com and WhatsApp conversations are not connected yet.</p>
           <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px;">
             <li style="font-size: 12.5px; color: var(--vy-muted); display: flex; gap: 8px;"><span style="color: var(--vy-accent);">·</span>Pin, star, react and reply</li>
             <li style="font-size: 12.5px; color: var(--vy-muted); display: flex; gap: 8px;"><span style="color: var(--vy-accent);">·</span>Filter by channel or arriving today</li>

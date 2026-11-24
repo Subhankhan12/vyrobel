@@ -259,7 +259,7 @@
           <div data-stagepanel="3" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Guest · Prepare</div>
             <h3 style="margin: 0 0 14px; font-family: var(--vy-display); font-size: 26px; font-weight: 600; letter-spacing: -.025em; color: var(--vy-ink); line-height: 1.2; text-wrap: balance;">Online check-in, days before</h3>
-            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Registration and ID from their sofa. The door code releases the afternoon before, once the balance is settled.</p>
+            <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Registration and ID from their sofa. The door code releases a set number of days before arrival, once the balance is settled.</p>
           </div>
           <div data-stagepanel="4" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(232,112,58,.2); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Operator · Arrive</div>

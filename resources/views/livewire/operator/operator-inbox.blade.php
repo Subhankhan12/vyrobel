@@ -208,7 +208,7 @@
                                     </form>
                                 @endif
                             @endunless
-                            @if ($active['reservation'])
+                            @if ($active['reservation'] && \App\Support\Authorization\ReservationRead::allowed(auth()->user()))
                                 <a class="vy-ta-ref" href="{{ route('app.reservations.show', $active['reservation']['id']) }}" title="{{ __('livewire/operator/operator-inbox.open_reservation_title', ['reference' => $active['reservation']['reference']]) }}">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                     <span class="vy-ta-ref-code">{{ $active['reservation']['reference'] }}</span>

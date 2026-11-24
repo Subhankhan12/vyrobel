@@ -68,7 +68,9 @@ it('⚠️⚠️ the board, as configured for this suite, is NOT all green — m
 
 it('⚠️⚠️ a card whose check THROWS is GREY "could not measure" — never green, and the others still stand', function () {
     // Make the queue card's first query fail.
-    DB::shouldReceive('table')->andThrow(new RuntimeException('simulated'));
+    // ⚠️ 2026-11-24 (VY-11, Laravel 13.18 → 13.43): a PARTIAL mock — only `table()` fails. The framework's own test teardown now asks
+    //    the database manager for its connections, and a full mock answered that with "no expectations were specified".
+    DB::partialMock()->shouldReceive('table')->andThrow(new RuntimeException('simulated'));
 
     $c = card('queue');
     expect($c->status)->toBe(HealthCard::GREY)->and($c->headline)->toBe('Could not measure');

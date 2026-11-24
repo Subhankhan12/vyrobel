@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace App\Services\Guest;
 
 use App\Console\Commands\PurgeExpiredGuestDocuments;
+use App\Listeners\PurgeGuestIdDocumentsOnTermination;
 use App\Models\Document;
 use App\Models\Guest;
 use App\Models\GuestDocument;
 use App\Models\Media;
 use App\Models\Reservation;
+use App\Models\User;
+use App\Support\Events\AuditEventRecorder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -25,11 +29,15 @@ use Throwable;
  *  🔒 ENCRYPTED AT REST — the raw image bytes are wrapped with {@see Crypt} (the app key, AES-256) BEFORE they
  *     touch disk, and written to the PRIVATE `local` disk (storage/app/private — never `public`, no URL). So
  *     "Encrypted" on the screen is literally true, not a claim; the stored blob is ciphertext.
- *  🔒 OWNER NEVER SEES IT (#28) — a GuestDocument is guest-scoped; NO owner/operator surface renders it. It is
- *     captured, not verified: `verification_status` stays `pending` (an operator/KYC provider sets it later) —
- *     we NEVER write a fake "verified"/"details matched" (#39, and it would be legally consequential).
- *  🔒 SHORT-LIVED — {@see PurgeExpiredGuestDocuments} hard-deletes the file + rows 30 days
- *     after checkout; a GDPR erase ({@see Guest::anonymize()}) purges it immediately.
+ *  🔒 OWNER NEVER SEES IT (#28) — a GuestDocument is guest-scoped; no OWNER surface renders it. ⚠️ CORRECTED 2026-11-24
+ *     (VY-18, his ruling "build the viewer"): this said no operator surface renders it either, and that was the defect — an image
+ *     nobody can open cannot be checked, so every record stayed `pending` for ever. Staff holding `guest_documents.manage` now open
+ *     it from the reservation's page ({@see self::read()}), EVERY opening is an audit row ({@see self::recordViewed()}), and they
+ *     record their decision ({@see self::review()}). It is still never a provider's identity check, and never called one (#39).
+ *  🔒 SHORT-LIVED — deleted the moment its booking is cancelled or marked a no-show
+ *     ({@see PurgeGuestIdDocumentsOnTermination}); {@see PurgeExpiredGuestDocuments} hard-deletes the file + rows 30 days
+ *     after checkout, and the image of any booking that is cancelled, a no-show or gone; a GDPR erase
+ *     ({@see Guest::anonymize()}) purges it immediately.
  *
  * The stored chain mirrors the shared secure-document structure: Media (the encrypted blob) → Document (secure,
  * signed-url-required) → GuestDocument (the typed register record). Tenant + guest scoped via the models.
@@ -42,6 +50,12 @@ class GuestIdDocumentService
 
     /** Accepted register document types (the wireframe's Passport / EU ID-card picker). */
     public const TYPES = ['passport', 'id_card'];
+
+    /** The decisions staff can record on a document they have looked at (VY-18). `pending` is the state before any. */
+    public const DECISIONS = ['verified', 'rejected'];
+
+    /** Image types the viewer sends back as an image — the ones the upload accepts. Anything else is a plain download. */
+    private const VIEWABLE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
     /**
      * Encrypt + store one ID photo for a guest's reservation, returning the register record. Replaces any
@@ -116,6 +130,92 @@ class GuestIdDocumentService
                 'verification_status' => 'pending',   // captured, NEVER a fabricated "verified" (#39)
             ]);
         });
+    }
+
+    /**
+     * VY-18 (audit of 2026-11-24; his ruling: build the viewer) — the ORIGINAL image, decrypted for ONE response. Nothing is written
+     * to disk in the clear and nothing is cached: the caller streams these bytes and forgets them. NULL when the file is gone (the
+     * rows outlived it) or will not decrypt — the caller answers 404, never a broken image that looks like an ID.
+     *
+     * ⚠️ THE CALLER RECORDS THE OPENING ({@see self::recordViewed()}) BEFORE it sends the bytes: an image that left the building
+     *    with no row to say who took it is the thing this viewer exists to prevent.
+     *
+     * @return array{bytes: string, mime: string}|null
+     */
+    public function read(GuestDocument $guestDocument): ?array
+    {
+        $media = $guestDocument->document?->media;
+        if ($media === null) {
+            return null;
+        }
+
+        $ciphertext = Storage::disk((string) $media->disk)->get((string) $media->path);
+        if (! is_string($ciphertext) || $ciphertext === '') {
+            return null;
+        }
+
+        try {
+            $bytes = Crypt::decryptString($ciphertext);
+        } catch (Throwable $e) {
+            report($e);
+
+            return null;
+        }
+
+        // Only the image types the upload accepts are ever sent back as an image; anything else is offered as a plain download.
+        $mime = (string) $media->mime;
+
+        return ['bytes' => $bytes, 'mime' => in_array($mime, self::VIEWABLE_MIMES, true) ? $mime : 'application/octet-stream'];
+    }
+
+    /**
+     * One audit row per opening — who, which document, which booking. ⚠️ No guest data (#28): the document's TYPE and ids only,
+     * never a name and never anything read from the image. Rows are append-only like every audit row.
+     */
+    public function recordViewed(GuestDocument $guestDocument): void
+    {
+        app(AuditEventRecorder::class)->record('guest_document.viewed', $guestDocument, null, [
+            'type' => (string) $guestDocument->type,
+            'reservation_id' => (string) $guestDocument->reservation_id,
+        ]);
+    }
+
+    /**
+     * Staff's decision on a document they have looked at: `verified` ("checked") or `rejected`. Until VY-18 nothing could set this,
+     * so every document read "pending" for ever. ⚠️ It records that a PERSON looked and decided — it is not an identity check by a
+     * provider, and no screen calls it one (#39).
+     */
+    public function review(GuestDocument $guestDocument, User $by, string $decision): GuestDocument
+    {
+        if (! in_array($decision, self::DECISIONS, true)) {
+            throw new InvalidArgumentException('An ID document is marked verified or rejected, nothing else.');
+        }
+
+        $before = (string) $guestDocument->verification_status;
+        $guestDocument->forceFill(['verification_status' => $decision, 'verified_by' => $by->getKey()])->save();
+
+        app(AuditEventRecorder::class)->record('guest_document.'.$decision, $guestDocument,
+            ['verification_status' => $before],
+            ['verification_status' => $decision, 'reservation_id' => (string) $guestDocument->reservation_id],
+        );
+
+        return $guestDocument;
+    }
+
+    /**
+     * VY-18 — every ID document of ONE booking, purged. Called the moment a booking is cancelled or marked a no-show
+     * ({@see PurgeGuestIdDocumentsOnTermination}): the stay will not happen, so there is no register entry to keep an image for.
+     * Returns how many were removed. Runs inside the caller's tenant context.
+     */
+    public function purgeForReservation(string $reservationId): int
+    {
+        $count = 0;
+        foreach (GuestDocument::query()->where('reservation_id', $reservationId)->with('document.media')->get() as $guestDocument) {
+            $this->purge($guestDocument);
+            $count++;
+        }
+
+        return $count;
     }
 
     /**

@@ -966,7 +966,7 @@ per permission over every `.php` file in `app/`, `routes/` and `resources/` — 
 |---|---|---|
 | **Coarser gate** — the write exists and is protected, by a *broader* permission | `taxes.manage`, `fees.manage`, `invoices.issue` | `/settings/tax-fees` and `/settings/fees/add` are `can:properties.manage`; `/settings/invoice` is `can:settings.manage` |
 | **Wrong realm** — an operator-catalogue entry for a non-operator capability | `invoices.view`, `payments.view` | the matching routes are guest-realm (`/reservation/{r}/invoice.pdf`, `/payments`) |
-| **No distinct action** — nothing in the product performs this as a separate operator write | `amenities.manage`, `availability.manage`, `availability.view`, `restrictions.manage`, `guest_documents.manage`, `corporate_accounts.manage`, `addons.manage` | no route matches the capability at all; `availability.view` is named nowhere in the codebase |
+| **No distinct action** — nothing in the product performs this as a separate operator write | `amenities.manage`, `availability.manage`, `availability.view`, `restrictions.manage`, `corporate_accounts.manage`, `addons.manage` (✅ `guest_documents.manage` left this row on 2026-11-24 — VY-18's ID viewer is gated on it) | no route matches the capability at all; `availability.view` is named nowhere in the codebase |
 
 **The options, reported — none implemented, because this is a product decision.**
 

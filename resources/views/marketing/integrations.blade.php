@@ -18,7 +18,7 @@
 @endphp
 <x-marketing.shell
     title="Integrations — what connects to Vyrobel today | Vyrobel"
-    description="What Vyrobel connects to today: Stripe payments, accounting exports in CSV and PDF, and scoped third-party access over OAuth. OTA channel sync is built but not yet connectable."
+    description="What Vyrobel connects to today: accounting exports in CSV and PDF, and scoped third-party access over OAuth. Stripe payments are built and proven in test mode; OTA channel sync is built but not yet connectable."
     canonical="/integrations">
 <div data-screen-label="Marketing — Integrations" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -29,7 +29,7 @@
       <div style="position: relative; max-width: 700px;">
         <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 16px; animation: vyFadeUp .7s cubic-bezier(.22,.7,.3,1) both;">Integrations &amp; channels</div>
         <h1 data-h1="" style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 50px; line-height: 1.08; letter-spacing: -.035em; color: var(--vy-ink); text-wrap: balance; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .06s both;">Keep your channels. Stop depending on them.</h1>
-        <p style="margin: 22px 0 0; font-size: 17.5px; line-height: 1.62; color: var(--vy-muted); max-width: 600px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .13s both;">Vyrobel keeps one availability pool with a single write path, so it is built to drive channels without the calendars ever drifting apart. ⚠️ No OTA channel can be connected yet: what is live today is the direct storefront, Stripe payments, accounting exports and scoped third-party access.</p>
+        <p style="margin: 22px 0 0; font-size: 17.5px; line-height: 1.62; color: var(--vy-muted); max-width: 600px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .13s both;">Vyrobel keeps one availability pool with a single write path, so it is built to drive channels without the calendars ever drifting apart. ⚠️ No OTA channel can be connected yet: what is live today is the direct storefront, accounting exports and scoped third-party access. Card payments through Stripe are built and proven in Stripe's test mode; live card payments are not switched on yet.</p>
       </div>
     </section>
 
@@ -61,7 +61,7 @@
             <span style="font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: var(--vy-ink);">Stripe</span>
             <span style="padding: 4px 10px; border-radius: 8px; background: rgba(150,90,50,.11); color: var(--vy-muted); font-size: 10.5px; font-weight: 600;">Payments</span>
           </div>
-          <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">Card payments on the storefront and at the desk, deposits, refunds and credit notes — all reflected in the folio and the owner statement.</p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--vy-muted);">Card payments on the storefront and at the desk, deposits, refunds and credit notes — all reflected in the folio and the owner statement. ⚠️ Built and proven in Stripe's test mode: live card payments are not switched on yet.</p>
         </article>
         <article data-reveal="" data-reveal-delay="60" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s ease, box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">

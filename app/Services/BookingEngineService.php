@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\Booking\BookingException;
+use App\Exceptions\Booking\StayNotBookableException;
 use App\Models\BookingQuote;
 use App\Models\Folio;
 use App\Models\Guest;
@@ -14,12 +15,15 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Payments\Contracts\PaymentGateway;
 use App\Support\Booking\BookingTerms;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\PropertyCharges;
+use App\Support\Guest\GuestEmailMatch;
 use App\Support\I18n\Locales;
 use App\Support\Money\Money;
 use App\Support\Pricing\NightlyRate;
+use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -49,6 +53,11 @@ class BookingEngineService
      */
     public function search(Property $property, string $checkIn, string $checkOut, int $adults = 1, int $children = 0): array
     {
+        // ⚠️ VY-15 — SHOWN = ENFORCED: a stay that has already begun at the property is refused by quote(), so it is never offered here.
+        if ($this->hasPassed($property, $checkIn)) {
+            return [];
+        }
+
         $nights = $this->nights($checkIn, $checkOut);
 
         $roomTypes = RoomType::query()
@@ -106,6 +115,9 @@ class BookingEngineService
         $roomType = RoomType::query()->where('property_id', $property->getKey())->findOrFail($roomTypeId);
         $ratePlan = RatePlan::query()->where('room_type_id', $roomType->getKey())->findOrFail($ratePlanId);
 
+        // ⚠️⚠️ VY-15 — every quote is made HERE, by the web checkout and by the JSON API alike, so the rules are checked here once.
+        $this->assertBookable($property, $roomType, $ratePlan, $checkIn, $adults, $children);
+
         // ⚠️ THE ONE RESOLVER, AND ZERO MOVEMENT BY CONSTRUCTION (§N.8f / D4-1). stayTotalForUnit() returns
         // NULL when the chosen unit carries no override anywhere in the stay — and NULL for a type-level
         // quote — so the fallback is the identical priceOver() call this line has always made. A stay that
@@ -136,6 +148,10 @@ class BookingEngineService
                 // is what every quote meant before this feature existed.
                 'unit_id' => $unitId,
                 'qty' => 1,
+                // ⚠️ VY-16 (2026-11-24) — THE LINE'S PRICE IS FIXED HERE, AT THE QUOTE, and book() writes exactly this on the booking
+                //    line. It was re-priced at booking time, so a rate change in between left the folio on the quoted figure and the line
+                //    (which the occupancy and revenue reports read) on the new one. Same JSON array, no migration.
+                'price_minor' => $totalMinor,
             ]],
             'currency' => $currency,
             'subtotal' => $total,
@@ -159,8 +175,8 @@ class BookingEngineService
      *
      * ⚠️ $takePayment=false skips the inline charge and leaves the folio balance DUE — used by the
      * storefront's TEST-MODE hosted-Stripe rail (the controller then creates a Checkout session for
-     * the balance and fulfils on the webhook). The default (true) keeps every existing caller intact:
-     * the JSON book endpoint + the certified engine tests record a real, full-balance payment inline.
+     * the balance and fulfils on the webhook). The default (true) records a full-balance payment inline
+     * through the CARD gateway — and records NOTHING while the gateway is manual (VY-01, see below).
      *
      * ⚠️ `$terms` (BOOKING TERMS, 2026-11-14) is the {@see BookingTerms} the guest accepted. When given, the acceptance (time, version,
      * the terms exactly as shown) is written ON THE RESERVATION IN THE SAME TRANSACTION that creates it — never a later update that could be
@@ -176,10 +192,20 @@ class BookingEngineService
             return ['status' => 'already_converted', 'reservation' => $quote->convertedReservation, 'payment' => null, 'folio' => null, 'client_secret' => null];
         }
 
-        $guest = Guest::create([
+        // ⚠️ VY-15 — AND AGAIN AT THE BOOKING: a quote is only a price snapshot, and nothing stops one being presented after its arrival
+        //    day has passed or after the operator switched its rate plan off. Checked BEFORE anything is written (no guest, no booking).
+        $this->assertQuoteStillBookable($quote);
+
+        // ⚠️⚠️ VY-17 (audit of 2026-11-24) — ONE GUEST PER EMAIL IN AN ORGANISATION. This always created a NEW guest, so a second
+        //    booking with the same email made a second record and the guest's portal account (one record) showed only one of the two.
+        //    The booking now joins the guest who already holds the email here ({@see GuestEmailMatch::bookingGuest()} — the blind index,
+        //    tenant-scoped, the portal account first). ⚠️ The existing record is used AS IT IS: this form is anonymous, so its name and
+        //    language are never written onto someone who already exists.
+        $guestEmail = $guestData['email'] ?? $quote->email;
+        $guest = GuestEmailMatch::bookingGuest($guestEmail) ?? Guest::create([
             'first_name' => $guestData['first_name'] ?? 'Guest',
             'last_name' => $guestData['last_name'] ?? '',
-            'email' => $guestData['email'] ?? $quote->email,
+            'email' => $guestEmail,
             // I18N-01 — the language the guest booked in (the storefront's language menu) goes with them, so the confirmation
             // and pre-arrival emails arrive in it (Guest::preferredLocale). English stays unset, exactly as before.
             ...(app()->getLocale() !== Locales::SOURCE ? ['language' => app()->getLocale()] : []),
@@ -207,11 +233,17 @@ class BookingEngineService
                 'check_out' => $checkOut,
                 'adults' => $quote->adults,
                 'children' => $quote->children,
-                // ⚠️ CHARGED = SHOWN = RESOLVED — the same wrap the quote used, so the folio cannot disagree
-                // with the price the guest was shown. NULL (no override) falls through to today's path.
-                'price_minor' => (($lineUnitId !== null
-                    ? NightlyRate::stayTotalForUnit((string) $line['rate_plan_id'], $lineUnitId, $checkIn, $checkOut)
-                    : null) ?? $this->priceOver((string) $line['rate_plan_id'], $checkIn, $checkOut)) ?? 0,
+                // ⚠️⚠️ VY-16 — CHARGED = SHOWN = STORED ON THE LINE. The price is the one the QUOTE fixed (its line's `price_minor`),
+                //    never a fresh read of the rate calendar: a rate changed after the quote must not put a second price on the booking.
+                //    ⚠️ A quote made before the line carried a price has ONE line (quote() has only ever written one), so that line's
+                //    price is the quote's own total — the figure the folio charges two statements below.
+                'price_minor' => isset($line['price_minor']) && is_int($line['price_minor'])
+                    ? $line['price_minor']
+                    : (count($requested) === 1
+                        ? (int) $quote->total_minor
+                        : ((($lineUnitId !== null
+                            ? NightlyRate::stayTotalForUnit((string) $line['rate_plan_id'], $lineUnitId, $checkIn, $checkOut)
+                            : null) ?? $this->priceOver((string) $line['rate_plan_id'], $checkIn, $checkOut)) ?? 0)),
                 'currency' => $quote->currency,
             ];
         }
@@ -268,7 +300,15 @@ class BookingEngineService
 
         // Settle the FULL balance inline unless the caller defers to the hosted-Stripe rail. Paying the
         // full balance (not just the room) keeps payment_status == 'paid' now that fees/taxes are posted.
-        $payment = $takePayment
+        //
+        // ⚠️⚠️ VY-01 (audit of 2026-11-24, reproduced; P0) — AND NEVER THROUGH THE MANUAL GATEWAY. The manual gateway approves every
+        //    charge: it models money a member of STAFF took outside any gateway (cash, a bank transfer) and is told about. This method is
+        //    the PUBLIC booking engine — its caller is a visitor — so handing it the manual gateway recorded a `succeeded` payment for the
+        //    whole stay on a visitor's own word: the reservation read `paid`, the folio balance 0, and the booking passed the collection
+        //    gate towards an owner's payout. With no card gateway the booking is made with its balance DUE (pay at the property), exactly
+        //    like the web checkout's "pay on arrival". A manual payment is recorded only by signed-in staff (`payments.record`).
+        //    ⚠️ The guard is HERE, in the service, so every caller is covered — the JSON endpoint, the web checkout and any future one.
+        $payment = $takePayment && $this->takesCardPayments()
             ? $this->folios->recordPayment($folio, Money::of($balanceMinor, (string) $quote->currency), $paymentToken, ['booking_quote_id' => $quote->getKey()])
             : null;
 
@@ -287,6 +327,79 @@ class BookingEngineService
             'folio' => $folio->refresh(),
             'client_secret' => is_string($paymentMetadata['client_secret'] ?? null) ? $paymentMetadata['client_secret'] : null,
         ];
+    }
+
+    /**
+     * VY-15 (audit of 2026-11-24, reproduced) — the three things the storefront never OFFERS and therefore must never ACCEPT:
+     * a stay whose arrival day has passed AT THE PROPERTY, more adults or children than the room type takes, and a rate plan that is
+     * switched off. The search already hides all three; this is the same rule on the write side.
+     *
+     * @throws StayNotBookableException
+     */
+    private function assertBookable(Property $property, RoomType $roomType, RatePlan $ratePlan, string $checkIn, int $adults, int $children): void
+    {
+        if ($this->hasPassed($property, $checkIn)) {
+            throw new StayNotBookableException('check_in', __('php/services/booking_engine_service.stay_in_past'));
+        }
+
+        $maxAdults = (int) $roomType->max_adults;
+        $maxChildren = (int) $roomType->max_children;
+        if ($adults > $maxAdults || $children > $maxChildren) {
+            throw new StayNotBookableException(
+                $adults > $maxAdults ? 'adults' : 'children',
+                __('php/services/booking_engine_service.too_many_guests', ['adults' => $maxAdults, 'children' => $maxChildren]),
+            );
+        }
+
+        if (! $ratePlan->is_active) {
+            throw new StayNotBookableException('rate_plan_id', __('php/services/booking_engine_service.plan_unavailable'));
+        }
+    }
+
+    /**
+     * The same rules for a quote that is about to become a booking, read from the quote's own lines. A line whose room type or rate
+     * plan no longer exists is left to the core (it refuses it); a quote for another property never reaches here (the controller's
+     * lookup is property-scoped).
+     *
+     * @throws StayNotBookableException
+     */
+    private function assertQuoteStillBookable(BookingQuote $quote): void
+    {
+        $property = Property::query()->find($quote->property_id);
+        if (! $property instanceof Property) {
+            return;
+        }
+        $checkIn = CarbonImmutable::parse($quote->check_in)->toDateString();
+
+        /** @var list<array<string, mixed>> $requested */
+        $requested = $quote->requested;
+        foreach ($requested as $line) {
+            $roomType = RoomType::query()->where('property_id', $property->getKey())->find((string) ($line['room_type_id'] ?? ''));
+            $ratePlan = $roomType instanceof RoomType
+                ? RatePlan::query()->where('room_type_id', $roomType->getKey())->find((string) ($line['rate_plan_id'] ?? ''))
+                : null;
+            if ($roomType instanceof RoomType && $ratePlan instanceof RatePlan) {
+                $this->assertBookable($property, $roomType, $ratePlan, $checkIn, (int) $quote->adults, (int) $quote->children);
+            }
+        }
+    }
+
+    /**
+     * Has this arrival day already passed AT THE PROPERTY? The property's own day ({@see BoardDate::today()}, the rule the Calendar and
+     * the Front Desk use) — a guest booking tonight in Baku is not refused because the server's day has not rolled, and the reverse.
+     */
+    public function hasPassed(Property $property, string $checkIn): bool
+    {
+        return CarbonImmutable::parse($checkIn)->toDateString() < BoardDate::today($property->timezone)->toDateString();
+    }
+
+    /**
+     * VY-01 — does the public booking path have a gateway that REALLY charges a card? Only then may it record a payment. Read from the
+     * resolved {@see PaymentGateway} (the one FolioService would charge through), never from a second copy of the config rule.
+     */
+    public function takesCardPayments(): bool
+    {
+        return app(PaymentGateway::class)->name() !== 'manual';
     }
 
     /**

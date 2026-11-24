@@ -223,8 +223,12 @@ it('⚠️ VY-05: the reservation pages hold their id LOCKED — a wire update c
 
     foreach ([ReservationDetail::class, ReservationRefund::class] as $component) {
         // mounting the far booking is a 404 for this person
-        expect(fn () => Livewire::actingAs($scoped)->test($component, ['reservation' => (string) $far['reservation']->id]))
-            ->toThrow(ModelNotFoundException::class);
+        // ⚠️ 2026-11-24 (VY-11, Livewire 4.3.3 → 4.4.9): the test harness used to let the mount's ModelNotFoundException escape; it now
+        //    answers as the router does — the 404 page. The subject is unchanged and is asserted from BOTH sides: the status is 404
+        //    AND the far booking's reference is nowhere in what was rendered.
+        Livewire::actingAs($scoped)->test($component, ['reservation' => (string) $far['reservation']->id])
+            ->assertStatus(404)
+            ->assertDontSee((string) $far['reservation']->reference);
 
         // …and a page mounted on their own booking refuses to be pointed at the far one
         expect(fn () => Livewire::actingAs($scoped)->test($component, ['reservation' => (string) $near->id])

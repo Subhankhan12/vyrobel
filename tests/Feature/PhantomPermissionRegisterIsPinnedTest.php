@@ -50,13 +50,12 @@ const VYP_SHAPE_A_ENFORCED_ELSEWHERE = [
     'taxes.manage',
 ];
 
-/** B · The capability does not exist as an operator surface. Eight. */
+/** B · The capability does not exist as an operator surface. Seven — `guest_documents.manage` left on 2026-11-24: VY-18 built the audited ID viewer, and it gates it. */
 const VYP_SHAPE_B_NO_SURFACE = [
     'addons.manage',
     'amenities.manage',
     'api.manage',
     'corporate_accounts.manage',
-    'guest_documents.manage',
     'invoices.issue',
     'invoices.view',
     'organizations.manage',
@@ -69,13 +68,13 @@ const VYP_SHAPE_C_ROLE_GATED = [
     'payments.view',
 ];
 
-// ── 1. ⚠️⚠️ THE EXACT SEVENTEEN, BY NAME ────────────────────────────────────────────────────────────
+// ── 1. ⚠️⚠️ THE EXACT SIXTEEN, BY NAME (seventeen until 2026-11-24) ────────────────────────────────────────────────────────────
 /**
  * ⚠️⚠️ THE PIN. Adding a permission that nothing reads, removing one of these from the catalogue, renaming
  * one, or wiring one to a real check — every one of those changes this set, and every one must be a
  * deliberate act with a ruling behind it rather than a side effect of a tidy-up.
  */
-it('⚠️⚠️ R-PHANTOM — the seventeen unread permissions are EXACTLY these, by name', function () {
+it('⚠️⚠️ R-PHANTOM — the sixteen unread permissions are EXACTLY these, by name', function () {
     $expected = [...VYP_SHAPE_A_ENFORCED_ELSEWHERE, ...VYP_SHAPE_B_NO_SURFACE, ...VYP_SHAPE_C_ROLE_GATED];
     sort($expected);
 
@@ -86,7 +85,7 @@ it('⚠️⚠️ R-PHANTOM — the seventeen unread permissions are EXACTLY thes
         "The set of permissions NOTHING reads has changed.\n"
         .'  appeared: '.implode(', ', array_diff($actual, $expected))."\n"
         .'  gone:     '.implode(', ', array_diff($expected, $actual))."\n"
-        .'R-PHANTOM ruled these seventeen are KEPT and DOCUMENTED. If one is now enforced, that is good — '
+        .'R-PHANTOM ruled these are KEPT and DOCUMENTED (seventeen then; sixteen since VY-18 gave `guest_documents.manage` a real gate). If one is now enforced, that is good — '
         .'move it out of docs/PHANTOM-PERMISSIONS.md and this register. If one vanished from the catalogue, '
         .'that moves role_has_permissions and needs a ruling.');
 });
@@ -99,12 +98,12 @@ it('⚠️⚠️ R-PHANTOM — the seventeen unread permissions are EXACTLY thes
  */
 it('⚠️ keeps the three shapes distinct — six, eight and three', function () {
     expect(VYP_SHAPE_A_ENFORCED_ELSEWHERE)->toHaveCount(6);
-    expect(VYP_SHAPE_B_NO_SURFACE)->toHaveCount(8);
+    expect(VYP_SHAPE_B_NO_SURFACE)->toHaveCount(7);
     expect(VYP_SHAPE_C_ROLE_GATED)->toHaveCount(3);
 
     // ⚠️ No permission may sit in two shapes — that would make the total right and the reasoning wrong.
     $all = [...VYP_SHAPE_A_ENFORCED_ELSEWHERE, ...VYP_SHAPE_B_NO_SURFACE, ...VYP_SHAPE_C_ROLE_GATED];
-    expect(array_unique($all))->toHaveCount(17, 'a permission appears in more than one shape');
+    expect(array_unique($all))->toHaveCount(16, 'a permission appears in more than one shape');
 });
 
 // ── 3. ⚠️⚠️ THE SCAN EXCLUDES ITSELF — ASSERTED, NOT CLAIMED IN A COMMENT ───────────────────────────
