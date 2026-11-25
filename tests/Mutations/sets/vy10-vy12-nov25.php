@@ -101,4 +101,12 @@ return [
         'new' => 'SUM_COLS="payouts.amount_minor owner_statements.net_payable_minor"',
         'tests' => [['file' => 'tests/Feature/Vy12BackupPullTest.php', 'filter' => 'THE SAME spot-check']],
     ],
+    [
+        'id' => 'VY1012-M14',
+        'name' => 'old passphrase overwritten in silence',
+        'file' => 'ops/host/env-set.php',
+        'old' => '        if (is_file($path)) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Vy10Vy12EnvSetToolTest.php', 'filter' => 'never overwrites the old one']],
+    ],
 ];

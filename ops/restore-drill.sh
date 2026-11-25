@@ -22,6 +22,7 @@
 #   BACKUP_PASSPHRASE   the archive's passphrase. ⚠️ Not set and run at a terminal → asked for, hidden, never echoed or stored.
 #   RESTORE_AGAINST     source | facts
 #   RESTORE_DB_HOST / RESTORE_DB_PORT / RESTORE_DB_USER / RESTORE_DB_PASS   the database server to restore into (default: .env's)
+#   RESTORE_MYSQL_OPTS  extra client options, space-separated (e.g. --skip-ssl-verify-server-cert for a local MariaDB)
 #   RESTORE_MYSQL_BIN   the client to use (e.g. MariaDB's own `mariadb` for a MariaDB dump: its first line is a MariaDB-only command)
 #   RESTORE_SCRATCH_DB  the scratch schema's name (default vyrobel_restore_drill)
 # ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ DB_HOST="${RESTORE_DB_HOST:-$(env_get DB_HOST)}"; DB_PORT="${RESTORE_DB_PORT:-$(
 DB_USER="${RESTORE_DB_USER:-$(env_get DB_USERNAME)}"; DB_PASS="${RESTORE_DB_PASS-$(env_get DB_PASSWORD)}"
 SRC_DB="$(env_get DB_DATABASE)"
 MYSQL_BIN="${RESTORE_MYSQL_BIN:-mysql}"
+read -r -a MYSQL_OPTS <<< "${RESTORE_MYSQL_OPTS:-}"   # extra client options (e.g. MariaDB's, for a password-less local server)
 SCRATCH="${RESTORE_SCRATCH_DB:-vyrobel_restore_drill}"
 
 # ⚠️ The passphrase: from the environment, or typed at a hidden prompt — never an argument, never printed, never written.
@@ -54,7 +56,8 @@ fi
 ARCHIVE="${1:-$(ls -t "${APP_DIR}"/storage/backups/vyrobel-*.tar.gz.enc 2>/dev/null | head -1)}"
 [ -n "${ARCHIVE}" ] && [ -f "${ARCHIVE}" ] || { echo "No archive found." >&2; exit 2; }
 
-my() { "${MYSQL_BIN}" ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} -u "${DB_USER:-root}" ${DB_PASS:+-p"${DB_PASS}"} "$@"; }
+# the password through MYSQL_PWD (the client's environment), never `-p…` on a command line a process listing shows
+my() { MYSQL_PWD="${DB_PASS}" "${MYSQL_BIN}" ${MYSQL_OPTS[@]+"${MYSQL_OPTS[@]}"} ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} -u "${DB_USER:-root}" "$@"; }
 
 WORK="$(mktemp -d)"
 cleanup() { my -e "DROP DATABASE IF EXISTS \`${SCRATCH}\`;" >/dev/null 2>&1 || true; rm -rf "${WORK}"; }
@@ -88,13 +91,13 @@ fact() { awk -F'\t' -v t="$1" -v n="$2" '$1 == t && $2 == n { print $3; exit }' 
 # ── 1. ROW COUNTS, EVERY TABLE ───────────────────────────────────────────────────────────────────
 # ⚠️ Compared per table, not as a total: two tables off by +1/−1 would cancel in a sum.
 echo "→ comparing row counts across every table …"
-COUNT_TABLES=0; MISMATCH=0; MOVED=0; ROWS=0
+COUNT_TABLES=0; MISMATCH=0; MOVED=0; ROWS=0; MOVED_NAMES=""
 if [ "${AGAINST}" = "facts" ]; then
   while IFS=$'\t' read -r KIND T A; do
     [ "${KIND}" = "table" ] || continue
     COUNT_TABLES=$((COUNT_TABLES+1))
     B=$(my -sN -e "SELECT COUNT(*) FROM \`${SCRATCH}\`.\`${T}\`;" 2>/dev/null || echo "MISSING")
-    if [ "${A}" = "moved" ]; then MOVED=$((MOVED+1)); continue; fi
+    if [ "${A}" = "moved" ]; then MOVED=$((MOVED+1)); MOVED_NAMES="${MOVED_NAMES} ${T}"; continue; fi
     if [ "${A}" != "${B}" ]; then echo "   ✗ ${T}: backed up=${A} restored=${B}"; MISMATCH=$((MISMATCH+1)); else ROWS=$((ROWS+B)); fi
   done < "${WORK}/FACTS.txt"
   # and nothing restored that the facts do not name
@@ -110,7 +113,7 @@ else
   done
 fi
 if [ "${MISMATCH}" -eq 0 ]; then
-  echo "   ✓ ${COUNT_TABLES} tables, every row count matches$([ "${MOVED}" -gt 0 ] && echo " (${MOVED} moved during the dump, not compared)")"
+  echo "   ✓ ${COUNT_TABLES} tables, every row count matches$([ "${MOVED}" -gt 0 ] && echo " (${MOVED} moved during the dump, not compared:${MOVED_NAMES})")"
 else FAIL=1; fi
 
 # ⚠️ NON-VACUITY: an EMPTY database restores "successfully" and matches itself perfectly. A drill over no
@@ -195,7 +198,9 @@ if [ "${AGAINST}" = "facts" ]; then
 else
   SRC_N=$(find "${APP_DIR}/storage/app" -type f | wc -l | tr -d ' ')
   if [ "${SRC_N}" = "${RES_N}" ]; then echo "   ✓ ${RES_N} files restored"; else echo "   ✗ files: source=${SRC_N} restored=${RES_N}"; FAIL=1; fi
-  SAMPLE=$(find "${APP_DIR}/storage/app" -type f ! -name '.gitignore' | head -1)
+  # ⚠️ `-print -quit`, NOT `| head -1`: under `set -o pipefail` find is killed by SIGPIPE once head has its line, and `set -e` then
+  #    ended the drill with exit 141 and NO verdict (found 2026-11-25 — it depended on timing, so it passed some runs)
+  SAMPLE=$(find "${APP_DIR}/storage/app" -type f ! -name '.gitignore' -print -quit)
   if [ -n "${SAMPLE}" ]; then
     REL="${SAMPLE#${APP_DIR}/storage/}"
     H1=$(shasum -a 256 "${SAMPLE}" | cut -d' ' -f1); H2=$(shasum -a 256 "${WORK}/files/${REL}" 2>/dev/null | cut -d' ' -f1 || echo none)

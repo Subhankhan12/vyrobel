@@ -55,8 +55,10 @@ WORK="$(mktemp -d)"; trap 'rm -rf "${WORK}"' EXIT
 # ⚠️ The spot-check and sum lists are the SAME as the drill's own (ops/restore-drill.sh) — a test keeps them in step.
 SPOT_PAIRS="reservations:id,reference,status,check_in,check_out,currency payouts:id,amount_minor,currency,status,owner_id owner_statements:id,net_payable_minor,gross_minor,status"
 SUM_COLS="payouts.amount_minor owner_statements.net_payable_minor folio_items.amount_minor"
-q() { mysql -sN --default-character-set=utf8mb4 ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} \
-        -u "${DB_USER:-root}" ${DB_PASS:+-p"${DB_PASS}"} "${DB_NAME}" -e "$1"; }
+# ⚠️ the DB password reaches the clients through MYSQL_PWD (their environment — readable only by this account), never `-p…` on a
+#    command line, which any process listing shows (review 2026-11-25, finding 5)
+q() { MYSQL_PWD="${DB_PASS}" mysql -sN --default-character-set=utf8mb4 ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} \
+        -u "${DB_USER:-root}" "${DB_NAME}" -e "$1"; }
 facts() {
   local tables sql="" t pair cols col tab
   tables=$(q "SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' ORDER BY table_name;")
@@ -65,13 +67,16 @@ facts() {
     sql="${sql}SELECT 'table','${t}',COUNT(*) FROM \`${t}\`"
   done
   [ -z "${sql}" ] || q "${sql};"
+  # ⚠️ a plain string test, NOT `printf | grep -q`: under pipefail an early-exiting grep can SIGPIPE the writer and the test reads
+  #    as FALSE — the fact would be skipped in silence
+  has_table() { [[ $'\n'"${tables}"$'\n' == *$'\n'"$1"$'\n'* ]]; }
   for col in ${SUM_COLS}; do
     tab="${col%%.*}"
-    if printf '%s\n' ${tables} | grep -qx "${tab}"; then q "SELECT 'sum','${col}',COALESCE(SUM(${col#*.}),0) FROM \`${tab}\`;"; fi
+    if has_table "${tab}"; then q "SELECT 'sum','${col}',COALESCE(SUM(${col#*.}),0) FROM \`${tab}\`;"; fi
   done
   for pair in ${SPOT_PAIRS}; do
     tab="${pair%%:*}"; cols="${pair#*:}"
-    if printf '%s\n' ${tables} | grep -qx "${tab}"; then
+    if has_table "${tab}"; then
       q "SELECT 'spot','${tab}',CONCAT_WS('|',${cols}) FROM \`${tab}\` ORDER BY id LIMIT 1;"
     fi
   done
@@ -85,10 +90,10 @@ facts > "${WORK}/facts.before"
 # taken mid-booking can contain a reservation whose folio rows are from a different instant.
 # --routines/--triggers/--events so the schema comes back whole, not just the rows.
 echo "→ dumping ${DB_NAME} …"
-mysqldump --single-transaction --quick --routines --triggers --events \
+MYSQL_PWD="${DB_PASS}" mysqldump --single-transaction --quick --routines --triggers --events \
   --default-character-set=utf8mb4 \
   ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} \
-  -u "${DB_USER:-root}" ${DB_PASS:+-p"${DB_PASS}"} "${DB_NAME}" > "${WORK}/database.sql"
+  -u "${DB_USER:-root}" "${DB_NAME}" > "${WORK}/database.sql"
 
 echo "→ reading the facts (after the dump) …"
 facts > "${WORK}/facts.after"

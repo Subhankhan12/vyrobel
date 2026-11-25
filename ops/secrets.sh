@@ -20,7 +20,8 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 eval "$(sed -n -e '/^HOST=/p' -e '/^ROOT=/p' "${REPO}/ops/release.sh")"   # HOST PORT KEY ROOT PHP — one definition
 : "${HOST:?}" "${PORT:?}" "${KEY:?}" "${ROOT:?}" "${PHP:?}"
 
-ssh_() { ssh -i "${KEY}" -p "${PORT}" -o ConnectTimeout=60 -o BatchMode=yes "${HOST}" "$@"; }
+ssh_() { ssh -n -i "${KEY}" -p "${PORT}" -o ConnectTimeout=60 -o BatchMode=yes "${HOST}" "$@"; }   # -n: it never eats his keystrokes
+ssh_in() { ssh -i "${KEY}" -p "${PORT}" -o ConnectTimeout=60 -o BatchMode=yes "${HOST}" "$@"; }   # the one that reads standard input
 die() { echo "  ✗ $*" >&2; exit 1; }
 say() { echo "  $*"; }
 step() { echo; echo "── $* ──"; }
@@ -41,10 +42,10 @@ ssh_ "[ -f ${TOOL}/env-set.php ] && [ -f ${TOOL}/ops-check.php ]" \
 # ask for a secret twice, hidden; it stays in this process's memory only
 ask_secret() { # $1 prompt  $2 minimum length  → SECRET
   local again
-  read -r -s -p "  $1 (hidden): " SECRET; echo
+  IFS= read -r -s -p "  $1 (hidden): " SECRET; echo   # IFS= : a space at either end is part of it, not trimmed
   [ -n "${SECRET}" ] || die "nothing typed — nothing changed"
   [ "${#SECRET}" -ge "$2" ] || { SECRET=; die "shorter than $2 characters — nothing changed"; }
-  read -r -s -p "  Once more, to be sure (hidden): " again; echo
+  IFS= read -r -s -p "  Once more, to be sure (hidden): " again; echo
   [ "${SECRET}" = "${again}" ] || { SECRET=; again=; die "the two did not match — nothing changed"; }
   again=
 }
@@ -52,7 +53,7 @@ confirm() { local a; read -r -p "  $1 [y/N] " a; [ "${a}" = "y" ] || [ "${a}" = 
 
 # send the secret on STANDARD INPUT (printf is a shell builtin: the value never appears in a process list)
 put_secret() { # $1 mode (secret|secret-file)  $2 KEY  [$3 path]
-  printf '%s\n' "${SECRET}" | ssh_ "${PHP} ${TOOL}/env-set.php ${ENV_ARGS} $1 $2 ${3:-}"
+  printf '%s\n' "${SECRET}" | ssh_in "${PHP} ${TOOL}/env-set.php ${ENV_ARGS} $1 $2 ${3:-}"
 }
 put_plain() { ssh_ "${PHP} ${TOOL}/env-set.php ${ENV_ARGS} set $1 '$2'"; }
 
@@ -89,7 +90,11 @@ go_live() {
     die "rolled back to ${live}. The .env change is still in the file (and the old .env is kept in env-backups); tell the session."
   fi
   ROLLBACK_TO="${live}"; LIVE_NOW="${next}"
-  say "live: ${next} (rollback target ${live})"
+  if [ "${rc}" -eq 2 ]; then
+    say "⚠️ live: ${next} — but some checks could NOT MEASURE (the CDN answered, not the site). Not a failure (DEC-t); tell the session."
+  else
+    say "live: ${next} (public checks passed; rollback target ${live})"
+  fi
 }
 
 case "${CMD}" in
@@ -124,9 +129,9 @@ mail)
   if ssh_ "${PHP} ${TOOL}/ops-check.php mail-send '${TO//\'/}'"; then
     say "✓ mail is ON. Check that inbox (and spam). Tell the session: it records F1 and VY-10 as done and reads the health board."
   else
-    step "the test failed — switching mail back OFF (log) so nothing fails silently"
-    put_plain MAIL_MAILER log
+    step "the test failed — rolling back FIRST (mail off again), then the .env"
     "${REPO}/ops/release.sh" rollback "${ROLLBACK_TO}"
+    put_plain MAIL_MAILER log || say "⚠️ could not set MAIL_MAILER back to log in the .env — tell the session before the next deploy"
     die "rolled back to ${ROLLBACK_TO} (mail off). Usually the password was mistyped: run 'ops/secrets.sh mail' again."
   fi
   ;;
@@ -169,8 +174,10 @@ heartbeat)
 # ── F2: APP_KEY into his password manager ────────────────────────────────────────────────────────
 app-key)
   command -v pbcopy >/dev/null 2>&1 || die "pbcopy not found — this step is for his Mac"
-  # ⚠️ straight from the server's .env into the clipboard: never printed, never in a variable that is echoed, never in a file
-  ssh_ "grep -E '^APP_KEY=' ~/${ROOT}/public_html/.env | tail -1 | cut -d= -f2- | tr -d '\"\\n'" | pbcopy
+  # ⚠️ straight from the server's .env into the clipboard: never printed, never in a variable that is echoed, never in a file —
+  #    and the clipboard is emptied on ANY exit (Ctrl-C, a closed window), not only after the 60 seconds
+  trap 'pbcopy < /dev/null' EXIT INT TERM HUP
+  ssh_ "grep -E '^APP_KEY=' ~/${ROOT}/public_html/.env | tail -1 | cut -d= -f2- | tr -d \"\\\"'\\n\"" | pbcopy
   N="$(pbpaste | wc -c | tr -d ' ')"
   [ "${N}" -gt 20 ] || { pbcopy < /dev/null; die "APP_KEY did not arrive — nothing copied"; }
   say "APP_KEY is on your clipboard (${N} characters, starting base64:). Paste it into your password manager NOW."

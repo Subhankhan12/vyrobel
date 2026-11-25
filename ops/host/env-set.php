@@ -129,6 +129,13 @@ switch ($mode) {
         }
         chmod($dir, 0700);
         $contents = $readStdin();
+        // ⚠️ A NEW PASSPHRASE DOES NOT OPEN OLD ARCHIVES: the previous file is KEPT (mode 600), never overwritten in silence —
+        //    every archive made before today still needs it (review 2026-11-25, finding 1).
+        $previous = null;
+        if (is_file($path)) {
+            $previous = $path.'.'.gmdate('Ymd\THis\Z').'.previous';
+            copy($path, $previous) && chmod($previous, 0600) || fail("could not keep the previous $path — nothing was written");
+        }
         $tmp = $dir.'/.tmp-'.bin2hex(random_bytes(6));
         $old = umask(0077);
         $ok = file_put_contents($tmp, $contents.PHP_EOL) !== false && chmod($tmp, 0600) && rename($tmp, $path);
@@ -141,6 +148,9 @@ switch ($mode) {
         trim((string) file_get_contents($path)) === trim($contents) || fail("$path did not read back as written");
         sprintf('%o', fileperms($path) & 0777) === '600' || fail("$path is not mode 600");
         say(basename($path).': written outside the application (mode 600) — read back');
+        if ($previous !== null) {
+            say('⚠️ the PREVIOUS one is kept as '.basename($previous).' — archives made before today still need it');
+        }
         $value = $path;   // the SETTING is the path, which is not secret
         break;
 
@@ -225,7 +235,8 @@ if (! is_dir($backupDir) && ! mkdir($backupDir, 0700, true)) {
 }
 $saved = rtrim($backupDir, '/').'/.env.'.gmdate('Ymd\THis\Z').'.before-'.$key;
 $oldMask = umask(0077);
-$tmp = dirname($envPath).'/.env.tmp-'.bin2hex(random_bytes(6));
+// the temp file sits beside the kept copies, NOT in the .env's folder — on this host that folder is the web root (L12p)
+$tmp = rtrim($backupDir, '/').'/.env.tmp-'.bin2hex(random_bytes(6));
 $ok = copy($envPath, $saved) && chmod($saved, 0600)
     && file_put_contents($tmp, $after) !== false && chmod($tmp, 0600) && rename($tmp, $envPath);
 umask($oldMask);

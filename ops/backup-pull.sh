@@ -91,21 +91,32 @@ say "kept    : $(ls "${COPIES}"/vyrobel-*.tar.gz.enc 2>/dev/null | wc -l | tr -d
 if [ "${DRILL}" -eq 1 ]; then
   # production runs MariaDB 11.8; its dump starts with a MariaDB-only command, so it is restored into MariaDB 11.8 here too —
   # this Mac's own copy, on a port of its own (3319: 3306 and 3307 belong to MySQL servers, this project's and another's)
-  MDB="${VY_DRILL_MARIADB:-/opt/homebrew/opt/mariadb@11.8}"; MDATA="${VY_DRILL_MARIADB_DATA:-/opt/homebrew/var/mariadb118}"
+  # ⚠️ its OWN data folder, made fresh and DELETED afterwards: production's rows never sit in a shared datadir's free pages (the
+  #    project's engine gate uses /opt/homebrew/var/mariadb118 — never this) — review 2026-11-25, finding 8
+  MDB="${VY_DRILL_MARIADB:-/opt/homebrew/opt/mariadb@11.8}"; MDATA="${HOME}/vyrobel-local/drill-mariadb-$$"
   MPORT="${VY_DRILL_PORT:-3319}"; MSOCK="/tmp/vyrobel-drill-${MPORT}.sock"
   [ -x "${MDB}/bin/mariadbd-safe" ] || die "no MariaDB 11.8 at ${MDB} — set VY_DRILL_MARIADB"
   STARTED=0
-  if ! "${MDB}/bin/mariadb" -h 127.0.0.1 -P "${MPORT}" -u root -e 'SELECT 1' >/dev/null 2>&1; then
-    say "drill   : starting MariaDB 11.8 on 127.0.0.1:${MPORT} for the drill"
+  if "${MDB}/bin/mariadb" --skip-ssl-verify-server-cert -h 127.0.0.1 -P "${MPORT}" -u root -e 'SELECT 1' >/dev/null 2>&1; then
+    die "something already answers on 127.0.0.1:${MPORT} — the drill uses a fresh server of its own there; free the port (VY_DRILL_PORT)"
+  fi
+  if true; then
+    "${MDB}/bin/mariadb-install-db" --no-defaults --basedir="${MDB}" --datadir="${MDATA}" --auth-root-authentication-method=normal \
+      >/dev/null 2>&1 || die "could not make the drill's own data folder (${MDATA})"
+    say "drill   : starting a fresh MariaDB 11.8 on 127.0.0.1:${MPORT} (its own data folder, deleted afterwards)"
     "${MDB}/bin/mariadbd-safe" --no-defaults --basedir="${MDB}" --datadir="${MDATA}" --port="${MPORT}" \
       --bind-address=127.0.0.1 --socket="${MSOCK}" >/dev/null 2>&1 &
     STARTED=1
-    for _ in $(seq 1 30); do "${MDB}/bin/mariadb" -h 127.0.0.1 -P "${MPORT}" -u root -e 'SELECT 1' >/dev/null 2>&1 && break; sleep 1; done
+    for _ in $(seq 1 30); do "${MDB}/bin/mariadb" --skip-ssl-verify-server-cert -h 127.0.0.1 -P "${MPORT}" -u root -e 'SELECT 1' >/dev/null 2>&1 && break; sleep 1; done
   fi
-  stop_mariadb() { [ "${STARTED}" -eq 1 ] && "${MDB}/bin/mariadb-admin" -h 127.0.0.1 -P "${MPORT}" -u root shutdown >/dev/null 2>&1 || true; }
+  stop_mariadb() {
+    [ "${STARTED}" -eq 1 ] && "${MDB}/bin/mariadb-admin" -h 127.0.0.1 -P "${MPORT}" -u root shutdown >/dev/null 2>&1 || true
+    for _ in $(seq 1 20); do [ -e "${MSOCK}" ] || break; sleep 1; done
+    case "${MDATA}" in "${HOME}/vyrobel-local/drill-mariadb-"*) rm -rf "${MDATA}" ;; esac
+  }
   trap stop_mariadb EXIT
-  V="$("${MDB}/bin/mariadb" -h 127.0.0.1 -P "${MPORT}" -u root -sN -e 'SELECT VERSION()')" || die "MariaDB did not answer on ${MPORT}"
+  V="$("${MDB}/bin/mariadb" --skip-ssl-verify-server-cert -h 127.0.0.1 -P "${MPORT}" -u root -sN -e 'SELECT VERSION()')" || die "MariaDB did not answer on ${MPORT}"
   case "${V}" in *MariaDB*) say "drill   : restoring into ${V} on 127.0.0.1:${MPORT}" ;; *) die "port ${MPORT} answered ${V}, not MariaDB — not drilling there" ;; esac
   RESTORE_AGAINST=facts RESTORE_DB_HOST=127.0.0.1 RESTORE_DB_PORT="${MPORT}" RESTORE_DB_USER=root RESTORE_DB_PASS= \
-    RESTORE_MYSQL_BIN="${MDB}/bin/mariadb" "${REPO}/ops/restore-drill.sh" "${COPIES}/${NAME}"
+    RESTORE_MYSQL_BIN="${MDB}/bin/mariadb" RESTORE_MYSQL_OPTS="--skip-ssl-verify-server-cert" "${REPO}/ops/restore-drill.sh" "${COPIES}/${NAME}"
 fi

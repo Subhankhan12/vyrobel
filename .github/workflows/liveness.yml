@@ -40,6 +40,7 @@ jobs:
           url="https://vyrobel.com/up/liveness"
           fails=0; edge=0
           for i in 1 2 3; do
+            rm -f body.txt
             code=$(curl -sS -o body.txt -w '%{http_code}' -m 30 -A 'vyrobel-liveness/1.0 (GitHub Actions)' \
                    -H 'Cache-Control: no-cache' "${url}?cb=$(date +%s)${i}" || true)
             code="${code:-000}"

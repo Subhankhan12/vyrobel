@@ -164,3 +164,19 @@ it('refuses to touch a .env that does not parse', function () {
     expect(vyEnvSet($s, ['set', 'MAIL_MAILER', 'smtp'])->getExitCode())->toBe(1);
     expect(file_get_contents($s['env']))->toBe($original);
 });
+
+it('⚠️⚠️ a NEW backup passphrase never overwrites the old one in silence: the previous file is kept (600) — old archives still need it', function () {
+    $s = vyEnvSandbox();
+    $path = $s['root'].'/secrets/backup-passphrase';
+
+    expect(vyEnvSet($s, ['secret-file', 'OPS_BACKUP_PASSPHRASE_FILE', $path], "the first passphrase, used for old archives\n")->getExitCode())->toBe(0);
+    $second = vyEnvSet($s, ['secret-file', 'OPS_BACKUP_PASSPHRASE_FILE', $path], "a second, different passphrase\n");
+
+    expect($second->getExitCode())->toBe(0, $second->getErrorOutput());
+    expect($second->getOutput())->toContain('the PREVIOUS one is kept')->not->toContain('first passphrase');
+    expect(trim((string) file_get_contents($path)))->toBe('a second, different passphrase');
+    $kept = glob($path.'.*.previous') ?: [];
+    expect($kept)->toHaveCount(1);
+    expect(trim((string) file_get_contents($kept[0])))->toBe('the first passphrase, used for old archives');
+    expect(sprintf('%o', fileperms($kept[0]) & 0777))->toBe('600');
+});
