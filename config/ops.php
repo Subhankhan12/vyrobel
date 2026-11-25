@@ -39,6 +39,10 @@ return [
     | `offsite_disk` names a filesystem disk (config/filesystems.php) each archive is also copied to. Unset → archives
     | stay on this server only, and the health board says that too (amber).
     |
+    | `offsite_pull` (2026-11-25) names an OUTSIDE MACHINE that pulls the newest archive itself (ops/backup-pull.sh over
+    | SSH: copied, proven by its checksum, and only then marked). A label, never a path or a secret. Either this or
+    | `offsite_disk` counts as an off-server copy; the marker's age decides green or amber either way.
+    |
     */
     'backup' => [
         'script' => env('OPS_BACKUP_SCRIPT', base_path('ops/backup.sh')),
@@ -46,6 +50,7 @@ return [
         'dest' => env('OPS_BACKUP_DEST', storage_path('backups')),
         'retain_days' => (int) env('OPS_BACKUP_RETAIN_DAYS', 14),
         'offsite_disk' => env('OPS_BACKUP_OFFSITE_DISK'),
+        'offsite_pull' => env('OPS_BACKUP_OFFSITE_PULL'),
     ],
 
 ];

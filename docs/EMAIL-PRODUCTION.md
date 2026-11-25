@@ -1,5 +1,22 @@
 # Production email — Hostinger mail (SMTP) · ⚠️ Postmark superseded 2026-09-25
 
+## ⚠️⚠️ 2026-11-25 (VY-10) — THE DOMAIN'S MAIL RECORDS ARE GONE, AND MAIL GOES ON WITH ONE COMMAND
+
+**Verified 2026-11-25 ≈03:16 UTC, from this Mac (its resolver AND the authoritative `ns1/ns2.dns-parking.com`) and from the
+production server itself (`dig` and PHP's `dns_get_record`):** `vyrobel.com` has **no MX, no SPF, no DKIM and no DMARC record**.
+All four were read on 2026-09-25 (below). With no MX, mail sent TO `contact@vyrobel.com` (and the `sales@` alias) has nowhere to go;
+with no SPF/DKIM/DMARC, mail FROM it would be refused or junked — and RULES Part 1 forbids switching mail on against an unverified
+domain. **His step, first:** in hPanel, set up the email DNS records for `vyrobel.com` again (Hostinger's email section offers it).
+
+**Then, his one command** (in his own Terminal — it asks for the new password at a hidden prompt; a session cannot run it):
+```
+ops/secrets.sh mail
+```
+It checks the four DNS records and the queue first (and refuses on either), asks whether the exposed `contact@` password was already
+changed in hPanel (F1), writes `MAIL_PASSWORD` and `MAIL_MAILER=smtp` through `ops/host/env-set.php` (the old `.env` kept, the write read
+back), makes it live (`recache` + `swap` + public checks, a FAIL rolls back), and sends ONE test message to an address he types. If that
+test is refused, it switches mail back off and rolls back.
+
 ## ⚠️ READ THIS FIRST — MAIL 02 (2026-09-25): THE PROVIDER IS HOSTINGER'S OWN MAIL, NOT POSTMARK
 
 The founder chose Hostinger's own mail over Postmark: he already has live mail on `vyrobel.com` there (MX →

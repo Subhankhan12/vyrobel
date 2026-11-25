@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+#  Vyrobel — THE LIVENESS ALARM WITH NO ACCOUNT (VY-12, 2026-11-25).
+#
+#  `/up/liveness` (routes/web.php) answers 200 while the scheduler AND the queue heartbeats are fresh, and 503 once
+#  either is stale (5 and 15 minutes; a failed job stops the scheduler's beat on purpose). Its own comment says the
+#  founder step: "point an external monitor at this URL". This is that monitor, with nothing to sign up for:
+#  GitHub asks the live site every 15 minutes, and a FAILED run is e-mailed by GitHub to the person who last
+#  changed this schedule — through GitHub's mail, never vyrobel.com's (which is off, and would share the failure).
+#
+#  ⚠️ IT DOES NOT REPLACE THE DEAD-MAN'S-SWITCH (OPS_HEARTBEAT_PING_URL, his Healthchecks step): GitHub's schedule is
+#     best-effort and can run late. It is the alarm that works TODAY; the ping is the faster, sharper one.
+#  ⚠️ THREE TRIES, A MINUTE APART, BEFORE IT RINGS — one slow answer must not page anyone (alert fatigue is itself a
+#     failure: a muted alarm restores the silence it replaced).
+#  ⚠️ THE CDN IS NOT THE SITE (DEC-t): an answer that is the CDN's bot check is not counted as the site failing.
+#  ⚠️ GitHub stops a public repository's schedules after 60 days with no commit; a push re-arms them.
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+name: Liveness
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: liveness
+  cancel-in-progress: false
+
+jobs:
+  liveness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Ask https://vyrobel.com/up/liveness — three tries, a minute apart
+        shell: bash
+        run: |
+          set -u
+          url="https://vyrobel.com/up/liveness"
+          fails=0; edge=0
+          for i in 1 2 3; do
+            code=$(curl -sS -o body.txt -w '%{http_code}' -m 30 -A 'vyrobel-liveness/1.0 (GitHub Actions)' \
+                   -H 'Cache-Control: no-cache' "${url}?cb=$(date +%s)${i}" || true)
+            code="${code:-000}"
+            if [ "${code}" = "200" ] && grep -q '"healthy":true' body.txt; then
+              echo "try ${i}: HTTP 200, healthy — $(head -c 400 body.txt)"
+              exit 0
+            fi
+            if [ "${code}" = "403" ] && grep -qi 'Checking your browser' body.txt; then
+              echo "try ${i}: HTTP 403 — the CDN's bot check answered, NOT the site"; edge=$((edge+1))
+            else
+              echo "try ${i}: HTTP ${code} — $(head -c 400 body.txt 2>/dev/null)"; fails=$((fails+1))
+            fi
+            if [ "${i}" -lt 3 ]; then sleep 60; fi
+          done
+          if [ "${fails}" -eq 0 ]; then
+            # every answer was the CDN's: the site could not be measured from here — said loudly, but not an outage
+            echo "::warning title=Could not measure::every answer was the CDN's bot check (${edge} of 3), not vyrobel.com"
+            exit 0
+          fi
+          echo "::error title=vyrobel.com is not healthy::${fails} of 3 tries failed. 503 = the scheduler or queue heartbeat is stale (cron stopped, or a job failed); 000/5xx = the site is down. Read the health board."
+          exit 1

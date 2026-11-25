@@ -45,6 +45,42 @@ fi
 mkdir -p "${DEST}"
 WORK="$(mktemp -d)"; trap 'rm -rf "${WORK}"' EXIT
 
+# ── THE FACTS A RESTORER CHECKS AGAINST (VY-12, 2026-11-25) ─────────────────────────────────────────
+# ⚠️ ops/restore-drill.sh used to compare a restore with the LIVE source database — which only exists on the server, so the drill
+#    could never run anywhere else, and the off-server copy could never be proven. These facts travel INSIDE the encrypted archive:
+#    every table's row count, three money sums, the first record of three money tables field by field, and the foreign-key count.
+# ⚠️ Taken BEFORE and AFTER the dump. The dump is one consistent snapshot; these queries are not part of it — so a figure that is
+#    the same before and after is the figure the dump holds, and one that moved during the dump is written as `moved` and not
+#    compared (a drill must never fail a good archive, or pass a bad one, on a row written mid-dump).
+# ⚠️ The spot-check and sum lists are the SAME as the drill's own (ops/restore-drill.sh) — a test keeps them in step.
+SPOT_PAIRS="reservations:id,reference,status,check_in,check_out,currency payouts:id,amount_minor,currency,status,owner_id owner_statements:id,net_payable_minor,gross_minor,status"
+SUM_COLS="payouts.amount_minor owner_statements.net_payable_minor folio_items.amount_minor"
+q() { mysql -sN --default-character-set=utf8mb4 ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} \
+        -u "${DB_USER:-root}" ${DB_PASS:+-p"${DB_PASS}"} "${DB_NAME}" -e "$1"; }
+facts() {
+  local tables sql="" t pair cols col tab
+  tables=$(q "SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' ORDER BY table_name;")
+  for t in ${tables}; do
+    [ -z "${sql}" ] || sql="${sql} UNION ALL "
+    sql="${sql}SELECT 'table','${t}',COUNT(*) FROM \`${t}\`"
+  done
+  [ -z "${sql}" ] || q "${sql};"
+  for col in ${SUM_COLS}; do
+    tab="${col%%.*}"
+    if printf '%s\n' ${tables} | grep -qx "${tab}"; then q "SELECT 'sum','${col}',COALESCE(SUM(${col#*.}),0) FROM \`${tab}\`;"; fi
+  done
+  for pair in ${SPOT_PAIRS}; do
+    tab="${pair%%:*}"; cols="${pair#*:}"
+    if printf '%s\n' ${tables} | grep -qx "${tab}"; then
+      q "SELECT 'spot','${tab}',CONCAT_WS('|',${cols}) FROM \`${tab}\` ORDER BY id LIMIT 1;"
+    fi
+  done
+  q "SELECT 'fks','all',COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema=DATABASE();"
+}
+
+echo "→ reading the facts (before the dump) …"
+facts > "${WORK}/facts.before"
+
 # ⚠️ --single-transaction: a CONSISTENT snapshot on InnoDB without locking the site. Without it a dump
 # taken mid-booking can contain a reservation whose folio rows are from a different instant.
 # --routines/--triggers/--events so the schema comes back whole, not just the rows.
@@ -54,7 +90,19 @@ mysqldump --single-transaction --quick --routines --triggers --events \
   ${DB_HOST:+-h "${DB_HOST}"} ${DB_PORT:+-P "${DB_PORT}"} \
   -u "${DB_USER:-root}" ${DB_PASS:+-p"${DB_PASS}"} "${DB_NAME}" > "${WORK}/database.sql"
 
+echo "→ reading the facts (after the dump) …"
+facts > "${WORK}/facts.after"
+# the same before and after → that figure; different, or only after → `moved` (not compared by the drill)
+awk -F'\t' 'NR==FNR { before[$1 FS $2] = $3; next }
+            { k = $1 FS $2; print k FS ((k in before && before[k] == $3) ? $3 : "moved") }' \
+  "${WORK}/facts.before" "${WORK}/facts.after" > "${WORK}/FACTS.txt"
+rm -f "${WORK}/facts.before" "${WORK}/facts.after"
+MOVED=$(grep -c $'\tmoved$' "${WORK}/FACTS.txt" || true)
+
 echo "→ collecting storage/app …"
+# every file's checksum, so a restore anywhere can prove each file came back byte for byte
+if command -v sha256sum >/dev/null 2>&1; then SHA=(sha256sum); else SHA=(shasum -a 256); fi
+( cd "${APP_DIR}/storage" && find app -type f -exec "${SHA[@]}" {} + ) > "${WORK}/FILES.sha256"
 tar -cf "${WORK}/storage-app.tar" -C "${APP_DIR}/storage" app
 
 # A manifest, so a restorer can tell WHAT they are holding without decrypting it first.
@@ -64,13 +112,18 @@ created_utc = ${STAMP}
 database    = ${DB_NAME}
 db_bytes    = $(wc -c < "${WORK}/database.sql")
 files_bytes = $(wc -c < "${WORK}/storage-app.tar")
+facts       = FACTS.txt — $(grep -c $'^table\t' "${WORK}/FACTS.txt" || true) tables (${MOVED} figure(s) moved during the dump, not compared)
+files_list  = FILES.sha256 — $(wc -l < "${WORK}/FILES.sha256" | tr -d ' ') files
 ⚠️ APP_KEY is NOT in this archive. Guest PII and ID documents cannot be read without it; store it separately.
 MAN
 
 ARCHIVE="${DEST}/vyrobel-${STAMP}.tar.gz.enc"
 echo "→ encrypting → ${ARCHIVE}"
-tar -czf - -C "${WORK}" database.sql storage-app.tar MANIFEST.txt \
+tar -czf - -C "${WORK}" database.sql storage-app.tar MANIFEST.txt FACTS.txt FILES.sha256 \
   | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE -out "${ARCHIVE}"
+# ⚠️ the archive's own checksum, beside it: an off-server copy is proven to be THIS file before it counts (ops/backup-pull.sh)
+( cd "${DEST}" && "${SHA[@]}" "$(basename "${ARCHIVE}")" > "$(basename "${ARCHIVE}").sha256" )
+find "${DEST}" -name 'vyrobel-*.tar.gz.enc.sha256' -type f -mtime "+${RETAIN_DAYS}" -delete 2>/dev/null || true
 
 # ⚠️ Retention runs LAST and only on this destination — a failed backup above aborts (set -e) before
 # anything is deleted, so a broken run can never prune the last good archive.

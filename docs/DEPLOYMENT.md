@@ -273,6 +273,18 @@ exists; every "absent" is a path that does not.
 
 ### 7.1 BACKUPS + A PROVEN RESTORE — ✅ BUILT 2026-08-16 (rank 1)
 
+> ⚠️⚠️ **2026-11-25 (VY-12) — THE PRODUCTION STEPS ARE NOW ONE COMMAND EACH** (his; nothing below changes):
+> - `ops/secrets.sh backup-passphrase` — HIS Terminal: the passphrase at a hidden prompt → a file OUTSIDE the application (mode 600),
+>   its PATH in `.env` (`ops/host/env-set.php`, the old `.env` kept, the write read back) → live (`recache` + `swap` + public checks)
+>   → the first `backup:run` → the Backups card's facts → optionally THIS Mac as the off-server copy.
+> - `ops/backup-pull.sh` — copies the newest archive off the server to `~/vyrobel-local/backups`, proves it by three agreeing sha256
+>   checksums (written at backup time, the server's now, this Mac's), and only then writes the server's off-server marker
+>   (`OPS_BACKUP_OFFSITE_PULL` names the machine; the card goes amber when pulls stop). `--drill` restores it here, into MariaDB 11.8.
+> - **The drill no longer needs the source database:** `ops/backup.sh` now puts `FACTS.txt` (every table's row count before AND after
+>   the dump — `moved` when they differ — the money sums, the first record of three money tables, the foreign-key count) and
+>   `FILES.sha256` (every file) INSIDE the archive, and `RESTORE_AGAINST=facts ops/restore-drill.sh <archive>` compares with those.
+>   That is what lets a copy that left the server be proven anywhere.
+
 ⚠️ **The restore is the deliverable, not the backup.** A script that produces a file proves only that a file
 was produced; `ops/restore-drill.sh` restores the archive into a **scratch database** and asserts the data
 matches. Run it after any change to either script — and periodically, because a backup nobody has restored
@@ -331,6 +343,12 @@ and add the upload. The `APP_KEY` and passphrase secret store. And a calendar re
 ---
 
 ### 7.2 SCHEDULER / QUEUE LIVENESS ALERTING — ✅ BUILT 2026-08-16 (rank 2)
+
+> ⚠️⚠️ **2026-11-25 (VY-12) — AN ALARM WITH NO ACCOUNT, AND HIS ONE COMMAND FOR THE SHARPER ONE.**
+> `.github/workflows/liveness.yml` asks `https://vyrobel.com/up/liveness` every 15 minutes (three tries a minute apart before it rings;
+> the CDN's bot check is not counted as the site failing). A failed run is e-mailed by GITHUB to whoever last changed its schedule — never
+> through vyrobel.com's mail. The dead-man's-switch below stays the sharper alarm: `ops/secrets.sh heartbeat` (his Terminal) writes
+> `OPS_HEARTBEAT_PING_URL` the same way the other secrets are written, and makes it live.
 
 ⚠️ **The failure this detects is silent.** If the §1 crontab line is missing or cron dies, all eight scheduled
 commands stop — the **GDPR 14-day guest deletion**, the **30-day ID purge** and **`payouts:run`** among them —

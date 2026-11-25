@@ -64,6 +64,25 @@ final class BackupStatus
         return is_string($disk) && $disk !== '' ? $disk : null;
     }
 
+    /**
+     * VY-12 (2026-11-25) — the off-server copy can also be PULLED: an outside machine (his laptop, `ops/backup-pull.sh`) fetches the
+     * newest archive over SSH, proves it by its checksum, and only then writes the same marker {@see markOffsiteCopied()} writes. This
+     * names that machine (`OPS_BACKUP_OFFSITE_PULL`, a label). The marker's age is the fact either way — a pull that stops happening
+     * turns the card amber by itself, exactly like a disk copy that stops.
+     */
+    public static function offsitePull(): ?string
+    {
+        $label = config('ops.backup.offsite_pull');
+
+        return is_string($label) && $label !== '' ? $label : null;
+    }
+
+    /** Is there any off-server copy arrangement at all — a disk the job copies to, or a machine that pulls? */
+    public static function offsiteConfigured(): bool
+    {
+        return self::offsiteDisk() !== null || self::offsitePull() !== null;
+    }
+
     public static function markOffsiteCopied(): void
     {
         @file_put_contents(self::dest().'/'.self::OFFSITE_MARKER, CarbonImmutable::now()->toIso8601String());
@@ -107,10 +126,10 @@ final class BackupStatus
             'age_seconds' => $age,
             'bytes' => $newest === null ? null : (int) filesize($newest),
             'healthy' => $age !== null && $age <= self::STALE_AFTER_SECONDS,
-            'offsite_configured' => self::offsiteDisk() !== null,
+            'offsite_configured' => self::offsiteConfigured(),
             'offsite_last_at' => $offsiteAt?->toIso8601String(),
             'offsite_age_seconds' => $offsiteAge,
-            'offsite_healthy' => self::offsiteDisk() !== null && $offsiteAge !== null && $offsiteAge <= self::STALE_AFTER_SECONDS,
+            'offsite_healthy' => self::offsiteConfigured() && $offsiteAge !== null && $offsiteAge <= self::STALE_AFTER_SECONDS,
         ];
     }
 }
