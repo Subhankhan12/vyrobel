@@ -1900,6 +1900,7 @@ FULL · render 929 pages × 10 languages 0 problems · 63 pages × 7 languages f
 - **Found:** the domain's email DNS records are gone (no MX/SPF/DKIM/DMARC — two vantages; F15, his first step). The host's `~/.my.cnf` outranks `MYSQL_PWD`. The SOURCE drill's `find | head -1` under pipefail could end it with no verdict (fixed).
 - **Agents:** one independent read-only reviewer on the secret-handling code (no secret path found; nine of ten points fixed in `c99b5c10`, one recorded). No parallel builders: they would test on the one shared test database (rule 7).
 - **Gates:** MySQL 5,210 / 0 on `0b1a7ad9`; MariaDB 5,211 / 0 on `c99b5c10`; PHPStan 0; Pint; money gate FULL; mutations 12/12 new (2 retired, held twice) + 7/7 older. Public checks 13/0/0 before and after; 0 error lines.
+- **Pushed (≈08:32 Baku, at his word):** `835a761f..8892f650`, three commits, a fast-forward; the four stops as in STATE; GitHub's check on `8892f650` green (run 45547481103: 5,204 passed + 7 skipped, money gate FULL); the Liveness workflow run by hand reached the site (200, healthy). The private register updated in place: VY-10 and VY-12 open, one command each.
 - **Not done / left:** his steps — F15, F1 (`ops/secrets.sh mail`), the passphrase, the drill, `APP_KEY`, optionally Healthchecks; D-HEARTBEAT-URL-IN-LOG, D-HOST-APPLEDOUBLE, D-ENV-BACKUPS-ACCUMULATE, D-SECRETS-NO-E2E.
 
 ## 2 · Mistakes to learn from (each one cited above)
