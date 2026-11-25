@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Testing\TestResponse;
 
 // ⚠️⚠️ VY-28 (audit of 2026-11-24, seen live) — THE CONTENT SECURITY POLICY ALLOWED INLINE SCRIPTS.
@@ -118,4 +120,11 @@ it('VY-28: each request gets its own nonce', function () {
     [, $b] = vy28Policy($this->get('/login'));
 
     expect($a)->not->toBeNull()->and($a)->not->toBe($b);
+});
+
+it('VY-28: the @nonce directive itself prints this request\'s nonce (compiled fresh — a cached compiled view would hide a broken directive)', function () {
+    Vite::useCspNonce('vy28-fixed-nonce-value');
+
+    expect(Blade::render('<script @nonce>var x = 1;</script>', [], deleteCachedView: true))
+        ->toBe('<script nonce="vy28-fixed-nonce-value">var x = 1;</script>');
 });

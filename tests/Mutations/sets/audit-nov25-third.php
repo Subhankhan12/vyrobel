@@ -177,7 +177,8 @@ $set = [
         'file' => 'app/Providers/AppServiceProvider.php',
         'old' => "Blade::directive('nonce', fn (): string => '<?php echo \\'nonce=\"\\'.e(\\Illuminate\\Support\\Facades\\Vite::cspNonce() ?? \\'\\').\\'\"\\'; ?>');",
         'new' => "Blade::directive('nonce', fn (): string => '');",
-        'tests' => [['file' => $vy28, 'filter' => 'on a real page of every realm']],
+        // ⚠️ aimed at the directive's own test: the page renders read COMPILED views, which a directive change does not recompile
+        'tests' => [['file' => $vy28, 'filter' => 'directive itself prints']],
     ],
 
     // ── VY-29 · marketing: no session, the sitemap, the consent's own CSRF defence ───────────────────────────────────────────────

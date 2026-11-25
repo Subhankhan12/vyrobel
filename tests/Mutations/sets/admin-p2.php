@@ -115,15 +115,9 @@ return [
         'new' => 'if ($organization === null || in_array(',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformTenantLifecycleTest.php']],
     ],
-    [
-        'id' => 'P2-M14',
-        'name' => 'sitemap ignores archive',
-        'file' => 'app/Http/Controllers/StorefrontSitemapController.php',
-        // re-anchored 2026-11-24 (VY-08 added the internal-organisation arm to this line): still removes ONLY the archive arm
-        'old' => '->where(fn ($q) => $q->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull(\'deleted_at\')->orWhere(\'is_internal\', true))',
-        'new' => '->where(fn ($q) => $q->whereIn(\'status\', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhere(\'is_internal\', true))',
-        'tests' => [['file' => 'tests/Feature/StorefrontSeoTest.php']],
-    ],
+    // P2-M14 (sitemap ignores archive) RETIRED 2026-11-25: since VY-35 the sitemap also reads StorefrontAvailability::closed() for every
+    // organisation it lists, which refuses an archived one — so the archive rule is held twice there, and removing the SQL arm alone survives
+    // truthfully (measured: 386/387, P2-M14 the one). The rule itself is mutated where it now lives: P2-M13 (StorefrontAvailability).
     [
         'id' => 'P2-M15',
         'name' => 'slug check skips archived',
