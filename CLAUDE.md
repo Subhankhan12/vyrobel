@@ -7,13 +7,16 @@ It runs on Laravel 13 · PHP 8.4 · **MariaDB 11.8.9 on production** (MySQL 8 lo
 roles in teams mode · ULIDs · Pest. **Live and public on https://vyrobel.com, with 0 customers** (15 internal test
 organisations). The map is `docs/memory/SYSTEMS.md`.
 
-**LATEST (2026-11-25) — read `docs/memory/STATE.md`'s top section first.** Live on **`rel_CV @ 1da69656`**: the audit's third
+**LATEST (2026-11-25, morning) — read `docs/memory/STATE.md`'s top section first.** Live on **`rel_CW @ c99b5c10`**: VY-10 / VY-12's
+code side — HIS steps are one command each (`ops/secrets.sh mail | backup-passphrase | heartbeat | app-key`, the secret at a hidden
+prompt), the off-server copy pulled and proven (`ops/backup-pull.sh`), the drill works away from the server, a GitHub liveness alarm.
+⚠️ **Both still wait on him — and FIRST on OPEN F15: `vyrobel.com` has NO MX/SPF/DKIM/DMARC record (V 2026-11-25).** Before it, `rel_CV @ 1da69656`: the audit's third
 batch, VY-23 … VY-35 — unpaid storefront card bookings release their room, quotes expire, the deposit is charged; report-a-problem;
 the pages no longer promise an import; statements and no-shows can run on their own (off until chosen); optional second-person
 inspection; scripts by nonce (no inline handlers — `components/vy-behaviours`); the marketing sitemap, preview image and no session;
 footer targets; the scenario canonicals; five small defects; Horizon only with Redis; operations photos private; a lapsed
 workspace's storefront closes (14 of 15 on production). **6 audit findings are still open — the list is in `OPEN.md`; VY-10 and
-VY-12 wait on his steps (F1, F13, F2, F4).** ⚠️ **D-VY23-PI-AT-CREATION must be fixed before any live Stripe key** (OPEN). Before
+VY-12 wait on his steps (F15 first, then F1, F2, F4 — one command each).** ⚠️ **D-VY23-PI-AT-CREATION must be fixed before any live Stripe key** (OPEN). Before
 it, `rel_CU @ cb83d5a5` (VY-01, VY-09, VY-11, VY-13 … VY-18) and `rel_CS @ f0b73933` (VY-02 … VY-08), both 2026-11-24.
 **Read `RULES.md` Part 1 before pushing:** push hard stop 1 (repository private) is **waived while the repository stays public** —
 his word, 2026-11-14 — and stops 2–4 still run every time.

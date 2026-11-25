@@ -22,6 +22,7 @@ founder's separate planning chat.
 | `AUDIT-P1-FIXES-2026-11-24.md` | 2026-11-24 04:31 (Baku) | `6ec09795280c9faf` | Seven findings of the audit register (VY-02 … VY-08), "fix these, test, ship live". **Done** — `rel_CS` (`../HISTORY.md`). Row added 2026-11-25 (it was missing). |
 | `AUDIT-SECOND-BATCH-2026-11-24.md` | 2026-11-24 11:53 (Baku) | `9e7475126d1561af` | VY-01, VY-09 … VY-18. **Done** except the founder's steps behind VY-10 and VY-12 (`../OPEN.md`) — `rel_CU`. Row added 2026-11-25 (it was missing). |
 | `AUDIT-THIRD-BATCH-2026-11-25.md` | 2026-11-25 01:32 (Baku) | `866c42e15be786a5` | VY-23 … VY-35 (thirteen findings), fix, test on the live server with Playwright, ship, push, update the memory; his two answers (VY-25: correct the pages; the engine swap: yes) are at its end. **Done** — `rel_CV` (`../STATE.md`). |
+| `VY10-VY12-2026-11-25.md` | 2026-11-25 06:54 (Baku) | `2c480f8d9f28d071` | VY-10 and VY-12, "make it done … make it live … update the artifact … memory and GitHub". **Code side done and live on `rel_CW`; both wait on HIS steps** (secrets and accounts — one command each; F15 first) — `../STATE.md`. |
 
 **Where a brief's premise is now out of date:**
 - `ADMIN-06.md` #5 says the mailer was `log` "until the email pass switched mail on". Mail was **never** switched on: it
